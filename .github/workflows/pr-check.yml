@@ -1,0 +1,36 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repo-hygiene:
+    name: Repo Hygiene
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check repository hygiene
+        run: bash ./scripts/check-text-files.sh
+
+  planning-baseline:
+    name: Planning Baseline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check planning baseline
+        run: bash ./scripts/check-repo.sh --skip-text-files

@@ -1,0 +1,39 @@
+name: Release Checks
+
+on:
+  push:
+    tags:
+      - 'v*-dev'
+      - 'v*-test'
+      - 'v*-release'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repo-hygiene:
+    name: Release Repo Hygiene
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check repository hygiene
+        run: bash ./scripts/check-text-files.sh
+
+  planning-baseline:
+    name: Release Planning Baseline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check planning baseline
+        run: bash ./scripts/check-repo.sh --skip-text-files
