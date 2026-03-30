@@ -64,7 +64,7 @@ grep -Fq '默认目标分支为 `dev`' "${repo_root}/.github/PULL_REQUEST_TEMPLA
   exit 1
 }
 
-for pattern in '"refs/heads/master"' '"context": "PR Checks / Repo Hygiene"' '"context": "PR Checks / Planning Baseline"'; do
+for pattern in '"refs/heads/master"' '"context": "Repo Hygiene"' '"context": "Planning Baseline"'; do
   grep -Fq "$pattern" "${repo_root}/.github/rulesets/master-protection.json" || {
     echo ".github/rulesets/master-protection.json is missing expected content: ${pattern}" >&2
     exit 1

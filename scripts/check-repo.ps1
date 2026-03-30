@@ -68,12 +68,12 @@ try {
     }
 
     $contexts = @($requiredCheckRule.parameters.required_status_checks | ForEach-Object { $_.context })
-    if ($contexts -notcontains "PR Checks / Repo Hygiene") {
-        throw "master-protection.json is missing PR Checks / Repo Hygiene required check"
+    if ($contexts -notcontains "Repo Hygiene") {
+        throw "master-protection.json is missing Repo Hygiene required check"
     }
 
-    if ($contexts -notcontains "PR Checks / Planning Baseline") {
-        throw "master-protection.json is missing PR Checks / Planning Baseline required check"
+    if ($contexts -notcontains "Planning Baseline") {
+        throw "master-protection.json is missing Planning Baseline required check"
     }
 
     $prWorkflow = Get-Content -Path ".github/workflows/pr-check.yml" -Raw
