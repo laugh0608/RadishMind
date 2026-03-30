@@ -1,6 +1,6 @@
 # GitHub Rulesets
 
-本目录存放 RadishBot 的仓库规则模板。  
+本目录存放 RadishMind 的仓库规则模板。  
 当前只维护 `master` 分支保护规则，`dev` 作为常态开发分支，不启用强制保护。
 
 ## 建议流程

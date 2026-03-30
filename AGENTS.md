@@ -1,6 +1,6 @@
-# RadishBot 协作约定
+# RadishMind 协作约定
 
-本文件为 RadishBot 仓库中的 AI 协作者与人工协作者提供统一协作规范。  
+本文件为 RadishMind 仓库中的 AI 协作者与人工协作者提供统一协作规范。  
 它只约束本仓库的工作方式，不代表其他项目，也不复用其他项目的实现边界。
 
 ## 语言规范
@@ -23,10 +23,10 @@
 
 `docs/` 是本仓库的正式文档源，当前优先级最高的文档如下：
 
-1. `docs/radishbot-product-scope.md`
-2. `docs/radishbot-architecture.md`
-3. `docs/radishbot-roadmap.md`
-4. `docs/radishbot-integration-contracts.md`
+1. `docs/radishmind-product-scope.md`
+2. `docs/radishmind-architecture.md`
+3. `docs/radishmind-roadmap.md`
+4. `docs/radishmind-integration-contracts.md`
 5. `docs/adr/0001-branch-and-pr-governance.md`
 6. `docs/devlogs/README.md`
 
@@ -42,12 +42,12 @@
 - 产品定位：`Radish` 体系下的 AI / Copilot / 模型服务独立仓库
 - 当前目标：围绕 `RadishFlow` 与 `Radish` 提供统一的多模态理解、结构化建议、问答与评测能力
 - 当前阶段：`M0/M1` 之间，重点是把仓库治理、协议、评测与服务骨架规划清楚
-- 当前工作区：只在 `D:\Code\RadishBot` 内工作
+- 当前工作区：只在当前仓库工作区内工作
 - 外部参考：`D:\Code\RadishFlow` 与 `D:\Code\Radish` 仅作为集成语义和边界参考，不在本仓库协作中跨工作区修改，除非用户明确要求
 
 ## 当前阶段产品边界
 
-- `RadishBot` 是外部智能层，不是业务真相源
+- `RadishMind` 是外部智能层，不是业务真相源
 - 面向上层项目只输出解释、诊断、结构化建议和候选动作
 - 高风险动作必须要求人工确认或规则层复核
 - 优先支持 `RadishFlow`，再逐步扩展到 `Radish`
@@ -161,7 +161,7 @@
 
 ## 常见偏航点
 
-- 不要把 `RadishBot` 定义成替代业务内核的大模型项目
+- 不要把 `RadishMind` 定义成替代业务内核的大模型项目
 - 不要在没有统一协议前让不同项目各自私接模型
 - 不要在没有评测集前只凭主观体验迭代提示词和模型
 - 不要为了追求“统一模型”而忽略项目适配层的必要差异
@@ -179,7 +179,7 @@
 示例：
 
 ```text
-docs: initialize radishbot planning baseline
+docs: initialize radishmind planning baseline
 ci: add repository governance checks
 chore: establish branch and pr conventions
 ```

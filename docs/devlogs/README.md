@@ -1,6 +1,6 @@
-# RadishBot 开发日志
+# RadishMind 开发日志
 
-本目录用于记录 `RadishBot` 的阶段性推进情况，按周维护。
+本目录用于记录 `RadishMind` 的阶段性推进情况，按周维护。
 
 命名规则：
 
