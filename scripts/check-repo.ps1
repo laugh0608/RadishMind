@@ -28,10 +28,10 @@ try {
         ".github/workflows/release-check.yml",
         "README.md",
         "docs/README.md",
-        "docs/radishbot-product-scope.md",
-        "docs/radishbot-architecture.md",
-        "docs/radishbot-roadmap.md",
-        "docs/radishbot-integration-contracts.md",
+        "docs/radishmind-product-scope.md",
+        "docs/radishmind-architecture.md",
+        "docs/radishmind-roadmap.md",
+        "docs/radishmind-integration-contracts.md",
         "docs/adr/0001-branch-and-pr-governance.md",
         "docs/devlogs/README.md",
         "docs/devlogs/2026-W14.md",
@@ -68,12 +68,12 @@ try {
     }
 
     $contexts = @($requiredCheckRule.parameters.required_status_checks | ForEach-Object { $_.context })
-    if ($contexts -notcontains "PR Checks / Repo Hygiene") {
-        throw "master-protection.json is missing PR Checks / Repo Hygiene required check"
+    if ($contexts -notcontains "Repo Hygiene") {
+        throw "master-protection.json is missing Repo Hygiene required check"
     }
 
-    if ($contexts -notcontains "PR Checks / Planning Baseline") {
-        throw "master-protection.json is missing PR Checks / Planning Baseline required check"
+    if ($contexts -notcontains "Planning Baseline") {
+        throw "master-protection.json is missing Planning Baseline required check"
     }
 
     $prWorkflow = Get-Content -Path ".github/workflows/pr-check.yml" -Raw

@@ -1,25 +1,25 @@
-# RadishBot 文档总览
+# RadishMind 文档总览
 
 更新时间：2026-03-30
 
 ## 文档目的
 
-本目录用于沉淀 `RadishBot` 的产品定位、系统架构、阶段路线和跨项目集成边界，作为后续设计与实现的真相源入口。
+本目录用于沉淀 `RadishMind` 的产品定位、系统架构、阶段路线和跨项目集成边界，作为后续设计与实现的真相源入口。
 
 当前版本已经基于对 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 的只读审查完成了一轮收口，重点不是先定实现栈，而是先把任务边界、协议、数据和评测讲清楚。
 
 ## 当前优先文档
 
-1. [产品范围与目标](D:/Code/RadishBot/docs/radishbot-product-scope.md)
-2. [系统架构草案](D:/Code/RadishBot/docs/radishbot-architecture.md)
-3. [阶段路线图](D:/Code/RadishBot/docs/radishbot-roadmap.md)
-4. [跨项目集成契约草案](D:/Code/RadishBot/docs/radishbot-integration-contracts.md)
-5. [ADR 0001: 分支与 PR 治理](D:/Code/RadishBot/docs/adr/0001-branch-and-pr-governance.md)
-6. [开发日志说明](D:/Code/RadishBot/docs/devlogs/README.md)
+1. [产品范围与目标](radishmind-product-scope.md)
+2. [系统架构草案](radishmind-architecture.md)
+3. [阶段路线图](radishmind-roadmap.md)
+4. [跨项目集成契约草案](radishmind-integration-contracts.md)
+5. [ADR 0001: 分支与 PR 治理](adr/0001-branch-and-pr-governance.md)
+6. [开发日志说明](devlogs/README.md)
 
 ## 当前规划原则
 
-- `RadishBot` 是独立仓库，不与业务仓库强耦合
+- `RadishMind` 是独立仓库，不与业务仓库强耦合
 - 优先建设统一协议、上下文打包、评测和规则框架
 - 优先支持 `RadishFlow`，但第一批能力以结构化状态与诊断解释为主，不把截图路线写成唯一入口
 - `Radish` 的第一批任务以文档问答、Console/运营辅助和内容结构化建议为主

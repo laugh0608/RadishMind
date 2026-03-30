@@ -1,10 +1,10 @@
-# RadishBot 系统架构草案
+# RadishMind 系统架构草案
 
 更新时间：2026-03-30
 
 ## 架构目标
 
-`RadishBot` 的目标架构建议冻结为六层：
+`RadishMind` 的目标架构建议冻结为六层：
 
 1. Client Adapters & Context Packers
 2. Copilot Gateway / Task Router
@@ -72,7 +72,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 
 ### 2. Copilot Gateway / Task Router
 
-作为 `RadishBot` 的统一入口服务。
+作为 `RadishMind` 的统一入口服务。
 
 职责：
 
@@ -175,7 +175,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 建议先采用如下结构：
 
 ```text
-RadishBot/
+RadishMind/
 ├─ README.md
 ├─ docs/
 ├─ contracts/

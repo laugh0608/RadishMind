@@ -1,6 +1,6 @@
 # GitHub Rulesets
 
-本目录存放 RadishBot 的仓库规则模板。  
+本目录存放 RadishMind 的仓库规则模板。  
 当前只维护 `master` 分支保护规则，`dev` 作为常态开发分支，不启用强制保护。
 
 ## 建议流程
@@ -17,10 +17,10 @@
 - 禁止 force push
 - 禁止删除分支
 - 仅允许通过 Pull Request 合并
-- 要求 `PR Checks / Repo Hygiene` 与 `PR Checks / Planning Baseline` 检查通过
+- 要求 `Repo Hygiene` 与 `Planning Baseline` 检查通过
 - `PR Checks` 当前拆分为 `Repo Hygiene` 与 `Planning Baseline` 两个 job，保留拆分式门禁
-- `master` required checks 当前按 GitHub ruleset / PR UI 实测口径配置为 `PR Checks / Repo Hygiene` 与 `PR Checks / Planning Baseline`
-- PR 页面末尾展示的 `(pull_request)` 仅表示触发事件，不属于 ruleset 中需要配置的 check context
+- `master` required checks 应按 job 名配置为 `Repo Hygiene` 与 `Planning Baseline`
+- PR 页面里可能显示 workflow 前缀或 `(pull_request)` 后缀，但这些不属于 ruleset 中需要配置的 check context
 - `PR Checks` 只响应 `pull_request -> master`
 - tag push 与手动补跑使用独立的 `Release Checks` workflow，并显式使用 `Release Repo Hygiene` 与 `Release Planning Baseline` job 名，避免与 PR required checks 混淆
 - 限制合并方式为 `squash` / `rebase`

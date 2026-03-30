@@ -34,10 +34,10 @@ required_files=(
   ".github/workflows/release-check.yml"
   "README.md"
   "docs/README.md"
-  "docs/radishbot-product-scope.md"
-  "docs/radishbot-architecture.md"
-  "docs/radishbot-roadmap.md"
-  "docs/radishbot-integration-contracts.md"
+  "docs/radishmind-product-scope.md"
+  "docs/radishmind-architecture.md"
+  "docs/radishmind-roadmap.md"
+  "docs/radishmind-integration-contracts.md"
   "docs/adr/0001-branch-and-pr-governance.md"
   "docs/devlogs/README.md"
   "docs/devlogs/2026-W14.md"
@@ -64,7 +64,7 @@ grep -Fq '默认目标分支为 `dev`' "${repo_root}/.github/PULL_REQUEST_TEMPLA
   exit 1
 }
 
-for pattern in '"refs/heads/master"' '"context": "PR Checks / Repo Hygiene"' '"context": "PR Checks / Planning Baseline"'; do
+for pattern in '"refs/heads/master"' '"context": "Repo Hygiene"' '"context": "Planning Baseline"'; do
   grep -Fq "$pattern" "${repo_root}/.github/rulesets/master-protection.json" || {
     echo ".github/rulesets/master-protection.json is missing expected content: ${pattern}" >&2
     exit 1

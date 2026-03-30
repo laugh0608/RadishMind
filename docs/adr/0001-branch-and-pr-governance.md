@@ -11,7 +11,7 @@ Accepted
 当前仓库刚进入规划与治理初始化阶段，但分支治理、PR 流程和自动化检查还未建立。  
 如果继续在 `master` 上直接累积提交，后续很难形成稳定的发布基线，也不利于多人或多代理协作。
 
-同时，`RadishBot` 当前还没有稳定的主实现栈，仓库内的检查重点不是 Rust / Python / Node 某一语言基线，而是：
+同时，`RadishMind` 当前还没有稳定的主实现栈，仓库内的检查重点不是 Rust / Python / Node 某一语言基线，而是：
 
 - 文本文档卫生
 - 治理文件齐备性
@@ -57,7 +57,7 @@ Accepted
 1. 创建远端 `dev` 分支
 2. 将默认分支切换为 `dev`，或至少把开发 PR 默认目标改为 `dev`
 3. 对 `master` 启用 branch protection / ruleset
-4. 要求 `master` 通过 `PR Checks / Repo Hygiene` 与 `PR Checks / Planning Baseline` 状态检查
+4. 要求 `master` 通过 `Repo Hygiene` 与 `Planning Baseline` 状态检查
 5. 对 `master` 开启 “Require a pull request before merging”
 6. 配置管理员仅通过 PR 绕过，不开放直接 push
 7. `dev` 当前不配置 branch protection
@@ -71,8 +71,8 @@ Accepted
 - GitHub Actions PR 检查工作流
   - `PR Checks` 当前默认只在目标分支为 `master` 的 Pull Request 上自动触发
   - 当前拆分为 `Repo Hygiene` 与 `Planning Baseline` 两个 job
-  - `master` required checks 当前按 GitHub ruleset / PR UI 实测口径配置为 `PR Checks / Repo Hygiene` / `PR Checks / Planning Baseline`
-  - PR 页面展示中的 `(pull_request)` 仅表示触发事件，不属于 ruleset 中需要手动配置的 check context
+  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Planning Baseline`
+  - PR 页面可能展示 workflow 前缀或 `(pull_request)` 后缀，但它们不属于 ruleset 中需要手动配置的 check context
   - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Planning Baseline` 独立 job 名，避免与 PR required check 名称漂移或混淆
 - 文本编码与文件格式检查脚本
 - 仓库治理基线检查脚本
