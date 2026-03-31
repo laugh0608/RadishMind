@@ -142,6 +142,13 @@
 - 在没有评测基线前频繁切换底座模型
 - 未经明确要求执行破坏性 Git 操作
 
+### 当前工具异常说明
+
+- 当前在 Codex Windows 桌面端中，`apply_patch` 对本仓库的 `contracts/` 与 `datasets/` 目录偶发且高频触发沙箱刷新故障
+- 若再次出现 `windows sandbox: setup refresh failed`，优先视为工具层异常，而不是仓库规则或文件内容本身的问题
+- 在该异常未修复前，可继续优先对 `docs/`、`scripts/` 和根目录使用 `apply_patch`
+- 若必须修改 `contracts/` 或 `datasets/` 下文件，可退回使用 shell 精准写入，但仍应保持最小改动、LF 行尾和 UTF-8 文本卫生
+
 ## 当前验证基线
 
 当前阶段以规划与仓库治理为主，验证入口按以下优先级执行：
