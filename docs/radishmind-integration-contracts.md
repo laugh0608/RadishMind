@@ -170,6 +170,9 @@
 - 已召回内容应优先以片段级 `artifacts` 传入，而不是透传整篇长文或整段论坛线程
 - 若补充论坛或 FAQ 内容，应能让响应层区分其与正式文档的来源差异
 - 当前页面已经足够回答问题时，不应继续扩张召回范围
+- 当前阶段建议把 `search_scope` 收口到 `docs`、`wiki`、`faq`、`forum`、`attachments` 这组受控枚举中，不把 `console` 内部状态本身作为本任务的检索 scope
+- 当前最小回归样本已要求召回 artifact 带 `metadata.source_type`、`metadata.page_slug`、`metadata.fragment_id`、`metadata.retrieval_rank`、`metadata.is_official`
+- `primary` artifact 应与当前 `resource.slug` 对齐；`faq` / `forum` 仅作为 supporting 或 reference 补充来源，不应抢占主证据位置
 
 ## 统一输出抽象
 

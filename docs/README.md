@@ -31,19 +31,15 @@
 
 ## 当前仍缺的关键决策
 
-- `Radish` 第一批到底先落在哪个真实入口：
-  - 文档应用问答
-  - Console 能力解释
-  - 论坛创作辅助
 - 在 `JSON Schema` 之外，是否同步生成 TypeScript 类型或其他契约产物
 - 第一批评测集的任务粒度、标注格式与通过阈值
 - 教师模型对照组、student/base 路线与推理路由策略
 - `RadishFlow` 截图/VLM 路线进入主线的触发条件
+- `Radish` 文档问答何时从 `golden_response` 对照推进到真实候选响应回灌
 
 ## 下一步优先推进
 
 1. 为 `RadishFlow` 首批 3 个任务补首批输入快照样例和评测样本。
 2. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
-3. 为 `Radish` 只选 1 个最小入口先落地，默认优先“固定文档 + 在线文档问答”。
-4. 在 `datasets/eval/` 基础上补最小回归脚本，再进入模型对照与 PoC。
-
+3. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进，优先补候选输出输入口和更多召回样本。
+4. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。

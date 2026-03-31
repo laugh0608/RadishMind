@@ -15,6 +15,8 @@
 当前已经先落地：
 
 - `eval/radishflow-task-sample.schema.json`
+- `eval/radish-task-sample.schema.json`
+- `eval/radish/*.json`
 - `eval/README.md`
 
 当前原则：
@@ -22,3 +24,4 @@
 - 优先让样本直接服务于任务卡和契约校验
 - 优先积累 `RadishFlow` 的状态优先样本
 - 在 `Radish` 首个场景收口前，不急着平铺多任务数据
+- 当前 `Radish` 文档问答样本已补最小召回输入约束与回归 runner，后续优先扩展真实样本和候选输出对照入口
