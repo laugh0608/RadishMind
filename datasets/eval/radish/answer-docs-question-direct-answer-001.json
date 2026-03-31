@@ -66,5 +66,35 @@
       "risk_level"
     ],
     "notes": "回答应直接区分鉴权和授权，不应扩展到未给出的权限细节。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "鉴权负责确认用户是谁，授权负责确认用户能做什么。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "按当前文档口径，鉴权解决身份确认，授权解决权限范围确认。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "鉴权与授权指南",
+        "locator": "artifact:wiki_document",
+        "excerpt": "鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "confidence": 0.98,
+    "risk_level": "low",
+    "requires_confirmation": false
   }
 }

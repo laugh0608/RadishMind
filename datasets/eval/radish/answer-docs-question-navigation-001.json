@@ -79,5 +79,55 @@
       "risk_level"
     ],
     "notes": "回答应优先说明附件引用格式和查看位置；若给出动作，也只能是低风险导航或补充阅读建议。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前文档建议优先使用 `attachment://{id}` 这种引用格式，再由运行时解析为真实附件地址。",
+    "answers": [
+      {
+        "kind": "navigation_answer",
+        "text": "如果你是在文档或编辑器里插入附件，优先使用系统生成的 `attachment://{id}` 引用格式，而不是手写真实地址。",
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "查看附件使用指南",
+        "rationale": "当前页面已经与附件指南相关，继续查看该页面即可确认引用格式。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "富文本编辑器说明",
+        "locator": "artifact:docs_page_related",
+        "excerpt": "在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "confidence": 0.94,
+    "risk_level": "low",
+    "requires_confirmation": false
   }
 }
