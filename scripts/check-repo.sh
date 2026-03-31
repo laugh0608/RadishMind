@@ -24,6 +24,7 @@ fi
 
 required_files=(
   "AGENTS.md"
+  "CLAUDE.md"
   "LICENSE"
   ".editorconfig"
   ".gitattributes"
@@ -98,4 +99,3 @@ for pattern in 'name: Release Checks' 'v*-dev' 'v*-test' 'v*-release' 'name: Rel
 done
 
 echo "repository baseline checks passed."
-

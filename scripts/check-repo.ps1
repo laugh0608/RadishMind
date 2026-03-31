@@ -18,6 +18,7 @@ try {
 
     $requiredFiles = @(
         "AGENTS.md",
+        "CLAUDE.md",
         "LICENSE",
         ".editorconfig",
         ".gitattributes",
@@ -107,4 +108,3 @@ try {
 finally {
     Pop-Location
 }
-
