@@ -17,4 +17,9 @@
 - 哪些字段必须出现
 - 哪些越界字段或行为不得出现
 
-当前先使用 `radishflow-task-sample.schema.json` 约束样本格式；后续再补具体样本和回归脚本。
+当前先使用以下 schema 约束样本格式：
+
+- `radishflow-task-sample.schema.json`
+- `radish-task-sample.schema.json`
+
+后续再补具体样本和回归脚本。

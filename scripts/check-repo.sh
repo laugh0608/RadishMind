@@ -38,6 +38,7 @@ required_files=(
   "docs/task-cards/radishflow-explain-diagnostics.md"
   "docs/task-cards/radishflow-suggest-flowsheet-edits.md"
   "docs/task-cards/radishflow-explain-control-plane-state.md"
+  "docs/task-cards/radish-answer-docs-question.md"
   "docs/radishmind-product-scope.md"
   "docs/radishmind-architecture.md"
   "docs/radishmind-roadmap.md"
@@ -51,6 +52,7 @@ required_files=(
   "datasets/README.md"
   "datasets/eval/README.md"
   "datasets/eval/radishflow-task-sample.schema.json"
+  "datasets/eval/radish-task-sample.schema.json"
   "scripts/check-text-files.ps1"
   "scripts/check-text-files.sh"
   "scripts/check-repo.ps1"
@@ -96,3 +98,4 @@ for pattern in 'name: Release Checks' 'v*-dev' 'v*-test' 'v*-release' 'name: Rel
 done
 
 echo "repository baseline checks passed."
+

@@ -16,7 +16,7 @@
 4. [跨项目集成契约草案](radishmind-integration-contracts.md)
 5. [ADR 0001: 分支与 PR 治理](adr/0001-branch-and-pr-governance.md)
 6. [开发日志说明](devlogs/README.md)
-7. [RadishFlow 首批任务卡](task-cards/README.md)
+7. [首批任务卡](task-cards/README.md)
 8. [统一契约文件说明](../contracts/README.md)
 9. [数据集与评测目录说明](../datasets/README.md)
 
@@ -46,3 +46,4 @@
 2. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
 3. 为 `Radish` 只选 1 个最小入口先落地，默认优先“固定文档 + 在线文档问答”。
 4. 在 `datasets/eval/` 基础上补最小回归脚本，再进入模型对照与 PoC。
+

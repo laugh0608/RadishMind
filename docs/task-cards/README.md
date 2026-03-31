@@ -1,14 +1,20 @@
-# RadishFlow 首批任务卡
+# 首批任务卡
 
 更新时间：2026-03-31
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡。
 
-当前先冻结 `RadishFlow` 的首批 3 个任务：
+当前已冻结的任务：
+
+## `RadishFlow`
 
 1. [explain_diagnostics](radishflow-explain-diagnostics.md)
 2. [suggest_flowsheet_edits](radishflow-suggest-flowsheet-edits.md)
 3. [explain_control_plane_state](radishflow-explain-control-plane-state.md)
+
+## `Radish`
+
+1. [answer_docs_question](radish-answer-docs-question.md)
 
 使用原则：
 

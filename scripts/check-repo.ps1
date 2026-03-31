@@ -32,6 +32,7 @@ try {
         "docs/task-cards/radishflow-explain-diagnostics.md",
         "docs/task-cards/radishflow-suggest-flowsheet-edits.md",
         "docs/task-cards/radishflow-explain-control-plane-state.md",
+        "docs/task-cards/radish-answer-docs-question.md",
         "docs/radishmind-product-scope.md",
         "docs/radishmind-architecture.md",
         "docs/radishmind-roadmap.md",
@@ -45,6 +46,7 @@ try {
         "datasets/README.md",
         "datasets/eval/README.md",
         "datasets/eval/radishflow-task-sample.schema.json",
+        "datasets/eval/radish-task-sample.schema.json",
         "scripts/check-text-files.ps1",
         "scripts/check-text-files.sh",
         "scripts/check-repo.ps1",
@@ -105,3 +107,4 @@ try {
 finally {
     Pop-Location
 }
+

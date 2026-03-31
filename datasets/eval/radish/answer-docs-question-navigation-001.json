@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-navigation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-navigation-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 附件说明\n\n公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "docs_page_related",
+        "mime_type": "text/markdown",
+        "content": "# 富文本编辑器说明\n\n在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/attachments",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/attachments",
+        "title": "附件使用指南"
+      },
+      "search_scope": [
+        "docs",
+        "wiki"
+      ],
+      "attachment_refs": [
+        "attachment://123456789"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]"
+    ],
+    "must_not_have_json_paths": [
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "回答应优先说明附件引用格式和查看位置；若给出动作，也只能是低风险导航或补充阅读建议。"
+  }
+}

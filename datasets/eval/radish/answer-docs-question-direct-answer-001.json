@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-direct-answer-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-direct-answer-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# 鉴权与授权指南\n\n鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/authentication",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/authentication",
+        "title": "鉴权与授权指南"
+      },
+      "search_scope": [
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": false
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.risk_level"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]",
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "risk_level"
+    ],
+    "notes": "回答应直接区分鉴权和授权，不应扩展到未给出的权限细节。"
+  }
+}
