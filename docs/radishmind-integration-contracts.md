@@ -164,6 +164,13 @@
 - 这里的 `resource` 可以指向固定文档、在线文档、论坛帖子、评论或 Console 页面
 - `viewer` 只提供最小必要身份摘要，不透传 token、cookie 或原始安全凭据
 
+当前对 `answer_docs_question` 的附加约束：
+
+- `search_scope` 应优先收口在 `docs`、`wiki` 及与当前 `resource` 直接相关的受控来源
+- 已召回内容应优先以片段级 `artifacts` 传入，而不是透传整篇长文或整段论坛线程
+- 若补充论坛或 FAQ 内容，应能让响应层区分其与正式文档的来源差异
+- 当前页面已经足够回答问题时，不应继续扩张召回范围
+
 ## 统一输出抽象
 
 建议统一响应对象命名为 `CopilotResponse`。
@@ -270,4 +277,3 @@
 - 先支持 `RadishFlow`，再让 `Radish` 逐步接入
 - 先做可消费的 JSON，再谈复杂自治代理
 - 不把 `RadishFlow` 和 `Radish` 强行拉成同一业务字段集合
-
