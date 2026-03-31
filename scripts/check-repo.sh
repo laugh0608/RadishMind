@@ -22,6 +22,8 @@ if [[ "$skip_text_files" -eq 0 ]]; then
   bash "${repo_root}/scripts/check-text-files.sh"
 fi
 
+bash "${repo_root}/scripts/check-radish-docs-qa-eval.sh"
+
 required_files=(
   "AGENTS.md"
   "CLAUDE.md"
@@ -54,6 +56,11 @@ required_files=(
   "datasets/eval/README.md"
   "datasets/eval/radishflow-task-sample.schema.json"
   "datasets/eval/radish-task-sample.schema.json"
+  "datasets/eval/radish/answer-docs-question-direct-answer-001.json"
+  "datasets/eval/radish/answer-docs-question-evidence-gap-001.json"
+  "datasets/eval/radish/answer-docs-question-navigation-001.json"
+  "scripts/check-radish-docs-qa-eval.ps1"
+  "scripts/check-radish-docs-qa-eval.sh"
   "scripts/check-text-files.ps1"
   "scripts/check-text-files.sh"
   "scripts/check-repo.ps1"

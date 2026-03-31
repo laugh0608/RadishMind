@@ -23,4 +23,9 @@
 - `radishflow-task-sample.schema.json`
 - `radish-task-sample.schema.json`
 
-后续再补具体样本和回归脚本。
+当前已补最小回归脚本：
+
+- `scripts/check-radish-docs-qa-eval.ps1`
+- `scripts/check-radish-docs-qa-eval.sh`
+
+后续再补更完整的离线回归脚本。
