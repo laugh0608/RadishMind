@@ -15,7 +15,14 @@
         "role": "primary",
         "name": "wiki_document",
         "mime_type": "text/markdown",
-        "content": "# 鉴权与授权指南\n\n鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+        "content": "# 鉴权与授权指南\n\n鉴权负责确认用户是谁，授权负责确认用户能做什么。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "guide/authentication",
+          "fragment_id": "lead",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
       }
     ],
     "context": {
@@ -40,6 +47,37 @@
       "requires_confirmation_for_actions": true
     }
   },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 0,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "wiki"
+    ],
+    "required_search_scopes": [
+      "wiki"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
   "expected_response_shape": {
     "status": "ok",
     "requires_summary": true,
@@ -63,7 +101,8 @@
     "scoring_focus": [
       "schema_validity",
       "citation_hit",
-      "risk_level"
+      "risk_level",
+      "retrieval_contract"
     ],
     "notes": "回答应直接区分鉴权和授权，不应扩展到未给出的权限细节。"
   },

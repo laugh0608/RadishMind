@@ -15,14 +15,28 @@
         "role": "primary",
         "name": "docs_page",
         "mime_type": "text/markdown",
-        "content": "# 附件说明\n\n公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+        "content": "# 附件说明\n\n公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/attachments",
+          "fragment_id": "usage",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
       },
       {
         "kind": "markdown",
         "role": "supporting",
         "name": "docs_page_related",
         "mime_type": "text/markdown",
-        "content": "# 富文本编辑器说明\n\n在编辑器中插入附件时，优先使用系统生成的引用格式。"
+        "content": "# 富文本编辑器说明\n\n在编辑器中插入附件时，优先使用系统生成的引用格式。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/rich-text-editor",
+          "fragment_id": "attachments",
+          "retrieval_rank": 2,
+          "is_official": true
+        }
       }
     ],
     "context": {
@@ -51,6 +65,40 @@
       "requires_confirmation_for_actions": true
     }
   },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 3,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "required_search_scopes": [
+      "docs"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs",
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
   "expected_response_shape": {
     "status": "ok",
     "requires_summary": true,
@@ -76,7 +124,8 @@
       "schema_validity",
       "citation_hit",
       "actionability",
-      "risk_level"
+      "risk_level",
+      "retrieval_contract"
     ],
     "notes": "回答应优先说明附件引用格式和查看位置；若给出动作，也只能是低风险导航或补充阅读建议。"
   },

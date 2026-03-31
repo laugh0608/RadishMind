@@ -60,6 +60,16 @@
 
 如果正式文档与论坛经验口径冲突，应优先以正式文档为主，并在响应里显式说明来源差异，而不是静默混合。
 
+当前阶段建议把 `search_scope` 收口在以下受控枚举内：
+
+- `docs`
+- `wiki`
+- `faq`
+- `forum`
+- `attachments`
+
+其中 `docs` / `wiki` 应作为默认主来源；`faq` / `forum` 只在正式文档证据不足时作为补充来源，不把 `console` 内部状态本身当作本任务的检索 scope。
+
 ## 召回输入规范
 
 当调用方已经完成检索时，推荐把召回结果压成“小而可引用”的输入包，而不是把整篇长文直接塞进请求。
@@ -76,6 +86,14 @@
 - `name` 能反映来源类型，例如 `wiki_document_chunk`、`docs_page_excerpt`
 - `metadata` 至少应能标识来源页面、片段序号或召回分数
 - 若来自论坛或 FAQ，必须让调用方能够在 `label` 或 `metadata` 中区分其不是正式文档
+
+当前最小回归脚本已按以下元数据键做校验，后续样本与适配器输入也应保持一致：
+
+- `metadata.source_type`
+- `metadata.page_slug`
+- `metadata.fragment_id`
+- `metadata.retrieval_rank`
+- `metadata.is_official`
 
 当前建议的片段粒度：
 
@@ -172,6 +190,7 @@
 当前阶段至少检查以下指标：
 
 - 结构合法率：响应必须通过 schema 校验
+- 召回输入合规率：召回 artifacts 与 `search_scope` 必须满足当前任务卡的边界和元数据约束
 - 直接回答率：`summary` 和主要 `answers` 必须先回答问题，而不是只复述背景
 - 引用命中率：关键结论必须能对上具体文档或片段
 - 证据克制度：证据不足时应显式降级，而不是编造确定性答案

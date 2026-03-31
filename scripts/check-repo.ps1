@@ -58,6 +58,8 @@ try {
         "datasets/eval/radish/answer-docs-question-navigation-001.json",
         "scripts/check-radish-docs-qa-eval.ps1",
         "scripts/check-radish-docs-qa-eval.sh",
+        "scripts/run-radish-docs-qa-regression.ps1",
+        "scripts/run-radish-docs-qa-regression.sh",
         "scripts/check-text-files.ps1",
         "scripts/check-text-files.sh",
         "scripts/check-repo.ps1",

@@ -10,6 +10,7 @@
     "project",
     "task",
     "input_request",
+    "retrieval_expectations",
     "expected_response_shape",
     "evaluation",
     "golden_response"
@@ -35,6 +36,9 @@
     },
     "input_request": {
       "type": "object"
+    },
+    "retrieval_expectations": {
+      "$ref": "#/$defs/retrieval_expectations"
     },
     "expected_response_shape": {
       "type": "object",
@@ -121,7 +125,8 @@
               "field_completeness",
               "citation_hit",
               "actionability",
-              "risk_level"
+              "risk_level",
+              "retrieval_contract"
             ]
           },
           "uniqueItems": true
@@ -136,6 +141,130 @@
     }
   },
   "$defs": {
+    "retrieval_expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "require_primary_artifact",
+        "max_primary_artifacts",
+        "max_supporting_artifacts",
+        "max_reference_artifacts",
+        "allowed_search_scopes",
+        "required_search_scopes",
+        "disallowed_search_scopes",
+        "allowed_primary_source_types",
+        "allowed_supporting_source_types",
+        "allowed_reference_source_types",
+        "allow_unofficial_sources",
+        "require_primary_resource_match",
+        "require_artifact_source_metadata"
+      ],
+      "properties": {
+        "require_primary_artifact": {
+          "type": "boolean"
+        },
+        "max_primary_artifacts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_supporting_artifacts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_reference_artifacts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allowed_search_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "required_search_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "disallowed_search_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "allowed_primary_source_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allowed_supporting_source_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allowed_reference_source_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allow_unofficial_sources": {
+          "type": "boolean"
+        },
+        "require_primary_resource_match": {
+          "type": "boolean"
+        },
+        "require_artifact_source_metadata": {
+          "type": "boolean"
+        }
+      }
+    },
     "golden_response": {
       "type": "object",
       "additionalProperties": false,

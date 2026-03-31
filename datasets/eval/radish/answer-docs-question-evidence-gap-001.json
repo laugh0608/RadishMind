@@ -15,7 +15,14 @@
         "role": "primary",
         "name": "wiki_document",
         "mime_type": "text/markdown",
-        "content": "# Hangfire 只读说明\n\n本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+        "content": "# Hangfire 只读说明\n\n本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "console/hangfire-readonly",
+          "fragment_id": "lead",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
       }
     ],
     "context": {
@@ -36,8 +43,7 @@
         ]
       },
       "search_scope": [
-        "wiki",
-        "console"
+        "wiki"
       ]
     },
     "tool_hints": {
@@ -49,6 +55,37 @@
       "mode": "advisory",
       "requires_confirmation_for_actions": true
     }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 0,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "wiki"
+    ],
+    "required_search_scopes": [
+      "wiki"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
   },
   "expected_response_shape": {
     "status": "partial",
@@ -74,7 +111,8 @@
       "schema_validity",
       "field_completeness",
       "citation_hit",
-      "risk_level"
+      "risk_level",
+      "retrieval_contract"
     ],
     "notes": "回答应明确说明当前证据不足以确认是否允许重试或删除 Hangfire 任务，不能把 Admin 角色直接等同于该权限。"
   },
