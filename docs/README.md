@@ -1,6 +1,6 @@
 # RadishMind 文档总览
 
-更新时间：2026-03-30
+更新时间：2026-03-31
 
 ## 文档目的
 
@@ -16,6 +16,9 @@
 4. [跨项目集成契约草案](radishmind-integration-contracts.md)
 5. [ADR 0001: 分支与 PR 治理](adr/0001-branch-and-pr-governance.md)
 6. [开发日志说明](devlogs/README.md)
+7. [RadishFlow 首批任务卡](task-cards/README.md)
+8. [统一契约文件说明](../contracts/README.md)
+9. [数据集与评测目录说明](../datasets/README.md)
 
 ## 当前规划原则
 
@@ -32,17 +35,14 @@
   - 文档应用问答
   - Console 能力解释
   - 论坛创作辅助
-- 统一协议是否先落为 JSON Schema、TypeScript 类型还是其他契约形式
+- 在 `JSON Schema` 之外，是否同步生成 TypeScript 类型或其他契约产物
 - 第一批评测集的任务粒度、标注格式与通过阈值
 - 教师模型对照组、student/base 路线与推理路由策略
 - `RadishFlow` 截图/VLM 路线进入主线的触发条件
 
 ## 下一步优先推进
 
-1. 把 `RadishFlow` 的首批 3 个任务细化成正式任务卡与评测样本：
-   - `explain_diagnostics`
-   - `suggest_flowsheet_edits`
-   - `explain_control_plane_state`
-2. 把统一 `Copilot` 协议落成可执行契约文件，而不只停留在文档描述。
+1. 为 `RadishFlow` 首批 3 个任务补首批输入快照样例和评测样本。
+2. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
 3. 为 `Radish` 只选 1 个最小入口先落地，默认优先“固定文档 + 在线文档问答”。
-4. 在引入 student 路线前，先建立最小离线评测集和回归脚本。
+4. 在 `datasets/eval/` 基础上补最小回归脚本，再进入模型对照与 PoC。

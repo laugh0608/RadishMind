@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/copilot-response.schema.json",
+  "title": "CopilotResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "project",
+    "task",
+    "summary",
+    "answers",
+    "issues",
+    "proposed_actions",
+    "citations",
+    "confidence",
+    "risk_level",
+    "requires_confirmation"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "partial",
+        "failed"
+      ]
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radishflow",
+        "radish"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/answer"
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/issue"
+      }
+    },
+    "proposed_actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/candidate_action"
+      }
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "requires_confirmation": {
+      "type": "boolean"
+    }
+  },
+  "$defs": {
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "citation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "message",
+        "severity"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "citation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "candidate_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "title",
+        "rationale",
+        "risk_level",
+        "requires_confirmation"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "candidate_edit",
+            "candidate_operation",
+            "read_only_check"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "patch": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "requires_confirmation": {
+          "type": "boolean"
+        },
+        "citation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "artifact",
+            "context",
+            "retrieval",
+            "rule"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locator": {
+          "type": "string"
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "source_uri": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/radishflow-task-sample.schema.json",
+  "title": "RadishFlowTaskEvalSample",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sample_id",
+    "project",
+    "task",
+    "input_request",
+    "expected_response_shape",
+    "evaluation"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "sample_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "const": "radishflow"
+    },
+    "task": {
+      "type": "string",
+      "enum": [
+        "explain_diagnostics",
+        "suggest_flowsheet_edits",
+        "explain_control_plane_state"
+      ]
+    },
+    "input_request": {
+      "type": "object"
+    },
+    "expected_response_shape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "requires_summary",
+        "requires_answers",
+        "requires_issues",
+        "requires_citations",
+        "allow_proposed_actions"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "partial",
+            "failed"
+          ]
+        },
+        "requires_summary": {
+          "type": "boolean"
+        },
+        "requires_answers": {
+          "type": "boolean"
+        },
+        "requires_issues": {
+          "type": "boolean"
+        },
+        "requires_citations": {
+          "type": "boolean"
+        },
+        "allow_proposed_actions": {
+          "type": "boolean"
+        },
+        "required_action_kinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_risk_level",
+        "must_have_json_paths",
+        "must_not_have_json_paths",
+        "scoring_focus"
+      ],
+      "properties": {
+        "expected_risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "must_have_json_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "must_not_have_json_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "scoring_focus": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "schema_validity",
+              "field_completeness",
+              "citation_hit",
+              "actionability",
+              "risk_level"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

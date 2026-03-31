@@ -1,12 +1,17 @@
 # RadishMind 跨项目集成契约草案
 
-更新时间：2026-03-30
+更新时间：2026-03-31
 
 ## 文档目的
 
 本文档用于冻结 `RadishMind` 与上层项目之间的第一版通用协议口径。
 
 当前目标不是一次性定死全部字段，而是先建立足够稳定的抽象，避免 `RadishFlow` 和 `Radish` 各自演化出不兼容的接入方式。
+
+当前文档口径已经同步落成仓库内真实契约文件：
+
+- `contracts/copilot-request.schema.json`
+- `contracts/copilot-response.schema.json`
 
 当前协议原则已经根据真实仓库收口为：
 
@@ -265,3 +270,4 @@
 - 先支持 `RadishFlow`，再让 `Radish` 逐步接入
 - 先做可消费的 JSON，再谈复杂自治代理
 - 不把 `RadishFlow` 和 `Radish` 强行拉成同一业务字段集合
+
