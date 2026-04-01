@@ -49,3 +49,16 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 - 常态开发分支：`dev`
 - `master` 仅作为稳定主线
 - 日常规划、设计与实现优先在 `dev` 上推进
+
+## 开发与验证环境
+
+当前仓库同时保留 Windows / PowerShell 与 Linux / WSL 两套验证入口，并要求长期保持语义一致：
+
+- Windows / PowerShell：优先使用 `pwsh ./scripts/check-repo.ps1`
+- Linux / WSL：优先使用 `./scripts/check-repo.sh`
+
+需要注意：
+
+- 当前仓库并不把 Python 作为主实现栈前提
+- 但 Linux / WSL 下运行离线评测与仓库级校验时，当前 `.sh` 链路依赖 `python3` 与 `jsonschema`
+- Windows 侧 `.ps1` 链路继续保留，不要求因为 Linux 适配而删除或替换

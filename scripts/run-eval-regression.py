@@ -7,7 +7,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import jsonschema
+try:
+    import jsonschema
+except ModuleNotFoundError:
+    print(
+        "python package 'jsonschema' is required for Linux/WSL eval runners. "
+        "Install it in the active environment before running ./scripts/check-repo.sh.",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
