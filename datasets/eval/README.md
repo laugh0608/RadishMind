@@ -51,8 +51,8 @@
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
-- Linux 下的 `.sh` runner 当前通过 `scripts/run-eval-regression.py` 提供原生校验，不再依赖 `pwsh`
-- 因此在 Linux / WSL 下执行这些 `.sh` runner 时，当前环境需要具备 `python3` 与 `jsonschema`
+- 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
+- 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
 

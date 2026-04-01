@@ -11,8 +11,8 @@ try:
     import jsonschema
 except ModuleNotFoundError:
     print(
-        "python package 'jsonschema' is required for Linux/WSL eval runners. "
-        "Install it in the active environment before running ./scripts/check-repo.sh.",
+        "python package 'jsonschema' is required for eval runners. "
+        "Install it in the active environment before running repository checks.",
         file=sys.stderr,
     )
     raise SystemExit(2)

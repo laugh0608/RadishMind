@@ -34,7 +34,7 @@
 
 ### 目标
 
-建立可以接上层项目的最小 Copilot 协议和 context packer 骨架，但不先锁定最终技术栈。
+建立可以接上层项目的最小 Copilot 协议和 context packer 骨架，并将评测、验证与模型工具链统一收口到 `Python`。
 
 ### 任务
 

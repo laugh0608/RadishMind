@@ -34,7 +34,7 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 - 直接替代 `RadishFlow` 的数值求解内核、控制面或 CAPE-OPEN 适配层
 - 直接接管 `Radish` 的 Auth / Gateway / API / Console 业务真相源
 - 让模型在无校验前提下直接写入上层项目状态
-- 在第一阶段先锁定最终技术栈或主模型路线
+- 在第一阶段先锁定最终部署形态或主模型路线
 
 ## 文档入口
 
@@ -59,6 +59,7 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 
 需要注意：
 
-- 当前仓库并不把 Python 作为主实现栈前提
-- 但 Linux / WSL 下运行离线评测与仓库级校验时，当前 `.sh` 链路依赖 `python3` 与 `jsonschema`
-- Windows 侧 `.ps1` 链路继续保留，不要求因为 Linux 适配而删除或替换
+- 当前仓库主实现栈已收口为 `Python`
+- 评测、回归、仓库级校验与后续模型/数据工具链默认以 `Python` 为核心实现
+- Windows 侧 `.ps1` 与 Linux / WSL 侧 `.sh` 继续保留，但它们当前只作为平台入口包装，不再承载核心校验逻辑
+- 当前验证链路需要可用的 Python 环境；至少应提供 `python3` 或等价 Python 启动器，以及 `jsonschema`
