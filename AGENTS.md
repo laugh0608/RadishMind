@@ -16,7 +16,7 @@
 - 若用户明确要求直接修改，且范围清晰、风险可控，则直接实施，不必先停在纯建议阶段
 - 若需求不明确，或改动会影响架构、阶段边界、协议口径、评测基线或协作规则，则先说明判断并做必要澄清
 - 修改规则、架构、协议、目录职责、阶段范围或协作文档时，优先保持与 `docs/` 中现有正式文档一致
-- 每做完一个可分割子步骤，都应进行最小验证；当前阶段的默认验证基线是 `pwsh ./scripts/check-repo.ps1`
+- 每做完一个可分割子步骤，都应进行最小验证；当前阶段的默认验证基线应优先使用当前环境的原生入口：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`，Linux / WSL 用 `./scripts/check-repo.sh`
 - 重要阶段性决策除了改代码，还应同步更新对应文档；如果属于本周重要推进，追加到周志
 
 ## 文档真相源
@@ -151,16 +151,16 @@
 
 ## 当前验证基线
 
-当前阶段以规划与仓库治理为主，验证入口按以下优先级执行：
+当前阶段以规划与仓库治理为主，验证入口按“当前环境优先”执行：
 
-1. `pwsh ./scripts/check-repo.ps1`
-2. `./scripts/check-repo.sh`
+1. Windows / PowerShell：`pwsh ./scripts/check-repo.ps1`
+2. Linux / WSL：`./scripts/check-repo.sh`
 
 补充说明：
 
-- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 当前是正式仓库级验证入口
+- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 当前是正式仓库级验证入口，需长期保持双端可用与语义一致
 - 当前阶段的基线重点是文本文件卫生、治理文件齐备性和 GitHub 规则/工作流口径一致性
-- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并优先执行 `pwsh ./scripts/check-repo.ps1`
+- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并优先执行当前环境对应的仓库级验证入口
 
 ## 当前实现约定
 
