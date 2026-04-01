@@ -144,6 +144,9 @@
         }
       }
     },
+    "candidate_response": {
+      "$ref": "#/$defs/golden_response"
+    },
     "golden_response": {
       "$ref": "#/$defs/golden_response"
     }

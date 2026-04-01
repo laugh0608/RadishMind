@@ -299,70 +299,71 @@ function Test-RequestContract {
 function Test-ResponseContract {
     param(
         $Sample,
+        $Response,
+        [string]$ResponseLabel,
         [string]$SampleName,
         [System.Collections.Generic.List[string]]$Violations
     )
 
-    $response = $Sample.golden_response
     $shape = $Sample.expected_response_shape
     $evaluation = $Sample.evaluation
-    $answers = @(Get-Array $response.answers)
-    $issues = @(Get-Array $response.issues)
-    $actions = @(Get-Array $response.proposed_actions)
-    $citations = @(Get-Array $response.citations)
+    $answers = @(Get-Array $Response.answers)
+    $issues = @(Get-Array $Response.issues)
+    $actions = @(Get-Array $Response.proposed_actions)
+    $citations = @(Get-Array $Response.citations)
 
-    if ($response.project -ne "radishflow") {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response.project must be 'radishflow'" -f $SampleName)
+    if ($Response.project -ne "radishflow") {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.project must be 'radishflow'" -f $SampleName, $ResponseLabel)
     }
 
-    if ($response.task -ne "explain_diagnostics") {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response.task must be 'explain_diagnostics'" -f $SampleName)
+    if ($Response.task -ne "explain_diagnostics") {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.task must be 'explain_diagnostics'" -f $SampleName, $ResponseLabel)
     }
 
-    if ([string]$response.status -ne [string]$shape.status) {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response.status does not match expected_response_shape.status" -f $SampleName)
+    if ([string]$Response.status -ne [string]$shape.status) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.status does not match expected_response_shape.status" -f $SampleName, $ResponseLabel)
     }
 
-    if ([string]$response.risk_level -ne [string]$evaluation.expected_risk_level) {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response.risk_level does not match evaluation.expected_risk_level" -f $SampleName)
+    if ([string]$Response.risk_level -ne [string]$evaluation.expected_risk_level) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.risk_level does not match evaluation.expected_risk_level" -f $SampleName, $ResponseLabel)
     }
 
-    if ($shape.requires_summary -and [string]::IsNullOrWhiteSpace([string]$response.summary)) {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response.summary is required" -f $SampleName)
+    if ($shape.requires_summary -and [string]::IsNullOrWhiteSpace([string]$Response.summary)) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.summary is required" -f $SampleName, $ResponseLabel)
     }
 
     if ($shape.requires_answers -and $answers.Count -lt 1) {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response must contain at least 1 answer" -f $SampleName)
+        Add-Violation -Violations $Violations -Message ("{0}: {1} must contain at least 1 answer" -f $SampleName, $ResponseLabel)
     }
 
     if ($shape.requires_issues -and $issues.Count -lt 1) {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response must contain at least 1 issue" -f $SampleName)
+        Add-Violation -Violations $Violations -Message ("{0}: {1} must contain at least 1 issue" -f $SampleName, $ResponseLabel)
     }
 
     if ($shape.requires_citations -and $citations.Count -lt 1) {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response must contain at least 1 citation" -f $SampleName)
+        Add-Violation -Violations $Violations -Message ("{0}: {1} must contain at least 1 citation" -f $SampleName, $ResponseLabel)
     }
 
     if (-not $shape.allow_proposed_actions -and $actions.Count -gt 0) {
-        Add-Violation -Violations $Violations -Message ("{0}: golden_response should not contain proposed_actions" -f $SampleName)
+        Add-Violation -Violations $Violations -Message ("{0}: {1} should not contain proposed_actions" -f $SampleName, $ResponseLabel)
     }
 
     $actualAnswerKinds = @(Get-Array $answers | ForEach-Object { [string]$_.kind })
     foreach ($requiredAnswerKind in (Get-Array $shape.required_answer_kinds | ForEach-Object { [string]$_ })) {
         if ($actualAnswerKinds -notcontains $requiredAnswerKind) {
-            Add-Violation -Violations $Violations -Message ("{0}: golden_response is missing required answer kind '{1}'" -f $SampleName, $requiredAnswerKind)
+            Add-Violation -Violations $Violations -Message ("{0}: {1} is missing required answer kind '{2}'" -f $SampleName, $ResponseLabel, $requiredAnswerKind)
         }
     }
 
     $actualActionKinds = @(Get-Array $actions | ForEach-Object { [string]$_.kind })
     foreach ($requiredKind in (Get-Array $shape.required_action_kinds | ForEach-Object { [string]$_ })) {
         if ($actualActionKinds -notcontains $requiredKind) {
-            Add-Violation -Violations $Violations -Message ("{0}: golden_response is missing required action kind '{1}'" -f $SampleName, $requiredKind)
+            Add-Violation -Violations $Violations -Message ("{0}: {1} is missing required action kind '{2}'" -f $SampleName, $ResponseLabel, $requiredKind)
         }
     }
 
-    if ($actions.Count -gt 0 -and $response.requires_confirmation -ne $true) {
-        Add-Violation -Violations $Violations -Message ("{0}: responses with proposed_actions must set requires_confirmation=true" -f $SampleName)
+    if ($actions.Count -gt 0 -and $Response.requires_confirmation -ne $true) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1} with proposed_actions must set requires_confirmation=true" -f $SampleName, $ResponseLabel)
     }
 
     $citationIds = @(Get-Array $citations | ForEach-Object { [string]$_.id })
@@ -379,12 +380,12 @@ function Test-ResponseContract {
 
     foreach ($citationId in ($referencedCitationIds | Sort-Object -Unique)) {
         if ($citationIds -notcontains $citationId) {
-            Add-Violation -Violations $Violations -Message ("{0}: referenced citation id '{1}' is missing from golden_response.citations" -f $SampleName, $citationId)
+            Add-Violation -Violations $Violations -Message ("{0}: referenced citation id '{1}' is missing from {2}.citations" -f $SampleName, $citationId, $ResponseLabel)
         }
     }
 
-    Test-PathExpectations -Document $response -Expressions (Get-Array $evaluation.must_have_json_paths) -ShouldExist $true -SampleName $SampleName -Violations $Violations
-    Test-PathExpectations -Document $response -Expressions (Get-Array $evaluation.must_not_have_json_paths) -ShouldExist $false -SampleName $SampleName -Violations $Violations
+    Test-PathExpectations -Document $Response -Expressions (Get-Array $evaluation.must_have_json_paths) -ShouldExist $true -SampleName ("{0}:{1}" -f $SampleName, $ResponseLabel) -Violations $Violations
+    Test-PathExpectations -Document $Response -Expressions (Get-Array $evaluation.must_not_have_json_paths) -ShouldExist $false -SampleName ("{0}:{1}" -f $SampleName, $ResponseLabel) -Violations $Violations
 }
 
 foreach ($requiredPath in @($sampleSchemaPath, $requestSchemaPath, $responseSchemaPath, $taskCardPath)) {
@@ -433,7 +434,12 @@ foreach ($sampleFile in $sampleFiles) {
         Test-DocumentAgainstSchema -Document $sample.input_request -SchemaPath $requestSchemaPath -DocumentName ("{0} input_request" -f $sampleName) -Violations $violations
         Test-DocumentAgainstSchema -Document $sample.golden_response -SchemaPath $responseSchemaPath -DocumentName ("{0} golden_response" -f $sampleName) -Violations $violations
         Test-RequestContract -Sample $sample -SampleName $sampleName -Violations $violations
-        Test-ResponseContract -Sample $sample -SampleName $sampleName -Violations $violations
+        Test-ResponseContract -Sample $sample -Response $sample.golden_response -ResponseLabel "golden_response" -SampleName $sampleName -Violations $violations
+
+        if ($null -ne $sample.candidate_response) {
+            Test-DocumentAgainstSchema -Document $sample.candidate_response -SchemaPath $responseSchemaPath -DocumentName ("{0} candidate_response" -f $sampleName) -Violations $violations
+            Test-ResponseContract -Sample $sample -Response $sample.candidate_response -ResponseLabel "candidate_response" -SampleName $sampleName -Violations $violations
+        }
     }
 
     if ($violations.Count -gt 0) {

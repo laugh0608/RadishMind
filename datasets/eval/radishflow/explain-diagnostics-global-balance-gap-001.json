@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-diagnostics-global-balance-gap-001",
+  "project": "radishflow",
+  "task": "explain_diagnostics",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-explain-diag-global-balance-gap-001",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-003",
+          "units": [
+            {
+              "id": "mixer-1",
+              "kind": "Mixer",
+              "name": "Blend Mixer"
+            },
+            {
+              "id": "cooler-1",
+              "kind": "Cooler",
+              "name": "Product Cooler"
+            }
+          ],
+          "streams": [
+            {
+              "id": "feed-a",
+              "name": "Feed A",
+              "target_unit_id": "mixer-1"
+            },
+            {
+              "id": "blend-out",
+              "name": "Blend Outlet",
+              "source_unit_id": "mixer-1",
+              "target_unit_id": "cooler-1"
+            },
+            {
+              "id": "product-out",
+              "name": "Product Outlet",
+              "source_unit_id": "cooler-1"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 31,
+      "diagnostic_scope": "global",
+      "diagnostic_summary": {
+        "error_count": 2,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "MATERIAL_BALANCE_INCOMPLETE",
+          "message": "The flowsheet has at least one outlet stream without a closed material balance.",
+          "severity": "error",
+          "target_type": "document",
+          "target_id": "flowsheet-003"
+        },
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Product Outlet is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "product-out"
+        }
+      ],
+      "solve_session": {
+        "status": "failed"
+      },
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-01T02:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": false,
+    "required_answer_kinds": [
+      "phenomenon",
+      "cause_explanation",
+      "impact"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.answers[1]",
+      "$.answers[2]",
+      "$.issues[0].code=\"MATERIAL_BALANCE_INCOMPLETE\"",
+      "$.issues[1].code=\"STREAM_DISCONNECTED\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "risk_level",
+      "fact_grounding"
+    ],
+    "notes": "回答应把它明确解释为全局诊断，不应臆测某一个单元是唯一根因。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前 flowsheet 存在全局拓扑与物料平衡问题，其中 Product Outlet 未形成闭合下游链路。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前不是单个选中对象的问题，而是整张 flowsheet 同时出现了物料平衡不完整和流股未闭合的全局诊断。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "按现有证据，Product Outlet 没有接到下游消费端或导出端，这足以解释为什么当前拓扑会被判定为不完整，但还不能把责任缩成某一个单元本体故障。",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-1"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在全局链路闭合前，整个 flowsheet 的相关平衡与结果解释都不应被视为完整。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "MATERIAL_BALANCE_INCOMPLETE",
+        "message": "当前 flowsheet 存在未闭合的物料平衡。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1"
+        ]
+      },
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Product Outlet 未连接到下游消费端或导出端。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 MATERIAL_BALANCE_INCOMPLETE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "The flowsheet has at least one outlet stream without a closed material balance."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Product Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / Product Outlet",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "Product Outlet 只有 source_unit_id，没有 downstream consumer 或 export sink。"
+      }
+    ],
+    "confidence": 0.92,
+    "risk_level": "low",
+    "requires_confirmation": false
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前 flowsheet 的全局诊断说明链路未闭合：Product Outlet 没有形成完整下游去向，并连带造成物料平衡不完整。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前问题属于全局诊断范围，而不是某一个被选中对象的局部异常；系统同时报告了物料平衡不完整和流股未连接。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "现有证据表明 Product Outlet 没有接到下游消费端或导出端，这可以直接解释当前拓扑为何被判定为不完整。",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-1"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在下游链路闭合前，相关物料平衡与结果解释都只能视为未完成状态。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "MATERIAL_BALANCE_INCOMPLETE",
+        "message": "当前 flowsheet 存在未闭合的物料平衡。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1"
+        ]
+      },
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Product Outlet 未连接到下游消费端或导出端。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 MATERIAL_BALANCE_INCOMPLETE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "The flowsheet has at least one outlet stream without a closed material balance."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Product Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / Product Outlet",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "Product Outlet 只有 source_unit_id，没有 downstream consumer 或 export sink。"
+      }
+    ],
+    "confidence": 0.9,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
