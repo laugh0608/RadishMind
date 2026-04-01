@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-03-31
+更新时间：2026-04-01
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -28,6 +28,10 @@
 
 当前已补最小回归脚本：
 
+- `scripts/run-radishflow-diagnostics-regression.ps1`
+- `scripts/run-radishflow-diagnostics-regression.sh`
+- `scripts/check-radishflow-diagnostics-eval.ps1`
+- `scripts/check-radishflow-diagnostics-eval.sh`
 - `scripts/run-radish-docs-qa-regression.ps1`
 - `scripts/run-radish-docs-qa-regression.sh`
 - `scripts/check-radish-docs-qa-eval.ps1`
@@ -35,8 +39,10 @@
 
 关系说明：
 
+- `run-radishflow-diagnostics-regression.*` 负责执行 `RadishFlow explain_diagnostics` 样本回归
+- `check-radishflow-diagnostics-eval.*` 负责把该回归接入仓库基线
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
-- `check-repo.*` 继续通过 `check-radish-docs-qa-eval.*` 把该回归纳入仓库级校验链路
+- `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
 
 后续再补更完整的离线回归脚本和真实候选输出对照输入。

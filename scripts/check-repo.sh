@@ -23,6 +23,7 @@ if [[ "$skip_text_files" -eq 0 ]]; then
 fi
 
 bash "${repo_root}/scripts/check-radish-docs-qa-eval.sh"
+bash "${repo_root}/scripts/check-radishflow-diagnostics-eval.sh"
 
 required_files=(
   "AGENTS.md"
@@ -56,11 +57,17 @@ required_files=(
   "datasets/eval/README.md"
   "datasets/eval/radishflow-task-sample.schema.json"
   "datasets/eval/radish-task-sample.schema.json"
+  "datasets/eval/radishflow/explain-diagnostics-stream-spec-missing-001.json"
+  "datasets/eval/radishflow/explain-diagnostics-unit-not-converged-001.json"
   "datasets/eval/radish/answer-docs-question-direct-answer-001.json"
   "datasets/eval/radish/answer-docs-question-evidence-gap-001.json"
   "datasets/eval/radish/answer-docs-question-navigation-001.json"
+  "scripts/check-radishflow-diagnostics-eval.ps1"
+  "scripts/check-radishflow-diagnostics-eval.sh"
   "scripts/check-radish-docs-qa-eval.ps1"
   "scripts/check-radish-docs-qa-eval.sh"
+  "scripts/run-radishflow-diagnostics-regression.ps1"
+  "scripts/run-radishflow-diagnostics-regression.sh"
   "scripts/run-radish-docs-qa-regression.ps1"
   "scripts/run-radish-docs-qa-regression.sh"
   "scripts/check-text-files.ps1"

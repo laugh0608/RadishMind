@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-diagnostics-unit-not-converged-001",
+  "project": "radishflow",
+  "task": "explain_diagnostics",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-explain-diag-unit-not-converged-001",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-002",
+          "units": [
+            {
+              "id": "reactor-1",
+              "kind": "Reactor",
+              "name": "Main Reactor"
+            }
+          ],
+          "streams": [
+            {
+              "id": "feed-reactor-1",
+              "name": "Reactor Feed",
+              "target_unit_id": "reactor-1",
+              "specs": {
+                "flow_kmol_per_h": 120
+              }
+            },
+            {
+              "id": "product-reactor-1",
+              "name": "Reactor Product",
+              "source_unit_id": "reactor-1"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 27,
+      "selected_unit_ids": [
+        "reactor-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "UNIT_NOT_CONVERGED",
+          "message": "Reactor 1 failed to converge within the iteration limit.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "reactor-1"
+        },
+        {
+          "code": "INLET_STATE_INCOMPLETE",
+          "message": "Reactor 1 inlet stream is missing a complete phase state.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "feed-reactor-1"
+        }
+      ],
+      "solve_session": {
+        "status": "failed",
+        "iteration_limit": 25
+      },
+      "latest_snapshot": {
+        "solver_status": "not_converged",
+        "residual_norm": 0.38,
+        "last_updated": "2026-03-31T09:20:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": false,
+    "required_answer_kinds": [
+      "phenomenon",
+      "cause_explanation",
+      "impact"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.answers[1]",
+      "$.answers[2]",
+      "$.issues[0].code=\"UNIT_NOT_CONVERGED\"",
+      "$.issues[1].code=\"ROOT_CAUSE_UNCONFIRMED\"",
+      "$.citations[0]",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "回答应明确区分已观察到的未收敛事实和对入口状态不完整的候选根因推断。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前选中的 Reactor 1 未收敛；现有证据指向入口状态不完整，但还不能把它断言为唯一根因。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前现象是 Reactor 1 在迭代上限内仍未收敛，求解快照也显示求解状态保持为 not_converged。",
+        "citation_ids": [
+          "diag-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "现有 warning 说明入口流股状态不完整，这可以作为候选原因之一，但当前证据还不足以确认它就是唯一根因。",
+        "citation_ids": [
+          "diag-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在根因进一步确认前，当前单元及其下游依赖结果都应视为不稳定，不适合被当成可靠计算结果继续解释。",
+        "citation_ids": [
+          "diag-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_NOT_CONVERGED",
+        "message": "Reactor 1 在当前迭代上限内未收敛。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "ROOT_CAUSE_UNCONFIRMED",
+        "message": "当前证据不足以确认入口状态不完整就是未收敛的唯一根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_NOT_CONVERGED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Reactor 1 failed to converge within the iteration limit."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 INLET_STATE_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Reactor 1 inlet stream is missing a complete phase state."
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=not_converged, residual_norm=0.38"
+      }
+    ],
+    "confidence": 0.84,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

@@ -11,7 +11,8 @@
     "task",
     "input_request",
     "expected_response_shape",
-    "evaluation"
+    "evaluation",
+    "golden_response"
   ],
   "properties": {
     "schema_version": {
@@ -72,6 +73,14 @@
         "allow_proposed_actions": {
           "type": "boolean"
         },
+        "required_answer_kinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
         "required_action_kinds": {
           "type": "array",
           "items": {
@@ -123,13 +132,196 @@
               "field_completeness",
               "citation_hit",
               "actionability",
-              "risk_level"
+              "risk_level",
+              "fact_grounding",
+              "hypothesis_labeling"
             ]
           },
           "uniqueItems": true
         },
         "notes": {
           "type": "string"
+        }
+      }
+    },
+    "golden_response": {
+      "$ref": "#/$defs/golden_response"
+    }
+  },
+  "$defs": {
+    "golden_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "status",
+        "project",
+        "task",
+        "summary",
+        "answers",
+        "issues",
+        "proposed_actions",
+        "citations",
+        "confidence",
+        "risk_level",
+        "requires_confirmation"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "partial",
+            "failed"
+          ]
+        },
+        "project": {
+          "type": "string",
+          "const": "radishflow"
+        },
+        "task": {
+          "type": "string",
+          "enum": [
+            "explain_diagnostics",
+            "suggest_flowsheet_edits",
+            "explain_control_plane_state"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "minLength": 1
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "citation_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            }
+          }
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "message",
+              "severity"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ]
+              },
+              "citation_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            }
+          }
+        },
+        "proposed_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "kind",
+              "label"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "artifact",
+                  "context",
+                  "retrieval",
+                  "rule"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string"
+              },
+              "excerpt": {
+                "type": "string"
+              },
+              "source_uri": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "requires_confirmation": {
+          "type": "boolean"
         }
       }
     }
