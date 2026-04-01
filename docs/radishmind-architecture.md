@@ -128,7 +128,9 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 
 - `RadishFlow` 第一阶段不应把全部任务都压成截图推理；结构化状态和诊断解释优先
 - `Radish` 第一阶段以文档、内容和 Console 知识问答为主，VLM 只在附件或截图理解场景补充
-- `minimind-v` 当前更适合作为 student/base 候选和实验底座，而不是预设主模型
+- `minimind-v` 当前作为默认 `student/base` 主线，承接领域适配、训练实验与后续部署路线
+- `Qwen2.5-VL` 当前作为默认 `teacher` / 多模态强基线，优先承担复杂图文任务 PoC、标注参考与蒸馏输入
+- `SmolVLM` 当前作为轻量本地对照组，优先承担低资源回归与部署下限比较
 
 ### 5. Rule Validation & Response Builder
 
