@@ -15,7 +15,7 @@ if ([string]::IsNullOrWhiteSpace($SampleDir)) {
 $sampleSchemaPath = Join-Path $repoRoot "datasets/eval/radishflow-task-sample.schema.json"
 $requestSchemaPath = Join-Path $repoRoot "contracts/copilot-request.schema.json"
 $responseSchemaPath = Join-Path $repoRoot "contracts/copilot-response.schema.json"
-$taskCardPath = Join-Path $repoRoot "docs/task-cards/radishflow-explain-diagnostics.md"
+$taskCardPath = Join-Path $repoRoot "docs/task-cards/radishflow-suggest-flowsheet-edits.md"
 
 function Add-Violation {
     param(
@@ -228,6 +228,31 @@ function Test-DocumentAgainstSchema {
     }
 }
 
+function Get-RiskRank {
+    param([string]$RiskLevel)
+
+    switch ($RiskLevel) {
+        "low" { return 1 }
+        "medium" { return 2 }
+        "high" { return 3 }
+        default { return 0 }
+    }
+}
+
+function Get-PropertyCount {
+    param($Object)
+
+    if ($null -eq $Object) {
+        return 0
+    }
+
+    if ($Object -is [System.Collections.IDictionary]) {
+        return $Object.Count
+    }
+
+    return @($Object.PSObject.Properties).Count
+}
+
 function Test-RequestContract {
     param(
         $Sample,
@@ -247,8 +272,8 @@ function Test-RequestContract {
         Add-Violation -Violations $Violations -Message ("{0}: input_request.project must be 'radishflow'" -f $SampleName)
     }
 
-    if ($request.task -ne "explain_diagnostics") {
-        Add-Violation -Violations $Violations -Message ("{0}: input_request.task must be 'explain_diagnostics'" -f $SampleName)
+    if ($request.task -ne "suggest_flowsheet_edits") {
+        Add-Violation -Violations $Violations -Message ("{0}: input_request.task must be 'suggest_flowsheet_edits'" -f $SampleName)
     }
 
     if ($primaryArtifacts.Count -ne 1) {
@@ -273,26 +298,12 @@ function Test-RequestContract {
         Add-Violation -Violations $Violations -Message ("{0}: context.document_revision is required" -f $SampleName)
     }
 
-    if ($null -eq $context.diagnostic_summary -and $diagnostics.Count -eq 0) {
-        Add-Violation -Violations $Violations -Message ("{0}: context must include diagnostic_summary or diagnostics" -f $SampleName)
-    }
-
     if ($diagnostics.Count -eq 0) {
-        Add-Violation -Violations $Violations -Message ("{0}: explain_diagnostics samples must include at least one diagnostics entry" -f $SampleName)
+        Add-Violation -Violations $Violations -Message ("{0}: suggest_flowsheet_edits samples must include diagnostics" -f $SampleName)
     }
 
-    foreach ($diagnostic in $diagnostics) {
-        if ([string]::IsNullOrWhiteSpace([string]$diagnostic.message)) {
-            Add-Violation -Violations $Violations -Message ("{0}: each diagnostic must include message" -f $SampleName)
-        }
-
-        if ([string]::IsNullOrWhiteSpace([string]$diagnostic.severity)) {
-            Add-Violation -Violations $Violations -Message ("{0}: each diagnostic must include severity" -f $SampleName)
-        }
-    }
-
-    if ($selectedUnitIds.Count -eq 0 -and $selectedStreamIds.Count -eq 0 -and [string]$context.diagnostic_scope -ne "global") {
-        Add-Violation -Violations $Violations -Message ("{0}: request must include selected_unit_ids, selected_stream_ids, or diagnostic_scope='global'" -f $SampleName)
+    if ($selectedUnitIds.Count -eq 0 -and $selectedStreamIds.Count -eq 0) {
+        Add-Violation -Violations $Violations -Message ("{0}: request must include selected_unit_ids or selected_stream_ids" -f $SampleName)
     }
 }
 
@@ -316,8 +327,8 @@ function Test-ResponseContract {
         Add-Violation -Violations $Violations -Message ("{0}: {1}.project must be 'radishflow'" -f $SampleName, $ResponseLabel)
     }
 
-    if ($Response.task -ne "explain_diagnostics") {
-        Add-Violation -Violations $Violations -Message ("{0}: {1}.task must be 'explain_diagnostics'" -f $SampleName, $ResponseLabel)
+    if ($Response.task -ne "suggest_flowsheet_edits") {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.task must be 'suggest_flowsheet_edits'" -f $SampleName, $ResponseLabel)
     }
 
     if ([string]$Response.status -ne [string]$shape.status) {
@@ -344,15 +355,8 @@ function Test-ResponseContract {
         Add-Violation -Violations $Violations -Message ("{0}: {1} must contain at least 1 citation" -f $SampleName, $ResponseLabel)
     }
 
-    if (-not $shape.allow_proposed_actions -and $actions.Count -gt 0) {
-        Add-Violation -Violations $Violations -Message ("{0}: {1} should not contain proposed_actions" -f $SampleName, $ResponseLabel)
-    }
-
-    $actualAnswerKinds = @(Get-Array $answers | ForEach-Object { [string]$_.kind })
-    foreach ($requiredAnswerKind in (Get-Array $shape.required_answer_kinds | ForEach-Object { [string]$_ })) {
-        if ($actualAnswerKinds -notcontains $requiredAnswerKind) {
-            Add-Violation -Violations $Violations -Message ("{0}: {1} is missing required answer kind '{2}'" -f $SampleName, $ResponseLabel, $requiredAnswerKind)
-        }
+    if ($actions.Count -lt 1) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1} must contain at least 1 proposed_action" -f $SampleName, $ResponseLabel)
     }
 
     $actualActionKinds = @(Get-Array $actions | ForEach-Object { [string]$_.kind })
@@ -362,8 +366,47 @@ function Test-ResponseContract {
         }
     }
 
-    if ($actions.Count -gt 0 -and $Response.requires_confirmation -ne $true) {
-        Add-Violation -Violations $Violations -Message ("{0}: {1} with proposed_actions must set requires_confirmation=true" -f $SampleName, $ResponseLabel)
+    $highestActionRisk = 0
+    $candidateEditCount = 0
+    foreach ($action in $actions) {
+        $highestActionRisk = [Math]::Max($highestActionRisk, (Get-RiskRank -RiskLevel ([string]$action.risk_level)))
+
+        if ([string]$action.kind -ne "candidate_edit") {
+            Add-Violation -Violations $Violations -Message ("{0}: {1} actions must remain candidate_edit for this task" -f $SampleName, $ResponseLabel)
+            continue
+        }
+
+        $candidateEditCount += 1
+
+        if ($null -eq $action.target) {
+            Add-Violation -Violations $Violations -Message ("{0}: {1} candidate_edit must include target" -f $SampleName, $ResponseLabel)
+        }
+        elseif ([string]::IsNullOrWhiteSpace([string]$action.target.type) -or [string]::IsNullOrWhiteSpace([string]$action.target.id)) {
+            Add-Violation -Violations $Violations -Message ("{0}: {1} candidate_edit target must include non-empty type and id" -f $SampleName, $ResponseLabel)
+        }
+
+        if ($null -eq $action.patch) {
+            Add-Violation -Violations $Violations -Message ("{0}: {1} candidate_edit must include patch" -f $SampleName, $ResponseLabel)
+        }
+        elseif ((Get-PropertyCount -Object $action.patch) -lt 1) {
+            Add-Violation -Violations $Violations -Message ("{0}: {1} candidate_edit patch must not be empty" -f $SampleName, $ResponseLabel)
+        }
+
+        if ($action.requires_confirmation -ne $true) {
+            Add-Violation -Violations $Violations -Message ("{0}: {1} candidate_edit must set requires_confirmation=true" -f $SampleName, $ResponseLabel)
+        }
+    }
+
+    if ($candidateEditCount -lt 1) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1} must contain at least 1 candidate_edit" -f $SampleName, $ResponseLabel)
+    }
+
+    if ($Response.requires_confirmation -ne $true) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.requires_confirmation must be true when proposed_actions exist" -f $SampleName, $ResponseLabel)
+    }
+
+    if ((Get-RiskRank -RiskLevel ([string]$Response.risk_level)) -ne $highestActionRisk) {
+        Add-Violation -Violations $Violations -Message ("{0}: {1}.risk_level must equal the highest proposed_action risk" -f $SampleName, $ResponseLabel)
     }
 
     $citationIds = @(Get-Array $citations | ForEach-Object { [string]$_.id })
@@ -412,7 +455,7 @@ else {
 }
 
 if ($sampleFiles.Count -eq 0) {
-    throw "no sample files found for RadishFlow diagnostics regression"
+    throw "no sample files found for RadishFlow suggest edits regression"
 }
 
 $allViolations = New-Object System.Collections.Generic.List[string]
@@ -430,7 +473,7 @@ foreach ($sampleFile in $sampleFiles) {
         $sample = $null
     }
 
-    if ($null -ne $sample -and [string]$sample.task -eq "explain_diagnostics") {
+    if ($null -ne $sample -and [string]$sample.task -eq "suggest_flowsheet_edits") {
         $matchedSampleCount += 1
         Test-DocumentAgainstSchema -Document $sample -SchemaPath $sampleSchemaPath -DocumentName ("{0} sample" -f $sampleName) -Violations $violations
         Test-DocumentAgainstSchema -Document $sample.input_request -SchemaPath $requestSchemaPath -DocumentName ("{0} input_request" -f $sampleName) -Violations $violations
@@ -463,7 +506,7 @@ foreach ($sampleFile in $sampleFiles) {
 }
 
 if ($matchedSampleCount -eq 0) {
-    throw "no explain_diagnostics sample files found for RadishFlow diagnostics regression"
+    throw "no suggest_flowsheet_edits sample files found for RadishFlow suggest edits regression"
 }
 
 if ($allViolations.Count -gt 0) {
@@ -471,8 +514,8 @@ if ($allViolations.Count -gt 0) {
         exit 1
     }
 
-    Write-Warning ("radishflow diagnostics regression found {0} violation(s)." -f $allViolations.Count)
+    Write-Warning ("radishflow suggest edits regression found {0} violation(s)." -f $allViolations.Count)
     return
 }
 
-Write-Host "radishflow diagnostics regression passed."
+Write-Host "radishflow suggest edits regression passed."

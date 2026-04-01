@@ -14,7 +14,8 @@
 - 输入请求是什么
 - 召回输入应满足哪些边界与元数据约束
 - 期望输出应满足哪些结构约束
-- 一份可作为对照基线的 golden_response`n- 可选的 candidate_response，用于接入真实候选输出或模拟模型输出
+- 一份可作为对照基线的 `golden_response`
+- 可选的 `candidate_response`，用于接入真实候选输出或模拟模型输出
 - 风险等级应如何判定
 - 哪些字段必须出现
 - 哪些越界字段或行为不得出现
@@ -32,6 +33,10 @@
 - `scripts/run-radishflow-diagnostics-regression.sh`
 - `scripts/check-radishflow-diagnostics-eval.ps1`
 - `scripts/check-radishflow-diagnostics-eval.sh`
+- `scripts/run-radishflow-suggest-edits-regression.ps1`
+- `scripts/run-radishflow-suggest-edits-regression.sh`
+- `scripts/check-radishflow-suggest-edits-eval.ps1`
+- `scripts/check-radishflow-suggest-edits-eval.sh`
 - `scripts/run-radish-docs-qa-regression.ps1`
 - `scripts/run-radish-docs-qa-regression.sh`
 - `scripts/check-radish-docs-qa-eval.ps1`
@@ -41,10 +46,13 @@
 
 - `run-radishflow-diagnostics-regression.*` 负责执行 `RadishFlow explain_diagnostics` 样本回归
 - `check-radishflow-diagnostics-eval.*` 负责把该回归接入仓库基线
+- `run-radishflow-suggest-edits-regression.*` 负责执行 `RadishFlow suggest_flowsheet_edits` 样本回归
+- `check-radishflow-suggest-edits-eval.*` 负责把候选编辑回归接入仓库基线
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
+- Linux 下的 `.sh` runner 当前通过 `scripts/run-eval-regression.py` 提供原生校验，不再依赖 `pwsh`
 
-RadishFlow 的回归 runner 当前已支持样本内可选 candidate_response 校验，用于为后续真实模型输出接入预留稳定输入口。
+`RadishFlow` 的回归 runner 当前已支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
 
 后续再补更完整的离线回归脚本和真实候选输出对照输入。
