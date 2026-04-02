@@ -62,4 +62,6 @@
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
 
+`Radish` 的 docs QA runner 当前也已支持样本内可选 `candidate_response` 校验，方便在保持召回输入约束不变的前提下接入真实候选回答。
+
 后续再补更完整的离线回归脚本和真实候选输出对照输入。

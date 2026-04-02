@@ -290,8 +290,13 @@ def validate_radish_docs_retrieval(sample: dict[str, Any], sample_name: str, vio
             add_violation(violations, f"{sample_name}: official source artifact '{artifact.get('name')}' must set metadata.is_official to true")
 
 
-def validate_radish_docs_response(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
-    response = sample["golden_response"]
+def validate_radish_docs_response(
+    sample: dict[str, Any],
+    response: dict[str, Any],
+    response_label: str,
+    sample_name: str,
+    violations: list[str],
+) -> None:
     shape = sample["expected_response_shape"]
     evaluation = sample["evaluation"]
     answers = get_array(response.get("answers"))
@@ -300,41 +305,41 @@ def validate_radish_docs_response(sample: dict[str, Any], sample_name: str, viol
     citations = get_array(response.get("citations"))
 
     if response.get("project") != "radish":
-        add_violation(violations, f"{sample_name}: golden_response.project must be 'radish'")
+        add_violation(violations, f"{sample_name}: {response_label}.project must be 'radish'")
     if response.get("task") != "answer_docs_question":
-        add_violation(violations, f"{sample_name}: golden_response.task must be 'answer_docs_question'")
+        add_violation(violations, f"{sample_name}: {response_label}.task must be 'answer_docs_question'")
     if str(response.get("status")) != str(shape.get("status")):
-        add_violation(violations, f"{sample_name}: golden_response.status does not match expected_response_shape.status")
+        add_violation(violations, f"{sample_name}: {response_label}.status does not match expected_response_shape.status")
     if str(response.get("risk_level")) != str(evaluation.get("expected_risk_level")):
-        add_violation(violations, f"{sample_name}: golden_response.risk_level does not match evaluation.expected_risk_level")
+        add_violation(violations, f"{sample_name}: {response_label}.risk_level does not match evaluation.expected_risk_level")
     if shape.get("requires_summary") and not str(response.get("summary") or "").strip():
-        add_violation(violations, f"{sample_name}: golden_response.summary is required")
+        add_violation(violations, f"{sample_name}: {response_label}.summary is required")
     if shape.get("requires_answers") and len(answers) < 1:
-        add_violation(violations, f"{sample_name}: golden_response must contain at least 1 answer")
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 answer")
     if shape.get("requires_issues") and len(issues) < 1:
-        add_violation(violations, f"{sample_name}: golden_response must contain at least 1 issue")
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 issue")
     if not shape.get("requires_issues") and len(issues) > 0:
-        add_violation(violations, f"{sample_name}: golden_response should not contain issues")
+        add_violation(violations, f"{sample_name}: {response_label} should not contain issues")
     if shape.get("requires_citations") and len(citations) < 1:
-        add_violation(violations, f"{sample_name}: golden_response must contain at least 1 citation")
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 citation")
     if not shape.get("allow_proposed_actions") and len(actions) > 0:
-        add_violation(violations, f"{sample_name}: golden_response should not contain proposed_actions")
+        add_violation(violations, f"{sample_name}: {response_label} should not contain proposed_actions")
 
     actual_kinds = {str(action.get("kind") or "") for action in actions}
     for required_kind in [str(item) for item in get_array(shape.get("required_action_kinds"))]:
         if required_kind not in actual_kinds:
-            add_violation(violations, f"{sample_name}: golden_response is missing required action kind '{required_kind}'")
+            add_violation(violations, f"{sample_name}: {response_label} is missing required action kind '{required_kind}'")
 
     for action in actions:
         if str(action.get("risk_level") or "") != "low":
             add_violation(
                 violations,
-                f"{sample_name}: proposed action '{action.get('title')}' must remain low risk for answer_docs_question",
+                f"{sample_name}: {response_label} proposed action '{action.get('title')}' must remain low risk for answer_docs_question",
             )
         if action.get("requires_confirmation") is not False:
             add_violation(
                 violations,
-                f"{sample_name}: proposed action '{action.get('title')}' must not require confirmation",
+                f"{sample_name}: {response_label} proposed action '{action.get('title')}' must not require confirmation",
             )
 
     citation_ids = {str(citation.get("id") or "") for citation in citations}
@@ -347,10 +352,10 @@ def validate_radish_docs_response(sample: dict[str, Any], sample_name: str, viol
         referenced_ids.update(str(item) for item in get_array(action.get("citation_ids")))
     for citation_id in sorted(citation_id for citation_id in referenced_ids if citation_id):
         if citation_id not in citation_ids:
-            add_violation(violations, f"{sample_name}: referenced citation id '{citation_id}' is missing from golden_response.citations")
+            add_violation(violations, f"{sample_name}: referenced citation id '{citation_id}' is missing from {response_label}.citations")
 
-    test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, sample_name, violations)
-    test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, sample_name, violations)
+    test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, f"{sample_name}:{response_label}", violations)
+    test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
 
 
 def validate_diagnostics_request(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
@@ -734,7 +739,12 @@ def run_radish_docs_qa(config: dict[str, Any], sample_dir: Path, sample_paths: l
             test_document_against_schema(sample.get("input_request"), config["request_schema"], f"{sample_name} input_request", violations)
             test_document_against_schema(sample.get("golden_response"), config["response_schema"], f"{sample_name} golden_response", violations)
             validate_radish_docs_retrieval(sample, sample_name, violations)
-            validate_radish_docs_response(sample, sample_name, violations)
+            validate_radish_docs_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
+
+            candidate_response = sample.get("candidate_response")
+            if candidate_response is not None:
+                test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
+                validate_radish_docs_response(sample, candidate_response, "candidate_response", sample_name, violations)
         elif sample is None:
             pass
         else:
