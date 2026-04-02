@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-upstream-403-boundary-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-upstream-403-boundary-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "sync_http_summary",
+        "mime_type": "text/plain",
+        "content": "upstream mirror returned 403 while fetching package manifest"
+      }
+    ],
+    "context": {
+      "document_revision": 25,
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "active",
+        "sync_status": "failed",
+        "manifest_status": "forbidden",
+        "last_error": "upstream mirror returned 403 while fetching package manifest"
+      },
+      "solve_session": {
+        "status": "ready"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": false,
+    "required_answer_kinds": [
+      "state_summary",
+      "cause_hypothesis",
+      "next_step"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.answers[1]",
+      "$.answers[2]",
+      "$.issues[0].code=\"UPSTREAM_FORBIDDEN_NOT_PROVEN_AUTH\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]",
+      "$.summary=\"当前凭据已经失效。\"",
+      "$.summary=\"系统已自动恢复。\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "当上游包源返回 403 且本地 entitlement / lease 仍为 active 时，回答应避免把外部 403 直接等同于本地授权失效，也不能伪装成已自动修复。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前上游包源在获取 manifest 时返回 403，但本地 entitlement 与 lease 仍然 active，因此还不能把该异常直接写成本地授权失效。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "当前异常主要落在上游 manifest 获取被拒绝，而不是本地 entitlement 或 lease 已显示为过期。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "cause_hypothesis",
+        "text": "更合理的假设是上游包源访问策略、镜像权限或网络边界出现问题，不能据此直接推出本地凭据已经失效。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "当前应先核对上游镜像访问策略和 manifest 可达性；在证据不足前，不应宣称系统已自动恢复，也不应直接给出高风险修复动作。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UPSTREAM_FORBIDDEN_NOT_PROVEN_AUTH",
+        "message": "上游 403 只能说明 manifest 获取被拒绝，尚不足以证明本地授权失效。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=active, sync_status=failed, manifest_status=forbidden"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "sync_http_summary",
+        "locator": "artifact:sync_http_summary",
+        "excerpt": "upstream mirror returned 403 while fetching package manifest"
+      }
+    ],
+    "confidence": 0.78,
+    "risk_level": "low",
+    "requires_confirmation": false
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "manifest 拉取时遇到上游 403，但当前本地授权状态仍显示 active，因此不能直接把它解释为本地 entitlement 已失效。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "从当前状态看，问题更像发生在包源访问链路，而不是本地 lease 或 entitlement 已直接过期。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "cause_hypothesis",
+        "text": "现有证据只支持“上游访问被拒绝”这一层判断，不支持把它升级成凭据失效或已自动恢复的结论。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "建议先继续核对镜像访问边界与 manifest 来源，再决定是否需要后续人工处理。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UPSTREAM_FORBIDDEN_NOT_PROVEN_AUTH",
+        "message": "上游 403 尚不足以证明本地授权链路失效。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=active, sync_status=failed, manifest_status=forbidden"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "sync_http_summary",
+        "locator": "artifact:sync_http_summary",
+        "excerpt": "upstream mirror returned 403 while fetching package manifest"
+      }
+    ],
+    "confidence": 0.75,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

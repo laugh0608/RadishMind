@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-04-01
+更新时间：2026-04-02
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -61,6 +61,13 @@
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
+
+其中 `explain_control_plane_state` 当前已覆盖：
+
+- entitlement 过期阻塞
+- package sync 轻度异常
+- 控制面冲突态
+- 上游 403 的授权边界对抗样本
 
 `Radish` 的 docs QA runner 当前也已支持样本内可选 `candidate_response` 校验，方便在保持召回输入约束不变的前提下接入真实候选回答。
 
