@@ -29,6 +29,10 @@
 
 当前已补最小回归脚本：
 
+- `scripts/run-radishflow-control-plane-regression.ps1`
+- `scripts/run-radishflow-control-plane-regression.sh`
+- `scripts/check-radishflow-control-plane-eval.ps1`
+- `scripts/check-radishflow-control-plane-eval.sh`
 - `scripts/run-radishflow-diagnostics-regression.ps1`
 - `scripts/run-radishflow-diagnostics-regression.sh`
 - `scripts/check-radishflow-diagnostics-eval.ps1`
@@ -44,6 +48,8 @@
 
 关系说明：
 
+- `run-radishflow-control-plane-regression.*` 负责执行 `RadishFlow explain_control_plane_state` 样本回归
+- `check-radishflow-control-plane-eval.*` 负责把控制面状态说明回归接入仓库基线
 - `run-radishflow-diagnostics-regression.*` 负责执行 `RadishFlow explain_diagnostics` 样本回归
 - `check-radishflow-diagnostics-eval.*` 负责把该回归接入仓库基线
 - `run-radishflow-suggest-edits-regression.*` 负责执行 `RadishFlow suggest_flowsheet_edits` 样本回归
@@ -54,6 +60,6 @@
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
-`RadishFlow` 的回归 runner 当前已支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
+`RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
 
 后续再补更完整的离线回归脚本和真实候选输出对照输入。

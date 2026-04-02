@@ -59,6 +59,17 @@ TASK_CONFIG = {
         "no_sample_message": "no suggest_flowsheet_edits sample files found for RadishFlow suggest edits regression",
         "warning_prefix": "radishflow suggest edits regression found",
     },
+    "radishflow-control-plane": {
+        "sample_dir": REPO_ROOT / "datasets/eval/radishflow",
+        "sample_schema": REPO_ROOT / "datasets/eval/radishflow-task-sample.schema.json",
+        "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
+        "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
+        "task_card": REPO_ROOT / "docs/task-cards/radishflow-explain-control-plane-state.md",
+        "sample_task": "explain_control_plane_state",
+        "success_message": "radishflow control plane regression passed.",
+        "no_sample_message": "no explain_control_plane_state sample files found for RadishFlow control plane regression",
+        "warning_prefix": "radishflow control plane regression found",
+    },
 }
 
 
@@ -564,6 +575,128 @@ def validate_suggest_response(
     test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
 
 
+def validate_control_plane_request(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
+    request = sample["input_request"]
+    context = request.get("context") or {}
+    control_plane_state = context.get("control_plane_state") or {}
+    artifacts = get_array(request.get("artifacts"))
+
+    if request.get("project") != "radishflow":
+        add_violation(violations, f"{sample_name}: input_request.project must be 'radishflow'")
+    if request.get("task") != "explain_control_plane_state":
+        add_violation(violations, f"{sample_name}: input_request.task must be 'explain_control_plane_state'")
+    if not isinstance(control_plane_state, dict) or len(control_plane_state) == 0:
+        add_violation(violations, f"{sample_name}: context.control_plane_state is required")
+        return
+
+    if context.get("document_revision") is None and context.get("latest_snapshot") is None:
+        add_violation(violations, f"{sample_name}: context.document_revision or context.latest_snapshot is required")
+
+    has_any_state = any(
+        str(control_plane_state.get(key) or "").strip()
+        for key in ("entitlement_status", "lease_status", "sync_status", "manifest_status", "last_error")
+    )
+    if not has_any_state:
+        add_violation(violations, f"{sample_name}: control_plane_state must include at least one non-empty status field")
+
+    for artifact in artifacts:
+        if not str(artifact.get("name") or "").strip():
+            add_violation(violations, f"{sample_name}: each artifact must include name")
+        if not str(artifact.get("kind") or "").strip():
+            add_violation(violations, f"{sample_name}: each artifact must include kind")
+
+
+def validate_control_plane_response(
+    sample: dict[str, Any],
+    response: dict[str, Any],
+    response_label: str,
+    sample_name: str,
+    violations: list[str],
+) -> None:
+    shape = sample["expected_response_shape"]
+    evaluation = sample["evaluation"]
+    answers = get_array(response.get("answers"))
+    issues = get_array(response.get("issues"))
+    actions = get_array(response.get("proposed_actions"))
+    citations = get_array(response.get("citations"))
+
+    if response.get("project") != "radishflow":
+        add_violation(violations, f"{sample_name}: {response_label}.project must be 'radishflow'")
+    if response.get("task") != "explain_control_plane_state":
+        add_violation(violations, f"{sample_name}: {response_label}.task must be 'explain_control_plane_state'")
+    if str(response.get("status")) != str(shape.get("status")):
+        add_violation(violations, f"{sample_name}: {response_label}.status does not match expected_response_shape.status")
+    if str(response.get("risk_level")) != str(evaluation.get("expected_risk_level")):
+        add_violation(violations, f"{sample_name}: {response_label}.risk_level does not match evaluation.expected_risk_level")
+    if shape.get("requires_summary") and not str(response.get("summary") or "").strip():
+        add_violation(violations, f"{sample_name}: {response_label}.summary is required")
+    if shape.get("requires_answers") and len(answers) < 1:
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 answer")
+    if shape.get("requires_issues") and len(issues) < 1:
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 issue")
+    if shape.get("requires_citations") and len(citations) < 1:
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 citation")
+    if not shape.get("allow_proposed_actions") and len(actions) > 0:
+        add_violation(violations, f"{sample_name}: {response_label} should not contain proposed_actions")
+
+    actual_answer_kinds = {str(answer.get("kind") or "") for answer in answers}
+    for required_answer_kind in [str(item) for item in get_array(shape.get("required_answer_kinds"))]:
+        if required_answer_kind not in actual_answer_kinds:
+            add_violation(violations, f"{sample_name}: {response_label} is missing required answer kind '{required_answer_kind}'")
+
+    actual_action_kinds = {str(action.get("kind") or "") for action in actions}
+    for required_kind in [str(item) for item in get_array(shape.get("required_action_kinds"))]:
+        if required_kind not in actual_action_kinds:
+            add_violation(violations, f"{sample_name}: {response_label} is missing required action kind '{required_kind}'")
+
+    highest_action_risk = 0
+    any_confirmation = False
+    for action in actions:
+        kind = str(action.get("kind") or "")
+        highest_action_risk = max(highest_action_risk, RISK_RANKS.get(str(action.get("risk_level") or ""), 0))
+        any_confirmation = any_confirmation or (action.get("requires_confirmation") is True)
+
+        if kind not in {"read_only_check", "candidate_operation"}:
+            add_violation(violations, f"{sample_name}: {response_label} actions must be read_only_check or candidate_operation")
+            continue
+
+        target = action.get("target")
+        if target is not None:
+            if not str((target or {}).get("type") or "").strip() or not str((target or {}).get("id") or "").strip():
+                add_violation(violations, f"{sample_name}: {response_label} action target must include non-empty type and id")
+
+        if kind == "read_only_check":
+            if str(action.get("risk_level") or "") != "low":
+                add_violation(violations, f"{sample_name}: {response_label} read_only_check must remain low risk")
+            if action.get("requires_confirmation") is not False:
+                add_violation(violations, f"{sample_name}: {response_label} read_only_check must not require confirmation")
+
+        if kind == "candidate_operation" and action.get("requires_confirmation") is not True:
+            add_violation(violations, f"{sample_name}: {response_label} candidate_operation must set requires_confirmation=true")
+
+    if highest_action_risk > 0 and RISK_RANKS.get(str(response.get("risk_level") or ""), 0) != highest_action_risk:
+        add_violation(violations, f"{sample_name}: {response_label}.risk_level must equal the highest proposed_action risk")
+    if any_confirmation and response.get("requires_confirmation") is not True:
+        add_violation(violations, f"{sample_name}: {response_label}.requires_confirmation must be true when any action requires confirmation")
+    if not any_confirmation and len(actions) > 0 and response.get("requires_confirmation") is not False:
+        add_violation(violations, f"{sample_name}: {response_label}.requires_confirmation must stay false for read-only control-plane actions")
+
+    citation_ids = {str(citation.get("id") or "") for citation in citations}
+    referenced_ids: set[str] = set()
+    for answer in answers:
+        referenced_ids.update(str(item) for item in get_array(answer.get("citation_ids")))
+    for issue in issues:
+        referenced_ids.update(str(item) for item in get_array(issue.get("citation_ids")))
+    for action in actions:
+        referenced_ids.update(str(item) for item in get_array(action.get("citation_ids")))
+    for citation_id in sorted(citation_id for citation_id in referenced_ids if citation_id):
+        if citation_id not in citation_ids:
+            add_violation(violations, f"{sample_name}: referenced citation id '{citation_id}' is missing from {response_label}.citations")
+
+    test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, f"{sample_name}:{response_label}", violations)
+    test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
+
+
 def collect_sample_files(sample_dir: Path, sample_paths: list[Path]) -> list[Path]:
     if sample_paths:
         files: list[Path] = []
@@ -732,6 +865,58 @@ def run_radishflow_suggest_edits(config: dict[str, Any], sample_dir: Path, sampl
     return 0
 
 
+def run_radishflow_control_plane(config: dict[str, Any], sample_dir: Path, sample_paths: list[Path], fail_on_violation: bool) -> int:
+    sample_files = collect_sample_files(sample_dir, sample_paths)
+    all_violations: list[str] = []
+    matched_sample_count = 0
+
+    for sample_file in sample_files:
+        sample_name = sample_file.name
+        violations: list[str] = []
+        try:
+            sample = json.loads(sample_file.read_text(encoding="utf-8"))
+        except Exception as exc:
+            add_violation(violations, f"{sample_name}: failed to parse json: {exc}")
+            sample = None
+
+        if sample is not None and str(sample.get("task") or "") == config["sample_task"]:
+            matched_sample_count += 1
+            test_document_against_schema(sample, config["sample_schema"], f"{sample_name} sample", violations)
+            test_document_against_schema(sample.get("input_request"), config["request_schema"], f"{sample_name} input_request", violations)
+            test_document_against_schema(sample.get("golden_response"), config["response_schema"], f"{sample_name} golden_response", violations)
+            validate_control_plane_request(sample, sample_name, violations)
+            validate_control_plane_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
+
+            candidate_response = sample.get("candidate_response")
+            if candidate_response is not None:
+                test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
+                validate_control_plane_response(sample, candidate_response, "candidate_response", sample_name, violations)
+        elif sample is None:
+            pass
+        else:
+            continue
+
+        if violations:
+            print(f"FAIL {sample_name}")
+            for violation in violations:
+                print(f"  - {violation}")
+                all_violations.append(violation)
+            continue
+
+        print(f"PASS {sample_name}")
+
+    if matched_sample_count == 0:
+        raise SystemExit(config["no_sample_message"])
+    if all_violations:
+        if fail_on_violation:
+            return 1
+        print(f"WARNING: {config['warning_prefix']} {len(all_violations)} violation(s).", file=sys.stderr)
+        return 0
+
+    print(config["success_message"])
+    return 0
+
+
 def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool]:
     if len(argv) < 2 or argv[1] not in TASK_CONFIG:
         task_names = ", ".join(sorted(TASK_CONFIG))
@@ -790,6 +975,8 @@ def main(argv: list[str]) -> int:
         return run_radish_docs_qa(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radishflow-diagnostics":
         return run_radishflow_diagnostics(config, resolved_sample_dir, sample_paths, fail_on_violation)
+    if task_name == "radishflow-control-plane":
+        return run_radishflow_control_plane(config, resolved_sample_dir, sample_paths, fail_on_violation)
     return run_radishflow_suggest_edits(config, resolved_sample_dir, sample_paths, fail_on_violation)
 
 

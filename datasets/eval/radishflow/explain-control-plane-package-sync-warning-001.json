@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-package-sync-warning-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-package-sync-warning-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "sync_error_summary",
+        "mime_type": "text/plain",
+        "content": "package sync failed: remote manifest unavailable"
+      }
+    ],
+    "context": {
+      "document_revision": 22,
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "active",
+        "sync_status": "failed",
+        "manifest_status": "stale",
+        "last_error": "remote manifest unavailable"
+      },
+      "solve_session": {
+        "status": "ready"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "cause_hypothesis",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.answers[1]",
+      "$.answers[2]",
+      "$.issues[0].code=\"PACKAGE_SYNC_FAILED\"",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.proposed_actions[0].risk_level=\"low\"",
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "hypothesis_labeling"
+    ],
+    "notes": "当 entitlement 与 lease 仍然 active 时，package sync 失败应被解释为轻度异常，下一步只应给低风险只读检查建议。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前 package sync 失败，但 entitlement 与 lease 状态仍然 active，因此更像控制面轻度异常，而不是已确认的授权失效。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "当前可见异常主要落在 package sync，而不是 entitlement 或 lease 本身已经失效。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "cause_hypothesis",
+        "text": "现有证据更像远端 manifest 获取失败或同步链路异常，不能直接把它推断为凭据问题。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "建议先做只读检查，确认 manifest 可达性和同步状态，再决定是否需要进一步人工处理。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "PACKAGE_SYNC_FAILED",
+        "message": "package sync 失败，但当前授权状态未显示为过期。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "检查 package sync 与 manifest 可达性",
+        "target": {
+          "type": "control_plane",
+          "id": "package-sync"
+        },
+        "rationale": "当前更适合先确认同步链路与远端 manifest 状态，而不是立即做高风险恢复动作。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=active, sync_status=failed, manifest_status=stale"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "sync_error_summary",
+        "locator": "artifact:sync_error_summary",
+        "excerpt": "package sync failed: remote manifest unavailable"
+      }
+    ],
+    "confidence": 0.86,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

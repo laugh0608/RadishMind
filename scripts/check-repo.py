@@ -45,11 +45,15 @@ REQUIRED_FILES = [
     "datasets/eval/radishflow/explain-diagnostics-multi-object-feed-conflict-001.json",
     "datasets/eval/radishflow/explain-diagnostics-stream-spec-missing-001.json",
     "datasets/eval/radishflow/explain-diagnostics-unit-not-converged-001.json",
+    "datasets/eval/radishflow/explain-control-plane-entitlement-expired-001.json",
+    "datasets/eval/radishflow/explain-control-plane-package-sync-warning-001.json",
     "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
     "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
     "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
     "datasets/eval/radish/answer-docs-question-evidence-gap-001.json",
     "datasets/eval/radish/answer-docs-question-navigation-001.json",
+    "scripts/check-radishflow-control-plane-eval.ps1",
+    "scripts/check-radishflow-control-plane-eval.sh",
     "scripts/check-radishflow-diagnostics-eval.ps1",
     "scripts/check-radishflow-diagnostics-eval.sh",
     "scripts/check-radishflow-suggest-edits-eval.ps1",
@@ -59,6 +63,8 @@ REQUIRED_FILES = [
     "scripts/check-text-files.py",
     "scripts/check-repo.py",
     "scripts/run-eval-regression.py",
+    "scripts/run-radishflow-control-plane-regression.ps1",
+    "scripts/run-radishflow-control-plane-regression.sh",
     "scripts/run-radishflow-diagnostics-regression.ps1",
     "scripts/run-radishflow-diagnostics-regression.sh",
     "scripts/run-radishflow-suggest-edits-regression.ps1",
@@ -142,6 +148,7 @@ def main() -> int:
         run_python_script("check-text-files.py", [])
 
     run_python_script("run-eval-regression.py", ["radish-docs-qa", "--fail-on-violation"])
+    run_python_script("run-eval-regression.py", ["radishflow-control-plane", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-diagnostics", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-suggest-edits", "--fail-on-violation"])
 
