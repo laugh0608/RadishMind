@@ -53,6 +53,7 @@ REQUIRED_FILES = [
     "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
     "datasets/eval/radish/answer-docs-question-attachment-mixed-001.json",
     "datasets/eval/radish/answer-docs-question-docs-attachments-faq-001.json",
+    "datasets/eval/radish/answer-docs-question-docs-attachments-forum-conflict-001.json",
     "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
     "datasets/eval/radish/answer-docs-question-docs-faq-forum-conflict-001.json",
     "datasets/eval/radish/answer-docs-question-docs-faq-mixed-001.json",
