@@ -186,8 +186,8 @@
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 为 `Radish` 文档问答继续补 `docs/wiki/attachments/forum/faq` 混合召回样本
-3. 将 `Radish` 文档问答从离线 `candidate_response` 对照继续推进到真实候选响应回灌
+2. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
+3. 将 `Radish` 文档问答从离线 `candidate_response` 对照继续推进到真实候选响应回灌，作为下一主线
 4. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
 5. 再进入模型对照、PoC 与训练路线验证
 

@@ -42,6 +42,6 @@
 ## 下一步优先推进
 
 1. 继续为 `RadishFlow` 首批 3 个任务扩展输入快照样例与评测样本，优先补控制面冲突态和更多对抗样本。
-2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进，优先补 `docs/wiki/attachments/forum/faq` 混合召回样本与真实候选响应回灌。
+2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前离线混合召回样本已覆盖 `docs/wiki/attachments/forum/faq` 最小基线，下一步主线转向真实候选响应回灌，仅按需补少量极端冲突样本。
 3. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
 4. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。
