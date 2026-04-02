@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-01
+更新时间：2026-04-02
 
 ## 路线图目标
 
@@ -89,7 +89,7 @@
 - `RadishFlow` 建立状态优先样本和后续截图补充样本
 - `Radish` 建立文档、论坛和 Console 知识样本
 - 定义任务指标与离线回归脚本
-- 先把 `Radish` 的 `answer_docs_question` 落成“召回输入 + golden_response”最小回归 runner，再补真实候选输出输入口
+- 先把 `Radish` 的 `answer_docs_question` 落成“召回输入 + golden_response”最小回归 runner，再补离线 `candidate_response` 输入口与真实候选输出回灌
 
 ### 推荐指标
 
@@ -185,11 +185,11 @@
 
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
-1. 冻结 `RadishFlow` 首批任务卡、输入快照样例与评测指标
-2. 将统一协议落成真实契约文件
-3. 仅为 `Radish` 选择一个最小场景接入，默认优先文档问答
-4. 建立最小离线评测集与回归脚本
-5. 将 `Radish` 文档问答从静态样本检查推进到召回输入和输出对照校验
+1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
+2. 为 `Radish` 文档问答继续补 `docs/wiki/attachments/forum/faq` 混合召回样本
+3. 将 `Radish` 文档问答从离线 `candidate_response` 对照继续推进到真实候选响应回灌
+4. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
+5. 再进入模型对照、PoC 与训练路线验证
 
 ## 当前仍缺的关键决策
 
@@ -198,4 +198,4 @@
 - `SmolVLM` 的回归任务边界与保留条件
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
-- `Radish` 文档问答何时从 `golden_response` 对照推进到真实候选响应回灌
+- `Radish` 文档问答何时从离线 `candidate_response` 对照推进到真实候选响应回灌

@@ -73,3 +73,17 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 - 评测、回归、仓库级校验与后续模型/数据工具链默认以 `Python` 为核心实现
 - Windows 侧 `.ps1` 与 Linux / WSL 侧 `.sh` 继续保留，但它们当前只作为平台入口包装，不再承载核心校验逻辑
 - 当前验证链路需要可用的 Python 环境；至少应提供 `python3` 或等价 Python 启动器，以及 `jsonschema`
+
+## 当前评测进展
+
+当前最小离线回归已覆盖：
+
+- `RadishFlow explain_diagnostics`
+- `RadishFlow suggest_flowsheet_edits`
+- `RadishFlow explain_control_plane_state`
+- `Radish answer_docs_question`
+
+其中：
+
+- `RadishFlow` 三个首批任务都已具备最小回归闭环
+- `Radish answer_docs_question` 已具备召回输入约束、`golden_response` 对照和离线 `candidate_response` 输入口
