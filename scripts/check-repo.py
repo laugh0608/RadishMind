@@ -52,6 +52,7 @@ REQUIRED_FILES = [
     "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
     "datasets/eval/radish/answer-docs-question-evidence-gap-001.json",
     "datasets/eval/radish/answer-docs-question-navigation-001.json",
+    "datasets/eval/radish/answer-docs-question-role-example-boundary-001.json",
     "scripts/check-radishflow-control-plane-eval.ps1",
     "scripts/check-radishflow-control-plane-eval.sh",
     "scripts/check-radishflow-diagnostics-eval.ps1",
