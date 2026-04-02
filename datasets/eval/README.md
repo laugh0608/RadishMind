@@ -71,4 +71,13 @@
 
 `Radish` 的 docs QA runner 当前也已支持样本内可选 `candidate_response` 校验，方便在保持召回输入约束不变的前提下接入真实候选回答。
 
+当前 `Radish answer_docs_question` 已覆盖的最小样本类型包括：
+
+- 直接回答
+- 证据不足降级
+- 低风险导航回答
+- 角色示例不等于最终授权的授权边界样本
+- `docs + attachments` 混合召回
+- `docs + forum` 混合召回，且要求正式文档优先于社区经验
+
 后续再补更完整的离线回归脚本和真实候选输出对照输入。
