@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-docs-faq-mixed-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 文档发布说明\n\n公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/publishing",
+          "fragment_id": "slug-stability",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "faq_excerpt",
+        "mime_type": "text/markdown",
+        "content": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。",
+        "metadata": {
+          "source_type": "faq",
+          "page_slug": "faq/publishing",
+          "fragment_id": "slug-alias",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/publishing",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/publishing",
+        "title": "文档发布说明"
+      },
+      "search_scope": [
+        "docs",
+        "faq"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 2,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "faq"
+    ],
+    "required_search_scopes": [
+      "docs",
+      "faq"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "attachments"
+    ],
+    "allow_unofficial_sources": true,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.citations[1]",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.risk_level=\"low\""
+    ],
+    "must_not_have_json_paths": [
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "retrieval_contract"
+    ],
+    "notes": "回答应先遵循 docs 对 slug 稳定性的正式口径，再把 FAQ 当作非正式补充来源解释 alias 作为过渡手段。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "公开文档发布后应优先保持既有 slug 稳定；若必须调整标题，可参考 FAQ 里的补充经验，用 alias 平滑保留旧链接。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前正式 docs 的主结论是不要轻易改动发布后的访问地址；如果业务上确实要调整标题，可把 FAQ 里的 alias 做法视为补充经验，为旧 slug 保留 alias，而不是直接让旧链接失效。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对 slug 与 alias 现状",
+        "rationale": "当前问题只需确认既有 slug 是否仍保留，并检查是否已配置 alias，无需直接改写文档。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "文档发布说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "文档发布 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      }
+    ],
+    "confidence": 0.92,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
