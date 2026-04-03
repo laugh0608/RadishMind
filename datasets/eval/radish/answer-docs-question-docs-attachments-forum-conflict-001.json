@@ -151,7 +151,8 @@
       "actionability",
       "risk_level",
       "retrieval_contract",
-      "candidate_record_alignment"
+      "candidate_record_alignment",
+      "official_source_precedence"
     ],
     "notes": "回答应优先遵循 docs 的附件引用规则，再用 attachment 元数据确认当前引用有效，并明确 forum 的真实 CDN 地址建议不能覆盖正式口径。"
   },

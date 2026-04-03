@@ -118,6 +118,11 @@
 - `input_record.current_app`、`route`、`resource_slug`、`search_scope`、`artifact_names` 与样本最小输入对齐
 - `response` 仍必须通过统一 `CopilotResponse` schema 与任务级校验
 
+对于显式启用 `official_source_precedence` 的 `Radish` 多来源问答样本，当前回归还会检查：
+
+- 主回答必须至少引用一次 `primary` artifact
+- 如果回答引用了 `faq` / `forum` 这类非正式来源，也必须同时引用至少一个正式来源
+
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
 - 角色示例不等于最终授权

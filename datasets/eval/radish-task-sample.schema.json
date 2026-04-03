@@ -127,7 +127,8 @@
               "actionability",
               "risk_level",
               "retrieval_contract",
-              "candidate_record_alignment"
+              "candidate_record_alignment",
+              "official_source_precedence"
             ]
           },
           "uniqueItems": true

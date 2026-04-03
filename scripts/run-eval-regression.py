@@ -145,6 +145,14 @@ def contains_uncertainty_marker(text: Any) -> bool:
     return any(marker in content for marker in UNCERTAINTY_MARKERS)
 
 
+def parse_artifact_name_from_locator(locator: Any) -> str:
+    locator_text = str(locator or "")
+    if not locator_text.startswith("artifact:"):
+        return ""
+    artifact_ref = locator_text[len("artifact:") :]
+    return artifact_ref.split(".", 1)[0].strip()
+
+
 def resolve_json_path(document: Any, path: str) -> tuple[bool, Any]:
     if not path or not path.startswith("$"):
         raise ValueError(f"unsupported json path: {path}")
@@ -461,6 +469,23 @@ def validate_radish_docs_response(
             )
 
     citation_ids = {str(citation.get("id") or "") for citation in citations}
+    request_artifacts = {
+        str((artifact or {}).get("name") or "").strip(): artifact
+        for artifact in get_array((sample.get("input_request") or {}).get("artifacts"))
+        if str((artifact or {}).get("name") or "").strip()
+    }
+    citation_artifact_meta: dict[str, tuple[bool | None, str]] = {}
+    for citation in citations:
+        citation_id = str(citation.get("id") or "")
+        artifact_name = parse_artifact_name_from_locator(citation.get("locator"))
+        if not citation_id or not artifact_name:
+            continue
+        artifact = request_artifacts.get(artifact_name) or {}
+        metadata = (artifact or {}).get("metadata") or {}
+        is_official = metadata.get("is_official")
+        role = str((artifact or {}).get("role") or "")
+        citation_artifact_meta[citation_id] = (is_official if isinstance(is_official, bool) else None, role)
+
     referenced_ids: set[str] = set()
     for answer in answers:
         referenced_ids.update(str(item) for item in get_array(answer.get("citation_ids")))
@@ -471,6 +496,27 @@ def validate_radish_docs_response(
     for citation_id in sorted(citation_id for citation_id in referenced_ids if citation_id):
         if citation_id not in citation_ids:
             add_violation(violations, f"{sample_name}: referenced citation id '{citation_id}' is missing from {response_label}.citations")
+
+    if "official_source_precedence" in {str(item) for item in get_array(evaluation.get("scoring_focus"))}:
+        if len(answers) == 0:
+            add_violation(violations, f"{sample_name}: {response_label} must contain answers for official_source_precedence checks")
+        else:
+            first_answer_citation_ids = [str(item) for item in get_array((answers[0] or {}).get("citation_ids")) if str(item).strip()]
+            if not any(citation_artifact_meta.get(citation_id, (None, ""))[1] == "primary" for citation_id in first_answer_citation_ids):
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} first answer must cite at least one primary artifact for official_source_precedence samples",
+                )
+
+        for answer in answers:
+            answer_citation_ids = [str(item) for item in get_array(answer.get("citation_ids")) if str(item).strip()]
+            unofficial_cited = any(citation_artifact_meta.get(citation_id, (None, ""))[0] is False for citation_id in answer_citation_ids)
+            official_cited = any(citation_artifact_meta.get(citation_id, (None, ""))[0] is True for citation_id in answer_citation_ids)
+            if unofficial_cited and not official_cited:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} answer '{answer.get('kind')}' cannot rely only on unofficial citations in official_source_precedence samples",
+                )
 
     test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, f"{sample_name}:{response_label}", violations)
     test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)

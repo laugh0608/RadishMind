@@ -123,7 +123,8 @@
       "citation_hit",
       "risk_level",
       "retrieval_contract",
-      "candidate_record_alignment"
+      "candidate_record_alignment",
+      "official_source_precedence"
     ],
     "notes": "回答应以 wiki 的恢复码基线为主，再把 FAQ 作为非正式补充来源，补充“遗失后如何重新生成”的受控流程。"
   },
