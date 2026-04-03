@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-attachments-faq-forum-multi-answer-multi-action-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-attachments-faq-forum-multi-answer-multi-action-001",
+  "request_id": "sample-negative-failed-attachments-faq-forum-multi-answer-multi-action-001",
+  "captured_at": "2026-04-03T21:20:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "attachments",
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "artifact_names": [
+      "attachment_reference_note",
+      "docs_page",
+      "faq_excerpt",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "建议直接公开真实 CDN 地址，并同时整理 FAQ 文案与附件外链。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "由于 FAQ 和 forum 给出的做法更直接，这里先按失败态返回。",
+        "citation_ids": [
+          "faq-1",
+          "forum-1"
+        ]
+      },
+      {
+        "kind": "direct_answer",
+        "text": "不过从附件状态和社区经验看，也可以直接对外公开真实外链。",
+        "citation_ids": [
+          "att-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "检查 FAQ 文案与附件说明",
+        "rationale": "先核对 FAQ 与附件说明里能否补更直观的说明。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "faq-1",
+          "att-1"
+        ]
+      },
+      {
+        "kind": "candidate_operation",
+        "title": "公开真实附件外链",
+        "rationale": "再按社区经验把真实 CDN 地址直接贴到文档里。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件导入说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://manual-42",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "附件导入 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "如果用户希望附件链接更易读，可以在文档正文里补充说明文字，但仍应继续使用 `attachment://{id}` 作为实际引用。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区帖子摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+      }
+    ],
+    "confidence": 0.62,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

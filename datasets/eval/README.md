@@ -140,6 +140,7 @@
 - 当前负例还已覆盖“`failed` 态只靠 `forum` / `faq` 这类非正式来源”以及“`failed` 态里 primary/citation 集合继续漂移”的来源与引用失稳
 - 当前负例还已覆盖 `docs + attachments + forum` 与 `docs + faq + forum` 三路冲突下的 failed-state 漂移，验证失败态里社区经验、FAQ 或附件状态都不能反客为主
 - 当前负例还已覆盖 `docs + attachments + faq + forum` 极端冲突与 failed-state 多 action 漂移，验证失败态里 FAQ/论坛不能联手覆盖正式口径，也不能一边失败一边继续堆动作
+- 当前负例还已覆盖“多答案 + 多 action + 多来源冲突”三者同时出现的复合失稳，开始逼近真实模型完全漂移时的坏输出形态
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
