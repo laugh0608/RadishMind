@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-role-example-boundary-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-role-example-boundary-001",
+  "request_id": "sample-role-example-boundary-001",
+  "captured_at": "2026-04-03T10:20:00Z",
+  "source": "captured_candidate_response",
+  "model": "qwen2.5-vl-candidate-snapshot",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-permission-guide",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前文档把 `Admin` 放在角色示例里展示，但是否真的能重试或删除 Hangfire 任务，仍需要服务端权限判定。",
+    "answers": [
+      {
+        "kind": "evidence_limited_answer",
+        "text": "从现有页面能确认的只有说明性文档边界，不能因为 viewer 角色里有 `Admin` 就直接推出已经具备 `console.hangfire.retry` 或 `console.hangfire.delete`。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "AUTHORIZATION_NOT_PROVEN",
+        "message": "角色示例不能替代服务端实际授权结果。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "Hangfire 权限说明",
+        "locator": "artifact:wiki_document",
+        "excerpt": "是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。"
+      }
+    ],
+    "confidence": 0.84,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

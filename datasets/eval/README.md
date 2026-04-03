@@ -16,6 +16,7 @@
 - 期望输出应满足哪些结构约束
 - 一份可作为对照基线的 `golden_response`
 - 可选的 `candidate_response`，用于接入真实候选输出或模拟模型输出
+- 或可选的 `candidate_response_record` 引用，用于从外部记录文件回灌真实候选输出
 - 风险等级应如何判定
 - 哪些字段必须出现
 - 哪些越界字段或行为不得出现
@@ -24,6 +25,7 @@
 
 - `radishflow-task-sample.schema.json`
 - `radish-task-sample.schema.json`
+- `candidate-response-record.schema.json`
 
 当前 `Radish` 文档问答样本已新增 `retrieval_expectations`，用于把任务卡中的召回输入边界落成可执行检查。
 
@@ -105,7 +107,16 @@
 - `patch` 必须保持可审查的局部结构
 - `patch` 不得退化成命令式执行字段或整图重写字段
 
-`Radish` 的 docs QA runner 当前也已支持样本内可选 `candidate_response` 校验，方便在保持召回输入约束不变的前提下接入真实候选回答。
+`Radish` 的 docs QA runner 当前已支持两种候选回答输入方式：
+
+- 样本内可选 `candidate_response`
+- 外部 `candidate_response_record.path`
+
+对外部记录，当前最小回归会额外校验：
+
+- `sample_id`、`request_id`、`project`、`task` 与样本请求对齐
+- `input_record.current_app`、`route`、`resource_slug`、`search_scope`、`artifact_names` 与样本最小输入对齐
+- `response` 仍必须通过统一 `CopilotResponse` schema 与任务级校验
 
 当前 `Radish answer_docs_question` 已覆盖的最小样本类型包括：
 
@@ -121,4 +132,4 @@
 - `docs + attachments + faq` 三路混合召回，且 FAQ 只能补充可读性说明，不能替代正式附件引用规则
 - `docs + attachments + forum` 三路冲突样本，且需显式拒绝用社区经验覆盖正式附件引用与外链暴露规则
 
-后续再补更完整的离线回归脚本和真实候选输出对照输入。
+后续再补更多真实候选输出记录、最小对照指标与更完整的回灌流程。

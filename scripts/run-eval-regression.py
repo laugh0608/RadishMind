@@ -54,6 +54,7 @@ TASK_CONFIG = {
     "radish-docs-qa": {
         "sample_dir": REPO_ROOT / "datasets/eval/radish",
         "sample_schema": REPO_ROOT / "datasets/eval/radish-task-sample.schema.json",
+        "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
         "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
         "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
         "task_card": REPO_ROOT / "docs/task-cards/radish-answer-docs-question.md",
@@ -65,6 +66,7 @@ TASK_CONFIG = {
     "radishflow-diagnostics": {
         "sample_dir": REPO_ROOT / "datasets/eval/radishflow",
         "sample_schema": REPO_ROOT / "datasets/eval/radishflow-task-sample.schema.json",
+        "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
         "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
         "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
         "task_card": REPO_ROOT / "docs/task-cards/radishflow-explain-diagnostics.md",
@@ -76,6 +78,7 @@ TASK_CONFIG = {
     "radishflow-suggest-edits": {
         "sample_dir": REPO_ROOT / "datasets/eval/radishflow",
         "sample_schema": REPO_ROOT / "datasets/eval/radishflow-task-sample.schema.json",
+        "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
         "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
         "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
         "task_card": REPO_ROOT / "docs/task-cards/radishflow-suggest-flowsheet-edits.md",
@@ -87,6 +90,7 @@ TASK_CONFIG = {
     "radishflow-control-plane": {
         "sample_dir": REPO_ROOT / "datasets/eval/radishflow",
         "sample_schema": REPO_ROOT / "datasets/eval/radishflow-task-sample.schema.json",
+        "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
         "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
         "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
         "task_card": REPO_ROOT / "docs/task-cards/radishflow-explain-control-plane-state.md",
@@ -231,6 +235,90 @@ def test_document_against_schema(
             violations,
             f"{document_name}: schema validation failed against '{schema_path.name}': {exc.message}",
         )
+
+
+def load_candidate_response_from_record(
+    sample: dict[str, Any],
+    config: dict[str, Any],
+    sample_name: str,
+    violations: list[str],
+) -> Any:
+    record_ref = sample.get("candidate_response_record")
+    if record_ref is None:
+        return sample.get("candidate_response")
+
+    record_path_value = str((record_ref or {}).get("path") or "").strip()
+    if not record_path_value:
+        add_violation(violations, f"{sample_name}: candidate_response_record.path is required")
+        return None
+
+    record_path = Path(record_path_value)
+    if not record_path.is_absolute():
+        record_path = (REPO_ROOT / record_path).resolve()
+    if not record_path.is_file():
+        add_violation(violations, f"{sample_name}: candidate_response_record file not found: {record_path_value}")
+        return None
+
+    try:
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        add_violation(violations, f"{sample_name}: failed to parse candidate_response_record '{record_path_value}': {exc}")
+        return None
+
+    candidate_record_schema = config.get("candidate_record_schema")
+    if candidate_record_schema is not None:
+        test_document_against_schema(
+            record,
+            candidate_record_schema,
+            f"{sample_name} candidate_response_record",
+            violations,
+        )
+
+    expected_sample_id = str(sample.get("sample_id") or "")
+    if str(record.get("sample_id") or "") != expected_sample_id:
+        add_violation(violations, f"{sample_name}: candidate_response_record.sample_id must match sample_id")
+    if str(record.get("project") or "") != str(sample.get("project") or ""):
+        add_violation(violations, f"{sample_name}: candidate_response_record.project must match sample.project")
+    if str(record.get("task") or "") != str(sample.get("task") or ""):
+        add_violation(violations, f"{sample_name}: candidate_response_record.task must match sample.task")
+
+    sample_request = sample.get("input_request") or {}
+    if str(record.get("request_id") or "") != str(sample_request.get("request_id") or ""):
+        add_violation(violations, f"{sample_name}: candidate_response_record.request_id must match input_request.request_id")
+
+    input_record = record.get("input_record") or {}
+    context = sample_request.get("context") or {}
+    resource = context.get("resource") or {}
+    artifact_names = sorted(
+        str((artifact or {}).get("name") or "").strip()
+        for artifact in get_array(sample_request.get("artifacts"))
+        if str((artifact or {}).get("name") or "").strip()
+    )
+    record_artifact_names = sorted(
+        str(name).strip()
+        for name in get_array(input_record.get("artifact_names"))
+        if str(name).strip()
+    )
+    if record_artifact_names != artifact_names:
+        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.artifact_names must match input_request artifacts")
+    if str(input_record.get("route") or "") != str(context.get("route") or ""):
+        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.route must match input_request.context.route")
+    if str(input_record.get("resource_slug") or "") != str(resource.get("slug") or ""):
+        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug")
+    if str(input_record.get("current_app") or "") != str(context.get("current_app") or ""):
+        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.current_app must match input_request.context.current_app")
+
+    record_search_scope = sorted(str(scope).strip() for scope in get_array(input_record.get("search_scope")) if str(scope).strip())
+    sample_search_scope = sorted(str(scope).strip() for scope in get_array(context.get("search_scope")) if str(scope).strip())
+    if record_search_scope != sample_search_scope:
+        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.search_scope must match input_request.context.search_scope")
+
+    response = record.get("response")
+    if response is None:
+        add_violation(violations, f"{sample_name}: candidate_response_record.response is required")
+        return None
+
+    return response
 
 
 def validate_radish_docs_retrieval(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
@@ -848,7 +936,7 @@ def run_radish_docs_qa(config: dict[str, Any], sample_dir: Path, sample_paths: l
             validate_radish_docs_retrieval(sample, sample_name, violations)
             validate_radish_docs_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = sample.get("candidate_response")
+            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_radish_docs_response(sample, candidate_response, "candidate_response", sample_name, violations)
@@ -900,7 +988,7 @@ def run_radishflow_diagnostics(config: dict[str, Any], sample_dir: Path, sample_
             validate_diagnostics_request(sample, sample_name, violations)
             validate_diagnostics_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = sample.get("candidate_response")
+            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_diagnostics_response(sample, candidate_response, "candidate_response", sample_name, violations)
@@ -952,7 +1040,7 @@ def run_radishflow_suggest_edits(config: dict[str, Any], sample_dir: Path, sampl
             validate_suggest_request(sample, sample_name, violations)
             validate_suggest_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = sample.get("candidate_response")
+            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_suggest_response(sample, candidate_response, "candidate_response", sample_name, violations)
@@ -1004,7 +1092,7 @@ def run_radishflow_control_plane(config: dict[str, Any], sample_dir: Path, sampl
             validate_control_plane_request(sample, sample_name, violations)
             validate_control_plane_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = sample.get("candidate_response")
+            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_control_plane_response(sample, candidate_response, "candidate_response", sample_name, violations)
@@ -1074,10 +1162,13 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool]:
 def ensure_required_paths(config: dict[str, Any]) -> None:
     for required_path in (
         config["sample_schema"],
+        config.get("candidate_record_schema"),
         config["request_schema"],
         config["response_schema"],
         config["task_card"],
     ):
+        if required_path is None:
+            continue
         if not Path(required_path).is_file():
             raise SystemExit(f"missing required file: {required_path}")
 

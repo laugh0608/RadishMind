@@ -126,13 +126,27 @@
               "citation_hit",
               "actionability",
               "risk_level",
-              "retrieval_contract"
+              "retrieval_contract",
+              "candidate_record_alignment"
             ]
           },
           "uniqueItems": true
         },
         "notes": {
           "type": "string"
+        }
+      }
+    },
+    "candidate_response_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },

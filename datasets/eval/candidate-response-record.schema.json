@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/candidate-response-record.schema.json",
+  "title": "CandidateResponseRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "project",
+    "task",
+    "sample_id",
+    "request_id",
+    "captured_at",
+    "source",
+    "model",
+    "input_record",
+    "response"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radish",
+        "radishflow"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sample_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "captured_candidate_response",
+        "simulated_candidate_response"
+      ]
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_record": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "current_app": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "search_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "artifact_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "response": {
+      "type": "object"
+    }
+  }
+}

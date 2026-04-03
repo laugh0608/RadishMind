@@ -1,6 +1,6 @@
 # `Radish` 任务卡：`answer_docs_question`
 
-更新时间：2026-04-02
+更新时间：2026-04-03
 
 ## 任务目标
 
@@ -200,7 +200,17 @@
 
 - 固定校验召回输入边界与 artifact 元数据约束
 - 固定校验 `golden_response`
-- 可选校验 `candidate_response`，用于接入真实候选回答或模型输出快照
+- 可选校验样本内嵌 `candidate_response`
+- 可选通过 `candidate_response_record.path` 加载外部候选响应记录，用于回灌真实候选回答或模型输出快照
+
+当前外部候选响应记录至少应保留以下最小输入摘要，避免真实回灌与样本请求脱节：
+
+- `request_id`
+- `input_record.current_app`
+- `input_record.route`
+- `input_record.resource_slug`
+- `input_record.search_scope`
+- `input_record.artifact_names`
 
 当前已覆盖的最小样本类型包括：
 
