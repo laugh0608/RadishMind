@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-issue-severity-overclaim-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-issue-severity-overclaim-001",
+  "request_id": "sample-negative-issue-severity-overclaim-001",
+  "captured_at": "2026-04-03T15:20:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前 Admin 可以直接重试或删除 Hangfire 任务。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "虽然文档没有展开说明，但这里可以按管理员默认具备更高权限来理解。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_EVIDENCE",
+        "message": "当前 Admin 可以直接重试或删除 Hangfire 任务。",
+        "severity": "error",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "Hangfire 只读说明",
+        "locator": "artifact:wiki_document",
+        "excerpt": "本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "confidence": 0.74,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}
