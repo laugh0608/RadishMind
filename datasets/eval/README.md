@@ -118,6 +118,12 @@
 - `input_record.current_app`、`route`、`resource_slug`、`search_scope`、`artifact_names` 与样本最小输入对齐
 - `response` 仍必须通过统一 `CopilotResponse` schema 与任务级校验
 
+当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
+
+- 角色示例不等于最终授权
+- `docs + attachments + forum` 冲突样本
+- `wiki + faq` 混合样本
+
 当前 `Radish answer_docs_question` 已覆盖的最小样本类型包括：
 
 - 直接回答

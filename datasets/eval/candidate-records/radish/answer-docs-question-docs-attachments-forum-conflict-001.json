@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-docs-attachments-forum-conflict-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+  "request_id": "sample-docs-attachments-forum-conflict-001",
+  "captured_at": "2026-04-03T11:10:00Z",
+  "source": "captured_candidate_response",
+  "model": "qwen2.5-vl-candidate-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "attachments",
+      "docs",
+      "forum"
+    ],
+    "artifact_names": [
+      "attachment_reference_note",
+      "docs_page",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前仍应保留 `attachment://{id}` 作为正式引用；forum 的真实 CDN 地址建议只能视为经验，不应覆盖 docs 和附件元数据给出的规则。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前应以 docs 和 attachment 元数据作为主依据，因此不能因为社区帖子强调直观性，就改为暴露真实附件外链。",
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "检查附件外链暴露情况",
+        "rationale": "先核对当前公开页面是否仍使用受控引用格式，再决定是否需要清理外链。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "att-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件导入说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://manual-42",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区帖子摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+      }
+    ],
+    "confidence": 0.88,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
