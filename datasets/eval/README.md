@@ -45,6 +45,8 @@
 - `scripts/check-radishflow-suggest-edits-eval.sh`
 - `scripts/run-radish-docs-qa-regression.ps1`
 - `scripts/run-radish-docs-qa-regression.sh`
+- `scripts/run-radish-docs-qa-negative-regression.ps1`
+- `scripts/run-radish-docs-qa-negative-regression.sh`
 - `scripts/check-radish-docs-qa-eval.ps1`
 - `scripts/check-radish-docs-qa-eval.sh`
 
@@ -57,6 +59,7 @@
 - `run-radishflow-suggest-edits-regression.*` 负责执行 `RadishFlow suggest_flowsheet_edits` 样本回归
 - `check-radishflow-suggest-edits-eval.*` 负责把候选编辑回归接入仓库基线
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
+- `run-radish-docs-qa-negative-regression.*` 是 `Radish` docs QA 的负例回放 runner，用来验证候选回答会被现有规则稳定拦下
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
@@ -122,6 +125,13 @@
 
 - 主回答必须至少引用一次 `primary` artifact
 - 如果回答引用了 `faq` / `forum` 这类非正式来源，也必须同时引用至少一个正式来源
+
+当前 `Radish` docs QA 还额外支持负例回放样本：
+
+- 负例样本继续复用 `radish-task-sample.schema.json`
+- 可选使用 `negative_replay_expectations.expected_candidate_violations` 声明预期触发的 violation 片段
+- 负例 runner 仍会先校验 `golden_response` 与召回输入边界，再回放候选回答，要求其命中指定违规口径
+- 当前首批负例聚焦 `official_source_precedence`，验证 runner 不只是“放行正确回答”，也能稳定拦截“只引用 forum/faq”或“未引用 primary artifact”的错误回答
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 

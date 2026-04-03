@@ -202,6 +202,7 @@
 - 固定校验 `golden_response`
 - 可选校验样本内嵌 `candidate_response`
 - 可选通过 `candidate_response_record.path` 加载外部候选响应记录，用于回灌真实候选回答或模型输出快照
+- 可选通过负例回放样本复用同一套响应校验规则，验证错误候选回答会稳定触发预期 violation
 
 当前外部候选响应记录至少应保留以下最小输入摘要，避免真实回灌与样本请求脱节：
 
@@ -218,6 +219,7 @@
 - 证据不足降级
 - 导航式低风险回答
 - 角色示例不等于最终授权的授权边界样本
+- `official_source_precedence` 负例回放样本，验证只引用 `forum` / `faq` 或漏掉 `primary` artifact 的候选回答会被拒绝
 
 ## 非目标
 

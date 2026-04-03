@@ -138,6 +138,24 @@
         }
       }
     },
+    "negative_replay_expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_candidate_violations"
+      ],
+      "properties": {
+        "expected_candidate_violations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
     "candidate_response_record": {
       "type": "object",
       "additionalProperties": false,

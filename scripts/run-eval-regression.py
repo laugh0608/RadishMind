@@ -63,6 +63,18 @@ TASK_CONFIG = {
         "no_sample_message": "no answer_docs_question sample files found for Radish docs QA regression",
         "warning_prefix": "radish docs qa regression found",
     },
+    "radish-docs-qa-negative": {
+        "sample_dir": REPO_ROOT / "datasets/eval/radish-negative",
+        "sample_schema": REPO_ROOT / "datasets/eval/radish-task-sample.schema.json",
+        "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
+        "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
+        "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
+        "task_card": REPO_ROOT / "docs/task-cards/radish-answer-docs-question.md",
+        "sample_task": "answer_docs_question",
+        "success_message": "radish docs qa negative regression passed.",
+        "no_sample_message": "no answer_docs_question sample files found for Radish docs QA negative regression",
+        "warning_prefix": "radish docs qa negative regression found",
+    },
     "radishflow-diagnostics": {
         "sample_dir": REPO_ROOT / "datasets/eval/radishflow",
         "sample_schema": REPO_ROOT / "datasets/eval/radishflow-task-sample.schema.json",
@@ -520,6 +532,54 @@ def validate_radish_docs_response(
 
     test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, f"{sample_name}:{response_label}", violations)
     test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
+
+
+def validate_radish_docs_negative_replay(
+    sample: dict[str, Any],
+    config: dict[str, Any],
+    sample_name: str,
+    violations: list[str],
+) -> None:
+    expectations = sample.get("negative_replay_expectations") or {}
+    expected_candidate_violations = [
+        str(item).strip()
+        for item in get_array(expectations.get("expected_candidate_violations"))
+        if str(item).strip()
+    ]
+    if len(expected_candidate_violations) == 0:
+        add_violation(
+            violations,
+            f"{sample_name}: negative_replay_expectations.expected_candidate_violations is required for negative replay samples",
+        )
+        return
+
+    candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
+    if candidate_response is None:
+        add_violation(violations, f"{sample_name}: negative replay requires candidate_response or candidate_response_record")
+        return
+
+    candidate_violations: list[str] = []
+    test_document_against_schema(
+        candidate_response,
+        config["response_schema"],
+        f"{sample_name} candidate_response",
+        candidate_violations,
+    )
+    validate_radish_docs_response(sample, candidate_response, "candidate_response", sample_name, candidate_violations)
+
+    if len(candidate_violations) == 0:
+        add_violation(
+            violations,
+            f"{sample_name}: candidate_response unexpectedly passed all checks in negative replay mode",
+        )
+        return
+
+    for expected_fragment in expected_candidate_violations:
+        if not any(expected_fragment in message for message in candidate_violations):
+            add_violation(
+                violations,
+                f"{sample_name}: negative replay did not trigger expected violation fragment '{expected_fragment}'",
+            )
 
 
 def validate_diagnostics_request(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
@@ -1012,6 +1072,59 @@ def run_radish_docs_qa(config: dict[str, Any], sample_dir: Path, sample_paths: l
     return 0
 
 
+def run_radish_docs_qa_negative(
+    config: dict[str, Any],
+    sample_dir: Path,
+    sample_paths: list[Path],
+    fail_on_violation: bool,
+) -> int:
+    sample_files = collect_sample_files(sample_dir, sample_paths)
+    all_violations: list[str] = []
+    matched_sample_count = 0
+
+    for sample_file in sample_files:
+        sample_name = sample_file.name
+        violations: list[str] = []
+        try:
+            sample = json.loads(sample_file.read_text(encoding="utf-8"))
+        except Exception as exc:
+            add_violation(violations, f"{sample_name}: failed to parse json: {exc}")
+            sample = None
+
+        if sample is not None and str(sample.get("task") or "") == config["sample_task"]:
+            matched_sample_count += 1
+            test_document_against_schema(sample, config["sample_schema"], f"{sample_name} sample", violations)
+            test_document_against_schema(sample.get("input_request"), config["request_schema"], f"{sample_name} input_request", violations)
+            test_document_against_schema(sample.get("golden_response"), config["response_schema"], f"{sample_name} golden_response", violations)
+            validate_radish_docs_retrieval(sample, sample_name, violations)
+            validate_radish_docs_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
+            validate_radish_docs_negative_replay(sample, config, sample_name, violations)
+        elif sample is None:
+            pass
+        else:
+            continue
+
+        if violations:
+            print(f"FAIL {sample_name}")
+            for violation in violations:
+                print(f"  - {violation}")
+                all_violations.append(violation)
+            continue
+
+        print(f"PASS {sample_name}")
+
+    if matched_sample_count == 0:
+        raise SystemExit(config["no_sample_message"])
+    if all_violations:
+        if fail_on_violation:
+            return 1
+        print(f"WARNING: {config['warning_prefix']} {len(all_violations)} violation(s).", file=sys.stderr)
+        return 0
+
+    print(config["success_message"])
+    return 0
+
+
 def run_radishflow_diagnostics(config: dict[str, Any], sample_dir: Path, sample_paths: list[Path], fail_on_violation: bool) -> int:
     sample_files = collect_sample_files(sample_dir, sample_paths)
     all_violations: list[str] = []
@@ -1227,6 +1340,8 @@ def main(argv: list[str]) -> int:
 
     if task_name == "radish-docs-qa":
         return run_radish_docs_qa(config, resolved_sample_dir, sample_paths, fail_on_violation)
+    if task_name == "radish-docs-qa-negative":
+        return run_radish_docs_qa_negative(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radishflow-diagnostics":
         return run_radishflow_diagnostics(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radishflow-control-plane":
