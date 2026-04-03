@@ -132,6 +132,7 @@
 - 可选使用 `negative_replay_expectations.expected_candidate_violations` 声明预期触发的 violation 片段
 - 负例 runner 仍会先校验 `golden_response` 与召回输入边界，再回放候选回答，要求其命中指定违规口径
 - 当前首批负例聚焦 `official_source_precedence`，验证 runner 不只是“放行正确回答”，也能稳定拦截“只引用 forum/faq”或“未引用 primary artifact”的错误回答
+- 当前负例还已覆盖“首答合规但后续回答只靠非正式来源”与“`citation_ids` 指向缺失 citation”两类真实回放错误
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-missing-citation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-missing-citation-001",
+  "request_id": "sample-negative-missing-citation-001",
+  "captured_at": "2026-04-03T13:30:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前仍应以 docs 的 slug 稳定规则为主，再把 FAQ 里的 alias 做法当作补充。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "主结论应优先遵循 docs，再用 FAQ 补充 alias 过渡方案。",
+        "citation_ids": [
+          "doc-1",
+          "faq-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "文档发布说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "文档发布 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      }
+    ],
+    "confidence": 0.82,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
