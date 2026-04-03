@@ -223,6 +223,7 @@
 - 多答案与 citation 完整性负例回放样本，验证后续回答不能只靠非正式来源，且 `citation_ids` 必须与 `citations` 集合一致
 - `issues` / `proposed_actions` 输出面负例回放样本，验证普通问答不应无端报 issue，也不应把低风险导航动作升级成需确认操作
 - `status` / `risk_level` / `issue.severity` 负例回放样本，验证证据不足场景不能被错误写成完成态或确定性权限结论
+- `failed` 过度失败态与多 `issues` / `requires_confirmation` 组合负例回放样本，验证 docs QA 不会把可解释场景过度升级成失败态或人工确认态
 
 ## 非目标
 

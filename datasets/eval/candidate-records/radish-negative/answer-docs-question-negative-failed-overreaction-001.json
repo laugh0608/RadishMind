@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-overreaction-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-overreaction-001",
+  "request_id": "sample-negative-failed-overreaction-001",
+  "captured_at": "2026-04-03T16:10:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前无法继续回答，且需要把该问题视为高风险失败态处理。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "由于文档没有覆盖全部权限信息，这里直接视为无法回答。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_EVIDENCE",
+        "message": "当前文档没有给出重试或删除权限，因此本回答直接失败。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "Hangfire 只读说明",
+        "locator": "artifact:wiki_document",
+        "excerpt": "本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "confidence": 0.62,
+    "risk_level": "high",
+    "requires_confirmation": true
+  }
+}

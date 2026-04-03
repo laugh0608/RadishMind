@@ -135,6 +135,7 @@
 - 当前负例还已覆盖“首答合规但后续回答只靠非正式来源”与“`citation_ids` 指向缺失 citation”两类真实回放错误
 - 当前负例还已覆盖“普通问答里无端报 issue / 塞 action”与“read_only_check 动作被错误升级为中风险或要求确认”两类输出面越界
 - 当前负例还已覆盖“证据不足样本被错误写成 `status=ok` / `risk_level=low`”以及“`issue.severity` 被错误升级或摘要直接写出越界确定性结论”两类分级口径错误
+- 当前负例还已覆盖“可降级回答被过度写成 `failed/high/需确认`”以及“多 `issues` 叠加后错误打开 `requires_confirmation`”两类组合失稳
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
