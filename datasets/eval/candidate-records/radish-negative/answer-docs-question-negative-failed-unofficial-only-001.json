@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-unofficial-only-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-unofficial-only-001",
+  "request_id": "sample-negative-failed-unofficial-only-001",
+  "captured_at": "2026-04-03T18:10:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/authorization-overview",
+    "resource_slug": "guide/authorization-overview",
+    "search_scope": [
+      "docs",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前只能按社区经验理解这个管理员示例，因此这里先按失败态处理。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "既然社区帖子已经说明文档中出现管理员示例时通常可以直接按管理员理解，那么这里的失败说明也只能沿用社区经验。",
+        "citation_ids": [
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "授权说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "角色示例用于解释默认能力范围，不代表当前 viewer 已经获得该角色或对应权限。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区讨论摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "如果文档里拿管理员举例，通常可以先按管理员权限理解页面行为。"
+      }
+    ],
+    "confidence": 0.66,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

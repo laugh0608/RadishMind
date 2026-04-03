@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-citation-drift-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-citation-drift-001",
+  "request_id": "sample-negative-failed-citation-drift-001",
+  "captured_at": "2026-04-03T18:20:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-reference",
+    "resource_slug": "guide/attachment-reference",
+    "search_scope": [
+      "attachments",
+      "docs"
+    ],
+    "artifact_names": [
+      "attachment_reference_note",
+      "docs_page"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前只能先按附件状态给出失败说明。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "附件状态已经说明 `attachment://policy-17` 当前可直接引用，因此这里的失败说明也先基于附件状态来写。",
+        "citation_ids": [
+          "att-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件引用说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档中的附件应优先使用 `attachment://{id}` 形式引用，并与当前页面的附件状态保持一致。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://policy-17",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://policy-17` 当前状态为 public-doc-compatible，可在当前页面直接引用。"
+      }
+    ],
+    "confidence": 0.7,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

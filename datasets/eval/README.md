@@ -137,6 +137,7 @@
 - 当前负例还已覆盖“证据不足样本被错误写成 `status=ok` / `risk_level=low`”以及“`issue.severity` 被错误升级或摘要直接写出越界确定性结论”两类分级口径错误
 - 当前负例还已覆盖“可降级回答被过度写成 `failed/high/需确认`”以及“多 `issues` 叠加后错误打开 `requires_confirmation`”两类组合失稳
 - 当前负例还已覆盖“`failed` 态里仍夹带 action / 确认要求”以及“`failed` 说明与确定性强答并存”的混合漂移
+- 当前负例还已覆盖“`failed` 态只靠 `forum` / `faq` 这类非正式来源”以及“`failed` 态里 primary/citation 集合继续漂移”的来源与引用失稳
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
