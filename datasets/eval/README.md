@@ -77,6 +77,21 @@
 - `cause_explanation` 必须显式使用不确定性表述
 - `ROOT_CAUSE_UNCONFIRMED` 必须保持 `warning` 且消息中明确“未确认/证据不足/候选”口径
 
+其中 `explain_control_plane_state` 当前已覆盖：
+
+- entitlement 过期阻塞
+- package sync 轻度异常
+- 控制面冲突态
+- 上游 403 授权边界对抗样本
+- manifest / lease 版本错位组合态
+- public / private package source 权限范围差异
+
+同时该任务的回归当前会额外约束：
+
+- `hypothesis_labeling` 样本必须通过 `cause_hypothesis` 或 `conflict_explanation` 显式标注不确定性
+- `read_only_check` 必须保持 `low` 风险且不要求确认
+- `candidate_operation` 必须要求确认，且不能伪装成自动修复
+
 其中 `suggest_flowsheet_edits` 当前已覆盖：
 
 - 流股缺失规格占位
@@ -89,13 +104,6 @@
 - `candidate_edit.target` 必须落在当前选择集或诊断目标内
 - `patch` 必须保持可审查的局部结构
 - `patch` 不得退化成命令式执行字段或整图重写字段
-
-其中 `explain_control_plane_state` 当前已覆盖：
-
-- entitlement 过期阻塞
-- package sync 轻度异常
-- 控制面冲突态
-- 上游 403 的授权边界对抗样本
 
 `Radish` 的 docs QA runner 当前也已支持样本内可选 `candidate_response` 校验，方便在保持召回输入约束不变的前提下接入真实候选回答。
 

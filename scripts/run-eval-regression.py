@@ -739,6 +739,23 @@ def validate_control_plane_response(
         if required_answer_kind not in actual_answer_kinds:
             add_violation(violations, f"{sample_name}: {response_label} is missing required answer kind '{required_answer_kind}'")
 
+    if "hypothesis_labeling" in {str(item) for item in get_array(evaluation.get("scoring_focus"))}:
+        hypothesis_answers = [
+            answer
+            for answer in answers
+            if str(answer.get("kind") or "") in {"cause_hypothesis", "conflict_explanation"}
+        ]
+        if len(hypothesis_answers) == 0:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} must contain cause_hypothesis or conflict_explanation for hypothesis_labeling samples",
+            )
+        elif not any(contains_uncertainty_marker(answer.get("text")) for answer in hypothesis_answers):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} hypothesis answer must explicitly mark uncertainty for control-plane hypothesis_labeling samples",
+            )
+
     actual_action_kinds = {str(action.get("kind") or "") for action in actions}
     for required_kind in [str(item) for item in get_array(shape.get("required_action_kinds"))]:
         if required_kind not in actual_action_kinds:
