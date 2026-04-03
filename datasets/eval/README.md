@@ -120,6 +120,21 @@
 - `sample_id`、`request_id`、`project`、`task` 与样本请求对齐
 - `input_record.current_app`、`route`、`resource_slug`、`search_scope`、`artifact_names` 与样本最小输入对齐
 - `response` 仍必须通过统一 `CopilotResponse` schema 与任务级校验
+- 若样本在 `candidate_response_record` 下声明 `expected_source`、`required_capture_origin`、`required_collection_batch` 或 `required_tags`，外部记录还需满足这些最小来源元数据约束
+
+当前 `candidate_response_record` 允许为真实候选输出补最小来源元数据：
+
+- `capture_metadata.capture_origin`：例如 `interactive_session`、`adapter_debug_dump`
+- `capture_metadata.collection_batch`：用于把一批真实快照按同一采样批次收口
+- `capture_metadata.tags`：用于标记 `real_capture`、任务名或专项回灌标签
+- `capture_metadata.notes`：补充该快照的最小背景说明
+
+当前推荐的真实负例回灌最小流程：
+
+1. 先把真实候选输出按 `candidate-response-record.schema.json` 落到 `datasets/eval/candidate-records/` 下，并补 `capture_metadata`
+2. 若该快照本身就是坏输出，可直接让负例样本引用它
+3. 若当前只有正向真实快照，也可以把它跨样本回放到另一条样本上，复用同一套 `candidate_record_alignment + response` 校验，验证“真实输出放错样本”会被稳定拒绝
+4. 负例样本仍只通过 `negative_replay_expectations.expected_candidate_violations` 声明期望命中的 violation 片段，不再分叉第二套校验逻辑
 
 对于显式启用 `official_source_precedence` 的 `Radish` 多来源问答样本，当前回归还会检查：
 

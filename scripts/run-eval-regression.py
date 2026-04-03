@@ -261,29 +261,32 @@ def load_candidate_response_from_record(
     sample: dict[str, Any],
     config: dict[str, Any],
     sample_name: str,
-    violations: list[str],
-) -> Any:
+) -> tuple[Any, list[str]]:
+    record_violations: list[str] = []
     record_ref = sample.get("candidate_response_record")
     if record_ref is None:
-        return sample.get("candidate_response")
+        return sample.get("candidate_response"), record_violations
 
     record_path_value = str((record_ref or {}).get("path") or "").strip()
     if not record_path_value:
-        add_violation(violations, f"{sample_name}: candidate_response_record.path is required")
-        return None
+        add_violation(record_violations, f"{sample_name}: candidate_response_record.path is required")
+        return None, record_violations
 
     record_path = Path(record_path_value)
     if not record_path.is_absolute():
         record_path = (REPO_ROOT / record_path).resolve()
     if not record_path.is_file():
-        add_violation(violations, f"{sample_name}: candidate_response_record file not found: {record_path_value}")
-        return None
+        add_violation(record_violations, f"{sample_name}: candidate_response_record file not found: {record_path_value}")
+        return None, record_violations
 
     try:
         record = json.loads(record_path.read_text(encoding="utf-8"))
     except Exception as exc:
-        add_violation(violations, f"{sample_name}: failed to parse candidate_response_record '{record_path_value}': {exc}")
-        return None
+        add_violation(
+            record_violations,
+            f"{sample_name}: failed to parse candidate_response_record '{record_path_value}': {exc}",
+        )
+        return None, record_violations
 
     candidate_record_schema = config.get("candidate_record_schema")
     if candidate_record_schema is not None:
@@ -291,20 +294,62 @@ def load_candidate_response_from_record(
             record,
             candidate_record_schema,
             f"{sample_name} candidate_response_record",
-            violations,
+            record_violations,
         )
 
     expected_sample_id = str(sample.get("sample_id") or "")
     if str(record.get("sample_id") or "") != expected_sample_id:
-        add_violation(violations, f"{sample_name}: candidate_response_record.sample_id must match sample_id")
+        add_violation(record_violations, f"{sample_name}: candidate_response_record.sample_id must match sample_id")
     if str(record.get("project") or "") != str(sample.get("project") or ""):
-        add_violation(violations, f"{sample_name}: candidate_response_record.project must match sample.project")
+        add_violation(record_violations, f"{sample_name}: candidate_response_record.project must match sample.project")
     if str(record.get("task") or "") != str(sample.get("task") or ""):
-        add_violation(violations, f"{sample_name}: candidate_response_record.task must match sample.task")
+        add_violation(record_violations, f"{sample_name}: candidate_response_record.task must match sample.task")
 
     sample_request = sample.get("input_request") or {}
     if str(record.get("request_id") or "") != str(sample_request.get("request_id") or ""):
-        add_violation(violations, f"{sample_name}: candidate_response_record.request_id must match input_request.request_id")
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.request_id must match input_request.request_id",
+        )
+
+    expected_source = str((record_ref or {}).get("expected_source") or "").strip()
+    if expected_source and str(record.get("source") or "") != expected_source:
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.source must match candidate_response_record.expected_source",
+        )
+
+    capture_metadata = record.get("capture_metadata") or {}
+    required_capture_origin = str((record_ref or {}).get("required_capture_origin") or "").strip()
+    if required_capture_origin and str(capture_metadata.get("capture_origin") or "") != required_capture_origin:
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.capture_metadata.capture_origin must match candidate_response_record.required_capture_origin",
+        )
+
+    required_collection_batch = str((record_ref or {}).get("required_collection_batch") or "").strip()
+    if required_collection_batch and str(capture_metadata.get("collection_batch") or "") != required_collection_batch:
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.capture_metadata.collection_batch must match candidate_response_record.required_collection_batch",
+        )
+
+    required_tags = {
+        str(tag).strip()
+        for tag in get_array((record_ref or {}).get("required_tags"))
+        if str(tag).strip()
+    }
+    record_tags = {
+        str(tag).strip()
+        for tag in get_array(capture_metadata.get("tags"))
+        if str(tag).strip()
+    }
+    for required_tag in sorted(required_tags):
+        if required_tag not in record_tags:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.capture_metadata.tags is missing required tag '{required_tag}'",
+            )
 
     input_record = record.get("input_record") or {}
     context = sample_request.get("context") or {}
@@ -320,25 +365,40 @@ def load_candidate_response_from_record(
         if str(name).strip()
     )
     if record_artifact_names != artifact_names:
-        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.artifact_names must match input_request artifacts")
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.input_record.artifact_names must match input_request artifacts",
+        )
     if str(input_record.get("route") or "") != str(context.get("route") or ""):
-        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.route must match input_request.context.route")
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.input_record.route must match input_request.context.route",
+        )
     if str(input_record.get("resource_slug") or "") != str(resource.get("slug") or ""):
-        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug")
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug",
+        )
     if str(input_record.get("current_app") or "") != str(context.get("current_app") or ""):
-        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.current_app must match input_request.context.current_app")
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.input_record.current_app must match input_request.context.current_app",
+        )
 
     record_search_scope = sorted(str(scope).strip() for scope in get_array(input_record.get("search_scope")) if str(scope).strip())
     sample_search_scope = sorted(str(scope).strip() for scope in get_array(context.get("search_scope")) if str(scope).strip())
     if record_search_scope != sample_search_scope:
-        add_violation(violations, f"{sample_name}: candidate_response_record.input_record.search_scope must match input_request.context.search_scope")
+        add_violation(
+            record_violations,
+            f"{sample_name}: candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+        )
 
     response = record.get("response")
     if response is None:
-        add_violation(violations, f"{sample_name}: candidate_response_record.response is required")
-        return None
+        add_violation(record_violations, f"{sample_name}: candidate_response_record.response is required")
+        return None, record_violations
 
-    return response
+    return response, record_violations
 
 
 def validate_radish_docs_retrieval(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
@@ -553,12 +613,13 @@ def validate_radish_docs_negative_replay(
         )
         return
 
-    candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
+    candidate_response, record_violations = load_candidate_response_from_record(sample, config, sample_name)
     if candidate_response is None:
         add_violation(violations, f"{sample_name}: negative replay requires candidate_response or candidate_response_record")
         return
 
     candidate_violations: list[str] = []
+    candidate_violations.extend(record_violations)
     test_document_against_schema(
         candidate_response,
         config["response_schema"],
@@ -1042,7 +1103,8 @@ def run_radish_docs_qa(config: dict[str, Any], sample_dir: Path, sample_paths: l
             validate_radish_docs_retrieval(sample, sample_name, violations)
             validate_radish_docs_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
+            candidate_response, record_violations = load_candidate_response_from_record(sample, config, sample_name)
+            violations.extend(record_violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_radish_docs_response(sample, candidate_response, "candidate_response", sample_name, violations)
@@ -1147,7 +1209,8 @@ def run_radishflow_diagnostics(config: dict[str, Any], sample_dir: Path, sample_
             validate_diagnostics_request(sample, sample_name, violations)
             validate_diagnostics_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
+            candidate_response, record_violations = load_candidate_response_from_record(sample, config, sample_name)
+            violations.extend(record_violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_diagnostics_response(sample, candidate_response, "candidate_response", sample_name, violations)
@@ -1199,7 +1262,8 @@ def run_radishflow_suggest_edits(config: dict[str, Any], sample_dir: Path, sampl
             validate_suggest_request(sample, sample_name, violations)
             validate_suggest_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
+            candidate_response, record_violations = load_candidate_response_from_record(sample, config, sample_name)
+            violations.extend(record_violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_suggest_response(sample, candidate_response, "candidate_response", sample_name, violations)
@@ -1251,7 +1315,8 @@ def run_radishflow_control_plane(config: dict[str, Any], sample_dir: Path, sampl
             validate_control_plane_request(sample, sample_name, violations)
             validate_control_plane_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
 
-            candidate_response = load_candidate_response_from_record(sample, config, sample_name, violations)
+            candidate_response, record_violations = load_candidate_response_from_record(sample, config, sample_name)
+            violations.extend(record_violations)
             if candidate_response is not None:
                 test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
                 validate_control_plane_response(sample, candidate_response, "candidate_response", sample_name, violations)

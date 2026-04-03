@@ -7,6 +7,16 @@
   "request_id": "sample-role-example-boundary-001",
   "captured_at": "2026-04-03T10:20:00Z",
   "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "collection_batch": "2026-04-03-radish-docs-qa-real-captures-v1",
+    "tags": [
+      "radish_docs_qa",
+      "real_capture",
+      "w14_seed"
+    ],
+    "notes": "来自真实候选输出快照，作为首批 docs QA 正向回灌样本之一。"
+  },
   "model": "qwen2.5-vl-candidate-snapshot",
   "input_record": {
     "current_app": "console",

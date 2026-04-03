@@ -213,6 +213,14 @@
 - `input_record.search_scope`
 - `input_record.artifact_names`
 
+当候选响应来自真实捕获快照时，当前建议额外保留：
+
+- `capture_metadata.capture_origin`
+- `capture_metadata.collection_batch`
+- `capture_metadata.tags`
+
+当前负例回放也允许把一条真实 `captured_candidate_response` 作为“跨样本外部 record”回灌到另一条样本中，继续复用同一套 `candidate_record_alignment + response` 校验规则。这样可以先用少量真实快照验证回灌链路是否稳定，而不必等待每一种坏输出都完成独立抓取。
+
 当前已覆盖的最小样本类型包括：
 
 - 直接回答
