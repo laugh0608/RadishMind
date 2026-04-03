@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-failed-docs-faq-forum-conflict-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-failed-docs-faq-forum-conflict-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 文档发布说明\n\n公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/publishing",
+          "fragment_id": "slug-stability",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "faq_excerpt",
+        "mime_type": "text/markdown",
+        "content": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。",
+        "metadata": {
+          "source_type": "faq",
+          "page_slug": "faq/publishing",
+          "fragment_id": "slug-alias",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "forum_excerpt",
+        "mime_type": "text/markdown",
+        "content": "社区帖子建议：如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。",
+        "metadata": {
+          "source_type": "forum",
+          "page_slug": "community/publishing-tips",
+          "fragment_id": "replace-slug-directly",
+          "retrieval_rank": 3,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/publishing",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/publishing",
+        "title": "文档发布说明"
+      },
+      "search_scope": [
+        "docs",
+        "faq",
+        "forum"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 2,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "required_search_scopes": [
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allow_unofficial_sources": true,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.citations[1]",
+      "$.citations[2]",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.status=\"failed\"",
+      "$.summary=\"可以直接删除旧链接并改掉 slug。\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment",
+      "official_source_precedence"
+    ],
+    "notes": "负例回放要求捕获 failed 态里让 faq/forum 反客为主，覆盖 docs 的 slug 稳定规则的三路冲突漂移。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      ".status does not match expected_response_shape.status",
+      "first answer must cite at least one primary artifact",
+      "cannot rely only on unofficial citations",
+      "json path '$.summary' should not equal '可以直接删除旧链接并改掉 slug。'"
+    ]
+  },
+  "candidate_response_record": {
+    "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-faq-forum-conflict-001.json"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前仍应以正式 docs 为准，优先保持既有 slug 稳定；FAQ 只补充了可通过 alias 平滑过渡的做法，forum 提到的直接删除旧链接不应覆盖正式口径。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "不应因为页面流量较低就直接改掉 slug 并删除旧链接。当前正式 docs 的主结论仍是保持既有访问地址稳定；如果确实要调整标题，可参考 FAQ 的补充做法，通过 alias 平滑过渡。forum 里的直接替换建议只能视为社区经验，不能当成正式规则。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对旧 slug 与 alias 配置",
+        "rationale": "当前更适合先确认旧链接是否仍可访问，以及是否已经配置 alias，而不是直接改写发布策略。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "文档发布说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "文档发布 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区帖子摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。"
+      }
+    ],
+    "confidence": 0.91,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

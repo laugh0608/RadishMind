@@ -226,6 +226,7 @@
 - `failed` 过度失败态与多 `issues` / `requires_confirmation` 组合负例回放样本，验证 docs QA 不会把可解释场景过度升级成失败态或人工确认态
 - `failed + actions/answers` 混合负例回放样本，验证失败态不会继续夹带高风险动作，也不会一边失败一边给出确定性强答
 - `failed + citation/source` 混合负例回放样本，验证失败态也必须保持正式来源优先与 citation 完整性，不能把失败态当成绕过来源约束的出口
+- 三路冲突 failed-state 负例回放样本，验证在 `docs + attachments + forum` 或 `docs + faq + forum` 冲突里，失败态也不能让非正式来源覆盖正式主结论
 
 ## 非目标
 

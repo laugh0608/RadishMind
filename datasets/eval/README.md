@@ -138,6 +138,7 @@
 - 当前负例还已覆盖“可降级回答被过度写成 `failed/high/需确认`”以及“多 `issues` 叠加后错误打开 `requires_confirmation`”两类组合失稳
 - 当前负例还已覆盖“`failed` 态里仍夹带 action / 确认要求”以及“`failed` 说明与确定性强答并存”的混合漂移
 - 当前负例还已覆盖“`failed` 态只靠 `forum` / `faq` 这类非正式来源”以及“`failed` 态里 primary/citation 集合继续漂移”的来源与引用失稳
+- 当前负例还已覆盖 `docs + attachments + forum` 与 `docs + faq + forum` 三路冲突下的 failed-state 漂移，验证失败态里社区经验、FAQ 或附件状态都不能反客为主
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
