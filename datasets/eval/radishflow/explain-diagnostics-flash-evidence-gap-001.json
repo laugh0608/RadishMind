@@ -1,0 +1,342 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-diagnostics-flash-evidence-gap-001",
+  "project": "radishflow",
+  "task": "explain_diagnostics",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-explain-diag-flash-evidence-gap-001",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-006",
+          "units": [
+            {
+              "id": "flash-1",
+              "kind": "FlashDrum",
+              "name": "Feed Flash Drum"
+            }
+          ],
+          "streams": [
+            {
+              "id": "flash-feed-1",
+              "name": "Flash Feed",
+              "target_unit_id": "flash-1",
+              "specs": {
+                "pressure_kpa": 320,
+                "temperature_c": 78
+              }
+            },
+            {
+              "id": "vapour-out-1",
+              "name": "Vapour Outlet",
+              "source_unit_id": "flash-1"
+            },
+            {
+              "id": "liquid-out-1",
+              "name": "Liquid Outlet",
+              "source_unit_id": "flash-1"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 36,
+      "selected_unit_ids": [
+        "flash-1"
+      ],
+      "selected_stream_ids": [
+        "flash-feed-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "UNIT_OUTPUT_STATE_UNCERTAIN",
+          "message": "Feed Flash Drum outlet state cannot be resolved from the current feed description.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "flash-1"
+        },
+        {
+          "code": "INLET_COMPOSITION_INCOMPLETE",
+          "message": "Flash Feed is missing a complete composition definition.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "flash-feed-1"
+        },
+        {
+          "code": "PHASE_SPLIT_ASSUMPTION_REQUIRED",
+          "message": "Current flash calculation would require an assumed phase split.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "flash-1"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "partial",
+        "residual_norm": 0.19,
+        "last_updated": "2026-04-03T07:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": false,
+    "required_answer_kinds": [
+      "phenomenon",
+      "cause_explanation",
+      "impact"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"UNIT_OUTPUT_STATE_UNCERTAIN\"",
+      "$.issues[1].code=\"ROOT_CAUSE_UNCONFIRMED\"",
+      "$.issues[2].code=\"PHASE_SPLIT_ASSUMPTION_REQUIRED\"",
+      "$.answers[0].kind=\"phenomenon\"",
+      "$.answers[1].kind=\"cause_explanation\"",
+      "$.answers[2].kind=\"impact\"",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "回答应明确说明当前只能停留在证据不足下的候选解释，不能把假设性的 phase split 包装成已确认结论。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前 Feed Flash Drum 的出口状态仍无法稳定解释，因为现有进料描述不足以支持无歧义的相分割判断。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前已观察到的事实是 flash-1 的出口状态无法从现有进料描述稳定解出，系统同时报告了进料组成不完整和需要相分割假设。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "进料组成不完整是最直接的候选解释之一，但当前证据不足以确认它是否就是唯一原因；同样，phase split 也还不能被当成已确认结果，只能视为为继续解释所需的假设。",
+        "citation_ids": [
+          "diag-2",
+          "diag-3",
+          "flowdoc-1"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在相分割仍依赖假设的情况下，vapour-out-1 与 liquid-out-1 的状态解释都不应被当成可靠输出继续传播。",
+        "citation_ids": [
+          "diag-1",
+          "diag-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_OUTPUT_STATE_UNCERTAIN",
+        "message": "flash-1 当前无法从现有进料描述稳定确定出口状态。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1"
+        ]
+      },
+      {
+        "code": "ROOT_CAUSE_UNCONFIRMED",
+        "message": "当前证据不足以确认进料组成不完整是否就是出口状态不确定的唯一根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "diag-3",
+          "flowdoc-1"
+        ]
+      },
+      {
+        "code": "PHASE_SPLIT_ASSUMPTION_REQUIRED",
+        "message": "当前若继续解释 flash-1 的出口，只能建立在尚未确认的相分割假设上。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_OUTPUT_STATE_UNCERTAIN",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed Flash Drum outlet state cannot be resolved from the current feed description."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 INLET_COMPOSITION_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Flash Feed is missing a complete composition definition."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 PHASE_SPLIT_ASSUMPTION_REQUIRED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Current flash calculation would require an assumed phase split."
+      },
+      {
+        "id": "flowdoc-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / flash-feed-1",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "flash-feed-1 当前只包含 pressure_kpa 与 temperature_c，没有完整 composition。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial, residual_norm=0.19"
+      }
+    ],
+    "confidence": 0.77,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前 Flash Drum 的解释被卡在进料证据不足上，出口相态还不能被当成已确认结果。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前能直接确认的是 flash-1 出口状态仍不稳定，flash-feed-1 的组成定义不完整，而且系统提示继续计算需要一个相分割假设。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "进料组成缺口可能是主要原因之一，但当前证据不足以确认它就是唯一根因；同时还不能把任何假设性的 phase split 当成已经成立的事实。",
+        "citation_ids": [
+          "diag-2",
+          "diag-3"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在相态仍依赖假设的情况下，当前 vapour 和 liquid 两个出口的解释都只能停留在暂不稳定状态。",
+        "citation_ids": [
+          "diag-1",
+          "diag-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_OUTPUT_STATE_UNCERTAIN",
+        "message": "flash-1 当前无法稳定确定出口状态。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1"
+        ]
+      },
+      {
+        "code": "ROOT_CAUSE_UNCONFIRMED",
+        "message": "当前证据不足以确认进料组成缺口是否就是出口异常的唯一根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "diag-3"
+        ]
+      },
+      {
+        "code": "PHASE_SPLIT_ASSUMPTION_REQUIRED",
+        "message": "当前继续解释 flash-1 的出口仍需要一个未确认的相分割假设。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_OUTPUT_STATE_UNCERTAIN",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed Flash Drum outlet state cannot be resolved from the current feed description."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 INLET_COMPOSITION_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Flash Feed is missing a complete composition definition."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 PHASE_SPLIT_ASSUMPTION_REQUIRED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Current flash calculation would require an assumed phase split."
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial, residual_norm=0.19"
+      }
+    ],
+    "confidence": 0.72,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

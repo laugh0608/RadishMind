@@ -22,6 +22,31 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 ALLOWED_PRIMARY_KINDS = {"markdown", "text"}
 UNOFFICIAL_SOURCE_TYPES = {"faq", "forum"}
 RISK_RANKS = {"low": 1, "medium": 2, "high": 3}
+DISALLOWED_SUGGEST_PATCH_KEYS = {
+    "command",
+    "commands",
+    "shell",
+    "script",
+    "execute",
+    "execute_now",
+    "apply",
+    "apply_immediately",
+    "full_document",
+    "full_document_json",
+    "flowsheet_document",
+    "document",
+}
+UNCERTAINTY_MARKERS = (
+    "候选",
+    "可能",
+    "证据不足",
+    "不足以确认",
+    "还不能",
+    "暂不能",
+    "仅能",
+    "推断",
+    "未确认",
+)
 SCHEMA_CACHE: dict[Path, Any] = {}
 
 
@@ -109,6 +134,11 @@ def convert_expectation_literal(literal: str) -> Any:
     if len(trimmed) >= 2 and trimmed.startswith('"') and trimmed.endswith('"'):
         return trimmed[1:-1]
     return trimmed
+
+
+def contains_uncertainty_marker(text: Any) -> bool:
+    content = str(text or "")
+    return any(marker in content for marker in UNCERTAINTY_MARKERS)
 
 
 def resolve_json_path(document: Any, path: str) -> tuple[bool, Any]:
@@ -438,6 +468,37 @@ def validate_diagnostics_response(
         if required_answer_kind not in actual_answer_kinds:
             add_violation(violations, f"{sample_name}: {response_label} is missing required answer kind '{required_answer_kind}'")
 
+    if "hypothesis_labeling" in {str(item) for item in get_array(evaluation.get("scoring_focus"))}:
+        if "ROOT_CAUSE_UNCONFIRMED" not in {str(issue.get("code") or "") for issue in issues}:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} must include ROOT_CAUSE_UNCONFIRMED when hypothesis_labeling is required",
+            )
+
+        cause_answers = [answer for answer in answers if str(answer.get("kind") or "") == "cause_explanation"]
+        if len(cause_answers) == 0:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} must contain a cause_explanation answer for hypothesis_labeling samples",
+            )
+        elif not any(contains_uncertainty_marker(answer.get("text")) for answer in cause_answers):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} cause_explanation must explicitly mark uncertainty for hypothesis_labeling samples",
+            )
+
+        root_cause_issues = [issue for issue in issues if str(issue.get("code") or "") == "ROOT_CAUSE_UNCONFIRMED"]
+        if any(str(issue.get("severity") or "") != "warning" for issue in root_cause_issues):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} ROOT_CAUSE_UNCONFIRMED must remain warning severity",
+            )
+        if root_cause_issues and not any(contains_uncertainty_marker(issue.get("message")) for issue in root_cause_issues):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} ROOT_CAUSE_UNCONFIRMED message must explicitly state uncertainty",
+            )
+
     actual_action_kinds = {str(action.get("kind") or "") for action in actions}
     for required_kind in [str(item) for item in get_array(shape.get("required_action_kinds"))]:
         if required_kind not in actual_action_kinds:
@@ -503,10 +564,25 @@ def validate_suggest_response(
 ) -> None:
     shape = sample["expected_response_shape"]
     evaluation = sample["evaluation"]
+    request_context = sample["input_request"].get("context") or {}
     answers = get_array(response.get("answers"))
     issues = get_array(response.get("issues"))
     actions = get_array(response.get("proposed_actions"))
     citations = get_array(response.get("citations"))
+    selected_target_ids = {
+        str(target_id)
+        for target_id in (
+            get_array(request_context.get("selected_unit_ids"))
+            + get_array(request_context.get("selected_stream_ids"))
+        )
+        if str(target_id).strip()
+    }
+    diagnostic_target_ids = {
+        str((diagnostic or {}).get("target_id") or "").strip()
+        for diagnostic in get_array(request_context.get("diagnostics"))
+        if str((diagnostic or {}).get("target_id") or "").strip()
+    }
+    allowed_target_ids = selected_target_ids | diagnostic_target_ids
 
     if response.get("project") != "radishflow":
         add_violation(violations, f"{sample_name}: {response_label}.project must be 'radishflow'")
@@ -545,14 +621,28 @@ def validate_suggest_response(
         if target is None:
             add_violation(violations, f"{sample_name}: {response_label} candidate_edit must include target")
         else:
-            if not str((target or {}).get("type") or "").strip() or not str((target or {}).get("id") or "").strip():
+            target_type = str((target or {}).get("type") or "").strip()
+            target_id = str((target or {}).get("id") or "").strip()
+            if not target_type or not target_id:
                 add_violation(violations, f"{sample_name}: {response_label} candidate_edit target must include non-empty type and id")
+            elif allowed_target_ids and target_id not in allowed_target_ids:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} candidate_edit target '{target_id}' must stay within selected or diagnosed objects",
+                )
 
         patch = action.get("patch")
         if patch is None:
             add_violation(violations, f"{sample_name}: {response_label} candidate_edit must include patch")
         elif not isinstance(patch, dict) or len(patch) < 1:
             add_violation(violations, f"{sample_name}: {response_label} candidate_edit patch must not be empty")
+        else:
+            for patch_key in sorted(str(key) for key in patch.keys()):
+                if patch_key in DISALLOWED_SUGGEST_PATCH_KEYS:
+                    add_violation(
+                        violations,
+                        f"{sample_name}: {response_label} candidate_edit patch must remain reviewable and cannot use '{patch_key}'",
+                    )
 
         if action.get("requires_confirmation") is not True:
             add_violation(violations, f"{sample_name}: {response_label} candidate_edit must set requires_confirmation=true")

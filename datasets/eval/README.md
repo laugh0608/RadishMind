@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-04-02
+更新时间：2026-04-03
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -61,6 +61,34 @@
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
+
+其中 `explain_diagnostics` 当前已覆盖：
+
+- 单对象规格缺失解释
+- 单元未收敛与候选根因区分
+- 全局诊断解释
+- 多对象关联解释
+- 链式诊断传播解释
+- 证据不足下的相态/根因降级说明
+
+同时该任务的回归当前会额外约束：
+
+- `hypothesis_labeling` 样本必须包含 `ROOT_CAUSE_UNCONFIRMED`
+- `cause_explanation` 必须显式使用不确定性表述
+- `ROOT_CAUSE_UNCONFIRMED` 必须保持 `warning` 且消息中明确“未确认/证据不足/候选”口径
+
+其中 `suggest_flowsheet_edits` 当前已覆盖：
+
+- 流股缺失规格占位
+- 高风险拓扑重连占位
+- 选中流股与单元并存时的多动作局部提案
+- 单元参数组合修正
+
+同时该任务的回归当前会额外约束：
+
+- `candidate_edit.target` 必须落在当前选择集或诊断目标内
+- `patch` 必须保持可审查的局部结构
+- `patch` 不得退化成命令式执行字段或整图重写字段
 
 其中 `explain_control_plane_state` 当前已覆盖：
 

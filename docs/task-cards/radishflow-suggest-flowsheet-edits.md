@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_flowsheet_edits`
 
-更新时间：2026-03-31
+更新时间：2026-04-03
 
 ## 任务目标
 
@@ -59,6 +59,7 @@
 
 - 可以是目标对象的局部字段提案
 - 可以是待补充规格或待修改参数的结构化占位
+- 当前推荐优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构
 - 不应是直接可执行命令
 - 不应把整个文档完整重写为巨大 patch
 
