@@ -221,6 +221,7 @@
 - 角色示例不等于最终授权的授权边界样本
 - `official_source_precedence` 负例回放样本，验证只引用 `forum` / `faq` 或漏掉 `primary` artifact 的候选回答会被拒绝
 - 多答案与 citation 完整性负例回放样本，验证后续回答不能只靠非正式来源，且 `citation_ids` 必须与 `citations` 集合一致
+- `issues` / `proposed_actions` 输出面负例回放样本，验证普通问答不应无端报 issue，也不应把低风险导航动作升级成需确认操作
 
 ## 非目标
 
