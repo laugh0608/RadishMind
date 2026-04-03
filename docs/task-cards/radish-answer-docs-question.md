@@ -224,6 +224,7 @@
 - `issues` / `proposed_actions` 输出面负例回放样本，验证普通问答不应无端报 issue，也不应把低风险导航动作升级成需确认操作
 - `status` / `risk_level` / `issue.severity` 负例回放样本，验证证据不足场景不能被错误写成完成态或确定性权限结论
 - `failed` 过度失败态与多 `issues` / `requires_confirmation` 组合负例回放样本，验证 docs QA 不会把可解释场景过度升级成失败态或人工确认态
+- `failed + actions/answers` 混合负例回放样本，验证失败态不会继续夹带高风险动作，也不会一边失败一边给出确定性强答
 
 ## 非目标
 
