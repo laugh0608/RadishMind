@@ -227,6 +227,7 @@
 - `failed + actions/answers` 混合负例回放样本，验证失败态不会继续夹带高风险动作，也不会一边失败一边给出确定性强答
 - `failed + citation/source` 混合负例回放样本，验证失败态也必须保持正式来源优先与 citation 完整性，不能把失败态当成绕过来源约束的出口
 - 三路冲突 failed-state 负例回放样本，验证在 `docs + attachments + forum` 或 `docs + faq + forum` 冲突里，失败态也不能让非正式来源覆盖正式主结论
+- `attachments + faq + forum` 极端冲突与 failed-state 多 action 负例回放样本，验证失败态不会让 FAQ/论坛联手覆盖 docs，也不会继续堆叠多条动作建议
 
 ## 非目标
 
