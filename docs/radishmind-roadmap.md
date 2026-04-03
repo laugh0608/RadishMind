@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-02
+更新时间：2026-04-03
 
 ## 路线图目标
 
@@ -89,7 +89,7 @@
 - `RadishFlow` 建立状态优先样本和后续截图补充样本
 - `Radish` 建立文档、论坛和 Console 知识样本
 - 定义任务指标与离线回归脚本
-- 先把 `Radish` 的 `answer_docs_question` 落成“召回输入 + golden_response”最小回归 runner，再补离线 `candidate_response` 输入口与真实候选输出回灌
+- 先把 `Radish` 的 `answer_docs_question` 落成“召回输入 + golden_response”最小回归 runner，再补外部 `candidate_response_record`、统一负例回放与真实候选输出回灌
 
 ### 推荐指标
 
@@ -187,7 +187,7 @@
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
 2. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
-3. 将 `Radish` 文档问答从离线 `candidate_response` 对照继续推进到真实候选响应回灌，作为下一主线
+3. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充与最小导入流程，作为下一主线
 4. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
 5. 再进入模型对照、PoC 与训练路线验证
 
@@ -198,4 +198,4 @@
 - `SmolVLM` 的回归任务边界与保留条件
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
-- `Radish` 文档问答何时从离线 `candidate_response` 对照推进到真实候选响应回灌
+- `Radish` docs QA 的真实 captured negative 批次采用目录清单、导入脚本还是两者并行维护

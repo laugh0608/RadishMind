@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-01
+更新时间：2026-04-03
 
 ## 架构目标
 
@@ -171,6 +171,14 @@ Adapter 映射回各自 UI / 日志 / 候选提案
   - 建议可执行率
   - 风险分级正确率
   - 任务级回归稳定性
+
+当前评测管线还应统一支持以下输入与回放形态：
+
+- `golden_response` 对照
+- 样本内 `candidate_response`
+- 外部 `candidate_response_record`
+- 与正例共用同一套规则的负例回放
+- 通过 `capture_metadata` 标记来源批次的真实 captured replay
 
 ## 推荐仓库结构
 

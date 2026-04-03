@@ -1,6 +1,6 @@
 # RadishMind 文档总览
 
-更新时间：2026-04-02
+更新时间：2026-04-03
 
 ## 文档目的
 
@@ -37,11 +37,11 @@
 - `Qwen2.5-VL` 在当前任务上的首选尺寸、推理路由与成本上限
 - `SmolVLM` 作为轻量对照组的准入任务和退场条件
 - `RadishFlow` 截图/VLM 路线进入主线的触发条件
-- `Radish` 文档问答何时从离线 `candidate_response` 对照推进到真实候选响应回灌
+- `Radish` docs QA 的真实 captured negative 批次如何组织、导入与扩充
 
 ## 下一步优先推进
 
 1. 继续为 `RadishFlow` 首批 3 个任务扩展输入快照样例与评测样本，优先补控制面冲突态和更多对抗样本。
-2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前离线混合召回样本已覆盖 `docs/wiki/attachments/forum/faq` 最小基线，下一步主线转向真实候选响应回灌，仅按需补少量极端冲突样本。
+2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已接上真实 `candidate_response_record`、统一负例回放与跨样本真实 replay，下一步主线转向扩大 captured negative 批次，并补最小导入流程，仅按需补少量极端冲突样本。
 3. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
 4. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。
