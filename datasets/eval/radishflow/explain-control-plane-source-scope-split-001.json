@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-source-scope-split-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-source-scope-split-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "source_access_summary",
+        "mime_type": "text/plain",
+        "content": "public base manifest fetched successfully, private add-on source returned 403 for package index"
+      }
+    ],
+    "context": {
+      "document_revision": 30,
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "active",
+        "sync_status": "partial_failed",
+        "manifest_status": "partially_available",
+        "last_error": "private add-on source returned 403 for package index"
+      },
+      "solve_session": {
+        "status": "ready"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "cause_hypothesis",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"PACKAGE_SOURCE_SCOPE_SPLIT\"",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"source-scope-check\"",
+      "$.proposed_actions[0].risk_level=\"low\"",
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.summary=\"当前本地授权已经失效。\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "当 public source 仍可达而 private add-on source 返回 403 时，回答应明确这是源级权限差异，不能升级成全局 entitlement 失效。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面更像包源权限范围出现分裂：public source 仍可达，但 private add-on source 被拒绝，这还不能等同于全局授权失效。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "当前 entitlement 与 lease 仍是 active，但 sync 只在 private add-on source 上失败，说明问题并不是所有包源都不可用。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "cause_hypothesis",
+        "text": "更合理的解释是不同 package source 的访问范围或镜像策略存在差异，这可能只影响 private add-on 路径；当前证据不足以确认本地 entitlement 或 lease 已整体失效。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "建议先做只读检查，核对 public 与 private source 的访问范围差异和 package index 返回情况，再决定是否需要后续人工处理。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "PACKAGE_SOURCE_SCOPE_SPLIT",
+        "message": "当前包源可达性表现出分裂，private source 403 可能只说明源级权限范围差异，而不是全局授权失效。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对不同 package source 的访问范围",
+        "target": {
+          "type": "control_plane",
+          "id": "source-scope-check"
+        },
+        "rationale": "当前更适合先只读确认 public/private source 的差异，而不是直接执行恢复或凭据相关动作。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=active, sync_status=partial_failed, manifest_status=partially_available"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "source_access_summary",
+        "locator": "artifact:source_access_summary",
+        "excerpt": "public base manifest fetched successfully, private add-on source returned 403 for package index"
+      }
+    ],
+    "confidence": 0.84,
+    "risk_level": "low",
+    "requires_confirmation": false
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前异常更像 private source 范围内的访问被拒绝，而不是本地授权整体失效。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "本地 entitlement 和 lease 仍然 active，public source 也能取到 manifest，只有 private add-on source 出现 403。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "cause_hypothesis",
+        "text": "这可能说明不同 source 的权限范围不一致，当前证据不足以把 private source 的 403 直接解释成全局授权失效或本地凭据过期。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "建议先只读核对 source scope 与 package index 返回差异，再决定是否需要继续人工处理。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "PACKAGE_SOURCE_SCOPE_SPLIT",
+        "message": "private source 的 403 可能只反映 source scope 差异，而不是全局授权链路失效。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "检查 public/private source 的访问范围差异",
+        "target": {
+          "type": "control_plane",
+          "id": "source-scope-check"
+        },
+        "rationale": "先比较不同 source 的访问边界，比直接执行恢复动作更符合当前证据。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=active, sync_status=partial_failed, manifest_status=partially_available"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "source_access_summary",
+        "locator": "artifact:source_access_summary",
+        "excerpt": "public base manifest fetched successfully, private add-on source returned 403 for package index"
+      }
+    ],
+    "confidence": 0.8,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

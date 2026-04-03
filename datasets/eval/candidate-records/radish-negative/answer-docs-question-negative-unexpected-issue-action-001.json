@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-unexpected-issue-action-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-unexpected-issue-action-001",
+  "request_id": "sample-negative-unexpected-issue-action-001",
+  "captured_at": "2026-04-03T14:20:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/authentication",
+    "resource_slug": "guide/authentication",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "鉴权负责确认用户身份，授权负责确认权限范围。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前文档已经直接区分了鉴权和授权。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "DOCS_GAP",
+        "severity": "info",
+        "message": "建议继续排查是否还有更多未提供的权限细节。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "继续检查权限细节",
+        "rationale": "虽然当前文档已足够回答，但仍建议继续扩展检查范围。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "鉴权与授权指南",
+        "locator": "artifact:wiki_document",
+        "excerpt": "鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "confidence": 0.87,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

@@ -1,0 +1,504 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/radish-task-sample.schema.json",
+  "title": "RadishTaskEvalSample",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sample_id",
+    "project",
+    "task",
+    "input_request",
+    "retrieval_expectations",
+    "expected_response_shape",
+    "evaluation",
+    "golden_response"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "sample_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "const": "radish"
+    },
+    "task": {
+      "type": "string",
+      "enum": [
+        "answer_docs_question"
+      ]
+    },
+    "input_request": {
+      "type": "object"
+    },
+    "retrieval_expectations": {
+      "$ref": "#/$defs/retrieval_expectations"
+    },
+    "expected_response_shape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "requires_summary",
+        "requires_answers",
+        "requires_citations",
+        "allow_proposed_actions"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "partial",
+            "failed"
+          ]
+        },
+        "requires_summary": {
+          "type": "boolean"
+        },
+        "requires_answers": {
+          "type": "boolean"
+        },
+        "requires_issues": {
+          "type": "boolean"
+        },
+        "requires_citations": {
+          "type": "boolean"
+        },
+        "allow_proposed_actions": {
+          "type": "boolean"
+        },
+        "required_action_kinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_risk_level",
+        "must_have_json_paths",
+        "must_not_have_json_paths",
+        "scoring_focus"
+      ],
+      "properties": {
+        "expected_risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "must_have_json_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "must_not_have_json_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "scoring_focus": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "schema_validity",
+              "field_completeness",
+              "citation_hit",
+              "actionability",
+              "risk_level",
+              "retrieval_contract",
+              "candidate_record_alignment",
+              "official_source_precedence"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "negative_replay_expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_candidate_violations"
+      ],
+      "properties": {
+        "expected_candidate_violations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "candidate_response_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_source": {
+          "type": "string",
+          "enum": [
+            "captured_candidate_response",
+            "simulated_candidate_response"
+          ]
+        },
+        "required_capture_origin": {
+          "type": "string",
+          "enum": [
+            "interactive_session",
+            "adapter_debug_dump",
+            "manual_fixture"
+          ]
+        },
+        "required_collection_batch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "candidate_response": {
+      "$ref": "#/$defs/golden_response"
+    },
+    "golden_response": {
+      "$ref": "#/$defs/golden_response"
+    }
+  },
+  "$defs": {
+    "retrieval_expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "require_primary_artifact",
+        "max_primary_artifacts",
+        "max_supporting_artifacts",
+        "max_reference_artifacts",
+        "allowed_search_scopes",
+        "required_search_scopes",
+        "disallowed_search_scopes",
+        "allowed_primary_source_types",
+        "allowed_supporting_source_types",
+        "allowed_reference_source_types",
+        "allow_unofficial_sources",
+        "require_primary_resource_match",
+        "require_artifact_source_metadata"
+      ],
+      "properties": {
+        "require_primary_artifact": {
+          "type": "boolean"
+        },
+        "max_primary_artifacts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_supporting_artifacts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_reference_artifacts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allowed_search_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "required_search_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "disallowed_search_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "allowed_primary_source_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allowed_supporting_source_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allowed_reference_source_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "docs",
+              "wiki",
+              "faq",
+              "forum",
+              "attachments"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allow_unofficial_sources": {
+          "type": "boolean"
+        },
+        "require_primary_resource_match": {
+          "type": "boolean"
+        },
+        "require_artifact_source_metadata": {
+          "type": "boolean"
+        }
+      }
+    },
+    "golden_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "status",
+        "project",
+        "task",
+        "summary",
+        "answers",
+        "issues",
+        "proposed_actions",
+        "citations",
+        "confidence",
+        "risk_level",
+        "requires_confirmation"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "partial",
+            "failed"
+          ]
+        },
+        "project": {
+          "type": "string",
+          "const": "radish"
+        },
+        "task": {
+          "type": "string",
+          "const": "answer_docs_question"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "minLength": 1
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "citation_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            }
+          }
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "message",
+              "severity"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ]
+              },
+              "citation_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            }
+          }
+        },
+        "proposed_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "kind",
+              "label"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "artifact",
+                  "context",
+                  "retrieval",
+                  "rule"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string"
+              },
+              "excerpt": {
+                "type": "string"
+              },
+              "source_uri": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "requires_confirmation": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

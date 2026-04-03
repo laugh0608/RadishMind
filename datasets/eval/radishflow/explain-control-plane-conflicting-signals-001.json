@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-conflicting-signals-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-conflicting-signals-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "ui_status_note",
+        "mime_type": "text/plain",
+        "content": "solver remains blocked while entitlement badge still shows active"
+      }
+    ],
+    "context": {
+      "document_revision": 24,
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "expired",
+        "sync_status": "ok",
+        "manifest_status": "current",
+        "last_error": null
+      },
+      "solve_session": {
+        "status": "blocked"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "conflict_explanation",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "candidate_operation"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.answers[1]",
+      "$.answers[2]",
+      "$.issues[0].code=\"CONTROL_PLANE_STATE_CONFLICT\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"state-recheck\"",
+      "$.proposed_actions[0].risk_level=\"medium\"",
+      "$.proposed_actions[0].requires_confirmation=true",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=true"
+    ],
+    "must_not_have_json_paths": [
+      "$.summary=\"当前已确认 entitlement 失效。\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "当 entitlement、lease 与 solve_session 出现冲突信号时，回答应明确标注冲突，而不是把单一状态直接写成已确认根因。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面信号存在冲突：entitlement 仍显示 active，但 lease 已过期且会话仍然 blocked，因此还不能把单一字段写成已确认根因。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "现有状态同时包含 active entitlement、expired lease 和 blocked 会话，这说明当前不是单一字段就能解释清楚的控制面状态。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "conflict_explanation",
+        "text": "更合理的解释是本地控制面状态之间存在冲突，当前还不能直接写成 entitlement 已失效或求解器内部故障。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "下一步应人工复核 lease、会话状态和 UI 展示链路，再决定是否需要执行恢复动作，而不是立即给出确定性修复结论。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "CONTROL_PLANE_STATE_CONFLICT",
+        "message": "控制面状态之间存在冲突，当前不能直接下单因结论。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工复核控制面状态冲突",
+        "target": {
+          "type": "control_plane",
+          "id": "state-recheck"
+        },
+        "rationale": "先人工复核 entitlement、lease 与 solve_session 的冲突，再决定是否需要后续恢复操作。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=expired, sync_status=ok, manifest_status=current"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "ui_status_note",
+        "locator": "artifact:ui_status_note",
+        "excerpt": "solver remains blocked while entitlement badge still shows active"
+      }
+    ],
+    "confidence": 0.8,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

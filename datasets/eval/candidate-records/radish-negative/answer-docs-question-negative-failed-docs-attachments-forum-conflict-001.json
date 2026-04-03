@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-docs-attachments-forum-conflict-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-docs-attachments-forum-conflict-001",
+  "request_id": "sample-negative-failed-docs-attachments-forum-conflict-001",
+  "captured_at": "2026-04-03T19:10:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "attachments",
+      "docs",
+      "forum"
+    ],
+    "artifact_names": [
+      "attachment_reference_note",
+      "docs_page",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "建议直接公开真实 CDN 地址。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "由于社区经验更贴近实际分享方式，这里先按 forum 建议处理为失败说明。",
+        "citation_ids": [
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "查看真实 CDN 外链写法",
+        "rationale": "虽然当前回答失败，但仍建议先参考社区里的真实外链做法。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件导入说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://manual-42",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区帖子摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+      }
+    ],
+    "confidence": 0.64,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

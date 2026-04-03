@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-manifest-lease-mismatch-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-manifest-lease-mismatch-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "manifest_diff_summary",
+        "mime_type": "text/plain",
+        "content": "local lease epoch=41, remote manifest epoch=43, package sync paused pending manual acknowledgement"
+      }
+    ],
+    "context": {
+      "document_revision": 29,
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "active",
+        "sync_status": "paused",
+        "manifest_status": "ahead_of_local_lease",
+        "last_error": "local lease epoch 41 is behind remote manifest epoch 43"
+      },
+      "solve_session": {
+        "status": "blocked"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "conflict_explanation",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "candidate_operation"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"CONTROL_PLANE_STATE_CONFLICT\"",
+      "$.issues[1].code=\"MANIFEST_LEASE_VERSION_MISMATCH\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"manifest-lease-recheck\"",
+      "$.proposed_actions[0].risk_level=\"medium\"",
+      "$.proposed_actions[0].requires_confirmation=true",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=true"
+    ],
+    "must_not_have_json_paths": [
+      "$.summary=\"当前 entitlement 已失效。\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "当 entitlement 和 lease 仍显示 active，但 manifest 版本领先本地 lease epoch 时，回答应写成组合态冲突，不应直接等同于授权失效。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面更像 manifest 与本地 lease 版本错位造成的组合态冲突，而不是 entitlement 已直接失效。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "当前 entitlement 与 lease 都仍显示 active，但 manifest 已领先本地 lease epoch，且同步被暂停、会话也保持 blocked。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "conflict_explanation",
+        "text": "现有证据更像本地 lease 与远端 manifest 版本没有对齐，这可能导致控制面暂时拒绝继续推进；但当前还不能把它直接写成 entitlement 已过期或镜像源本身失效。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "下一步应人工复核 manifest epoch、lease epoch 与同步暂停原因，再决定是否执行恢复或确认动作，而不是直接假定授权链路已经坏掉。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "CONTROL_PLANE_STATE_CONFLICT",
+        "message": "当前控制面状态存在组合态冲突，不能把单一字段写成已确认根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "code": "MANIFEST_LEASE_VERSION_MISMATCH",
+        "message": "当前 manifest 版本领先本地 lease epoch，这可能是同步暂停与会话阻塞的候选原因之一。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工复核 manifest 与 lease 版本对齐状态",
+        "target": {
+          "type": "control_plane",
+          "id": "manifest-lease-recheck"
+        },
+        "rationale": "当前更合适的动作是先人工确认 manifest epoch、lease epoch 和同步暂停原因，再决定是否继续恢复链路。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=active, sync_status=paused, manifest_status=ahead_of_local_lease"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "manifest_diff_summary",
+        "locator": "artifact:manifest_diff_summary",
+        "excerpt": "local lease epoch=41, remote manifest epoch=43, package sync paused pending manual acknowledgement"
+      }
+    ],
+    "confidence": 0.83,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前阻塞更像 manifest 与本地 lease 未对齐造成的控制面组合态冲突，不能直接把它解释为 entitlement 失效。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "从当前状态看，授权本身仍显示 active，但 manifest epoch 已领先本地 lease，sync 也因此处于 paused。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "conflict_explanation",
+        "text": "这更可能是本地 lease 与远端 manifest 版本错位导致的控制面冲突，当前还不能把问题直接降格成 entitlement 过期或单一镜像故障。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "建议先人工核对 epoch 对齐状态和 sync 暂停原因，再决定是否要执行后续恢复动作。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "CONTROL_PLANE_STATE_CONFLICT",
+        "message": "当前控制面状态存在冲突，不能直接给出单因结论。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "code": "MANIFEST_LEASE_VERSION_MISMATCH",
+        "message": "manifest 版本领先本地 lease epoch，这可能是当前阻塞的候选原因之一。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "复核 manifest 与 lease 的 epoch 对齐状态",
+        "target": {
+          "type": "control_plane",
+          "id": "manifest-lease-recheck"
+        },
+        "rationale": "先确认版本对齐和同步暂停原因，比直接宣称授权失效更符合当前证据边界。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=active, sync_status=paused, manifest_status=ahead_of_local_lease"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "manifest_diff_summary",
+        "locator": "artifact:manifest_diff_summary",
+        "excerpt": "local lease epoch=41, remote manifest epoch=43, package sync paused pending manual acknowledgement"
+      }
+    ],
+    "confidence": 0.79,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

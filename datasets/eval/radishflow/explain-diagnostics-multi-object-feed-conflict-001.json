@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-diagnostics-multi-object-feed-conflict-001",
+  "project": "radishflow",
+  "task": "explain_diagnostics",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-explain-diag-multi-object-feed-conflict-001",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-004",
+          "units": [
+            {
+              "id": "mixer-2",
+              "kind": "Mixer",
+              "name": "Feed Mixer"
+            }
+          ],
+          "streams": [
+            {
+              "id": "feed-hot",
+              "name": "Hot Feed",
+              "target_unit_id": "mixer-2",
+              "specs": {
+                "temperature_c": 180,
+                "flow_kmol_per_h": 50
+              }
+            },
+            {
+              "id": "feed-cold",
+              "name": "Cold Feed",
+              "target_unit_id": "mixer-2",
+              "specs": {
+                "temperature_c": 25,
+                "flow_kmol_per_h": 50
+              }
+            },
+            {
+              "id": "mixed-out",
+              "name": "Mixed Outlet",
+              "source_unit_id": "mixer-2"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 18,
+      "selected_unit_ids": [
+        "mixer-2"
+      ],
+      "selected_stream_ids": [
+        "feed-hot",
+        "feed-cold"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "UNIT_INPUT_STATE_CONFLICT",
+          "message": "Feed Mixer receives inlet streams with inconsistent thermal states.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "mixer-2"
+        },
+        {
+          "code": "STREAM_STATE_DIFFERENCE_LARGE",
+          "message": "Hot Feed and Cold Feed differ significantly in inlet temperature.",
+          "severity": "warning",
+          "target_type": "stream_pair",
+          "target_id": "feed-hot|feed-cold"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "partial",
+        "residual_norm": 0.12,
+        "last_updated": "2026-04-01T03:40:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": false,
+    "required_answer_kinds": [
+      "phenomenon",
+      "cause_explanation",
+      "impact"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.answers[1]",
+      "$.answers[2]",
+      "$.issues[0].code=\"UNIT_INPUT_STATE_CONFLICT\"",
+      "$.issues[1].code=\"ROOT_CAUSE_UNCONFIRMED\"",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "回答应把问题解释为 unit 与 stream pair 共同关联的多对象诊断，并明确候选原因仍是推断。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前 Feed Mixer 的问题关联到两个入口流股：Hot Feed 与 Cold Feed 的热状态差异过大，已触发输入状态冲突诊断。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前选中的 Mixer 和两条入口流股被同一组诊断共同指向：单元输入状态冲突，同时两条入口流股之间存在显著温差。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "现有证据表明两条入口流股的热状态差异很大，这足以作为输入冲突的候选解释，但还不能仅凭这一点断言 Mixer 本体配置一定错误。",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-1"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在入口状态冲突未澄清前，与 Mixer 出口状态相关的后续解释都应视为暂不稳定。",
+        "citation_ids": [
+          "diag-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_INPUT_STATE_CONFLICT",
+        "message": "Feed Mixer 当前收到互相冲突的入口状态。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1"
+        ]
+      },
+      {
+        "code": "ROOT_CAUSE_UNCONFIRMED",
+        "message": "两条入口流股的热状态差异可作为候选原因，但当前证据不足以确认它就是唯一根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_INPUT_STATE_CONFLICT",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed Mixer receives inlet streams with inconsistent thermal states."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_STATE_DIFFERENCE_LARGE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Hot Feed and Cold Feed differ significantly in inlet temperature."
+      },
+      {
+        "id": "flowdoc-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / Hot Feed + Cold Feed",
+        "locator": "artifact:flowsheet_document.streams[0..1]",
+        "excerpt": "Hot Feed temperature_c=180，Cold Feed temperature_c=25。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial, residual_norm=0.12"
+      }
+    ],
+    "confidence": 0.81,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

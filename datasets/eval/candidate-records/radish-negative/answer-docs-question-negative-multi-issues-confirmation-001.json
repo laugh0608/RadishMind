@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-multi-issues-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-multi-issues-confirmation-001",
+  "request_id": "sample-negative-multi-issues-confirmation-001",
+  "captured_at": "2026-04-03T16:20:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前文档只覆盖查看能力，但这里暂时同时标记多项不确定点。",
+    "answers": [
+      {
+        "kind": "evidence_limited_answer",
+        "text": "现有文档没有给出完整权限口径，因此仍不能下最终结论。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_EVIDENCE",
+        "message": "当前证据不足以确认是否允许重试或删除 Hangfire 任务。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      },
+      {
+        "code": "MANUAL_CONFIRMATION_REQUIRED",
+        "message": "当前建议先人工确认后再解释权限边界。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "Hangfire 只读说明",
+        "locator": "artifact:wiki_document",
+        "excerpt": "本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "confidence": 0.73,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

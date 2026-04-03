@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-wiki-faq-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-wiki-faq-mixed-001",
+  "request_id": "sample-wiki-faq-mixed-001",
+  "captured_at": "2026-04-03T11:18:00Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "collection_batch": "2026-04-03-radish-docs-qa-real-captures-v1",
+    "tags": [
+      "radish_docs_qa",
+      "real_capture",
+      "w14_seed"
+    ],
+    "notes": "来自真实候选输出快照，保留 wiki 主结论 + FAQ 补充说明的最小真实样本。"
+  },
+  "model": "qwen2.5-vl-candidate-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/two-factor-recovery",
+    "resource_slug": "guide/two-factor-recovery",
+    "search_scope": [
+      "faq",
+      "wiki"
+    ],
+    "artifact_names": [
+      "faq_excerpt",
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "恢复码默认只在开启双重验证时生成一次；如果已经丢失，需要在身份核验后重置双重验证来生成新的一组恢复码。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "主结论应以 wiki 为准，FAQ 只是在该基线之上补充了丢失恢复码后的处理流程，而不是把恢复码变成可随时查看的常规信息。",
+        "citation_ids": [
+          "wiki-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "wiki-1",
+        "kind": "artifact",
+        "label": "双重验证恢复指南",
+        "locator": "artifact:wiki_document",
+        "excerpt": "启用双重验证后，恢复码会在开启时一次性生成，用户应自行妥善保存。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "双重验证 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "如果恢复码已经遗失，当前建议先完成身份核验，再禁用并重新启用双重验证以生成一组新的恢复码。"
+      }
+    ],
+    "confidence": 0.85,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

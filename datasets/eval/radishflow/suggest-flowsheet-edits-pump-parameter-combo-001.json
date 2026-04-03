@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-pump-parameter-combo-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-pump-parameter-combo-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-104",
+          "streams": [
+            {
+              "id": "feed-2",
+              "name": "Pump Feed",
+              "target_unit_id": "pump-1",
+              "specs": {
+                "pressure_kpa": 180,
+                "temperature_c": 28
+              }
+            },
+            {
+              "id": "product-2",
+              "name": "Pump Outlet",
+              "source_unit_id": "pump-1"
+            }
+          ],
+          "units": [
+            {
+              "id": "pump-1",
+              "kind": "Pump",
+              "name": "Booster Pump",
+              "config": {
+                "outlet_pressure_target_kpa": 150,
+                "efficiency_percent": 105
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 31,
+      "selected_unit_ids": [
+        "pump-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+          "message": "Booster Pump outlet pressure target is lower than the inlet pressure.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "pump-1"
+        },
+        {
+          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+          "message": "Booster Pump efficiency_percent=105 is outside the recommended operating range.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "pump-1"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-03T02:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"PUMP_OUTLET_PRESSURE_TARGET_INVALID\"",
+      "$.issues[1].code=\"UNIT_PARAMETER_OUT_OF_RANGE\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"unit\"",
+      "$.proposed_actions[0].target.id=\"pump-1\"",
+      "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.action=\"review_and_raise_above_inlet\"",
+      "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.action=\"clamp_to_review_range\"",
+      "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]=60",
+      "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[1]=85",
+      "$.proposed_actions[0].patch.preserve_topology=true",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "单元参数组合修正应保持在同一对象的局部 patch 范围内，不应输出命令式修改或拓扑改动。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前建议围绕 Booster Pump 的参数组合问题生成局部修正提案，优先处理出口压力目标与效率范围这两项直接异常。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "两个诊断都集中在 pump-1 的参数配置上，因此更合适的 patch 是围绕同一单元给出局部参数修正建议，并保持拓扑不变。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "pump-1 的 outlet_pressure_target_kpa 低于入口压力，当前参数设置与泵升压方向不一致。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "pump-1 的 efficiency_percent=105 超出了当前建议运行区间。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "调整 pump-1 的目标压力与效率参数",
+        "target": {
+          "type": "unit",
+          "id": "pump-1"
+        },
+        "rationale": "当前异常都落在同一泵单元的参数配置上，因此 patch 应集中在局部参数修正，而不是引入额外对象级修改。",
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-2"
+            },
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                60,
+                85
+              ]
+            }
+          },
+          "preserve_topology": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Booster Pump outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Booster Pump efficiency_percent=105 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-1 当前 outlet_pressure_target_kpa=150，efficiency_percent=105。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "confidence": 0.9,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "候选提案聚焦在 Booster Pump 的参数校正，建议先把目标出口压力和效率拉回可审查的局部范围。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "因为异常都集中在 pump-1 自身参数，当前候选输出只保留单元参数 patch，不引入拓扑级改动。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "pump-1 的目标出口压力低于入口压力，需要先回到合理升压方向。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "pump-1 的效率参数已经超出建议区间，当前应仅给出待确认的回调范围。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "复核 pump-1 的目标压力与效率范围",
+        "target": {
+          "type": "unit",
+          "id": "pump-1"
+        },
+        "rationale": "当前最小可审查 patch 是把错误压力目标和超范围效率都收口成单元参数复核项，并保持原有连接不动。",
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-2"
+            },
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                60,
+                85
+              ]
+            }
+          },
+          "preserve_topology": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Booster Pump outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Booster Pump efficiency_percent=105 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-1 当前 outlet_pressure_target_kpa=150，efficiency_percent=105。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "confidence": 0.86,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

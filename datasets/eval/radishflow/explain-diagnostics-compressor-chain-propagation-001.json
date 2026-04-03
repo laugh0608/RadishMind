@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-diagnostics-compressor-chain-propagation-001",
+  "project": "radishflow",
+  "task": "explain_diagnostics",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-explain-diag-compressor-chain-propagation-001",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-005",
+          "units": [
+            {
+              "id": "compressor-1",
+              "kind": "Compressor",
+              "name": "Main Compressor"
+            },
+            {
+              "id": "cooler-2",
+              "kind": "Cooler",
+              "name": "Aftercooler"
+            }
+          ],
+          "streams": [
+            {
+              "id": "suction-1",
+              "name": "Compressor Suction",
+              "target_unit_id": "compressor-1",
+              "specs": {
+                "pressure_kpa": 160,
+                "temperature_c": 42
+              }
+            },
+            {
+              "id": "discharge-1",
+              "name": "Compressor Discharge",
+              "source_unit_id": "compressor-1",
+              "target_unit_id": "cooler-2",
+              "specs": {
+                "pressure_target_kpa": 540
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 34,
+      "selected_unit_ids": [
+        "compressor-1"
+      ],
+      "selected_stream_ids": [
+        "suction-1",
+        "discharge-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "UNIT_NOT_CONVERGED",
+          "message": "Main Compressor failed to converge within the iteration limit.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-1"
+        },
+        {
+          "code": "INLET_PHASE_STATE_INCOMPLETE",
+          "message": "Compressor Suction is missing a complete inlet phase state.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "suction-1"
+        },
+        {
+          "code": "DOWNSTREAM_PRESSURE_EXPECTATION_CONFLICT",
+          "message": "Compressor Discharge pressure target conflicts with the downstream aftercooler expectation.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "discharge-1"
+        }
+      ],
+      "solve_session": {
+        "status": "failed",
+        "iteration_limit": 30
+      },
+      "latest_snapshot": {
+        "solver_status": "not_converged",
+        "residual_norm": 0.41,
+        "last_updated": "2026-04-03T06:40:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": false,
+    "required_answer_kinds": [
+      "phenomenon",
+      "cause_explanation",
+      "impact"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"UNIT_NOT_CONVERGED\"",
+      "$.issues[1].code=\"ROOT_CAUSE_UNCONFIRMED\"",
+      "$.issues[2].code=\"DOWNSTREAM_PRESSURE_EXPECTATION_CONFLICT\"",
+      "$.answers[0].kind=\"phenomenon\"",
+      "$.answers[1].kind=\"cause_explanation\"",
+      "$.answers[2].kind=\"impact\"",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "回答应把 suction -> compressor -> discharge 的链式传播解释清楚，并显式说明当前证据不足以确认唯一根因。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前异常不是单一节点故障，而是沿着 Compressor Suction、Main Compressor 到 Compressor Discharge 形成了一条链式诊断传播。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前已观察到的事实是 Main Compressor 未收敛，同时它的入口流股相态信息不完整，出口流股又出现了与下游冷却器期望不一致的压力冲突。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "现有证据更像是一条从入口状态不完整向压缩机未收敛、再向出口压力冲突传播的异常链，但当前证据不足以确认入口相态缺口就是唯一根因，也不能排除压缩机自身参数设置参与了放大。",
+        "citation_ids": [
+          "diag-2",
+          "diag-1",
+          "diag-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在这条异常链尚未被澄清前，压缩机出口及其下游冷却段的状态解释都应视为暂不稳定，而不是可靠的稳态结果。",
+        "citation_ids": [
+          "diag-1",
+          "diag-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_NOT_CONVERGED",
+        "message": "Main Compressor 在当前迭代上限内未收敛。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "ROOT_CAUSE_UNCONFIRMED",
+        "message": "当前证据不足以确认入口相态不完整是否就是这条链式异常的唯一根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "diag-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_PRESSURE_EXPECTATION_CONFLICT",
+        "message": "Compressor Discharge 当前又体现出与下游 Aftercooler 期望不一致的压力冲突。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_NOT_CONVERGED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Main Compressor failed to converge within the iteration limit."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 INLET_PHASE_STATE_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Compressor Suction is missing a complete inlet phase state."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_PRESSURE_EXPECTATION_CONFLICT",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Compressor Discharge pressure target conflicts with the downstream aftercooler expectation."
+      },
+      {
+        "id": "flowdoc-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / suction-1 + discharge-1",
+        "locator": "artifact:flowsheet_document.streams[0..1]",
+        "excerpt": "suction-1 只有 pressure_kpa 与 temperature_c；discharge-1 仅给出 pressure_target_kpa。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=not_converged, residual_norm=0.41"
+      }
+    ],
+    "confidence": 0.79,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_diagnostics",
+    "summary": "当前压缩机相关诊断更像是链式传播问题：入口状态不完整、压缩机未收敛和出口压力冲突同时出现。",
+    "answers": [
+      {
+        "kind": "phenomenon",
+        "text": "当前能直接确认的是 compressor-1 未收敛，suction-1 的入口相态不完整，而 discharge-1 又出现了面向下游的压力冲突。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "这些信号可能表示异常从入口状态一路传播到压缩机和出口侧，但当前证据不足以确认相态缺口就是唯一根因，因此还不能把责任完全落到 suction-1 上。",
+        "citation_ids": [
+          "diag-2",
+          "diag-1",
+          "diag-3"
+        ]
+      },
+      {
+        "kind": "impact",
+        "text": "在异常链被进一步澄清前，当前压缩机出口和后续冷却段结果都只能视为暂不稳定。",
+        "citation_ids": [
+          "diag-1",
+          "diag-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_NOT_CONVERGED",
+        "message": "compressor-1 当前没有在迭代上限内收敛。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "ROOT_CAUSE_UNCONFIRMED",
+        "message": "当前证据不足以确认入口相态问题是否就是整条异常链的唯一根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "diag-3"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_PRESSURE_EXPECTATION_CONFLICT",
+        "message": "discharge-1 还体现出与下游冷却器期望不一致的压力信号。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_NOT_CONVERGED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Main Compressor failed to converge within the iteration limit."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 INLET_PHASE_STATE_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Compressor Suction is missing a complete inlet phase state."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_PRESSURE_EXPECTATION_CONFLICT",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Compressor Discharge pressure target conflicts with the downstream aftercooler expectation."
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=not_converged, residual_norm=0.41"
+      }
+    ],
+    "confidence": 0.74,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-stream-spec-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-101",
+          "streams": [
+            {
+              "id": "stream-1",
+              "name": "Feed Stream",
+              "target_unit_id": "heater-1",
+              "specs": {
+                "pressure_kpa": 220
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-1",
+              "kind": "Heater",
+              "name": "Feed Heater"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 14,
+      "selected_stream_ids": [
+        "stream-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Feed Stream is missing temperature specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "stream-1"
+        }
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_SPEC_MISSING\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"stream-1\"",
+      "$.proposed_actions[0].risk_level=\"medium\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "针对缺失规格的 patch 应保持局部、占位式、可审查，不应重写整个文档。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前建议围绕选中的 Feed Stream 补齐缺失规格，提案只覆盖局部规格占位。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前诊断已经明确指出 stream-1 缺少温度规格，因此候选编辑只建议补齐该流股的关键规格占位。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "stream-1 缺少温度规格，当前求解无法确认该流股输入状态。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "补充 stream-1 的缺失规格占位",
+        "target": {
+          "type": "stream",
+          "id": "stream-1"
+        },
+        "rationale": "当前诊断直接指向 stream-1 缺少关键规格，先补规格占位比泛化整图 patch 更可审查。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed Stream is missing temperature specification."
+      },
+      {
+        "id": "flowdoc-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-1",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-1 当前仅存在 pressure_kpa 规格。"
+      }
+    ],
+    "confidence": 0.95,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

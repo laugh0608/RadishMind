@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-entitlement-expired-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-entitlement-expired-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "lease_refresh_summary",
+        "mime_type": "text/plain",
+        "content": "offline lease refresh failed after entitlement expired"
+      }
+    ],
+    "context": {
+      "document_revision": 21,
+      "control_plane_state": {
+        "entitlement_status": "expired",
+        "lease_status": "refresh_failed",
+        "sync_status": "blocked",
+        "last_error": "offline lease refresh failed"
+      },
+      "solve_session": {
+        "status": "blocked"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "cause_explanation",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "candidate_operation"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.answers[1]",
+      "$.answers[2]",
+      "$.issues[0].code=\"ENTITLEMENT_EXPIRED\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"lease-refresh\"",
+      "$.proposed_actions[0].risk_level=\"medium\"",
+      "$.proposed_actions[0].requires_confirmation=true",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=true"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].kind=\"candidate_edit\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding"
+    ],
+    "notes": "当 entitlement 已过期且 lease refresh 失败时，回答应明确这是控制面阻塞，并把人工动作保持为可确认候选操作。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面异常的核心是 entitlement 已过期且离线 lease refresh 失败，这会阻塞当前会话继续执行。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "当前不是 flowsheet 语义问题，而是控制面 entitlement 已过期，且 lease refresh 没有成功恢复状态。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "cause_explanation",
+        "text": "现有状态说明 lease refresh 失败，意味着当前阻塞更接近授权或租约链路异常，而不是求解器内部故障。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "下一步应人工检查 entitlement 与 lease refresh 链路，必要时再联系管理员处理，而不是假定系统已经自动恢复。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "ENTITLEMENT_EXPIRED",
+        "message": "entitlement 已过期，且 lease refresh 失败。",
+        "severity": "error",
+        "citation_ids": [
+          "cp-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工检查 entitlement 与 lease refresh",
+        "target": {
+          "type": "control_plane",
+          "id": "lease-refresh"
+        },
+        "rationale": "当前状态已明确指向授权链路阻塞，需人工确认后再执行相关恢复动作。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=expired, lease_status=refresh_failed, sync_status=blocked"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "lease_refresh_summary",
+        "locator": "artifact:lease_refresh_summary",
+        "excerpt": "offline lease refresh failed after entitlement expired"
+      }
+    ],
+    "confidence": 0.91,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

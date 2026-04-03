@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-03-30
+更新时间：2026-04-03
 
 ## 路线图目标
 
@@ -10,7 +10,9 @@
 
 - `RadishFlow` 第一批能力优先走结构化状态与诊断解释，而不是截图先行
 - `Radish` 第一批能力优先走文档问答、Console/运营辅助与内容结构化建议
-- `minimind-v` 放在任务和评测之后，再进入 student/base 实验阶段
+- `minimind-v` 当前作为默认 `student/base` 主线，围绕评测闭环进入适配与训练阶段
+- `Qwen2.5-VL` 当前作为默认 `teacher` / 强基线，优先承担多模态对照评测与蒸馏参考
+- `SmolVLM` 当前作为轻量本地对照组，优先承担小模型回归与部署下限比较
 
 ## M0：真实上下文审查与规划冻结
 
@@ -34,7 +36,7 @@
 
 ### 目标
 
-建立可以接上层项目的最小 Copilot 协议和 context packer 骨架，但不先锁定最终技术栈。
+建立可以接上层项目的最小 Copilot 协议和 context packer 骨架，并将评测、验证与模型工具链统一收口到 `Python`。
 
 ### 任务
 
@@ -87,6 +89,7 @@
 - `RadishFlow` 建立状态优先样本和后续截图补充样本
 - `Radish` 建立文档、论坛和 Console 知识样本
 - 定义任务指标与离线回归脚本
+- 先把 `Radish` 的 `answer_docs_question` 落成“召回输入 + golden_response”最小回归 runner，再补外部 `candidate_response_record`、统一负例回放与真实候选输出回灌
 
 ### 推荐指标
 
@@ -101,23 +104,24 @@
 - 不同模型和提示词可以被稳定比较
 - 结果不再只靠主观观感判断
 
-## M4：`minimind-v` student/base 实验路线
+## M4：`minimind-v` student/base 主线推进
 
 ### 目标
 
-在教师模型验证过任务后，再开始训练或蒸馏 student 路线。
+在 `Qwen2.5-VL` 强基线验证过任务后，推进 `minimind-v` 主线的训练、蒸馏和领域适配。
 
 ### 任务
 
-- 评估 `minimind-v` 作为 student/base 的改造成本
-- 明确哪些任务值得进入 student 路线，哪些继续保留在教师模型或工具侧
+- 评估 `minimind-v` 作为默认 `student/base` 主线的改造成本与接入优先级
+- 明确哪些任务值得进入 `minimind-v` 主线，哪些继续保留在 `Qwen2.5-VL` 或工具侧
 - 建立领域样本格式转换脚本
 - 做第一轮小规模微调或蒸馏实验
+- 引入 `SmolVLM` 作为轻量对照组，验证低资源场景下的回归下限
 
 ### 退出标准
 
-- Student 模型在目标任务上达到可对比的基础表现
-- 可以明确知道下一步应继续训练、换底座还是补数据
+- `minimind-v` 在目标任务上达到可对比的基础表现
+- 可以明确知道下一步应继续训练、补数据、优化工具路由，还是调整对照模型规模
 
 ## M5：`Radish` 首批任务接入
 
@@ -181,15 +185,17 @@
 
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
-1. 冻结 `RadishFlow` 首批任务卡、输入快照样例与评测指标
-2. 将统一协议落成真实契约文件
-3. 仅为 `Radish` 选择一个最小场景接入，默认优先文档问答
-4. 建立最小离线评测集与回归脚本
+1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
+2. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
+3. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充与最小导入流程，作为下一主线
+4. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
+5. 再进入模型对照、PoC 与训练路线验证
 
 ## 当前仍缺的关键决策
 
-- `Radish` 首个场景选型
 - 契约文件的具体实现形式
-- 教师模型与 student/base 的对照方案
+- `Qwen2.5-VL` 的首选尺寸与推理预算
+- `SmolVLM` 的回归任务边界与保留条件
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
+- `Radish` docs QA 的真实 captured negative 批次采用目录清单、导入脚本还是两者并行维护

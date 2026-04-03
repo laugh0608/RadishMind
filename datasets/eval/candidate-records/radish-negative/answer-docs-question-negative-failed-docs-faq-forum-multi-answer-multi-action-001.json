@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-docs-faq-forum-multi-answer-multi-action-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-docs-faq-forum-multi-answer-multi-action-001",
+  "request_id": "sample-negative-failed-docs-faq-forum-multi-answer-multi-action-001",
+  "captured_at": "2026-04-03T21:10:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "可以直接删除旧链接并改掉 slug。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "由于 FAQ 和 forum 给出了更直接的迁移经验，这里先按失败态返回。",
+        "citation_ids": [
+          "faq-1",
+          "forum-1"
+        ]
+      },
+      {
+        "kind": "direct_answer",
+        "text": "不过从社区经验看，仍可以直接改掉 slug 并删除旧链接。",
+        "citation_ids": [
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "先看 FAQ alias 说明",
+        "rationale": "先快速查看 FAQ 里的 alias 过渡经验。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "faq-1"
+        ]
+      },
+      {
+        "kind": "candidate_operation",
+        "title": "直接替换 slug",
+        "rationale": "再按社区经验直接替换旧链接。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "文档发布说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "文档发布 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区帖子摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。"
+      }
+    ],
+    "confidence": 0.63,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

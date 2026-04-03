@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-multi-action-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-multi-action-001",
+  "request_id": "sample-negative-failed-multi-action-001",
+  "captured_at": "2026-04-03T20:20:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "attachments",
+      "docs",
+      "faq"
+    ],
+    "artifact_names": [
+      "attachment_reference_note",
+      "docs_page",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前先按失败态返回，但仍建议继续沿多个方向核对附件做法。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "虽然文档可以部分回答，但这里先按失败态处理。",
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "检查 attachment 引用格式",
+        "rationale": "先核对公开文档是否仍使用 `attachment://manual-42`。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "att-1"
+        ]
+      },
+      {
+        "kind": "candidate_operation",
+        "title": "整理 FAQ 说明文案",
+        "rationale": "再补一段 FAQ 风格的说明文案，以便用户理解附件写法。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "faq-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件导入说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://manual-42",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "附件导入 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "如果用户希望附件链接更易读，可以在文档正文里补充说明文字，但仍应继续使用 `attachment://{id}` 作为实际引用。"
+      }
+    ],
+    "confidence": 0.69,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

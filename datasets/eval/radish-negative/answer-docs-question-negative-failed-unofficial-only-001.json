@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-failed-unofficial-only-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-failed-unofficial-only-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 授权说明\n\n角色示例用于解释默认能力范围，不代表当前 viewer 已经获得该角色或对应权限。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/authorization-overview",
+          "fragment_id": "role-example-boundary",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "forum_excerpt",
+        "mime_type": "text/markdown",
+        "content": "社区帖子提到：如果文档里拿管理员举例，通常可以先按管理员权限理解页面行为。",
+        "metadata": {
+          "source_type": "forum",
+          "page_slug": "community/authorization-overview",
+          "fragment_id": "admin-example-shortcut",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/authorization-overview",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/authorization-overview",
+        "title": "授权说明"
+      },
+      "search_scope": [
+        "docs",
+        "forum"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 2,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "forum"
+    ],
+    "required_search_scopes": [
+      "docs",
+      "forum"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allow_unofficial_sources": true,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": false
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]",
+      "$.status=\"failed\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment",
+      "official_source_precedence"
+    ],
+    "notes": "负例回放要求捕获 failed 态里只靠 forum 支撑失败说明的错误候选回答，证明 failed 并不能绕过正式来源优先级。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      ".status does not match expected_response_shape.status",
+      "first answer must cite at least one primary artifact",
+      "cannot rely only on unofficial citations"
+    ]
+  },
+  "candidate_response_record": {
+    "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-unofficial-only-001.json"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "角色示例只是说明默认能力范围，不能据此直接认定当前 viewer 已拥有管理员权限；forum 里的经验说法不能覆盖正式 docs。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前应以正式 docs 为准。文档里的管理员角色示例只是解释能力边界，不等于当前 viewer 已获得该角色；forum 中“先按管理员理解”的经验只能作为社区讨论，不能替代正式权限结论。",
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "授权说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "角色示例用于解释默认能力范围，不代表当前 viewer 已经获得该角色或对应权限。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区讨论摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "如果文档里拿管理员举例，通常可以先按管理员权限理解页面行为。"
+      }
+    ],
+    "confidence": 0.89,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

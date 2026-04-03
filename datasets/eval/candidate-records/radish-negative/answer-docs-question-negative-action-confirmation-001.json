@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-action-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-action-confirmation-001",
+  "request_id": "sample-negative-action-confirmation-001",
+  "captured_at": "2026-04-03T14:30:00Z",
+  "source": "simulated_candidate_response",
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "attachments",
+      "docs"
+    ],
+    "artifact_names": [
+      "attachment_reference_note",
+      "docs_page"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前仍应使用 `attachment://manual-42` 这种受控引用格式。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "主结论仍是遵循 docs 的附件引用规则，再用附件状态补充当前这个引用可用。",
+        "citation_ids": [
+          "doc-1",
+          "att-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "立即核对并确认附件引用策略",
+        "rationale": "虽然只是文档问答，但这里把它提升为需要额外确认的核查动作。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "att-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件导入说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://manual-42",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      }
+    ],
+    "confidence": 0.8,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

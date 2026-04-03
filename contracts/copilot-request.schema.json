@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/copilot-request.schema.json",
+  "title": "CopilotRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "task",
+    "locale",
+    "artifacts",
+    "context",
+    "tool_hints",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radishflow",
+        "radish"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "locale": {
+      "type": "string",
+      "minLength": 2
+    },
+    "conversation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "context": {
+      "type": "object"
+    },
+    "tool_hints": {
+      "$ref": "#/$defs/tool_hints"
+    },
+    "safety": {
+      "$ref": "#/$defs/safety"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "project": {
+            "const": "radishflow"
+          }
+        },
+        "required": [
+          "project"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task": {
+            "enum": [
+              "explain_diagnostics",
+              "suggest_flowsheet_edits",
+              "summarize_selection",
+              "explain_control_plane_state",
+              "inspect_canvas_snapshot"
+            ]
+          },
+          "context": {
+            "$ref": "#/$defs/radishflow_context"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "project": {
+            "const": "radish"
+          }
+        },
+        "required": [
+          "project"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task": {
+            "enum": [
+              "answer_docs_question",
+              "summarize_doc_or_thread",
+              "suggest_forum_metadata",
+              "explain_console_capability",
+              "interpret_attachment"
+            ]
+          },
+          "context": {
+            "$ref": "#/$defs/radish_context"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "role",
+        "name",
+        "mime_type"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "json",
+            "markdown",
+            "text",
+            "image",
+            "attachment_ref"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "primary",
+            "supporting",
+            "reference"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mime_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {},
+        "metadata": {
+          "type": "object",
+          "default": {}
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "uri"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ]
+        }
+      ]
+    },
+    "tool_hints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allow_retrieval",
+        "allow_tool_calls",
+        "allow_image_reasoning"
+      ],
+      "properties": {
+        "allow_retrieval": {
+          "type": "boolean"
+        },
+        "allow_tool_calls": {
+          "type": "boolean"
+        },
+        "allow_image_reasoning": {
+          "type": "boolean"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "requires_confirmation_for_actions"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "advisory"
+          ]
+        },
+        "requires_confirmation_for_actions": {
+          "type": "boolean"
+        }
+      }
+    },
+    "radishflow_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "document_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "selected_unit_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "selected_stream_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "diagnostic_summary": {
+          "type": "object"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "solve_session": {
+          "type": "object"
+        },
+        "latest_snapshot": {
+          "type": "object"
+        },
+        "control_plane_state": {
+          "type": "object",
+          "properties": {
+            "entitlement_status": {
+              "type": "string"
+            },
+            "lease_status": {
+              "type": "string"
+            },
+            "sync_status": {
+              "type": "string"
+            },
+            "manifest_status": {
+              "type": "string"
+            },
+            "last_error": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    "radish_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "current_app": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource": {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "slug": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        "viewer": {
+          "type": "object",
+          "properties": {
+            "is_authenticated": {
+              "type": "boolean"
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "permissions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": true
+        },
+        "attachment_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "search_scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
