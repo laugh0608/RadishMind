@@ -71,6 +71,7 @@ REQUIRED_FILES = [
     "scripts/check-radish-docs-qa-eval.ps1",
     "scripts/check-radish-docs-qa-eval.sh",
     "scripts/check-text-files.py",
+    "scripts/build-candidate-record-batch.py",
     "scripts/check-repo.py",
     "scripts/run-eval-regression.py",
     "scripts/run-radishflow-control-plane-regression.ps1",

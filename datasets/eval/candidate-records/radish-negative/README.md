@@ -38,3 +38,12 @@
 - 这份 manifest 只是把现有负例 fixture 统一切到批量导入入口，便于后续维护
 - 它不代表仓库里已经有同规模的真实 captured negative
 - 下一步仍应优先把真实坏输出按新的批次入口补进来，再逐步替换或扩充 simulated negative
+
+如需在补充或替换记录文件后重生成这份 manifest，当前建议使用：
+
+```bash
+python3 ./scripts/build-candidate-record-batch.py \
+  --record-dir datasets/eval/candidate-records/radish-negative \
+  --output datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json \
+  --description "Radish docs QA 现有 simulated negative 候选响应批次清单，用于把负例回放样本统一切到 manifest 导入入口。"
+```

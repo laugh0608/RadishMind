@@ -50,6 +50,7 @@
 - `scripts/run-radish-docs-qa-negative-regression.sh`
 - `scripts/check-radish-docs-qa-eval.ps1`
 - `scripts/check-radish-docs-qa-eval.sh`
+- `scripts/build-candidate-record-batch.py`
 
 关系说明：
 
@@ -64,6 +65,7 @@
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
+- `build-candidate-record-batch.py` 用于从一批 `candidate_response_record` 文件生成 manifest，减少 captured batch 扩样时的手工清单维护
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
@@ -146,6 +148,22 @@
 3. 若该快照本身就是坏输出，可直接让负例样本通过 `manifest_path + record_id` 或直接 `path` 引用它
 4. 若当前只有正向真实快照，也可以把它跨样本回放到另一条样本上，复用同一套 `candidate_record_alignment + response` 校验，验证“真实输出放错样本”会被稳定拒绝
 5. 负例样本仍只通过 `negative_replay_expectations.expected_candidate_violations` 声明期望命中的 violation 片段，不再分叉第二套校验逻辑
+
+若需要从一批记录重生成 manifest，当前可直接使用：
+
+```bash
+python3 ./scripts/build-candidate-record-batch.py \
+  --record-dir datasets/eval/candidate-records/radish-negative \
+  --output datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json \
+  --description "Radish docs QA 现有 simulated negative 候选响应批次清单，用于把负例回放样本统一切到 manifest 导入入口。"
+```
+
+脚本会：
+
+- 跳过同目录下已有的 `.manifest.json`
+- 校验每条 record 都满足 `candidate-response-record.schema.json`
+- 检查 `project`、`task`、`source` 以及 `capture_metadata.collection_batch` 是否能稳定收口
+- 产出按仓库相对路径引用的 manifest 记录清单
 
 对于显式启用 `official_source_precedence` 的 `Radish` 多来源问答样本，当前回归还会检查：
 
