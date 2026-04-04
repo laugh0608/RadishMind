@@ -168,6 +168,13 @@
 - 当前负例还已覆盖 `docs + attachments + faq + forum` 极端冲突与 failed-state 多 action 漂移，验证失败态里 FAQ/论坛不能联手覆盖正式口径，也不能一边失败一边继续堆动作
 - 当前负例还已覆盖“多答案 + 多 action + 多来源冲突”三者同时出现的复合失稳，开始逼近真实模型完全漂移时的坏输出形态
 
+当前负例侧也已补最小 manifest 导入流程：
+
+- `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json` 已将现有 simulated negative 记录收口成一批
+- 对应负例样本已可通过 `candidate_response_record.manifest_path + record_id` 引用，不再逐条手写单独路径
+- 这一步的目的只是先稳定负例批量导入形态，不代表这批样本已经变成真实 captured negative
+- 后续一旦拿到真实坏输出，应继续沿用同一入口，把真实 record 逐步补进新的 captured batch manifest
+
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
 - 角色示例不等于最终授权

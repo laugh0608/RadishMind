@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "source": "simulated_candidate_response",
+  "capture_origin": "manual_fixture",
+  "description": "Radish docs QA 现有 simulated negative 候选响应批次清单，用于把负例回放样本统一切到 manifest 导入入口。",
+  "records": [
+    {
+      "record_id": "captured-radish-docs-qa-negative-action-confirmation-001",
+      "sample_id": "radish-answer-docs-question-negative-action-confirmation-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-action-confirmation-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-attachments-faq-forum-multi-answer-multi-action-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-attachments-faq-forum-multi-answer-multi-action-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-attachments-faq-forum-multi-answer-multi-action-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-citation-drift-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-citation-drift-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-citation-drift-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-docs-attachments-faq-forum-conflict-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-docs-attachments-faq-forum-conflict-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-attachments-faq-forum-conflict-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-docs-attachments-forum-conflict-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-docs-attachments-forum-conflict-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-attachments-forum-conflict-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-docs-faq-forum-conflict-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-docs-faq-forum-conflict-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-faq-forum-conflict-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-docs-faq-forum-multi-answer-multi-action-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-docs-faq-forum-multi-answer-multi-action-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-faq-forum-multi-answer-multi-action-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-mixed-answers-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-mixed-answers-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-mixed-answers-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-multi-action-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-multi-action-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-multi-action-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-overreaction-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-overreaction-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-overreaction-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-unofficial-only-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-unofficial-only-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-unofficial-only-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-with-action-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-with-action-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-with-action-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-forum-only-001",
+      "sample_id": "radish-answer-docs-question-negative-forum-only-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-forum-only-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-issue-severity-overclaim-001",
+      "sample_id": "radish-answer-docs-question-negative-issue-severity-overclaim-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-issue-severity-overclaim-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-missing-citation-001",
+      "sample_id": "radish-answer-docs-question-negative-missing-citation-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-missing-citation-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-multi-issues-confirmation-001",
+      "sample_id": "radish-answer-docs-question-negative-multi-issues-confirmation-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-multi-issues-confirmation-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-primary-miss-001",
+      "sample_id": "radish-answer-docs-question-negative-primary-miss-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-primary-miss-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-secondary-answer-unofficial-001",
+      "sample_id": "radish-answer-docs-question-negative-secondary-answer-unofficial-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-secondary-answer-unofficial-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-status-risk-mismatch-001",
+      "sample_id": "radish-answer-docs-question-negative-status-risk-mismatch-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-status-risk-mismatch-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-unexpected-issue-action-001",
+      "sample_id": "radish-answer-docs-question-negative-unexpected-issue-action-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-unexpected-issue-action-001.json"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # `Radish` docs QA 负例候选记录说明
 
-更新时间：2026-04-03
+更新时间：2026-04-04
 
 当前目录继续存放 `answer_docs_question` 的负例候选响应记录。
 
@@ -28,3 +28,13 @@
 当前首个真实 captured batch manifest 位于：
 
 - `datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json`
+
+当前还新增了一份 simulated negative batch manifest：
+
+- `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json`
+
+补充说明：
+
+- 这份 manifest 只是把现有负例 fixture 统一切到批量导入入口，便于后续维护
+- 它不代表仓库里已经有同规模的真实 captured negative
+- 下一步仍应优先把真实坏输出按新的批次入口补进来，再逐步替换或扩充 simulated negative

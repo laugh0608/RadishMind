@@ -7,6 +7,16 @@
   "request_id": "sample-negative-failed-unofficial-only-001",
   "captured_at": "2026-04-03T18:10:00Z",
   "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "w14_batch"
+    ],
+    "notes": "用于离线负例回放的模拟候选输出批次，先按 manifest 收口，后续可逐步替换为真实 captured negative。"
+  },
   "model": "qwen2.5-vl-negative-snapshot",
   "input_record": {
     "current_app": "document",
