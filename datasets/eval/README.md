@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-04-03
+更新时间：2026-04-04
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -25,6 +25,7 @@
 
 - `radishflow-task-sample.schema.json`
 - `radish-task-sample.schema.json`
+- `candidate-response-dump.schema.json`
 - `candidate-response-record.schema.json`
 - `candidate-record-batch.schema.json`
 
@@ -50,6 +51,7 @@
 - `scripts/run-radish-docs-qa-negative-regression.sh`
 - `scripts/check-radish-docs-qa-eval.ps1`
 - `scripts/check-radish-docs-qa-eval.sh`
+- `scripts/import-candidate-response-dump.py`
 - `scripts/build-candidate-record-batch.py`
 
 关系说明：
@@ -65,6 +67,7 @@
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
+- `import-candidate-response-dump.py` 用于把未来 adapter/mock/模型接口产出的 raw dump 裁剪成正式 `candidate_response_record`
 - `build-candidate-record-batch.py` 用于从一批 `candidate_response_record` 文件生成 manifest，减少 captured batch 扩样时的手工清单维护
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
@@ -141,13 +144,42 @@
 - `capture_metadata.tags`：用于标记 `real_capture`、任务名或专项回灌标签
 - `capture_metadata.notes`：补充该快照的最小背景说明
 
+当上游暂时还没有正式模型接入，但已经有 mock 推理器、adapter 调试输出或未来的模型 API 返回时，当前建议先落一份 raw dump，再导入为正式 record。
+
+当前推荐的 raw dump 最小字段：
+
+- `dump_id`
+- `project` / `task` / `sample_id` / `request_id`
+- `captured_at`
+- `source`
+- `model`
+- `input_record`
+- 已归一化到 `CopilotResponse` 结构的 `response`
+
+可选保留的调试上下文：
+
+- `input_request`
+- `raw_request`
+- `raw_response`
+
+其中 raw dump 的职责是“保留调试现场”，而 `candidate_response_record` 的职责是“进入评测与回放链路”。两者不要混成一个文件格式。
+
 当前推荐的真实负例回灌最小流程：
 
-1. 先把真实候选输出按 `candidate-response-record.schema.json` 落到 `datasets/eval/candidate-records/` 下，并补 `capture_metadata`
-2. 将同一批真实快照补到 `candidate-record-batch.schema.json` 的 manifest 中，按 `collection_batch` 收口
-3. 若该快照本身就是坏输出，可直接让负例样本通过 `manifest_path + record_id` 或直接 `path` 引用它
-4. 若当前只有正向真实快照，也可以把它跨样本回放到另一条样本上，复用同一套 `candidate_record_alignment + response` 校验，验证“真实输出放错样本”会被稳定拒绝
-5. 负例样本仍只通过 `negative_replay_expectations.expected_candidate_violations` 声明期望命中的 violation 片段，不再分叉第二套校验逻辑
+1. 若上游先产出的是 raw dump，先按 `candidate-response-dump.schema.json` 落盘，保留 `input_request` / `raw_response` 等调试上下文
+2. 使用 `scripts/import-candidate-response-dump.py` 将 raw dump 裁剪为 `candidate-response-record.schema.json` 允许的正式 record
+3. 将同一批真实快照补到 `candidate-record-batch.schema.json` 的 manifest 中，按 `collection_batch` 收口
+4. 若该快照本身就是坏输出，可直接让负例样本通过 `manifest_path + record_id` 或直接 `path` 引用它
+5. 若当前只有正向真实快照，也可以把它跨样本回放到另一条样本上，复用同一套 `candidate_record_alignment + response` 校验，验证“真实输出放错样本”会被稳定拒绝
+6. 负例样本仍只通过 `negative_replay_expectations.expected_candidate_violations` 声明期望命中的 violation 片段，不再分叉第二套校验逻辑
+
+最小导入命令示例：
+
+```bash
+python3 ./scripts/import-candidate-response-dump.py \
+  --input /tmp/radish-docs-qa-bad-answer.json \
+  --output datasets/eval/candidate-records/radish-negative/imported-bad-answer-001.json
+```
 
 若需要从一批记录重生成 manifest，当前可直接使用：
 

@@ -214,6 +214,22 @@
 - `input_record.search_scope`
 - `input_record.artifact_names`
 
+如果上游暂时还没有直接产出正式 `candidate_response_record`，当前也允许先产出 raw dump，再通过导入脚本裁剪为正式 record。raw dump 应至少保留：
+
+- `dump_id`
+- `project` / `task` / `sample_id` / `request_id`
+- `captured_at`
+- `source`
+- `model`
+- `input_record`
+- `response`
+
+如果有条件，建议同时保留：
+
+- `input_request`
+- `raw_request`
+- `raw_response`
+
 当候选响应来自真实捕获快照时，当前建议额外保留：
 
 - `capture_metadata.capture_origin`
@@ -221,6 +237,8 @@
 - `capture_metadata.tags`
 
 当前负例回放也允许把一条真实 `captured_candidate_response` 作为“跨样本外部 record”回灌到另一条样本中，继续复用同一套 `candidate_record_alignment + response` 校验规则。这样可以先用少量真实快照验证回灌链路是否稳定，而不必等待每一种坏输出都完成独立抓取。
+
+当前如果未来先接上 mock 推理器、adapter 调试输出或模型 API，而尚未决定最终落盘格式，推荐优先落 raw dump，再通过 `scripts/import-candidate-response-dump.py` 统一导入为正式 record，避免把调试字段直接塞进评测正式资产。
 
 当真实快照开始按批次扩大时，当前建议优先把同一批 `collection_batch` 的记录收口进 manifest，再由样本只引用 `record_id`。这样可以把 captured negative 的扩充流程从“逐条改路径”收口成“补记录文件 + 补清单 entry”。
 
