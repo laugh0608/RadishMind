@@ -98,6 +98,9 @@ REQUIRED_FILES = [
     "scripts/run-radish-docs-qa-real-batch.py",
     "scripts/run-radish-docs-qa-real-batch.ps1",
     "scripts/run-radish-docs-qa-real-batch.sh",
+    "scripts/run-radish-docs-qa-negative-recommended.py",
+    "scripts/run-radish-docs-qa-negative-recommended.ps1",
+    "scripts/run-radish-docs-qa-negative-recommended.sh",
     "scripts/check-repo.py",
     "scripts/run-eval-regression.py",
     "scripts/run-radishflow-control-plane-regression.ps1",
@@ -220,6 +223,17 @@ def check_generated_eval_metadata() -> None:
             "--batch-artifact-summary",
             "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
             "--recommended-groups-top",
+            "1",
+            "--fail-on-violation",
+        ],
+    )
+
+    run_python_script(
+        "run-radish-docs-qa-negative-recommended.py",
+        [
+            "--batch-artifact-summary",
+            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
+            "--top",
             "1",
             "--fail-on-violation",
         ],

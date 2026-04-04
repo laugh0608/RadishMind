@@ -49,6 +49,8 @@
 - `scripts/run-radish-docs-qa-regression.sh`
 - `scripts/run-radish-docs-qa-negative-regression.ps1`
 - `scripts/run-radish-docs-qa-negative-regression.sh`
+- `scripts/run-radish-docs-qa-negative-recommended.ps1`
+- `scripts/run-radish-docs-qa-negative-recommended.sh`
 - `scripts/run-radish-docs-qa-real-batch.ps1`
 - `scripts/run-radish-docs-qa-real-batch.sh`
 - `scripts/check-radish-docs-qa-eval.ps1`
@@ -66,6 +68,7 @@
 - `check-radishflow-suggest-edits-eval.*` 负责把候选编辑回归接入仓库基线
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
 - `run-radish-docs-qa-negative-regression.*` 是 `Radish` docs QA 的负例回放 runner，用来验证候选回答会被现有规则稳定拦下
+- `run-radish-docs-qa-negative-recommended.*` 是 `Radish` docs QA 的推荐负例批量回放入口，用来直接执行 `artifacts.json` 中默认推荐的前 N 个失败组
 - `run-radish-docs-qa-real-batch.*` 是 `Radish` docs QA 的真实/模拟 batch 编排入口，用来串起批跑、审计和 replay 治理
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
@@ -364,6 +367,23 @@ bash ./scripts/run-radish-docs-qa-negative-regression.sh \
 - 继续复用同一条 `group_id` 选样和负例回放链路
 
 这样真实 batch 跑完后，可以直接先回放“最值得优先治理”的前几组失败样本。
+
+如果不希望记住底层 `run-eval-regression.py` 参数组合，当前也可以直接使用更高层的包装入口：
+
+```bash
+bash ./scripts/run-radish-docs-qa-negative-recommended.sh \
+  --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json \
+  --top 2 \
+  --fail-on-violation
+```
+
+这条入口当前会：
+
+- 直接转调 `run-eval-regression.py radish-docs-qa-negative`
+- 自动使用 `--recommended-groups-top <top>`
+- 保留 `--replay-mode` 和 `--sample-dir` 覆盖口
+
+这样“真实 batch 跑完 -> 先回放推荐前 N 组失败样本”已经变成一条更短的日常操作命令。
 
 如果需要把这份索引里的“同样本真实 replay”直接重建成 `datasets/eval/radish-negative/*.json`，当前还可使用：
 
