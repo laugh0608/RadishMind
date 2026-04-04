@@ -129,6 +129,16 @@ def build_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
     return citations
 
 
+def build_citation_maps(copilot_request: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, str]]:
+    citations = build_citations(copilot_request)
+    artifact_name_to_citation_id: dict[str, str] = {}
+    for citation, artifact in zip(citations, copilot_request.get("artifacts") or []):
+        artifact_name = str((artifact or {}).get("name") or "").strip()
+        if artifact_name:
+            artifact_name_to_citation_id[artifact_name] = str(citation.get("id") or "")
+    return citations, artifact_name_to_citation_id
+
+
 def classify_docs_qa_request(copilot_request: dict[str, Any], primary_text: str) -> tuple[str, str, list[dict[str, Any]]]:
     issues: list[dict[str, Any]] = []
     status = "ok"
@@ -237,11 +247,219 @@ def make_failed_response(copilot_request: dict[str, Any], summary: str, raw_text
     }
 
 
+def map_status(value: Any) -> str:
+    lowered = str(value or "").strip().lower()
+    if lowered in {"ok", "partial", "failed"}:
+        return lowered
+    if lowered in {"success", "done", "complete", "completed"}:
+        return "ok"
+    if lowered in {"warning", "degraded", "limited"}:
+        return "partial"
+    if lowered in {"error", "failure"}:
+        return "failed"
+    return "partial"
+
+
+def normalize_citation_ids(value: Any, artifact_name_to_citation_id: dict[str, str]) -> list[str]:
+    normalized_ids: list[str] = []
+    for item in value or []:
+        if isinstance(item, dict):
+            artifact_index = item.get("artifact_index")
+            if isinstance(artifact_index, int):
+                fallback_id = f"doc-{artifact_index + 1}"
+                normalized_ids.append(fallback_id)
+                continue
+            artifact_name = str(item.get("artifact_id") or item.get("artifact_name") or "").strip()
+            if artifact_name:
+                normalized_ids.append(artifact_name_to_citation_id.get(artifact_name, artifact_name))
+                continue
+        text = str(item or "").strip()
+        if not text:
+            continue
+        normalized_ids.append(artifact_name_to_citation_id.get(text, text))
+    return list(dict.fromkeys(normalized_ids))
+
+
+def normalize_answers(
+    answers: Any,
+    artifact_name_to_citation_id: dict[str, str],
+) -> list[dict[str, Any]]:
+    normalized_answers: list[dict[str, Any]] = []
+    for answer in answers or []:
+        if isinstance(answer, str):
+            text = normalize_text(answer)
+            if not text:
+                continue
+            normalized_answers.append({"kind": "direct_answer", "text": text, "citation_ids": []})
+            continue
+        if not isinstance(answer, dict):
+            continue
+        text = normalize_text(
+            answer.get("text")
+            or answer.get("content")
+            or answer.get("answer")
+            or answer.get("summary")
+        )
+        if not text:
+            continue
+        normalized_answers.append(
+            {
+                "kind": str(answer.get("kind") or "direct_answer"),
+                "text": text,
+                "citation_ids": normalize_citation_ids(
+                    answer.get("citation_ids") or answer.get("citations"),
+                    artifact_name_to_citation_id,
+                ),
+            }
+        )
+    return normalized_answers
+
+
+def normalize_issues(
+    issues: Any,
+    artifact_name_to_citation_id: dict[str, str],
+) -> list[dict[str, Any]]:
+    normalized_issues: list[dict[str, Any]] = []
+    for issue in issues or []:
+        if not isinstance(issue, dict):
+            continue
+        message = normalize_text(issue.get("message") or issue.get("text") or issue.get("content"))
+        if not message:
+            continue
+        severity = str(issue.get("severity") or "warning").strip().lower()
+        if severity not in {"info", "warning", "error"}:
+            severity = "warning"
+        normalized_issues.append(
+            {
+                "code": str(issue.get("code") or "").strip(),
+                "message": message,
+                "severity": severity,
+                "citation_ids": normalize_citation_ids(
+                    issue.get("citation_ids") or issue.get("citations"),
+                    artifact_name_to_citation_id,
+                ),
+            }
+        )
+    return normalized_issues
+
+
+def normalize_actions(
+    actions: Any,
+    artifact_name_to_citation_id: dict[str, str],
+) -> list[dict[str, Any]]:
+    normalized_actions: list[dict[str, Any]] = []
+    for action in actions or []:
+        if not isinstance(action, dict):
+            continue
+        title = normalize_text(action.get("title") or action.get("name"))
+        rationale = normalize_text(action.get("rationale") or action.get("reason") or action.get("description"))
+        if not title or not rationale:
+            continue
+        kind = str(action.get("kind") or "read_only_check").strip()
+        if kind not in {"candidate_edit", "candidate_operation", "read_only_check"}:
+            kind = "read_only_check"
+        risk_level = str(action.get("risk_level") or "low").strip().lower()
+        if risk_level not in {"low", "medium", "high"}:
+            risk_level = "low"
+        normalized_action = {
+            "kind": kind,
+            "title": title,
+            "rationale": rationale,
+            "risk_level": risk_level,
+            "requires_confirmation": bool(action.get("requires_confirmation", False)),
+            "citation_ids": normalize_citation_ids(
+                action.get("citation_ids") or action.get("citations"),
+                artifact_name_to_citation_id,
+            ),
+        }
+        if isinstance(action.get("target"), dict):
+            normalized_action["target"] = action["target"]
+        if isinstance(action.get("patch"), dict):
+            normalized_action["patch"] = action["patch"]
+        normalized_actions.append(normalized_action)
+    return normalized_actions
+
+
+def normalize_citations_from_document(
+    citations: Any,
+    copilot_request: dict[str, Any],
+    fallback_citations: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    artifact_map = {
+        str((artifact or {}).get("name") or "").strip(): artifact
+        for artifact in copilot_request.get("artifacts") or []
+        if str((artifact or {}).get("name") or "").strip()
+    }
+    normalized_citations: list[dict[str, Any]] = []
+    for index, citation in enumerate(citations or [], start=1):
+        if not isinstance(citation, dict):
+            continue
+        artifact_name = str(citation.get("artifact_id") or "").strip()
+        if not artifact_name and isinstance(citation.get("artifact_index"), int):
+            artifact_index = int(citation["artifact_index"])
+            artifacts = copilot_request.get("artifacts") or []
+            if 0 <= artifact_index < len(artifacts):
+                artifact_name = str((artifacts[artifact_index] or {}).get("name") or "").strip()
+        artifact = artifact_map.get(artifact_name) or {}
+        citation_id = str(citation.get("id") or "").strip()
+        if not citation_id:
+            fallback = next((item for item in fallback_citations if str(item.get("locator") or "") == f"artifact:{artifact_name}"), None)
+            citation_id = str((fallback or {}).get("id") or f"doc-{index}")
+        label = (
+            normalize_text(citation.get("label"))
+            or str(((artifact.get("metadata") or {}).get("page_slug") or "")).strip()
+            or artifact_name
+            or citation_id
+        )
+        normalized_citation = {
+            "id": citation_id,
+            "kind": str(citation.get("kind") or "artifact").strip() or "artifact",
+            "label": label,
+        }
+        locator = normalize_text(citation.get("locator")) or (f"artifact:{artifact_name}" if artifact_name else "")
+        if locator:
+            normalized_citation["locator"] = locator
+        excerpt = normalize_text(citation.get("excerpt") or citation.get("text"))
+        if excerpt:
+            normalized_citation["excerpt"] = excerpt
+        normalized_citations.append(normalized_citation)
+    return normalized_citations or fallback_citations
+
+
 def coerce_response_document(document: dict[str, Any], copilot_request: dict[str, Any], raw_text: str) -> dict[str, Any]:
     coerced = dict(document)
+    fallback_citations, artifact_name_to_citation_id = build_citation_maps(copilot_request)
+    coerced["status"] = map_status(coerced.get("status"))
+    coerced["answers"] = normalize_answers(coerced.get("answers"), artifact_name_to_citation_id)
+    coerced["issues"] = normalize_issues(coerced.get("issues"), artifact_name_to_citation_id)
+    coerced["proposed_actions"] = normalize_actions(
+        coerced.get("proposed_actions"),
+        artifact_name_to_citation_id,
+    )
+    coerced["citations"] = normalize_citations_from_document(
+        coerced.get("citations"),
+        copilot_request,
+        fallback_citations,
+    )
+    if "confidence" in coerced:
+        try:
+            coerced["confidence"] = max(0.0, min(1.0, float(coerced["confidence"])))
+        except (TypeError, ValueError):
+            coerced["confidence"] = 0.2
+    if "risk_level" in coerced:
+        risk_level = str(coerced.get("risk_level") or "").strip().lower()
+        coerced["risk_level"] = risk_level if risk_level in {"low", "medium", "high"} else "medium"
+    if "requires_confirmation" in coerced:
+        coerced["requires_confirmation"] = bool(coerced["requires_confirmation"])
     coerced.setdefault("schema_version", 1)
     coerced.setdefault("project", copilot_request.get("project"))
     coerced.setdefault("task", copilot_request.get("task"))
+    if not normalize_text(coerced.get("summary")) and coerced.get("answers"):
+        first_answer = (coerced.get("answers") or [{}])[0]
+        if isinstance(first_answer, dict):
+            derived_summary = normalize_text(first_answer.get("text") or first_answer.get("summary"))
+            if derived_summary:
+                coerced["summary"] = derived_summary
     coerced.setdefault("summary", "模型已返回结构化响应，但摘要字段为空。")
     coerced.setdefault("answers", [])
     coerced.setdefault("issues", [])
@@ -449,4 +667,3 @@ def build_candidate_response_dump(
         "raw_response": inference_result.get("raw_response"),
         "response": inference_result["response"],
     }
-
