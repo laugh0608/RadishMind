@@ -17,12 +17,30 @@ RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 PROMPT_PATH = REPO_ROOT / "prompts/tasks/radish-answer-docs-question-system.md"
 SCHEMA_CACHE: dict[Path, Any] = {}
 SENTENCE_BREAK_RE = re.compile(r"(?<=[。！？.!?])\s+")
+ENV_FILE_PATH = REPO_ROOT / ".env"
 
 
 def load_schema(path: Path) -> Any:
     if path not in SCHEMA_CACHE:
         SCHEMA_CACHE[path] = json.loads(path.read_text(encoding="utf-8"))
     return SCHEMA_CACHE[path]
+
+
+def load_env_file(path: Path) -> None:
+    if not path.is_file():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        parsed = value.strip()
+        if len(parsed) >= 2 and parsed[0] == parsed[-1] and parsed[0] in {"'", '"'}:
+            parsed = parsed[1:-1]
+        os.environ[key] = parsed
 
 
 def validate_request_document(document: Any) -> None:
@@ -593,6 +611,7 @@ def run_inference(
     api_key: str | None = None,
     temperature: float = 0.0,
 ) -> dict[str, Any]:
+    load_env_file(ENV_FILE_PATH)
     validate_request_document(copilot_request)
     if str(copilot_request.get("project")) != "radish" or str(copilot_request.get("task")) != "answer_docs_question":
         raise ValueError("minimal runtime currently only supports radish / answer_docs_question")

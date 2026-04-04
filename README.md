@@ -74,6 +74,16 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 - Windows 侧 `.ps1` 与 Linux / WSL 侧 `.sh` 继续保留，但它们当前只作为平台入口包装，不再承载核心校验逻辑
 - 当前验证链路需要可用的 Python 环境；至少应提供 `python3` 或等价 Python 启动器，以及 `jsonschema`
 
+## 本地模型配置
+
+当前真实推理入口默认会优先读取仓库根 `.env` 中的以下变量：
+
+- `RADISHMIND_MODEL_BASE_URL`
+- `RADISHMIND_MODEL_NAME`
+- `RADISHMIND_MODEL_API_KEY`
+
+仓库已提供 [.env.example](/home/luobo/Code/RadishMind/.env.example) 作为无敏感信息示例；真实 `.env` 只保留在本地，不提交到仓库。
+
 ## 当前评测进展
 
 当前最小离线回归已覆盖：

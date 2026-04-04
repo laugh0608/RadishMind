@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "CLAUDE.md",
     "LICENSE",
     ".editorconfig",
+    ".env.example",
     ".gitattributes",
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/rulesets/README.md",
