@@ -348,6 +348,49 @@ def resolve_negative_replay_index_from_batch_artifact_summary(summary_path: Path
     return index_path
 
 
+def resolve_recommended_negative_replay_groups_from_batch_artifact_summary(
+    summary_path: Path,
+    top_n: int,
+) -> tuple[list[str], str]:
+    if top_n <= 0:
+        raise SystemExit("--recommended-groups-top must be greater than 0")
+
+    summary_document = load_batch_artifact_summary(summary_path)
+    recommended = summary_document.get("recommended_negative_replays")
+    if not isinstance(recommended, dict):
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': recommended_negative_replays must be a json object"
+        )
+
+    default_replay_mode = str(recommended.get("default_replay_mode") or "").strip()
+    if not default_replay_mode:
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': recommended_negative_replays.default_replay_mode is required"
+        )
+    if default_replay_mode not in NEGATIVE_REPLAY_MODES:
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': unsupported recommended default_replay_mode "
+            f"'{default_replay_mode}'"
+        )
+
+    recommended_group_ids = [
+        str(group_id).strip()
+        for group_id in get_array(recommended.get("recommended_group_ids"))
+        if str(group_id).strip()
+    ]
+    if not recommended_group_ids:
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': recommended_negative_replays.recommended_group_ids is empty"
+        )
+
+    selected_group_ids = recommended_group_ids[:top_n]
+    if not selected_group_ids:
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': no recommended group_ids matched --recommended-groups-top {top_n}"
+        )
+    return selected_group_ids, default_replay_mode
+
+
 def resolve_negative_replay_sample_paths(
     index_path: Path,
     *,
@@ -1682,6 +1725,7 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool, dic
     group_ids: list[str] = []
     record_ids: list[str] = []
     replay_mode = ""
+    recommended_groups_top: int | None = None
     index = 2
 
     while index < len(argv):
@@ -1737,6 +1781,15 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool, dic
             replay_mode = argv[index + 1].strip()
             index += 2
             continue
+        if arg in {"-RecommendedGroupsTop", "--recommended-groups-top"}:
+            if index + 1 >= len(argv):
+                raise SystemExit(f"missing value for {arg}")
+            try:
+                recommended_groups_top = int(argv[index + 1])
+            except ValueError as exc:
+                raise SystemExit(f"invalid integer value for {arg}: {argv[index + 1]}") from exc
+            index += 2
+            continue
         raise SystemExit(f"unsupported argument: {arg}")
 
     selection = {
@@ -1745,6 +1798,7 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool, dic
         "group_ids": [group_id for group_id in group_ids if group_id],
         "record_ids": [record_id for record_id in record_ids if record_id],
         "replay_mode": replay_mode,
+        "recommended_groups_top": recommended_groups_top,
     }
     return task_name, sample_dir, sample_paths, fail_on_violation, selection
 
@@ -1770,6 +1824,25 @@ def main(argv: list[str]) -> int:
     resolved_sample_dir = sample_dir or config["sample_dir"]
     negative_replay_index = selection["negative_replay_index"]
     batch_artifact_summary = selection["batch_artifact_summary"]
+    recommended_groups_top = selection["recommended_groups_top"]
+    if recommended_groups_top is not None:
+        if task_name != "radish-docs-qa-negative":
+            raise SystemExit("--recommended-groups-top is only supported for radish-docs-qa-negative")
+        if batch_artifact_summary is None:
+            raise SystemExit("--recommended-groups-top requires --batch-artifact-summary")
+        if sample_paths:
+            raise SystemExit("--recommended-groups-top cannot be used together with --sample-paths")
+        if negative_replay_index is not None:
+            raise SystemExit("--recommended-groups-top cannot be used together with --negative-replay-index")
+        if selection["group_ids"]:
+            raise SystemExit("--recommended-groups-top cannot be used together with --group-id")
+        recommended_group_ids, default_replay_mode = resolve_recommended_negative_replay_groups_from_batch_artifact_summary(
+            batch_artifact_summary,
+            recommended_groups_top,
+        )
+        selection["group_ids"] = recommended_group_ids
+        if not selection["replay_mode"]:
+            selection["replay_mode"] = default_replay_mode
     if batch_artifact_summary is not None:
         if task_name != "radish-docs-qa-negative":
             raise SystemExit("--batch-artifact-summary is only supported for radish-docs-qa-negative")

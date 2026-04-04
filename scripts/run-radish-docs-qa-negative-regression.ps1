@@ -6,6 +6,7 @@ param(
     [string]$BatchArtifactSummary,
     [string[]]$GroupId,
     [string[]]$RecordId,
+    [int]$RecommendedGroupsTop,
     [ValidateSet("same_sample", "cross_sample")]
     [string]$ReplayMode,
     [switch]$FailOnViolation
@@ -71,6 +72,11 @@ if ($RecordId.Count -gt 0) {
         $arguments += "--record-id"
         $arguments += $item
     }
+}
+
+if ($RecommendedGroupsTop -gt 0) {
+    $arguments += "--recommended-groups-top"
+    $arguments += $RecommendedGroupsTop
 }
 
 if (-not [string]::IsNullOrWhiteSpace($ReplayMode)) {

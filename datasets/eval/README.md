@@ -348,6 +348,23 @@ bash ./scripts/run-radish-docs-qa-negative-regression.sh \
 
 这样真实 batch 跑完后，不需要再人工翻 `negative-replay-index.json` 组装命令。
 
+如果希望直接按默认推荐顺序批量回放前 `N` 个失败组，当前也可以继续复用同一个负例 runner：
+
+```bash
+bash ./scripts/run-radish-docs-qa-negative-regression.sh \
+  --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json \
+  --recommended-groups-top 2 \
+  --fail-on-violation
+```
+
+这条入口当前会：
+
+- 从 `recommended_negative_replays.recommended_group_ids` 取前 `N` 个推荐失败组
+- 若未显式指定 `--replay-mode`，默认采用摘要中的 `default_replay_mode`
+- 继续复用同一条 `group_id` 选样和负例回放链路
+
+这样真实 batch 跑完后，可以直接先回放“最值得优先治理”的前几组失败样本。
+
 如果需要把这份索引里的“同样本真实 replay”直接重建成 `datasets/eval/radish-negative/*.json`，当前还可使用：
 
 ```bash

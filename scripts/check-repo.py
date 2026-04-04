@@ -219,8 +219,8 @@ def check_generated_eval_metadata() -> None:
             "radish-docs-qa-negative",
             "--batch-artifact-summary",
             "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
-            "--group-id",
-            "group-001",
+            "--recommended-groups-top",
+            "1",
             "--fail-on-violation",
         ],
     )
