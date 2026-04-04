@@ -88,6 +88,7 @@ REQUIRED_FILES = [
     "scripts/check-radish-docs-qa-eval.sh",
     "scripts/check-text-files.py",
     "scripts/audit-candidate-record-batch.py",
+    "scripts/build-radish-docs-negative-replay.py",
     "scripts/build-negative-replay-index.py",
     "scripts/build-candidate-record-batch.py",
     "scripts/import-candidate-response-dump.py",
@@ -187,6 +188,15 @@ def check_generated_eval_metadata() -> None:
         ).read_text(encoding="utf-8")
     )
     jsonschema.validate(document, schema)
+
+    run_python_script(
+        "build-radish-docs-negative-replay.py",
+        [
+            "--index",
+            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+            "--check",
+        ],
+    )
 
 
 def parse_args() -> argparse.Namespace:

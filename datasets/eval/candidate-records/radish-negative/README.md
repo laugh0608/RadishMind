@@ -48,6 +48,15 @@
 
 统一收口，避免后续扩样时继续手工点文件、同时又维护两份真实 record 清单。
 
+对于已经进入这份 index 的“同样本真实 replay”负例，当前还可以直接用脚本重建：
+
+```bash
+python3 ./scripts/build-radish-docs-negative-replay.py \
+  --index datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json
+```
+
+这一步会自动复用原正向样本骨架，并按真实 record 的实际坏输出推导负例文件名与标准化说明文本。
+
 补充说明：
 
 - 这份 manifest 只是把现有负例 fixture 统一切到批量导入入口，便于后续维护

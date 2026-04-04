@@ -117,7 +117,7 @@
       "retrieval_contract",
       "candidate_record_alignment"
     ],
-    "notes": "使用第二批真实 provider batch 中同样本的 role-boundary 快照做负例 replay，保持原样本的 sample_id/request_id，对齐通过后只验证真实候选回答把角色示例场景错误降成 `risk_level=low` 且漏掉 `AUTHORIZATION_NOT_PROVEN` issue。"
+    "notes": "使用批次 `2026-04-04-radish-docs-qa-real-batch-v1` 中同样本的真实候选快照做负例 replay，保持原样本的 sample_id/request_id，对齐通过后验证真实候选回答命中这些违规：`.risk_level does not match evaluation.expected_risk_level`；`must contain at least 1 issue`；`missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'`。"
   },
   "negative_replay_expectations": {
     "expected_candidate_violations": [
@@ -130,8 +130,8 @@
     "manifest_path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
     "record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
     "expected_source": "captured_candidate_response",
-    "required_capture_origin": "adapter_debug_dump",
     "required_collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1",
+    "required_capture_origin": "adapter_debug_dump",
     "required_tags": [
       "radish_docs_qa",
       "real_capture"
