@@ -1,0 +1,290 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from services.runtime.candidate_records import (  # noqa: E402
+    RECORD_BATCH_SCHEMA_PATH,
+    ensure_schema,
+    load_json_document,
+    make_repo_relative,
+    resolve_relative_to_repo,
+)
+
+
+TASK_SAMPLE_DIRS = {
+    "radish-docs-qa": REPO_ROOT / "datasets/eval/radish",
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Audit a candidate record batch by replaying it through the existing eval regression rules.",
+    )
+    parser.add_argument("task", choices=sorted(TASK_SAMPLE_DIRS), help="Eval task name to audit against.")
+    parser.add_argument("--manifest", required=True, help="Candidate record batch manifest path.")
+    parser.add_argument("--sample-dir", default="", help="Optional sample directory override.")
+    parser.add_argument(
+        "--expected-source",
+        default="",
+        help="Optional candidate_response_record.expected_source override. Defaults to manifest.source when present.",
+    )
+    parser.add_argument(
+        "--required-capture-origin",
+        default="",
+        help="Optional candidate_response_record.required_capture_origin override. Defaults to manifest.capture_origin when present.",
+    )
+    parser.add_argument(
+        "--required-collection-batch",
+        default="",
+        help="Optional candidate_response_record.required_collection_batch override. Defaults to manifest.collection_batch.",
+    )
+    parser.add_argument(
+        "--required-tag",
+        action="append",
+        default=[],
+        help="Optional candidate_response_record.required_tags entry. Can be repeated.",
+    )
+    parser.add_argument(
+        "--report-output",
+        default="",
+        help="Optional path to write a structured audit report json.",
+    )
+    parser.add_argument("--fail-on-violation", action="store_true")
+    return parser.parse_args()
+
+
+def normalize_required_tags(values: list[str]) -> list[str]:
+    normalized: list[str] = []
+    for value in values:
+        tag = str(value).strip()
+        if tag and tag not in normalized:
+            normalized.append(tag)
+    return normalized
+
+
+def load_manifest(manifest_path: Path) -> dict[str, Any]:
+    manifest = load_json_document(manifest_path)
+    if not isinstance(manifest, dict):
+        raise SystemExit(f"manifest must be a json object: {make_repo_relative(manifest_path)}")
+    ensure_schema(manifest, RECORD_BATCH_SCHEMA_PATH, make_repo_relative(manifest_path))
+    return manifest
+
+
+def build_manifest_sample_map(manifest: dict[str, Any], manifest_label: str) -> dict[str, str]:
+    sample_map: dict[str, str] = {}
+    for entry in manifest.get("records") or []:
+        if not isinstance(entry, dict):
+            continue
+        sample_id = str(entry.get("sample_id") or "").strip()
+        record_id = str(entry.get("record_id") or "").strip()
+        if not sample_id or not record_id:
+            raise SystemExit(f"{manifest_label}: each record must include non-empty sample_id and record_id")
+        if sample_id in sample_map:
+            raise SystemExit(f"{manifest_label}: duplicate sample_id found in manifest: {sample_id}")
+        sample_map[sample_id] = record_id
+    if not sample_map:
+        raise SystemExit(f"{manifest_label}: manifest does not contain any records")
+    return sample_map
+
+
+def resolve_sample_dir(task: str, sample_dir_value: str) -> Path:
+    if sample_dir_value.strip():
+        return resolve_relative_to_repo(sample_dir_value)
+    return TASK_SAMPLE_DIRS[task]
+
+
+def make_override_record_ref(
+    *,
+    manifest_path: Path,
+    record_id: str,
+    expected_source: str,
+    required_capture_origin: str,
+    required_collection_batch: str,
+    required_tags: list[str],
+) -> dict[str, Any]:
+    record_ref: dict[str, Any] = {
+        "manifest_path": make_repo_relative(manifest_path),
+        "record_id": record_id,
+    }
+    if expected_source:
+        record_ref["expected_source"] = expected_source
+    if required_capture_origin:
+        record_ref["required_capture_origin"] = required_capture_origin
+    if required_collection_batch:
+        record_ref["required_collection_batch"] = required_collection_batch
+    if required_tags:
+        record_ref["required_tags"] = required_tags
+    return record_ref
+
+
+def parse_regression_output(stdout_text: str, stderr_text: str) -> dict[str, Any]:
+    samples: list[dict[str, Any]] = []
+    current_sample: dict[str, Any] | None = None
+    summary_line = ""
+    warning_line = ""
+
+    for raw_line in stdout_text.splitlines():
+        line = raw_line.rstrip()
+        if line.startswith("PASS "):
+            sample_name = line[len("PASS ") :].strip()
+            current_sample = {
+                "sample_file": sample_name,
+                "status": "pass",
+                "violations": [],
+            }
+            samples.append(current_sample)
+            continue
+        if line.startswith("FAIL "):
+            sample_name = line[len("FAIL ") :].strip()
+            current_sample = {
+                "sample_file": sample_name,
+                "status": "fail",
+                "violations": [],
+            }
+            samples.append(current_sample)
+            continue
+        if line.startswith("  - ") and current_sample is not None:
+            current_sample["violations"].append(line[4:])
+            continue
+        if "regression passed." in line:
+            summary_line = line
+            continue
+        if line.startswith("WARNING: "):
+            warning_line = line
+
+    passed_count = sum(1 for sample in samples if sample["status"] == "pass")
+    failed_count = sum(1 for sample in samples if sample["status"] == "fail")
+    violation_count = sum(len(sample["violations"]) for sample in samples)
+    warning_line = warning_line or next((line for line in stderr_text.splitlines() if line.startswith("WARNING: ")), "")
+    return {
+        "passed_count": passed_count,
+        "failed_count": failed_count,
+        "violation_count": violation_count,
+        "summary_line": summary_line,
+        "warning_line": warning_line,
+        "samples": samples,
+    }
+
+
+def main() -> int:
+    args = parse_args()
+    manifest_path = resolve_relative_to_repo(args.manifest)
+    if not manifest_path.is_file():
+        raise SystemExit(f"manifest file not found: {args.manifest}")
+
+    manifest = load_manifest(manifest_path)
+    manifest_label = make_repo_relative(manifest_path)
+    sample_to_record_id = build_manifest_sample_map(manifest, manifest_label)
+    sample_dir = resolve_sample_dir(args.task, args.sample_dir)
+
+    expected_source = args.expected_source.strip() or str(manifest.get("source") or "").strip()
+    required_capture_origin = args.required_capture_origin.strip() or str(manifest.get("capture_origin") or "").strip()
+    required_collection_batch = (
+        args.required_collection_batch.strip() or str(manifest.get("collection_batch") or "").strip()
+    )
+    required_tags = normalize_required_tags(args.required_tag)
+
+    with tempfile.TemporaryDirectory(prefix=f"{args.task}-batch-audit-") as temp_dir:
+        temp_path = Path(temp_dir)
+        matched_sample_ids: set[str] = set()
+        sample_files = sorted(sample_dir.glob("*.json"))
+        if not sample_files:
+            raise SystemExit(f"no sample json files found in: {make_repo_relative(sample_dir)}")
+
+        for sample_file in sample_files:
+            sample = load_json_document(sample_file)
+            if not isinstance(sample, dict):
+                raise SystemExit(f"sample must be a json object: {make_repo_relative(sample_file)}")
+
+            sample_id = str(sample.get("sample_id") or "").strip()
+            if sample_id not in sample_to_record_id:
+                continue
+
+            matched_sample_ids.add(sample_id)
+            sample["candidate_response_record"] = make_override_record_ref(
+                manifest_path=manifest_path,
+                record_id=sample_to_record_id[sample_id],
+                expected_source=expected_source,
+                required_capture_origin=required_capture_origin,
+                required_collection_batch=required_collection_batch,
+                required_tags=required_tags,
+            )
+            (temp_path / sample_file.name).write_text(
+                json.dumps(sample, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+        unmatched_sample_ids = sorted(set(sample_to_record_id) - matched_sample_ids)
+        if unmatched_sample_ids:
+            raise SystemExit(
+                "manifest contains sample_id values that are missing from the audit sample directory: "
+                + ", ".join(unmatched_sample_ids)
+            )
+        if not matched_sample_ids:
+            raise SystemExit("no samples matched the manifest sample_id set")
+
+        print(
+            f"auditing {len(matched_sample_ids)} sample(s) from {manifest_label} against task '{args.task}'",
+            file=sys.stderr,
+        )
+        command = [
+            sys.executable,
+            str(REPO_ROOT / "scripts/run-eval-regression.py"),
+            args.task,
+            "--sample-dir",
+            str(temp_path),
+        ]
+        if args.fail_on_violation:
+            command.append("--fail-on-violation")
+        result = subprocess.run(
+            command,
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if result.stdout:
+            print(result.stdout, end="")
+        if result.stderr:
+            print(result.stderr, end="", file=sys.stderr)
+
+        if args.report_output.strip():
+            report_path = resolve_relative_to_repo(args.report_output)
+            parsed = parse_regression_output(result.stdout, result.stderr)
+            report_document = {
+                "schema_version": 1,
+                "task": args.task,
+                "manifest_path": manifest_label,
+                "sample_dir": make_repo_relative(sample_dir),
+                "matched_sample_count": len(matched_sample_ids),
+                "expected_source": expected_source,
+                "required_capture_origin": required_capture_origin,
+                "required_collection_batch": required_collection_batch,
+                "required_tags": required_tags,
+                "exit_code": result.returncode,
+                "passed_count": parsed["passed_count"],
+                "failed_count": parsed["failed_count"],
+                "violation_count": parsed["violation_count"],
+                "warning_line": parsed["warning_line"],
+                "summary_line": parsed["summary_line"],
+                "stderr": result.stderr,
+                "samples": parsed["samples"],
+            }
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(json.dumps(report_document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            print(f"wrote audit report to {make_repo_relative(report_path)}", file=sys.stderr)
+        return result.returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

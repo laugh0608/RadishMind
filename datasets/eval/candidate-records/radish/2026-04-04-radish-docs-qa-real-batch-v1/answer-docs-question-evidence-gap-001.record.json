@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-evidence-gap-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-evidence-gap-001",
+  "request_id": "sample-evidence-gap-001",
+  "captured_at": "2026-04-04T05:16:53Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "partial",
+    "summary": "当前文档仅说明可以查看任务状态，未明确说明谁有权重试或删除任务。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据提供的《Hangfire 只读说明》文档，当前仅开放了任务状态的查看权限。文档中并未提及重试或删除任务的具体权限要求或授权角色，因此无法确认当前 Admin 角色是否具备相关操作权限。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "confidence": 0.5,
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "console/hangfire-readonly",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# Hangfire 只读说明 本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

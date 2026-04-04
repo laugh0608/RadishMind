@@ -129,8 +129,8 @@
     "notes": "回答应以 wiki 的恢复码基线为主，再把 FAQ 作为非正式补充来源，补充“遗失后如何重新生成”的受控流程。"
   },
   "candidate_response_record": {
-    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
-    "record_id": "captured-radish-docs-qa-wiki-faq-mixed-001"
+    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+    "record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001"
   },
   "golden_response": {
     "schema_version": 1,

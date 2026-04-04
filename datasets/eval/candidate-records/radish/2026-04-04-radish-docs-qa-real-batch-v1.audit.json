@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "task": "radish-docs-qa",
+  "manifest_path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+  "sample_dir": "datasets/eval/radish",
+  "matched_sample_count": 11,
+  "expected_source": "captured_candidate_response",
+  "required_capture_origin": "adapter_debug_dump",
+  "required_collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1",
+  "required_tags": [],
+  "exit_code": 0,
+  "passed_count": 3,
+  "failed_count": 8,
+  "violation_count": 19,
+  "warning_line": "WARNING: radish docs qa regression found 19 violation(s).",
+  "summary_line": "",
+  "stderr": "WARNING: radish docs qa regression found 19 violation(s).\n",
+  "samples": [
+    {
+      "sample_file": "answer-docs-question-attachment-mixed-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-attachment-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-attachment-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-direct-answer-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "answer-docs-question-docs-attachments-faq-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-docs-attachments-faq-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-attachments-faq-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-docs-attachments-forum-conflict-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-docs-attachments-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-attachments-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-docs-faq-forum-conflict-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-docs-faq-forum-conflict-001.json: candidate_response.status does not match expected_response_shape.status",
+        "answer-docs-question-docs-faq-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-faq-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-docs-faq-mixed-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-docs-faq-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-faq-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-evidence-gap-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-evidence-gap-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
+        "answer-docs-question-evidence-gap-001.json: candidate_response must contain at least 1 issue",
+        "answer-docs-question-evidence-gap-001.json:candidate_response: missing required json path '$.issues[0]'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-forum-supplement-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "answer-docs-question-navigation-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-navigation-001.json: candidate_response is missing required action kind 'read_only_check'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-role-example-boundary-001.json",
+      "status": "fail",
+      "violations": [
+        "answer-docs-question-role-example-boundary-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
+        "answer-docs-question-role-example-boundary-001.json: candidate_response must contain at least 1 issue",
+        "answer-docs-question-role-example-boundary-001.json:candidate_response: missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'",
+        "answer-docs-question-role-example-boundary-001.json:candidate_response: json path '$.risk_level' expected 'medium' but found 'low'"
+      ]
+    },
+    {
+      "sample_file": "answer-docs-question-wiki-faq-mixed-001.json",
+      "status": "pass",
+      "violations": []
+    }
+  ]
+}

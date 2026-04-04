@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+  "request_id": "sample-docs-faq-forum-conflict-001",
+  "captured_at": "2026-04-04T05:12:41Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "partial",
+    "summary": "发布后的文档应优先保持原有 slug 稳定，避免直接改动访问地址。如确需调整标题，应通过添加 alias 保留旧链接并逐步过渡，不建议直接删除旧链接。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，优先避免直接修改既有访问地址。若业务确需调整标题，可参考 FAQ 建议：为旧链接补一个 alias 以维持访问连续性，随后再逐步切换至新标题。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "confidence": 0.85,
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/publishing",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档发布说明 公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/publishing",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/publishing-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区帖子建议：如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

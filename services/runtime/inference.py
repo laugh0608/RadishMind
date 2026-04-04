@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import http.client
 import os
 import re
 from datetime import datetime, timezone
@@ -586,7 +587,7 @@ def call_openai_compatible(
     except error.HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"provider request failed with HTTP {exc.code}: {error_body}") from exc
-    except error.URLError as exc:
+    except (error.URLError, TimeoutError, http.client.RemoteDisconnected, http.client.IncompleteRead) as exc:
         raise RuntimeError(f"provider request failed: {exc}") from exc
     raw_response = json.loads(raw_body)
     content = extract_openai_message_content(raw_response)
@@ -661,24 +662,42 @@ def build_candidate_response_dump(
     sample_id: str,
     inference_result: dict[str, Any],
     dump_id: str | None = None,
+    record_id: str | None = None,
+    captured_at: str | None = None,
+    capture_origin: str | None = None,
+    collection_batch: str | None = None,
+    tags: list[str] | None = None,
+    notes: str | None = None,
 ) -> dict[str, Any]:
     request_id = str(copilot_request.get("request_id") or "").strip() or f"{copilot_request['task']}-request"
+    source = "simulated_candidate_response" if inference_result["provider"] == "mock" else "captured_candidate_response"
+    default_capture_origin = "manual_fixture" if inference_result["provider"] == "mock" else "adapter_debug_dump"
+    merged_tags: list[str] = ["radish_docs_qa", inference_result["provider"]]
+    if source == "captured_candidate_response":
+        merged_tags.append("real_capture")
+    for tag in tags or []:
+        normalized_tag = str(tag).strip()
+        if normalized_tag and normalized_tag not in merged_tags:
+            merged_tags.append(normalized_tag)
+    capture_metadata: dict[str, Any] = {
+        "capture_origin": capture_origin or default_capture_origin,
+        "tags": merged_tags,
+    }
+    if collection_batch:
+        capture_metadata["collection_batch"] = collection_batch
+    if notes:
+        capture_metadata["notes"] = notes
     return {
         "schema_version": 1,
         "dump_id": dump_id or f"dump-{request_id}",
+        **({"record_id": record_id} if record_id else {}),
         "project": copilot_request["project"],
         "task": copilot_request["task"],
         "sample_id": sample_id,
         "request_id": request_id,
-        "captured_at": utc_now_iso(),
-        "source": "simulated_candidate_response" if inference_result["provider"] == "mock" else "captured_candidate_response",
-        "capture_metadata": {
-            "capture_origin": "manual_fixture" if inference_result["provider"] == "mock" else "adapter_debug_dump",
-            "tags": [
-                "radish_docs_qa",
-                inference_result["provider"],
-            ],
-        },
+        "captured_at": captured_at or utc_now_iso(),
+        "source": source,
+        "capture_metadata": capture_metadata,
         "model": inference_result["model"],
         "input_record": derive_input_record(copilot_request),
         "input_request": copilot_request,

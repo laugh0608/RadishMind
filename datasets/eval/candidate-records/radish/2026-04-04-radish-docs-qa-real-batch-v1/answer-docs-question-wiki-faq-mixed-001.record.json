@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-wiki-faq-mixed-001",
+  "request_id": "sample-wiki-faq-mixed-001",
+  "captured_at": "2026-04-04T05:23:48Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/two-factor-recovery",
+    "resource_slug": "guide/two-factor-recovery",
+    "search_scope": [
+      "wiki",
+      "faq"
+    ],
+    "artifact_names": [
+      "wiki_document",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.85,
+    "summary": "双重验证恢复码仅在开启时一次性生成，需用户自行妥善保存。若已遗失，建议先完成身份核验，再禁用并重新启用双重验证以生成一组新的恢复码。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档，恢复码在开启双重验证时一次性生成，用户需自行保存。若恢复码已遗失，当前建议先完成身份核验，随后禁用并重新启用双重验证，系统将重新生成一组新的恢复码。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/two-factor-recovery",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# 双重验证恢复指南 启用双重验证后，恢复码会在开启时一次性生成，用户应自行妥善保存。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/two-factor-recovery",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：如果恢复码已经遗失，当前建议先完成身份核验，再禁用并重新启用双重验证以生成一组新的恢复码。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

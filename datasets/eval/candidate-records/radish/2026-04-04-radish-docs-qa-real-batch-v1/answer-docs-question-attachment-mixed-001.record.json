@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-attachment-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-attachment-mixed-001",
+  "request_id": "sample-attachment-mixed-001",
+  "captured_at": "2026-04-04T05:09:06Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "summary": "附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中使用该格式引用，无需暴露真实存储地址。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档规范，公开文档中的附件应统一使用 `attachment://{id}` 格式进行引用。当前 `attachment://manual-42` 已具备 `public-doc-compatible` 标记，符合规范，可直接在文档中安全引用。",
+        "citation_ids": []
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2"
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "confidence": 0.95,
+    "issues": [],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

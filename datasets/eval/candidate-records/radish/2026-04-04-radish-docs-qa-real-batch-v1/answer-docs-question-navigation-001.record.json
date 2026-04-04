@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-navigation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-navigation-001",
+  "request_id": "sample-navigation-001",
+  "captured_at": "2026-04-04T05:21:58Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachments",
+    "resource_slug": "guide/attachments",
+    "search_scope": [
+      "docs",
+      "wiki"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "docs_page_related"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "summary": "公开文档中引用附件应使用 `attachment://{id}` 格式，该格式将由运行时自动解析为真实地址；在富文本编辑器中插入附件时，建议优先使用系统生成的标准引用格式。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档说明，公开文档建议使用 `attachment://{id}` 的格式进行引用，系统运行时会将其解析为真实的文件地址。在富文本编辑器中操作时，应优先采用系统生成的标准引用格式以确保兼容性与规范性。",
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "confidence": 0.95,
+    "proposed_actions": [],
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/attachments",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 附件说明 公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "guide/rich-text-editor",
+        "locator": "artifact:docs_page_related",
+        "excerpt": "# 富文本编辑器说明 在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

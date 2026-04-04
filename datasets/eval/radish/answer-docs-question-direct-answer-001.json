@@ -106,6 +106,10 @@
     ],
     "notes": "回答应直接区分鉴权和授权，不应扩展到未给出的权限细节。"
   },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+    "record_id": "captured-radish-answer-docs-question-direct-answer-001"
+  },
   "golden_response": {
     "schema_version": 1,
     "status": "ok",
