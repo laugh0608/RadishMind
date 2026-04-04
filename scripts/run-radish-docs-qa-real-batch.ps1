@@ -27,6 +27,12 @@ param(
     [string]$ArtifactSummaryOutput,
     [switch]$BuildNegativeReplay,
     [string]$NegativeOutputDir,
+    [switch]$BuildRecommendedNegativeReplaySummary,
+    [int]$RecommendedGroupsTop = 0,
+    [ValidateSet("same_sample", "cross_sample")]
+    [string]$RecommendedReplayMode,
+    [string]$RecommendedSummaryOutput,
+    [switch]$FailOnRecommendedReplayViolation,
     [switch]$FailOnAuditViolation
 )
 
@@ -161,6 +167,29 @@ if ($BuildNegativeReplay) {
 if (-not [string]::IsNullOrWhiteSpace($NegativeOutputDir)) {
     $arguments += "--negative-output-dir"
     $arguments += $NegativeOutputDir
+}
+
+if ($BuildRecommendedNegativeReplaySummary) {
+    $arguments += "--build-recommended-negative-replay-summary"
+}
+
+if ($RecommendedGroupsTop -ne 0) {
+    $arguments += "--recommended-groups-top"
+    $arguments += $RecommendedGroupsTop
+}
+
+if (-not [string]::IsNullOrWhiteSpace($RecommendedReplayMode)) {
+    $arguments += "--recommended-replay-mode"
+    $arguments += $RecommendedReplayMode
+}
+
+if (-not [string]::IsNullOrWhiteSpace($RecommendedSummaryOutput)) {
+    $arguments += "--recommended-summary-output"
+    $arguments += $RecommendedSummaryOutput
+}
+
+if ($FailOnRecommendedReplayViolation) {
+    $arguments += "--fail-on-recommended-replay-violation"
 }
 
 if ($FailOnAuditViolation) {

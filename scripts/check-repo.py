@@ -46,11 +46,13 @@ REQUIRED_FILES = [
     "datasets/eval/candidate-record-batch.schema.json",
     "datasets/eval/candidate-response-dump.schema.json",
     "datasets/eval/negative-replay-index.schema.json",
+    "datasets/eval/recommended-negative-replay-summary.schema.json",
     "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json",
     "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
     "datasets/eval/radishflow-task-sample.schema.json",
     "datasets/eval/radish-task-sample.schema.json",
@@ -80,6 +82,7 @@ REQUIRED_FILES = [
     "services/runtime/__init__.py",
     "services/runtime/candidate_records.py",
     "services/runtime/inference.py",
+    "services/runtime/eval_regression.py",
     "scripts/check-radishflow-control-plane-eval.ps1",
     "scripts/check-radishflow-control-plane-eval.sh",
     "scripts/check-radishflow-diagnostics-eval.ps1",
@@ -207,6 +210,17 @@ def check_generated_eval_metadata() -> None:
     )
     jsonschema.validate(artifact_summary_document, artifact_summary_schema)
 
+    recommended_summary_schema = json.loads(
+        (REPO_ROOT / "datasets/eval/recommended-negative-replay-summary.schema.json").read_text(encoding="utf-8")
+    )
+    recommended_summary_document = json.loads(
+        (
+            REPO_ROOT
+            / "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json"
+        ).read_text(encoding="utf-8")
+    )
+    jsonschema.validate(recommended_summary_document, recommended_summary_schema)
+
     run_python_script(
         "build-radish-docs-negative-replay.py",
         [
@@ -234,8 +248,11 @@ def check_generated_eval_metadata() -> None:
             "--batch-artifact-summary",
             "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
             "--top",
-            "1",
+            "4",
             "--fail-on-violation",
+            "--summary-output",
+            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json",
+            "--check",
         ],
     )
 

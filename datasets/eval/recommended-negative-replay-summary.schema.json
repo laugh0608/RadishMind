@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/recommended-negative-replay-summary.schema.json",
+  "title": "RecommendedNegativeReplaySummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pipeline",
+    "project",
+    "task",
+    "eval_task",
+    "provider",
+    "collection_batch",
+    "batch_artifact_summary_path",
+    "negative_replay_index_path",
+    "output_path",
+    "selection",
+    "execution",
+    "summary",
+    "groups"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "pipeline": {
+      "type": "string",
+      "const": "radish-docs-qa-recommended-negative-replay"
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radish",
+        "radishflow"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eval_task": {
+      "type": "string",
+      "const": "radish-docs-qa-negative"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "mock",
+        "openai-compatible"
+      ]
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "collection_batch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capture_origin": {
+      "type": "string",
+      "enum": [
+        "interactive_session",
+        "adapter_debug_dump",
+        "manual_fixture"
+      ]
+    },
+    "batch_artifact_summary_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "negative_replay_index_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_top",
+        "selected_group_ids",
+        "replay_mode",
+        "sample_dir_override",
+        "fail_on_violation"
+      ],
+      "properties": {
+        "requested_top": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "selected_group_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^group-[0-9]{3}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "replay_mode": {
+          "type": "string",
+          "enum": [
+            "same_sample",
+            "cross_sample"
+          ]
+        },
+        "sample_dir_override": {
+          "type": "string"
+        },
+        "fail_on_violation": {
+          "type": "boolean"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall_exit_code"
+      ],
+      "properties": {
+        "overall_exit_code": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selected_group_count",
+        "passed_group_count",
+        "failed_group_count",
+        "selected_sample_count",
+        "passed_sample_count",
+        "failed_sample_count",
+        "violation_count"
+      ],
+      "properties": {
+        "selected_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "selected_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violation_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/group_summary"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "group_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "replay_mode",
+        "requested_entry_count",
+        "selected_sample_count",
+        "exit_code",
+        "passed_sample_count",
+        "failed_sample_count",
+        "violation_count",
+        "expected_candidate_violations",
+        "sample_files",
+        "summary_line",
+        "warning_line",
+        "command"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "pattern": "^group-[0-9]{3}$"
+        },
+        "replay_mode": {
+          "type": "string",
+          "enum": [
+            "same_sample",
+            "cross_sample"
+          ]
+        },
+        "requested_entry_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "selected_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exit_code": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violation_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_candidate_violations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sample_files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "summary_line": {
+          "type": "string"
+        },
+        "warning_line": {
+          "type": "string"
+        },
+        "stderr": {
+          "type": "string"
+        },
+        "failed_samples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failed_sample"
+          }
+        },
+        "command": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "python"
+          ],
+          "properties": {
+            "python": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          }
+        }
+      }
+    },
+    "failed_sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_file",
+        "status",
+        "violations"
+      ],
+      "properties": {
+        "sample_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "const": "fail"
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

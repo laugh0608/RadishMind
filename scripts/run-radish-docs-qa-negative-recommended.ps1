@@ -6,7 +6,9 @@ param(
     [string]$SampleDir,
     [ValidateSet("same_sample", "cross_sample")]
     [string]$ReplayMode,
-    [switch]$FailOnViolation
+    [switch]$FailOnViolation,
+    [string]$SummaryOutput,
+    [switch]$Check
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,6 +54,15 @@ if (-not [string]::IsNullOrWhiteSpace($ReplayMode)) {
 
 if ($FailOnViolation) {
     $arguments += "--fail-on-violation"
+}
+
+if (-not [string]::IsNullOrWhiteSpace($SummaryOutput)) {
+    $arguments += "--summary-output"
+    $arguments += $SummaryOutput
+}
+
+if ($Check) {
+    $arguments += "--check"
 }
 
 & $pythonLauncher @arguments

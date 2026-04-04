@@ -84,7 +84,8 @@
       "additionalProperties": false,
       "required": [
         "inference_exit_code",
-        "audit_exit_code"
+        "audit_exit_code",
+        "recommended_negative_replay_exit_code"
       ],
       "properties": {
         "inference_exit_code": {
@@ -92,6 +93,13 @@
           "minimum": 0
         },
         "audit_exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "recommended_negative_replay_exit_code": {
           "type": [
             "integer",
             "null"
@@ -107,7 +115,8 @@
         "manifest",
         "audit_report",
         "negative_replay_index",
-        "same_sample_negative_replay"
+        "same_sample_negative_replay",
+        "recommended_negative_replay_summary"
       ],
       "properties": {
         "manifest": {
@@ -121,6 +130,9 @@
         },
         "same_sample_negative_replay": {
           "$ref": "#/$defs/negative_replay_artifact"
+        },
+        "recommended_negative_replay_summary": {
+          "$ref": "#/$defs/staged_file_artifact"
         }
       }
     },
@@ -136,7 +148,12 @@
         "violation_group_count",
         "linked_same_sample_negative_count",
         "unlinked_same_sample_negative_count",
-        "expected_same_sample_negative_count"
+        "expected_same_sample_negative_count",
+        "recommended_replay_group_count",
+        "recommended_replay_passed_group_count",
+        "recommended_replay_failed_group_count",
+        "recommended_replay_sample_count",
+        "recommended_replay_violation_count"
       ],
       "properties": {
         "captured_record_count": {
@@ -172,6 +189,26 @@
           "minimum": 0
         },
         "expected_same_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recommended_replay_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recommended_replay_passed_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recommended_replay_failed_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recommended_replay_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recommended_replay_violation_count": {
           "type": "integer",
           "minimum": 0
         }
