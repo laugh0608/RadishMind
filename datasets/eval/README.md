@@ -28,6 +28,7 @@
 - `candidate-response-dump.schema.json`
 - `candidate-response-record.schema.json`
 - `candidate-record-batch.schema.json`
+- `recommended-negative-replay-summary.schema.json`
 
 当前 `Radish` 文档问答样本已新增 `retrieval_expectations`，用于把任务卡中的召回输入边界落成可执行检查。
 
@@ -68,8 +69,8 @@
 - `check-radishflow-suggest-edits-eval.*` 负责把候选编辑回归接入仓库基线
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
 - `run-radish-docs-qa-negative-regression.*` 是 `Radish` docs QA 的负例回放 runner，用来验证候选回答会被现有规则稳定拦下
-- `run-radish-docs-qa-negative-recommended.*` 是 `Radish` docs QA 的推荐负例批量回放入口，用来直接执行 `artifacts.json` 中默认推荐的前 N 个失败组
-- `run-radish-docs-qa-real-batch.*` 是 `Radish` docs QA 的真实/模拟 batch 编排入口，用来串起批跑、审计和 replay 治理
+- `run-radish-docs-qa-negative-recommended.*` 是 `Radish` docs QA 的推荐负例批量回放入口，用来直接执行 `artifacts.json` 中默认推荐的前 N 个失败组，并产出结构化回放摘要
+- `run-radish-docs-qa-real-batch.*` 是 `Radish` docs QA 的真实/模拟 batch 编排入口，用来串起批跑、审计、replay 治理与可选的推荐回放摘要生成
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
@@ -77,6 +78,7 @@
 - `build-candidate-record-batch.py` 用于从一批 `candidate_response_record` 文件生成 manifest，减少 captured batch 扩样时的手工清单维护
 - `run-copilot-inference.py` 当前除单条推理外，也已支持按样本目录批量落 `response / dump / record / manifest`
 - `audit-candidate-record-batch.py` 用于把一批真实 `candidate_response_record` 临时注入现有样本，再复用当前回归规则做批量审计
+- `run-radish-docs-qa-real-batch.py` 当前在生成 `artifacts.json` 后，还可按推荐失败组顺序继续落一份 `recommended-negative-replay-summary.json`，把批量回放结果沉淀为可审计产物
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。

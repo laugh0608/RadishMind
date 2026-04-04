@@ -37,11 +37,11 @@
 - `Qwen2.5-VL` 在当前任务上的首选尺寸、推理路由与成本上限
 - `SmolVLM` 作为轻量对照组的准入任务和退场条件
 - `RadishFlow` 截图/VLM 路线进入主线的触发条件
-- `Radish` docs QA 在 manifest 导入流程落地后，真实 captured negative 批次应先补哪些优先违规类型
+- `Radish` docs QA 在真实 batch 已能落 `manifest / audit / replay index / artifacts / recommended replay summary` 后，下一批真实 captured negative 应先补哪些优先违规类型
 
 ## 下一步优先推进
 
 1. 继续为 `RadishFlow` 首批 3 个任务扩展输入快照样例与评测样本，优先补控制面冲突态和更多对抗样本。
-2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前除了评测与回灌资产，还已补上最小推理 runtime、单任务 prompt 和 `mock/openai-compatible` provider 入口，下一步可以从 mock 闭环切到真实模型 provider。
+2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已具备真实/模拟 batch 编排、`manifest / audit / replay index / same-sample negatives / artifacts.json / recommended replay summary` 这条最小闭环，下一步优先扩大真实 captured negative 批次并沉淀更多高频违规类型。
 3. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
 4. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。
