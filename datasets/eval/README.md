@@ -261,6 +261,17 @@ python3 ./scripts/build-negative-replay-index.py \
   --check
 ```
 
+当需要按这份索引批量复跑某一类真实 replay 负例时，当前可直接让负例 runner 按 `group_id`、`record_id` 或 `replay_mode` 选样，例如：
+
+```bash
+bash ./scripts/run-radish-docs-qa-negative-regression.sh \
+  --negative-replay-index datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json \
+  --group-id group-004 \
+  --fail-on-violation
+```
+
+这一步的目的不是新增另一套 runner，而是让现有 `radish-docs-qa-negative` 继续复用同一条校验链路，只把“选哪些负例样本”从手工文件列表切换为索引驱动。
+
 若需要从一批记录重生成 manifest，当前可直接使用：
 
 ```bash

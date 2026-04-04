@@ -22,6 +22,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 ALLOWED_PRIMARY_KINDS = {"markdown", "text"}
 UNOFFICIAL_SOURCE_TYPES = {"faq", "forum"}
 RISK_RANKS = {"low": 1, "medium": 2, "high": 3}
+NEGATIVE_REPLAY_MODES = {"same_sample", "cross_sample"}
+NEGATIVE_REPLAY_INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/negative-replay-index.schema.json"
 DISALLOWED_SUGGEST_PATCH_KEYS = {
     "command",
     "commands",
@@ -276,6 +278,115 @@ def load_json_document(
     except Exception as exc:
         add_violation(violations, f"{document_label}: failed to parse json: {exc}")
         return None
+
+
+def load_negative_replay_index(index_path: Path) -> dict[str, Any]:
+    try:
+        document = json.loads(index_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise SystemExit(f"failed to parse negative replay index '{index_path}': {exc}") from exc
+    if not isinstance(document, dict):
+        raise SystemExit(f"negative replay index must be a json object: {index_path}")
+    try:
+        jsonschema.validate(document, load_schema(NEGATIVE_REPLAY_INDEX_SCHEMA_PATH))
+    except jsonschema.ValidationError as exc:
+        raise SystemExit(
+            f"negative replay index '{index_path}': schema validation failed against "
+            f"'{NEGATIVE_REPLAY_INDEX_SCHEMA_PATH.name}': {exc.message}"
+        ) from exc
+    return document
+
+
+def resolve_negative_replay_sample_paths(
+    index_path: Path,
+    *,
+    group_ids: list[str],
+    record_ids: list[str],
+    replay_mode: str,
+) -> list[Path]:
+    index_document = load_negative_replay_index(index_path)
+    group_entries: dict[str, list[dict[str, Any]]] = {}
+    all_entries: list[dict[str, Any]] = []
+
+    for group in get_array(index_document.get("violation_groups")):
+        if not isinstance(group, dict):
+            raise SystemExit(f"negative replay index '{index_path}': violation_groups entries must be json objects")
+        group_id = str(group.get("group_id") or "").strip()
+        if not group_id:
+            raise SystemExit(f"negative replay index '{index_path}': violation_groups entries must include group_id")
+        entries: list[dict[str, Any]] = []
+        for entry in get_array(group.get("entries")):
+            if not isinstance(entry, dict):
+                raise SystemExit(
+                    f"negative replay index '{index_path}': violation group '{group_id}' entries must be json objects"
+                )
+            entries.append(entry)
+            all_entries.append(entry)
+        group_entries[group_id] = entries
+
+    for entry in get_array(index_document.get("linked_non_failed_samples")):
+        if not isinstance(entry, dict):
+            raise SystemExit(f"negative replay index '{index_path}': linked_non_failed_samples entries must be json objects")
+        all_entries.append(entry)
+
+    selected_entries: list[dict[str, Any]] = []
+    normalized_group_ids = [group_id for group_id in group_ids if group_id]
+    if normalized_group_ids:
+        missing_group_ids = [group_id for group_id in normalized_group_ids if group_id not in group_entries]
+        if missing_group_ids:
+            raise SystemExit(
+                f"negative replay index '{index_path}': unknown group_id value(s): {', '.join(sorted(missing_group_ids))}"
+            )
+        for group_id in normalized_group_ids:
+            selected_entries.extend(group_entries[group_id])
+    else:
+        selected_entries.extend(all_entries)
+
+    normalized_record_ids = {record_id for record_id in record_ids if record_id}
+    if normalized_record_ids:
+        selected_entries = [
+            entry for entry in selected_entries if str(entry.get("record_id") or "").strip() in normalized_record_ids
+        ]
+        if not selected_entries:
+            raise SystemExit(
+                f"negative replay index '{index_path}': no replay samples matched the requested record_id filters"
+            )
+
+    normalized_replay_mode = replay_mode.strip()
+    if normalized_replay_mode:
+        if normalized_replay_mode not in NEGATIVE_REPLAY_MODES:
+            raise SystemExit(
+                f"unsupported --replay-mode '{normalized_replay_mode}'; expected one of: "
+                f"{', '.join(sorted(NEGATIVE_REPLAY_MODES))}"
+            )
+        selected_entries = [
+            entry for entry in selected_entries if str(entry.get("replay_mode") or "").strip() == normalized_replay_mode
+        ]
+        if not selected_entries:
+            raise SystemExit(
+                f"negative replay index '{index_path}': no replay samples matched the requested replay_mode filter"
+            )
+
+    selected_paths: list[Path] = []
+    seen_paths: set[Path] = set()
+    for entry in selected_entries:
+        sample_path_value = str(entry.get("negative_sample_path") or "").strip()
+        if not sample_path_value:
+            raise SystemExit(f"negative replay index '{index_path}': selected replay entry is missing negative_sample_path")
+        sample_path = resolve_repo_relative_path(sample_path_value)
+        if not sample_path.is_file():
+            raise SystemExit(
+                f"negative replay index '{index_path}': selected replay sample file not found: {sample_path_value}"
+            )
+        if sample_path in seen_paths:
+            continue
+        seen_paths.add(sample_path)
+        selected_paths.append(sample_path)
+
+    if not selected_paths:
+        raise SystemExit(f"negative replay index '{index_path}': no replay samples matched the requested filters")
+
+    return sorted(selected_paths)
 
 
 def load_candidate_response_from_record(
@@ -1506,7 +1617,7 @@ def run_radishflow_control_plane(config: dict[str, Any], sample_dir: Path, sampl
     return 0
 
 
-def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool]:
+def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool, dict[str, Any]]:
     if len(argv) < 2 or argv[1] not in TASK_CONFIG:
         task_names = ", ".join(sorted(TASK_CONFIG))
         raise SystemExit(f"usage: {Path(argv[0]).name} <task> [options]\navailable tasks: {task_names}")
@@ -1515,6 +1626,10 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool]:
     sample_dir: Path | None = None
     sample_paths: list[Path] = []
     fail_on_violation = False
+    negative_replay_index: Path | None = None
+    group_ids: list[str] = []
+    record_ids: list[str] = []
+    replay_mode = ""
     index = 2
 
     while index < len(argv):
@@ -1538,9 +1653,40 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool]:
                 sample_paths.append((REPO_ROOT / path).resolve() if not path.is_absolute() else path)
                 index += 1
             continue
+        if arg in {"-NegativeReplayIndex", "--negative-replay-index"}:
+            if index + 1 >= len(argv):
+                raise SystemExit(f"missing value for {arg}")
+            path = Path(argv[index + 1])
+            negative_replay_index = (REPO_ROOT / path).resolve() if not path.is_absolute() else path
+            index += 2
+            continue
+        if arg in {"-GroupId", "--group-id"}:
+            if index + 1 >= len(argv):
+                raise SystemExit(f"missing value for {arg}")
+            group_ids.append(argv[index + 1].strip())
+            index += 2
+            continue
+        if arg in {"-RecordId", "--record-id"}:
+            if index + 1 >= len(argv):
+                raise SystemExit(f"missing value for {arg}")
+            record_ids.append(argv[index + 1].strip())
+            index += 2
+            continue
+        if arg in {"-ReplayMode", "--replay-mode"}:
+            if index + 1 >= len(argv):
+                raise SystemExit(f"missing value for {arg}")
+            replay_mode = argv[index + 1].strip()
+            index += 2
+            continue
         raise SystemExit(f"unsupported argument: {arg}")
 
-    return task_name, sample_dir, sample_paths, fail_on_violation
+    selection = {
+        "negative_replay_index": negative_replay_index,
+        "group_ids": [group_id for group_id in group_ids if group_id],
+        "record_ids": [record_id for record_id in record_ids if record_id],
+        "replay_mode": replay_mode,
+    }
+    return task_name, sample_dir, sample_paths, fail_on_violation, selection
 
 
 def ensure_required_paths(config: dict[str, Any]) -> None:
@@ -1558,10 +1704,22 @@ def ensure_required_paths(config: dict[str, Any]) -> None:
 
 
 def main(argv: list[str]) -> int:
-    task_name, sample_dir, sample_paths, fail_on_violation = parse_args(argv)
+    task_name, sample_dir, sample_paths, fail_on_violation, selection = parse_args(argv)
     config = TASK_CONFIG[task_name]
     ensure_required_paths(config)
     resolved_sample_dir = sample_dir or config["sample_dir"]
+    negative_replay_index = selection["negative_replay_index"]
+    if negative_replay_index is not None:
+        if task_name != "radish-docs-qa-negative":
+            raise SystemExit("--negative-replay-index is only supported for radish-docs-qa-negative")
+        if sample_paths:
+            raise SystemExit("--negative-replay-index cannot be used together with --sample-paths")
+        sample_paths = resolve_negative_replay_sample_paths(
+            negative_replay_index,
+            group_ids=selection["group_ids"],
+            record_ids=selection["record_ids"],
+            replay_mode=selection["replay_mode"],
+        )
 
     if task_name == "radish-docs-qa":
         return run_radish_docs_qa(config, resolved_sample_dir, sample_paths, fail_on_violation)

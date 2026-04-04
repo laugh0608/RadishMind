@@ -2,6 +2,11 @@
 param(
     [string]$SampleDir,
     [string[]]$SamplePaths,
+    [string]$NegativeReplayIndex,
+    [string[]]$GroupId,
+    [string[]]$RecordId,
+    [ValidateSet("same_sample", "cross_sample")]
+    [string]$ReplayMode,
     [switch]$FailOnViolation
 )
 
@@ -41,6 +46,30 @@ if (-not [string]::IsNullOrWhiteSpace($SampleDir)) {
 if ($SamplePaths.Count -gt 0) {
     $arguments += "--sample-paths"
     $arguments += $SamplePaths
+}
+
+if (-not [string]::IsNullOrWhiteSpace($NegativeReplayIndex)) {
+    $arguments += "--negative-replay-index"
+    $arguments += $NegativeReplayIndex
+}
+
+if ($GroupId.Count -gt 0) {
+    foreach ($item in $GroupId) {
+        $arguments += "--group-id"
+        $arguments += $item
+    }
+}
+
+if ($RecordId.Count -gt 0) {
+    foreach ($item in $RecordId) {
+        $arguments += "--record-id"
+        $arguments += $item
+    }
+}
+
+if (-not [string]::IsNullOrWhiteSpace($ReplayMode)) {
+    $arguments += "--replay-mode"
+    $arguments += $ReplayMode
 }
 
 if ($FailOnViolation) {
