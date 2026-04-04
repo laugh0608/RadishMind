@@ -34,6 +34,20 @@
 
 - `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json`
 
+针对真实 provider batch，当前不再额外复制第二份“negative record manifest”来重登记同一批真实 record。
+现在推荐改为保留真实 batch manifest 作为真相源，再为对应 audit 生成一份 replay 索引，例如：
+
+- `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json`
+
+这份索引会把：
+
+- 哪些 `audit fail` 已经沉淀为 `datasets/eval/radish-negative/*.json`
+- 各条 replay 负例对应的 `record_id`
+- 同类 `expected_candidate_violations` 的分组情况
+- 尚未回灌的失败样本
+
+统一收口，避免后续扩样时继续手工点文件、同时又维护两份真实 record 清单。
+
 补充说明：
 
 - 这份 manifest 只是把现有负例 fixture 统一切到批量导入入口，便于后续维护

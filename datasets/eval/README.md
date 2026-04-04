@@ -233,8 +233,33 @@ python3 ./scripts/audit-candidate-record-batch.py \
 - `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json`
 - `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/`
 - `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json`
+- `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json`
 
 这批记录当前先作为“真实候选输出审计资产”保留，不直接替换现有正向样本绑定；待批量审计结果稳定后，再择优切换样本引用。
+
+当一批真实审计已经把失败输出沉淀为 `datasets/eval/radish-negative/*.json` replay 样本后，当前推荐继续生成一份“负例索引”，不要再复制第二份真实 record manifest：
+
+```bash
+python3 ./scripts/build-negative-replay-index.py \
+  --audit-report datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json \
+  --output datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json
+```
+
+这份索引的职责是：
+
+- 继续以真实 batch manifest 作为 record 真相源，不复制同一批真实 record
+- 扫描 `datasets/eval/radish-negative/` 下引用该 manifest 的 replay 负例
+- 把“哪些 audit fail 已经沉淀为 replay 负例、按哪些 violation 片段分组、还剩哪些 fail 尚未回灌”收口成一份可追踪资产
+- 为后续扩样时按 `group_id`、`expected_candidate_violations` 或 `record_id` 批量选样提供稳定索引
+
+若想在仓库校验里确认索引仍与 audit 和负例样本一致，可执行：
+
+```bash
+python3 ./scripts/build-negative-replay-index.py \
+  --audit-report datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json \
+  --output datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json \
+  --check
+```
 
 若需要从一批记录重生成 manifest，当前可直接使用：
 
@@ -277,10 +302,11 @@ python3 ./scripts/build-candidate-record-batch.py \
 当前负例侧也已补最小 manifest 导入流程：
 
 - `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json` 已将现有 simulated negative 记录收口成一批
+- `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json` 已将第二批真实 batch 的 `8 fail` replay 负例按 violation 分组收口
 - 对应负例样本已可通过 `candidate_response_record.manifest_path + record_id` 引用，不再逐条手写单独路径
 - 这一步的目的只是先稳定负例批量导入形态，不代表这批样本已经变成真实 captured negative
 - 后续一旦拿到真实坏输出，应继续沿用同一入口，把真实 record 逐步补进新的 captured batch manifest
-- 第二批真实 batch 当前已把 `8 fail` 全部沉淀为 `radish-negative` replay 样本，用于把真实 provider 的坏输出正式纳入仓库回归
+- 第二批真实 batch 当前已把 `8 fail` 全部沉淀为 `radish-negative` replay 样本，并可通过上述索引直接看出哪些失败类型已覆盖、哪些批次仍有漏灌
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 

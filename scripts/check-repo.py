@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import jsonschema
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REQUIRED_FILES = [
@@ -42,9 +44,11 @@ REQUIRED_FILES = [
     "datasets/eval/README.md",
     "datasets/eval/candidate-record-batch.schema.json",
     "datasets/eval/candidate-response-dump.schema.json",
+    "datasets/eval/negative-replay-index.schema.json",
     "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
     "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
     "datasets/eval/radishflow-task-sample.schema.json",
     "datasets/eval/radish-task-sample.schema.json",
@@ -84,6 +88,7 @@ REQUIRED_FILES = [
     "scripts/check-radish-docs-qa-eval.sh",
     "scripts/check-text-files.py",
     "scripts/audit-candidate-record-batch.py",
+    "scripts/build-negative-replay-index.py",
     "scripts/build-candidate-record-batch.py",
     "scripts/import-candidate-response-dump.py",
     "scripts/run-copilot-inference.py",
@@ -161,6 +166,29 @@ def check_content_baseline() -> None:
             raise SystemExit(f".github/workflows/release-check.yml is missing expected content: {pattern}")
 
 
+def check_generated_eval_metadata() -> None:
+    run_python_script(
+        "build-negative-replay-index.py",
+        [
+            "--audit-report",
+            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
+            "--output",
+            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+            "--check",
+        ],
+    )
+
+    schema = json.loads(
+        (REPO_ROOT / "datasets/eval/negative-replay-index.schema.json").read_text(encoding="utf-8")
+    )
+    document = json.loads(
+        (
+            REPO_ROOT / "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json"
+        ).read_text(encoding="utf-8")
+    )
+    jsonschema.validate(document, schema)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-text-files", action="store_true")
@@ -180,6 +208,7 @@ def main() -> int:
 
     check_required_files()
     check_content_baseline()
+    check_generated_eval_metadata()
 
     print("repository baseline checks passed.")
     return 0
