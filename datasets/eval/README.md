@@ -49,6 +49,8 @@
 - `scripts/run-radish-docs-qa-regression.sh`
 - `scripts/run-radish-docs-qa-negative-regression.ps1`
 - `scripts/run-radish-docs-qa-negative-regression.sh`
+- `scripts/run-radish-docs-qa-real-batch.ps1`
+- `scripts/run-radish-docs-qa-real-batch.sh`
 - `scripts/check-radish-docs-qa-eval.ps1`
 - `scripts/check-radish-docs-qa-eval.sh`
 - `scripts/import-candidate-response-dump.py`
@@ -64,6 +66,7 @@
 - `check-radishflow-suggest-edits-eval.*` 负责把候选编辑回归接入仓库基线
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
 - `run-radish-docs-qa-negative-regression.*` 是 `Radish` docs QA 的负例回放 runner，用来验证候选回答会被现有规则稳定拦下
+- `run-radish-docs-qa-real-batch.*` 是 `Radish` docs QA 的真实/模拟 batch 编排入口，用来串起批跑、审计和 replay 治理
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
@@ -227,6 +230,45 @@ python3 ./scripts/audit-candidate-record-batch.py \
 - 继续复用 `scripts/run-eval-regression.py` 的既有规则，不分叉第二套校验逻辑
 - 让“真实输出已入仓库”和“哪些真实输出已满足当前基线”先分离开
 - 可选输出结构化 `audit.json`，把 pass/fail、violation 计数和逐样本违规明细沉淀为可追踪资产
+
+如果希望在一次审计后顺手继续生成 replay index 和同样本真实 replay 负例，当前也可以直接使用：
+
+```bash
+python3 ./scripts/audit-candidate-record-batch.py \
+  radish-docs-qa \
+  --manifest datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json \
+  --report-output datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json \
+  --replay-index-output datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json \
+  --build-negative-replay
+```
+
+这条链路当前会顺序完成：
+
+- 批量审计并写出 `audit.json`
+- 基于 audit 报告生成 `negative-replay-index.json`
+- 基于 replay index 重建同样本真实 replay 负例
+
+这样下一批真实 provider batch 进仓后，不需要再手工串行调用三段脚本。
+
+如果希望把“真实 provider 批跑 -> manifest -> audit -> replay index -> same-sample negatives”收口成一次命令，当前也可以直接使用：
+
+```bash
+python3 ./scripts/run-radish-docs-qa-real-batch.py \
+  --provider openai-compatible \
+  --output-root /tmp/radish-docs-qa-real-batch \
+  --collection-batch 2026-04-04-radish-docs-qa-real-batch-v1 \
+  --manifest-description "Radish docs QA 批量真实候选输出快照。" \
+  --build-negative-replay
+```
+
+这条更高层的入口当前会：
+
+- 调用 `run-copilot-inference.py` 产出 `response / dump / record / manifest`
+- 调用 `audit-candidate-record-batch.py` 产出 `audit.json`
+- 顺手继续生成 `negative-replay-index.json`
+- 若 audit 中存在失败样本，再继续重建同样本真实 replay 负例
+
+如果只是想验证编排链路，不想把 replay 负例写回仓库，可把 `--provider mock` 与 `--negative-output-dir /tmp/...` 组合使用。
 
 当前仓库内已新增第二批真实 batch：
 

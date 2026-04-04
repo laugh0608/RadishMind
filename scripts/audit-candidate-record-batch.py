@@ -60,6 +60,21 @@ def parse_args() -> argparse.Namespace:
         default="",
         help="Optional path to write a structured audit report json.",
     )
+    parser.add_argument(
+        "--replay-index-output",
+        default="",
+        help="Optional path to write a negative replay index json after the audit report is generated.",
+    )
+    parser.add_argument(
+        "--build-negative-replay",
+        action="store_true",
+        help="After writing audit metadata, also build same-sample negative replay fixtures from the replay index.",
+    )
+    parser.add_argument(
+        "--negative-output-dir",
+        default="",
+        help="Optional output directory override used with --build-negative-replay.",
+    )
     parser.add_argument("--fail-on-violation", action="store_true")
     return parser.parse_args()
 
@@ -177,8 +192,38 @@ def parse_regression_output(stdout_text: str, stderr_text: str) -> dict[str, Any
     }
 
 
+def derive_negative_replay_index_output(report_path: Path) -> Path:
+    name = report_path.name
+    if name.endswith(".audit.json"):
+        return report_path.with_name(name[: -len(".audit.json")] + ".negative-replay-index.json")
+    if name.endswith(".json"):
+        return report_path.with_name(name[: -len(".json")] + ".negative-replay-index.json")
+    return report_path.with_name(name + ".negative-replay-index.json")
+
+
+def run_repo_script(script_name: str, script_args: list[str]) -> None:
+    command = [sys.executable, str(REPO_ROOT / "scripts" / script_name), *script_args]
+    result = subprocess.run(
+        command,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, end="", file=sys.stderr)
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+
+
 def main() -> int:
     args = parse_args()
+    if (args.replay_index_output.strip() or args.build_negative_replay) and not args.report_output.strip():
+        raise SystemExit("--report-output is required when using --replay-index-output or --build-negative-replay")
+    if args.build_negative_replay and args.task != "radish-docs-qa":
+        raise SystemExit("--build-negative-replay is currently only supported for task 'radish-docs-qa'")
+
     manifest_path = resolve_relative_to_repo(args.manifest)
     if not manifest_path.is_file():
         raise SystemExit(f"manifest file not found: {args.manifest}")
@@ -194,6 +239,7 @@ def main() -> int:
         args.required_collection_batch.strip() or str(manifest.get("collection_batch") or "").strip()
     )
     required_tags = normalize_required_tags(args.required_tag)
+    report_path = resolve_relative_to_repo(args.report_output) if args.report_output.strip() else None
 
     with tempfile.TemporaryDirectory(prefix=f"{args.task}-batch-audit-") as temp_dir:
         temp_path = Path(temp_dir)
@@ -258,8 +304,7 @@ def main() -> int:
         if result.stderr:
             print(result.stderr, end="", file=sys.stderr)
 
-        if args.report_output.strip():
-            report_path = resolve_relative_to_repo(args.report_output)
+        if report_path is not None:
             parsed = parse_regression_output(result.stdout, result.stderr)
             report_document = {
                 "schema_version": 1,
@@ -283,6 +328,40 @@ def main() -> int:
             report_path.parent.mkdir(parents=True, exist_ok=True)
             report_path.write_text(json.dumps(report_document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             print(f"wrote audit report to {make_repo_relative(report_path)}", file=sys.stderr)
+
+            if args.replay_index_output.strip() or args.build_negative_replay:
+                replay_index_output = (
+                    resolve_relative_to_repo(args.replay_index_output)
+                    if args.replay_index_output.strip()
+                    else derive_negative_replay_index_output(report_path)
+                )
+                run_repo_script(
+                    "build-negative-replay-index.py",
+                    [
+                        "--audit-report",
+                        make_repo_relative(report_path),
+                        "--output",
+                        make_repo_relative(replay_index_output),
+                    ],
+                )
+
+                if args.build_negative_replay:
+                    if parsed["failed_count"] == 0:
+                        print(
+                            "audit report does not contain failed samples; skipping same-sample negative replay generation",
+                            file=sys.stderr,
+                        )
+                    else:
+                        negative_args = [
+                            "--index",
+                            make_repo_relative(replay_index_output),
+                        ]
+                        if args.negative_output_dir.strip():
+                            negative_args.extend(["--output-dir", args.negative_output_dir.strip()])
+                        run_repo_script(
+                            "build-radish-docs-negative-replay.py",
+                            negative_args,
+                        )
         return result.returncode
 
 
