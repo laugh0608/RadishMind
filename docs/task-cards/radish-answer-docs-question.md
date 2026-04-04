@@ -202,6 +202,7 @@
 - 固定校验 `golden_response`
 - 可选校验样本内嵌 `candidate_response`
 - 可选通过 `candidate_response_record.path` 加载外部候选响应记录，用于回灌真实候选回答或模型输出快照
+- 可选先通过 `candidate_response_record.manifest_path + record_id` 从批次 manifest 解析外部记录，减少 captured 批次逐条手写路径维护
 - 可选通过负例回放样本复用同一套响应校验规则，验证错误候选回答会稳定触发预期 violation
 
 当前外部候选响应记录至少应保留以下最小输入摘要，避免真实回灌与样本请求脱节：
@@ -220,6 +221,8 @@
 - `capture_metadata.tags`
 
 当前负例回放也允许把一条真实 `captured_candidate_response` 作为“跨样本外部 record”回灌到另一条样本中，继续复用同一套 `candidate_record_alignment + response` 校验规则。这样可以先用少量真实快照验证回灌链路是否稳定，而不必等待每一种坏输出都完成独立抓取。
+
+当真实快照开始按批次扩大时，当前建议优先把同一批 `collection_batch` 的记录收口进 manifest，再由样本只引用 `record_id`。这样可以把 captured negative 的扩充流程从“逐条改路径”收口成“补记录文件 + 补清单 entry”。
 
 当前已覆盖的最小样本类型包括：
 

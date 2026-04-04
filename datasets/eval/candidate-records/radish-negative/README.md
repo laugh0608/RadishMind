@@ -13,8 +13,9 @@
 
 1. 先把真实快照存成 `candidate-response-record.schema.json` 允许的记录文件
 2. 在 `capture_metadata` 中补 `capture_origin`、`collection_batch`、`tags`
-3. 若该快照直接对应某条负例样本，就按原方式引用
-4. 若当前还没有足够多的真实坏输出，也可以先把已有真实快照跨样本回放到另一条样本上，验证 `candidate_record_alignment` 和响应级规则会共同拦截
+3. 将同批次记录收口到一个 manifest，优先按 `collection_batch` 维护
+4. 若该快照直接对应某条负例样本，就按 `manifest_path + record_id` 或原始 `path` 引用
+5. 若当前还没有足够多的真实坏输出，也可以先把已有真实快照跨样本回放到另一条样本上，验证 `candidate_record_alignment` 和响应级规则会共同拦截
 
 当前仓库里首批跨样本真实回放负例位于：
 
@@ -23,3 +24,7 @@
 - `datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-wiki-faq-001.json`
 
 这些样本继续复用现有负例 runner，不新增第二套规则。
+
+当前首个真实 captured batch manifest 位于：
+
+- `datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json`

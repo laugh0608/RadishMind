@@ -165,7 +165,8 @@
     ]
   },
   "candidate_response_record": {
-    "path": "datasets/eval/candidate-records/radish/answer-docs-question-role-example-boundary-001.json",
+    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-role-example-boundary-001",
     "expected_source": "captured_candidate_response",
     "required_capture_origin": "interactive_session",
     "required_collection_batch": "2026-04-03-radish-docs-qa-real-captures-v1",

@@ -55,6 +55,7 @@ TASK_CONFIG = {
         "sample_dir": REPO_ROOT / "datasets/eval/radish",
         "sample_schema": REPO_ROOT / "datasets/eval/radish-task-sample.schema.json",
         "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
+        "candidate_record_batch_schema": REPO_ROOT / "datasets/eval/candidate-record-batch.schema.json",
         "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
         "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
         "task_card": REPO_ROOT / "docs/task-cards/radish-answer-docs-question.md",
@@ -67,6 +68,7 @@ TASK_CONFIG = {
         "sample_dir": REPO_ROOT / "datasets/eval/radish-negative",
         "sample_schema": REPO_ROOT / "datasets/eval/radish-task-sample.schema.json",
         "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
+        "candidate_record_batch_schema": REPO_ROOT / "datasets/eval/candidate-record-batch.schema.json",
         "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
         "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
         "task_card": REPO_ROOT / "docs/task-cards/radish-answer-docs-question.md",
@@ -257,6 +259,25 @@ def test_document_against_schema(
         )
 
 
+def resolve_repo_relative_path(path_value: str) -> Path:
+    path = Path(path_value)
+    if not path.is_absolute():
+        path = (REPO_ROOT / path).resolve()
+    return path
+
+
+def load_json_document(
+    document_path: Path,
+    document_label: str,
+    violations: list[str],
+) -> Any:
+    try:
+        return json.loads(document_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        add_violation(violations, f"{document_label}: failed to parse json: {exc}")
+        return None
+
+
 def load_candidate_response_from_record(
     sample: dict[str, Any],
     config: dict[str, Any],
@@ -268,25 +289,120 @@ def load_candidate_response_from_record(
         return sample.get("candidate_response"), record_violations
 
     record_path_value = str((record_ref or {}).get("path") or "").strip()
-    if not record_path_value:
-        add_violation(record_violations, f"{sample_name}: candidate_response_record.path is required")
-        return None, record_violations
+    manifest_path_value = str((record_ref or {}).get("manifest_path") or "").strip()
+    manifest_record_id = str((record_ref or {}).get("record_id") or "").strip()
 
-    record_path = Path(record_path_value)
-    if not record_path.is_absolute():
-        record_path = (REPO_ROOT / record_path).resolve()
-    if not record_path.is_file():
-        add_violation(record_violations, f"{sample_name}: candidate_response_record file not found: {record_path_value}")
-        return None, record_violations
-
-    try:
-        record = json.loads(record_path.read_text(encoding="utf-8"))
-    except Exception as exc:
+    if record_path_value and manifest_path_value:
         add_violation(
             record_violations,
-            f"{sample_name}: failed to parse candidate_response_record '{record_path_value}': {exc}",
+            f"{sample_name}: candidate_response_record.path and candidate_response_record.manifest_path cannot be used together",
         )
         return None, record_violations
+
+    manifest: dict[str, Any] | None = None
+    manifest_entry: dict[str, Any] | None = None
+    resolved_record_label = record_path_value
+
+    if record_path_value:
+        record_path = resolve_repo_relative_path(record_path_value)
+        if not record_path.is_file():
+            add_violation(record_violations, f"{sample_name}: candidate_response_record file not found: {record_path_value}")
+            return None, record_violations
+    else:
+        if not manifest_path_value:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.path or candidate_response_record.manifest_path is required",
+            )
+            return None, record_violations
+        if not manifest_record_id:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.record_id is required when candidate_response_record.manifest_path is used",
+            )
+            return None, record_violations
+
+        manifest_path = resolve_repo_relative_path(manifest_path_value)
+        if not manifest_path.is_file():
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record manifest file not found: {manifest_path_value}",
+            )
+            return None, record_violations
+
+        manifest_document = load_json_document(
+            manifest_path,
+            f"{sample_name} candidate_response_record manifest '{manifest_path_value}'",
+            record_violations,
+        )
+        if manifest_document is None or not isinstance(manifest_document, dict):
+            return None, record_violations
+        manifest = manifest_document
+
+        candidate_record_batch_schema = config.get("candidate_record_batch_schema")
+        if candidate_record_batch_schema is not None:
+            test_document_against_schema(
+                manifest,
+                candidate_record_batch_schema,
+                f"{sample_name} candidate_response_record manifest",
+                record_violations,
+            )
+
+        if str(manifest.get("project") or "") != str(sample.get("project") or ""):
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record manifest project must match sample.project",
+            )
+        if str(manifest.get("task") or "") != str(sample.get("task") or ""):
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record manifest task must match sample.task",
+            )
+
+        matching_entries = [
+            entry
+            for entry in get_array(manifest.get("records"))
+            if isinstance(entry, dict) and str(entry.get("record_id") or "") == manifest_record_id
+        ]
+        if len(matching_entries) == 0:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record manifest does not contain record_id '{manifest_record_id}'",
+            )
+            return None, record_violations
+        if len(matching_entries) > 1:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record manifest has duplicate record_id '{manifest_record_id}'",
+            )
+            return None, record_violations
+        manifest_entry = matching_entries[0]
+
+        entry_path_value = str((manifest_entry or {}).get("path") or "").strip()
+        if not entry_path_value:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record manifest entry '{manifest_record_id}' is missing path",
+            )
+            return None, record_violations
+
+        record_path = resolve_repo_relative_path(entry_path_value)
+        resolved_record_label = f"{manifest_path_value}#{manifest_record_id}"
+        if not record_path.is_file():
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record file referenced by manifest was not found: {entry_path_value}",
+            )
+            return None, record_violations
+
+    record_document = load_json_document(
+        record_path,
+        f"{sample_name} candidate_response_record '{resolved_record_label}'",
+        record_violations,
+    )
+    if record_document is None or not isinstance(record_document, dict):
+        return None, record_violations
+    record = record_document
 
     candidate_record_schema = config.get("candidate_record_schema")
     if candidate_record_schema is not None:
@@ -296,6 +412,50 @@ def load_candidate_response_from_record(
             f"{sample_name} candidate_response_record",
             record_violations,
         )
+
+    if manifest is not None and manifest_entry is not None:
+        if str(record.get("record_id") or "") != str(manifest_entry.get("record_id") or ""):
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.record_id must match manifest record_id",
+            )
+        if str(record.get("sample_id") or "") != str(manifest_entry.get("sample_id") or ""):
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.sample_id must match manifest sample_id",
+            )
+        if str(record.get("project") or "") != str(manifest.get("project") or ""):
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.project must match manifest project",
+            )
+        if str(record.get("task") or "") != str(manifest.get("task") or ""):
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.task must match manifest task",
+            )
+
+        manifest_source = str(manifest.get("source") or "").strip()
+        if manifest_source and str(record.get("source") or "") != manifest_source:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.source must match manifest source",
+            )
+
+        capture_metadata = record.get("capture_metadata") or {}
+        manifest_collection_batch = str(manifest.get("collection_batch") or "").strip()
+        if manifest_collection_batch and str(capture_metadata.get("collection_batch") or "") != manifest_collection_batch:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.capture_metadata.collection_batch must match manifest collection_batch",
+            )
+
+        manifest_capture_origin = str(manifest.get("capture_origin") or "").strip()
+        if manifest_capture_origin and str(capture_metadata.get("capture_origin") or "") != manifest_capture_origin:
+            add_violation(
+                record_violations,
+                f"{sample_name}: candidate_response_record.capture_metadata.capture_origin must match manifest capture_origin",
+            )
 
     expected_sample_id = str(sample.get("sample_id") or "")
     if str(record.get("sample_id") or "") != expected_sample_id:

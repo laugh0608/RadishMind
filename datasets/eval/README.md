@@ -26,6 +26,7 @@
 - `radishflow-task-sample.schema.json`
 - `radish-task-sample.schema.json`
 - `candidate-response-record.schema.json`
+- `candidate-record-batch.schema.json`
 
 当前 `Radish` 文档问答样本已新增 `retrieval_expectations`，用于把任务卡中的召回输入边界落成可执行检查。
 
@@ -115,12 +116,21 @@
 - 样本内可选 `candidate_response`
 - 外部 `candidate_response_record.path`
 
+当前还支持把一批外部记录先收口进 `candidate-record-batch` manifest，再由样本通过 `candidate_response_record.manifest_path + record_id` 解析具体快照。
+
 对外部记录，当前最小回归会额外校验：
 
 - `sample_id`、`request_id`、`project`、`task` 与样本请求对齐
 - `input_record.current_app`、`route`、`resource_slug`、`search_scope`、`artifact_names` 与样本最小输入对齐
 - `response` 仍必须通过统一 `CopilotResponse` schema 与任务级校验
 - 若样本在 `candidate_response_record` 下声明 `expected_source`、`required_capture_origin`、`required_collection_batch` 或 `required_tags`，外部记录还需满足这些最小来源元数据约束
+
+若通过 manifest 导入，当前回归还会补充校验：
+
+- manifest 的 `project` / `task` 必须与样本一致
+- `record_id` 必须能在 manifest 中唯一命中
+- 记录文件中的 `record_id` / `sample_id` 必须与 manifest entry 对齐
+- 记录文件中的 `capture_metadata.collection_batch` / `capture_origin` 必须与 manifest 顶层批次元数据一致
 
 当前 `candidate_response_record` 允许为真实候选输出补最小来源元数据：
 
@@ -132,9 +142,10 @@
 当前推荐的真实负例回灌最小流程：
 
 1. 先把真实候选输出按 `candidate-response-record.schema.json` 落到 `datasets/eval/candidate-records/` 下，并补 `capture_metadata`
-2. 若该快照本身就是坏输出，可直接让负例样本引用它
-3. 若当前只有正向真实快照，也可以把它跨样本回放到另一条样本上，复用同一套 `candidate_record_alignment + response` 校验，验证“真实输出放错样本”会被稳定拒绝
-4. 负例样本仍只通过 `negative_replay_expectations.expected_candidate_violations` 声明期望命中的 violation 片段，不再分叉第二套校验逻辑
+2. 将同一批真实快照补到 `candidate-record-batch.schema.json` 的 manifest 中，按 `collection_batch` 收口
+3. 若该快照本身就是坏输出，可直接让负例样本通过 `manifest_path + record_id` 或直接 `path` 引用它
+4. 若当前只有正向真实快照，也可以把它跨样本回放到另一条样本上，复用同一套 `candidate_record_alignment + response` 校验，验证“真实输出放错样本”会被稳定拒绝
+5. 负例样本仍只通过 `negative_replay_expectations.expected_candidate_violations` 声明期望命中的 violation 片段，不再分叉第二套校验逻辑
 
 对于显式启用 `official_source_precedence` 的 `Radish` 多来源问答样本，当前回归还会检查：
 

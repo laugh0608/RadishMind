@@ -88,4 +88,4 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 - `RadishFlow` 三个首批任务都已具备最小回归闭环
 - `Radish answer_docs_question` 已具备召回输入约束、`golden_response` 对照、外部 `candidate_response_record` 回灌、统一负例回放和跨样本真实 record replay，并已覆盖 `docs/wiki/attachments/forum/faq` 多源与三路冲突的最小混合召回基线
 
-当前下一步主线是继续扩大 `Radish answer_docs_question` 的真实 captured negative 批次，并补最小导入清单或脚本；离线样本只再按需补极端冲突边界。
+当前下一步主线是继续扩大 `Radish answer_docs_question` 的真实 captured negative 批次；最小 manifest 导入清单已经落地，离线样本只再按需补极端冲突边界。
