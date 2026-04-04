@@ -42,6 +42,7 @@ REQUIRED_FILES = [
     "contracts/copilot-response.schema.json",
     "datasets/README.md",
     "datasets/eval/README.md",
+    "datasets/eval/batch-orchestration-summary.schema.json",
     "datasets/eval/candidate-record-batch.schema.json",
     "datasets/eval/candidate-response-dump.schema.json",
     "datasets/eval/negative-replay-index.schema.json",

@@ -267,8 +267,16 @@ python3 ./scripts/run-radish-docs-qa-real-batch.py \
 - 调用 `audit-candidate-record-batch.py` 产出 `audit.json`
 - 顺手继续生成 `negative-replay-index.json`
 - 若 audit 中存在失败样本，再继续重建同样本真实 replay 负例
+- 额外写出 `<collection-batch>.artifacts.json`，把本批次的 `manifest / audit / replay index / same-sample replay` 产物路径与计数沉淀为结构化摘要
 
 如果只是想验证编排链路，不想把 replay 负例写回仓库，可把 `--provider mock` 与 `--negative-output-dir /tmp/...` 组合使用。
+
+`artifacts.json` 当前主要用于把高层编排产物批量交给后续治理脚本或人工复核，典型会包含：
+
+- `manifest` 是否存在、路径和记录数
+- `audit_report` / `negative_replay_index` 的目标路径与是否已写出
+- `same_sample_negative_replay` 的目标目录与本批预计可复用的 same-sample 负例数量
+- 本批次的 `passed / failed / violation / violation_group` 汇总计数
 
 当前仓库内已新增第二批真实 batch：
 

@@ -24,6 +24,7 @@ param(
     [switch]$SkipAudit,
     [string]$AuditReportOutput,
     [string]$ReplayIndexOutput,
+    [string]$ArtifactSummaryOutput,
     [switch]$BuildNegativeReplay,
     [string]$NegativeOutputDir,
     [switch]$FailOnAuditViolation
@@ -146,6 +147,11 @@ if (-not [string]::IsNullOrWhiteSpace($AuditReportOutput)) {
 if (-not [string]::IsNullOrWhiteSpace($ReplayIndexOutput)) {
     $arguments += "--replay-index-output"
     $arguments += $ReplayIndexOutput
+}
+
+if (-not [string]::IsNullOrWhiteSpace($ArtifactSummaryOutput)) {
+    $arguments += "--artifact-summary-output"
+    $arguments += $ArtifactSummaryOutput
 }
 
 if ($BuildNegativeReplay) {

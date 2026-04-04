@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/batch-orchestration-summary.schema.json",
+  "title": "BatchOrchestrationSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pipeline",
+    "project",
+    "task",
+    "eval_task",
+    "provider",
+    "collection_batch",
+    "source",
+    "output_root",
+    "execution",
+    "artifacts",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "pipeline": {
+      "type": "string",
+      "enum": [
+        "radish-docs-qa-real-batch"
+      ]
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radish",
+        "radishflow"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eval_task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "mock",
+        "openai-compatible"
+      ]
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "collection_batch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "captured_candidate_response",
+        "simulated_candidate_response"
+      ]
+    },
+    "capture_origin": {
+      "type": "string",
+      "enum": [
+        "interactive_session",
+        "adapter_debug_dump",
+        "manual_fixture"
+      ]
+    },
+    "output_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inference_exit_code",
+        "audit_exit_code"
+      ],
+      "properties": {
+        "inference_exit_code": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest",
+        "audit_report",
+        "negative_replay_index",
+        "same_sample_negative_replay"
+      ],
+      "properties": {
+        "manifest": {
+          "$ref": "#/$defs/manifest_artifact"
+        },
+        "audit_report": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
+        "negative_replay_index": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
+        "same_sample_negative_replay": {
+          "$ref": "#/$defs/negative_replay_artifact"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captured_record_count",
+        "matched_sample_count",
+        "passed_sample_count",
+        "failed_sample_count",
+        "violation_count",
+        "violation_group_count",
+        "linked_same_sample_negative_count",
+        "unlinked_same_sample_negative_count",
+        "expected_same_sample_negative_count"
+      ],
+      "properties": {
+        "captured_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "matched_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violation_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violation_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_same_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unlinked_same_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_same_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "manifest_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "exists",
+        "record_count"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "staged_file_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "path",
+        "exists"
+      ],
+      "properties": {
+        "requested": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exists": {
+          "type": "boolean"
+        }
+      }
+    },
+    "negative_replay_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "output_dir",
+        "expected_fixture_count"
+      ],
+      "properties": {
+        "requested": {
+          "type": "boolean"
+        },
+        "output_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_fixture_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
