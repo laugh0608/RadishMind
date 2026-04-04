@@ -69,6 +69,8 @@
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
 - `import-candidate-response-dump.py` 用于把未来 adapter/mock/模型接口产出的 raw dump 裁剪成正式 `candidate_response_record`
 - `build-candidate-record-batch.py` 用于从一批 `candidate_response_record` 文件生成 manifest，减少 captured batch 扩样时的手工清单维护
+- `run-copilot-inference.py` 当前除单条推理外，也已支持按样本目录批量落 `response / dump / record / manifest`
+- `audit-candidate-record-batch.py` 用于把一批真实 `candidate_response_record` 临时注入现有样本，再复用当前回归规则做批量审计
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
@@ -181,6 +183,59 @@ python3 ./scripts/import-candidate-response-dump.py \
   --output datasets/eval/candidate-records/radish-negative/imported-bad-answer-001.json
 ```
 
+如果需要直接按 `datasets/eval/radish/*.json` 批量跑最小推理，并把输出直接接到现有回灌链路，当前可直接使用：
+
+```bash
+python3 ./scripts/run-copilot-inference.py \
+  --sample-dir datasets/eval/radish \
+  --provider openai-compatible \
+  --output-root /tmp/radish-docs-qa-batch \
+  --collection-batch 2026-04-04-radish-docs-qa-real-batch-v1 \
+  --manifest-description "Radish docs QA 批量真实候选输出快照。"
+```
+
+批量模式当前会在 `--output-root` 下生成：
+
+- `responses/*.response.json`：归一化后的 `CopilotResponse`
+- `dumps/*.dump.json`：保留 `input_request`、`raw_request`、`raw_response` 的 raw dump
+- `records/*.record.json`：可直接被回归与 replay 使用的正式 `candidate_response_record`
+- `<collection_batch>.manifest.json`：按同批次自动收口的 manifest
+
+补充说明：
+
+- `--collection-batch` 在批量模式下为必填，保证生成的 `record` 可直接纳入现有 manifest 回灌流程
+- `--capture-origin` 可选覆盖默认来源；默认仍保持 `mock -> manual_fixture`、真实 provider -> `adapter_debug_dump`
+- `--capture-tag` 可重复追加批次标签，但不会写入任何 API key
+- `--max-attempts` 与 `--retry-base-delay-seconds` 可为真实 provider 补最小重试；当前默认会对 `429`、`5xx`、远端断连和部分网络抖动做指数退避重试
+- `--resume` 可在批量模式下跳过已存在的 `response / dump / record`，适合真实 batch 中途被打断后断点续跑
+- `--continue-on-error` 可在批量模式下记录失败样本并继续后续样本，最后统一输出失败清单
+- 若只想单条推理，也可继续沿用原有 `--sample` / `--request` 入口；当前还额外支持 `--record-output`
+
+当真实 batch 已导入仓库、但尚未准备好直接替换现有正向样本绑定时，当前建议先走批量审计入口，而不是立刻改写样本中的 `candidate_response_record` 引用：
+
+```bash
+python3 ./scripts/audit-candidate-record-batch.py \
+  radish-docs-qa \
+  --manifest datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json \
+  --report-output datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json
+```
+
+这一步会：
+
+- 按 `sample_id` 将 manifest 中的真实 record 临时注入对应样本
+- 自动补上 `expected_source`、`required_capture_origin`、`required_collection_batch`
+- 继续复用 `scripts/run-eval-regression.py` 的既有规则，不分叉第二套校验逻辑
+- 让“真实输出已入仓库”和“哪些真实输出已满足当前基线”先分离开
+- 可选输出结构化 `audit.json`，把 pass/fail、violation 计数和逐样本违规明细沉淀为可追踪资产
+
+当前仓库内已新增第二批真实 batch：
+
+- `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json`
+- `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/`
+- `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json`
+
+这批记录当前先作为“真实候选输出审计资产”保留，不直接替换现有正向样本绑定；待批量审计结果稳定后，再择优切换样本引用。
+
 若需要从一批记录重生成 manifest，当前可直接使用：
 
 ```bash
@@ -217,6 +272,7 @@ python3 ./scripts/build-candidate-record-batch.py \
 - 当前负例还已覆盖 `docs + attachments + forum` 与 `docs + faq + forum` 三路冲突下的 failed-state 漂移，验证失败态里社区经验、FAQ 或附件状态都不能反客为主
 - 当前负例还已覆盖 `docs + attachments + faq + forum` 极端冲突与 failed-state 多 action 漂移，验证失败态里 FAQ/论坛不能联手覆盖正式口径，也不能一边失败一边继续堆动作
 - 当前负例还已覆盖“多答案 + 多 action + 多来源冲突”三者同时出现的复合失稳，开始逼近真实模型完全漂移时的坏输出形态
+- 当前负例已开始直接复用第二批真实 provider batch 的失败 record，并已把第二批 `8 fail` 全部沉淀为同样本 replay：一组是缺 `read_only_check`，另一组是 `partial` 场景下 `issues/risk_level` 不达标的真实坏输出
 
 当前负例侧也已补最小 manifest 导入流程：
 
@@ -224,6 +280,7 @@ python3 ./scripts/build-candidate-record-batch.py \
 - 对应负例样本已可通过 `candidate_response_record.manifest_path + record_id` 引用，不再逐条手写单独路径
 - 这一步的目的只是先稳定负例批量导入形态，不代表这批样本已经变成真实 captured negative
 - 后续一旦拿到真实坏输出，应继续沿用同一入口，把真实 record 逐步补进新的 captured batch manifest
+- 第二批真实 batch 当前已把 `8 fail` 全部沉淀为 `radish-negative` replay 样本，用于把真实 provider 的坏输出正式纳入仓库回归
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
