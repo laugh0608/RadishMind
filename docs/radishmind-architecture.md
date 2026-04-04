@@ -223,3 +223,19 @@ RadishMind/
 - 训练数据优先从自有项目生成，不依赖大量外部脏数据
 - 评测必须从第一阶段就开始建立
 - 部署形态允许本地、局域网和远端三种模式并存，但当前不先锁定最终部署形态
+
+## 当前最小实现补充
+
+当前仓库已补第一条最小实现链路，用于把“只有评测资产”的状态推进到“能实际吐出结构化响应”的状态：
+
+- `services/runtime/inference.py`
+  - 提供 `radish / answer_docs_question` 的最小 runtime
+  - 内置 `mock` provider，用于工程闭环验证
+  - 预留 `openai-compatible` provider，用于真实模型接入
+- `scripts/run-copilot-inference.py`
+  - 允许从 `datasets/eval` 样本或独立 `CopilotRequest` 运行最小推理
+  - 可直接写出 normalized `CopilotResponse` 与 raw dump
+- `prompts/tasks/radish-answer-docs-question-system.md`
+  - 冻结当前单任务系统提示的最小口径
+
+这一步仍不是完整服务化实现，但已经把“prompt 组装 -> provider 调用 -> 响应归一化 -> raw dump 落盘”这条链路落地，可作为后续 gateway、adapter 和真实模型 provider 的起点。

@@ -42,6 +42,6 @@
 ## 下一步优先推进
 
 1. 继续为 `RadishFlow` 首批 3 个任务扩展输入快照样例与评测样本，优先补控制面冲突态和更多对抗样本。
-2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已接上真实 `candidate_response_record`、统一负例回放、跨样本真实 replay、正向 captured batch manifest，以及负例侧的 simulated batch manifest，下一步主线仍是扩大真实 captured negative 批次，仅按需补少量极端冲突样本。
+2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前除了评测与回灌资产，还已补上最小推理 runtime、单任务 prompt 和 `mock/openai-compatible` provider 入口，下一步可以从 mock 闭环切到真实模型 provider。
 3. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
 4. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。

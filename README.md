@@ -89,3 +89,25 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 - `Radish answer_docs_question` 已具备召回输入约束、`golden_response` 对照、外部 `candidate_response_record` 回灌、统一负例回放和跨样本真实 record replay，并已覆盖 `docs/wiki/attachments/forum/faq` 多源与三路冲突的最小混合召回基线
 
 当前下一步主线是继续扩大 `Radish answer_docs_question` 的真实 captured negative 批次；最小 manifest 导入清单已经落地，离线样本只再按需补极端冲突边界。
+
+## 当前最小推理闭环
+
+当前仓库已经补上 `Radish answer_docs_question` 的最小推理闭环骨架：
+
+- `scripts/run-copilot-inference.py`：统一 CLI 入口
+- `services/runtime/inference.py`：最小 runtime、provider 调用、响应归一化与 raw dump 组装
+- `prompts/tasks/radish-answer-docs-question-system.md`：单任务系统提示
+
+当前 provider 形态：
+
+- `mock`：默认可用，用于打通 `request -> response -> raw dump -> record` 工程闭环
+- `openai-compatible`：预留真实模型调用入口，支持通过 `RADISHMIND_MODEL_BASE_URL`、`RADISHMIND_MODEL_API_KEY`、`RADISHMIND_MODEL_NAME` 或同名 CLI 参数接入兼容 `/v1/chat/completions` 的 provider
+
+示例：
+
+```bash
+python3 ./scripts/run-copilot-inference.py \
+  --sample datasets/eval/radish/answer-docs-question-direct-answer-001.json \
+  --provider mock \
+  --dump-output /tmp/radishmind-mock-dump.json
+```
