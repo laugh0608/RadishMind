@@ -277,6 +277,7 @@ python3 ./scripts/run-radish-docs-qa-real-batch.py \
 - `audit_report` / `negative_replay_index` 的目标路径与是否已写出
 - `same_sample_negative_replay` 的目标目录与本批预计可复用的 same-sample 负例数量
 - 本批次的 `passed / failed / violation / violation_group` 汇总计数
+- `recommended_negative_replays`：按 same-sample 失败组汇总的默认复跑顺序，以及可直接执行的 `bash` / `python3` 命令
 
 当前仓库内已新增第二批真实 batch：
 
@@ -338,6 +339,14 @@ bash ./scripts/run-radish-docs-qa-negative-regression.sh \
 - 继续复用现有 `group_id` / `record_id` / `replay_mode` 选样逻辑
 
 这样“真实 batch 编排产物摘要”就不只是归档文件，而是可以直接驱动后续负例回放。
+
+如果希望让高层编排在结束后直接给出“下一步建议怎么复跑失败组”，当前也可以直接查看 `artifacts.json` 里的 `recommended_negative_replays`。该区块会按 same-sample 失败组给出：
+
+- `recommended_group_ids`：默认推荐优先复跑的失败组顺序，当前按组内样本数降序排列
+- `groups[*].expected_candidate_violations`：该组对应的主要违规片段
+- `groups[*].bash_command` / `groups[*].python_command`：可直接复制执行的复跑命令
+
+这样真实 batch 跑完后，不需要再人工翻 `negative-replay-index.json` 组装命令。
 
 如果需要把这份索引里的“同样本真实 replay”直接重建成 `datasets/eval/radish-negative/*.json`，当前还可使用：
 

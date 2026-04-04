@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -123,6 +124,81 @@ def count_same_sample_entries(index_document: dict[str, Any]) -> tuple[int, int]
     return linked_same_sample_count, unlinked_same_sample_count
 
 
+def build_recommended_negative_replays(
+    *,
+    artifact_summary_path: Path,
+    replay_index: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if replay_index is None:
+        return {
+            "default_replay_mode": "same_sample",
+            "recommended_group_ids": [],
+            "groups": [],
+        }
+
+    summary_path_value = make_repo_relative(artifact_summary_path)
+    groups: list[dict[str, Any]] = []
+    for group in replay_index.get("violation_groups") or []:
+        if not isinstance(group, dict):
+            raise SystemExit("negative replay index violation_groups entries must be json objects")
+        group_id = str(group.get("group_id") or "").strip()
+        if not group_id:
+            raise SystemExit("negative replay index violation_groups entries must include group_id")
+        entries = group.get("entries") or []
+        same_sample_entry_count = 0
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise SystemExit(f"negative replay index group '{group_id}' entries must be json objects")
+            if str(entry.get("replay_mode") or "").strip() == "same_sample":
+                same_sample_entry_count += 1
+        if same_sample_entry_count == 0:
+            continue
+
+        bash_command = " ".join(
+            [
+                "bash",
+                shlex.quote("./scripts/run-radish-docs-qa-negative-regression.sh"),
+                "--batch-artifact-summary",
+                shlex.quote(summary_path_value),
+                "--group-id",
+                shlex.quote(group_id),
+                "--replay-mode",
+                "same_sample",
+                "--fail-on-violation",
+            ]
+        )
+        python_command = " ".join(
+            [
+                "python3",
+                shlex.quote("./scripts/run-eval-regression.py"),
+                "radish-docs-qa-negative",
+                "--batch-artifact-summary",
+                shlex.quote(summary_path_value),
+                "--group-id",
+                shlex.quote(group_id),
+                "--replay-mode",
+                "same_sample",
+                "--fail-on-violation",
+            ]
+        )
+        groups.append(
+            {
+                "group_id": group_id,
+                "same_sample_entry_count": same_sample_entry_count,
+                "expected_candidate_violations": list(group.get("expected_candidate_violations") or []),
+                "bash_command": bash_command,
+                "python_command": python_command,
+            }
+        )
+
+    groups = sorted(groups, key=lambda item: (-item["same_sample_entry_count"], item["group_id"]))
+    return {
+        "default_replay_mode": "same_sample",
+        "recommended_group_ids": [group["group_id"] for group in groups],
+        "groups": groups,
+    }
+
+
 def build_artifact_summary_document(
     *,
     args: argparse.Namespace,
@@ -130,6 +206,7 @@ def build_artifact_summary_document(
     manifest_path: Path,
     audit_report_path: Path,
     replay_index_path: Path,
+    artifact_summary_path: Path,
     inference_exit_code: int,
     audit_exit_code: int | None,
 ) -> dict[str, Any]:
@@ -150,9 +227,9 @@ def build_artifact_summary_document(
         violation_group_count = len(list(replay_index.get("violation_groups") or []))
 
     negative_output_dir = (
-        resolve_relative_to_repo(args.negative_output_dir)
+        resolve_repo_relative(args.negative_output_dir)
         if args.negative_output_dir.strip()
-        else resolve_relative_to_repo(
+        else resolve_repo_relative(
             str((replay_index or {}).get("negative_sample_dir") or DEFAULT_NEGATIVE_OUTPUT_DIR)
         )
     )
@@ -204,6 +281,10 @@ def build_artifact_summary_document(
             "unlinked_same_sample_negative_count": unlinked_same_sample_count,
             "expected_same_sample_negative_count": linked_same_sample_count + unlinked_same_sample_count,
         },
+        "recommended_negative_replays": build_recommended_negative_replays(
+            artifact_summary_path=artifact_summary_path,
+            replay_index=replay_index,
+        ),
     }
 
     model = args.model.strip()
@@ -327,6 +408,7 @@ def main() -> int:
         manifest_path=manifest_path,
         audit_report_path=audit_report_path,
         replay_index_path=replay_index_path,
+        artifact_summary_path=artifact_summary_path,
         inference_exit_code=inference_result.returncode,
         audit_exit_code=audit_exit_code,
     )

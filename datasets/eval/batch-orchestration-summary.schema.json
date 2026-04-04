@@ -16,7 +16,8 @@
     "output_root",
     "execution",
     "artifacts",
-    "summary"
+    "summary",
+    "recommended_negative_replays"
   ],
   "properties": {
     "schema_version": {
@@ -175,6 +176,37 @@
           "minimum": 0
         }
       }
+    },
+    "recommended_negative_replays": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_replay_mode",
+        "recommended_group_ids",
+        "groups"
+      ],
+      "properties": {
+        "default_replay_mode": {
+          "type": "string",
+          "enum": [
+            "same_sample"
+          ]
+        },
+        "recommended_group_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^group-[0-9]{3}$"
+          },
+          "uniqueItems": true
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recommended_negative_replay_group"
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -240,6 +272,44 @@
         "expected_fixture_count": {
           "type": "integer",
           "minimum": 0
+        }
+      }
+    },
+    "recommended_negative_replay_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "same_sample_entry_count",
+        "expected_candidate_violations",
+        "bash_command",
+        "python_command"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "pattern": "^group-[0-9]{3}$"
+        },
+        "same_sample_entry_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expected_candidate_violations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "bash_command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "python_command": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

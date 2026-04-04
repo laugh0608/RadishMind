@@ -217,6 +217,18 @@ def run_repo_script(script_name: str, script_args: list[str]) -> None:
         raise SystemExit(result.returncode)
 
 
+def build_negative_replay_index_args(report_path: Path, replay_index_output: Path, negative_sample_dir: str) -> list[str]:
+    script_args = [
+        "--audit-report",
+        make_repo_relative(report_path),
+        "--output",
+        make_repo_relative(replay_index_output),
+    ]
+    if negative_sample_dir.strip():
+        script_args.extend(["--negative-sample-dir", negative_sample_dir.strip()])
+    return script_args
+
+
 def main() -> int:
     args = parse_args()
     if (args.replay_index_output.strip() or args.build_negative_replay) and not args.report_output.strip():
@@ -335,14 +347,14 @@ def main() -> int:
                     if args.replay_index_output.strip()
                     else derive_negative_replay_index_output(report_path)
                 )
+                initial_negative_sample_dir = ""
+                if args.negative_output_dir.strip():
+                    initial_negative_output_dir = resolve_relative_to_repo(args.negative_output_dir)
+                    if initial_negative_output_dir.is_dir():
+                        initial_negative_sample_dir = args.negative_output_dir
                 run_repo_script(
                     "build-negative-replay-index.py",
-                    [
-                        "--audit-report",
-                        make_repo_relative(report_path),
-                        "--output",
-                        make_repo_relative(replay_index_output),
-                    ],
+                    build_negative_replay_index_args(report_path, replay_index_output, initial_negative_sample_dir),
                 )
 
                 if args.build_negative_replay:
@@ -361,6 +373,10 @@ def main() -> int:
                         run_repo_script(
                             "build-radish-docs-negative-replay.py",
                             negative_args,
+                        )
+                        run_repo_script(
+                            "build-negative-replay-index.py",
+                            build_negative_replay_index_args(report_path, replay_index_output, args.negative_output_dir),
                         )
         return result.returncode
 
