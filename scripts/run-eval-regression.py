@@ -24,6 +24,7 @@ UNOFFICIAL_SOURCE_TYPES = {"faq", "forum"}
 RISK_RANKS = {"low": 1, "medium": 2, "high": 3}
 NEGATIVE_REPLAY_MODES = {"same_sample", "cross_sample"}
 NEGATIVE_REPLAY_INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/negative-replay-index.schema.json"
+BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json"
 DISALLOWED_SUGGEST_PATCH_KEYS = {
     "command",
     "commands",
@@ -295,6 +296,56 @@ def load_negative_replay_index(index_path: Path) -> dict[str, Any]:
             f"'{NEGATIVE_REPLAY_INDEX_SCHEMA_PATH.name}': {exc.message}"
         ) from exc
     return document
+
+
+def load_batch_artifact_summary(summary_path: Path) -> dict[str, Any]:
+    try:
+        document = json.loads(summary_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise SystemExit(f"failed to parse batch artifact summary '{summary_path}': {exc}") from exc
+    if not isinstance(document, dict):
+        raise SystemExit(f"batch artifact summary must be a json object: {summary_path}")
+    try:
+        jsonschema.validate(document, load_schema(BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH))
+    except jsonschema.ValidationError as exc:
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': schema validation failed against "
+            f"'{BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH.name}': {exc.message}"
+        ) from exc
+    return document
+
+
+def resolve_negative_replay_index_from_batch_artifact_summary(summary_path: Path) -> Path:
+    summary_document = load_batch_artifact_summary(summary_path)
+    eval_task = str(summary_document.get("eval_task") or "").strip()
+    if eval_task != "radish-docs-qa":
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': unsupported eval_task '{eval_task}', expected 'radish-docs-qa'"
+        )
+
+    artifacts = summary_document.get("artifacts")
+    if not isinstance(artifacts, dict):
+        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts must be a json object")
+    negative_replay_index = artifacts.get("negative_replay_index")
+    if not isinstance(negative_replay_index, dict):
+        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.negative_replay_index must be a json object")
+
+    index_path_value = str(negative_replay_index.get("path") or "").strip()
+    if not index_path_value:
+        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.negative_replay_index.path is required")
+    if negative_replay_index.get("requested") is not True:
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': artifacts.negative_replay_index.requested must be true"
+        )
+    if negative_replay_index.get("exists") is not True:
+        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.negative_replay_index.exists must be true")
+
+    index_path = resolve_repo_relative_path(index_path_value)
+    if not index_path.is_file():
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': referenced negative replay index file not found: {index_path_value}"
+        )
+    return index_path
 
 
 def resolve_negative_replay_sample_paths(
@@ -1627,6 +1678,7 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool, dic
     sample_paths: list[Path] = []
     fail_on_violation = False
     negative_replay_index: Path | None = None
+    batch_artifact_summary: Path | None = None
     group_ids: list[str] = []
     record_ids: list[str] = []
     replay_mode = ""
@@ -1660,6 +1712,13 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool, dic
             negative_replay_index = (REPO_ROOT / path).resolve() if not path.is_absolute() else path
             index += 2
             continue
+        if arg in {"-BatchArtifactSummary", "--batch-artifact-summary"}:
+            if index + 1 >= len(argv):
+                raise SystemExit(f"missing value for {arg}")
+            path = Path(argv[index + 1])
+            batch_artifact_summary = (REPO_ROOT / path).resolve() if not path.is_absolute() else path
+            index += 2
+            continue
         if arg in {"-GroupId", "--group-id"}:
             if index + 1 >= len(argv):
                 raise SystemExit(f"missing value for {arg}")
@@ -1682,6 +1741,7 @@ def parse_args(argv: list[str]) -> tuple[str, Path | None, list[Path], bool, dic
 
     selection = {
         "negative_replay_index": negative_replay_index,
+        "batch_artifact_summary": batch_artifact_summary,
         "group_ids": [group_id for group_id in group_ids if group_id],
         "record_ids": [record_id for record_id in record_ids if record_id],
         "replay_mode": replay_mode,
@@ -1709,6 +1769,15 @@ def main(argv: list[str]) -> int:
     ensure_required_paths(config)
     resolved_sample_dir = sample_dir or config["sample_dir"]
     negative_replay_index = selection["negative_replay_index"]
+    batch_artifact_summary = selection["batch_artifact_summary"]
+    if batch_artifact_summary is not None:
+        if task_name != "radish-docs-qa-negative":
+            raise SystemExit("--batch-artifact-summary is only supported for radish-docs-qa-negative")
+        if sample_paths:
+            raise SystemExit("--batch-artifact-summary cannot be used together with --sample-paths")
+        if negative_replay_index is not None:
+            raise SystemExit("--batch-artifact-summary cannot be used together with --negative-replay-index")
+        negative_replay_index = resolve_negative_replay_index_from_batch_artifact_summary(batch_artifact_summary)
     if negative_replay_index is not None:
         if task_name != "radish-docs-qa-negative":
             raise SystemExit("--negative-replay-index is only supported for radish-docs-qa-negative")

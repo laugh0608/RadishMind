@@ -322,6 +322,23 @@ bash ./scripts/run-radish-docs-qa-negative-regression.sh \
 
 这一步的目的不是新增另一套 runner，而是让现有 `radish-docs-qa-negative` 继续复用同一条校验链路，只把“选哪些负例样本”从手工文件列表切换为索引驱动。
 
+如果上一层已经拿到了 `run-radish-docs-qa-real-batch.py` 产出的 `artifacts.json`，当前也可以不再手工传 `negative-replay-index` 路径，而是直接让负例 runner 从摘要里解析：
+
+```bash
+bash ./scripts/run-radish-docs-qa-negative-regression.sh \
+  --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json \
+  --group-id group-001 \
+  --fail-on-violation
+```
+
+这条入口当前会：
+
+- 先校验 `artifacts.json` 满足 `batch-orchestration-summary.schema.json`
+- 从 `artifacts.negative_replay_index.path` 解析本批次的 replay index
+- 继续复用现有 `group_id` / `record_id` / `replay_mode` 选样逻辑
+
+这样“真实 batch 编排产物摘要”就不只是归档文件，而是可以直接驱动后续负例回放。
+
 如果需要把这份索引里的“同样本真实 replay”直接重建成 `datasets/eval/radish-negative/*.json`，当前还可使用：
 
 ```bash

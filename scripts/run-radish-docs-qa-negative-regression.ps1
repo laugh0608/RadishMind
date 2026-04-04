@@ -3,6 +3,7 @@ param(
     [string]$SampleDir,
     [string[]]$SamplePaths,
     [string]$NegativeReplayIndex,
+    [string]$BatchArtifactSummary,
     [string[]]$GroupId,
     [string[]]$RecordId,
     [ValidateSet("same_sample", "cross_sample")]
@@ -51,6 +52,11 @@ if ($SamplePaths.Count -gt 0) {
 if (-not [string]::IsNullOrWhiteSpace($NegativeReplayIndex)) {
     $arguments += "--negative-replay-index"
     $arguments += $NegativeReplayIndex
+}
+
+if (-not [string]::IsNullOrWhiteSpace($BatchArtifactSummary)) {
+    $arguments += "--batch-artifact-summary"
+    $arguments += $BatchArtifactSummary
 }
 
 if ($GroupId.Count -gt 0) {

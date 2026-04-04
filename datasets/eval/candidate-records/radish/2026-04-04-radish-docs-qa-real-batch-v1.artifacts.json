@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "pipeline": "radish-docs-qa-real-batch",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "eval_task": "radish-docs-qa",
+  "provider": "openai-compatible",
+  "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1",
+  "source": "captured_candidate_response",
+  "capture_origin": "adapter_debug_dump",
+  "output_root": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1",
+  "execution": {
+    "inference_exit_code": 0,
+    "audit_exit_code": 0
+  },
+  "artifacts": {
+    "manifest": {
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+      "exists": true,
+      "record_count": 11
+    },
+    "audit_report": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
+      "exists": true
+    },
+    "negative_replay_index": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+      "exists": true
+    },
+    "same_sample_negative_replay": {
+      "requested": true,
+      "output_dir": "datasets/eval/radish-negative",
+      "expected_fixture_count": 8
+    }
+  },
+  "summary": {
+    "captured_record_count": 11,
+    "matched_sample_count": 11,
+    "passed_sample_count": 3,
+    "failed_sample_count": 8,
+    "violation_count": 19,
+    "violation_group_count": 4,
+    "linked_same_sample_negative_count": 8,
+    "unlinked_same_sample_negative_count": 0,
+    "expected_same_sample_negative_count": 8
+  }
+}

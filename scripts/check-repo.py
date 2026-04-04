@@ -48,6 +48,7 @@ REQUIRED_FILES = [
     "datasets/eval/negative-replay-index.schema.json",
     "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
+    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
     "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
     "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
@@ -193,12 +194,34 @@ def check_generated_eval_metadata() -> None:
     )
     jsonschema.validate(document, schema)
 
+    artifact_summary_schema = json.loads(
+        (REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json").read_text(encoding="utf-8")
+    )
+    artifact_summary_document = json.loads(
+        (
+            REPO_ROOT / "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json"
+        ).read_text(encoding="utf-8")
+    )
+    jsonschema.validate(artifact_summary_document, artifact_summary_schema)
+
     run_python_script(
         "build-radish-docs-negative-replay.py",
         [
             "--index",
             "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
             "--check",
+        ],
+    )
+
+    run_python_script(
+        "run-eval-regression.py",
+        [
+            "radish-docs-qa-negative",
+            "--batch-artifact-summary",
+            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
+            "--group-id",
+            "group-001",
+            "--fail-on-violation",
         ],
     )
 
