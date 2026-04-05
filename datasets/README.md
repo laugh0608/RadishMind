@@ -29,6 +29,9 @@
 - `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001-debug-full.json`
 - `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
@@ -72,6 +75,7 @@
 - 当前 `examples/` 还补了同一条连续搭建链的“停住边界”基线，固定 `recent_actions` 已存在但 `legal_candidate_completions=[]` 时，适配层仍需稳定装配空候选请求而不是回退成主观猜测
 - 当前 `examples/` 继续补了同一条连续搭建链的“命名冲突但可见 ghost”基线，固定 `legal_candidate_completions` 非空但 `conflict_flags` 阻止默认 `Tab` 的 handoff 与 request assembly 边界
 - 当前 `examples/` 继续补了同一条连续搭建链的“排序分差不足但可见 ghost”基线，固定第一模板里 `manual_only` 也可以来自 outlet 优先级分差过小，而不是只来自命名冲突
+- 当前 `examples/` 继续补了同一条连续搭建链的“最近 reject 后 no-retab”基线，固定同一候选刚被用户拒绝时，适配层仍可保留候选，但不得立即再次把它升级成默认 `Tab`
 - 当前 `examples/` 还补了第二条链式模板 `Feed -> Heater -> FlashDrum`，用于验证链式 handoff、request assembly 与 `Tab` 默认接受边界并未耦合到 `Valve`
 - 当前 `examples/` 继续补了第二条链式模板的命名冲突 no-tab 基线，验证 `Feed -> Heater -> FlashDrum` 也能稳定落到 `manual_only` 边界
 - 当前 `examples/` 继续补了第二条链式模板的停住空建议基线，验证 `Feed -> Heater -> FlashDrum` 也能在 `recent_actions` 已存在但 `legal_candidate_completions=[]` 时稳定停在空建议边界

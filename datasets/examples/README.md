@@ -54,6 +54,9 @@
 40. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
 41. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
 42. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
+43. `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+44. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+45. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001-debug-full.json`
 
 说明：
 
@@ -145,6 +148,21 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述第一模板排名歧义候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留两条 outlet 候选的 `ranking_signals` 与 `conflict_flags`，避免“为何不能默认 Tab”再次退回成口头说明
+
+- `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Valve -> FlashDrum` 连续搭建链里，同一 `FlashDrum vapor_outlet` 候选刚被 reject 后，候选仍合法但必须进入 suppress-Tab 冷却期的 pre-model 候选集
+  - 当前用于固定“recent_actions 已出现 reject，同一 candidate 不应立即再次默认 Tab 强推”的 handoff 边界
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述 reject-no-retab 候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定 suppress-Tab 场景在最小请求里仍会保留的 `recent_actions` 与候选摘要字段集合
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述 reject-no-retab 候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留 reject 冷却期的 `conflict_flags` 与排序证据，避免“为何不能立即 retab”再次退回成口头说明
 
 - `radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
   - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)

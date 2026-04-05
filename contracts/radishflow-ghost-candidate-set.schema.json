@@ -157,14 +157,16 @@
       "additionalProperties": true,
       "required": [
         "kind",
-        "candidate_ref",
-        "accepted_at_revision"
+        "candidate_ref"
       ],
       "properties": {
         "kind": {
           "type": "string",
           "enum": [
-            "accept_ghost_completion"
+            "accept_ghost_completion",
+            "reject_ghost_completion",
+            "dismiss_ghost_completion",
+            "skip_ghost_completion"
           ]
         },
         "candidate_ref": {
@@ -174,8 +176,90 @@
         "accepted_at_revision": {
           "type": "integer",
           "minimum": 0
+        },
+        "rejected_at_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dismissed_at_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped_at_revision": {
+          "type": "integer",
+          "minimum": 0
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "accept_ghost_completion"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "accepted_at_revision"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "reject_ghost_completion"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "rejected_at_revision"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "dismiss_ghost_completion"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "dismissed_at_revision"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "skip_ghost_completion"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "skipped_at_revision"
+            ]
+          }
+        }
+      ]
     },
     "cursor_context": {
       "type": "object",

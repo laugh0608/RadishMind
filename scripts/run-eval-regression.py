@@ -23,6 +23,17 @@ ALLOWED_PRIMARY_KINDS = {"markdown", "text"}
 UNOFFICIAL_SOURCE_TYPES = {"faq", "forum"}
 RISK_RANKS = {"low": 1, "medium": 2, "high": 3}
 NEGATIVE_REPLAY_MODES = {"same_sample", "cross_sample"}
+RECENT_GHOST_ACTION_REVISION_KEYS = {
+    "accept_ghost_completion": "accepted_at_revision",
+    "reject_ghost_completion": "rejected_at_revision",
+    "dismiss_ghost_completion": "dismissed_at_revision",
+    "skip_ghost_completion": "skipped_at_revision",
+}
+SUPPRESSIVE_RECENT_GHOST_ACTION_KINDS = {
+    "reject_ghost_completion",
+    "dismiss_ghost_completion",
+    "skip_ghost_completion",
+}
 NEGATIVE_REPLAY_INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/negative-replay-index.schema.json"
 BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json"
 DISALLOWED_SUGGEST_PATCH_KEYS = {
@@ -1346,27 +1357,29 @@ def validate_ghost_completion_request(sample: dict[str, Any], sample_name: str, 
     for recent_action in recent_actions:
         action_kind = str((recent_action or {}).get("kind") or "").strip()
         candidate_ref = str((recent_action or {}).get("candidate_ref") or "").strip()
-        accepted_at_revision = (recent_action or {}).get("accepted_at_revision")
-        if action_kind != "accept_ghost_completion":
+        revision_key = RECENT_GHOST_ACTION_REVISION_KEYS.get(action_kind)
+        if revision_key is None:
             add_violation(
                 violations,
-                f"{sample_name}: context.cursor_context.recent_actions only supports kind='accept_ghost_completion'",
+                f"{sample_name}: context.cursor_context.recent_actions kind must be one of {sorted(RECENT_GHOST_ACTION_REVISION_KEYS)}",
             )
         if not candidate_ref:
             add_violation(
                 violations,
                 f"{sample_name}: each context.cursor_context.recent_action must include candidate_ref",
             )
-        if not isinstance(accepted_at_revision, int):
-            add_violation(
-                violations,
-                f"{sample_name}: each context.cursor_context.recent_action must include integer accepted_at_revision",
-            )
-        elif context.get("document_revision") is not None and accepted_at_revision >= int(context.get("document_revision")):
-            add_violation(
-                violations,
-                f"{sample_name}: recent_action.accepted_at_revision must be earlier than context.document_revision",
-            )
+        if revision_key is not None:
+            action_revision = (recent_action or {}).get(revision_key)
+            if not isinstance(action_revision, int):
+                add_violation(
+                    violations,
+                    f"{sample_name}: recent_action kind='{action_kind}' must include integer {revision_key}",
+                )
+            elif context.get("document_revision") is not None and action_revision >= int(context.get("document_revision")):
+                add_violation(
+                    violations,
+                    f"{sample_name}: recent_action.{revision_key} must be earlier than context.document_revision",
+                )
 
     if "legal_candidate_completions" not in context:
         add_violation(violations, f"{sample_name}: context.legal_candidate_completions is required")
@@ -1435,6 +1448,7 @@ def validate_ghost_completion_response(
         for candidate in get_array(request_context.get("legal_candidate_completions"))
         if str((candidate or {}).get("candidate_ref") or "").strip()
     }
+    recent_actions = get_array((request_context.get("cursor_context") or {}).get("recent_actions"))
 
     if response.get("project") != "radishflow":
         add_violation(violations, f"{sample_name}: {response_label}.project must be 'radishflow'")
@@ -1462,6 +1476,12 @@ def validate_ghost_completion_response(
         if required_kind not in actual_action_kinds:
             add_violation(violations, f"{sample_name}: {response_label} is missing required action kind '{required_kind}'")
 
+    suppressed_candidate_refs = {
+        str((recent_action or {}).get("candidate_ref") or "").strip()
+        for recent_action in recent_actions
+        if str((recent_action or {}).get("kind") or "").strip() in SUPPRESSIVE_RECENT_GHOST_ACTION_KINDS
+        and str((recent_action or {}).get("candidate_ref") or "").strip()
+    }
     highest_action_risk = 0
     for index, action in enumerate(actions):
         highest_action_risk = max(highest_action_risk, RISK_RANKS.get(str(action.get("risk_level") or ""), 0))
@@ -1555,6 +1575,11 @@ def validate_ghost_completion_response(
                         violations,
                         f"{sample_name}: {response_label} Tab accept key must not map to a legal candidate with conflict_flags",
                     )
+                if candidate_ref in suppressed_candidate_refs:
+                    add_violation(
+                        violations,
+                        f"{sample_name}: {response_label} Tab accept key must not immediately reuse a candidate recently rejected, dismissed, or skipped in cursor_context.recent_actions",
+                    )
 
         apply_payload = action.get("apply")
         if not isinstance(apply_payload, dict):
@@ -1581,9 +1606,12 @@ def validate_ghost_completion_response(
 
     if response.get("requires_confirmation") is not False:
         add_violation(violations, f"{sample_name}: {response_label}.requires_confirmation must remain false for pending ghost suggestions")
-    recent_actions = get_array((request_context.get("cursor_context") or {}).get("recent_actions"))
     legal_candidate_list = get_array(request_context.get("legal_candidate_completions"))
-    if recent_actions and legal_candidate_list and len(actions) == 0:
+    has_accept_chain_action = any(
+        str((recent_action or {}).get("kind") or "").strip() == "accept_ghost_completion"
+        for recent_action in recent_actions
+    )
+    if has_accept_chain_action and legal_candidate_list and len(actions) == 0:
         add_violation(
             violations,
             f"{sample_name}: {response_label} should not drop to zero proposed_actions when recent_actions indicate an accepted ghost chain step",

@@ -141,6 +141,7 @@
 - `Feed -> Valve -> FlashDrum` 连续搭建链中，因没有合法 outlet 候选而返回空建议
 - `Feed -> Valve -> FlashDrum` 连续搭建链中，因命名冲突只能返回 `manual_only` ghost 的 outlet 补全
 - `Feed -> Valve -> FlashDrum` 连续搭建链中，因 outlet 排名分差不足只能返回 `manual_only` ghost 的 outlet 补全
+- `Feed -> Valve -> FlashDrum` 连续搭建链中，同一 outlet 候选刚被 reject 后只能继续返回 `manual_only` ghost，不能立即再次默认 `Tab`
 - `Feed -> Heater -> FlashDrum` 连续搭建链中的加热器 outlet 补全
 - `Feed -> Heater -> FlashDrum` 连续搭建链中，因命名冲突只能返回 `manual_only` ghost 的加热器 outlet 补全
 - `Feed -> Heater -> FlashDrum` 连续搭建链中，因没有合法 outlet 候选而返回空建议
@@ -163,8 +164,9 @@
 - 默认 `Tab` 接受键只能绑定到第一条 ghost 建议
 - 多候选接近时可以返回建议，但不得强行把第一条伪装成默认 `Tab`
 - 如果候选带有 `conflict_flags`，或本地没有把它标为 `is_tab_default=true` 且 `is_high_confidence=true`，回归会拒绝把它渲染成默认 `Tab` 建议
-- 连续搭建链样本可额外依赖 `cursor_context.recent_actions` 或 `topology_pattern_hints`，用于表达“上一步刚接受了什么 ghost”
-- `cursor_context.recent_actions[*]` 当前还会被检查是否带合法的 `candidate_ref` 与早于当前 `document_revision` 的 `accepted_at_revision`
+- 连续搭建链样本可额外依赖 `cursor_context.recent_actions` 或 `topology_pattern_hints`，用于表达“上一步刚接受了什么 ghost”或“刚否掉了什么 ghost”
+- `cursor_context.recent_actions[*]` 当前还会被检查是否带合法的 `candidate_ref`，以及与 `kind` 对应、且早于当前 `document_revision` 的修订号字段
+- 若同一 `candidate_ref` 刚在 `recent_actions` 中被 `reject` / `dismiss` / `skip`，回归会拒绝把它重新渲染成默认 `Tab` 建议
 - 响应与 action 的 `requires_confirmation` 必须保持为 `false`
 
 `Radish` 的 docs QA runner 当前已支持两种候选回答输入方式：
