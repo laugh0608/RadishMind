@@ -45,6 +45,9 @@
 31. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
 32. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
 33. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001-debug-full.json`
+34. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+35. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+36. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
 
 说明：
 
@@ -211,3 +214,18 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述第三模板链式停住候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留第三模板里邻近节点的阻塞原因与几何细节，避免“为何停住”再次退回成口头约定
+
+- `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Cooler -> FlashDrum` 连续搭建链里，`Cooler` outlet 同时存在两个接近且都合法的 `FlashDrum inlet` 候选，因此只能显示可见 ghost 而不能默认 `Tab`
+  - 当前用于把第三模板的 `manual_only` 边界从“命名冲突”扩展到“排序分差不足”这类更真实的分叉态
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第三模板排名歧义候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第三模板在排序分差不足场景下的最小请求装配边界
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第三模板排名歧义候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留两条候选的 `ranking_signals` 与 `conflict_flags`，避免“为何不能默认 Tab”再次退回成口头说明

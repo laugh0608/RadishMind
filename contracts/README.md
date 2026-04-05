@@ -41,6 +41,7 @@
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json)，用于验证第三条 `Feed -> Cooler -> FlashDrum` 链式模板也能复用同一套 recent-actions handoff 口径
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json)，用于固定第三条模板里“候选存在，但命名冲突导致只能 manual-only”的边界
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json)，用于固定第三条模板里“recent_actions 已存在，但合法候选仍为空时必须停住”的边界
+- 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json)，用于固定第三条模板里“候选存在，但排序分差过小导致只能 manual-only”的边界
 - 当前还提供了从候选集装配到模型请求的可执行入口 [build-radishflow-ghost-request.py](../scripts/build-radishflow-ghost-request.py)，并用 [radishflow-copilot-request-ghost-flash-basic-001.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json) 固定其最小输出
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
@@ -52,3 +53,4 @@
 - 当前 `check-repo` 还会校验 `Feed -> Cooler -> FlashDrum` 链式示例，确保第三条链式模板的装配边界同样稳定
 - 当前 `check-repo` 也会校验第三模板的命名冲突 no-tab 示例，确保 `Feed -> Cooler -> FlashDrum` 的 naming-signals 裁剪边界不会漂移
 - 当前 `check-repo` 也会校验第三模板的链式停住示例，确保 `Feed -> Cooler -> FlashDrum` 的空候选请求装配边界不会漂移
+- 当前 `check-repo` 也会校验第三模板的排名歧义 no-tab 示例，确保 `Feed -> Cooler -> FlashDrum` 的 ranking-signals 裁剪边界不会漂移

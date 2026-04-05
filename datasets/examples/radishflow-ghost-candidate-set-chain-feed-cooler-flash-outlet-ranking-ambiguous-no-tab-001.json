@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 59,
+  "selected_unit": {
+    "id": "cooler-10",
+    "kind": "Cooler",
+    "name": "Feed Cooler 704"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-20.inlet",
+      "direction": "downstream",
+      "distance_px": 67,
+      "alignment_score": 0.93
+    },
+    {
+      "type": "unit_port",
+      "id": "flash-21.inlet",
+      "direction": "downstream",
+      "distance_px": 72,
+      "alignment_score": 0.91
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-704-to-cooler-10-inlet",
+        "accepted_at_revision": 58
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-704"
+    ],
+    "existing_stream_names": [
+      "F-704"
+    ],
+    "preferred_outlet_prefix": "C",
+    "numeric_suffix_from_unit": "704"
+  },
+  "topology_pattern_hints": [
+    "feed_cooler_flash_chain",
+    "cooler_outlet_to_flash_inlet_after_feed_connection",
+    "cooler_outlet_parallel_flash_choice_requires_manual_selection"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-cooler-10-outlet-flash-20",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "cooler-10",
+      "target_node_id": "flash-20.inlet",
+      "suggested_stream_name": "C-704A",
+      "ranking_signals": {
+        "distance_px": 67,
+        "alignment_score": 0.93,
+        "topology_score": 0.88,
+        "score_gap_to_next": 0.04,
+        "template_frequency": 0.57
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "C",
+        "numeric_suffix": "704A",
+        "reused_existing_pattern": false,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "score_gap_too_small"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    },
+    {
+      "candidate_ref": "cand-cooler-10-outlet-flash-21",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "cooler-10",
+      "target_node_id": "flash-21.inlet",
+      "suggested_stream_name": "C-704B",
+      "ranking_signals": {
+        "distance_px": 72,
+        "alignment_score": 0.91,
+        "topology_score": 0.86,
+        "score_gap_to_next": 0.0,
+        "template_frequency": 0.55
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "C",
+        "numeric_suffix": "704B",
+        "reused_existing_pattern": false,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "score_gap_too_small"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-cooler-flash-chain-v1",
+    "notes": "第三条链式模板排名歧义示例：Cooler outlet 存在两个接近且都合法的 FlashDrum 候选，因此只能显示 manual-only ghost，不默认 Tab。"
+  }
+}

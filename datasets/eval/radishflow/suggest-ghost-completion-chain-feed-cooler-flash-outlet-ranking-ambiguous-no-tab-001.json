@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-220",
+          "streams": [
+            {
+              "id": "feed-704",
+              "name": "F-704",
+              "target_unit_id": "cooler-10"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-704-unit",
+              "kind": "Feed",
+              "name": "Feed 704"
+            },
+            {
+              "id": "cooler-10",
+              "kind": "Cooler",
+              "name": "Feed Cooler 704"
+            },
+            {
+              "id": "flash-20",
+              "kind": "FlashDrum",
+              "name": "Primary Flash 704"
+            },
+            {
+              "id": "flash-21",
+              "kind": "FlashDrum",
+              "name": "Secondary Flash 704"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 59,
+      "selected_unit_ids": [
+        "cooler-10"
+      ],
+      "selected_unit": {
+        "id": "cooler-10",
+        "kind": "Cooler",
+        "name": "Feed Cooler 704"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-20.inlet",
+          "distance_px": 67,
+          "alignment_score": 0.93,
+          "direction": "downstream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-21.inlet",
+          "distance_px": 72,
+          "alignment_score": 0.91,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-cooler-10-outlet-flash-20",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "cooler-10",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-20.inlet",
+          "suggested_stream_name": "C-704A",
+          "ranking_signals": {
+            "distance_px": 67,
+            "alignment_score": 0.93,
+            "topology_score": 0.88,
+            "score_gap_to_next": 0.04,
+            "template_frequency": 0.57
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "704A",
+            "reused_existing_pattern": false,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        },
+        {
+          "candidate_ref": "cand-cooler-10-outlet-flash-21",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "cooler-10",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-21.inlet",
+          "suggested_stream_name": "C-704B",
+          "ranking_signals": {
+            "distance_px": 72,
+            "alignment_score": 0.91,
+            "topology_score": 0.86,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.55
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "704B",
+            "reused_existing_pattern": false,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-704-to-cooler-10-inlet",
+            "accepted_at_revision": 58
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-704"
+        ],
+        "existing_stream_names": [
+          "F-704"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "704"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "cooler_outlet_parallel_flash_choice_requires_manual_selection"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-cooler-10-outlet-flash-20\"",
+      "$.proposed_actions[1].kind=\"ghost_completion\"",
+      "$.proposed_actions[1].patch.candidate_ref=\"cand-cooler-10-outlet-flash-21\"",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.proposed_actions[1].preview.accept_key=\"Tab\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "risk_level",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当 Cooler outlet 存在两个非常接近、都合法但没有显著领先者的 FlashDrum inlet 候选时，可以返回可见 ghost，但不应给任何一个候选默认 Tab 接受权。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "cooler-10 的 outlet 当前存在两个接近的合法 FlashDrum 候选，因此可以显示两个 ghost 备选，但不应默认把其中任何一个绑定到 Tab。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "flash-20 和 flash-21 都是合法下游，但距离与对齐评分非常接近，当前证据不足以让某一条候选显著领先，因此只返回可见 ghost 而不默认接受。",
+        "citation_ids": [
+          "ctx-nearby-flash-primary",
+          "ctx-nearby-flash-secondary",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "将 flash-20 作为 cooler-10 outlet 的可见 ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-10",
+          "port_key": "outlet"
+        },
+        "rationale": "通往 flash-20 的路径略微更接近，但领先幅度不足以成为默认 Tab 建议，因此只保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-10-outlet-flash-20",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-704A"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-10-outlet-flash-20"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-flash-primary",
+          "ctx-nearby-flash-primary"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "将 flash-21 作为 cooler-10 outlet 的可见 ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-10",
+          "port_key": "outlet"
+        },
+        "rationale": "通往 flash-21 的候选同样合法，且与 flash-20 差距不足以被直接排除，因此作为第二条可见 ghost 保留。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-10-outlet-flash-21",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-704B"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-10-outlet-flash-21"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-flash-secondary",
+          "ctx-nearby-flash-secondary"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-nearby-flash-primary",
+        "kind": "context",
+        "label": "主 FlashDrum 下游邻近证据",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "flash-20.inlet distance_px=67 alignment_score=0.93"
+      },
+      {
+        "id": "ctx-nearby-flash-secondary",
+        "kind": "context",
+        "label": "次级 FlashDrum 下游邻近证据",
+        "locator": "context:nearby_nodes[1]",
+        "excerpt": "flash-21.inlet distance_px=72 alignment_score=0.91"
+      },
+      {
+        "id": "ctx-candidate-flash-primary",
+        "kind": "context",
+        "label": "主 FlashDrum 候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-10-outlet-flash-20 is_tab_default=false conflict_flags=[score_gap_too_small]"
+      },
+      {
+        "id": "ctx-candidate-flash-secondary",
+        "kind": "context",
+        "label": "次级 FlashDrum 候选",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-cooler-10-outlet-flash-21 is_tab_default=false conflict_flags=[score_gap_too_small]"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "第三模板并行下游模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "cooler_outlet_parallel_flash_choice_requires_manual_selection"
+      }
+    ],
+    "confidence": 0.77,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}
