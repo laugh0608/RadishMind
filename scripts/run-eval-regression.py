@@ -1582,7 +1582,8 @@ def validate_ghost_completion_response(
     if response.get("requires_confirmation") is not False:
         add_violation(violations, f"{sample_name}: {response_label}.requires_confirmation must remain false for pending ghost suggestions")
     recent_actions = get_array((request_context.get("cursor_context") or {}).get("recent_actions"))
-    if recent_actions and len(actions) == 0:
+    legal_candidate_list = get_array(request_context.get("legal_candidate_completions"))
+    if recent_actions and legal_candidate_list and len(actions) == 0:
         add_violation(
             violations,
             f"{sample_name}: {response_label} should not drop to zero proposed_actions when recent_actions indicate an accepted ghost chain step",

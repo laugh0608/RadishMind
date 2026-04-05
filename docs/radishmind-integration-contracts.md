@@ -143,6 +143,7 @@
 - 若本地规则层已将某候选标记为 `is_tab_default=true`，则它当前应同时满足 `is_high_confidence=true` 且不存在 `conflict_flags`
 - 对连续搭建链场景，当前建议通过 `cursor_context.recent_actions` 透传最近一次或几次 `accept_ghost_completion` 记录，让模型明确知道“上一步刚接受了什么 ghost”
 - `recent_actions[*]` 当前最小字段为 `kind`、`candidate_ref`、`accepted_at_revision`；其中 `accepted_at_revision` 应早于当前 `document_revision`
+- `recent_actions` 当前只表达链式上下文，不得凌驾于 `legal_candidate_completions` 之上；若本地规则层给出的合法候选为空，当前仍应允许空建议
 - 当前仓库已用 `Feed -> Valve -> FlashDrum` 连续搭建链 example 固定这条口径：
   - [radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json)
   - [radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json)
@@ -188,6 +189,7 @@
 - 同一条连续搭建链当前还固定了“空候选停住”示例，确保 `recent_actions` 不会被误解为“只要有上一跳就必须继续给下一跳建议”
 - 同一条连续搭建链当前也固定了“候选存在但命名冲突 no-tab”示例，确保 `recent_actions` 不会被误解为“只要候选非空就可以默认 Tab”
 - 上述 `no-tab` 边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免这条规则只停留在 pre-model examples
+- 上述“链式停住空建议”边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免这条规则只停留在 pre-model examples
 
 ### `Radish` 上下文建议
 

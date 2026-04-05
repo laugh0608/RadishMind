@@ -78,6 +78,11 @@
 
 这样模型可以明确知道“上一步刚接受了哪条 ghost”，而不必只靠模糊的画布静态快照猜测当前处于哪一步。
 
+但 `recent_actions` 只用于表达链式上下文，不得覆盖本地规则层的合法候选边界：
+
+- 若 `legal_candidate_completions=[]`，即使刚接受过上一条 ghost，也仍应允许返回空建议
+- 不应因为“链已经开始”就跳过本地规则层，主观补一个并不存在的下一跳
+
 当前仓库已将这条约束从 `eval` 样本推进到 `datasets/examples/` 基线：
 
 - [radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json)
@@ -96,9 +101,10 @@
 
 当前 `datasets/eval/` 也已补对应回归样本：
 
+- [suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.json)
 - [suggest-ghost-completion-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json)
 
-它用于把“链式继续但只能 manual-only”的边界从 pre-model handoff 再推进到 response-level regression。
+它们用于把“链式停住空建议”和“链式继续但只能 manual-only”的边界从 pre-model handoff 再推进到 response-level regression。
 
 ## 禁止透传
 
