@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 53,
+  "selected_unit": {
+    "id": "heater-2",
+    "kind": "Heater",
+    "name": "Feed Heater 601"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-14.inlet",
+      "direction": "downstream",
+      "distance_px": 66,
+      "alignment_score": 0.95
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-601-to-heater-2-inlet",
+        "accepted_at_revision": 52
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-601"
+    ],
+    "existing_stream_names": [
+      "F-601"
+    ],
+    "preferred_outlet_prefix": "H",
+    "numeric_suffix_from_unit": "601"
+  },
+  "topology_pattern_hints": [
+    "feed_heater_flash_chain",
+    "heater_outlet_to_flash_inlet_after_feed_connection"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-heater-2-outlet-flash-14",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "heater-2",
+      "target_node_id": "flash-14.inlet",
+      "suggested_stream_name": "H-601",
+      "ranking_signals": {
+        "distance_px": 66,
+        "alignment_score": 0.95,
+        "topology_score": 0.92,
+        "score_gap_to_next": 0.43,
+        "template_frequency": 0.84
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "H",
+        "numeric_suffix": "601",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-heater-flash-chain-v1",
+    "notes": "第二条链式模板示例：Feed 已接入 Heater 后，下一步默认建议 Heater outlet 接入 FlashDrum inlet。"
+  }
+}

@@ -26,6 +26,9 @@
 - `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
 - `eval/radishflow-task-sample.schema.json`
 - `eval/radish-task-sample.schema.json`
 - `eval/radishflow/*.json`
@@ -44,3 +47,4 @@
 - 当前 `examples/` 已新增 `Feed -> Valve -> FlashDrum` 连续搭建链基线，把 `cursor_context.recent_actions` 从 `eval` 样本推进到 pre-model candidate set 与 request assembly 示例，固定“上一跳已接受 ghost 会影响下一跳默认建议”的最小口径
 - 当前 `examples/` 还补了同一条连续搭建链的“停住边界”基线，固定 `recent_actions` 已存在但 `legal_candidate_completions=[]` 时，适配层仍需稳定装配空候选请求而不是回退成主观猜测
 - 当前 `examples/` 继续补了同一条连续搭建链的“命名冲突但可见 ghost”基线，固定 `legal_candidate_completions` 非空但 `conflict_flags` 阻止默认 `Tab` 的 handoff 与 request assembly 边界
+- 当前 `examples/` 还补了第二条链式模板 `Feed -> Heater -> FlashDrum`，用于验证链式 handoff、request assembly 与 `Tab` 默认接受边界并未耦合到 `Valve`

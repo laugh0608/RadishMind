@@ -27,6 +27,9 @@
 13. `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
 14. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
 15. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001-debug-full.json`
+16. `radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
+17. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
+18. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
 
 说明：
 
@@ -103,3 +106,18 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述链式命名冲突候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留 naming_signals 与 conflict_flags，避免“为何不能默认 Tab”再次退回成口头说明
+
+- `radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Heater -> FlashDrum` 连续搭建链里，`Feed -> Heater` 入口 ghost 刚被接受后，下一步默认建议转向 `Heater` 的 outlet 接入 `FlashDrum` inlet 的 pre-model 候选集
+  - 当前用于验证 `recent_actions` 与 `topology_pattern_hints` 的链式作用并未写死在 `Valve` 模板上
+
+- `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述 `Feed -> Heater -> FlashDrum` 链式候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第二条链式模板在最小请求里的装配边界
+
+- `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述 `Feed -> Heater -> FlashDrum` 链式候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留几何评分与命名证据，便于对照第二条链式模板的装配结果

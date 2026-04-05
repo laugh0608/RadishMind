@@ -87,6 +87,21 @@ GHOST_REQUEST_ASSEMBLY_FIXTURES = [
             },
         ],
     },
+    {
+        "candidate_set": "datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json",
+        "requests": [
+            {
+                "output": "datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json",
+                "request_id": "rf-ghost-request-chain-feed-heater-flash-heater-outlet-001",
+                "assembly_profile": "model-minimal",
+            },
+            {
+                "output": "datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json",
+                "request_id": "rf-ghost-request-chain-feed-heater-flash-heater-outlet-001-debug-full",
+                "assembly_profile": "debug-full",
+            },
+        ],
+    },
 ]
 
 RADISH_DOCS_QA_REAL_BATCHES = [
@@ -148,6 +163,7 @@ REQUIRED_FILES = [
     "datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json",
     "datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-stop-no-legal-outlet-001.json",
     "datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json",
+    "datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json",
     "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json",
     "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json",
     "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json",
@@ -158,6 +174,8 @@ REQUIRED_FILES = [
     "datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001-debug-full.json",
     "datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json",
     "datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001-debug-full.json",
+    "datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json",
+    "datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json",
     "datasets/eval/README.md",
     "datasets/eval/batch-orchestration-summary.schema.json",
     "datasets/eval/candidate-record-batch.schema.json",
@@ -183,6 +201,7 @@ REQUIRED_FILES = [
     "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-valve-outlet-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json",
+    "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-heater-outlet-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-flash-nearby-node-ranking-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-heater-stream-name-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-mixer-standard-outlet-001.json",

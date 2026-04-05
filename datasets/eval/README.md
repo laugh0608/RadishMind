@@ -140,6 +140,7 @@
 - `Feed -> Valve -> FlashDrum` 连续搭建链中，承接前一步后的 `FlashDrum` 出口补全
 - `Feed -> Valve -> FlashDrum` 连续搭建链中，因没有合法 outlet 候选而返回空建议
 - `Feed -> Valve -> FlashDrum` 连续搭建链中，因命名冲突只能返回 `manual_only` ghost 的 outlet 补全
+- `Feed -> Heater -> FlashDrum` 连续搭建链中的加热器 outlet 补全
 - `FlashDrum` 基于 `nearby_nodes` 的多候选排序
 - `Heater` 的 `ghost_stream_name` 命名补全
 - `Mixer` 标准出口补全
