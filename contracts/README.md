@@ -23,3 +23,5 @@
 - 任务级最小输入和风险规则以 [docs/task-cards/README.md](../docs/task-cards/README.md) 为准
 - 当前 `Radish` 文档问答回归会直接复用这两份 schema 校验 `input_request` 与 `golden_response`，再叠加任务级召回边界与输出对照规则
 - 当前 `RadishFlow` 已在 schema 中补入 `suggest_ghost_completion` 与 `ghost_completion` 候选动作，用于承接编辑器内的 ghost 补全建议
+- 当前 `CopilotRequest` schema 已进一步冻结 `suggest_ghost_completion` 依赖的关键上下文字段，包括 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints`
+- 对 `task=suggest_ghost_completion`，schema 当前还会额外要求 `document_revision`、单个 `selected_unit_ids` 和 `legal_candidate_completions`，并要求至少提供 `unconnected_ports` 或 `missing_canonical_ports`

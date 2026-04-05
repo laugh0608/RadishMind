@@ -115,6 +115,59 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "project": {
+            "const": "radishflow"
+          },
+          "task": {
+            "const": "suggest_ghost_completion"
+          }
+        },
+        "required": [
+          "project",
+          "task"
+        ]
+      },
+      "then": {
+        "properties": {
+          "context": {
+            "allOf": [
+              {
+                "required": [
+                  "document_revision",
+                  "selected_unit_ids",
+                  "legal_candidate_completions"
+                ]
+              },
+              {
+                "properties": {
+                  "selected_unit_ids": {
+                    "minItems": 1,
+                    "maxItems": 1
+                  }
+                }
+              },
+              {
+                "anyOf": [
+                  {
+                    "required": [
+                      "unconnected_ports"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "missing_canonical_ports"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -216,6 +269,139 @@
         }
       }
     },
+    "radishflow_selected_unit": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "radishflow_nearby_node": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "type": "string"
+        },
+        "distance_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alignment_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "radishflow_ghost_candidate_completion": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "candidate_ref",
+        "ghost_kind",
+        "target_port_key"
+      ],
+      "properties": {
+        "candidate_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ghost_kind": {
+          "type": "string",
+          "enum": [
+            "ghost_port",
+            "ghost_connection",
+            "ghost_stream_name"
+          ]
+        },
+        "target_port_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_unit_id": {
+          "type": "string"
+        },
+        "source_stream_id": {
+          "type": "string"
+        },
+        "target_node_id": {
+          "type": "string"
+        },
+        "suggested_stream_name": {
+          "type": "string"
+        },
+        "is_high_confidence": {
+          "type": "boolean"
+        },
+        "is_tab_default": {
+          "type": "boolean"
+        }
+      }
+    },
+    "radishflow_naming_hints": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "upstream_stream_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "existing_stream_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "preferred_outlet_prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "numeric_suffix_from_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preferred_prefix_by_port": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
     "radishflow_context": {
       "type": "object",
       "additionalProperties": true,
@@ -231,6 +417,9 @@
             "minLength": 1
           },
           "uniqueItems": true
+        },
+        "selected_unit": {
+          "$ref": "#/$defs/radishflow_selected_unit"
         },
         "selected_stream_ids": {
           "type": "array",
@@ -254,6 +443,49 @@
         },
         "latest_snapshot": {
           "type": "object"
+        },
+        "unconnected_ports": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "missing_canonical_ports": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "nearby_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/radishflow_nearby_node"
+          }
+        },
+        "cursor_context": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "legal_candidate_completions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/radishflow_ghost_candidate_completion"
+          }
+        },
+        "naming_hints": {
+          "$ref": "#/$defs/radishflow_naming_hints"
+        },
+        "topology_pattern_hints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
         },
         "control_plane_state": {
           "type": "object",
