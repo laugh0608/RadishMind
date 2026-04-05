@@ -36,6 +36,15 @@
 22. `radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
 23. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
 24. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json`
+25. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json`
+26. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001.json`
+27. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001-debug-full.json`
+28. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+29. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+30. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+31. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+32. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+33. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001-debug-full.json`
 
 说明：
 
@@ -157,3 +166,48 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述第二模板链式停住候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留第二模板里邻近节点的阻塞原因与几何细节，避免“为何停住”再次退回成口头约定
+
+- `radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Cooler -> FlashDrum` 连续搭建链里，`Feed -> Cooler` 入口 ghost 刚被接受后，下一步默认建议转向 `Cooler` 的 outlet 接入 `FlashDrum` inlet 的 pre-model 候选集
+  - 当前用于验证第三条链式模板同样可以复用 `recent_actions` handoff、最小装配和默认 `Tab` 口径
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述 `Feed -> Cooler -> FlashDrum` 链式候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第三条链式模板在最小请求里的装配边界
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述 `Feed -> Cooler -> FlashDrum` 链式候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留第三条链式模板的几何评分与命名证据，便于对照最小请求的裁剪边界
+
+- `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Cooler -> FlashDrum` 连续搭建链里，`Cooler` outlet 候选已经存在，但建议命名与现有流股冲突，因此只能显示可见 ghost 而不能默认 `Tab`
+  - 当前用于验证第三条模板同样支持 `manual_only` 边界，而不是只存在顺风正例
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第三模板命名冲突候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第三模板 `manual_only` 候选在最小请求里的装配边界
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第三模板命名冲突候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留第三模板的 `naming_signals` 与 `conflict_flags`，避免“为何不能默认 Tab”再次退回成口头说明
+
+- `radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Cooler -> FlashDrum` 连续搭建链里，`Feed -> Cooler` 入口 ghost 刚被接受后，当前 `Cooler` outlet 不存在任何合法候选的 pre-model 候选集
+  - 当前用于固定第三条模板里“recent_actions 已存在，但 local rules 仍要求停住并返回空建议”的 handoff 边界
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第三模板链式停住候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第三模板空候选链路里 `recent_actions`、`naming_hints` 与裁剪后的邻近节点仍会如何进入请求
+
+- `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第三模板链式停住候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留第三模板里邻近节点的阻塞原因与几何细节，避免“为何停住”再次退回成口头约定

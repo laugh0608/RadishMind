@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-cooler-flash-cooler-outlet-001-debug-full",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 56,
+    "selected_unit_ids": [
+      "cooler-7"
+    ],
+    "selected_unit": {
+      "id": "cooler-7",
+      "kind": "Cooler",
+      "name": "Feed Cooler 701"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-cooler-7-outlet-flash-17",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "cooler-7",
+        "target_node_id": "flash-17.inlet",
+        "suggested_stream_name": "C-701",
+        "ranking_signals": {
+          "distance_px": 63,
+          "alignment_score": 0.96,
+          "topology_score": 0.93,
+          "score_gap_to_next": 0.45,
+          "template_frequency": 0.82
+        },
+        "naming_signals": {
+          "derived_from_upstream_name": true,
+          "applied_prefix": "C",
+          "numeric_suffix": "701",
+          "reused_existing_pattern": true,
+          "collision_checked": true
+        },
+        "is_high_confidence": true,
+        "is_tab_default": true
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-701-to-cooler-7-inlet",
+          "accepted_at_revision": 55
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-701"
+      ],
+      "existing_stream_names": [
+        "F-701"
+      ],
+      "preferred_outlet_prefix": "C",
+      "numeric_suffix_from_unit": "701"
+    },
+    "topology_pattern_hints": [
+      "feed_cooler_flash_chain",
+      "cooler_outlet_to_flash_inlet_after_feed_connection"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-17.inlet",
+        "direction": "downstream",
+        "distance_px": 63,
+        "alignment_score": 0.96
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

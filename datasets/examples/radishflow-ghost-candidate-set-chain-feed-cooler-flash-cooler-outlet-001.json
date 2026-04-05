@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 56,
+  "selected_unit": {
+    "id": "cooler-7",
+    "kind": "Cooler",
+    "name": "Feed Cooler 701"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-17.inlet",
+      "direction": "downstream",
+      "distance_px": 63,
+      "alignment_score": 0.96
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-701-to-cooler-7-inlet",
+        "accepted_at_revision": 55
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-701"
+    ],
+    "existing_stream_names": [
+      "F-701"
+    ],
+    "preferred_outlet_prefix": "C",
+    "numeric_suffix_from_unit": "701"
+  },
+  "topology_pattern_hints": [
+    "feed_cooler_flash_chain",
+    "cooler_outlet_to_flash_inlet_after_feed_connection"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-cooler-7-outlet-flash-17",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "cooler-7",
+      "target_node_id": "flash-17.inlet",
+      "suggested_stream_name": "C-701",
+      "ranking_signals": {
+        "distance_px": 63,
+        "alignment_score": 0.96,
+        "topology_score": 0.93,
+        "score_gap_to_next": 0.45,
+        "template_frequency": 0.82
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "C",
+        "numeric_suffix": "701",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-cooler-flash-chain-v1",
+    "notes": "第三条链式模板示例：Feed 已接入 Cooler 后，下一步默认建议 Cooler outlet 接入 FlashDrum inlet。"
+  }
+}
