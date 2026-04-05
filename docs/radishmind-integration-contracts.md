@@ -167,7 +167,11 @@
 
 - [build-radishflow-ghost-request.py](../scripts/build-radishflow-ghost-request.py)
 - 它负责把 `radishflow-ghost-candidate-set.schema.json` 对象装配为 `CopilotRequest`
-- 当前只做最小稳定映射，不引入额外推断：`selected_unit -> selected_unit_ids`、候选集相关字段原样透传、`tool_hints` / `safety` 使用当前默认 advisory 配置
+- 当前默认使用 `model-minimal` profile，而不是无差别透传
+- `selected_unit -> selected_unit_ids`、`unconnected_ports`、`cursor_context`、`naming_hints`、`topology_pattern_hints` 继续按最小稳定映射装配
+- `legal_candidate_completions` 当前默认只保留模型最小必要字段：`candidate_ref`、`ghost_kind`、`target_port_key`、目标引用、建议名以及 `is_high_confidence` / `is_tab_default`
+- `ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认留在 pre-model 候选集对象中，不直接透传到 `CopilotRequest`
+- `nearby_nodes` 当前默认只保留 `type`、`id` 与 `direction`，不默认透传几何评分细节
 
 ### `Radish` 上下文建议
 

@@ -55,6 +55,12 @@
 - 装配脚本参考 [build-radishflow-ghost-request.py](../../scripts/build-radishflow-ghost-request.py)
 - 这样前端、本地规则层和模型层都能围绕同一份 `legal_candidate_completions` 结构协作，而不是各自私有拼接
 
+当前推荐默认装配策略：
+
+- 将 `ranking_signals`、`naming_signals`、`conflict_flags` 保留在本地候选集对象
+- 只把模型判断确实需要的候选摘要透传到 `CopilotRequest`
+- 若后续需要做调试或对照，可再显式切到更完整的装配 profile，而不是默认把本地证据全量喂给模型
+
 当前建议本地规则层尽量把候选证据也结构化透传出来：
 
 - `legal_candidate_completions[*].ranking_signals`

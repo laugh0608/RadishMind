@@ -31,13 +31,6 @@
         "target_unit_id": "flash-9",
         "source_stream_id": "feed-601",
         "suggested_stream_name": "F-601",
-        "ranking_signals": {
-          "distance_px": 74,
-          "alignment_score": 0.96,
-          "topology_score": 0.93,
-          "score_gap_to_next": 0.37,
-          "template_frequency": 0.89
-        },
         "is_high_confidence": true,
         "is_tab_default": true
       },
@@ -47,18 +40,6 @@
         "target_port_key": "vapor_outlet",
         "target_unit_id": "flash-9",
         "suggested_stream_name": "VG-601",
-        "ranking_signals": {
-          "alignment_score": 0.84,
-          "topology_score": 0.82,
-          "score_gap_to_next": 0.0,
-          "template_frequency": 0.8
-        },
-        "naming_signals": {
-          "applied_prefix": "VG",
-          "numeric_suffix": "601",
-          "reused_existing_pattern": true,
-          "collision_checked": true
-        },
         "is_high_confidence": false,
         "is_tab_default": false
       }
@@ -72,9 +53,7 @@
       {
         "type": "stream_stub",
         "id": "feed-601",
-        "direction": "upstream",
-        "distance_px": 74,
-        "alignment_score": 0.96
+        "direction": "upstream"
       }
     ],
     "cursor_context": {

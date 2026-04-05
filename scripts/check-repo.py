@@ -266,6 +266,8 @@ def check_contract_schemas() -> None:
             "artifact://flowsheet/current",
             "--request-id",
             "rf-ghost-request-flash-basic-001",
+            "--assembly-profile",
+            "model-minimal",
             "--check",
         ],
     )

@@ -33,6 +33,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--request-id", required=True, help="request_id written into the generated CopilotRequest.")
     parser.add_argument("--locale", default="zh-CN", help="Locale written into the generated CopilotRequest.")
     parser.add_argument(
+        "--assembly-profile",
+        choices=["model-minimal", "debug-full"],
+        default="model-minimal",
+        help="Assembly profile. model-minimal trims local-only signals before sending to the model.",
+    )
+    parser.add_argument(
         "--check",
         action="store_true",
         help="Do not rewrite output; fail if the generated request does not match the existing output file.",
@@ -40,24 +46,73 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def build_request(candidate_set: dict[str, Any], *, request_id: str, locale: str, artifact_uri: str) -> dict[str, Any]:
+MODEL_REQUEST_CANDIDATE_KEYS = {
+    "candidate_ref",
+    "ghost_kind",
+    "target_port_key",
+    "target_unit_id",
+    "source_stream_id",
+    "target_node_id",
+    "suggested_stream_name",
+    "is_high_confidence",
+    "is_tab_default",
+}
+
+MODEL_REQUEST_NEARBY_NODE_KEYS = {
+    "type",
+    "id",
+    "direction",
+}
+
+
+def trim_candidate_for_model(candidate: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in candidate.items() if key in MODEL_REQUEST_CANDIDATE_KEYS}
+
+
+def trim_nearby_node_for_model(node: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in node.items() if key in MODEL_REQUEST_NEARBY_NODE_KEYS}
+
+
+def build_request(
+    candidate_set: dict[str, Any],
+    *,
+    request_id: str,
+    locale: str,
+    artifact_uri: str,
+    assembly_profile: str,
+) -> dict[str, Any]:
+    legal_candidate_completions = candidate_set["legal_candidate_completions"]
+    nearby_nodes = candidate_set.get("nearby_nodes")
+
+    if assembly_profile == "model-minimal":
+        legal_candidate_completions = [
+            trim_candidate_for_model(candidate)
+            for candidate in legal_candidate_completions
+        ]
+        if nearby_nodes is not None:
+            nearby_nodes = [
+                trim_nearby_node_for_model(node)
+                for node in nearby_nodes
+            ]
+
     context: dict[str, Any] = {
         "document_revision": candidate_set["document_revision"],
         "selected_unit_ids": [candidate_set["selected_unit"]["id"]],
         "selected_unit": candidate_set["selected_unit"],
-        "legal_candidate_completions": candidate_set["legal_candidate_completions"],
+        "legal_candidate_completions": legal_candidate_completions,
     }
 
     for optional_key in (
         "unconnected_ports",
         "missing_canonical_ports",
-        "nearby_nodes",
         "cursor_context",
         "naming_hints",
         "topology_pattern_hints",
     ):
         if optional_key in candidate_set:
             context[optional_key] = candidate_set[optional_key]
+    if nearby_nodes is not None:
+        context["nearby_nodes"] = nearby_nodes
 
     request = {
         "schema_version": 1,
@@ -104,6 +159,7 @@ def main() -> int:
         request_id=args.request_id.strip(),
         locale=args.locale.strip(),
         artifact_uri=args.artifact_uri.strip(),
+        assembly_profile=args.assembly_profile.strip(),
     )
     ensure_schema(request, COPILOT_REQUEST_SCHEMA_PATH, "generated ghost CopilotRequest")
 

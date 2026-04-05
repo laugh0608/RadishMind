@@ -24,4 +24,4 @@
 - `radishflow-copilot-request-ghost-flash-basic-001.json`
   - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示“候选集经适配层装配后发给模型”的最小 `CopilotRequest`
-  - 当前应可由 [build-radishflow-ghost-request.py](../../scripts/build-radishflow-ghost-request.py) 从上面的候选集示例稳定生成
+  - 当前应可由 [build-radishflow-ghost-request.py](../../scripts/build-radishflow-ghost-request.py) 以默认 `model-minimal` profile 从上面的候选集示例稳定生成
