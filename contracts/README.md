@@ -35,6 +35,7 @@
 - 当前仓库已继续补 [radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json)，用于固定连续搭建链里 `recent_actions` 会如何影响下一步默认 outlet 建议
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-valve-flash-stop-no-legal-outlet-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-stop-no-legal-outlet-001.json)，用于固定连续搭建链里“recent_actions 已存在，但本地规则仍要求空建议停住”的边界
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json)，用于固定连续搭建链里“候选存在，但命名冲突导致只能 manual-only”的边界
+- 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json)，用于固定连续搭建链里“候选存在，但排序分差过小导致只能 manual-only”的边界
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json)，用于验证第二条 `Feed -> Heater -> FlashDrum` 链式模板也能复用同一套 recent-actions handoff 口径
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json)，用于固定第二条模板里“候选存在，但命名冲突导致只能 manual-only”的边界
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json)，用于固定第二条模板里“recent_actions 已存在，但合法候选仍为空时必须停住”的边界
@@ -48,6 +49,7 @@
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
 - 当前 `check-repo` 已同时校验基础 `FlashDrum`、`Valve ambiguous`、`Feed -> Valve -> FlashDrum` 连续搭建链正向示例和链式停住示例，避免 `recent_actions` 与空候选请求的装配逻辑只停留在 `eval` 样本说明层
 - 当前 `check-repo` 也会校验链式命名冲突 no-tab 示例，确保 `naming_signals` / `conflict_flags` 与最小请求裁剪边界不会漂移
+- 当前 `check-repo` 也会校验第一模板的排名歧义 no-tab 示例，确保 `Feed -> Valve -> FlashDrum` 的 ranking-signals 裁剪边界不会漂移
 - 当前 `check-repo` 还会校验 `Feed -> Heater -> FlashDrum` 链式示例，确保第二条链式模板的装配边界同样稳定
 - 当前 `check-repo` 也会校验第二模板的命名冲突 no-tab 示例，确保 `Feed -> Heater -> FlashDrum` 的 naming-signals 裁剪边界不会漂移
 - 当前 `check-repo` 也会校验第二模板的链式停住示例，确保 `Feed -> Heater -> FlashDrum` 的空候选请求装配边界不会漂移

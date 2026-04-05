@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001-debug-full",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 63,
+    "selected_unit_ids": [
+      "flash-14"
+    ],
+    "selected_unit": {
+      "id": "flash-14",
+      "kind": "FlashDrum",
+      "name": "Flash Drum 506"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-flash-14-vapor-outlet-ranking-ambiguous",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "vapor_outlet",
+        "target_unit_id": "flash-14",
+        "suggested_stream_name": "VG-506",
+        "ranking_signals": {
+          "distance_px": 70,
+          "alignment_score": 0.93,
+          "topology_score": 0.9,
+          "score_gap_to_next": 0.04,
+          "template_frequency": 0.84
+        },
+        "naming_signals": {
+          "applied_prefix": "VG",
+          "numeric_suffix": "506",
+          "reused_existing_pattern": true,
+          "collision_checked": true
+        },
+        "conflict_flags": [
+          "score_gap_too_small"
+        ],
+        "is_high_confidence": false,
+        "is_tab_default": false
+      },
+      {
+        "candidate_ref": "cand-flash-14-liquid-outlet-ranking-ambiguous",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "liquid_outlet",
+        "target_unit_id": "flash-14",
+        "suggested_stream_name": "VL-506",
+        "ranking_signals": {
+          "distance_px": 73,
+          "alignment_score": 0.92,
+          "topology_score": 0.88,
+          "score_gap_to_next": 0.0,
+          "template_frequency": 0.82
+        },
+        "naming_signals": {
+          "applied_prefix": "VL",
+          "numeric_suffix": "506",
+          "reused_existing_pattern": true,
+          "collision_checked": true
+        },
+        "conflict_flags": [
+          "score_gap_too_small"
+        ],
+        "is_high_confidence": false,
+        "is_tab_default": false
+      }
+    ],
+    "unconnected_ports": [
+      "vapor_outlet",
+      "liquid_outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-506-to-valve-7-inlet",
+          "accepted_at_revision": 61
+        },
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-valve-7-outlet-flash-14",
+          "accepted_at_revision": 62
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "V-506"
+      ],
+      "existing_stream_names": [
+        "F-506",
+        "V-506"
+      ],
+      "preferred_prefix_by_port": {
+        "vapor_outlet": "VG",
+        "liquid_outlet": "VL"
+      },
+      "numeric_suffix_from_unit": "506"
+    },
+    "topology_pattern_hints": [
+      "feed_valve_flash_chain",
+      "flash_split_after_valve_outlet_connection",
+      "flash_outlet_priority_gap_requires_manual_selection"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "stream_stub",
+        "id": "flash-14-vapor-lane",
+        "direction": "downstream",
+        "distance_px": 70,
+        "alignment_score": 0.93
+      },
+      {
+        "type": "stream_stub",
+        "id": "flash-14-liquid-lane",
+        "direction": "downstream",
+        "distance_px": 73,
+        "alignment_score": 0.92
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

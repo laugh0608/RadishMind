@@ -27,30 +27,33 @@
 13. `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
 14. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
 15. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001-debug-full.json`
-16. `radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
-17. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
-18. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
-19. `radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
-20. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
-21. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001-debug-full.json`
-22. `radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
-23. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
-24. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json`
-25. `radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json`
-26. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json`
-27. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
-28. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json`
-29. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001.json`
-30. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001-debug-full.json`
-31. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
-32. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
-33. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001-debug-full.json`
-34. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
-35. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
-36. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001-debug-full.json`
-37. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
-38. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
-39. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
+16. `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
+17. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
+18. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001-debug-full.json`
+19. `radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
+20. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
+21. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
+22. `radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+23. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+24. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+25. `radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+26. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+27. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json`
+28. `radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json`
+29. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json`
+30. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
+31. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json`
+32. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001.json`
+33. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001-debug-full.json`
+34. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+35. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+36. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+37. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+38. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+39. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001-debug-full.json`
+40. `radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+41. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+42. `radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
 
 说明：
 
@@ -127,6 +130,21 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述链式命名冲突候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留 naming_signals 与 conflict_flags，避免“为何不能默认 Tab”再次退回成口头说明
+
+- `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Valve -> FlashDrum` 连续搭建链里，`FlashDrum` 的 `vapor_outlet` 与 `liquid_outlet` 候选都合法且排序分差过小，因此只能显示可见 ghost 而不能默认 `Tab`
+  - 当前用于把第一模板的 `manual_only` 边界从“命名冲突”扩展到“排序分差不足”这类更真实的分叉态
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第一模板排名歧义候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第一模板在排序分差不足场景下的最小请求装配边界
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第一模板排名歧义候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留两条 outlet 候选的 `ranking_signals` 与 `conflict_flags`，避免“为何不能默认 Tab”再次退回成口头说明
 
 - `radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
   - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
