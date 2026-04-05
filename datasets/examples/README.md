@@ -30,6 +30,9 @@
 16. `radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
 17. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
 18. `radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
+19. `radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+20. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+21. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001-debug-full.json`
 
 说明：
 
@@ -121,3 +124,18 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述 `Feed -> Heater -> FlashDrum` 链式候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留几何评分与命名证据，便于对照第二条链式模板的装配结果
+
+- `radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Heater -> FlashDrum` 连续搭建链里，`Heater` outlet 候选已经存在，但建议命名与现有流股冲突，因此只能显示可见 ghost 而不能默认 `Tab`
+  - 当前用于验证第二条模板同样支持 `manual_only` 边界，而不是只存在顺风正例
+
+- `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第二模板命名冲突候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第二模板 `manual_only` 候选在最小请求里的装配边界
+
+- `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第二模板命名冲突候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留第二模板的 naming_signals 与 conflict_flags，避免“为何不能默认 Tab”再次退回成口头说明
