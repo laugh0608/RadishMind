@@ -103,6 +103,9 @@
 - [radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json)
+- [radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json)
 - [radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001-debug-full.json)
@@ -122,6 +125,7 @@
 而 `feed-heater-flash-heater-outlet` 示例则验证这套链式 handoff 不只适用于 `Valve`，同样适用于 `Feed -> Heater -> FlashDrum` 这类第二模板。
 而 `feed-heater-flash-outlet-name-conflict-no-tab` 示例则进一步验证第二模板也能稳定落到 `manual_only`，而不是只存在一条正向 `Tab` 路径。
 而 `feed-heater-flash-stop-no-legal-outlet` 示例则进一步验证第二模板同样能在合法候选为空时稳定停住，不会因为 recent-actions 已存在就强行继续补下一跳。
+而 `feed-heater-flash-outlet-ranking-ambiguous-no-tab` 示例则进一步验证第二模板的 `manual_only` 不只来自命名冲突，也可以来自两个合法 `FlashDrum inlet` 候选的分差过小。
 而 `feed-cooler-flash-cooler-outlet`、`feed-cooler-flash-outlet-name-conflict-no-tab` 与 `feed-cooler-flash-stop-no-legal-outlet` 三组示例则进一步验证第三模板 `Feed -> Cooler -> FlashDrum` 同样具备 `Tab / manual_only / empty` 完整对照组。
 而 `feed-cooler-flash-outlet-ranking-ambiguous-no-tab` 示例则进一步验证第三模板的 `manual_only` 不只来自命名冲突，也可以来自两个合法 `FlashDrum inlet` 候选的分差过小。
 
@@ -132,12 +136,13 @@
 - [suggest-ghost-completion-chain-feed-heater-flash-heater-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-heater-outlet-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-001.json)
+- [suggest-ghost-completion-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-cooler-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-cooler-outlet-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json)
 
-它们用于把 `Feed -> Valve -> FlashDrum` 的“链式停住空建议”“链式继续但只能 manual-only”边界，以及 `Feed -> Heater -> FlashDrum` 与 `Feed -> Cooler -> FlashDrum` 的正向 `Tab`、`manual_only` 与空建议停住边界，从 pre-model handoff 再推进到 response-level regression。其中第三模板当前还额外覆盖了“排序分差不足导致 manual-only”的链式分叉态。
+它们用于把 `Feed -> Valve -> FlashDrum` 的“链式停住空建议”“链式继续但只能 manual-only”边界，以及 `Feed -> Heater -> FlashDrum` 与 `Feed -> Cooler -> FlashDrum` 的正向 `Tab`、`manual_only` 与空建议停住边界，从 pre-model handoff 再推进到 response-level regression。其中第二与第三模板当前还额外覆盖了“排序分差不足导致 manual-only”的链式分叉态。
 
 ## 禁止透传
 

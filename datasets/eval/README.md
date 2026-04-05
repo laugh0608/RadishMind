@@ -143,6 +143,7 @@
 - `Feed -> Heater -> FlashDrum` 连续搭建链中的加热器 outlet 补全
 - `Feed -> Heater -> FlashDrum` 连续搭建链中，因命名冲突只能返回 `manual_only` ghost 的加热器 outlet 补全
 - `Feed -> Heater -> FlashDrum` 连续搭建链中，因没有合法 outlet 候选而返回空建议
+- `Feed -> Heater -> FlashDrum` 连续搭建链中，因多候选分差不足只能返回 `manual_only` ghost 的加热器 outlet 补全
 - `Feed -> Cooler -> FlashDrum` 连续搭建链中的冷却器 outlet 补全
 - `Feed -> Cooler -> FlashDrum` 连续搭建链中，因命名冲突只能返回 `manual_only` ghost 的冷却器 outlet 补全
 - `Feed -> Cooler -> FlashDrum` 连续搭建链中，因没有合法 outlet 候选而返回空建议

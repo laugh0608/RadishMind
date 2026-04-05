@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 56,
+  "selected_unit": {
+    "id": "heater-5",
+    "kind": "Heater",
+    "name": "Feed Heater 604"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-17.inlet",
+      "direction": "downstream",
+      "distance_px": 65,
+      "alignment_score": 0.94
+    },
+    {
+      "type": "unit_port",
+      "id": "flash-18.inlet",
+      "direction": "downstream",
+      "distance_px": 69,
+      "alignment_score": 0.92
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-604-to-heater-5-inlet",
+        "accepted_at_revision": 55
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-604"
+    ],
+    "existing_stream_names": [
+      "F-604"
+    ],
+    "preferred_outlet_prefix": "H",
+    "numeric_suffix_from_unit": "604"
+  },
+  "topology_pattern_hints": [
+    "feed_heater_flash_chain",
+    "heater_outlet_to_flash_inlet_after_feed_connection",
+    "heater_outlet_parallel_flash_choice_requires_manual_selection"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-heater-5-outlet-flash-17",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "heater-5",
+      "target_node_id": "flash-17.inlet",
+      "suggested_stream_name": "H-604A",
+      "ranking_signals": {
+        "distance_px": 65,
+        "alignment_score": 0.94,
+        "topology_score": 0.89,
+        "score_gap_to_next": 0.03,
+        "template_frequency": 0.59
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "H",
+        "numeric_suffix": "604A",
+        "reused_existing_pattern": false,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "score_gap_too_small"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    },
+    {
+      "candidate_ref": "cand-heater-5-outlet-flash-18",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "heater-5",
+      "target_node_id": "flash-18.inlet",
+      "suggested_stream_name": "H-604B",
+      "ranking_signals": {
+        "distance_px": 69,
+        "alignment_score": 0.92,
+        "topology_score": 0.87,
+        "score_gap_to_next": 0.0,
+        "template_frequency": 0.57
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "H",
+        "numeric_suffix": "604B",
+        "reused_existing_pattern": false,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "score_gap_too_small"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-heater-flash-chain-v1",
+    "notes": "第二条链式模板排名歧义示例：Heater outlet 存在两个接近且都合法的 FlashDrum 候选，因此只能显示 manual-only ghost，不默认 Tab。"
+  }
+}
