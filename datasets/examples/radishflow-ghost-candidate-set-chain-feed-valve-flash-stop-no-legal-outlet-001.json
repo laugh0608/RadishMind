@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 61,
+  "selected_unit": {
+    "id": "flash-12",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 504"
+  },
+  "unconnected_ports": [
+    "vapor_outlet",
+    "liquid_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-12-vapor-lane",
+      "direction": "downstream",
+      "distance_px": 71,
+      "alignment_score": 0.91,
+      "blocked_reason": "occupied_by_existing_stream"
+    },
+    {
+      "type": "stream_stub",
+      "id": "flash-12-liquid-lane",
+      "direction": "downstream",
+      "distance_px": 79,
+      "alignment_score": 0.87,
+      "blocked_reason": "suggested_name_collision"
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-504-to-valve-5-inlet",
+        "accepted_at_revision": 59
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-5-outlet-flash-12",
+        "accepted_at_revision": 60
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-504"
+    ],
+    "existing_stream_names": [
+      "F-504",
+      "V-504",
+      "VG-504"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG",
+      "liquid_outlet": "VL"
+    },
+    "numeric_suffix_from_unit": "504"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection",
+    "stop_when_no_legal_outlet_candidates"
+  ],
+  "legal_candidate_completions": [],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "连续搭建链停住边界示例：虽然刚接受了 Valve 到 FlashDrum 的入口 ghost，但当前没有合法的 FlashDrum outlet 候选，因此应返回空建议。"
+  }
+}

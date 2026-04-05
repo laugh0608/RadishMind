@@ -21,6 +21,9 @@
 7. `radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json`
 8. `radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json`
 9. `radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001-debug-full.json`
+10. `radishflow-ghost-candidate-set-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
+11. `radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
+12. `radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001-debug-full.json`
 
 说明：
 
@@ -67,3 +70,18 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述连续搭建链候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留 outlet 排序证据、命名证据与几何细节，方便对照 `model-minimal` 裁剪后的连续搭建链请求边界
+
+- `radishflow-ghost-candidate-set-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Valve -> FlashDrum` 连续搭建链里，虽然最近两步 ghost 已连续接受，但当前 `FlashDrum` outlet 不存在任何合法候选的 pre-model 候选集
+  - 当前用于固定“recent_actions 已存在，但 local rules 要求停住并返回空建议”的 handoff 边界
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述链式停住候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定空候选链路里 `recent_actions`、`naming_hints` 与裁剪后的邻近节点仍会如何进入请求
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述链式停住候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留邻近节点的阻塞原因与几何细节，避免“为何停住”只留在口头约定
