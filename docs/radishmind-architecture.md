@@ -60,6 +60,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - `RadishFlow`
   - 优先走状态优先打包：`FlowsheetDocument`、`document_revision`、`SelectionState`、`DiagnosticSummary`、`SolveSessionState`、`SolveSnapshot`
   - 对编辑器辅助场景，额外打包 `selected_unit`、`unconnected_ports`、`nearby_nodes`、`cursor_context` 与本地规则筛出的 `legal_candidate_completions`
+  - `cursor_context.recent_actions` 当前不仅承接“最近 accept 了哪条 ghost”，也承接“最近 reject / dismiss / skip 了哪条 ghost”，供适配层与模型层共同避免对同一候选立即再次默认 `Tab` 强推
   - 控制面相关只打包 entitlement / manifest / lease / sync 的摘要，不透传 token 或 credential
 - `Radish`
   - 优先走知识优先打包：固定文档、在线文档、论坛/文档 Markdown、Console 权限知识、附件引用
@@ -108,6 +109,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 候选动作工具
   - 在不直接写入业务真相源的前提下，生成可确认的候选编辑或操作提案
   - 为编辑器辅助场景先由本地规则生成合法 ghost completion 候选集，再交给模型做排序、命名和空结果判断
+  - 对 `RadishFlow suggest_ghost_completion`，本地规则层还应显式输出 recent-actions 反馈衍生出的 suppress-Tab 信号，例如“同一 candidate 刚被 reject，不应立即 retab”
 
 原则：
 
@@ -115,6 +117,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 能提前压缩的上下文，不把全部原始状态直接丢给模型
 - 任何高风险动作都只能输出候选动作，不直接执行
 - 对 `RadishFlow` ghost completion 这类编辑器辅助任务，应先由本地规则系统裁剪到“合法候选空间”，再让模型排序，而不是直接从零猜拓扑
+- 对同一 ghost candidate 的最近接受/拒绝/关闭/跳过反馈，优先由适配层与本地规则层编码成结构化 recent-actions 和 conflict/suppress 信号，再决定是否仍允许 `Tab`
 
 ### 4. Model Runtime Layer
 
@@ -182,6 +185,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 外部 `candidate_response_record`
 - 与正例共用同一套规则的负例回放
 - 通过 `capture_metadata` 标记来源批次的真实 captured replay
+- 对 `RadishFlow suggest_ghost_completion`，还应继续覆盖“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”的交互反馈回放样本，而不只检查静态排序
 
 ## 推荐仓库结构
 
