@@ -104,6 +104,18 @@ TASK_CONFIG = {
         "no_sample_message": "no suggest_flowsheet_edits sample files found for RadishFlow suggest edits regression",
         "warning_prefix": "radishflow suggest edits regression found",
     },
+    "radishflow-ghost-completion": {
+        "sample_dir": REPO_ROOT / "datasets/eval/radishflow",
+        "sample_schema": REPO_ROOT / "datasets/eval/radishflow-task-sample.schema.json",
+        "candidate_record_schema": REPO_ROOT / "datasets/eval/candidate-response-record.schema.json",
+        "request_schema": REPO_ROOT / "contracts/copilot-request.schema.json",
+        "response_schema": REPO_ROOT / "contracts/copilot-response.schema.json",
+        "task_card": REPO_ROOT / "docs/task-cards/radishflow-suggest-ghost-completion.md",
+        "sample_task": "suggest_ghost_completion",
+        "success_message": "radishflow ghost completion regression passed.",
+        "no_sample_message": "no suggest_ghost_completion sample files found for RadishFlow ghost completion regression",
+        "warning_prefix": "radishflow ghost completion regression found",
+    },
     "radishflow-control-plane": {
         "sample_dir": REPO_ROOT / "datasets/eval/radishflow",
         "sample_schema": REPO_ROOT / "datasets/eval/radishflow-task-sample.schema.json",
@@ -1290,6 +1302,227 @@ def validate_suggest_response(
     test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
 
 
+def validate_ghost_completion_request(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
+    request = sample["input_request"]
+    context = request.get("context") or {}
+    artifacts = get_array(request.get("artifacts"))
+    primary_artifacts = [artifact for artifact in artifacts if artifact.get("role") == "primary"]
+    selected_unit_ids = [str(unit_id).strip() for unit_id in get_array(context.get("selected_unit_ids")) if str(unit_id).strip()]
+    selected_unit = context.get("selected_unit") or {}
+    legal_candidates = get_array(context.get("legal_candidate_completions"))
+    unconnected_ports = [str(port).strip() for port in get_array(context.get("unconnected_ports")) if str(port).strip()]
+    missing_canonical_ports = [
+        str(port).strip() for port in get_array(context.get("missing_canonical_ports")) if str(port).strip()
+    ]
+
+    if request.get("project") != "radishflow":
+        add_violation(violations, f"{sample_name}: input_request.project must be 'radishflow'")
+    if request.get("task") != "suggest_ghost_completion":
+        add_violation(violations, f"{sample_name}: input_request.task must be 'suggest_ghost_completion'")
+    if len(primary_artifacts) != 1:
+        add_violation(violations, f"{sample_name}: input_request must contain exactly one primary artifact")
+    else:
+        primary = primary_artifacts[0]
+        if str(primary.get("name") or "") != "flowsheet_document":
+            add_violation(violations, f"{sample_name}: primary artifact name must be 'flowsheet_document'")
+        if str(primary.get("kind") or "") != "json":
+            add_violation(violations, f"{sample_name}: primary artifact kind must be 'json'")
+        if str(primary.get("mime_type") or "") != "application/json":
+            add_violation(violations, f"{sample_name}: primary artifact mime_type must be 'application/json'")
+
+    if context.get("document_revision") is None:
+        add_violation(violations, f"{sample_name}: context.document_revision is required")
+    if len(selected_unit_ids) != 1:
+        add_violation(violations, f"{sample_name}: suggest_ghost_completion samples must include exactly one selected unit")
+    if selected_unit:
+        if str(selected_unit.get("id") or "").strip() and str(selected_unit.get("id") or "").strip() not in selected_unit_ids:
+            add_violation(violations, f"{sample_name}: context.selected_unit.id must match context.selected_unit_ids[0]")
+        if not str(selected_unit.get("kind") or "").strip():
+            add_violation(violations, f"{sample_name}: context.selected_unit.kind is required when selected_unit is present")
+
+    if "legal_candidate_completions" not in context:
+        add_violation(violations, f"{sample_name}: context.legal_candidate_completions is required")
+    for candidate in legal_candidates:
+        candidate_ref = str((candidate or {}).get("candidate_ref") or "").strip()
+        ghost_kind = str((candidate or {}).get("ghost_kind") or "").strip()
+        target_port_key = str((candidate or {}).get("target_port_key") or "").strip()
+        target_unit_id = str((candidate or {}).get("target_unit_id") or "").strip()
+        if not candidate_ref:
+            add_violation(violations, f"{sample_name}: each legal_candidate_completion must include candidate_ref")
+        if not ghost_kind:
+            add_violation(violations, f"{sample_name}: each legal_candidate_completion must include ghost_kind")
+        if not target_port_key:
+            add_violation(violations, f"{sample_name}: each legal_candidate_completion must include target_port_key")
+        if target_unit_id and selected_unit_ids and target_unit_id not in selected_unit_ids:
+            add_violation(
+                violations,
+                f"{sample_name}: legal_candidate_completion.target_unit_id must stay within context.selected_unit_ids",
+            )
+
+    if len(unconnected_ports) == 0 and len(missing_canonical_ports) == 0:
+        add_violation(
+            violations,
+            f"{sample_name}: request must include context.unconnected_ports or context.missing_canonical_ports",
+        )
+
+
+def validate_ghost_completion_response(
+    sample: dict[str, Any],
+    response: dict[str, Any],
+    response_label: str,
+    sample_name: str,
+    violations: list[str],
+) -> None:
+    shape = sample["expected_response_shape"]
+    evaluation = sample["evaluation"]
+    request_context = sample["input_request"].get("context") or {}
+    answers = get_array(response.get("answers"))
+    issues = get_array(response.get("issues"))
+    actions = get_array(response.get("proposed_actions"))
+    citations = get_array(response.get("citations"))
+    selected_unit_ids = {
+        str(unit_id).strip() for unit_id in get_array(request_context.get("selected_unit_ids")) if str(unit_id).strip()
+    }
+    legal_candidates = {
+        str((candidate or {}).get("candidate_ref") or "").strip(): candidate
+        for candidate in get_array(request_context.get("legal_candidate_completions"))
+        if str((candidate or {}).get("candidate_ref") or "").strip()
+    }
+
+    if response.get("project") != "radishflow":
+        add_violation(violations, f"{sample_name}: {response_label}.project must be 'radishflow'")
+    if response.get("task") != "suggest_ghost_completion":
+        add_violation(violations, f"{sample_name}: {response_label}.task must be 'suggest_ghost_completion'")
+    if str(response.get("status")) != str(shape.get("status")):
+        add_violation(violations, f"{sample_name}: {response_label}.status does not match expected_response_shape.status")
+    if str(response.get("risk_level")) != str(evaluation.get("expected_risk_level")):
+        add_violation(violations, f"{sample_name}: {response_label}.risk_level does not match evaluation.expected_risk_level")
+    if shape.get("requires_summary") and not str(response.get("summary") or "").strip():
+        add_violation(violations, f"{sample_name}: {response_label}.summary is required")
+    if shape.get("requires_answers") and len(answers) < 1:
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 answer")
+    if shape.get("requires_issues") and len(issues) < 1:
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 issue")
+    if shape.get("requires_citations") and len(citations) < 1:
+        add_violation(violations, f"{sample_name}: {response_label} must contain at least 1 citation")
+    if not shape.get("allow_proposed_actions") and len(actions) > 0:
+        add_violation(violations, f"{sample_name}: {response_label} should not contain proposed_actions")
+    if len(actions) > 3:
+        add_violation(violations, f"{sample_name}: {response_label} must not contain more than 3 ghost_completion actions")
+
+    actual_action_kinds = {str(action.get("kind") or "") for action in actions}
+    for required_kind in [str(item) for item in get_array(shape.get("required_action_kinds"))]:
+        if required_kind not in actual_action_kinds:
+            add_violation(violations, f"{sample_name}: {response_label} is missing required action kind '{required_kind}'")
+
+    highest_action_risk = 0
+    for index, action in enumerate(actions):
+        highest_action_risk = max(highest_action_risk, RISK_RANKS.get(str(action.get("risk_level") or ""), 0))
+        if str(action.get("kind") or "") != "ghost_completion":
+            add_violation(violations, f"{sample_name}: {response_label} actions must remain ghost_completion for this task")
+            continue
+
+        target = action.get("target")
+        if not isinstance(target, dict):
+            add_violation(violations, f"{sample_name}: {response_label} ghost_completion must include target")
+        else:
+            target_type = str(target.get("type") or "").strip()
+            target_unit_id = str(target.get("unit_id") or target.get("id") or "").strip()
+            if not target_type:
+                add_violation(violations, f"{sample_name}: {response_label} ghost_completion target.type is required")
+            if selected_unit_ids and target_unit_id and target_unit_id not in selected_unit_ids:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} ghost_completion target must stay within context.selected_unit_ids",
+                )
+            if target_type == "unit_port" and not str(target.get("port_key") or "").strip():
+                add_violation(violations, f"{sample_name}: {response_label} unit_port target must include port_key")
+
+        patch = action.get("patch")
+        candidate_ref = ""
+        if not isinstance(patch, dict) or len(patch) < 1:
+            add_violation(violations, f"{sample_name}: {response_label} ghost_completion patch must not be empty")
+        else:
+            if str(patch.get("ghost_kind") or "").strip() == "":
+                add_violation(violations, f"{sample_name}: {response_label} ghost_completion patch.ghost_kind is required")
+            candidate_ref = str(patch.get("candidate_ref") or "").strip()
+            if not candidate_ref:
+                add_violation(violations, f"{sample_name}: {response_label} ghost_completion patch.candidate_ref is required")
+            elif candidate_ref not in legal_candidates:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} ghost_completion patch.candidate_ref must come from context.legal_candidate_completions",
+                )
+            else:
+                candidate_target_port = str((legal_candidates[candidate_ref] or {}).get("target_port_key") or "").strip()
+                patch_target_port = str(patch.get("target_port_key") or "").strip()
+                if patch_target_port and candidate_target_port and patch_target_port != candidate_target_port:
+                    add_violation(
+                        violations,
+                        f"{sample_name}: {response_label} patch.target_port_key must match the selected legal candidate",
+                    )
+
+        preview = action.get("preview")
+        if not isinstance(preview, dict):
+            add_violation(violations, f"{sample_name}: {response_label} ghost_completion preview is required")
+        else:
+            if not str(preview.get("ghost_color") or "").strip():
+                add_violation(violations, f"{sample_name}: {response_label} ghost_completion preview.ghost_color is required")
+            accept_key = str(preview.get("accept_key") or "").strip()
+            if not accept_key:
+                add_violation(violations, f"{sample_name}: {response_label} ghost_completion preview.accept_key is required")
+            if preview.get("render_priority") is None:
+                add_violation(violations, f"{sample_name}: {response_label} ghost_completion preview.render_priority is required")
+            if accept_key == "Tab" and index > 0:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} only the first ghost_completion may claim the default Tab accept key",
+                )
+
+        apply_payload = action.get("apply")
+        if not isinstance(apply_payload, dict):
+            add_violation(violations, f"{sample_name}: {response_label} ghost_completion apply is required")
+        else:
+            if str(apply_payload.get("command_kind") or "").strip() != "accept_ghost_completion":
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} ghost_completion apply.command_kind must be 'accept_ghost_completion'",
+                )
+            payload = apply_payload.get("payload")
+            if not isinstance(payload, dict):
+                add_violation(violations, f"{sample_name}: {response_label} ghost_completion apply.payload must be an object")
+            elif candidate_ref and str(payload.get("candidate_ref") or "").strip() != candidate_ref:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} ghost_completion apply.payload.candidate_ref must match patch.candidate_ref",
+                )
+
+        if str(action.get("risk_level") or "") == "high":
+            add_violation(violations, f"{sample_name}: {response_label} ghost_completion must not escalate to high risk")
+        if action.get("requires_confirmation") is not False:
+            add_violation(violations, f"{sample_name}: {response_label} ghost_completion must set requires_confirmation=false")
+
+    if response.get("requires_confirmation") is not False:
+        add_violation(violations, f"{sample_name}: {response_label}.requires_confirmation must remain false for pending ghost suggestions")
+    if highest_action_risk > 0 and RISK_RANKS.get(str(response.get("risk_level") or ""), 0) != highest_action_risk:
+        add_violation(violations, f"{sample_name}: {response_label}.risk_level must equal the highest proposed_action risk")
+
+    citation_ids = {str(citation.get("id") or "") for citation in citations}
+    referenced_ids: set[str] = set()
+    for answer in answers:
+        referenced_ids.update(str(item) for item in get_array(answer.get("citation_ids")))
+    for issue in issues:
+        referenced_ids.update(str(item) for item in get_array(issue.get("citation_ids")))
+    for action in actions:
+        referenced_ids.update(str(item) for item in get_array(action.get("citation_ids")))
+    for citation_id in sorted(citation_id for citation_id in referenced_ids if citation_id):
+        if citation_id not in citation_ids:
+            add_violation(violations, f"{sample_name}: referenced citation id '{citation_id}' is missing from {response_label}.citations")
+
+    test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, f"{sample_name}:{response_label}", violations)
+    test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
+
+
 def validate_control_plane_request(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
     request = sample["input_request"]
     context = request.get("context") or {}
@@ -1658,6 +1891,64 @@ def run_radishflow_suggest_edits(config: dict[str, Any], sample_dir: Path, sampl
     return 0
 
 
+def run_radishflow_ghost_completion(
+    config: dict[str, Any],
+    sample_dir: Path,
+    sample_paths: list[Path],
+    fail_on_violation: bool,
+) -> int:
+    sample_files = collect_sample_files(sample_dir, sample_paths)
+    all_violations: list[str] = []
+    matched_sample_count = 0
+
+    for sample_file in sample_files:
+        sample_name = sample_file.name
+        violations: list[str] = []
+        try:
+            sample = json.loads(sample_file.read_text(encoding="utf-8"))
+        except Exception as exc:
+            add_violation(violations, f"{sample_name}: failed to parse json: {exc}")
+            sample = None
+
+        if sample is not None and str(sample.get("task") or "") == config["sample_task"]:
+            matched_sample_count += 1
+            test_document_against_schema(sample, config["sample_schema"], f"{sample_name} sample", violations)
+            test_document_against_schema(sample.get("input_request"), config["request_schema"], f"{sample_name} input_request", violations)
+            test_document_against_schema(sample.get("golden_response"), config["response_schema"], f"{sample_name} golden_response", violations)
+            validate_ghost_completion_request(sample, sample_name, violations)
+            validate_ghost_completion_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
+
+            candidate_response, record_violations = load_candidate_response_from_record(sample, config, sample_name)
+            violations.extend(record_violations)
+            if candidate_response is not None:
+                test_document_against_schema(candidate_response, config["response_schema"], f"{sample_name} candidate_response", violations)
+                validate_ghost_completion_response(sample, candidate_response, "candidate_response", sample_name, violations)
+        elif sample is None:
+            pass
+        else:
+            continue
+
+        if violations:
+            print(f"FAIL {sample_name}")
+            for violation in violations:
+                print(f"  - {violation}")
+                all_violations.append(violation)
+            continue
+
+        print(f"PASS {sample_name}")
+
+    if matched_sample_count == 0:
+        raise SystemExit(config["no_sample_message"])
+    if all_violations:
+        if fail_on_violation:
+            return 1
+        print(f"WARNING: {config['warning_prefix']} {len(all_violations)} violation(s).", file=sys.stderr)
+        return 0
+
+    print(config["success_message"])
+    return 0
+
+
 def run_radishflow_control_plane(config: dict[str, Any], sample_dir: Path, sample_paths: list[Path], fail_on_violation: bool) -> int:
     sample_files = collect_sample_files(sample_dir, sample_paths)
     all_violations: list[str] = []
@@ -1869,6 +2160,8 @@ def main(argv: list[str]) -> int:
         return run_radish_docs_qa_negative(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radishflow-diagnostics":
         return run_radishflow_diagnostics(config, resolved_sample_dir, sample_paths, fail_on_violation)
+    if task_name == "radishflow-ghost-completion":
+        return run_radishflow_ghost_completion(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radishflow-control-plane":
         return run_radishflow_control_plane(config, resolved_sample_dir, sample_paths, fail_on_violation)
     return run_radishflow_suggest_edits(config, resolved_sample_dir, sample_paths, fail_on_violation)

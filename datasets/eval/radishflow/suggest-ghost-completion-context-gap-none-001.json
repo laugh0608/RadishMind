@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-context-gap-none-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-context-gap-none-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-205",
+          "streams": [],
+          "units": [
+            {
+              "id": "flash-4",
+              "kind": "FlashDrum",
+              "name": "V-104 Drum"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 45,
+      "selected_unit_ids": [
+        "flash-4"
+      ],
+      "selected_unit": {
+        "id": "flash-4",
+        "kind": "FlashDrum",
+        "name": "V-104 Drum"
+      },
+      "unconnected_ports": [
+        "inlet",
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "legal_candidate_completions": [],
+      "nearby_nodes": [],
+      "cursor_context": {
+        "mode": "unit_selected"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0].kind=\"empty_suggestion_reason\"",
+      "$.issues[0].code=\"INSUFFICIENT_GHOST_CONTEXT\"",
+      "$.issues[0].severity=\"info\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "empty_suggestion_boundary",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当本地规则没有给出任何合法 ghost 候选时，任务应稳定返回空建议，而不是凭单元类型直接硬猜入口或出口。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "flash-4 当前缺少可确认的合法 ghost 候选，因此不返回默认补全建议。",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "虽然 flash-4 仍有多个 canonical port 未连接，但本地规则层没有提供任何合法候选连接或命名补全，因此此时应保持空建议。",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-unit"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前上下文没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认 Tab 补全。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-4",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-4 kind=FlashDrum"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 legal_candidate_completions",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      }
+    ],
+    "confidence": 0.91,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

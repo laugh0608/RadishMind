@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-04-04
+更新时间：2026-04-05
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -42,6 +42,10 @@
 - `scripts/run-radishflow-diagnostics-regression.sh`
 - `scripts/check-radishflow-diagnostics-eval.ps1`
 - `scripts/check-radishflow-diagnostics-eval.sh`
+- `scripts/run-radishflow-ghost-completion-regression.ps1`
+- `scripts/run-radishflow-ghost-completion-regression.sh`
+- `scripts/check-radishflow-ghost-completion-eval.ps1`
+- `scripts/check-radishflow-ghost-completion-eval.sh`
 - `scripts/run-radishflow-suggest-edits-regression.ps1`
 - `scripts/run-radishflow-suggest-edits-regression.sh`
 - `scripts/check-radishflow-suggest-edits-eval.ps1`
@@ -65,6 +69,8 @@
 - `check-radishflow-control-plane-eval.*` 负责把控制面状态说明回归接入仓库基线
 - `run-radishflow-diagnostics-regression.*` 负责执行 `RadishFlow explain_diagnostics` 样本回归
 - `check-radishflow-diagnostics-eval.*` 负责把该回归接入仓库基线
+- `run-radishflow-ghost-completion-regression.*` 负责执行 `RadishFlow suggest_ghost_completion` 样本回归
+- `check-radishflow-ghost-completion-eval.*` 负责把 ghost 补全回归接入仓库基线
 - `run-radishflow-suggest-edits-regression.*` 负责执行 `RadishFlow suggest_flowsheet_edits` 样本回归
 - `check-radishflow-suggest-edits-eval.*` 负责把候选编辑回归接入仓库基线
 - `run-radish-docs-qa-regression.*` 是真正执行样本回归的 runner
@@ -81,7 +87,7 @@
 - `run-radish-docs-qa-real-batch.py` 当前在生成 `artifacts.json` 后，还可按推荐失败组顺序继续落一份 `recommended-negative-replay-summary.json`，把批量回放结果沉淀为可审计产物
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
-`RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics` 与 `suggest_flowsheet_edits` 三个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
+`RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics`、`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 四个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
 
 其中 `explain_diagnostics` 当前已覆盖：
 
@@ -125,6 +131,20 @@
 - `candidate_edit.target` 必须落在当前选择集或诊断目标内
 - `patch` 必须保持可审查的局部结构
 - `patch` 不得退化成命令式执行字段或整图重写字段
+
+其中 `suggest_ghost_completion` 当前已覆盖：
+
+- `FlashDrum inlet` 的标准入口补全
+- `FlashDrum vapor_outlet` / `liquid_outlet` 的标准 ghost connection
+- `Mixer` 标准出口补全
+- 上下文不足时返回空建议
+
+同时该任务的回归当前会额外约束：
+
+- 候选必须来自 `context.legal_candidate_completions`
+- `ghost_completion` 必须保持 pending 语义，不能升级成正式 patch
+- 默认 `Tab` 接受键只能绑定到第一条 ghost 建议
+- 响应与 action 的 `requires_confirmation` 必须保持为 `false`
 
 `Radish` 的 docs QA runner 当前已支持两种候选回答输入方式：
 

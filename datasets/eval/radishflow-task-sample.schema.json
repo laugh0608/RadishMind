@@ -32,6 +32,7 @@
       "enum": [
         "explain_diagnostics",
         "suggest_flowsheet_edits",
+        "suggest_ghost_completion",
         "explain_control_plane_state"
       ]
     },
@@ -128,15 +129,19 @@
           "items": {
             "type": "string",
             "enum": [
-              "schema_validity",
-              "field_completeness",
-              "citation_hit",
-              "actionability",
-              "risk_level",
-              "fact_grounding",
-              "hypothesis_labeling"
-            ]
-          },
+            "schema_validity",
+            "field_completeness",
+            "citation_hit",
+            "actionability",
+            "risk_level",
+            "fact_grounding",
+            "hypothesis_labeling",
+            "ghost_candidate_legality",
+            "ghost_tab_accept",
+            "empty_suggestion_boundary",
+            "pending_ghost_semantics"
+          ]
+        },
           "uniqueItems": true
         },
         "notes": {
@@ -191,6 +196,7 @@
           "enum": [
             "explain_diagnostics",
             "suggest_flowsheet_edits",
+            "suggest_ghost_completion",
             "explain_control_plane_state"
           ]
         },

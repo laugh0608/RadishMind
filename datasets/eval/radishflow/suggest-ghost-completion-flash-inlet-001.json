@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-flash-inlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-flash-inlet-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-201",
+          "streams": [
+            {
+              "id": "feed-101",
+              "name": "F-101",
+              "source_unit_id": "feed-src-1"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-src-1",
+              "kind": "Feed",
+              "name": "Feed 101"
+            },
+            {
+              "id": "flash-1",
+              "kind": "FlashDrum",
+              "name": "V-101 Drum"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 41,
+      "selected_unit_ids": [
+        "flash-1"
+      ],
+      "selected_unit": {
+        "id": "flash-1",
+        "kind": "FlashDrum",
+        "name": "V-101 Drum"
+      },
+      "unconnected_ports": [
+        "inlet",
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "stream_stub",
+          "id": "feed-101",
+          "direction": "upstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-1-inlet-from-feed-101",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-1",
+          "target_port_key": "inlet",
+          "source_stream_id": "feed-101",
+          "suggested_stream_name": "F-101",
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0].kind=\"ghost_rationale\"",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.type=\"unit_port\"",
+      "$.proposed_actions[0].target.unit_id=\"flash-1\"",
+      "$.proposed_actions[0].target.port_key=\"inlet\"",
+      "$.proposed_actions[0].patch.ghost_kind=\"ghost_connection\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-1-inlet-from-feed-101\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.proposed_actions[0].apply.command_kind=\"accept_ghost_completion\"",
+      "$.proposed_actions[0].apply.payload.candidate_ref=\"cand-flash-1-inlet-from-feed-101\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "risk_level",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "FlashDrum 刚放置且存在明显上游物流线时，入口 ghost 应优先于出口 ghost，且默认 Tab 只接受这一条高置信建议。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "当前对 flash-1 的最高置信 ghost 建议是先补 inlet，把上游 feed-101 作为待接受的入口连线占位。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "FlashDrum 的标准补全顺序优先检查 inlet，且当前本地规则已经给出唯一合法的入口 ghost 候选，因此适合作为默认 Tab 建议。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-inlet"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-1 的 inlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-1",
+          "port_key": "inlet"
+        },
+        "rationale": "当前画布上存在紧邻的上游物流线 feed-101，且本地规则已确认该入口 ghost 候选合法。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-1-inlet-from-feed-101",
+          "target_port_key": "inlet",
+          "ghost_stream_name": "F-101"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-1-inlet-from-feed-101"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-inlet",
+          "art-feed-101"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 FlashDrum",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-1 kind=FlashDrum"
+      },
+      {
+        "id": "ctx-candidate-inlet",
+        "kind": "context",
+        "label": "合法入口 ghost 候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-1-inlet-from-feed-101 target_port_key=inlet is_tab_default=true"
+      },
+      {
+        "id": "art-feed-101",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-101",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-101 是 flash-1 邻近的上游物流线。"
+      }
+    ],
+    "confidence": 0.97,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
