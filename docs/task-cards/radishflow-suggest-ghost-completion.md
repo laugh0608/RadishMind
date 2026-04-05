@@ -52,6 +52,7 @@
 当前推荐本地规则层先按独立候选集契约落一次中间对象，再装配到模型请求：
 
 - 候选集契约参考 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+- 装配脚本参考 [build-radishflow-ghost-request.py](../../scripts/build-radishflow-ghost-request.py)
 - 这样前端、本地规则层和模型层都能围绕同一份 `legal_candidate_completions` 结构协作，而不是各自私有拼接
 
 当前建议本地规则层尽量把候选证据也结构化透传出来：

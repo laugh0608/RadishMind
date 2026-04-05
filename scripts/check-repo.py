@@ -66,6 +66,7 @@ REQUIRED_FILES = [
     "datasets/README.md",
     "datasets/examples/README.md",
     "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
+    "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json",
     "datasets/eval/README.md",
     "datasets/eval/batch-orchestration-summary.schema.json",
     "datasets/eval/candidate-record-batch.schema.json",
@@ -128,6 +129,7 @@ REQUIRED_FILES = [
     "scripts/build-radish-docs-negative-replay.py",
     "scripts/build-negative-replay-index.py",
     "scripts/build-candidate-record-batch.py",
+    "scripts/build-radishflow-ghost-request.py",
     "scripts/import-candidate-response-dump.py",
     "scripts/run-copilot-inference.py",
     "scripts/run-radish-docs-qa-real-batch.py",
@@ -244,6 +246,29 @@ def check_contract_schemas() -> None:
         )
     )
     jsonschema.validate(ghost_candidate_example, ghost_candidate_schema)
+
+    copilot_request_schema = json.loads((REPO_ROOT / "contracts/copilot-request.schema.json").read_text(encoding="utf-8"))
+    ghost_request_example = json.loads(
+        (REPO_ROOT / "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    jsonschema.validate(ghost_request_example, copilot_request_schema)
+
+    run_python_script(
+        "build-radishflow-ghost-request.py",
+        [
+            "--input",
+            "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
+            "--output",
+            "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json",
+            "--artifact-uri",
+            "artifact://flowsheet/current",
+            "--request-id",
+            "rf-ghost-request-flash-basic-001",
+            "--check",
+        ],
+    )
 
 
 def check_generated_eval_metadata() -> None:

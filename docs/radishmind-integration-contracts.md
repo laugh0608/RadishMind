@@ -163,6 +163,12 @@
 - 本地规则层负责生成合法候选与排序证据
 - 模型层负责在合法候选空间中排序、解释和决定是否返回空建议
 
+当前仓库还提供了一条最小装配入口：
+
+- [build-radishflow-ghost-request.py](../scripts/build-radishflow-ghost-request.py)
+- 它负责把 `radishflow-ghost-candidate-set.schema.json` 对象装配为 `CopilotRequest`
+- 当前只做最小稳定映射，不引入额外推断：`selected_unit -> selected_unit_ids`、候选集相关字段原样透传、`tool_hints` / `safety` 使用当前默认 advisory 配置
+
 ### `Radish` 上下文建议
 
 `Radish` 当前更适合以知识和内容为中心打包上下文：
