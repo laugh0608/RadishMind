@@ -1347,6 +1347,11 @@ def validate_ghost_completion_request(sample: dict[str, Any], sample_name: str, 
         ghost_kind = str((candidate or {}).get("ghost_kind") or "").strip()
         target_port_key = str((candidate or {}).get("target_port_key") or "").strip()
         target_unit_id = str((candidate or {}).get("target_unit_id") or "").strip()
+        conflict_flags = [str(flag).strip() for flag in get_array((candidate or {}).get("conflict_flags")) if str(flag).strip()]
+        ranking_signals = candidate.get("ranking_signals")
+        naming_signals = candidate.get("naming_signals")
+        is_high_confidence = candidate.get("is_high_confidence")
+        is_tab_default = candidate.get("is_tab_default")
         if not candidate_ref:
             add_violation(violations, f"{sample_name}: each legal_candidate_completion must include candidate_ref")
         if not ghost_kind:
@@ -1358,6 +1363,20 @@ def validate_ghost_completion_request(sample: dict[str, Any], sample_name: str, 
                 violations,
                 f"{sample_name}: legal_candidate_completion.target_unit_id must stay within context.selected_unit_ids",
             )
+        if is_tab_default is True and is_high_confidence is not True:
+            add_violation(
+                violations,
+                f"{sample_name}: legal_candidate_completion '{candidate_ref}' cannot set is_tab_default=true without is_high_confidence=true",
+            )
+        if is_tab_default is True and len(conflict_flags) > 0:
+            add_violation(
+                violations,
+                f"{sample_name}: legal_candidate_completion '{candidate_ref}' cannot set is_tab_default=true when conflict_flags are present",
+            )
+        if ranking_signals is not None and not isinstance(ranking_signals, dict):
+            add_violation(violations, f"{sample_name}: legal_candidate_completion '{candidate_ref}' ranking_signals must be an object")
+        if naming_signals is not None and not isinstance(naming_signals, dict):
+            add_violation(violations, f"{sample_name}: legal_candidate_completion '{candidate_ref}' naming_signals must be an object")
 
     if len(unconnected_ports) == 0 and len(missing_canonical_ports) == 0:
         add_violation(
@@ -1454,13 +1473,23 @@ def validate_ghost_completion_response(
                     f"{sample_name}: {response_label} ghost_completion patch.candidate_ref must come from context.legal_candidate_completions",
                 )
             else:
-                candidate_target_port = str((legal_candidates[candidate_ref] or {}).get("target_port_key") or "").strip()
+                selected_candidate = legal_candidates[candidate_ref] or {}
+                candidate_target_port = str(selected_candidate.get("target_port_key") or "").strip()
                 patch_target_port = str(patch.get("target_port_key") or "").strip()
                 if patch_target_port and candidate_target_port and patch_target_port != candidate_target_port:
                     add_violation(
                         violations,
                         f"{sample_name}: {response_label} patch.target_port_key must match the selected legal candidate",
                     )
+                if str(patch.get("ghost_stream_name") or "").strip():
+                    naming_signals = selected_candidate.get("naming_signals")
+                    if str((selected_candidate or {}).get("ghost_kind") or "").strip() == "ghost_stream_name" and not isinstance(
+                        naming_signals, dict
+                    ):
+                        add_violation(
+                            violations,
+                            f"{sample_name}: {response_label} ghost_stream_name candidate '{candidate_ref}' should include naming_signals",
+                        )
 
         preview = action.get("preview")
         if not isinstance(preview, dict):
@@ -1478,6 +1507,26 @@ def validate_ghost_completion_response(
                     violations,
                     f"{sample_name}: {response_label} only the first ghost_completion may claim the default Tab accept key",
                 )
+            if accept_key == "Tab" and candidate_ref:
+                selected_candidate = legal_candidates.get(candidate_ref) or {}
+                if selected_candidate.get("is_tab_default") is not True:
+                    add_violation(
+                        violations,
+                        f"{sample_name}: {response_label} Tab accept key must map to a legal candidate marked is_tab_default=true",
+                    )
+                if selected_candidate.get("is_high_confidence") is not True:
+                    add_violation(
+                        violations,
+                        f"{sample_name}: {response_label} Tab accept key must map to a high-confidence legal candidate",
+                    )
+                conflict_flags = [
+                    str(flag).strip() for flag in get_array(selected_candidate.get("conflict_flags")) if str(flag).strip()
+                ]
+                if len(conflict_flags) > 0:
+                    add_violation(
+                        violations,
+                        f"{sample_name}: {response_label} Tab accept key must not map to a legal candidate with conflict_flags",
+                    )
 
         apply_payload = action.get("apply")
         if not isinstance(apply_payload, dict):

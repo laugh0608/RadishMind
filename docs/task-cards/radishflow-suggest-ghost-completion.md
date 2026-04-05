@@ -49,6 +49,14 @@
 
 推荐先由本地规则层把“合法候选空间”压缩出来，再由模型做排序、命名和空结果判断。
 
+当前建议本地规则层尽量把候选证据也结构化透传出来：
+
+- `legal_candidate_completions[*].ranking_signals`
+- `legal_candidate_completions[*].naming_signals`
+- `legal_candidate_completions[*].conflict_flags`
+
+这样模型排序时不必重新发明本地几何/拓扑判断，回归也能直接校验“为何允许 Tab、为何不能默认 Tab”。
+
 ## 禁止透传
 
 以下内容不应进入本任务请求：
@@ -133,6 +141,12 @@
 
 - 本地规则层已将其标记为唯一高置信合法候选
 - 或模型排序后显著领先第二候选，且无本地 conflict 标记
+
+当前推荐将“可默认 Tab”尽量显式编码在候选里：
+
+- `is_tab_default = true`
+- `is_high_confidence = true`
+- `conflict_flags = []`
 
 若不存在高置信候选，应返回空建议或仅返回可见 ghost，但不应强推默认接受。
 

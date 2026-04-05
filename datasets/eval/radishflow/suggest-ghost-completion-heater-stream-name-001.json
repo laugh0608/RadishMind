@@ -54,6 +54,13 @@
           "target_unit_id": "heater-1",
           "target_port_key": "outlet",
           "suggested_stream_name": "H-301",
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "301",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
           "is_high_confidence": true,
           "is_tab_default": true
         }
@@ -181,7 +188,7 @@
         "kind": "context",
         "label": "合法命名补全候选",
         "locator": "context:legal_candidate_completions[0]",
-        "excerpt": "candidate_ref=cand-heater-1-outlet-name ghost_kind=ghost_stream_name suggested_stream_name=H-301"
+        "excerpt": "candidate_ref=cand-heater-1-outlet-name ghost_kind=ghost_stream_name suggested_stream_name=H-301 naming_signals.applied_prefix=H"
       }
     ],
     "confidence": 0.95,

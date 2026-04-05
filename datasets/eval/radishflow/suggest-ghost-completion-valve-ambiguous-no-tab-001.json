@@ -81,6 +81,16 @@
           "target_port_key": "outlet",
           "target_node_id": "cooler-401.inlet",
           "suggested_stream_name": "V-401A",
+          "ranking_signals": {
+            "distance_px": 96,
+            "alignment_score": 0.84,
+            "topology_score": 0.79,
+            "score_gap_to_next": 0.03,
+            "template_frequency": 0.51
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
           "is_high_confidence": false,
           "is_tab_default": false
         },
@@ -91,6 +101,16 @@
           "target_port_key": "outlet",
           "target_node_id": "flash-401.inlet",
           "suggested_stream_name": "V-401B",
+          "ranking_signals": {
+            "distance_px": 104,
+            "alignment_score": 0.81,
+            "topology_score": 0.77,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.48
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
           "is_high_confidence": false,
           "is_tab_default": false
         }
@@ -253,14 +273,14 @@
         "kind": "context",
         "label": "冷却器候选",
         "locator": "context:legal_candidate_completions[0]",
-        "excerpt": "candidate_ref=cand-valve-1-outlet-cooler is_tab_default=false"
+        "excerpt": "candidate_ref=cand-valve-1-outlet-cooler is_tab_default=false conflict_flags=[score_gap_too_small]"
       },
       {
         "id": "ctx-candidate-flash",
         "kind": "context",
         "label": "闪蒸罐候选",
         "locator": "context:legal_candidate_completions[1]",
-        "excerpt": "candidate_ref=cand-valve-1-outlet-flash is_tab_default=false"
+        "excerpt": "candidate_ref=cand-valve-1-outlet-flash is_tab_default=false conflict_flags=[score_gap_too_small]"
       },
       {
         "id": "ctx-pattern",

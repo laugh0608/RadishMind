@@ -88,6 +88,13 @@
           "target_port_key": "inlet",
           "source_stream_id": "feed-main",
           "suggested_stream_name": "F-201",
+          "ranking_signals": {
+            "distance_px": 72,
+            "alignment_score": 0.95,
+            "topology_score": 0.92,
+            "score_gap_to_next": 0.18,
+            "template_frequency": 0.88
+          },
           "is_high_confidence": true,
           "is_tab_default": true
         },
@@ -98,6 +105,13 @@
           "target_port_key": "inlet",
           "source_stream_id": "feed-side",
           "suggested_stream_name": "F-201B",
+          "ranking_signals": {
+            "distance_px": 138,
+            "alignment_score": 0.61,
+            "topology_score": 0.58,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.42
+          },
           "is_high_confidence": false,
           "is_tab_default": false
         }
@@ -259,14 +273,14 @@
         "kind": "context",
         "label": "main 入口候选",
         "locator": "context:legal_candidate_completions[0]",
-        "excerpt": "candidate_ref=cand-flash-5-inlet-main is_tab_default=true"
+        "excerpt": "candidate_ref=cand-flash-5-inlet-main is_tab_default=true ranking_signals.alignment_score=0.95"
       },
       {
         "id": "ctx-candidate-side",
         "kind": "context",
         "label": "side 入口候选",
         "locator": "context:legal_candidate_completions[1]",
-        "excerpt": "candidate_ref=cand-flash-5-inlet-side is_tab_default=false"
+        "excerpt": "candidate_ref=cand-flash-5-inlet-side is_tab_default=false ranking_signals.alignment_score=0.61"
       }
     ],
     "confidence": 0.93,

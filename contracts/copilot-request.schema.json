@@ -357,10 +357,99 @@
         "suggested_stream_name": {
           "type": "string"
         },
+        "ranking_signals": {
+          "$ref": "#/$defs/radishflow_candidate_ranking_signals"
+        },
+        "naming_signals": {
+          "$ref": "#/$defs/radishflow_candidate_naming_signals"
+        },
+        "conflict_flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
         "is_high_confidence": {
           "type": "boolean"
         },
         "is_tab_default": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "is_tab_default": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "is_high_confidence": {
+                "const": true
+              },
+              "conflict_flags": {
+                "maxItems": 0
+              }
+            },
+            "required": [
+              "is_high_confidence"
+            ]
+          }
+        }
+      ]
+    },
+    "radishflow_candidate_ranking_signals": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "distance_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alignment_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "topology_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "score_gap_to_next": {
+          "type": "number",
+          "minimum": 0
+        },
+        "template_frequency": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "radishflow_candidate_naming_signals": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "derived_from_upstream_name": {
+          "type": "boolean"
+        },
+        "applied_prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "numeric_suffix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reused_existing_pattern": {
+          "type": "boolean"
+        },
+        "collision_checked": {
           "type": "boolean"
         }
       }

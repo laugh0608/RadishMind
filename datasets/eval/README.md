@@ -145,9 +145,11 @@
 同时该任务的回归当前会额外约束：
 
 - 候选必须来自 `context.legal_candidate_completions`
+- 候选可显式携带 `ranking_signals`、`naming_signals` 与 `conflict_flags`，用于校验排序与命名证据是否充分
 - `ghost_completion` 必须保持 pending 语义，不能升级成正式 patch
 - 默认 `Tab` 接受键只能绑定到第一条 ghost 建议
 - 多候选接近时可以返回建议，但不得强行把第一条伪装成默认 `Tab`
+- 如果候选带有 `conflict_flags`，或本地没有把它标为 `is_tab_default=true` 且 `is_high_confidence=true`，回归会拒绝把它渲染成默认 `Tab` 建议
 - 响应与 action 的 `requires_confirmation` 必须保持为 `false`
 
 `Radish` 的 docs QA runner 当前已支持两种候选回答输入方式：

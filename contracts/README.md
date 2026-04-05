@@ -25,3 +25,5 @@
 - 当前 `RadishFlow` 已在 schema 中补入 `suggest_ghost_completion` 与 `ghost_completion` 候选动作，用于承接编辑器内的 ghost 补全建议
 - 当前 `CopilotRequest` schema 已进一步冻结 `suggest_ghost_completion` 依赖的关键上下文字段，包括 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints`
 - 对 `task=suggest_ghost_completion`，schema 当前还会额外要求 `document_revision`、单个 `selected_unit_ids` 和 `legal_candidate_completions`，并要求至少提供 `unconnected_ports` 或 `missing_canonical_ports`
+- `legal_candidate_completions` 当前已支持结构化的 `ranking_signals`、`naming_signals` 与 `conflict_flags`，用于把本地规则层的排序证据、命名证据和冲突标记显式传给模型与回归
+- 当某个 ghost 候选声明 `is_tab_default=true` 时，schema 当前会进一步要求该候选同时满足 `is_high_confidence=true` 且 `conflict_flags` 为空
