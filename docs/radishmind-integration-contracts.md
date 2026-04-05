@@ -187,6 +187,7 @@
 - 连续搭建链 example 当前也同步固定了两种 profile 的输出，避免 `recent_actions`、命名提示与 outlet 排序证据再次退回只在 `eval` 样本里口头存在
 - 同一条连续搭建链当前还固定了“空候选停住”示例，确保 `recent_actions` 不会被误解为“只要有上一跳就必须继续给下一跳建议”
 - 同一条连续搭建链当前也固定了“候选存在但命名冲突 no-tab”示例，确保 `recent_actions` 不会被误解为“只要候选非空就可以默认 Tab”
+- 上述 `no-tab` 边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免这条规则只停留在 pre-model examples
 
 ### `Radish` 上下文建议
 

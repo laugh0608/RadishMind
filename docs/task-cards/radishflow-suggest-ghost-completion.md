@@ -94,6 +94,12 @@
 其中新增的 `stop-no-legal-outlet` 示例用于固定另一条同样重要的边界：即使连续搭建链已经发生，若本地规则层没有提供任何合法 outlet 候选，模型侧也应继续停在空建议边界。
 而 `outlets-name-conflict-no-tab` 示例则固定第三条边界：即使候选已经存在，只要命名冲突或手动消歧标记仍在，本地规则层也不应把任一候选升级成默认 `Tab`。
 
+当前 `datasets/eval/` 也已补对应回归样本：
+
+- [suggest-ghost-completion-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json)
+
+它用于把“链式继续但只能 manual-only”的边界从 pre-model handoff 再推进到 response-level regression。
+
 ## 禁止透传
 
 以下内容不应进入本任务请求：

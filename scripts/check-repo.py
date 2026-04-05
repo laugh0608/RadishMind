@@ -181,6 +181,7 @@ REQUIRED_FILES = [
     "datasets/eval/radishflow/suggest-ghost-completion-flash-liquid-outlet-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-flash-outlets-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-valve-outlet-001.json",
+    "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-flash-nearby-node-ranking-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-heater-stream-name-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-mixer-standard-outlet-001.json",
