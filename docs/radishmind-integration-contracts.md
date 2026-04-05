@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约草案
 
-更新时间：2026-03-31
+更新时间：2026-04-05
 
 ## 文档目的
 
@@ -122,11 +122,26 @@
 - `solve_session`
 - `latest_snapshot`
 - `control_plane_state`
+- `selected_unit`
+- `unconnected_ports`
+- `missing_canonical_ports`
+- `nearby_nodes`
+- `cursor_context`
+- `legal_candidate_completions`
 
 说明：
 
 - `canvas_snapshot` 适合通过 `artifacts` 追加，而不是替代结构化状态
 - 模型输出不直接改写文档，应先生成提案，再交由业务命令层确认执行
+- 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序
+
+当前对 `suggest_ghost_completion` 的附加约束：
+
+- 应只聚焦一个当前激活或刚放置的单元，不要在一次请求里同时补多个对象
+- 建议数应收口在 1 到 3 条
+- 若没有本地规则层给出的合法候选，允许返回空建议
+- 用户接受 ghost 前，建议都只是 pending 状态，不应被视为正式文档修改
+- 接受 ghost 后，仍必须继续经过本地命令系统和连接合法性校验
 
 ### `Radish` 上下文建议
 
@@ -234,12 +249,46 @@
 - `patch` 是候选提案，不是直接执行的命令
 - `kind` 可以按项目扩展，但都必须经过项目适配层确认
 
+对于 `RadishFlow suggest_ghost_completion`，当前建议新增 `ghost_completion` 这类候选动作：
+
+```json
+{
+  "kind": "ghost_completion",
+  "title": "补全 FlashDrum 的 vapor outlet ghost 连线",
+  "target": {
+    "type": "unit_port",
+    "unit_id": "U-12",
+    "port_key": "vapor_outlet"
+  },
+  "rationale": "当前 canonical port 尚未连接，且本地规则已提供合法 ghost 候选。",
+  "patch": {
+    "ghost_kind": "ghost_connection",
+    "candidate_ref": "cand-vapor-stub",
+    "ghost_stream_name": "V-12"
+  },
+  "preview": {
+    "ghost_color": "gray",
+    "accept_key": "Tab",
+    "render_priority": 1
+  },
+  "apply": {
+    "command_kind": "accept_ghost_completion",
+    "payload": {
+      "candidate_ref": "cand-vapor-stub"
+    }
+  },
+  "risk_level": "low",
+  "requires_confirmation": false
+}
+```
+
 ## 当前推荐任务枚举
 
 ### `RadishFlow`
 
 - `explain_diagnostics`
 - `suggest_flowsheet_edits`
+- `suggest_ghost_completion`
 - `summarize_selection`
 - `explain_control_plane_state`
 - `inspect_canvas_snapshot`

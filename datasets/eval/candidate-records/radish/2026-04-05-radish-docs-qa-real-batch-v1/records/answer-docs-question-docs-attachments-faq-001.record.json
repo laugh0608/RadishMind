@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+  "request_id": "sample-docs-attachments-faq-001",
+  "captured_at": "2026-04-05T01:06:53Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments",
+      "faq"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.95,
+    "summary": "在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式，避免直接暴露真实存储地址。附件 `attachment://manual-42` 已标记为公开兼容，可直接引用。如需提升可读性，可在正文补充说明文字，但实际引用仍需保持 `attachment://` 格式。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档规范，公开文档中的附件应统一使用 `attachment://{id}` 格式进行引用。当前 `attachment://manual-42` 已具备 public-doc-compatible 标记，可直接在文档中引用。若需提升链接可读性，可在正文中添加辅助说明，但底层引用必须维持 `attachment://` 格式。",
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 附件导入说明 上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/attachment-import",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：如果用户希望附件链接更易读，可以在文档正文里补充说明文字，但仍应继续使用 `attachment://{id}` 作为实际引用。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  }
+}

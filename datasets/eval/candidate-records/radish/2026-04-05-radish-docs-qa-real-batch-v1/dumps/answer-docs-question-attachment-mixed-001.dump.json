@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-attachment-mixed-001",
+  "record_id": "captured-radish-answer-docs-question-attachment-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-attachment-mixed-001",
+  "request_id": "sample-attachment-mixed-001",
+  "captured_at": "2026-04-05T01:05:29Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-attachment-mixed-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 附件导入说明\n\n上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/attachment-import",
+          "fragment_id": "public-linking",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "attachment_reference_note",
+        "mime_type": "text/plain",
+        "content": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。",
+        "metadata": {
+          "source_type": "attachments",
+          "page_slug": "guide/attachment-import",
+          "fragment_id": "attachment://manual-42",
+          "retrieval_rank": 2,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/attachment-import",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/attachment-import",
+        "title": "附件导入说明"
+      },
+      "search_scope": [
+        "docs",
+        "attachments"
+      ],
+      "attachment_refs": [
+        "attachment://manual-42"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-attachment-mixed-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"docs_page\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 附件导入说明\\n\\n上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。\",\n      \"metadata\": {\n        \"source_type\": \"docs\",\n        \"page_slug\": \"guide/attachment-import\",\n        \"fragment_id\": \"public-linking\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"text\",\n      \"role\": \"supporting\",\n      \"name\": \"attachment_reference_note\",\n      \"mime_type\": \"text/plain\",\n      \"content\": \"附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。\",\n      \"metadata\": {\n        \"source_type\": \"attachments\",\n        \"page_slug\": \"guide/attachment-import\",\n        \"fragment_id\": \"attachment://manual-42\",\n        \"retrieval_rank\": 2,\n        \"is_official\": true\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/attachment-import\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/attachment-import\",\n      \"title\": \"附件导入说明\"\n    },\n    \"search_scope\": [\n      \"docs\",\n      \"attachments\"\n    ],\n    \"attachment_refs\": [\n      \"attachment://manual-42\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351084-tipwA0FeAJAlNTz0daOM",
+    "object": "chat.completion",
+    "created": 1775351085,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"complete\",\n  \"summary\": \"在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式而非真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中安全引用。\",\n  \"answers\": [\n    {\n      \"answer\": \"根据《附件导入说明》规范，公开文档中的附件引用必须采用 `attachment://{id}` 格式，以隐藏底层真实存储路径。结合当前附件元数据，`attachment://manual-42` 已明确标记为 `public-doc-compatible`，完全符合引用标准，可直接在文档正文中使用。\"\n    }\n  ],\n  \"citations\": [\n    {\n      \"artifact_name\": \"docs_page\",\n      \"fragment_id\": \"public-linking\"\n    },\n    {\n      \"artifact_name\": \"attachment_reference_note\",\n      \"fragment_id\": \"attachment://manual-42\"\n    }\n  ],\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"proposed_actions\": [],\n  \"confidence\": 0.95\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (Document Q&A)\n   - **Project:** `radish`\n   - **Input Artifacts:**\n     - `docs_page` (primary, markdown): Explains that attachments uploaded to public documents should default to `attachment://{id}` references instead of exposing real storage URLs.\n     - `attachment_reference_note` (supporting, text): States that attachment `attachment://manual-42` is marked as `public-doc-compatible` and can be directly referenced in documents.\n   - **Context:** Current app is `document`, route `/document/guide/attachment-import`, resource is a wiki doc. Search scope includes `docs` and `attachments`. `attachment_refs` includes `attachment://manual-42`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, the user didn't explicitly ask a question in the prompt, but the task is `answer_docs_question`. I need to infer the implicit question from the context/artifacts, or just provide a direct answer based on the provided info. Usually, in these prompts, the \"question\" is implied by the context/artifacts. I will formulate a direct answer about how to reference attachments, specifically `attachment://manual-42`, based on the docs.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `status` can be `partial` if evidence is insufficient, but here it's clear. I'll use `complete`.\n     - `proposed_actions` default to empty.\n     - `citations` only from provided artifacts.\n     - Formal docs > FAQ/forum.\n     - Fields: `project`, `task`, `answers` (at least 1), `issues` (optional), `confidence` (0-1).\n     - Structure must match `CopilotResponse`. I'll assume a standard structure like:\n       ```json\n       {\n         \"project\": \"radish\",\n         \"task\": \"answer_docs_question\",\n         \"status\": \"complete\",\n         \"summary\": \"...\",\n         \"answers\": [...],\n         \"citations\": [...],\n         \"risk_level\": \"low\",\n         \"requires_confirmation\": false,\n         \"proposed_actions\": [],\n         \"confidence\": 0.95\n       }\n       ```\n     - I need to make sure the `summary` directly answers the implicit question: \"How should I reference attachments in public documents, and can I use `attachment://manual-42`?\"\n     - Answer: 在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式，避免暴露真实存储地址。根据当前文档说明，附件 `attachment://manual-42` 已标记为 `public-doc-compatible`，可以直接在文档中安全引用。\n     - `citations`: reference both artifacts.\n     - `confidence`: 0.95 (high, based on official docs).\n     - Check constraints: \"summary 必须先直接回答问题\" -> I will make it direct.\n     - \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> Set accordingly.\n     - \"proposed_actions 默认应为空\" -> `[]`\n     - \"citations 只能引用当前输入里已有的 artifacts\" -> I'll use the artifact names/ids.\n     - I will construct the JSON carefully.\n\n2.  **Draft JSON Construction:**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式而非真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中引用。\",\n     \"answers\": [\n       {\n         \"question\": \"如何在公开文档中正确引用附件？\",\n         \"answer\": \"根据《附件导入说明》，上传到公开文档的附件默认应使用 `attachment://{id}` 格式进行引用，以避免直接暴露底层真实存储地址。针对当前上下文中的 `attachment://manual-42`，该附件已明确标记为 `public-doc-compatible`，符合规范，可直接在文档中安全引用。\"\n       }\n     ],\n     \"citations\": [\n       {\n         \"artifact_name\": \"docs_page\",\n         \"fragment_id\": \"public-linking\"\n       },\n       {\n         \"artifact_name\": \"attachment_reference_note\",\n         \"fragment_id\": \"attachment://manual-42\"\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95\n   }\n   ```\n\n3.  **Self-Correction/Verification against Constraints:**\n   - *Only output a JSON object*: Yes.\n   - *No markdown code blocks*: I will output raw JSON text.\n   - *summary must directly answer first*: Yes, it starts with the direct answer.\n   - *risk_level=low, requires_confirmation=false*: Yes.\n   - *status=partial if needed*: Not needed, evidence is clear. `complete` is fine.\n   - *proposed_actions empty*: Yes.\n   - *citations only from input*: Used `docs_page` and `attachment_reference_note`.\n   - *Formal docs priority*: Used `docs_page` as primary.\n   - *Fields*: `project`, `task`, `answers` (>=1), `confidence` (0-1). All present.\n   - Structure matches typical `CopilotResponse`. I'll ensure keys match standard expectations. The prompt says \"结构必须满足 CopilotResponse\", but doesn't give the exact schema. I'll stick to the fields mentioned and standard ones.\n   - I will make sure the JSON is strictly valid.\n   - One minor thing: The prompt says \"summary 必须先直接回答问题\". Since no explicit question was asked in the prompt, I will frame the summary as a direct statement answering the implicit query about attachment referencing.\n   - I'll adjust the `answers` array to be concise.\n   - Check `citations` format: Usually `[{ \"artifact_name\": \"...\", \"fragment_id\": \"...\" }]` or similar. I'll keep it simple.\n   - All constraints met.\n\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式，避免暴露真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中引用。\",\n     \"answers\": [\n       {\n         \"content\": \"根据官方文档说明，公开文档中的附件引用应统一采用 `attachment://{id}` 格式。当前上下文中的 `attachment://manual-42` 已具备 `public-doc-compatible` 标记，符合引用规范，可直接使用。\"\n       }\n     ],\n     \"citations\": [\n       {\n         \"artifact_name\": \"docs_page\",\n         \"fragment_id\": \"public-linking\"\n       },\n       {\n         \"artifact_name\": \"attachment_reference_note\",\n         \"fragment_id\": \"attachment://manual-42\"\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95\n   }\n   ```\n   This looks solid. I will output exactly this JSON string without any markdown formatting. I'll ensure no extra whitespace or newlines break the JSON validity, but pretty-printing is fine as long as it's valid JSON. The prompt says \"不要输出 markdown 代码块\", so I will just output the raw JSON text.\n   One thing: `answers` usually has `question` and `answer` or just `content`. I'll stick to `content` or `answer` to be safe. I'll use `answer`.\n   I will generate it now. \n   All constraints verified. Output matches requirements. \n   Proceeds. \n   *Self-Correction/Refinement during thought*: \n   The prompt says `summary` 必须先直接回答问题. I'll make sure it's the very first thing in the JSON value. \n   I'll structure it exactly as requested. \n   Ready. \n   Output matches the draft. \n   *Output Generation* (matches the final JSON)✅\n   Note: I will ensure strict JSON formatting without markdown backticks.\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", ... }`\n   All good. \n   Proceeds. \n   [Output Generation] -> *See response.* \n   *(Self-Correction/Verification during generation prep)*: \n   I should verify if `CopilotResponse` expects specific keys. The prompt lists: `project`, `task`, `summary`, `risk_level`, `requires_confirmation`, `status`, `proposed_actions`, `citations`, `answers`, `confidence`. I'll include them all. \n   The JSON will be strictly valid. \n   Done. \n   Output matches response. \n   *(Proceeds)*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (Document Q&A)\n   - **Project:** `radish`\n   - **Input Artifacts:**\n     - `docs_page` (primary, markdown): Explains that attachments uploaded to public documents should default to `attachment://{id}` references instead of exposing real storage URLs.\n     - `attachment_reference_note` (supporting, text): States that attachment `attachment://manual-42` is marked as `public-doc-compatible` and can be directly referenced in documents.\n   - **Context:** Current app is `document`, route `/document/guide/attachment-import`, resource is a wiki doc. Search scope includes `docs` and `attachments`. `attachment_refs` includes `attachment://manual-42`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, the user didn't explicitly ask a question in the prompt, but the task is `answer_docs_question`. I need to infer the implicit question from the context/artifacts, or just provide a direct answer based on the provided info. Usually, in these prompts, the \"question\" is implied by the context/artifacts. I will formulate a direct answer about how to reference attachments, specifically `attachment://manual-42`, based on the docs.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `status` can be `partial` if evidence is insufficient, but here it's clear. I'll use `complete`.\n     - `proposed_actions` default to empty.\n     - `citations` only from provided artifacts.\n     - Formal docs > FAQ/forum.\n     - Fields: `project`, `task`, `answers` (at least 1), `issues` (optional), `confidence` (0-1).\n     - Structure must match `CopilotResponse`. I'll assume a standard structure like:\n       ```json\n       {\n         \"project\": \"radish\",\n         \"task\": \"answer_docs_question\",\n         \"status\": \"complete\",\n         \"summary\": \"...\",\n         \"answers\": [...],\n         \"citations\": [...],\n         \"risk_level\": \"low\",\n         \"requires_confirmation\": false,\n         \"proposed_actions\": [],\n         \"confidence\": 0.95\n       }\n       ```\n     - I need to make sure the `summary` directly answers the implicit question: \"How should I reference attachments in public documents, and can I use `attachment://manual-42`?\"\n     - Answer: 在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式，避免暴露真实存储地址。根据当前文档说明，附件 `attachment://manual-42` 已标记为 `public-doc-compatible`，可以直接在文档中安全引用。\n     - `citations`: reference both artifacts.\n     - `confidence`: 0.95 (high, based on official docs).\n     - Check constraints: \"summary 必须先直接回答问题\" -> I will make it direct.\n     - \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> Set accordingly.\n     - \"proposed_actions 默认应为空\" -> `[]`\n     - \"citations 只能引用当前输入里已有的 artifacts\" -> I'll use the artifact names/ids.\n     - I will construct the JSON carefully.\n\n2.  **Draft JSON Construction:**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式而非真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中引用。\",\n     \"answers\": [\n       {\n         \"question\": \"如何在公开文档中正确引用附件？\",\n         \"answer\": \"根据《附件导入说明》，上传到公开文档的附件默认应使用 `attachment://{id}` 格式进行引用，以避免直接暴露底层真实存储地址。针对当前上下文中的 `attachment://manual-42`，该附件已明确标记为 `public-doc-compatible`，符合规范，可直接在文档中安全引用。\"\n       }\n     ],\n     \"citations\": [\n       {\n         \"artifact_name\": \"docs_page\",\n         \"fragment_id\": \"public-linking\"\n       },\n       {\n         \"artifact_name\": \"attachment_reference_note\",\n         \"fragment_id\": \"attachment://manual-42\"\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95\n   }\n   ```\n\n3.  **Self-Correction/Verification against Constraints:**\n   - *Only output a JSON object*: Yes.\n   - *No markdown code blocks*: I will output raw JSON text.\n   - *summary must directly answer first*: Yes, it starts with the direct answer.\n   - *risk_level=low, requires_confirmation=false*: Yes.\n   - *status=partial if needed*: Not needed, evidence is clear. `complete` is fine.\n   - *proposed_actions empty*: Yes.\n   - *citations only from input*: Used `docs_page` and `attachment_reference_note`.\n   - *Formal docs priority*: Used `docs_page` as primary.\n   - *Fields*: `project`, `task`, `answers` (>=1), `confidence` (0-1). All present.\n   - Structure matches typical `CopilotResponse`. I'll ensure keys match standard expectations. The prompt says \"结构必须满足 CopilotResponse\", but doesn't give the exact schema. I'll stick to the fields mentioned and standard ones.\n   - I will make sure the JSON is strictly valid.\n   - One minor thing: The prompt says \"summary 必须先直接回答问题\". Since no explicit question was asked in the prompt, I will frame the summary as a direct statement answering the implicit query about attachment referencing.\n   - I'll adjust the `answers` array to be concise.\n   - Check `citations` format: Usually `[{ \"artifact_name\": \"...\", \"fragment_id\": \"...\" }]` or similar. I'll keep it simple.\n   - All constraints met.\n\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式，避免暴露真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中引用。\",\n     \"answers\": [\n       {\n         \"content\": \"根据官方文档说明，公开文档中的附件引用应统一采用 `attachment://{id}` 格式。当前上下文中的 `attachment://manual-42` 已具备 `public-doc-compatible` 标记，符合引用规范，可直接使用。\"\n       }\n     ],\n     \"citations\": [\n       {\n         \"artifact_name\": \"docs_page\",\n         \"fragment_id\": \"public-linking\"\n       },\n       {\n         \"artifact_name\": \"attachment_reference_note\",\n         \"fragment_id\": \"attachment://manual-42\"\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95\n   }\n   ```\n   This looks solid. I will output exactly this JSON string without any markdown formatting. I'll ensure no extra whitespace or newlines break the JSON validity, but pretty-printing is fine as long as it's valid JSON. The prompt says \"不要输出 markdown 代码块\", so I will just output the raw JSON text.\n   One thing: `answers` usually has `question` and `answer` or just `content`. I'll stick to `content` or `answer` to be safe. I'll use `answer`.\n   I will generate it now. \n   All constraints verified. Output matches requirements. \n   Proceeds. \n   *Self-Correction/Refinement during thought*: \n   The prompt says `summary` 必须先直接回答问题. I'll make sure it's the very first thing in the JSON value. \n   I'll structure it exactly as requested. \n   Ready. \n   Output matches the draft. \n   *Output Generation* (matches the final JSON)✅\n   Note: I will ensure strict JSON formatting without markdown backticks.\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", ... }`\n   All good. \n   Proceeds. \n   [Output Generation] -> *See response.* \n   *(Self-Correction/Verification during generation prep)*: \n   I should verify if `CopilotResponse` expects specific keys. The prompt lists: `project`, `task`, `summary`, `risk_level`, `requires_confirmation`, `status`, `proposed_actions`, `citations`, `answers`, `confidence`. I'll include them all. \n   The JSON will be strictly valid. \n   Done. \n   Output matches response. \n   *(Proceeds)*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 837,
+      "completion_tokens": 2347,
+      "total_tokens": 3184,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2067,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "summary": "在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式而非真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中安全引用。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据《附件导入说明》规范，公开文档中的附件引用必须采用 `attachment://{id}` 格式，以隐藏底层真实存储路径。结合当前附件元数据，`attachment://manual-42` 已明确标记为 `public-doc-compatible`，完全符合引用标准，可直接在文档正文中使用。",
+        "citation_ids": []
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2"
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "confidence": 0.95,
+    "issues": [],
+    "schema_version": 1
+  }
+}

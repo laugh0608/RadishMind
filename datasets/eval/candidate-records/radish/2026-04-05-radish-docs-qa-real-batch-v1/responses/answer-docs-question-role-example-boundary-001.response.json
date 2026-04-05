@@ -1,0 +1,30 @@
+{
+  "project": "radish",
+  "task": "answer_docs_question",
+  "status": "partial",
+  "summary": "文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限。",
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "confidence": 0.9,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "根据提供的《Hangfire 权限说明》，文档中提及的 Admin 仅用于说明常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前上下文显示您仅拥有 console.hangfire.view 权限，因此无法直接确认是否可执行相关操作。",
+      "citation_ids": [
+        "doc-1"
+      ]
+    }
+  ],
+  "issues": [],
+  "proposed_actions": [],
+  "citations": [
+    {
+      "id": "doc-1",
+      "kind": "artifact",
+      "label": "console/hangfire-permission-guide",
+      "locator": "artifact:wiki_document",
+      "excerpt": "# Hangfire 权限说明 文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。"
+    }
+  ],
+  "schema_version": 1
+}

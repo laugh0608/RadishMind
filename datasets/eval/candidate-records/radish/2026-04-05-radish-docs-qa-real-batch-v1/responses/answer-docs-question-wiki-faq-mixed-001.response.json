@@ -1,0 +1,34 @@
+{
+  "project": "radish",
+  "task": "answer_docs_question",
+  "status": "ok",
+  "summary": "双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "根据官方文档，恢复码在开启双重验证时仅生成一次，需用户自行妥善保存。若恢复码遗失，建议先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。",
+      "citation_ids": [
+        "doc-1",
+        "faq-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "doc-1",
+      "kind": "artifact",
+      "label": "doc-1"
+    },
+    {
+      "id": "doc-2",
+      "kind": "artifact",
+      "label": "doc-2"
+    }
+  ],
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "confidence": 0.9,
+  "proposed_actions": [],
+  "issues": [],
+  "schema_version": 1
+}

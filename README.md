@@ -16,6 +16,7 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
   - 基于 `FlowsheetDocument + selection + diagnostics + solve state` 的解释与建议
   - 控制面 / entitlement / lease / package sync 状态解释
   - 候选编辑提案生成，并保持 `requires_confirmation`
+  - 基于 canonical ports、本地合法候选集和邻近拓扑的 ghost 补全建议
   - 画布截图理解作为补充输入，而不是第一阶段唯一主线
 
 - 面向 `Radish`
@@ -97,8 +98,9 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 
 - `RadishFlow` 三个首批任务都已具备最小回归闭环
 - `Radish answer_docs_question` 已具备召回输入约束、`golden_response` 对照、外部 `candidate_response_record` 回灌、统一负例回放和跨样本真实 record replay，并已覆盖 `docs/wiki/attachments/forum/faq` 多源与三路冲突的最小混合召回基线
+- `Radish answer_docs_question` 已新增第二批真实 provider 回灌 `2026-04-05-radish-docs-qa-real-batch-v1`，固化为 `11 captured / 10 failed / 22 violations / 10 same-sample negatives`，并新增了“回答体缺失”和“citation / official_source_precedence 脱节”两类真实违规组
 
-当前下一步主线是继续扩大 `Radish answer_docs_question` 的真实 captured negative 批次；最小 manifest 导入清单已经落地，离线样本只再按需补极端冲突边界。
+当前下一步主线仍是继续扩大 `Radish answer_docs_question` 的真实 captured negative 批次，但重心已经从“先把批次接进来”转到“继续扩真实坏输出类型”，优先补更多 citation 脱节、answer 缺失和边界态误判，而不只是重复 `read_only_check` 缺失这一类模式。
 
 ## 当前最小推理闭环
 

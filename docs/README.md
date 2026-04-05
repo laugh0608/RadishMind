@@ -1,6 +1,6 @@
 # RadishMind 文档总览
 
-更新时间：2026-04-04
+更新时间：2026-04-05
 
 ## 文档目的
 
@@ -42,6 +42,7 @@
 ## 下一步优先推进
 
 1. 继续为 `RadishFlow` 首批 3 个任务扩展输入快照样例与评测样本，优先补控制面冲突态和更多对抗样本。
-2. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已具备真实/模拟 batch 编排、`manifest / audit / replay index / same-sample negatives / artifacts.json / recommended replay summary` 这条最小闭环，下一步优先扩大真实 captured negative 批次并沉淀更多高频违规类型。
-3. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
-4. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。
+2. 为 `RadishFlow` 新冻结的 `suggest_ghost_completion` 补最小样本与评测口径，优先围绕 `FlashDrum` / `Mixer` 的 ghost 补全场景验证“本地合法候选先生成、模型只做排序”的边界。
+3. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已具备真实/模拟 batch 编排、`manifest / audit / replay index / same-sample negatives / artifacts.json / recommended replay summary` 这条最小闭环，下一步优先扩大真实 captured negative 批次并沉淀更多高频违规类型。
+4. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
+5. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。

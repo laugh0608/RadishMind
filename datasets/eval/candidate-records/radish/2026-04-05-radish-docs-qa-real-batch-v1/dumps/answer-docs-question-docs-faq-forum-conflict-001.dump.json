@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-docs-faq-forum-conflict-001",
+  "record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+  "request_id": "sample-docs-faq-forum-conflict-001",
+  "captured_at": "2026-04-05T01:08:55Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt",
+      "forum_excerpt"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-docs-faq-forum-conflict-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 文档发布说明\n\n公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/publishing",
+          "fragment_id": "slug-stability",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "faq_excerpt",
+        "mime_type": "text/markdown",
+        "content": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。",
+        "metadata": {
+          "source_type": "faq",
+          "page_slug": "faq/publishing",
+          "fragment_id": "slug-alias",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "forum_excerpt",
+        "mime_type": "text/markdown",
+        "content": "社区帖子建议：如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。",
+        "metadata": {
+          "source_type": "forum",
+          "page_slug": "community/publishing-tips",
+          "fragment_id": "replace-slug-directly",
+          "retrieval_rank": 3,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/publishing",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/publishing",
+        "title": "文档发布说明"
+      },
+      "search_scope": [
+        "docs",
+        "faq",
+        "forum"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-docs-faq-forum-conflict-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"docs_page\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 文档发布说明\\n\\n公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。\",\n      \"metadata\": {\n        \"source_type\": \"docs\",\n        \"page_slug\": \"guide/publishing\",\n        \"fragment_id\": \"slug-stability\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"supporting\",\n      \"name\": \"faq_excerpt\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。\",\n      \"metadata\": {\n        \"source_type\": \"faq\",\n        \"page_slug\": \"faq/publishing\",\n        \"fragment_id\": \"slug-alias\",\n        \"retrieval_rank\": 2,\n        \"is_official\": false\n      }\n    },\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"supporting\",\n      \"name\": \"forum_excerpt\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"社区帖子建议：如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。\",\n      \"metadata\": {\n        \"source_type\": \"forum\",\n        \"page_slug\": \"community/publishing-tips\",\n        \"fragment_id\": \"replace-slug-directly\",\n        \"retrieval_rank\": 3,\n        \"is_official\": false\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/publishing\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/publishing\",\n      \"title\": \"文档发布说明\"\n    },\n    \"search_scope\": [\n      \"docs\",\n      \"faq\",\n      \"forum\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351277-wVlue3RfSPak6ZiRUCfX",
+    "object": "chat.completion",
+    "created": 1775351277,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"complete\",\n  \"summary\": \"公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。\",\n  \"answers\": [\n    {\n      \"question\": \"发布后的文档如何调整标题或 slug？\",\n      \"content\": \"根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。\",\n      \"citations\": [\n        \"docs_page\",\n        \"faq_excerpt\",\n        \"forum_excerpt\"\n      ]\n    }\n  ],\n  \"issues\": [\n    {\n      \"type\": \"source_conflict\",\n      \"description\": \"官方文档与 FAQ 强调 slug 稳定性及 alias 过渡方案，而社区论坛建议低流量页面可直接修改 slug，两者存在实践冲突。\"\n    }\n  ],\n  \"confidence\": 0.85,\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"proposed_actions\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `docs_page` (primary, official): States that after public release, the original slug should remain stable. If title adjustment is needed, avoid directly changing the existing access URL.\n     - `faq_excerpt` (supporting, non-official): Suggests adding an alias to keep the old link if title change is necessary, then gradually switch to the new title.\n     - `forum_excerpt` (supporting, non-official): Suggests directly changing the slug and deleting the old link if traffic is low, letting search engines converge later.\n   - **Context:** Current app is `document`, route `/document/guide/publishing`, resource is a wiki doc with slug `guide/publishing`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - If evidence is insufficient/conflicting, can degrade to `status=partial`.\n     - `proposed_actions` default empty.\n     - `citations` only reference provided artifacts.\n     - Official docs > FAQ/Forum.\n     - If docs are just examples/boundary hints, don't write as definitive authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifacts revolve around: \"How should I handle slug/title changes for a published document?\" or \"Can I change the slug of a published document?\" I will formulate the answer based on this implicit question, directly addressing slug stability and modification practices.\n\n3.  **Synthesize Answer based on Artifacts & Rules:**\n   - *Official Doc:* Keep slug stable. Avoid direct URL changes.\n   - *FAQ:* If change is necessary, add an alias for the old link, then transition.\n   - *Forum:* Suggests direct change for low traffic (conflicts with official doc).\n   - *Rule:* Official docs take precedence. FAQ/Forum are secondary. Conflict exists, so I should note it or stick to the official stance while acknowledging alternatives, possibly setting `status=partial` or `confidence` slightly lower due to conflict, but the prompt says \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" and \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `status=partial` or just keep it `complete` but mention the conflict in `issues` or `summary`. Actually, the official doc is clear. I'll stick to the official guidance as primary, mention the alias method from FAQ, and note the forum suggestion is non-official and conflicts. I'll set `status=complete` or `partial`. Given the explicit conflict, `status=partial` is safer per rule 5. Or I can just state the official rule clearly and set `confidence=0.85`. Let's stick to `status=complete` but mention the conflict in `issues`, or just use `status=partial` as allowed. I'll go with `status=complete` but note the official stance is definitive. Actually, rule 5 says \"可退化为 status=partial\", not mandatory. I'll keep it `complete` but set `confidence=0.8` due to conflicting community advice. Wait, the prompt says \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `status=partial` to be safe, or just `complete` with a clear summary. I'll stick to `complete` but mention the official rule is primary. Actually, I'll just follow the official doc strictly.\n\n   Let's draft the `summary`: 公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。\n   This directly answers the implicit question.\n\n   `answers`: Array of answer objects. I'll structure it logically.\n   `citations`: Reference the artifacts by name or ID. I'll use `[\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]`.\n   `issues`: Mention the conflict between official/FAQ and forum.\n   `confidence`: 0.85\n   `risk_level`: \"low\"\n   `requires_confirmation`: false\n   `proposed_actions`: []\n   `project`: \"radish\"\n   `task`: \"answer_docs_question\"\n\n4.  **Construct JSON (Mental Refinement):**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，应优先通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议采纳。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后的文档如何调整标题或 slug？\",\n         \"content\": \"根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。\",\n         \"citations\": [\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]\n       }\n     ],\n     \"issues\": [\n       {\n         \"type\": \"source_conflict\",\n         \"description\": \"官方文档与 FAQ 强调 slug 稳定性及 alias 过渡方案，而社区论坛建议低流量页面可直接修改 slug，两者存在实践冲突。\"\n       }\n     ],\n     \"confidence\": 0.85,\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": []\n   }\n   ```\n\n   Check against constraints:\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status=partial` if conflict? I used `complete` but added `issues`. I'll change `status` to `partial` to strictly follow rule 5 (\"若...来源冲突...可退化为 status=partial\"). Actually, it says \"可退化\", so it's optional. I'll keep `complete` but it's fine either way. I'll stick to `complete` as the official doc is clear. Or I'll use `partial` to be safe. Let's use `partial` to align with the conflict hint. Actually, the prompt says \"可退化为\", so it's fine. I'll keep `complete`.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes.\n   - Official > FAQ/Forum? Yes, explicitly stated.\n   - Fields match? Yes.\n\n   One minor thing: The prompt says `answers` must have at least 1 item. I have 1.\n   I will ensure the JSON structure matches typical `CopilotResponse` schema implied by the prompt. I'll add `locale` if needed, but not required. I'll stick to the fields mentioned.\n\n   Let's verify the exact structure expected. Usually:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"...\",\n     \"answers\": [...],\n     \"issues\": [...],\n     \"confidence\": 0.85,\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": []\n   }\n   ```\n   This looks solid. I will generate it now. I'll make sure there's absolutely no markdown formatting. I will output raw JSON.\n   One check: \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> checked.\n   \"summary 必须先直接回答问题\" -> checked.\n   \"citations 只能引用当前输入里已有的 artifacts\" -> I used the `name` field from artifacts. That's standard.\n   All good.\n   Output matches exactly. \n   Proceed. \n   Self-Correction/Refinement during thought: \n   I should ensure the JSON keys match exactly what's expected. The prompt doesn't give a strict schema, but mentions `CopilotResponse`. I'll stick to the fields I listed. I'll make sure `status` is either `complete` or `partial`. Given the explicit conflict, I'll set `status: \"partial\"` to be safe per rule 5. Actually, rule 5 says \"可退化为\", so it's optional. I'll keep `complete` but it's fine. I'll just use `complete`.\n   I will output the raw JSON string.\n   Ready. \n   Output Generation. \n   *(Self-Correction/Verification during drafting)*\n   Wait, the prompt says: \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `status: \"partial\"` to strictly follow the hint about conflict. It's safer.\n   Also, `citations` should probably reference the artifact names or IDs. I'll use `[\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]`.\n   I'll format it carefully.\n   Final JSON:\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"partial\",\n     \"summary\": \"公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后的文档如何调整标题或 slug？\",\n         \"content\": \"根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。\",\n         \"citations\": [\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]\n       }\n     ],\n     \"issues\": [\n       {\n         \"type\": \"source_conflict\",\n         \"description\": \"官方文档与 FAQ 强调 slug 稳定性及 alias 过渡方案，而社区论坛建议低流量页面可直接修改 slug，两者存在实践冲突。\"\n       }\n     ],\n     \"confidence\": 0.8,\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": []\n   }\n   This matches all constraints. I will output it directly. \n   One thing: `status` might be expected as `complete` by default, but `partial` is allowed. I'll stick with `partial`. Actually, I'll change to `complete` because the official doc is definitive, and the conflict is just a community suggestion. The prompt says \"可退化\", not \"必须\". I'll use `complete`. It doesn't matter much. I'll keep `complete`.\n   I will generate the JSON now. \n   Output matches exactly.✅\n   Proceeds. \n   [Output Generation] -> *Raw JSON string* (no markdown)\n   *(Self-Correction/Note during output prep)*: I must ensure absolutely no markdown formatting, not even backticks. I will just print the raw JSON text.\n   All constraints checked. Ready. \n   Output matches the final JSON. \n   *(Done.)*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `docs_page` (primary, official): States that after public release, the original slug should remain stable. If title adjustment is needed, avoid directly changing the existing access URL.\n     - `faq_excerpt` (supporting, non-official): Suggests adding an alias to keep the old link if title change is necessary, then gradually switch to the new title.\n     - `forum_excerpt` (supporting, non-official): Suggests directly changing the slug and deleting the old link if traffic is low, letting search engines converge later.\n   - **Context:** Current app is `document`, route `/document/guide/publishing`, resource is a wiki doc with slug `guide/publishing`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - If evidence is insufficient/conflicting, can degrade to `status=partial`.\n     - `proposed_actions` default empty.\n     - `citations` only reference provided artifacts.\n     - Official docs > FAQ/Forum.\n     - If docs are just examples/boundary hints, don't write as definitive authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifacts revolve around: \"How should I handle slug/title changes for a published document?\" or \"Can I change the slug of a published document?\" I will formulate the answer based on this implicit question, directly addressing slug stability and modification practices.\n\n3.  **Synthesize Answer based on Artifacts & Rules:**\n   - *Official Doc:* Keep slug stable. Avoid direct URL changes.\n   - *FAQ:* If change is necessary, add an alias for the old link, then transition.\n   - *Forum:* Suggests direct change for low traffic (conflicts with official doc).\n   - *Rule:* Official docs take precedence. FAQ/Forum are secondary. Conflict exists, so I should note it or stick to the official stance while acknowledging alternatives, possibly setting `status=partial` or `confidence` slightly lower due to conflict, but the prompt says \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" and \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `status=partial` or just keep it `complete` but mention the conflict in `issues` or `summary`. Actually, the official doc is clear. I'll stick to the official guidance as primary, mention the alias method from FAQ, and note the forum suggestion is non-official and conflicts. I'll set `status=complete` or `partial`. Given the explicit conflict, `status=partial` is safer per rule 5. Or I can just state the official rule clearly and set `confidence=0.85`. Let's stick to `status=complete` but mention the conflict in `issues`, or just use `status=partial` as allowed. I'll go with `status=complete` but note the official stance is definitive. Actually, rule 5 says \"可退化为 status=partial\", not mandatory. I'll keep it `complete` but set `confidence=0.8` due to conflicting community advice. Wait, the prompt says \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `status=partial` to be safe, or just `complete` with a clear summary. I'll stick to `complete` but mention the official rule is primary. Actually, I'll just follow the official doc strictly.\n\n   Let's draft the `summary`: 公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。\n   This directly answers the implicit question.\n\n   `answers`: Array of answer objects. I'll structure it logically.\n   `citations`: Reference the artifacts by name or ID. I'll use `[\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]`.\n   `issues`: Mention the conflict between official/FAQ and forum.\n   `confidence`: 0.85\n   `risk_level`: \"low\"\n   `requires_confirmation`: false\n   `proposed_actions`: []\n   `project`: \"radish\"\n   `task`: \"answer_docs_question\"\n\n4.  **Construct JSON (Mental Refinement):**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，应优先通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议采纳。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后的文档如何调整标题或 slug？\",\n         \"content\": \"根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。\",\n         \"citations\": [\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]\n       }\n     ],\n     \"issues\": [\n       {\n         \"type\": \"source_conflict\",\n         \"description\": \"官方文档与 FAQ 强调 slug 稳定性及 alias 过渡方案，而社区论坛建议低流量页面可直接修改 slug，两者存在实践冲突。\"\n       }\n     ],\n     \"confidence\": 0.85,\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": []\n   }\n   ```\n\n   Check against constraints:\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status=partial` if conflict? I used `complete` but added `issues`. I'll change `status` to `partial` to strictly follow rule 5 (\"若...来源冲突...可退化为 status=partial\"). Actually, it says \"可退化\", so it's optional. I'll keep `complete` but it's fine either way. I'll stick to `complete` as the official doc is clear. Or I'll use `partial` to be safe. Let's use `partial` to align with the conflict hint. Actually, the prompt says \"可退化为\", so it's fine. I'll keep `complete`.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes.\n   - Official > FAQ/Forum? Yes, explicitly stated.\n   - Fields match? Yes.\n\n   One minor thing: The prompt says `answers` must have at least 1 item. I have 1.\n   I will ensure the JSON structure matches typical `CopilotResponse` schema implied by the prompt. I'll add `locale` if needed, but not required. I'll stick to the fields mentioned.\n\n   Let's verify the exact structure expected. Usually:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"...\",\n     \"answers\": [...],\n     \"issues\": [...],\n     \"confidence\": 0.85,\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": []\n   }\n   ```\n   This looks solid. I will generate it now. I'll make sure there's absolutely no markdown formatting. I will output raw JSON.\n   One check: \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> checked.\n   \"summary 必须先直接回答问题\" -> checked.\n   \"citations 只能引用当前输入里已有的 artifacts\" -> I used the `name` field from artifacts. That's standard.\n   All good.\n   Output matches exactly. \n   Proceed. \n   Self-Correction/Refinement during thought: \n   I should ensure the JSON keys match exactly what's expected. The prompt doesn't give a strict schema, but mentions `CopilotResponse`. I'll stick to the fields I listed. I'll make sure `status` is either `complete` or `partial`. Given the explicit conflict, I'll set `status: \"partial\"` to be safe per rule 5. Actually, rule 5 says \"可退化为\", so it's optional. I'll keep `complete` but it's fine. I'll just use `complete`.\n   I will output the raw JSON string.\n   Ready. \n   Output Generation. \n   *(Self-Correction/Verification during drafting)*\n   Wait, the prompt says: \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `status: \"partial\"` to strictly follow the hint about conflict. It's safer.\n   Also, `citations` should probably reference the artifact names or IDs. I'll use `[\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]`.\n   I'll format it carefully.\n   Final JSON:\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"partial\",\n     \"summary\": \"公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后的文档如何调整标题或 slug？\",\n         \"content\": \"根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。\",\n         \"citations\": [\"docs_page\", \"faq_excerpt\", \"forum_excerpt\"]\n       }\n     ],\n     \"issues\": [\n       {\n         \"type\": \"source_conflict\",\n         \"description\": \"官方文档与 FAQ 强调 slug 稳定性及 alias 过渡方案，而社区论坛建议低流量页面可直接修改 slug，两者存在实践冲突。\"\n       }\n     ],\n     \"confidence\": 0.8,\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": []\n   }\n   This matches all constraints. I will output it directly. \n   One thing: `status` might be expected as `complete` by default, but `partial` is allowed. I'll stick with `partial`. Actually, I'll change to `complete` because the official doc is definitive, and the conflict is just a community suggestion. The prompt says \"可退化\", not \"必须\". I'll use `complete`. It doesn't matter much. I'll keep `complete`.\n   I will generate the JSON now. \n   Output matches exactly.✅\n   Proceeds. \n   [Output Generation] -> *Raw JSON string* (no markdown)\n   *(Self-Correction/Note during output prep)*: I must ensure absolutely no markdown formatting, not even backticks. I will just print the raw JSON text.\n   All constraints checked. Ready. \n   Output matches the final JSON. \n   *(Done.)*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 965,
+      "completion_tokens": 3054,
+      "total_tokens": 4019,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2709,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "summary": "公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "confidence": 0.85,
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/publishing",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档发布说明 公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/publishing",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/publishing-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区帖子建议：如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。"
+      }
+    ],
+    "schema_version": 1
+  }
+}

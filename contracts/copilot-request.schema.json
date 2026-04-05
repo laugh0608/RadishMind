@@ -76,6 +76,7 @@
             "enum": [
               "explain_diagnostics",
               "suggest_flowsheet_edits",
+              "suggest_ghost_completion",
               "summarize_selection",
               "explain_control_plane_state",
               "inspect_canvas_snapshot"

@@ -1,0 +1,30 @@
+{
+  "project": "radish",
+  "task": "answer_docs_question",
+  "status": "ok",
+  "summary": "鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "根据《鉴权与授权指南》，鉴权的核心职责是确认用户是谁（身份验证），而授权的核心职责是确认用户能做什么（权限分配）。",
+      "citation_ids": [
+        "doc-1"
+      ]
+    }
+  ],
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "proposed_actions": [],
+  "confidence": 0.95,
+  "issues": [],
+  "citations": [
+    {
+      "id": "doc-1",
+      "kind": "artifact",
+      "label": "guide/authentication",
+      "locator": "artifact:wiki_document",
+      "excerpt": "# 鉴权与授权指南 鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+    }
+  ],
+  "schema_version": 1
+}

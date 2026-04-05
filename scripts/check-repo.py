@@ -11,6 +11,27 @@ import jsonschema
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+RADISH_DOCS_QA_REAL_BATCHES = [
+    {
+        "audit_report": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
+        "artifact_summary": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
+        "manifest": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+        "negative_output_dir": "datasets/eval/radish-negative",
+        "replay_index": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+        "recommended_summary": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json",
+        "recommended_top": "4",
+    },
+    {
+        "audit_report": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.audit.json",
+        "artifact_summary": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json",
+        "manifest": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+        "negative_output_dir": "datasets/eval/radish-negative/2026-04-05-radish-docs-qa-real-batch-v1",
+        "replay_index": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+        "recommended_summary": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top5-same_sample.summary.json",
+        "recommended_top": "5",
+    },
+]
+
 REQUIRED_FILES = [
     "AGENTS.md",
     "CLAUDE.md",
@@ -29,6 +50,7 @@ REQUIRED_FILES = [
     "docs/task-cards/radishflow-explain-diagnostics.md",
     "docs/task-cards/radishflow-suggest-flowsheet-edits.md",
     "docs/task-cards/radishflow-explain-control-plane-state.md",
+    "docs/task-cards/radishflow-suggest-ghost-completion.md",
     "docs/task-cards/radish-answer-docs-question.md",
     "docs/radishmind-product-scope.md",
     "docs/radishmind-architecture.md",
@@ -48,11 +70,6 @@ REQUIRED_FILES = [
     "datasets/eval/negative-replay-index.schema.json",
     "datasets/eval/recommended-negative-replay-summary.schema.json",
     "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
-    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
-    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
-    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
-    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
-    "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json",
     "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
     "datasets/eval/radishflow-task-sample.schema.json",
     "datasets/eval/radish-task-sample.schema.json",
@@ -119,6 +136,19 @@ REQUIRED_FILES = [
     "scripts/check-repo.ps1",
     "scripts/check-repo.sh",
 ]
+REQUIRED_FILES.extend(
+    [
+        relative_path
+        for batch in RADISH_DOCS_QA_REAL_BATCHES
+        for relative_path in (
+            batch["audit_report"],
+            batch["artifact_summary"],
+            batch["manifest"],
+            batch["replay_index"],
+            batch["recommended_summary"],
+        )
+    ]
+)
 
 
 def run_python_script(script_name: str, args: list[str]) -> None:
@@ -179,82 +209,74 @@ def check_content_baseline() -> None:
 
 
 def check_generated_eval_metadata() -> None:
-    run_python_script(
-        "build-negative-replay-index.py",
-        [
-            "--audit-report",
-            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
-            "--output",
-            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
-            "--check",
-        ],
-    )
-
     schema = json.loads(
         (REPO_ROOT / "datasets/eval/negative-replay-index.schema.json").read_text(encoding="utf-8")
     )
-    document = json.loads(
-        (
-            REPO_ROOT / "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json"
-        ).read_text(encoding="utf-8")
-    )
-    jsonschema.validate(document, schema)
-
     artifact_summary_schema = json.loads(
         (REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json").read_text(encoding="utf-8")
     )
-    artifact_summary_document = json.loads(
-        (
-            REPO_ROOT / "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json"
-        ).read_text(encoding="utf-8")
-    )
-    jsonschema.validate(artifact_summary_document, artifact_summary_schema)
-
     recommended_summary_schema = json.loads(
         (REPO_ROOT / "datasets/eval/recommended-negative-replay-summary.schema.json").read_text(encoding="utf-8")
     )
-    recommended_summary_document = json.loads(
-        (
-            REPO_ROOT
-            / "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json"
-        ).read_text(encoding="utf-8")
-    )
-    jsonschema.validate(recommended_summary_document, recommended_summary_schema)
+    for batch in RADISH_DOCS_QA_REAL_BATCHES:
+        run_python_script(
+            "build-negative-replay-index.py",
+            [
+                "--audit-report",
+                batch["audit_report"],
+                "--negative-sample-dir",
+                batch["negative_output_dir"],
+                "--output",
+                batch["replay_index"],
+                "--check",
+            ],
+        )
 
-    run_python_script(
-        "build-radish-docs-negative-replay.py",
-        [
-            "--index",
-            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
-            "--check",
-        ],
-    )
+        document = json.loads((REPO_ROOT / batch["replay_index"]).read_text(encoding="utf-8"))
+        jsonschema.validate(document, schema)
 
-    run_python_script(
-        "run-eval-regression.py",
-        [
-            "radish-docs-qa-negative",
-            "--batch-artifact-summary",
-            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
-            "--recommended-groups-top",
-            "1",
-            "--fail-on-violation",
-        ],
-    )
+        artifact_summary_document = json.loads((REPO_ROOT / batch["artifact_summary"]).read_text(encoding="utf-8"))
+        jsonschema.validate(artifact_summary_document, artifact_summary_schema)
 
-    run_python_script(
-        "run-radish-docs-qa-negative-recommended.py",
-        [
-            "--batch-artifact-summary",
-            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
-            "--top",
-            "4",
-            "--fail-on-violation",
-            "--summary-output",
-            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json",
-            "--check",
-        ],
-    )
+        recommended_summary_document = json.loads((REPO_ROOT / batch["recommended_summary"]).read_text(encoding="utf-8"))
+        jsonschema.validate(recommended_summary_document, recommended_summary_schema)
+
+        run_python_script(
+            "build-radish-docs-negative-replay.py",
+            [
+                "--index",
+                batch["replay_index"],
+                "--output-dir",
+                batch["negative_output_dir"],
+                "--check",
+            ],
+        )
+
+        run_python_script(
+            "run-eval-regression.py",
+            [
+                "radish-docs-qa-negative",
+                "--batch-artifact-summary",
+                batch["artifact_summary"],
+                "--recommended-groups-top",
+                "1",
+                "--fail-on-violation",
+            ],
+        )
+
+        run_python_script(
+            "run-radish-docs-qa-negative-recommended.py",
+            [
+                "--batch-artifact-summary",
+                batch["artifact_summary"],
+                "--top",
+                batch["recommended_top"],
+                "--fail-on-violation",
+                "--summary-output",
+                batch["recommended_summary"],
+                "--check",
+            ],
+        )
 
 
 def parse_args() -> argparse.Namespace:

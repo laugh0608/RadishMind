@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-navigation-001",
+  "record_id": "captured-radish-answer-docs-question-navigation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-navigation-001",
+  "request_id": "sample-navigation-001",
+  "captured_at": "2026-04-05T01:12:06Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachments",
+    "resource_slug": "guide/attachments",
+    "search_scope": [
+      "docs",
+      "wiki"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "docs_page_related"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-navigation-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 附件说明\n\n公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/attachments",
+          "fragment_id": "usage",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "docs_page_related",
+        "mime_type": "text/markdown",
+        "content": "# 富文本编辑器说明\n\n在编辑器中插入附件时，优先使用系统生成的引用格式。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/rich-text-editor",
+          "fragment_id": "attachments",
+          "retrieval_rank": 2,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/attachments",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/attachments",
+        "title": "附件使用指南"
+      },
+      "search_scope": [
+        "docs",
+        "wiki"
+      ],
+      "attachment_refs": [
+        "attachment://123456789"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-navigation-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"docs_page\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 附件说明\\n\\n公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。\",\n      \"metadata\": {\n        \"source_type\": \"docs\",\n        \"page_slug\": \"guide/attachments\",\n        \"fragment_id\": \"usage\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"supporting\",\n      \"name\": \"docs_page_related\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 富文本编辑器说明\\n\\n在编辑器中插入附件时，优先使用系统生成的引用格式。\",\n      \"metadata\": {\n        \"source_type\": \"docs\",\n        \"page_slug\": \"guide/rich-text-editor\",\n        \"fragment_id\": \"attachments\",\n        \"retrieval_rank\": 2,\n        \"is_official\": true\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/attachments\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/attachments\",\n      \"title\": \"附件使用指南\"\n    },\n    \"search_scope\": [\n      \"docs\",\n      \"wiki\"\n    ],\n    \"attachment_refs\": [\n      \"attachment://123456789\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351488-rKOr9grU3c8uvpHnQZa7",
+    "object": "chat.completion",
+    "created": 1775351488,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"success\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.95,\n  \"summary\": \"在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\",\n  \"answers\": [\n    {\n      \"question\": \"如何在文档中正确引用附件？\",\n      \"answer\": \"根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（例如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动维护完整 URL。\"\n    }\n  ],\n  \"citations\": [\n    {\n      \"artifact_name\": \"docs_page\",\n      \"fragment_id\": \"usage\",\n      \"text\": \"公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。\"\n    },\n    {\n      \"artifact_name\": \"docs_page_related\",\n      \"fragment_id\": \"attachments\",\n      \"text\": \"在编辑器中插入附件时，优先使用系统生成的引用格式。\"\n    }\n  ],\n  \"issues\": [],\n  \"proposed_actions\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (Document Q&A)\n   - **Project:** `radish`\n   - **Locale:** `zh-CN`\n   - **Artifacts:**\n     - `docs_page` (primary): Mentions public docs should use `attachment://{id}` format, resolved at runtime.\n     - `docs_page_related` (supporting): Mentions rich text editor should prioritize system-generated reference format when inserting attachments.\n   - **Context:** App is `document`, route `/document/guide/attachments`, resource is a wiki doc about attachments. Search scope includes `docs` and `wiki`. `attachment_refs` contains `[\"attachment://123456789\"]`.\n   - **Tool Hints:** Retrieval allowed, no tool calls, no image reasoning.\n   - **Safety:** Advisory mode, requires confirmation for actions.\n   - **Implicit Question:** The prompt doesn't explicitly state a question, but the context and artifacts strongly imply the user is asking about how to reference/use attachments in the documentation/wiki, specifically regarding the `attachment://` format. I need to formulate a direct answer based on the provided docs.\n\n2.  **Determine Output Structure (`CopilotResponse`):**\n   - Must be a single JSON object.\n   - Fields: `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `citations`, `issues`, `proposed_actions`.\n   - Constraints:\n     - `project`: \"radish\"\n     - `task`: \"answer_docs_question\"\n     - `summary`: Must directly answer the question first.\n     - `risk_level`: \"low\" (default for doc Q&A)\n     - `requires_confirmation`: false (default)\n     - `status`: \"success\" (evidence is clear)\n     - `confidence`: 0.0 to 1.0 (high, e.g., 0.95)\n     - `answers`: At least 1 item.\n     - `citations`: Only reference provided artifacts.\n     - `proposed_actions`: Empty array (default).\n     - `issues`: Only if evidence is insufficient/conflicting (not the case here).\n\n3.  **Draft Content (Mental Refinement):**\n   - *Question inferred:* 如何在文档中正确引用附件？ / 附件引用的格式是什么？\n   - *Answer:* 在公开文档或富文本编辑器中引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（例如 `attachment://123456789`）。该格式会在运行时由系统自动解析为真实的附件地址。\n   - *Summary:* 在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\n   - *Citations:* Reference `docs_page` and `docs_page_related`.\n   - *Structure Check:*\n     ```json\n     {\n       \"project\": \"radish\",\n       \"task\": \"answer_docs_question\",\n       \"status\": \"success\",\n       \"risk_level\": \"low\",\n       \"requires_confirmation\": false,\n       \"confidence\": 0.95,\n       \"summary\": \"在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\",\n       \"answers\": [\n         {\n           \"question\": \"如何在文档中正确引用附件？\",\n           \"answer\": \"根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动拼接完整 URL。\"\n         }\n       ],\n       \"citations\": [\n         {\n           \"artifact_name\": \"docs_page\",\n           \"fragment_id\": \"usage\",\n           \"text\": \"公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。\"\n         },\n         {\n           \"artifact_name\": \"docs_page_related\",\n           \"fragment_id\": \"attachments\",\n           \"text\": \"在编辑器中插入附件时，优先使用系统生成的引用格式。\"\n         }\n       ],\n       \"issues\": [],\n       \"proposed_actions\": []\n     }\n     ```\n\n4.  **Validate against Constraints:**\n   - Only JSON? Yes.\n   - No markdown code blocks? Yes.\n   - `summary` directly answers first? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status=success` (evidence is sufficient)? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input artifacts? Yes.\n   - Formal docs prioritized? Both are official docs, used appropriately.\n   - Fields match `CopilotResponse` schema? Yes.\n   - `project` and `task` fixed? Yes.\n   - `answers` has at least 1? Yes.\n   - `confidence` between 0 and 1? Yes (0.95).\n\n   All constraints met. I will generate the exact JSON string. I'll make sure formatting is strict JSON without any extra text. I will double-check the structure to ensure it matches typical `CopilotResponse` expectations. The prompt says \"只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\". I'll output raw JSON.\n\n   One minor thing: The prompt doesn't explicitly give a question, so I'll frame the `answers[0].question` as a reasonable inference or just provide the answer directly. The structure usually expects `question` and `answer` in `answers`. I'll keep it as drafted.\n\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\",\n     \"answers\": [\n       {\n         \"question\": \"如何在文档中正确引用附件？\",\n         \"answer\": \"根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动拼接完整 URL。\"\n       }\n     ],\n     \"citations\": [\n       {\n         \"artifact_name\": \"docs_page\",\n         \"fragment_id\": \"usage\",\n         \"text\": \"公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。\"\n       },\n       {\n         \"artifact_name\": \"docs_page_related\",\n         \"fragment_id\": \"attachments\",\n         \"text\": \"在编辑器中插入附件时，优先使用系统生成的引用格式。\"\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": []\n   }\n   ```\n   Matches all requirements. Output matches exactly. Proceeds. \n   Self-Correction/Refinement during thought: \n   The prompt says \"不要输出 markdown 代码块，不要输出 JSON 之外的解释\". I will strictly output the raw JSON string.\n   I'll ensure the JSON keys match standard expectations. `CopilotResponse` isn't fully defined in the prompt, but the fields are listed. I'll stick to them.\n   All good.✅\n   Output generation. \n   `[Done]` \n   *Self-Correction/Verification during generation prep*: \n   Check constraint 3: `summary` 必须先直接回答问题。 -> \"在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\" (Direct)\n   Check constraint 4: `risk_level=low`, `requires_confirmation=false` -> Set.\n   Check constraint 5: `status` -> `success` (evidence is clear).\n   Check constraint 6: `proposed_actions` -> `[]`.\n   Check constraint 7: `citations` -> only from input.\n   Check constraint 8: Formal docs prioritized -> Both are official docs, cited correctly.\n   Check constraint 9: Not treating examples as definitive -> The docs are definitive guidelines, not just examples.\n   All constraints satisfied. Output matches. \n   Proceeds. \n   *Output Generation* (matches the refined JSON)✅\n   *(Note: I will make sure the JSON is perfectly formatted and contains no markdown backticks as requested.)*\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", ... }` -> ready. \n   Output matches response. \n   [Done] \n   *(Proceeds)*",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (Document Q&A)\n   - **Project:** `radish`\n   - **Locale:** `zh-CN`\n   - **Artifacts:**\n     - `docs_page` (primary): Mentions public docs should use `attachment://{id}` format, resolved at runtime.\n     - `docs_page_related` (supporting): Mentions rich text editor should prioritize system-generated reference format when inserting attachments.\n   - **Context:** App is `document`, route `/document/guide/attachments`, resource is a wiki doc about attachments. Search scope includes `docs` and `wiki`. `attachment_refs` contains `[\"attachment://123456789\"]`.\n   - **Tool Hints:** Retrieval allowed, no tool calls, no image reasoning.\n   - **Safety:** Advisory mode, requires confirmation for actions.\n   - **Implicit Question:** The prompt doesn't explicitly state a question, but the context and artifacts strongly imply the user is asking about how to reference/use attachments in the documentation/wiki, specifically regarding the `attachment://` format. I need to formulate a direct answer based on the provided docs.\n\n2.  **Determine Output Structure (`CopilotResponse`):**\n   - Must be a single JSON object.\n   - Fields: `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `citations`, `issues`, `proposed_actions`.\n   - Constraints:\n     - `project`: \"radish\"\n     - `task`: \"answer_docs_question\"\n     - `summary`: Must directly answer the question first.\n     - `risk_level`: \"low\" (default for doc Q&A)\n     - `requires_confirmation`: false (default)\n     - `status`: \"success\" (evidence is clear)\n     - `confidence`: 0.0 to 1.0 (high, e.g., 0.95)\n     - `answers`: At least 1 item.\n     - `citations`: Only reference provided artifacts.\n     - `proposed_actions`: Empty array (default).\n     - `issues`: Only if evidence is insufficient/conflicting (not the case here).\n\n3.  **Draft Content (Mental Refinement):**\n   - *Question inferred:* 如何在文档中正确引用附件？ / 附件引用的格式是什么？\n   - *Answer:* 在公开文档或富文本编辑器中引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（例如 `attachment://123456789`）。该格式会在运行时由系统自动解析为真实的附件地址。\n   - *Summary:* 在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\n   - *Citations:* Reference `docs_page` and `docs_page_related`.\n   - *Structure Check:*\n     ```json\n     {\n       \"project\": \"radish\",\n       \"task\": \"answer_docs_question\",\n       \"status\": \"success\",\n       \"risk_level\": \"low\",\n       \"requires_confirmation\": false,\n       \"confidence\": 0.95,\n       \"summary\": \"在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\",\n       \"answers\": [\n         {\n           \"question\": \"如何在文档中正确引用附件？\",\n           \"answer\": \"根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动拼接完整 URL。\"\n         }\n       ],\n       \"citations\": [\n         {\n           \"artifact_name\": \"docs_page\",\n           \"fragment_id\": \"usage\",\n           \"text\": \"公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。\"\n         },\n         {\n           \"artifact_name\": \"docs_page_related\",\n           \"fragment_id\": \"attachments\",\n           \"text\": \"在编辑器中插入附件时，优先使用系统生成的引用格式。\"\n         }\n       ],\n       \"issues\": [],\n       \"proposed_actions\": []\n     }\n     ```\n\n4.  **Validate against Constraints:**\n   - Only JSON? Yes.\n   - No markdown code blocks? Yes.\n   - `summary` directly answers first? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status=success` (evidence is sufficient)? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input artifacts? Yes.\n   - Formal docs prioritized? Both are official docs, used appropriately.\n   - Fields match `CopilotResponse` schema? Yes.\n   - `project` and `task` fixed? Yes.\n   - `answers` has at least 1? Yes.\n   - `confidence` between 0 and 1? Yes (0.95).\n\n   All constraints met. I will generate the exact JSON string. I'll make sure formatting is strict JSON without any extra text. I will double-check the structure to ensure it matches typical `CopilotResponse` expectations. The prompt says \"只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\". I'll output raw JSON.\n\n   One minor thing: The prompt doesn't explicitly give a question, so I'll frame the `answers[0].question` as a reasonable inference or just provide the answer directly. The structure usually expects `question` and `answer` in `answers`. I'll keep it as drafted.\n\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\",\n     \"answers\": [\n       {\n         \"question\": \"如何在文档中正确引用附件？\",\n         \"answer\": \"根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动拼接完整 URL。\"\n       }\n     ],\n     \"citations\": [\n       {\n         \"artifact_name\": \"docs_page\",\n         \"fragment_id\": \"usage\",\n         \"text\": \"公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。\"\n       },\n       {\n         \"artifact_name\": \"docs_page_related\",\n         \"fragment_id\": \"attachments\",\n         \"text\": \"在编辑器中插入附件时，优先使用系统生成的引用格式。\"\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": []\n   }\n   ```\n   Matches all requirements. Output matches exactly. Proceeds. \n   Self-Correction/Refinement during thought: \n   The prompt says \"不要输出 markdown 代码块，不要输出 JSON 之外的解释\". I will strictly output the raw JSON string.\n   I'll ensure the JSON keys match standard expectations. `CopilotResponse` isn't fully defined in the prompt, but the fields are listed. I'll stick to them.\n   All good.✅\n   Output generation. \n   `[Done]` \n   *Self-Correction/Verification during generation prep*: \n   Check constraint 3: `summary` 必须先直接回答问题。 -> \"在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。\" (Direct)\n   Check constraint 4: `risk_level=low`, `requires_confirmation=false` -> Set.\n   Check constraint 5: `status` -> `success` (evidence is clear).\n   Check constraint 6: `proposed_actions` -> `[]`.\n   Check constraint 7: `citations` -> only from input.\n   Check constraint 8: Formal docs prioritized -> Both are official docs, cited correctly.\n   Check constraint 9: Not treating examples as definitive -> The docs are definitive guidelines, not just examples.\n   All constraints satisfied. Output matches. \n   Proceeds. \n   *Output Generation* (matches the refined JSON)✅\n   *(Note: I will make sure the JSON is perfectly formatted and contains no markdown backticks as requested.)*\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", ... }` -> ready. \n   Output matches response. \n   [Done] \n   *(Proceeds)*",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 821,
+      "completion_tokens": 2323,
+      "total_tokens": 3144,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2000,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.95,
+    "summary": "在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（例如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动维护完整 URL。",
+        "citation_ids": []
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1",
+        "excerpt": "公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2",
+        "excerpt": "在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "schema_version": 1
+  }
+}

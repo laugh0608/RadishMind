@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+  "record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+  "request_id": "sample-docs-attachments-forum-conflict-001",
+  "captured_at": "2026-04-05T01:07:57Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note",
+      "forum_excerpt"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-docs-attachments-forum-conflict-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 附件导入说明\n\n上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/attachment-import",
+          "fragment_id": "public-linking",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "attachment_reference_note",
+        "mime_type": "text/plain",
+        "content": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。",
+        "metadata": {
+          "source_type": "attachments",
+          "page_slug": "guide/attachment-import",
+          "fragment_id": "attachment://manual-42",
+          "retrieval_rank": 2,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "forum_excerpt",
+        "mime_type": "text/markdown",
+        "content": "社区帖子建议：为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。",
+        "metadata": {
+          "source_type": "forum",
+          "page_slug": "community/attachment-sharing-tips",
+          "fragment_id": "direct-cdn-link",
+          "retrieval_rank": 3,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/attachment-import",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/attachment-import",
+        "title": "附件导入说明"
+      },
+      "search_scope": [
+        "docs",
+        "attachments",
+        "forum"
+      ],
+      "attachment_refs": [
+        "attachment://manual-42"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-docs-attachments-forum-conflict-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"docs_page\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 附件导入说明\\n\\n上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。\",\n      \"metadata\": {\n        \"source_type\": \"docs\",\n        \"page_slug\": \"guide/attachment-import\",\n        \"fragment_id\": \"public-linking\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"text\",\n      \"role\": \"supporting\",\n      \"name\": \"attachment_reference_note\",\n      \"mime_type\": \"text/plain\",\n      \"content\": \"附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。\",\n      \"metadata\": {\n        \"source_type\": \"attachments\",\n        \"page_slug\": \"guide/attachment-import\",\n        \"fragment_id\": \"attachment://manual-42\",\n        \"retrieval_rank\": 2,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"supporting\",\n      \"name\": \"forum_excerpt\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"社区帖子建议：为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。\",\n      \"metadata\": {\n        \"source_type\": \"forum\",\n        \"page_slug\": \"community/attachment-sharing-tips\",\n        \"fragment_id\": \"direct-cdn-link\",\n        \"retrieval_rank\": 3,\n        \"is_official\": false\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/attachment-import\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/attachment-import\",\n      \"title\": \"附件导入说明\"\n    },\n    \"search_scope\": [\n      \"docs\",\n      \"attachments\",\n      \"forum\"\n    ],\n    \"attachment_refs\": [\n      \"attachment://manual-42\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351218-jlR3E4sxAhB9OtceWLhA",
+    "object": "chat.completion",
+    "created": 1775351218,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"complete\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.9,\n  \"summary\": \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。\",\n  \"answers\": [\n    {\n      \"question\": \"公开文档中应如何正确引用附件？\",\n      \"answer\": \"根据官方规范，上传到公开文档的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。附件 `attachment://manual-42` 已明确标记为 public-doc-compatible，支持直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但正式文档的优先级高于非正式论坛建议，请以官方 `attachment://` 协议为准。\",\n      \"citations\": [\n        \"docs_page\",\n        \"attachment_reference_note\"\n      ]\n    }\n  ],\n  \"issues\": [],\n  \"proposed_actions\": [],\n  \"citations\": [\n    \"docs_page\",\n    \"attachment_reference_note\"\n  ]\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `docs_page` (primary, official): States that attachments uploaded to public docs should default to `attachment://{id}` reference, not direct storage URLs.\n     - `attachment_reference_note` (supporting, official): States attachment `attachment://manual-42` is marked `public-doc-compatible` and can be directly referenced in docs.\n     - `forum_excerpt` (supporting, unofficial): Suggests using direct CDN links for easier copying to external users, claiming it's more intuitive than `attachment://`.\n   - **Context:** App is `document`, route `/document/guide/attachment-import`, resource is a wiki doc. Search scope includes docs, attachments, forum. Attachment ref: `attachment://manual-42`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - `status=partial` if evidence is insufficient/conflicting.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Official docs > FAQ/forum.\n     - If docs are just examples/boundary hints, don't treat as definitive authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifacts revolve around how to reference attachments in public documents, specifically `attachment://manual-42`. The implicit question is likely: \"How should I reference attachments like `attachment://manual-42` in public documents, and is it okay to use direct CDN links?\"\n\n3.  **Synthesize Answer based on Artifacts & Rules:**\n   - Official doc says: Use `attachment://{id}` by default, do not expose real storage addresses.\n   - Official attachment note says: `attachment://manual-42` is `public-doc-compatible` and can be directly referenced.\n   - Forum says: Use direct CDN links for external sharing.\n   - Rule 8: Official docs take precedence over forum.\n   - Conclusion: You should use the `attachment://manual-42` format. Direct CDN links are not recommended per official guidelines, despite forum suggestions.\n   - Confidence: High (0.9) because official sources are clear and consistent, though forum conflicts slightly. I'll stick to official.\n   - Status: `complete` (or `partial` if I want to acknowledge the forum conflict, but official is clear enough for `complete`). I'll use `complete`.\n   - Risk: `low`\n   - Requires confirmation: `false`\n   - Citations: Reference `docs_page` and `attachment_reference_note`.\n\n4.  **Draft JSON Structure (Mental Refinement):**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"在公开文档中引用附件时，应默认使用 `attachment://manual-42` 格式进行引用，不要直接暴露真实存储地址或 CDN 链接。该附件已标记为 public-doc-compatible，可直接在文档中使用。\",\n     \"answers\": [\n       {\n         \"question\": \"如何在公开文档中正确引用附件？\",\n         \"answer\": \"根据官方文档规范，上传到公开文档的附件应默认使用 `attachment://{id}` 格式引用。当前附件 `attachment://manual-42` 已标记为 public-doc-compatible，支持直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但官方规范明确要求避免直接暴露真实存储地址，因此请以官方文档为准。\",\n         \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": []\n   }\n   ```\n\n5.  **Check against Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status` appropriate? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes (`docs_page`, `attachment_reference_note`).\n   - Official > forum? Yes, explicitly stated.\n   - Fields match? `project`, `task`, `answers` (>=1), `confidence` (0-1). All good.\n   - I should ensure the JSON structure strictly matches a typical `CopilotResponse` schema implied by the prompt. The prompt says \"结构必须满足 `CopilotResponse`\". I'll stick to the fields I've used, which are standard for this type of task. I'll make sure keys match exactly what's expected or reasonable.\n\n   Let's verify the exact field names from the prompt: `project`, `task`, `summary`, `risk_level`, `requires_confirmation`, `status`, `proposed_actions`, `citations`, `answers`, `issues`, `confidence`. All present.\n\n   One minor thing: The prompt says `citations` can only reference artifacts. I'll put them in the answer or at the top level if needed. Usually, `citations` is an array of artifact names/IDs. I'll keep it inside `answers` or at root. I'll put it at root or per answer. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll place it at the root level or inside answers. I'll stick to root level for simplicity, or inside answers. I'll follow a standard structure.\n\n   Let's construct carefully.\n\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。\",\n     \"answers\": [\n       {\n         \"question\": \"公开文档中应如何引用附件 `attachment://manual-42`？\",\n         \"answer\": \"根据官方文档规范，公开文档中的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。当前附件 `attachment://manual-42` 已明确标记为 public-doc-compatible，支持直接在文档中引用。尽管社区论坛建议使用真实 CDN 地址以便外部复制，但官方文档具有最高优先级，请以 `attachment://` 协议为准。\",\n         \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": []\n   }\n   ```\n\n   Check constraints again:\n   - \"只输出一个 JSON 对象\" -> OK.\n   - \"不要输出 markdown 代码块\" -> OK.\n   - \"summary 必须先直接回答问题\" -> OK.\n   - \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> OK.\n   - \"若证据不足...可退化为 status=partial\" -> Not needed, evidence is clear.\n   - \"proposed_actions 默认应为空\" -> OK.\n   - \"citations 只能引用当前输入里已有的 artifacts\" -> Used `docs_page` and `attachment_reference_note`. OK.\n   - \"正式文档优先于 FAQ 或 forum\" -> Explicitly handled in answer.\n   - \"如果当前文档只是示例...不要写成确定性授权\" -> Not applicable here, it's a clear rule.\n   - Fields: project, task, answers, issues, confidence. All present.\n\n   One thing: The prompt says `citations` is a field. I'll put it at the root level to be safe, or keep it in answers. I'll put it at root level as an array of artifact names, as is common. Actually, the prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll add it to the root.\n\n   Let's adjust to ensure it strictly matches a plausible `CopilotResponse` structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。\",\n     \"answers\": [\n       {\n         \"question\": \"公开文档中应如何正确引用附件？\",\n         \"answer\": \"根据官方规范，上传到公开文档的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。附件 `attachment://manual-42` 已标记为 public-doc-compatible，可直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但正式文档优先级高于论坛建议，请以官方 `attachment://` 协议为准。\",\n         \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": [],\n     \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n   }\n   ```\n   Wait, `citations` inside `answers` and at root might be redundant. I'll just put it at the root level as requested, or keep it in answers. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll just put it at the root. Actually, many schemas put it at root. I'll stick to root.\n\n   Let's verify the exact wording of the prompt: \"citations 只能引用当前输入里已有的 artifacts\". I'll make it an array of strings at the root.\n\n   Final check of the JSON structure:\n   - project: \"radish\"\n   - task: \"answer_docs_question\"\n   - status: \"complete\"\n   - risk_level: \"low\"\n   - requires_confirmation: false\n   - confidence: 0.9\n   - summary: \"...\"\n   - answers: [{...}]\n   - issues: []\n   - proposed_actions: []\n   - citations: [\"docs_page\", \"attachment_reference_note\"]\n\n   All constraints met. I will generate the raw JSON string now. No markdown formatting. Ensure valid JSON. Escape quotes if necessary. All good.\n   One detail: `confidence` should be a number. `0.9` is fine.\n   `summary` directly answers: \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式...\" -> Direct.\n   I will output exactly the JSON.\n   Proceed. \n   Self-Correction/Refinement during thought: \n   The prompt says \"citations 只能引用当前输入里已有的 artifacts\". I'll make sure the names match exactly: `docs_page`, `attachment_reference_note`. \n   I'll structure it carefully.\n   Output matches exactly.✅\n   Generating. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"complete\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"summary\": \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。\", \"answers\": [ { \"question\": \"公开文档中应如何正确引用附件？\", \"answer\": \"根据官方规范，上传到公开文档的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。附件 `attachment://manual-42` 已标记为 public-doc-compatible，可直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但正式文档优先级高于论坛建议，请以官方 `attachment://` 协议为准。\", \"citations\": [\"docs_page\", \"attachment_reference_note\"] } ], \"issues\": [], \"proposed_actions\": [], \"citations\": [\"docs_page\", \"attachment_reference_note\"] }`\n   Wait, having `citations` twice might be weird. I'll remove it from `answers` and keep it at root, or vice versa. I'll keep it at root only to be clean. Actually, the prompt doesn't specify nesting. I'll just put it at root.\n   Let's produce it. \n   All good. \n   Output matches request. \n   Proceeds. \n   [Output Generation] -> *Self-Correction/Verification during generation prep*: \n   I will ensure the JSON is perfectly formatted and contains no markdown. I will double-check the field names. `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `issues`, `proposed_actions`, `citations`. All present. `answers` has at least 1. `confidence` is 0.9. `risk_level` is \"low\". `requires_confirmation` is false. `summary` answers directly. `citations` references artifacts. Official > forum handled. \n   Ready. \n   Output matches exactly. \n   *(Proceeds)*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `docs_page` (primary, official): States that attachments uploaded to public docs should default to `attachment://{id}` reference, not direct storage URLs.\n     - `attachment_reference_note` (supporting, official): States attachment `attachment://manual-42` is marked `public-doc-compatible` and can be directly referenced in docs.\n     - `forum_excerpt` (supporting, unofficial): Suggests using direct CDN links for easier copying to external users, claiming it's more intuitive than `attachment://`.\n   - **Context:** App is `document`, route `/document/guide/attachment-import`, resource is a wiki doc. Search scope includes docs, attachments, forum. Attachment ref: `attachment://manual-42`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - `status=partial` if evidence is insufficient/conflicting.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Official docs > FAQ/forum.\n     - If docs are just examples/boundary hints, don't treat as definitive authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifacts revolve around how to reference attachments in public documents, specifically `attachment://manual-42`. The implicit question is likely: \"How should I reference attachments like `attachment://manual-42` in public documents, and is it okay to use direct CDN links?\"\n\n3.  **Synthesize Answer based on Artifacts & Rules:**\n   - Official doc says: Use `attachment://{id}` by default, do not expose real storage addresses.\n   - Official attachment note says: `attachment://manual-42` is `public-doc-compatible` and can be directly referenced.\n   - Forum says: Use direct CDN links for external sharing.\n   - Rule 8: Official docs take precedence over forum.\n   - Conclusion: You should use the `attachment://manual-42` format. Direct CDN links are not recommended per official guidelines, despite forum suggestions.\n   - Confidence: High (0.9) because official sources are clear and consistent, though forum conflicts slightly. I'll stick to official.\n   - Status: `complete` (or `partial` if I want to acknowledge the forum conflict, but official is clear enough for `complete`). I'll use `complete`.\n   - Risk: `low`\n   - Requires confirmation: `false`\n   - Citations: Reference `docs_page` and `attachment_reference_note`.\n\n4.  **Draft JSON Structure (Mental Refinement):**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"在公开文档中引用附件时，应默认使用 `attachment://manual-42` 格式进行引用，不要直接暴露真实存储地址或 CDN 链接。该附件已标记为 public-doc-compatible，可直接在文档中使用。\",\n     \"answers\": [\n       {\n         \"question\": \"如何在公开文档中正确引用附件？\",\n         \"answer\": \"根据官方文档规范，上传到公开文档的附件应默认使用 `attachment://{id}` 格式引用。当前附件 `attachment://manual-42` 已标记为 public-doc-compatible，支持直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但官方规范明确要求避免直接暴露真实存储地址，因此请以官方文档为准。\",\n         \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": []\n   }\n   ```\n\n5.  **Check against Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status` appropriate? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes (`docs_page`, `attachment_reference_note`).\n   - Official > forum? Yes, explicitly stated.\n   - Fields match? `project`, `task`, `answers` (>=1), `confidence` (0-1). All good.\n   - I should ensure the JSON structure strictly matches a typical `CopilotResponse` schema implied by the prompt. The prompt says \"结构必须满足 `CopilotResponse`\". I'll stick to the fields I've used, which are standard for this type of task. I'll make sure keys match exactly what's expected or reasonable.\n\n   Let's verify the exact field names from the prompt: `project`, `task`, `summary`, `risk_level`, `requires_confirmation`, `status`, `proposed_actions`, `citations`, `answers`, `issues`, `confidence`. All present.\n\n   One minor thing: The prompt says `citations` can only reference artifacts. I'll put them in the answer or at the top level if needed. Usually, `citations` is an array of artifact names/IDs. I'll keep it inside `answers` or at root. I'll put it at root or per answer. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll place it at the root level or inside answers. I'll stick to root level for simplicity, or inside answers. I'll follow a standard structure.\n\n   Let's construct carefully.\n\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。\",\n     \"answers\": [\n       {\n         \"question\": \"公开文档中应如何引用附件 `attachment://manual-42`？\",\n         \"answer\": \"根据官方文档规范，公开文档中的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。当前附件 `attachment://manual-42` 已明确标记为 public-doc-compatible，支持直接在文档中引用。尽管社区论坛建议使用真实 CDN 地址以便外部复制，但官方文档具有最高优先级，请以 `attachment://` 协议为准。\",\n         \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": []\n   }\n   ```\n\n   Check constraints again:\n   - \"只输出一个 JSON 对象\" -> OK.\n   - \"不要输出 markdown 代码块\" -> OK.\n   - \"summary 必须先直接回答问题\" -> OK.\n   - \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> OK.\n   - \"若证据不足...可退化为 status=partial\" -> Not needed, evidence is clear.\n   - \"proposed_actions 默认应为空\" -> OK.\n   - \"citations 只能引用当前输入里已有的 artifacts\" -> Used `docs_page` and `attachment_reference_note`. OK.\n   - \"正式文档优先于 FAQ 或 forum\" -> Explicitly handled in answer.\n   - \"如果当前文档只是示例...不要写成确定性授权\" -> Not applicable here, it's a clear rule.\n   - Fields: project, task, answers, issues, confidence. All present.\n\n   One thing: The prompt says `citations` is a field. I'll put it at the root level to be safe, or keep it in answers. I'll put it at root level as an array of artifact names, as is common. Actually, the prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll add it to the root.\n\n   Let's adjust to ensure it strictly matches a plausible `CopilotResponse` structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。\",\n     \"answers\": [\n       {\n         \"question\": \"公开文档中应如何正确引用附件？\",\n         \"answer\": \"根据官方规范，上传到公开文档的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。附件 `attachment://manual-42` 已标记为 public-doc-compatible，可直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但正式文档优先级高于论坛建议，请以官方 `attachment://` 协议为准。\",\n         \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n       }\n     ],\n     \"issues\": [],\n     \"proposed_actions\": [],\n     \"citations\": [\"docs_page\", \"attachment_reference_note\"]\n   }\n   ```\n   Wait, `citations` inside `answers` and at root might be redundant. I'll just put it at the root level as requested, or keep it in answers. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll just put it at the root. Actually, many schemas put it at root. I'll stick to root.\n\n   Let's verify the exact wording of the prompt: \"citations 只能引用当前输入里已有的 artifacts\". I'll make it an array of strings at the root.\n\n   Final check of the JSON structure:\n   - project: \"radish\"\n   - task: \"answer_docs_question\"\n   - status: \"complete\"\n   - risk_level: \"low\"\n   - requires_confirmation: false\n   - confidence: 0.9\n   - summary: \"...\"\n   - answers: [{...}]\n   - issues: []\n   - proposed_actions: []\n   - citations: [\"docs_page\", \"attachment_reference_note\"]\n\n   All constraints met. I will generate the raw JSON string now. No markdown formatting. Ensure valid JSON. Escape quotes if necessary. All good.\n   One detail: `confidence` should be a number. `0.9` is fine.\n   `summary` directly answers: \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式...\" -> Direct.\n   I will output exactly the JSON.\n   Proceed. \n   Self-Correction/Refinement during thought: \n   The prompt says \"citations 只能引用当前输入里已有的 artifacts\". I'll make sure the names match exactly: `docs_page`, `attachment_reference_note`. \n   I'll structure it carefully.\n   Output matches exactly.✅\n   Generating. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"complete\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"summary\": \"在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。\", \"answers\": [ { \"question\": \"公开文档中应如何正确引用附件？\", \"answer\": \"根据官方规范，上传到公开文档的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。附件 `attachment://manual-42` 已标记为 public-doc-compatible，可直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但正式文档优先级高于论坛建议，请以官方 `attachment://` 协议为准。\", \"citations\": [\"docs_page\", \"attachment_reference_note\"] } ], \"issues\": [], \"proposed_actions\": [], \"citations\": [\"docs_page\", \"attachment_reference_note\"] }`\n   Wait, having `citations` twice might be weird. I'll remove it from `answers` and keep it at root, or vice versa. I'll keep it at root only to be clean. Actually, the prompt doesn't specify nesting. I'll just put it at root.\n   Let's produce it. \n   All good. \n   Output matches request. \n   Proceeds. \n   [Output Generation] -> *Self-Correction/Verification during generation prep*: \n   I will ensure the JSON is perfectly formatted and contains no markdown. I will double-check the field names. `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `issues`, `proposed_actions`, `citations`. All present. `answers` has at least 1. `confidence` is 0.9. `risk_level` is \"low\". `requires_confirmation` is false. `summary` answers directly. `citations` references artifacts. Official > forum handled. \n   Ready. \n   Output matches exactly. \n   *(Proceeds)*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 990,
+      "completion_tokens": 3360,
+      "total_tokens": 4350,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3059,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9,
+    "summary": "在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方规范，上传到公开文档的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。附件 `attachment://manual-42` 已明确标记为 public-doc-compatible，支持直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但正式文档的优先级高于非正式论坛建议，请以官方 `attachment://` 协议为准。",
+        "citation_ids": [
+          "doc-1",
+          "att-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 附件导入说明 上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/attachment-sharing-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区帖子建议：为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+      }
+    ],
+    "schema_version": 1
+  }
+}

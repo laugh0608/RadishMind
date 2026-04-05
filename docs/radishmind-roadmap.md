@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-03
+更新时间：2026-04-05
 
 ## 路线图目标
 
@@ -62,11 +62,13 @@
 - `flowsheet document + selection + diagnostics -> structured explanation`
 - `flowsheet document + selection + diagnostics -> candidate edit suggestions`
 - `entitlement / manifest / lease sync summary -> operator guidance`
+- `selected unit placement + legal candidate set -> ghost topology completion`
 
 ### 任务
 
 - 约定 `RadishFlow` 上下文快照格式
 - 基于 `FlowsheetDocument`、选择集、诊断摘要和求解状态建立首批样本
+- 为编辑器辅助场景冻结 `suggest_ghost_completion` 的输入输出口径，并优先围绕 `FlashDrum` / `Mixer` 建立最小样本
 - 接入教师模型做 PoC
 - 设计结构化输出与 UI 侧回显方式
 - 保留 `canvas screenshot` 作为补充输入，而不是强依赖入口
@@ -186,10 +188,11 @@
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
-3. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充与最小导入流程，作为下一主线
-4. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
-5. 再进入模型对照、PoC 与训练路线验证
+2. 在不打断现有三任务扩样的前提下，为 `RadishFlow` 冻结 `suggest_ghost_completion` 的任务卡、契约口径和最小样本格式，作为下一条 editor assist PoC 子线
+3. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
+4. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充与最小导入流程，作为下一主线
+5. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
+6. 再进入模型对照、PoC 与训练路线验证
 
 ## 当前仍缺的关键决策
 
@@ -197,5 +200,6 @@
 - `Qwen2.5-VL` 的首选尺寸与推理预算
 - `SmolVLM` 的回归任务边界与保留条件
 - `RadishFlow` 截图路线的进入时点
+- `RadishFlow` 的 `suggest_ghost_completion` 何时从任务卡进入正式 PoC 与评测主线
 - 评测样本的标注和维护流程
 - `Radish` docs QA 的真实 captured negative 批次采用目录清单、导入脚本还是两者并行维护

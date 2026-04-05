@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-wiki-faq-mixed-001",
+  "record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-wiki-faq-mixed-001",
+  "request_id": "sample-wiki-faq-mixed-001",
+  "captured_at": "2026-04-05T01:13:57Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/two-factor-recovery",
+    "resource_slug": "guide/two-factor-recovery",
+    "search_scope": [
+      "wiki",
+      "faq"
+    ],
+    "artifact_names": [
+      "wiki_document",
+      "faq_excerpt"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-wiki-faq-mixed-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# 双重验证恢复指南\n\n启用双重验证后，恢复码会在开启时一次性生成，用户应自行妥善保存。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "guide/two-factor-recovery",
+          "fragment_id": "recovery-code-baseline",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "faq_excerpt",
+        "mime_type": "text/markdown",
+        "content": "FAQ：如果恢复码已经遗失，当前建议先完成身份核验，再禁用并重新启用双重验证以生成一组新的恢复码。",
+        "metadata": {
+          "source_type": "faq",
+          "page_slug": "faq/two-factor-recovery",
+          "fragment_id": "regenerate-codes",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/two-factor-recovery",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/two-factor-recovery",
+        "title": "双重验证恢复指南"
+      },
+      "search_scope": [
+        "wiki",
+        "faq"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-wiki-faq-mixed-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"wiki_document\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 双重验证恢复指南\\n\\n启用双重验证后，恢复码会在开启时一次性生成，用户应自行妥善保存。\",\n      \"metadata\": {\n        \"source_type\": \"wiki\",\n        \"page_slug\": \"guide/two-factor-recovery\",\n        \"fragment_id\": \"recovery-code-baseline\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"supporting\",\n      \"name\": \"faq_excerpt\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"FAQ：如果恢复码已经遗失，当前建议先完成身份核验，再禁用并重新启用双重验证以生成一组新的恢复码。\",\n      \"metadata\": {\n        \"source_type\": \"faq\",\n        \"page_slug\": \"faq/two-factor-recovery\",\n        \"fragment_id\": \"regenerate-codes\",\n        \"retrieval_rank\": 2,\n        \"is_official\": false\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/two-factor-recovery\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/two-factor-recovery\",\n      \"title\": \"双重验证恢复指南\"\n    },\n    \"search_scope\": [\n      \"wiki\",\n      \"faq\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351577-AtsGGRvM0A0efDd9sBPr",
+    "object": "chat.completion",
+    "created": 1775351577,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"complete\",\n  \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\",\n  \"answers\": [\n    {\n      \"question\": \"如何找回或重新生成双重验证恢复码？\",\n      \"answer\": \"根据官方文档，恢复码在开启双重验证时仅生成一次，需用户自行妥善保存。若恢复码遗失，建议先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。\",\n      \"citations\": [\n        {\n          \"artifact_name\": \"wiki_document\",\n          \"fragment_id\": \"recovery-code-baseline\"\n        },\n        {\n          \"artifact_name\": \"faq_excerpt\",\n          \"fragment_id\": \"regenerate-codes\"\n        }\n      ]\n    }\n  ],\n  \"citations\": [\n    {\n      \"artifact_name\": \"wiki_document\",\n      \"fragment_id\": \"recovery-code-baseline\"\n    },\n    {\n      \"artifact_name\": \"faq_excerpt\",\n      \"fragment_id\": \"regenerate-codes\"\n    }\n  ],\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.9,\n  \"proposed_actions\": [],\n  \"issues\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `wiki_document` (primary, official): States that recovery codes are generated once when 2FA is enabled and should be saved by the user.\n     - `faq_excerpt` (supporting, non-official): Suggests that if recovery codes are lost, complete identity verification first, then disable and re-enable 2FA to generate new codes.\n   - **Context:** App is `document`, route `/document/guide/two-factor-recovery`, resource is the wiki doc. Search scope includes wiki and faq.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, the prompt doesn't explicitly state a question, but implies answering based on the docs. I need to infer the implicit question: \"How to recover/regenerate 2FA recovery codes if lost?\" or just summarize the provided info about 2FA recovery.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `status` can be `partial` if evidence is insufficient/conflicting, but here it's straightforward. I'll use `complete` or `partial`? The docs give a clear path. I'll stick to `complete` or just default.\n     - `proposed_actions` default empty.\n     - `citations` only from input artifacts.\n     - Formal docs (wiki) > FAQ.\n     - Fields: `project`, `task`, `answers` (at least 1), `issues` (optional), `confidence` (0-1).\n     - Structure must match `CopilotResponse`. I need to infer the exact schema of `CopilotResponse` based on typical patterns or the prompt's hints. Usually: `{\"project\": \"...\", \"task\": \"...\", \"status\": \"...\", \"summary\": \"...\", \"answers\": [...], \"citations\": [...], \"risk_level\": \"...\", \"requires_confirmation\": ..., \"confidence\": ..., \"proposed_actions\": [], \"issues\": []}`. I will construct a standard compliant JSON.\n\n2.  **Determine Content:**\n   - **Question (Implicit):** 如何找回或重新生成双重验证恢复码？(How to recover/regenerate 2FA recovery codes?)\n   - **Answer:** 根据官方文档，双重验证恢复码仅在开启时一次性生成，需用户自行保存。若恢复码遗失，建议先完成身份核验，随后禁用并重新启用双重验证以生成新的恢复码。\n   - **Citations:** Reference both artifacts. `wiki_document` for the baseline rule, `faq_excerpt` for the recovery procedure.\n   - **Confidence:** High, e.g., 0.9.\n   - **Risk/Confirmation:** low, false.\n   - **Status:** complete.\n   - **Answers Array:** At least one object. Usually contains `question`, `answer`, `citations`. I'll structure it logically.\n\n   Let's draft the JSON structure carefully:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\",\n     \"answers\": [\n       {\n         \"question\": \"如何找回或重新生成双重验证恢复码？\",\n         \"answer\": \"根据官方指南，恢复码在开启双重验证时仅生成一次，用户需自行妥善保存。若恢复码遗失，当前建议流程为：先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。\",\n         \"citations\": [\n           {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n         ]\n       }\n     ],\n     \"citations\": [\n       {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n       {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n\n3.  **Check Constraints:**\n   - Only JSON object? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers first? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes.\n   - Formal > FAQ? I cited both but prioritized wiki in the answer logic. The prompt says \"正式文档优先于 FAQ 或 forum 这类非正式来源\", which means I should weight the wiki more or note it. I'll adjust the answer to explicitly state the wiki rule first, then the FAQ workaround.\n   - `confidence` 0-1? Yes, 0.9.\n   - `project` & `task` fixed? Yes.\n   - `answers` at least 1? Yes.\n   - `issues` only if needed? I'll leave it empty or omit it. The prompt says \"只有在证据不足、边界提示或来源冲突时再使用\", so I'll omit it or set to `[]`.\n\n   One detail: The prompt says \"不要凭空生成高风险动作；`proposed_actions` 默认应为空\". I'll keep it `[]`.\n   I need to make sure the JSON structure strictly matches what's expected. Since I don't have the exact `CopilotResponse` schema definition, I'll use a standard, robust structure that fits the field reminders.\n\n   Let's refine the JSON to be strictly compliant:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\",\n     \"answers\": [\n       {\n         \"question\": \"如何找回或重新生成双重验证恢复码？\",\n         \"answer\": \"根据官方文档，恢复码在开启双重验证时仅生成一次，需用户自行保存。若恢复码遗失，建议先完成身份核验，随后禁用并重新启用双重验证以生成新的恢复码。\",\n         \"citations\": [\n           {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n         ]\n       }\n     ],\n     \"citations\": [\n       {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n       {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n\n   Check constraint 3: \"`summary` 必须先直接回答问题\". The summary does exactly that.\n   Check constraint 8: \"正式文档优先于 FAQ 或 forum 这类非正式来源\". I'll make sure the answer reflects the wiki as the primary source and FAQ as supplementary.\n   Check constraint 9: \"如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\". The docs are clear guidelines, not just examples. So it's fine.\n\n   One minor thing: The prompt doesn't explicitly give a question, so I will frame the `answers[0].question` as inferred from the context, or just provide the answer directly. I'll keep it as is.\n\n   I will output exactly the JSON string without any markdown formatting.\n   Let's verify the structure matches typical `CopilotResponse` expectations based on the prompt:\n   - `project`: \"radish\"\n   - `task`: \"answer_docs_question\"\n   - `status`: \"complete\"\n   - `summary`: string\n   - `answers`: array of objects\n   - `citations`: array\n   - `risk_level`: \"low\"\n   - `requires_confirmation`: false\n   - `confidence`: 0.9\n   - `proposed_actions`: []\n   - `issues`: []\n\n   All good. I will generate the raw JSON. \n   One thing: I should ensure the JSON is valid and strictly follows the prompt. I'll remove `issues` if not needed, but keeping it as `[]` is safer. I'll stick to the drafted JSON.\n   I will output it directly. \n   Self-Correction/Refinement during thought: \n   The prompt says \"`summary` 必须先直接回答问题\". Since no explicit question was provided in the prompt, I will assume the implicit question is about 2FA recovery. I'll make the summary a direct statement answering it.\n   I will ensure no markdown backticks are used.\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\",\n     \"answers\": [\n       {\n         \"question\": \"如何找回或重新生成双重验证恢复码？\",\n         \"answer\": \"根据官方指南，恢复码在开启双重验证时仅生成一次，需用户自行妥善保存。若恢复码遗失，当前建议流程为：先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。\",\n         \"citations\": [\n           {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n         ]\n       }\n     ],\n     \"citations\": [\n       {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n       {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n   This matches all constraints. I will output it now. \n   Note: I'll make sure the JSON is compact or pretty-printed, but without markdown. The prompt says \"不要输出 markdown 代码块\", so raw text is fine. I'll output it as a single valid JSON string. All good. \n   Proceeds. \n   Output matches the refined JSON. \n   [Done] \n   *Self-Correction/Verification during generation prep*: \n   Wait, the prompt says \"普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\". I have that.\n   \"`citations` 只能引用当前输入里已有的 artifacts\". I used `wiki_document` and `faq_excerpt`. Correct.\n   \"`summary` 必须先直接回答问题\". I'll make it slightly more direct: \"双重验证恢复码仅在开启时一次性生成，遗失后需先完成身份核验，再禁用并重新启用双重验证以生成新码。\"\n   All constraints met. Output matches. \n   Generating. \n   *(Output Generation)* -> *Proceeds*\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"complete\", \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\", \"answers\": [ { \"question\": \"如何找回或重新生成双重验证恢复码？\", \"answer\": \"根据官方指南，恢复码在开启双重验证时仅生成一次，需用户自行妥善保存。若恢复码遗失，当前建议流程为：先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。\", \"citations\": [ { \"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\" }, { \"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\" } ] } ], \"citations\": [ { \"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\" }, { \"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\" } ], \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"proposed_actions\": [], \"issues\": [] }`\n   This is valid JSON. I will format it nicely but without markdown. All good. \n   Final Output Generation. \n   *(Note: I will ensure the output is strictly the JSON object as requested.)*\n   Proceeds. \n   [Output Generation] -> *Done.* \n   *(Self-Correction/Note during thought)*: I should verify if `CopilotResponse` expects specific keys. The prompt gives field reminders. I'll stick to them. The structure is standard. I'll output it now. \n   `{...}` (raw JSON)\n   Ready. \n   [Output] -> *Proceeds*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `wiki_document` (primary, official): States that recovery codes are generated once when 2FA is enabled and should be saved by the user.\n     - `faq_excerpt` (supporting, non-official): Suggests that if recovery codes are lost, complete identity verification first, then disable and re-enable 2FA to generate new codes.\n   - **Context:** App is `document`, route `/document/guide/two-factor-recovery`, resource is the wiki doc. Search scope includes wiki and faq.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, the prompt doesn't explicitly state a question, but implies answering based on the docs. I need to infer the implicit question: \"How to recover/regenerate 2FA recovery codes if lost?\" or just summarize the provided info about 2FA recovery.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `status` can be `partial` if evidence is insufficient/conflicting, but here it's straightforward. I'll use `complete` or `partial`? The docs give a clear path. I'll stick to `complete` or just default.\n     - `proposed_actions` default empty.\n     - `citations` only from input artifacts.\n     - Formal docs (wiki) > FAQ.\n     - Fields: `project`, `task`, `answers` (at least 1), `issues` (optional), `confidence` (0-1).\n     - Structure must match `CopilotResponse`. I need to infer the exact schema of `CopilotResponse` based on typical patterns or the prompt's hints. Usually: `{\"project\": \"...\", \"task\": \"...\", \"status\": \"...\", \"summary\": \"...\", \"answers\": [...], \"citations\": [...], \"risk_level\": \"...\", \"requires_confirmation\": ..., \"confidence\": ..., \"proposed_actions\": [], \"issues\": []}`. I will construct a standard compliant JSON.\n\n2.  **Determine Content:**\n   - **Question (Implicit):** 如何找回或重新生成双重验证恢复码？(How to recover/regenerate 2FA recovery codes?)\n   - **Answer:** 根据官方文档，双重验证恢复码仅在开启时一次性生成，需用户自行保存。若恢复码遗失，建议先完成身份核验，随后禁用并重新启用双重验证以生成新的恢复码。\n   - **Citations:** Reference both artifacts. `wiki_document` for the baseline rule, `faq_excerpt` for the recovery procedure.\n   - **Confidence:** High, e.g., 0.9.\n   - **Risk/Confirmation:** low, false.\n   - **Status:** complete.\n   - **Answers Array:** At least one object. Usually contains `question`, `answer`, `citations`. I'll structure it logically.\n\n   Let's draft the JSON structure carefully:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\",\n     \"answers\": [\n       {\n         \"question\": \"如何找回或重新生成双重验证恢复码？\",\n         \"answer\": \"根据官方指南，恢复码在开启双重验证时仅生成一次，用户需自行妥善保存。若恢复码遗失，当前建议流程为：先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。\",\n         \"citations\": [\n           {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n         ]\n       }\n     ],\n     \"citations\": [\n       {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n       {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n\n3.  **Check Constraints:**\n   - Only JSON object? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers first? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes.\n   - Formal > FAQ? I cited both but prioritized wiki in the answer logic. The prompt says \"正式文档优先于 FAQ 或 forum 这类非正式来源\", which means I should weight the wiki more or note it. I'll adjust the answer to explicitly state the wiki rule first, then the FAQ workaround.\n   - `confidence` 0-1? Yes, 0.9.\n   - `project` & `task` fixed? Yes.\n   - `answers` at least 1? Yes.\n   - `issues` only if needed? I'll leave it empty or omit it. The prompt says \"只有在证据不足、边界提示或来源冲突时再使用\", so I'll omit it or set to `[]`.\n\n   One detail: The prompt says \"不要凭空生成高风险动作；`proposed_actions` 默认应为空\". I'll keep it `[]`.\n   I need to make sure the JSON structure strictly matches what's expected. Since I don't have the exact `CopilotResponse` schema definition, I'll use a standard, robust structure that fits the field reminders.\n\n   Let's refine the JSON to be strictly compliant:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\",\n     \"answers\": [\n       {\n         \"question\": \"如何找回或重新生成双重验证恢复码？\",\n         \"answer\": \"根据官方文档，恢复码在开启双重验证时仅生成一次，需用户自行保存。若恢复码遗失，建议先完成身份核验，随后禁用并重新启用双重验证以生成新的恢复码。\",\n         \"citations\": [\n           {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n         ]\n       }\n     ],\n     \"citations\": [\n       {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n       {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n\n   Check constraint 3: \"`summary` 必须先直接回答问题\". The summary does exactly that.\n   Check constraint 8: \"正式文档优先于 FAQ 或 forum 这类非正式来源\". I'll make sure the answer reflects the wiki as the primary source and FAQ as supplementary.\n   Check constraint 9: \"如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\". The docs are clear guidelines, not just examples. So it's fine.\n\n   One minor thing: The prompt doesn't explicitly give a question, so I will frame the `answers[0].question` as inferred from the context, or just provide the answer directly. I'll keep it as is.\n\n   I will output exactly the JSON string without any markdown formatting.\n   Let's verify the structure matches typical `CopilotResponse` expectations based on the prompt:\n   - `project`: \"radish\"\n   - `task`: \"answer_docs_question\"\n   - `status`: \"complete\"\n   - `summary`: string\n   - `answers`: array of objects\n   - `citations`: array\n   - `risk_level`: \"low\"\n   - `requires_confirmation`: false\n   - `confidence`: 0.9\n   - `proposed_actions`: []\n   - `issues`: []\n\n   All good. I will generate the raw JSON. \n   One thing: I should ensure the JSON is valid and strictly follows the prompt. I'll remove `issues` if not needed, but keeping it as `[]` is safer. I'll stick to the drafted JSON.\n   I will output it directly. \n   Self-Correction/Refinement during thought: \n   The prompt says \"`summary` 必须先直接回答问题\". Since no explicit question was provided in the prompt, I will assume the implicit question is about 2FA recovery. I'll make the summary a direct statement answering it.\n   I will ensure no markdown backticks are used.\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\",\n     \"answers\": [\n       {\n         \"question\": \"如何找回或重新生成双重验证恢复码？\",\n         \"answer\": \"根据官方指南，恢复码在开启双重验证时仅生成一次，需用户自行妥善保存。若恢复码遗失，当前建议流程为：先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。\",\n         \"citations\": [\n           {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n         ]\n       }\n     ],\n     \"citations\": [\n       {\"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\"},\n       {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\"}\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n   This matches all constraints. I will output it now. \n   Note: I'll make sure the JSON is compact or pretty-printed, but without markdown. The prompt says \"不要输出 markdown 代码块\", so raw text is fine. I'll output it as a single valid JSON string. All good. \n   Proceeds. \n   Output matches the refined JSON. \n   [Done] \n   *Self-Correction/Verification during generation prep*: \n   Wait, the prompt says \"普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\". I have that.\n   \"`citations` 只能引用当前输入里已有的 artifacts\". I used `wiki_document` and `faq_excerpt`. Correct.\n   \"`summary` 必须先直接回答问题\". I'll make it slightly more direct: \"双重验证恢复码仅在开启时一次性生成，遗失后需先完成身份核验，再禁用并重新启用双重验证以生成新码。\"\n   All constraints met. Output matches. \n   Generating. \n   *(Output Generation)* -> *Proceeds*\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"complete\", \"summary\": \"双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。\", \"answers\": [ { \"question\": \"如何找回或重新生成双重验证恢复码？\", \"answer\": \"根据官方指南，恢复码在开启双重验证时仅生成一次，需用户自行妥善保存。若恢复码遗失，当前建议流程为：先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。\", \"citations\": [ { \"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\" }, { \"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\" } ] } ], \"citations\": [ { \"artifact_name\": \"wiki_document\", \"fragment_id\": \"recovery-code-baseline\" }, { \"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"regenerate-codes\" } ], \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"proposed_actions\": [], \"issues\": [] }`\n   This is valid JSON. I will format it nicely but without markdown. All good. \n   Final Output Generation. \n   *(Note: I will ensure the output is strictly the JSON object as requested.)*\n   Proceeds. \n   [Output Generation] -> *Done.* \n   *(Self-Correction/Note during thought)*: I should verify if `CopilotResponse` expects specific keys. The prompt gives field reminders. I'll stick to them. The structure is standard. I'll output it now. \n   `{...}` (raw JSON)\n   Ready. \n   [Output] -> *Proceeds*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 830,
+      "completion_tokens": 3342,
+      "total_tokens": 4172,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3006,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "summary": "双重验证恢复码仅在开启时一次性生成。若已遗失，需先完成身份核验，再禁用并重新启用双重验证以生成新恢复码。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档，恢复码在开启双重验证时仅生成一次，需用户自行妥善保存。若恢复码遗失，建议先完成身份核验，随后禁用并重新启用双重验证，系统将生成一组新的恢复码。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2"
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9,
+    "proposed_actions": [],
+    "issues": [],
+    "schema_version": 1
+  }
+}

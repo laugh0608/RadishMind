@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-navigation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-navigation-001",
+  "request_id": "sample-navigation-001",
+  "captured_at": "2026-04-05T01:12:06Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachments",
+    "resource_slug": "guide/attachments",
+    "search_scope": [
+      "docs",
+      "wiki"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "docs_page_related"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.95,
+    "summary": "在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（例如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动维护完整 URL。",
+        "citation_ids": []
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1",
+        "excerpt": "公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2",
+        "excerpt": "在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  }
+}

@@ -163,7 +163,8 @@
           "enum": [
             "candidate_edit",
             "candidate_operation",
-            "read_only_check"
+            "read_only_check",
+            "ghost_completion"
           ]
         },
         "title": {
@@ -181,6 +182,42 @@
         "patch": {
           "type": "object",
           "additionalProperties": true
+        },
+        "preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ghost_color": {
+              "type": "string",
+              "minLength": 1
+            },
+            "accept_key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "render_priority": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "apply": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command_kind",
+            "payload"
+          ],
+          "properties": {
+            "command_kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
         },
         "risk_level": {
           "type": "string",
@@ -201,7 +238,25 @@
           },
           "uniqueItems": true
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ghost_completion"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "patch",
+              "preview",
+              "apply"
+            ]
+          }
+        }
+      ]
     },
     "citation": {
       "type": "object",
