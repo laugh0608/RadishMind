@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/radishflow-ghost-candidate-set.schema.json",
+  "title": "RadishFlowGhostCandidateSet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "task",
+    "source",
+    "document_revision",
+    "selected_unit",
+    "legal_candidate_completions",
+    "generation_metadata"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "project": {
+      "type": "string",
+      "const": "radishflow"
+    },
+    "task": {
+      "type": "string",
+      "const": "suggest_ghost_completion"
+    },
+    "source": {
+      "type": "string",
+      "const": "local_rules"
+    },
+    "document_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "selected_unit": {
+      "$ref": "#/$defs/selected_unit"
+    },
+    "unconnected_ports": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "missing_canonical_ports": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "nearby_nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nearby_node"
+      }
+    },
+    "cursor_context": {
+      "$ref": "#/$defs/cursor_context"
+    },
+    "naming_hints": {
+      "$ref": "#/$defs/naming_hints"
+    },
+    "topology_pattern_hints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "legal_candidate_completions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ghost_candidate_completion"
+      }
+    },
+    "generation_metadata": {
+      "$ref": "#/$defs/generation_metadata"
+    }
+  },
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "unconnected_ports"
+          ]
+        },
+        {
+          "required": [
+            "missing_canonical_ports"
+          ]
+        }
+      ]
+    }
+  ],
+  "$defs": {
+    "selected_unit": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "nearby_node": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "type": "string"
+        },
+        "distance_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alignment_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "recent_action": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "kind",
+        "candidate_ref",
+        "accepted_at_revision"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "accept_ghost_completion"
+          ]
+        },
+        "candidate_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accepted_at_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "cursor_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recent_actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recent_action"
+          }
+        }
+      }
+    },
+    "candidate_ranking_signals": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "distance_px": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alignment_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "topology_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "score_gap_to_next": {
+          "type": "number",
+          "minimum": 0
+        },
+        "template_frequency": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "candidate_naming_signals": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "derived_from_upstream_name": {
+          "type": "boolean"
+        },
+        "applied_prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "numeric_suffix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reused_existing_pattern": {
+          "type": "boolean"
+        },
+        "collision_checked": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ghost_candidate_completion": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "candidate_ref",
+        "ghost_kind",
+        "target_port_key"
+      ],
+      "properties": {
+        "candidate_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ghost_kind": {
+          "type": "string",
+          "enum": [
+            "ghost_port",
+            "ghost_connection",
+            "ghost_stream_name"
+          ]
+        },
+        "target_port_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_unit_id": {
+          "type": "string"
+        },
+        "source_stream_id": {
+          "type": "string"
+        },
+        "target_node_id": {
+          "type": "string"
+        },
+        "suggested_stream_name": {
+          "type": "string"
+        },
+        "ranking_signals": {
+          "$ref": "#/$defs/candidate_ranking_signals"
+        },
+        "naming_signals": {
+          "$ref": "#/$defs/candidate_naming_signals"
+        },
+        "conflict_flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "is_high_confidence": {
+          "type": "boolean"
+        },
+        "is_tab_default": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "is_tab_default": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "is_high_confidence": {
+                "const": true
+              },
+              "conflict_flags": {
+                "maxItems": 0
+              }
+            },
+            "required": [
+              "is_high_confidence"
+            ]
+          }
+        }
+      ]
+    },
+    "naming_hints": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "upstream_stream_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "existing_stream_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "preferred_outlet_prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "numeric_suffix_from_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preferred_prefix_by_port": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "generation_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generator_kind",
+        "generator_version",
+        "policy_version"
+      ],
+      "properties": {
+        "generator_kind": {
+          "type": "string",
+          "const": "local_rules"
+        },
+        "generator_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

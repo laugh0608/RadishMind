@@ -49,6 +49,11 @@
 
 推荐先由本地规则层把“合法候选空间”压缩出来，再由模型做排序、命名和空结果判断。
 
+当前推荐本地规则层先按独立候选集契约落一次中间对象，再装配到模型请求：
+
+- 候选集契约参考 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+- 这样前端、本地规则层和模型层都能围绕同一份 `legal_candidate_completions` 结构协作，而不是各自私有拼接
+
 当前建议本地规则层尽量把候选证据也结构化透传出来：
 
 - `legal_candidate_completions[*].ranking_signals`
@@ -56,6 +61,14 @@
 - `legal_candidate_completions[*].conflict_flags`
 
 这样模型排序时不必重新发明本地几何/拓扑判断，回归也能直接校验“为何允许 Tab、为何不能默认 Tab”。
+
+对连续搭建链场景，推荐额外透传：
+
+- `cursor_context.recent_actions[*].kind`
+- `cursor_context.recent_actions[*].candidate_ref`
+- `cursor_context.recent_actions[*].accepted_at_revision`
+
+这样模型可以明确知道“上一步刚接受了哪条 ghost”，而不必只靠模糊的画布静态快照猜测当前处于哪一步。
 
 ## 禁止透传
 

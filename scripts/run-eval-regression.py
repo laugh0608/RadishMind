@@ -1314,6 +1314,8 @@ def validate_ghost_completion_request(sample: dict[str, Any], sample_name: str, 
     missing_canonical_ports = [
         str(port).strip() for port in get_array(context.get("missing_canonical_ports")) if str(port).strip()
     ]
+    cursor_context = context.get("cursor_context") or {}
+    recent_actions = get_array(cursor_context.get("recent_actions"))
 
     if request.get("project") != "radishflow":
         add_violation(violations, f"{sample_name}: input_request.project must be 'radishflow'")
@@ -1339,6 +1341,32 @@ def validate_ghost_completion_request(sample: dict[str, Any], sample_name: str, 
             add_violation(violations, f"{sample_name}: context.selected_unit.id must match context.selected_unit_ids[0]")
         if not str(selected_unit.get("kind") or "").strip():
             add_violation(violations, f"{sample_name}: context.selected_unit.kind is required when selected_unit is present")
+    if cursor_context and not isinstance(cursor_context, dict):
+        add_violation(violations, f"{sample_name}: context.cursor_context must be an object when present")
+    for recent_action in recent_actions:
+        action_kind = str((recent_action or {}).get("kind") or "").strip()
+        candidate_ref = str((recent_action or {}).get("candidate_ref") or "").strip()
+        accepted_at_revision = (recent_action or {}).get("accepted_at_revision")
+        if action_kind != "accept_ghost_completion":
+            add_violation(
+                violations,
+                f"{sample_name}: context.cursor_context.recent_actions only supports kind='accept_ghost_completion'",
+            )
+        if not candidate_ref:
+            add_violation(
+                violations,
+                f"{sample_name}: each context.cursor_context.recent_action must include candidate_ref",
+            )
+        if not isinstance(accepted_at_revision, int):
+            add_violation(
+                violations,
+                f"{sample_name}: each context.cursor_context.recent_action must include integer accepted_at_revision",
+            )
+        elif context.get("document_revision") is not None and accepted_at_revision >= int(context.get("document_revision")):
+            add_violation(
+                violations,
+                f"{sample_name}: recent_action.accepted_at_revision must be earlier than context.document_revision",
+            )
 
     if "legal_candidate_completions" not in context:
         add_violation(violations, f"{sample_name}: context.legal_candidate_completions is required")
@@ -1553,6 +1581,12 @@ def validate_ghost_completion_response(
 
     if response.get("requires_confirmation") is not False:
         add_violation(violations, f"{sample_name}: {response_label}.requires_confirmation must remain false for pending ghost suggestions")
+    recent_actions = get_array((request_context.get("cursor_context") or {}).get("recent_actions"))
+    if recent_actions and len(actions) == 0:
+        add_violation(
+            violations,
+            f"{sample_name}: {response_label} should not drop to zero proposed_actions when recent_actions indicate an accepted ghost chain step",
+        )
     if highest_action_risk > 0 and RISK_RANKS.get(str(response.get("risk_level") or ""), 0) != highest_action_risk:
         add_violation(violations, f"{sample_name}: {response_label}.risk_level must equal the highest proposed_action risk")
 

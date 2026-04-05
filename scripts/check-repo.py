@@ -62,7 +62,10 @@ REQUIRED_FILES = [
     "contracts/README.md",
     "contracts/copilot-request.schema.json",
     "contracts/copilot-response.schema.json",
+    "contracts/radishflow-ghost-candidate-set.schema.json",
     "datasets/README.md",
+    "datasets/examples/README.md",
+    "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
     "datasets/eval/README.md",
     "datasets/eval/batch-orchestration-summary.schema.json",
     "datasets/eval/candidate-record-batch.schema.json",
@@ -222,6 +225,27 @@ def check_content_baseline() -> None:
             raise SystemExit(f".github/workflows/release-check.yml is missing expected content: {pattern}")
 
 
+def check_contract_schemas() -> None:
+    contract_schema_paths = [
+        REPO_ROOT / "contracts/copilot-request.schema.json",
+        REPO_ROOT / "contracts/copilot-response.schema.json",
+        REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
+    ]
+    for schema_path in contract_schema_paths:
+        document = json.loads(schema_path.read_text(encoding="utf-8"))
+        jsonschema.Draft202012Validator.check_schema(document)
+
+    ghost_candidate_schema = json.loads(
+        (REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json").read_text(encoding="utf-8")
+    )
+    ghost_candidate_example = json.loads(
+        (REPO_ROOT / "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    jsonschema.validate(ghost_candidate_example, ghost_candidate_schema)
+
+
 def check_generated_eval_metadata() -> None:
     schema = json.loads(
         (REPO_ROOT / "datasets/eval/negative-replay-index.schema.json").read_text(encoding="utf-8")
@@ -313,6 +337,7 @@ def main() -> int:
 
     check_required_files()
     check_content_baseline()
+    check_contract_schemas()
     check_generated_eval_metadata()
 
     print("repository baseline checks passed.")

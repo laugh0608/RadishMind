@@ -14,6 +14,7 @@
 
 1. `copilot-request.schema.json`
 2. `copilot-response.schema.json`
+3. `radishflow-ghost-candidate-set.schema.json`
 
 使用原则：
 
@@ -27,3 +28,6 @@
 - 对 `task=suggest_ghost_completion`，schema 当前还会额外要求 `document_revision`、单个 `selected_unit_ids` 和 `legal_candidate_completions`，并要求至少提供 `unconnected_ports` 或 `missing_canonical_ports`
 - `legal_candidate_completions` 当前已支持结构化的 `ranking_signals`、`naming_signals` 与 `conflict_flags`，用于把本地规则层的排序证据、命名证据和冲突标记显式传给模型与回归
 - 当某个 ghost 候选声明 `is_tab_default=true` 时，schema 当前会进一步要求该候选同时满足 `is_high_confidence=true` 且 `conflict_flags` 为空
+- `cursor_context` 当前已进一步收口为结构化对象，支持 `mode` 与 `recent_actions`；其中 `recent_actions` 现在正式记录最近一次或几次 `accept_ghost_completion` 的候选引用与文档修订号
+- `radishflow-ghost-candidate-set.schema.json` 当前用于冻结“本地规则层 -> 模型层”之间的 pre-model 候选集交接格式，明确 `legal_candidate_completions`、`ranking_signals`、`conflict_flags`、`cursor_context.recent_actions` 与 `generation_metadata` 的最小结构
+- 当前仓库已补一条可执行示例 [radishflow-ghost-candidate-set-flash-basic-001.json](../datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json)，并接入 `check-repo`，用于确保该 pre-model 契约既有合法 schema，也有真实实例通过校验

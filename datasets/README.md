@@ -10,10 +10,12 @@
 
 - `synthetic/`: 合成样本
 - `annotated/`: 人工校正样本
+- `examples/`: 面向契约与适配器的最小示例对象
 - `eval/`: 离线评测样本、样本 schema 和回归输入
 
 当前已经先落地：
 
+- `examples/radishflow-ghost-candidate-set-flash-basic-001.json`
 - `eval/radishflow-task-sample.schema.json`
 - `eval/radish-task-sample.schema.json`
 - `eval/radishflow/*.json`
@@ -27,3 +29,4 @@
 - 在 `Radish` 首个场景收口前，不急着平铺多任务数据
 - 当前 `RadishFlow explain_diagnostics` 已补首批 `golden_response` 样本与最小回归 runner，后续优先扩展更多真实诊断场景
 - 当前 `Radish` 文档问答样本已补最小召回输入约束与回归 runner，后续优先扩展真实样本和候选输出对照入口
+- 当前 `examples/` 目录开始承接“schema + 实例”双校验，避免新契约只有结构没有真实对象参照

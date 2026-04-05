@@ -141,6 +141,8 @@
   - `naming_signals`：例如命名来源、前缀、编号后缀与重名检查结果
   - `conflict_flags`：例如“分差过小”“存在本地冲突标记”，用于阻止模型把候选误升级成默认 `Tab`
 - 若本地规则层已将某候选标记为 `is_tab_default=true`，则它当前应同时满足 `is_high_confidence=true` 且不存在 `conflict_flags`
+- 对连续搭建链场景，当前建议通过 `cursor_context.recent_actions` 透传最近一次或几次 `accept_ghost_completion` 记录，让模型明确知道“上一步刚接受了什么 ghost”
+- `recent_actions[*]` 当前最小字段为 `kind`、`candidate_ref`、`accepted_at_revision`；其中 `accepted_at_revision` 应早于当前 `document_revision`
 
 当前对 `suggest_ghost_completion` 的附加约束：
 
@@ -149,6 +151,17 @@
 - 若没有本地规则层给出的合法候选，允许返回空建议
 - 用户接受 ghost 前，建议都只是 pending 状态，不应被视为正式文档修改
 - 接受 ghost 后，仍必须继续经过本地命令系统和连接合法性校验
+
+当前建议在模型请求之外，再单独冻结一份本地候选集交接格式：
+
+- 参考 [contracts/radishflow-ghost-candidate-set.schema.json](../contracts/radishflow-ghost-candidate-set.schema.json)
+- 该契约面向“本地规则层 / 适配层 -> 模型层”的 pre-model handoff
+- 其职责是先把 `selected_unit`、未补全端口、邻近节点、命名提示与 `legal_candidate_completions` 收口成稳定对象，再由上层决定是否装配进 `CopilotRequest.context`
+
+这样可以把两个边界拆清：
+
+- 本地规则层负责生成合法候选与排序证据
+- 模型层负责在合法候选空间中排序、解释和决定是否返回空建议
 
 ### `Radish` 上下文建议
 

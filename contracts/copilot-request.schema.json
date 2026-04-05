@@ -454,6 +454,47 @@
         }
       }
     },
+    "radishflow_recent_action": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "kind",
+        "candidate_ref",
+        "accepted_at_revision"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "accept_ghost_completion"
+          ]
+        },
+        "candidate_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accepted_at_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "radishflow_cursor_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recent_actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/radishflow_recent_action"
+          }
+        }
+      }
+    },
     "radishflow_naming_hints": {
       "type": "object",
       "additionalProperties": true,
@@ -556,8 +597,7 @@
           }
         },
         "cursor_context": {
-          "type": "object",
-          "additionalProperties": true
+          "$ref": "#/$defs/radishflow_cursor_context"
         },
         "legal_candidate_completions": {
           "type": "array",
