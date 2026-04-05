@@ -136,6 +136,8 @@
 
 - `FlashDrum inlet` 的标准入口补全
 - `FlashDrum vapor_outlet` / `liquid_outlet` 的标准 ghost connection
+- `Feed -> Valve -> FlashDrum` 连续搭建链中的阀后 outlet 补全
+- `Feed -> Valve -> FlashDrum` 连续搭建链中，承接前一步后的 `FlashDrum` 出口补全
 - `FlashDrum` 基于 `nearby_nodes` 的多候选排序
 - `Heater` 的 `ghost_stream_name` 命名补全
 - `Mixer` 标准出口补全
@@ -150,6 +152,7 @@
 - 默认 `Tab` 接受键只能绑定到第一条 ghost 建议
 - 多候选接近时可以返回建议，但不得强行把第一条伪装成默认 `Tab`
 - 如果候选带有 `conflict_flags`，或本地没有把它标为 `is_tab_default=true` 且 `is_high_confidence=true`，回归会拒绝把它渲染成默认 `Tab` 建议
+- 连续搭建链样本可额外依赖 `cursor_context.recent_actions` 或 `topology_pattern_hints`，用于表达“上一步刚接受了什么 ghost”
 - 响应与 action 的 `requires_confirmation` 必须保持为 `false`
 
 `Radish` 的 docs QA runner 当前已支持两种候选回答输入方式：

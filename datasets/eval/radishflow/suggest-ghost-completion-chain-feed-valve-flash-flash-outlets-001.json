@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-flash-outlets-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-valve-flash-flash-outlets-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-210",
+          "streams": [
+            {
+              "id": "feed-502",
+              "name": "F-502",
+              "target_unit_id": "valve-3"
+            },
+            {
+              "id": "v-502",
+              "name": "V-502",
+              "source_unit_id": "valve-3",
+              "target_unit_id": "flash-8"
+            }
+          ],
+          "units": [
+            {
+              "id": "valve-3",
+              "kind": "Valve",
+              "name": "Throttle Valve 502"
+            },
+            {
+              "id": "flash-8",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 502"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 50,
+      "selected_unit_ids": [
+        "flash-8"
+      ],
+      "selected_unit": {
+        "id": "flash-8",
+        "kind": "FlashDrum",
+        "name": "Flash Drum 502"
+      },
+      "unconnected_ports": [
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-8-vapor-outlet",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-8",
+          "target_port_key": "vapor_outlet",
+          "suggested_stream_name": "VG-502",
+          "ranking_signals": {
+            "alignment_score": 0.9,
+            "topology_score": 0.89,
+            "score_gap_to_next": 0.14,
+            "template_frequency": 0.81
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        },
+        {
+          "candidate_ref": "cand-flash-8-liquid-outlet",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-8",
+          "target_port_key": "liquid_outlet",
+          "suggested_stream_name": "VL-502",
+          "ranking_signals": {
+            "alignment_score": 0.82,
+            "topology_score": 0.8,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.78
+          },
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "naming_hints": {
+        "preferred_prefix_by_port": {
+          "vapor_outlet": "VG",
+          "liquid_outlet": "VL"
+        },
+        "numeric_suffix_from_unit": "502"
+      },
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-valve-3-outlet-flash-8",
+            "accepted_at_revision": 49
+          }
+        ]
+      },
+      "topology_pattern_hints": [
+        "feed_valve_flash_chain",
+        "flash_split_after_valve_outlet_connection"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"flash-8\"",
+      "$.proposed_actions[0].target.port_key=\"vapor_outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-8-vapor-outlet\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"VG-502\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.proposed_actions[1].kind=\"ghost_completion\"",
+      "$.proposed_actions[1].target.port_key=\"liquid_outlet\"",
+      "$.proposed_actions[1].patch.candidate_ref=\"cand-flash-8-liquid-outlet\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1].preview.accept_key=\"Tab\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当 Valve outlet 刚被接入 FlashDrum 时，下一跳应直接进入 FlashDrum 的标准 split 补全，并允许 vapor outlet 作为领先默认建议。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "flash-8 已承接上一步阀后入口连线，当前下一跳应继续补标准分相出口，其中 vapor_outlet 是默认 Tab 候选。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "上一动作已经把 valve-3 的 outlet 接到了 flash-8 的 inlet，因此当前最自然的后续动作就是继续完成 FlashDrum 的标准分相拓扑，并优先补 vapor_outlet。",
+        "citation_ids": [
+          "ctx-recent-chain-action",
+          "ctx-candidate-vapor",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-8 的 vapor_outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-8",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "flash-8 当前已具备入口，且 vapor_outlet 在本地候选集中更高置信，因此适合作为连续搭建链的默认下一步。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-8-vapor-outlet",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-502"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-8-vapor-outlet"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-vapor",
+          "ctx-name-hints"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-8 的 liquid_outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-8",
+          "port_key": "liquid_outlet"
+        },
+        "rationale": "liquid_outlet 同样是标准 split 的必要出口，但当前排序略低于 vapor_outlet，因此保留为第二候选。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-8-liquid-outlet",
+          "target_port_key": "liquid_outlet",
+          "ghost_stream_name": "VL-502"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-8-liquid-outlet"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-liquid",
+          "ctx-name-hints"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-chain-action",
+        "kind": "context",
+        "label": "最近接受的阀后连线",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "accept_ghost_completion candidate_ref=cand-valve-3-outlet-flash-8 accepted_at_revision=49"
+      },
+      {
+        "id": "ctx-candidate-vapor",
+        "kind": "context",
+        "label": "vapor outlet 候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-8-vapor-outlet is_tab_default=true ranking_signals.topology_score=0.89"
+      },
+      {
+        "id": "ctx-candidate-liquid",
+        "kind": "context",
+        "label": "liquid outlet 候选",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-flash-8-liquid-outlet is_tab_default=false"
+      },
+      {
+        "id": "ctx-name-hints",
+        "kind": "context",
+        "label": "气液出口命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "preferred_prefix_by_port.vapor_outlet=VG preferred_prefix_by_port.liquid_outlet=VL numeric_suffix_from_unit=502"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "链式 Flash split 模式提示",
+        "locator": "context:topology_pattern_hints[1]",
+        "excerpt": "flash_split_after_valve_outlet_connection"
+      }
+    ],
+    "confidence": 0.94,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
