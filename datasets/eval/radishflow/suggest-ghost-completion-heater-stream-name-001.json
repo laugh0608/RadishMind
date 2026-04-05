@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-heater-stream-name-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-heater-stream-name-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-207",
+          "streams": [
+            {
+              "id": "feed-301",
+              "name": "F-301",
+              "target_unit_id": "heater-1"
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-1",
+              "kind": "Heater",
+              "name": "Feed Heater 301"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 47,
+      "selected_unit_ids": [
+        "heater-1"
+      ],
+      "selected_unit": {
+        "id": "heater-1",
+        "kind": "Heater",
+        "name": "Feed Heater 301"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-heater-1-outlet-name",
+          "ghost_kind": "ghost_stream_name",
+          "target_unit_id": "heater-1",
+          "target_port_key": "outlet",
+          "suggested_stream_name": "H-301",
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-301"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "301"
+      },
+      "topology_pattern_hints": [
+        "heater_single_in_single_out"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"heater-1\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.ghost_kind=\"ghost_stream_name\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-heater-1-outlet-name\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"H-301\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.risk_level=\"low\""
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"F-301\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当本地规则已明确合法连线，只剩 stream name 需要补全时，模型应优先输出 ghost_stream_name，而不是重新发明新的连接动作。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "heater-1 当前可直接补 outlet 的 ghost stream name，建议沿用加热后流股的命名习惯生成 H-301。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "上游流股已命名为 F-301，本地命名提示要求加热后出口使用 H 前缀并保留 301 编号，因此 H-301 是最稳定的 ghost_stream_name。",
+        "citation_ids": [
+          "ctx-name-hints",
+          "ctx-candidate-name"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "为 heater-1 的 outlet 补全 ghost stream name",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-1",
+          "port_key": "outlet"
+        },
+        "rationale": "当前合法候选空间已收口到命名补全，直接给出 H-301 可减少用户重复命名操作。",
+        "patch": {
+          "ghost_kind": "ghost_stream_name",
+          "candidate_ref": "cand-heater-1-outlet-name",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-301"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-1-outlet-name"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-name",
+          "ctx-name-hints"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-name-hints",
+        "kind": "context",
+        "label": "加热器命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "preferred_outlet_prefix=H numeric_suffix_from_unit=301 upstream_stream_names=[F-301]"
+      },
+      {
+        "id": "ctx-candidate-name",
+        "kind": "context",
+        "label": "合法命名补全候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-1-outlet-name ghost_kind=ghost_stream_name suggested_stream_name=H-301"
+      }
+    ],
+    "confidence": 0.95,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

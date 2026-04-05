@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-flash-nearby-node-ranking-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-flash-nearby-ranking-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-206",
+          "streams": [
+            {
+              "id": "feed-main",
+              "name": "F-201",
+              "source_unit_id": "feed-201"
+            },
+            {
+              "id": "feed-side",
+              "name": "F-201B",
+              "source_unit_id": "feed-201b"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-201",
+              "kind": "Feed",
+              "name": "Main Feed"
+            },
+            {
+              "id": "feed-201b",
+              "kind": "Feed",
+              "name": "Bypass Feed"
+            },
+            {
+              "id": "flash-5",
+              "kind": "FlashDrum",
+              "name": "V-201 Drum"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 46,
+      "selected_unit_ids": [
+        "flash-5"
+      ],
+      "selected_unit": {
+        "id": "flash-5",
+        "kind": "FlashDrum",
+        "name": "V-201 Drum"
+      },
+      "unconnected_ports": [
+        "inlet",
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "stream_stub",
+          "id": "feed-main",
+          "distance_px": 72,
+          "alignment_score": 0.95,
+          "direction": "upstream"
+        },
+        {
+          "type": "stream_stub",
+          "id": "feed-side",
+          "distance_px": 138,
+          "alignment_score": 0.61,
+          "direction": "upstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-5-inlet-main",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-5",
+          "target_port_key": "inlet",
+          "source_stream_id": "feed-main",
+          "suggested_stream_name": "F-201",
+          "is_high_confidence": true,
+          "is_tab_default": true
+        },
+        {
+          "candidate_ref": "cand-flash-5-inlet-side",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-5",
+          "target_port_key": "inlet",
+          "source_stream_id": "feed-side",
+          "suggested_stream_name": "F-201B",
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-5-inlet-main\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.proposed_actions[1].kind=\"ghost_completion\"",
+      "$.proposed_actions[1].patch.candidate_ref=\"cand-flash-5-inlet-side\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-5-inlet-side\"",
+      "$.proposed_actions[1].preview.accept_key=\"Tab\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当本地规则提供多个 inlet 候选时，排序应优先选择距离更近且对齐更好的 nearby node，同时保留次优 ghost 作为可见备选。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "flash-5 当前有两个合法 inlet ghost 候选，其中 feed-main 更接近且对齐更好，应排在第一位并作为默认 Tab 候选。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "虽然两个入口 ghost 都合法，但 feed-main 与 flash-5 的距离更近、方向更一致，因此排序上应领先于侧路 feed-side。",
+        "citation_ids": [
+          "ctx-nearby-main",
+          "ctx-nearby-side",
+          "ctx-candidate-main"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "优先将 feed-main 补为 flash-5 的 inlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-5",
+          "port_key": "inlet"
+        },
+        "rationale": "feed-main 是当前最接近且对齐更好的上游物流线，本地规则也将其标记为唯一默认高置信入口候选。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-5-inlet-main",
+          "target_port_key": "inlet",
+          "ghost_stream_name": "F-201"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-5-inlet-main"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-main",
+          "ctx-nearby-main"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "将 feed-side 作为 flash-5 inlet 的备选 ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-5",
+          "port_key": "inlet"
+        },
+        "rationale": "feed-side 仍然是合法候选，但距离和对齐都弱于 main 入口，因此只保留为可见备选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-5-inlet-side",
+          "target_port_key": "inlet",
+          "ghost_stream_name": "F-201B"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-5-inlet-side"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-side",
+          "ctx-nearby-side"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-nearby-main",
+        "kind": "context",
+        "label": "feed-main 邻近节点证据",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "feed-main distance_px=72 alignment_score=0.95 direction=upstream"
+      },
+      {
+        "id": "ctx-nearby-side",
+        "kind": "context",
+        "label": "feed-side 邻近节点证据",
+        "locator": "context:nearby_nodes[1]",
+        "excerpt": "feed-side distance_px=138 alignment_score=0.61 direction=upstream"
+      },
+      {
+        "id": "ctx-candidate-main",
+        "kind": "context",
+        "label": "main 入口候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-5-inlet-main is_tab_default=true"
+      },
+      {
+        "id": "ctx-candidate-side",
+        "kind": "context",
+        "label": "side 入口候选",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-flash-5-inlet-side is_tab_default=false"
+      }
+    ],
+    "confidence": 0.93,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

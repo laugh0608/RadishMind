@@ -136,7 +136,10 @@
 
 - `FlashDrum inlet` 的标准入口补全
 - `FlashDrum vapor_outlet` / `liquid_outlet` 的标准 ghost connection
+- `FlashDrum` 基于 `nearby_nodes` 的多候选排序
+- `Heater` 的 `ghost_stream_name` 命名补全
 - `Mixer` 标准出口补全
+- `Valve` 存在歧义时的“可见 ghost 但不默认 Tab 接受”
 - 上下文不足时返回空建议
 
 同时该任务的回归当前会额外约束：
@@ -144,6 +147,7 @@
 - 候选必须来自 `context.legal_candidate_completions`
 - `ghost_completion` 必须保持 pending 语义，不能升级成正式 patch
 - 默认 `Tab` 接受键只能绑定到第一条 ghost 建议
+- 多候选接近时可以返回建议，但不得强行把第一条伪装成默认 `Tab`
 - 响应与 action 的 `requires_confirmation` 必须保持为 `false`
 
 `Radish` 的 docs QA runner 当前已支持两种候选回答输入方式：
