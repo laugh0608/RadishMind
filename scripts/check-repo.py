@@ -11,6 +11,39 @@ import jsonschema
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+GHOST_REQUEST_ASSEMBLY_FIXTURES = [
+    {
+        "candidate_set": "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
+        "requests": [
+            {
+                "output": "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json",
+                "request_id": "rf-ghost-request-flash-basic-001",
+                "assembly_profile": "model-minimal",
+            },
+            {
+                "output": "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json",
+                "request_id": "rf-ghost-request-flash-basic-001-debug-full",
+                "assembly_profile": "debug-full",
+            },
+        ],
+    },
+    {
+        "candidate_set": "datasets/examples/radishflow-ghost-candidate-set-valve-ambiguous-001.json",
+        "requests": [
+            {
+                "output": "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json",
+                "request_id": "rf-ghost-request-valve-ambiguous-001",
+                "assembly_profile": "model-minimal",
+            },
+            {
+                "output": "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001-debug-full.json",
+                "request_id": "rf-ghost-request-valve-ambiguous-001-debug-full",
+                "assembly_profile": "debug-full",
+            },
+        ],
+    },
+]
+
 RADISH_DOCS_QA_REAL_BATCHES = [
     {
         "audit_report": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
@@ -66,7 +99,11 @@ REQUIRED_FILES = [
     "datasets/README.md",
     "datasets/examples/README.md",
     "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
+    "datasets/examples/radishflow-ghost-candidate-set-valve-ambiguous-001.json",
     "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json",
+    "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json",
+    "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json",
+    "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001-debug-full.json",
     "datasets/eval/README.md",
     "datasets/eval/batch-orchestration-summary.schema.json",
     "datasets/eval/candidate-record-batch.schema.json",
@@ -240,37 +277,31 @@ def check_contract_schemas() -> None:
     ghost_candidate_schema = json.loads(
         (REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json").read_text(encoding="utf-8")
     )
-    ghost_candidate_example = json.loads(
-        (REPO_ROOT / "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    jsonschema.validate(ghost_candidate_example, ghost_candidate_schema)
-
     copilot_request_schema = json.loads((REPO_ROOT / "contracts/copilot-request.schema.json").read_text(encoding="utf-8"))
-    ghost_request_example = json.loads(
-        (REPO_ROOT / "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    jsonschema.validate(ghost_request_example, copilot_request_schema)
+    for fixture in GHOST_REQUEST_ASSEMBLY_FIXTURES:
+        ghost_candidate_example = json.loads((REPO_ROOT / fixture["candidate_set"]).read_text(encoding="utf-8"))
+        jsonschema.validate(ghost_candidate_example, ghost_candidate_schema)
 
-    run_python_script(
-        "build-radishflow-ghost-request.py",
-        [
-            "--input",
-            "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
-            "--output",
-            "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json",
-            "--artifact-uri",
-            "artifact://flowsheet/current",
-            "--request-id",
-            "rf-ghost-request-flash-basic-001",
-            "--assembly-profile",
-            "model-minimal",
-            "--check",
-        ],
-    )
+        for request_fixture in fixture["requests"]:
+            ghost_request_example = json.loads((REPO_ROOT / request_fixture["output"]).read_text(encoding="utf-8"))
+            jsonschema.validate(ghost_request_example, copilot_request_schema)
+
+            run_python_script(
+                "build-radishflow-ghost-request.py",
+                [
+                    "--input",
+                    fixture["candidate_set"],
+                    "--output",
+                    request_fixture["output"],
+                    "--artifact-uri",
+                    "artifact://flowsheet/current",
+                    "--request-id",
+                    request_fixture["request_id"],
+                    "--assembly-profile",
+                    request_fixture["assembly_profile"],
+                    "--check",
+                ],
+            )
 
 
 def check_generated_eval_metadata() -> None:

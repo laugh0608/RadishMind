@@ -168,10 +168,12 @@
 - [build-radishflow-ghost-request.py](../scripts/build-radishflow-ghost-request.py)
 - 它负责把 `radishflow-ghost-candidate-set.schema.json` 对象装配为 `CopilotRequest`
 - 当前默认使用 `model-minimal` profile，而不是无差别透传
+- 当前同时保留 `debug-full` profile，仅用于调试、对照和问题定位，不作为默认模型输入
 - `selected_unit -> selected_unit_ids`、`unconnected_ports`、`cursor_context`、`naming_hints`、`topology_pattern_hints` 继续按最小稳定映射装配
 - `legal_candidate_completions` 当前默认只保留模型最小必要字段：`candidate_ref`、`ghost_kind`、`target_port_key`、目标引用、建议名以及 `is_high_confidence` / `is_tab_default`
 - `ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认留在 pre-model 候选集对象中，不直接透传到 `CopilotRequest`
 - `nearby_nodes` 当前默认只保留 `type`、`id` 与 `direction`，不默认透传几何评分细节
+- 当前仓库已同时固定 `model-minimal` 和 `debug-full` 两个示例输出，避免后续对“哪些本地证据可以进模型请求”再次退回口头约定
 
 ### `Radish` 上下文建议
 

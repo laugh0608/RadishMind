@@ -53,6 +53,7 @@
 
 - 候选集契约参考 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
 - 装配脚本参考 [build-radishflow-ghost-request.py](../../scripts/build-radishflow-ghost-request.py)
+- 当前默认装配 profile 为 `model-minimal`；若需要排查候选排序或命名证据，可切到 `debug-full` 对照 profile，但不应把它作为常态模型输入
 - 这样前端、本地规则层和模型层都能围绕同一份 `legal_candidate_completions` 结构协作，而不是各自私有拼接
 
 当前推荐默认装配策略：
