@@ -24,6 +24,9 @@
 10. `radishflow-ghost-candidate-set-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
 11. `radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
 12. `radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001-debug-full.json`
+13. `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
+14. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
+15. `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001-debug-full.json`
 
 说明：
 
@@ -85,3 +88,18 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述链式停住候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留邻近节点的阻塞原因与几何细节，避免“为何停住”只留在口头约定
+
+- `radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Valve -> FlashDrum` 连续搭建链里，`FlashDrum` 的 outlet 候选已经存在，但建议命名与现有流股冲突，因此只能显示可见 ghost 而不能默认 `Tab`
+  - 当前用于固定“recent_actions 已存在、legal candidates 非空，但仍需 manual-only”的 handoff 边界
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述链式命名冲突候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定 non-tab 链式候选在最小请求里仍会保留的字段集合
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述链式命名冲突候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留 naming_signals 与 conflict_flags，避免“为何不能默认 Tab”再次退回成口头说明
