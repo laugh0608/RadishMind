@@ -33,6 +33,9 @@
 19. `radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
 20. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
 21. `radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+22. `radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+23. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+24. `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json`
 
 说明：
 
@@ -139,3 +142,18 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述第二模板命名冲突候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留第二模板的 naming_signals 与 conflict_flags，避免“为何不能默认 Tab”再次退回成口头说明
+
+- `radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Heater -> FlashDrum` 连续搭建链里，`Feed -> Heater` 入口 ghost 刚被接受后，当前 `Heater` outlet 不存在任何合法候选的 pre-model 候选集
+  - 当前用于固定第二条模板里“recent_actions 已存在，但 local rules 仍要求停住并返回空建议”的 handoff 边界
+
+- `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第二模板链式停住候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定第二模板空候选链路里 `recent_actions`、`naming_hints` 与裁剪后的邻近节点仍会如何进入请求
+
+- `radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述第二模板链式停住候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留第二模板里邻近节点的阻塞原因与几何细节，避免“为何停住”再次退回成口头约定

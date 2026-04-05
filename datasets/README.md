@@ -32,6 +32,9 @@
 - `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
 - `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json`
 - `eval/radishflow-task-sample.schema.json`
 - `eval/radish-task-sample.schema.json`
 - `eval/radishflow/*.json`
@@ -52,3 +55,4 @@
 - 当前 `examples/` 继续补了同一条连续搭建链的“命名冲突但可见 ghost”基线，固定 `legal_candidate_completions` 非空但 `conflict_flags` 阻止默认 `Tab` 的 handoff 与 request assembly 边界
 - 当前 `examples/` 还补了第二条链式模板 `Feed -> Heater -> FlashDrum`，用于验证链式 handoff、request assembly 与 `Tab` 默认接受边界并未耦合到 `Valve`
 - 当前 `examples/` 继续补了第二条链式模板的命名冲突 no-tab 基线，验证 `Feed -> Heater -> FlashDrum` 也能稳定落到 `manual_only` 边界
+- 当前 `examples/` 继续补了第二条链式模板的停住空建议基线，验证 `Feed -> Heater -> FlashDrum` 也能在 `recent_actions` 已存在但 `legal_candidate_completions=[]` 时稳定停在空建议边界

@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-216",
+          "streams": [
+            {
+              "id": "feed-603",
+              "name": "F-603",
+              "target_unit_id": "heater-4"
+            },
+            {
+              "id": "legacy-hl-603",
+              "name": "HL-603",
+              "source_unit_id": "heater-legacy",
+              "target_unit_id": "flash-16"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-603-unit",
+              "kind": "Feed",
+              "name": "Feed 603"
+            },
+            {
+              "id": "heater-4",
+              "kind": "Heater",
+              "name": "Feed Heater 603"
+            },
+            {
+              "id": "flash-16",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 603"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 55,
+      "selected_unit_ids": [
+        "heater-4"
+      ],
+      "selected_unit": {
+        "id": "heater-4",
+        "kind": "Heater",
+        "name": "Feed Heater 603"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "legal_candidate_completions": [],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-16.inlet",
+          "distance_px": 68,
+          "alignment_score": 0.93,
+          "direction": "downstream",
+          "blocked_reason": "occupied_by_existing_stream"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-603-to-heater-4-inlet",
+            "accepted_at_revision": 54
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-603"
+        ],
+        "existing_stream_names": [
+          "F-603",
+          "HL-603"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "603"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "stop_when_no_legal_heater_outlet_candidates"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0].kind=\"empty_suggestion_reason\"",
+      "$.issues[0].code=\"INSUFFICIENT_GHOST_CONTEXT\"",
+      "$.issues[0].severity=\"info\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "empty_suggestion_boundary",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当 Feed 已接入 Heater，但当前 Heater outlet 到 FlashDrum inlet 不存在任何合法候选时，响应应保持空建议，而不是因为 recent_actions 存在就主观补下一跳。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "heater-4 虽已承接上一步 Feed 入口，但当前没有任何合法的 outlet ghost 候选，因此不返回默认补全建议。",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "recent_actions 已表明连续搭建链刚进入 Heater outlet 阶段，但本地规则层没有给出任何合法候选，因此这里必须停住并保持空建议。",
+        "citation_ids": [
+          "ctx-recent-action",
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前链式上下文虽完整，但本地规则尚未提供任何合法的 Heater outlet 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近接受的 Feed 到 Heater 入口 ghost",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "accept_ghost_completion candidate_ref=cand-feed-603-to-heater-4-inlet accepted_at_revision=54"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 Heater outlet 候选集",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "第二模板链式停住模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "stop_when_no_legal_heater_outlet_candidates"
+      },
+      {
+        "id": "ctx-nearby-blocked",
+        "kind": "context",
+        "label": "紧邻的 FlashDrum inlet 仍被阻塞",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "flash-16.inlet blocked_reason=occupied_by_existing_stream"
+      }
+    ],
+    "confidence": 0.9,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

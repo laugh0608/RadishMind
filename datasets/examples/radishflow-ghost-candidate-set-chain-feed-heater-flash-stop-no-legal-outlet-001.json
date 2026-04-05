@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 55,
+  "selected_unit": {
+    "id": "heater-4",
+    "kind": "Heater",
+    "name": "Feed Heater 603"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-16.inlet",
+      "direction": "downstream",
+      "distance_px": 68,
+      "alignment_score": 0.93,
+      "blocked_reason": "occupied_by_existing_stream"
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-603-to-heater-4-inlet",
+        "accepted_at_revision": 54
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-603"
+    ],
+    "existing_stream_names": [
+      "F-603",
+      "HL-603"
+    ],
+    "preferred_outlet_prefix": "H",
+    "numeric_suffix_from_unit": "603"
+  },
+  "topology_pattern_hints": [
+    "feed_heater_flash_chain",
+    "heater_outlet_to_flash_inlet_after_feed_connection",
+    "stop_when_no_legal_heater_outlet_candidates"
+  ],
+  "legal_candidate_completions": [],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-heater-flash-chain-v1",
+    "notes": "第二条链式模板停住边界示例：虽然刚接受了 Feed 到 Heater 的入口 ghost，但当前没有合法的 Heater outlet 候选，因此应返回空建议。"
+  }
+}
