@@ -18,6 +18,9 @@
 4. `radishflow-ghost-candidate-set-valve-ambiguous-001.json`
 5. `radishflow-copilot-request-ghost-valve-ambiguous-001.json`
 6. `radishflow-copilot-request-ghost-valve-ambiguous-001-debug-full.json`
+7. `radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json`
+8. `radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json`
+9. `radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001-debug-full.json`
 
 说明：
 
@@ -49,3 +52,18 @@
   - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
   - 它表示上述 `Valve ambiguous` 候选集在 `debug-full` profile 下的调试请求
   - 当前用于保留歧义评分与冲突标记，便于对照 `model-minimal` 请求中被裁剪的字段
+
+- `radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json`
+  - 该示例对应 [radishflow-ghost-candidate-set.schema.json](../../contracts/radishflow-ghost-candidate-set.schema.json)
+  - 它表示 `Feed -> Valve -> FlashDrum` 连续搭建链中，`Valve -> FlashDrum` 入口 ghost 刚被接受后，下一步默认建议转向 `FlashDrum` 标准出口补全的 pre-model 候选集
+  - 当前用于把 `cursor_context.recent_actions` 从 `eval` 样本推进到 `examples/` 基线，固定“上一步已接受 ghost 会影响下一步默认建议”的 handoff 口径
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json`
+  - 该示例对应 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述连续搭建链候选集在默认 `model-minimal` profile 下的模型请求
+  - 当前用于固定 recent actions、命名提示与最小候选摘要会如何一起装配进模型请求
+
+- `radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001-debug-full.json`
+  - 该示例对应同一份 [copilot-request.schema.json](../../contracts/copilot-request.schema.json)
+  - 它表示上述连续搭建链候选集在 `debug-full` profile 下的调试请求
+  - 当前用于保留 outlet 排序证据、命名证据与几何细节，方便对照 `model-minimal` 裁剪后的连续搭建链请求边界

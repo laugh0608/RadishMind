@@ -1,6 +1,6 @@
 # RadishMind 数据集与评测目录
 
-更新时间：2026-04-01
+更新时间：2026-04-05
 
 本目录用于承载 `RadishMind` 的样本、评测和后续训练输入。
 
@@ -17,6 +17,9 @@
 
 - `examples/radishflow-ghost-candidate-set-flash-basic-001.json`
 - `examples/radishflow-copilot-request-ghost-flash-basic-001.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001-debug-full.json`
 - `eval/radishflow-task-sample.schema.json`
 - `eval/radish-task-sample.schema.json`
 - `eval/radishflow/*.json`
@@ -32,3 +35,4 @@
 - 当前 `Radish` 文档问答样本已补最小召回输入约束与回归 runner，后续优先扩展真实样本和候选输出对照入口
 - 当前 `examples/` 目录开始承接“schema + 实例”双校验，避免新契约只有结构没有真实对象参照
 - 当前 `build-radishflow-ghost-request.py` 已可把本地 ghost 候选集示例装配成最小 `CopilotRequest`，默认使用 `model-minimal` profile 裁剪本地排序/冲突证据，同时保留 `debug-full` 对照示例，并由 `check-repo` 校验 `FlashDrum` 与 `Valve ambiguous` 两组输出都不漂移
+- 当前 `examples/` 已新增 `Feed -> Valve -> FlashDrum` 连续搭建链基线，把 `cursor_context.recent_actions` 从 `eval` 样本推进到 pre-model candidate set 与 request assembly 示例，固定“上一跳已接受 ghost 会影响下一跳默认建议”的最小口径

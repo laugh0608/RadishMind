@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 60,
+  "selected_unit": {
+    "id": "flash-11",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 503"
+  },
+  "unconnected_ports": [
+    "vapor_outlet",
+    "liquid_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-11-vapor-lane",
+      "direction": "downstream",
+      "distance_px": 70,
+      "alignment_score": 0.93
+    },
+    {
+      "type": "stream_stub",
+      "id": "flash-11-liquid-lane",
+      "direction": "downstream",
+      "distance_px": 82,
+      "alignment_score": 0.86
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-503-to-valve-4-inlet",
+        "accepted_at_revision": 58
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-4-outlet-flash-11",
+        "accepted_at_revision": 59
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-503"
+    ],
+    "existing_stream_names": [
+      "F-503",
+      "V-503"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG",
+      "liquid_outlet": "VL"
+    },
+    "numeric_suffix_from_unit": "503"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-flash-11-vapor-outlet",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "vapor_outlet",
+      "target_unit_id": "flash-11",
+      "suggested_stream_name": "VG-503",
+      "ranking_signals": {
+        "distance_px": 70,
+        "alignment_score": 0.93,
+        "topology_score": 0.91,
+        "score_gap_to_next": 0.17,
+        "template_frequency": 0.85
+      },
+      "naming_signals": {
+        "applied_prefix": "VG",
+        "numeric_suffix": "503",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    },
+    {
+      "candidate_ref": "cand-flash-11-liquid-outlet",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "liquid_outlet",
+      "target_unit_id": "flash-11",
+      "suggested_stream_name": "VL-503",
+      "ranking_signals": {
+        "distance_px": 82,
+        "alignment_score": 0.86,
+        "topology_score": 0.82,
+        "score_gap_to_next": 0.0,
+        "template_frequency": 0.8
+      },
+      "naming_signals": {
+        "applied_prefix": "VL",
+        "numeric_suffix": "503",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "连续搭建链示例：上一步刚接受 Valve 到 FlashDrum 的入口 ghost，下一步默认补 FlashDrum 出口。"
+  }
+}

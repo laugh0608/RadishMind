@@ -32,6 +32,8 @@
 - `radishflow-ghost-candidate-set.schema.json` 当前用于冻结“本地规则层 -> 模型层”之间的 pre-model 候选集交接格式，明确 `legal_candidate_completions`、`ranking_signals`、`conflict_flags`、`cursor_context.recent_actions` 与 `generation_metadata` 的最小结构
 - 当前仓库已补一条可执行示例 [radishflow-ghost-candidate-set-flash-basic-001.json](../datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json)，并接入 `check-repo`，用于确保该 pre-model 契约既有合法 schema，也有真实实例通过校验
 - 当前仓库还补了歧义边界示例 [radishflow-ghost-candidate-set-valve-ambiguous-001.json](../datasets/examples/radishflow-ghost-candidate-set-valve-ambiguous-001.json)，用于固定“有合法候选但不默认 `Tab`”的 pre-model handoff 口径
+- 当前仓库已继续补 [radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json)，用于固定连续搭建链里 `recent_actions` 会如何影响下一步默认 outlet 建议
 - 当前还提供了从候选集装配到模型请求的可执行入口 [build-radishflow-ghost-request.py](../scripts/build-radishflow-ghost-request.py)，并用 [radishflow-copilot-request-ghost-flash-basic-001.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json) 固定其最小输出
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
+- 当前 `check-repo` 已同时校验基础 `FlashDrum`、`Valve ambiguous` 和 `Feed -> Valve -> FlashDrum` 连续搭建链三组 examples，避免 `recent_actions` 装配逻辑只停留在 `eval` 样本说明层
