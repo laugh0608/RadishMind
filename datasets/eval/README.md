@@ -389,11 +389,13 @@ bash ./scripts/run-radish-docs-qa-negative-regression.sh \
 
 这样“真实 batch 编排产物摘要”就不只是归档文件，而是可以直接驱动后续负例回放。
 
-如果希望让高层编排在结束后直接给出“下一步建议怎么复跑失败组”，当前也可以直接查看 `artifacts.json` 里的 `recommended_negative_replays`。该区块会按 same-sample 失败组给出：
+如果希望让高层编排在结束后直接给出“下一步建议怎么复跑失败组”，当前也可以直接查看 `artifacts.json` 里的 `recommended_negative_replays`。该区块默认仍以 same-sample 为主，但当前也可额外携带 cross-sample 推荐组：
 
 - `recommended_group_ids`：默认推荐优先复跑的失败组顺序，当前按组内样本数降序排列
+- `cross_sample_recommended_group_ids`：若当前 batch 已提供 cross-sample replay index，可额外给出 cross-sample 推荐组顺序
 - `groups[*].expected_candidate_violations`：该组对应的主要违规片段
-- `groups[*].bash_command` / `groups[*].python_command`：可直接复制执行的复跑命令
+- `groups[*].bash_command` / `groups[*].python_command`：same-sample 推荐组的可直接执行复跑命令
+- `cross_sample_groups[*].bash_command` / `cross_sample_groups[*].python_command`：cross-sample 推荐组的可直接执行复跑命令
 
 这样真实 batch 跑完后，不需要再人工翻 `negative-replay-index.json` 组装命令。
 

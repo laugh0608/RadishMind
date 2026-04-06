@@ -86,19 +86,20 @@ def load_batch_artifact_summary(summary_path: Path) -> dict[str, Any]:
     return document
 
 
-def resolve_negative_replay_index(summary_document: dict[str, Any], summary_path: Path) -> Path:
+def resolve_negative_replay_index(summary_document: dict[str, Any], summary_path: Path, replay_mode: str) -> Path:
     artifacts = expect_object(summary_document.get("artifacts"), f"{make_repo_relative(summary_path)} artifacts")
+    artifact_key = "cross_sample_negative_replay_index" if replay_mode == "cross_sample" else "negative_replay_index"
     negative_replay_index = expect_object(
-        artifacts.get("negative_replay_index"),
-        f"{make_repo_relative(summary_path)} artifacts.negative_replay_index",
+        artifacts.get(artifact_key),
+        f"{make_repo_relative(summary_path)} artifacts.{artifact_key}",
     )
     index_path_value = str(negative_replay_index.get("path") or "").strip()
     if not index_path_value:
-        raise SystemExit(f"{make_repo_relative(summary_path)}: artifacts.negative_replay_index.path is required")
+        raise SystemExit(f"{make_repo_relative(summary_path)}: artifacts.{artifact_key}.path is required")
     if negative_replay_index.get("requested") is not True:
-        raise SystemExit(f"{make_repo_relative(summary_path)}: artifacts.negative_replay_index.requested must be true")
+        raise SystemExit(f"{make_repo_relative(summary_path)}: artifacts.{artifact_key}.requested must be true")
     if negative_replay_index.get("exists") is not True:
-        raise SystemExit(f"{make_repo_relative(summary_path)}: artifacts.negative_replay_index.exists must be true")
+        raise SystemExit(f"{make_repo_relative(summary_path)}: artifacts.{artifact_key}.exists must be true")
 
     index_path = resolve_relative_to_repo(index_path_value)
     if not index_path.is_file():
@@ -108,7 +109,7 @@ def resolve_negative_replay_index(summary_document: dict[str, Any], summary_path
     return index_path
 
 
-def resolve_recommended_selection(summary_document: dict[str, Any], top_n: int) -> tuple[list[str], str]:
+def resolve_recommended_selection(summary_document: dict[str, Any], top_n: int, replay_mode: str) -> tuple[list[str], str]:
     if top_n <= 0:
         raise SystemExit("--top must be greater than 0")
 
@@ -119,13 +120,19 @@ def resolve_recommended_selection(summary_document: dict[str, Any], top_n: int) 
             "recommended_negative_replays.default_replay_mode must be one of: cross_sample, same_sample"
         )
 
+    selected_replay_mode = replay_mode.strip() or default_replay_mode
+    if selected_replay_mode not in {"same_sample", "cross_sample"}:
+        raise SystemExit(
+            f"recommended_negative_replays replay mode must be one of: cross_sample, same_sample; got '{selected_replay_mode}'"
+        )
+    group_id_field = "cross_sample_recommended_group_ids" if selected_replay_mode == "cross_sample" else "recommended_group_ids"
     recommended_group_ids = unique_strings(
-        [str(group_id) for group_id in recommended.get("recommended_group_ids") or []]
+        [str(group_id) for group_id in recommended.get(group_id_field) or []]
     )
     if not recommended_group_ids:
-        raise SystemExit("recommended_negative_replays.recommended_group_ids is empty")
+        raise SystemExit(f"recommended_negative_replays.{group_id_field} is empty")
 
-    return recommended_group_ids[:top_n], default_replay_mode
+    return recommended_group_ids[:top_n], selected_replay_mode
 
 
 def load_negative_replay_index(index_path: Path) -> dict[str, Any]:
@@ -326,9 +333,8 @@ def main() -> int:
         raise SystemExit(f"batch artifact summary file not found: {args.batch_artifact_summary}")
 
     batch_artifact_summary = load_batch_artifact_summary(batch_artifact_summary_path)
-    selected_group_ids, default_replay_mode = resolve_recommended_selection(batch_artifact_summary, args.top)
-    replay_mode = args.replay_mode.strip() or default_replay_mode
-    negative_replay_index_path = resolve_negative_replay_index(batch_artifact_summary, batch_artifact_summary_path)
+    selected_group_ids, replay_mode = resolve_recommended_selection(batch_artifact_summary, args.top, args.replay_mode)
+    negative_replay_index_path = resolve_negative_replay_index(batch_artifact_summary, batch_artifact_summary_path, replay_mode)
     negative_replay_index = load_negative_replay_index(negative_replay_index_path)
     group_map = build_group_map(negative_replay_index)
 

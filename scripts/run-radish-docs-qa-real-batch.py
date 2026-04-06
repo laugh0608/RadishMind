@@ -181,75 +181,82 @@ def build_recommended_negative_replays(
     *,
     artifact_summary_path: Path,
     replay_index: dict[str, Any] | None,
+    cross_sample_replay_index: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    if replay_index is None:
-        return {
-            "default_replay_mode": "same_sample",
-            "recommended_group_ids": [],
-            "groups": [],
-        }
-
     summary_path_value = make_repo_relative(artifact_summary_path)
-    groups: list[dict[str, Any]] = []
-    for group in replay_index.get("violation_groups") or []:
-        if not isinstance(group, dict):
-            raise SystemExit("negative replay index violation_groups entries must be json objects")
-        group_id = str(group.get("group_id") or "").strip()
-        if not group_id:
-            raise SystemExit("negative replay index violation_groups entries must include group_id")
-        entries = group.get("entries") or []
-        same_sample_entry_count = 0
-        for entry in entries:
-            if not isinstance(entry, dict):
-                raise SystemExit(f"negative replay index group '{group_id}' entries must be json objects")
-            if str(entry.get("replay_mode") or "").strip() == "same_sample":
-                same_sample_entry_count += 1
-        if same_sample_entry_count == 0:
-            continue
+    def build_groups(index_document: dict[str, Any] | None, replay_mode: str) -> list[dict[str, Any]]:
+        if index_document is None:
+            return []
+        groups: list[dict[str, Any]] = []
+        for group in index_document.get("violation_groups") or []:
+            if not isinstance(group, dict):
+                raise SystemExit("negative replay index violation_groups entries must be json objects")
+            group_id = str(group.get("group_id") or "").strip()
+            if not group_id:
+                raise SystemExit("negative replay index violation_groups entries must include group_id")
+            entries = group.get("entries") or []
+            entry_count = 0
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    raise SystemExit(f"negative replay index group '{group_id}' entries must be json objects")
+                if str(entry.get("replay_mode") or "").strip() == replay_mode:
+                    entry_count += 1
+            if entry_count == 0:
+                continue
 
-        bash_command = " ".join(
-            [
-                "bash",
-                shlex.quote("./scripts/run-radish-docs-qa-negative-regression.sh"),
-                "--batch-artifact-summary",
-                shlex.quote(summary_path_value),
-                "--group-id",
-                shlex.quote(group_id),
-                "--replay-mode",
-                "same_sample",
-                "--fail-on-violation",
-            ]
-        )
-        python_command = " ".join(
-            [
-                "python3",
-                shlex.quote("./scripts/run-eval-regression.py"),
-                "radish-docs-qa-negative",
-                "--batch-artifact-summary",
-                shlex.quote(summary_path_value),
-                "--group-id",
-                shlex.quote(group_id),
-                "--replay-mode",
-                "same_sample",
-                "--fail-on-violation",
-            ]
-        )
-        groups.append(
-            {
+            bash_command = " ".join(
+                [
+                    "bash",
+                    shlex.quote("./scripts/run-radish-docs-qa-negative-regression.sh"),
+                    "--batch-artifact-summary",
+                    shlex.quote(summary_path_value),
+                    "--group-id",
+                    shlex.quote(group_id),
+                    "--replay-mode",
+                    replay_mode,
+                    "--fail-on-violation",
+                ]
+            )
+            python_command = " ".join(
+                [
+                    "python3",
+                    shlex.quote("./scripts/run-eval-regression.py"),
+                    "radish-docs-qa-negative",
+                    "--batch-artifact-summary",
+                    shlex.quote(summary_path_value),
+                    "--group-id",
+                    shlex.quote(group_id),
+                    "--replay-mode",
+                    replay_mode,
+                    "--fail-on-violation",
+                ]
+            )
+            group_document = {
                 "group_id": group_id,
-                "same_sample_entry_count": same_sample_entry_count,
+                "replay_mode": replay_mode,
+                "entry_count": entry_count,
                 "expected_candidate_violations": list(group.get("expected_candidate_violations") or []),
                 "bash_command": bash_command,
                 "python_command": python_command,
             }
-        )
+            if replay_mode == "same_sample":
+                group_document["same_sample_entry_count"] = entry_count
+            else:
+                group_document["cross_sample_entry_count"] = entry_count
+            groups.append(group_document)
+        return sorted(groups, key=lambda item: (-int(item["entry_count"]), item["group_id"]))
 
-    groups = sorted(groups, key=lambda item: (-item["same_sample_entry_count"], item["group_id"]))
-    return {
+    same_sample_groups = build_groups(replay_index, "same_sample")
+    cross_sample_groups = build_groups(cross_sample_replay_index, "cross_sample")
+    document = {
         "default_replay_mode": "same_sample",
-        "recommended_group_ids": [group["group_id"] for group in groups],
-        "groups": groups,
+        "recommended_group_ids": [group["group_id"] for group in same_sample_groups],
+        "groups": same_sample_groups,
     }
+    if cross_sample_groups:
+        document["cross_sample_recommended_group_ids"] = [group["group_id"] for group in cross_sample_groups]
+        document["cross_sample_groups"] = cross_sample_groups
+    return document
 
 
 def build_artifact_summary_document(
@@ -377,6 +384,7 @@ def build_artifact_summary_document(
         "recommended_negative_replays": build_recommended_negative_replays(
             artifact_summary_path=artifact_summary_path,
             replay_index=replay_index,
+            cross_sample_replay_index=cross_sample_replay_index,
         ),
     }
 

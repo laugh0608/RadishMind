@@ -338,7 +338,7 @@ def load_batch_artifact_summary(summary_path: Path) -> dict[str, Any]:
     return document
 
 
-def resolve_negative_replay_index_from_batch_artifact_summary(summary_path: Path) -> Path:
+def resolve_negative_replay_index_from_batch_artifact_summary(summary_path: Path, replay_mode: str = "") -> Path:
     summary_document = load_batch_artifact_summary(summary_path)
     eval_task = str(summary_document.get("eval_task") or "").strip()
     if eval_task != "radish-docs-qa":
@@ -349,19 +349,21 @@ def resolve_negative_replay_index_from_batch_artifact_summary(summary_path: Path
     artifacts = summary_document.get("artifacts")
     if not isinstance(artifacts, dict):
         raise SystemExit(f"batch artifact summary '{summary_path}': artifacts must be a json object")
-    negative_replay_index = artifacts.get("negative_replay_index")
+    normalized_replay_mode = replay_mode.strip() or "same_sample"
+    artifact_key = "cross_sample_negative_replay_index" if normalized_replay_mode == "cross_sample" else "negative_replay_index"
+    negative_replay_index = artifacts.get(artifact_key)
     if not isinstance(negative_replay_index, dict):
-        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.negative_replay_index must be a json object")
+        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.{artifact_key} must be a json object")
 
     index_path_value = str(negative_replay_index.get("path") or "").strip()
     if not index_path_value:
-        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.negative_replay_index.path is required")
+        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.{artifact_key}.path is required")
     if negative_replay_index.get("requested") is not True:
         raise SystemExit(
-            f"batch artifact summary '{summary_path}': artifacts.negative_replay_index.requested must be true"
+            f"batch artifact summary '{summary_path}': artifacts.{artifact_key}.requested must be true"
         )
     if negative_replay_index.get("exists") is not True:
-        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.negative_replay_index.exists must be true")
+        raise SystemExit(f"batch artifact summary '{summary_path}': artifacts.{artifact_key}.exists must be true")
 
     index_path = resolve_repo_relative_path(index_path_value)
     if not index_path.is_file():
@@ -374,6 +376,7 @@ def resolve_negative_replay_index_from_batch_artifact_summary(summary_path: Path
 def resolve_recommended_negative_replay_groups_from_batch_artifact_summary(
     summary_path: Path,
     top_n: int,
+    replay_mode: str = "",
 ) -> tuple[list[str], str]:
     if top_n <= 0:
         raise SystemExit("--recommended-groups-top must be greater than 0")
@@ -396,14 +399,20 @@ def resolve_recommended_negative_replay_groups_from_batch_artifact_summary(
             f"'{default_replay_mode}'"
         )
 
+    selected_replay_mode = replay_mode.strip() or default_replay_mode
+    if selected_replay_mode not in NEGATIVE_REPLAY_MODES:
+        raise SystemExit(
+            f"batch artifact summary '{summary_path}': unsupported recommended replay_mode '{selected_replay_mode}'"
+        )
+    group_id_field = "cross_sample_recommended_group_ids" if selected_replay_mode == "cross_sample" else "recommended_group_ids"
     recommended_group_ids = [
         str(group_id).strip()
-        for group_id in get_array(recommended.get("recommended_group_ids"))
+        for group_id in get_array(recommended.get(group_id_field))
         if str(group_id).strip()
     ]
     if not recommended_group_ids:
         raise SystemExit(
-            f"batch artifact summary '{summary_path}': recommended_negative_replays.recommended_group_ids is empty"
+            f"batch artifact summary '{summary_path}': recommended_negative_replays.{group_id_field} is empty"
         )
 
     selected_group_ids = recommended_group_ids[:top_n]
@@ -411,7 +420,7 @@ def resolve_recommended_negative_replay_groups_from_batch_artifact_summary(
         raise SystemExit(
             f"batch artifact summary '{summary_path}': no recommended group_ids matched --recommended-groups-top {top_n}"
         )
-    return selected_group_ids, default_replay_mode
+    return selected_group_ids, selected_replay_mode
 
 
 def resolve_negative_replay_sample_paths(
@@ -2242,6 +2251,7 @@ def main(argv: list[str]) -> int:
         recommended_group_ids, default_replay_mode = resolve_recommended_negative_replay_groups_from_batch_artifact_summary(
             batch_artifact_summary,
             recommended_groups_top,
+            selection["replay_mode"],
         )
         selection["group_ids"] = recommended_group_ids
         if not selection["replay_mode"]:
@@ -2253,7 +2263,10 @@ def main(argv: list[str]) -> int:
             raise SystemExit("--batch-artifact-summary cannot be used together with --sample-paths")
         if negative_replay_index is not None:
             raise SystemExit("--batch-artifact-summary cannot be used together with --negative-replay-index")
-        negative_replay_index = resolve_negative_replay_index_from_batch_artifact_summary(batch_artifact_summary)
+        negative_replay_index = resolve_negative_replay_index_from_batch_artifact_summary(
+            batch_artifact_summary,
+            selection["replay_mode"],
+        )
     if negative_replay_index is not None:
         if task_name != "radish-docs-qa-negative":
             raise SystemExit("--negative-replay-index is only supported for radish-docs-qa-negative")
