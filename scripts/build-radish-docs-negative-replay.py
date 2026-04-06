@@ -26,11 +26,12 @@ from services.runtime.candidate_records import (  # noqa: E402
 NEGATIVE_REPLAY_INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/negative-replay-index.schema.json"
 RADISH_SAMPLE_SCHEMA_PATH = REPO_ROOT / "datasets/eval/radish-task-sample.schema.json"
 STABLE_CAPTURE_TAGS = {"real_capture"}
+REPLAY_MODES = {"same_sample", "cross_sample", "all"}
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build same-sample Radish docs QA negative replay fixtures from a negative replay index.",
+        description="Build Radish docs QA negative replay fixtures from a negative replay index.",
     )
     parser.add_argument("--index", required=True, help="Negative replay index json path.")
     parser.add_argument(
@@ -40,6 +41,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--group-id", action="append", default=[], help="Optional group_id filter. Can be repeated.")
     parser.add_argument("--record-id", action="append", default=[], help="Optional record_id filter. Can be repeated.")
+    parser.add_argument(
+        "--replay-mode",
+        default="same_sample",
+        help="Replay mode filter: same_sample, cross_sample, or all. Default: same_sample",
+    )
     parser.add_argument(
         "--check",
         action="store_true",
@@ -153,11 +159,33 @@ def build_index_entries(index_document: dict[str, Any]) -> list[dict[str, Any]]:
             [str(value) for value in entry.get("audit_violations") or []]
         )
         entries.append(enriched)
+
+    for entry in index_document.get("linked_non_failed_samples") or []:
+        if not isinstance(entry, dict):
+            raise SystemExit("negative replay index linked_non_failed_samples entries must be json objects")
+        enriched = copy.deepcopy(entry)
+        enriched["group_id"] = ""
+        entries.append(enriched)
     return entries
 
 
-def filter_entries(entries: list[dict[str, Any]], group_ids: list[str], record_ids: list[str]) -> list[dict[str, Any]]:
-    filtered = [entry for entry in entries if str(entry.get("replay_mode") or "").strip() == "same_sample"]
+def filter_entries(
+    entries: list[dict[str, Any]],
+    group_ids: list[str],
+    record_ids: list[str],
+    replay_mode: str,
+) -> list[dict[str, Any]]:
+    normalized_replay_mode = str(replay_mode or "").strip() or "same_sample"
+    if normalized_replay_mode not in REPLAY_MODES:
+        raise SystemExit(
+            f"unsupported replay_mode '{normalized_replay_mode}', expected one of: {', '.join(sorted(REPLAY_MODES))}"
+        )
+
+    if normalized_replay_mode == "all":
+        filtered = list(entries)
+    else:
+        filtered = [entry for entry in entries if str(entry.get("replay_mode") or "").strip() == normalized_replay_mode]
+
     requested_group_ids = [value for value in group_ids if value]
     if requested_group_ids:
         known_group_ids = {str(entry.get("group_id") or "").strip() for entry in filtered}
@@ -170,10 +198,10 @@ def filter_entries(entries: list[dict[str, Any]], group_ids: list[str], record_i
     if requested_record_ids:
         filtered = [entry for entry in filtered if str(entry.get("record_id") or "").strip() in requested_record_ids]
         if not filtered:
-            raise SystemExit("no same-sample replay entries matched the requested record_id filters")
+            raise SystemExit(f"no {normalized_replay_mode} replay entries matched the requested record_id filters")
 
     if not filtered:
-        raise SystemExit("no same-sample replay entries matched the requested filters")
+        raise SystemExit(f"no {normalized_replay_mode} replay entries matched the requested filters")
     return filtered
 
 
@@ -235,12 +263,40 @@ def derive_output_path(
     return output_dir / filename
 
 
-def build_note(collection_batch: str, expected_candidate_violations: list[str]) -> str:
+def build_note(collection_batch: str, expected_candidate_violations: list[str], replay_mode: str) -> str:
     joined = "；".join(f"`{fragment}`" for fragment in expected_candidate_violations)
+    if replay_mode == "cross_sample":
+        return (
+            f"使用批次 `{collection_batch}` 中另一条真实候选快照做跨样本 replay，"
+            f"将其回放到当前样本并验证命中这些违规：{joined}。"
+        )
     return (
         f"使用批次 `{collection_batch}` 中同样本的真实候选快照做负例 replay，"
         f"保持原样本的 sample_id/request_id，对齐通过后验证真实候选回答命中这些违规：{joined}。"
     )
+
+
+def load_template_sample(
+    *,
+    entry: dict[str, Any],
+    audit_sample_dir: Path,
+) -> dict[str, Any]:
+    replay_mode = expect_string(entry.get("replay_mode"), "entry.replay_mode")
+    if replay_mode == "same_sample":
+        source_sample_file = expect_string(entry.get("source_sample_file"), "entry.source_sample_file")
+        source_sample_path = audit_sample_dir / source_sample_file
+        if not source_sample_path.is_file():
+            raise SystemExit(f"source sample file not found: {make_repo_relative(source_sample_path)}")
+        return expect_object(load_json_document(source_sample_path), make_repo_relative(source_sample_path))
+
+    negative_sample_path_value = expect_string(entry.get("negative_sample_path"), "entry.negative_sample_path")
+    negative_sample_path = resolve_relative_to_repo(negative_sample_path_value)
+    if not negative_sample_path.is_file():
+        raise SystemExit(
+            "cross-sample replay generation requires an existing negative fixture template: "
+            f"{make_repo_relative(negative_sample_path)}"
+        )
+    return expect_object(load_json_document(negative_sample_path), make_repo_relative(negative_sample_path))
 
 
 def build_negative_sample(
@@ -307,6 +363,7 @@ def build_negative_sample(
     document["evaluation"]["notes"] = build_note(
         expect_string(index_document.get("collection_batch"), "collection_batch"),
         expected_candidate_violations,
+        expect_string(entry.get("replay_mode"), "entry.replay_mode"),
     )
 
     ensure_schema(document, RADISH_SAMPLE_SCHEMA_PATH, str(document.get("sample_id") or "generated negative replay"))
@@ -330,17 +387,14 @@ def main() -> int:
     manifest = load_manifest(manifest_path)
     record_map = build_record_map(manifest)
     audit_sample_dir = resolve_relative_to_repo(expect_string(index_document.get("audit_sample_dir"), "audit_sample_dir"))
-    entries = filter_entries(build_index_entries(index_document), args.group_id, args.record_id)
+    entries = filter_entries(build_index_entries(index_document), args.group_id, args.record_id, args.replay_mode)
 
     generated_count = 0
     checked_count = 0
 
     for entry in entries:
         source_sample_file = expect_string(entry.get("source_sample_file"), "entry.source_sample_file")
-        source_sample_path = audit_sample_dir / source_sample_file
-        if not source_sample_path.is_file():
-            raise SystemExit(f"source sample file not found: {make_repo_relative(source_sample_path)}")
-        source_sample = expect_object(load_json_document(source_sample_path), make_repo_relative(source_sample_path))
+        source_sample = load_template_sample(entry=entry, audit_sample_dir=audit_sample_dir)
 
         record_id = expect_string(entry.get("record_id"), "entry.record_id")
         record_path = record_map.get(record_id)

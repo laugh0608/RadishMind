@@ -430,17 +430,19 @@ bash ./scripts/run-radish-docs-qa-negative-recommended.sh \
 
 这样“真实 batch 跑完 -> 先回放推荐前 N 组失败样本”已经变成一条更短的日常操作命令。
 
-如果需要把这份索引里的“同样本真实 replay”直接重建成 `datasets/eval/radish-negative/*.json`，当前还可使用：
+如果需要把这份索引里的真实 replay 直接重建成 `datasets/eval/radish-negative/*.json`，当前还可使用：
 
 ```bash
 python3 ./scripts/build-radish-docs-negative-replay.py \
-  --index datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json
+  --index datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json \
+  --replay-mode same_sample
 ```
 
 脚本当前会：
 
 - 读取 replay index、真实 batch manifest 和对应 record
-- 从原正向样本复制 `input_request`、`retrieval_expectations`、`expected_response_shape`、`golden_response`
+- 对 `same_sample`：从原正向样本复制 `input_request`、`retrieval_expectations`、`expected_response_shape`、`golden_response`
+- 对 `cross_sample`：复用现有 cross-sample 负例文件作为模板，重建其中的 `candidate_response_record`、`negative_replay_expectations` 与标准化说明文本
 - 自动补 `candidate_response_record`、`negative_replay_expectations` 和标准化 `evaluation.notes`
 - 为“同样本真实坏输出”推导稳定的负例文件名，例如 `partial-missing-read-only-check`、`low-risk-no-issue`
 
@@ -449,8 +451,23 @@ python3 ./scripts/build-radish-docs-negative-replay.py \
 ```bash
 python3 ./scripts/build-radish-docs-negative-replay.py \
   --index datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json \
+  --replay-mode same_sample \
   --check
 ```
+
+如果当前索引里已经有 cross-sample 条目，也可以按模式单独重建：
+
+```bash
+python3 ./scripts/build-radish-docs-negative-replay.py \
+  --index /tmp/radish-docs-qa-with-cross-sample.negative-replay-index.json \
+  --replay-mode cross_sample
+```
+
+补充说明：
+
+- `--replay-mode` 当前支持 `same_sample`、`cross_sample`、`all`
+- `cross_sample` 重建当前要求索引里的 `negative_sample_path` 已存在，因为它会把现有 cross-sample fixture 当作模板再标准化重建
+- 若同时传 `--group-id`，当前只会命中索引 `violation_groups` 中已有分组的 replay 条目；未分组的 cross-sample 条目仍可通过 `--record-id` 或 `--replay-mode cross_sample` 选择
 
 若需要从一批记录重生成 manifest，当前可直接使用：
 
@@ -494,7 +511,7 @@ python3 ./scripts/build-candidate-record-batch.py \
 
 - `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json` 已将现有 simulated negative 记录收口成一批
 - `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json` 已将第二批真实 batch 的 `8 fail` replay 负例按 violation 分组收口
-- `scripts/build-radish-docs-negative-replay.py` 已可根据这份 index 重建第二批真实 batch 的同样本 replay 负例
+- `scripts/build-radish-docs-negative-replay.py` 已可根据这份 index 按 `replay_mode` 重建 same-sample / cross-sample replay 负例
 - 对应负例样本已可通过 `candidate_response_record.manifest_path + record_id` 引用，不再逐条手写单独路径
 - 这一步的目的只是先稳定负例批量导入形态，不代表这批样本已经变成真实 captured negative
 - 后续一旦拿到真实坏输出，应继续沿用同一入口，把真实 record 逐步补进新的 captured batch manifest

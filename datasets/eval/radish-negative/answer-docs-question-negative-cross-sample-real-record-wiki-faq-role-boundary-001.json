@@ -117,7 +117,7 @@
       "retrieval_contract",
       "candidate_record_alignment"
     ],
-    "notes": "使用 `2026-04-05` 真实 batch 中的 wiki+faq 快照跨样本回放到权限边界样本，验证 current_app 对齐、status/risk 与 issue 约束会共同拒绝错放记录。"
+    "notes": "使用批次 `2026-04-05-radish-docs-qa-real-batch-v1` 中另一条真实候选快照做跨样本 replay，将其回放到当前样本并验证命中这些违规：`candidate_response_record.input_record.current_app must match input_request.context.current_app`；`.status does not match expected_response_shape.status`；`.risk_level does not match evaluation.expected_risk_level`；`must contain at least 1 issue`；`missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'`。"
   },
   "negative_replay_expectations": {
     "expected_candidate_violations": [
@@ -132,8 +132,8 @@
     "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
     "record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
     "expected_source": "captured_candidate_response",
-    "required_capture_origin": "adapter_debug_dump",
     "required_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+    "required_capture_origin": "adapter_debug_dump",
     "required_tags": [
       "radish_docs_qa",
       "real_capture"

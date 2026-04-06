@@ -154,7 +154,7 @@
       "candidate_record_alignment",
       "official_source_precedence"
     ],
-    "notes": "使用 `2026-04-05` 真实 batch 中 answers 为空的 captured 论坛补充快照跨样本回放，验证 route/search_scope 对齐与 answer/action 约束会共同拒绝错放记录。"
+    "notes": "使用批次 `2026-04-05-radish-docs-qa-real-batch-v1` 中另一条真实候选快照做跨样本 replay，将其回放到当前样本并验证命中这些违规：`candidate_response_record.input_record.route must match input_request.context.route`；`candidate_response_record.input_record.search_scope must match input_request.context.search_scope`；`must contain at least 1 answer`；`is missing required action kind 'read_only_check'`。"
   },
   "negative_replay_expectations": {
     "expected_candidate_violations": [
@@ -168,8 +168,8 @@
     "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
     "record_id": "captured-radish-answer-docs-question-forum-supplement-001",
     "expected_source": "captured_candidate_response",
-    "required_capture_origin": "adapter_debug_dump",
     "required_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+    "required_capture_origin": "adapter_debug_dump",
     "required_tags": [
       "radish_docs_qa",
       "real_capture"
