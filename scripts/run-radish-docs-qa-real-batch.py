@@ -499,19 +499,22 @@ def main() -> int:
         if args.artifact_summary_output.strip()
         else output_root / f"{args.collection_batch}.artifacts.json"
     )
+    explicit_recommended_replay_mode = args.recommended_replay_mode.strip()
     recommended_negative_replay_summary_requested = False
     recommended_negative_replay_exit_code: int | None = None
     recommended_negative_replay_summary_path = (
         resolve_repo_relative(args.recommended_summary_output)
-        if args.recommended_summary_output.strip()
-        else output_root / "pending.recommended-negative-replay.summary.json"
+        if args.recommended_summary_output.strip() and explicit_recommended_replay_mode != "cross_sample"
+        else artifact_summary_path.parent / "pending.recommended-negative-replay.summary.json"
     )
     cross_sample_recommended_negative_replay_summary_requested = False
     cross_sample_recommended_negative_replay_exit_code: int | None = None
     cross_sample_recommended_negative_replay_summary_path = (
         resolve_repo_relative(args.cross_sample_recommended_summary_output)
         if args.cross_sample_recommended_summary_output.strip()
-        else output_root / "pending.cross-sample-recommended-negative-replay.summary.json"
+        else resolve_repo_relative(args.recommended_summary_output)
+        if args.recommended_summary_output.strip() and explicit_recommended_replay_mode == "cross_sample"
+        else artifact_summary_path.parent / "pending.cross-sample-recommended-negative-replay.summary.json"
     )
 
     inference_command = [
@@ -632,9 +635,8 @@ def main() -> int:
             raise SystemExit("recommended_negative_replays must be a json object")
 
         replay_modes_to_generate: list[str]
-        explicit_replay_mode = args.recommended_replay_mode.strip()
-        if explicit_replay_mode:
-            replay_modes_to_generate = [explicit_replay_mode]
+        if explicit_recommended_replay_mode:
+            replay_modes_to_generate = [explicit_recommended_replay_mode]
         else:
             replay_modes_to_generate = ["same_sample"]
             if get_recommended_group_ids(recommended_negative_replays, "cross_sample"):
