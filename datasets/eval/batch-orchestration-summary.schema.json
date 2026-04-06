@@ -128,6 +128,9 @@
         "negative_replay_index": {
           "$ref": "#/$defs/staged_file_artifact"
         },
+        "cross_sample_negative_replay_index": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
         "same_sample_negative_replay": {
           "$ref": "#/$defs/negative_replay_artifact"
         },
@@ -189,6 +192,18 @@
           "minimum": 0
         },
         "expected_same_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_violation_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_cross_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unlinked_cross_sample_negative_count": {
           "type": "integer",
           "minimum": 0
         },

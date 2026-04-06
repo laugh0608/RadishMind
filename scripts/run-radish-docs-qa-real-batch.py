@@ -65,6 +65,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audit-report-output", default="", help="Optional audit report output path override.")
     parser.add_argument("--replay-index-output", default="", help="Optional replay index output path override.")
     parser.add_argument(
+        "--cross-sample-negative-sample-dir",
+        default="",
+        help="Optional negative sample directory used to build a cross-sample replay index after audit.",
+    )
+    parser.add_argument(
+        "--cross-sample-replay-index-output",
+        default="",
+        help="Optional cross-sample replay index output path override.",
+    )
+    parser.add_argument(
         "--artifact-summary-output",
         default="",
         help="Optional structured artifact summary output path override.",
@@ -140,18 +150,18 @@ def load_object_if_exists(path: Path) -> dict[str, Any] | None:
     return document
 
 
-def count_same_sample_entries(index_document: dict[str, Any]) -> tuple[int, int]:
-    linked_same_sample_count = 0
+def count_replay_entries(index_document: dict[str, Any], replay_mode: str) -> tuple[int, int]:
+    linked_replay_count = 0
     for group in index_document.get("violation_groups") or []:
         if not isinstance(group, dict):
             raise SystemExit("negative replay index violation_groups entries must be json objects")
         for entry in group.get("entries") or []:
             if not isinstance(entry, dict):
                 raise SystemExit("negative replay index entries must be json objects")
-            if str(entry.get("replay_mode") or "").strip() == "same_sample":
-                linked_same_sample_count += 1
-    unlinked_same_sample_count = len(list(index_document.get("unlinked_failed_samples") or []))
-    return linked_same_sample_count, unlinked_same_sample_count
+            if str(entry.get("replay_mode") or "").strip() == replay_mode:
+                linked_replay_count += 1
+    unlinked_replay_count = len(list(index_document.get("unlinked_failed_samples") or []))
+    return linked_replay_count, unlinked_replay_count
 
 
 def derive_recommended_summary_output_path(artifact_summary_path: Path, top_n: int, replay_mode: str) -> Path:
@@ -249,6 +259,7 @@ def build_artifact_summary_document(
     manifest_path: Path,
     audit_report_path: Path,
     replay_index_path: Path,
+    cross_sample_replay_index_path: Path,
     artifact_summary_path: Path,
     inference_exit_code: int,
     audit_exit_code: int | None,
@@ -264,6 +275,7 @@ def build_artifact_summary_document(
 
     audit_report = load_object_if_exists(audit_report_path)
     replay_index = load_object_if_exists(replay_index_path)
+    cross_sample_replay_index = load_object_if_exists(cross_sample_replay_index_path)
     recommended_negative_replay_summary = load_object_if_exists(recommended_negative_replay_summary_path)
     if recommended_negative_replay_summary is not None:
         ensure_schema(
@@ -276,8 +288,17 @@ def build_artifact_summary_document(
     unlinked_same_sample_count = 0
     violation_group_count = 0
     if replay_index is not None:
-        linked_same_sample_count, unlinked_same_sample_count = count_same_sample_entries(replay_index)
+        linked_same_sample_count, unlinked_same_sample_count = count_replay_entries(replay_index, "same_sample")
         violation_group_count = len(list(replay_index.get("violation_groups") or []))
+
+    linked_cross_sample_count = 0
+    unlinked_cross_sample_count = 0
+    cross_sample_violation_group_count = 0
+    if cross_sample_replay_index is not None:
+        linked_cross_sample_count, unlinked_cross_sample_count = count_replay_entries(
+            cross_sample_replay_index, "cross_sample"
+        )
+        cross_sample_violation_group_count = len(list(cross_sample_replay_index.get("violation_groups") or []))
 
     negative_output_dir = (
         resolve_repo_relative(args.negative_output_dir)
@@ -318,6 +339,11 @@ def build_artifact_summary_document(
                 "path": make_repo_relative(replay_index_path),
                 "exists": replay_index_path.is_file(),
             },
+            "cross_sample_negative_replay_index": {
+                "requested": bool(args.cross_sample_negative_sample_dir.strip()),
+                "path": make_repo_relative(cross_sample_replay_index_path),
+                "exists": cross_sample_replay_index_path.is_file(),
+            },
             "same_sample_negative_replay": {
                 "requested": args.build_negative_replay,
                 "output_dir": make_repo_relative(negative_output_dir),
@@ -339,6 +365,9 @@ def build_artifact_summary_document(
             "linked_same_sample_negative_count": linked_same_sample_count,
             "unlinked_same_sample_negative_count": unlinked_same_sample_count,
             "expected_same_sample_negative_count": linked_same_sample_count + unlinked_same_sample_count,
+            "cross_sample_violation_group_count": cross_sample_violation_group_count,
+            "linked_cross_sample_negative_count": linked_cross_sample_count,
+            "unlinked_cross_sample_negative_count": unlinked_cross_sample_count,
             "recommended_replay_group_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("selected_group_count") or 0),
             "recommended_replay_passed_group_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("passed_group_count") or 0),
             "recommended_replay_failed_group_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("failed_group_count") or 0),
@@ -387,6 +416,11 @@ def main() -> int:
         resolve_repo_relative(args.replay_index_output)
         if args.replay_index_output.strip()
         else output_root / f"{args.collection_batch}.negative-replay-index.json"
+    )
+    cross_sample_replay_index_path = (
+        resolve_repo_relative(args.cross_sample_replay_index_output)
+        if args.cross_sample_replay_index_output.strip()
+        else output_root / f"{args.collection_batch}.cross-sample-replay-index.json"
     )
     artifact_summary_path = (
         resolve_repo_relative(args.artifact_summary_output)
@@ -480,12 +514,26 @@ def main() -> int:
         audit_result = run_command(audit_command)
         audit_exit_code = audit_result.returncode
 
+        if args.cross_sample_negative_sample_dir.strip():
+            cross_sample_index_command = [
+                sys.executable,
+                str(REPO_ROOT / "scripts/build-negative-replay-index.py"),
+                "--audit-report",
+                str(audit_report_path),
+                "--negative-sample-dir",
+                args.cross_sample_negative_sample_dir.strip(),
+                "--output",
+                str(cross_sample_replay_index_path),
+            ]
+            run_command(cross_sample_index_command)
+
     summary_document = build_artifact_summary_document(
         args=args,
         output_root=output_root,
         manifest_path=manifest_path,
         audit_report_path=audit_report_path,
         replay_index_path=replay_index_path,
+        cross_sample_replay_index_path=cross_sample_replay_index_path,
         artifact_summary_path=artifact_summary_path,
         inference_exit_code=inference_result.returncode,
         audit_exit_code=audit_exit_code,
