@@ -413,6 +413,7 @@ REQUIRED_FILES = [
     "scripts/check-radish-docs-qa-eval.sh",
     "scripts/check-radish-docs-qa-real-batch-cross-sample-only-summary.py",
     "scripts/check-radish-docs-qa-real-batch-dual-recommended-summary.py",
+    "scripts/check-radish-docs-qa-real-batch-same-sample-only-summary.py",
     "scripts/check_radish_docs_qa_real_batch_summary_common.py",
     "scripts/check-text-files.py",
     "scripts/audit-candidate-record-batch.py",
@@ -712,6 +713,7 @@ def check_generated_eval_metadata() -> None:
 
     run_python_script("check-radish-docs-qa-real-batch-dual-recommended-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-cross-sample-only-summary.py", [])
+    run_python_script("check-radish-docs-qa-real-batch-same-sample-only-summary.py", [])
 
 
 def parse_args() -> argparse.Namespace:

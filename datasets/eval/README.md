@@ -60,6 +60,7 @@
 - `scripts/run-radish-docs-qa-real-batch.sh`
 - `scripts/check-radish-docs-qa-real-batch-cross-sample-only-summary.py`
 - `scripts/check-radish-docs-qa-real-batch-dual-recommended-summary.py`
+- `scripts/check-radish-docs-qa-real-batch-same-sample-only-summary.py`
 - `scripts/check-radish-docs-qa-eval.ps1`
 - `scripts/check-radish-docs-qa-eval.sh`
 - `scripts/import-candidate-response-dump.py`
@@ -81,6 +82,7 @@
 - `run-radish-docs-qa-real-batch.*` 是 `Radish` docs QA 的真实/模拟 batch 编排入口，用来串起批跑、审计、replay 治理与可选的推荐回放摘要生成
 - `check-radish-docs-qa-real-batch-cross-sample-only-summary.py` 是一个轻量临时目录回归，专门验证显式 `--recommended-replay-mode cross_sample` 时只会产出 cross-sample 推荐摘要，而不会误写 same-sample 摘要元数据
 - `check-radish-docs-qa-real-batch-dual-recommended-summary.py` 是一个轻量临时目录回归，用 committed 的 `2026-04-05` real batch 作为只读输入，专门验证 batch 编排会自动同时产出 same-sample 与 cross-sample 推荐摘要
+- `check-radish-docs-qa-real-batch-same-sample-only-summary.py` 是一个轻量临时目录回归，专门验证显式 `--recommended-replay-mode same_sample` 时只会产出 same-sample 推荐摘要，而不会误写 cross-sample 摘要元数据
 - `check-radish-docs-qa-eval.*` 是仓库基线入口，对 runner 做包装
 - `check-repo.*` 继续通过上述入口脚本把各任务回归纳入仓库级校验链路
 - 当前 `ps1` / `sh` runner 都通过 `scripts/run-eval-regression.py` 共享同一份 Python 回归核心
@@ -330,10 +332,11 @@ python3 ./scripts/run-radish-docs-qa-real-batch.py \
 - `--cross-sample-recommended-groups-top` / `--cross-sample-recommended-summary-output`：控制 cross-sample 推荐摘要
 - `--recommended-replay-mode`：若显式指定，则退回为只生成单一模式的推荐摘要
 
-当前仓库基线已分别覆盖两条参数分支：
+当前仓库基线已分别覆盖三条参数分支：
 
 - 默认不显式指定 `--recommended-replay-mode` 时，若批次里存在 cross-sample 推荐组，则会自动同时产出 same-sample 与 cross-sample 两份摘要
 - 显式指定 `--recommended-replay-mode cross_sample` 时，只会产出 cross-sample 摘要，并保持 same-sample 摘要位点处于未请求状态
+- 显式指定 `--recommended-replay-mode same_sample` 时，只会产出 same-sample 摘要，并保持 cross-sample 摘要位点处于未请求状态
 
 如果只是想验证编排链路，不想把 replay 负例写回仓库，可把 `--provider mock` 与 `--negative-output-dir /tmp/...` 组合使用。
 
