@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
+  "request_id": "sample-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
+  "captured_at": "2026-04-06T11:20:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 wiki-faq-mixed 真实 record 派生，专门模拟在真实 citation drift 基础上又额外叠加 issue / read_only_check / requires_confirmation 的组合失稳。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/two-factor-recovery",
+    "resource_slug": "guide/two-factor-recovery",
+    "search_scope": [
+      "wiki",
+      "faq"
+    ],
+    "artifact_names": [
+      "wiki_document",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "双重验证恢复码仍只会在开启时生成一次；如果已经遗失，通常需要先完成身份核验，再禁用并重新启用双重验证来补发新恢复码。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方恢复指南，恢复码只会在启用双重验证时一次性生成；如果这组恢复码已经遗失，可参考 FAQ 里的补充流程，在完成身份核验后再禁用并重新启用双重验证来生成新的恢复码。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "IDENTITY_REVIEW_NOTE",
+        "message": "当前回答额外把 FAQ 补充流程升级成了需要显式追踪的复核事项。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "补充核验恢复码遗失后的只读复核步骤",
+        "rationale": "为了避免直接误用重置流程，当前回答额外要求先把身份核验与恢复路径做一轮只读复核。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2"
+      }
+    ],
+    "confidence": 0.78,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}
