@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-direct-answer-missing-answer-issue-action-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-001",
+  "request_id": "sample-negative-real-derived-direct-answer-missing-answer-issue-action-001",
+  "captured_at": "2026-04-06T23:10:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_answer_issue_action_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-direct-answer-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 direct-answer 真实 record 派生，专门模拟 answers 缺失的真实短答输出继续叠加 issue / read_only_check 的组合失稳。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/authentication",
+    "resource_slug": "guide/authentication",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。",
+    "answers": [],
+    "issues": [
+      {
+        "code": "ROLE_SCOPE_REVIEW",
+        "message": "当前回答无端把基础概念区分升级成了一条需要显式跟踪的复核事项。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "复核鉴权与授权术语边界",
+        "rationale": "虽然文档已经给出直接定义，当前回答仍额外把术语区分落成了一条只读复核动作。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/authentication",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# 鉴权与授权指南 鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "confidence": 0.84,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
