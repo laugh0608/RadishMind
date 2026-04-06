@@ -411,6 +411,7 @@ REQUIRED_FILES = [
     "scripts/check-radishflow-suggest-edits-eval.sh",
     "scripts/check-radish-docs-qa-eval.ps1",
     "scripts/check-radish-docs-qa-eval.sh",
+    "scripts/check-radish-docs-qa-real-batch-dual-recommended-summary.py",
     "scripts/check-text-files.py",
     "scripts/audit-candidate-record-batch.py",
     "scripts/build-radish-docs-negative-replay.py",
@@ -706,6 +707,8 @@ def check_generated_eval_metadata() -> None:
                 "--check",
             ],
         )
+
+    run_python_script("check-radish-docs-qa-real-batch-dual-recommended-summary.py", [])
 
 
 def parse_args() -> argparse.Namespace:
