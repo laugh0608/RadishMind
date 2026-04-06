@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+  "request_id": "sample-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+  "captured_at": "2026-04-06T10:05:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "w15_batch"
+    ],
+    "notes": "基于 2026-04-05 real batch 的 evidence-gap 真实 record 派生，专门模拟在真实措辞基础上错误叠加 candidate_operation 与 requires_confirmation 的组合失稳。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "现有文档没有写明是否允许重试或删除 Hangfire 任务，因此在保留证据不足说明的同时，应先转入人工确认后的操作路径。",
+    "answers": [
+      {
+        "kind": "evidence_limited_answer",
+        "text": "提供的《Hangfire 只读说明》仍只覆盖查看能力，不能直接确认是否允许重试或删除任务；但为了避免误操作，当前先把后续动作提升为需要人工确认的候选操作。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_EVIDENCE",
+        "message": "当前证据不足以确认是否允许重试或删除 Hangfire 任务。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      },
+      {
+        "code": "MANUAL_CONFIRMATION_REQUIRED",
+        "message": "在权限证据不足时，当前回答额外把后续处理升级为需要人工确认的操作路径。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "由具备更高权限的管理员复核后再决定是否重试或删除任务",
+        "rationale": "既然文档没有写明授权边界，就先把处理路径升级为人工确认后的候选操作。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "console/hangfire-readonly",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# Hangfire 只读说明 本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "confidence": 0.63,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

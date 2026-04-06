@@ -96,6 +96,16 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-multi-issues-confirmation-001.json"
     },
     {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-role-boundary-multi-issues-confirmation-001",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001.json"
+    },
+    {
       "record_id": "captured-radish-docs-qa-negative-primary-miss-001",
       "sample_id": "radish-answer-docs-question-negative-primary-miss-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-primary-miss-001.json"
@@ -117,5 +127,5 @@
     }
   ],
   "capture_origin": "manual_fixture",
-  "description": "Radish docs QA 现有 simulated negative 候选响应批次清单，用于把负例回放样本统一切到 manifest 导入入口。"
+  "description": "Radish docs QA 现有 simulated negative 与 real-record-derived 候选响应批次清单，用于把负例回放样本统一切到 manifest 导入入口。"
 }
