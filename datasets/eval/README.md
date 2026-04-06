@@ -316,7 +316,14 @@ python3 ./scripts/run-radish-docs-qa-real-batch.py \
 - 顺手继续生成 `negative-replay-index.json`
 - 若传入 `--cross-sample-negative-sample-dir`，再额外生成 `cross-sample-replay-index.json`
 - 若 audit 中存在失败样本，再继续重建同样本真实 replay 负例
-- 额外写出 `<collection-batch>.artifacts.json`，把本批次的 `manifest / audit / replay index / cross-sample replay index / same-sample replay` 产物路径与计数沉淀为结构化摘要
+- 若传入 `--build-recommended-negative-replay-summary`，默认会先产 same-sample 推荐摘要；当同一批次已存在 cross-sample 推荐组时，再自动追加一份 cross-sample 推荐摘要
+- 额外写出 `<collection-batch>.artifacts.json`，把本批次的 `manifest / audit / replay index / cross-sample replay index / same-sample replay / recommended replay summaries` 产物路径与计数沉淀为结构化摘要
+
+若希望控制推荐摘要的默认输出，当前可继续使用：
+
+- `--recommended-groups-top` / `--recommended-summary-output`：控制 same-sample 推荐摘要
+- `--cross-sample-recommended-groups-top` / `--cross-sample-recommended-summary-output`：控制 cross-sample 推荐摘要
+- `--recommended-replay-mode`：若显式指定，则退回为只生成单一模式的推荐摘要
 
 如果只是想验证编排链路，不想把 replay 负例写回仓库，可把 `--provider mock` 与 `--negative-output-dir /tmp/...` 组合使用。
 
@@ -325,7 +332,8 @@ python3 ./scripts/run-radish-docs-qa-real-batch.py \
 - `manifest` 是否存在、路径和记录数
 - `audit_report` / `negative_replay_index` / 可选 `cross_sample_negative_replay_index` 的目标路径与是否已写出
 - `same_sample_negative_replay` 的目标目录与本批预计可复用的 same-sample 负例数量
-- 本批次的 `passed / failed / violation / violation_group` 汇总计数，以及可选的 cross-sample linked/unlinked 计数
+- `recommended_negative_replay_summary` 与可选 `cross_sample_recommended_negative_replay_summary` 的目标路径、是否已写出与退出码
+- 本批次的 `passed / failed / violation / violation_group` 汇总计数，以及 same-sample / cross-sample 两路推荐回放与 cross-sample linked/unlinked 计数
 - `recommended_negative_replays`：按 same-sample 失败组汇总的默认复跑顺序，以及可直接执行的 `bash` / `python3` 命令
 
 当前仓库内已新增第二批真实 batch：

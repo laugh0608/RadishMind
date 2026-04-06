@@ -97,6 +97,12 @@ def parse_args() -> argparse.Namespace:
         help="Optional top N recommended groups to replay. Default: 0 (replay all recommended groups).",
     )
     parser.add_argument(
+        "--cross-sample-recommended-groups-top",
+        type=int,
+        default=0,
+        help="Optional top N cross-sample recommended groups to replay. Default: 0 (replay all cross-sample groups).",
+    )
+    parser.add_argument(
         "--recommended-replay-mode",
         choices=["same_sample", "cross_sample"],
         default="",
@@ -106,6 +112,11 @@ def parse_args() -> argparse.Namespace:
         "--recommended-summary-output",
         default="",
         help="Optional recommended negative replay summary output path override.",
+    )
+    parser.add_argument(
+        "--cross-sample-recommended-summary-output",
+        default="",
+        help="Optional cross-sample recommended negative replay summary output path override.",
     )
     parser.add_argument(
         "--fail-on-recommended-replay-violation",
@@ -175,6 +186,42 @@ def derive_recommended_summary_output_path(artifact_summary_path: Path, top_n: i
     return artifact_summary_path.with_name(
         f"{base_name}.recommended-negative-replay-top{top_n}-{replay_mode}.summary.json"
     )
+
+
+def load_recommended_summary_if_exists(path: Path) -> dict[str, Any] | None:
+    summary_document = load_object_if_exists(path)
+    if summary_document is not None:
+        ensure_schema(
+            summary_document,
+            RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_SCHEMA_PATH,
+            make_repo_relative(path),
+        )
+    return summary_document
+
+
+def extract_recommended_summary_metrics(summary_document: dict[str, Any] | None) -> dict[str, int]:
+    summary = (summary_document or {}).get("summary") or {}
+    if not isinstance(summary, dict):
+        raise SystemExit("recommended negative replay summary summary must be a json object")
+    return {
+        "group_count": int(summary.get("selected_group_count") or 0),
+        "passed_group_count": int(summary.get("passed_group_count") or 0),
+        "failed_group_count": int(summary.get("failed_group_count") or 0),
+        "sample_count": int(summary.get("selected_sample_count") or 0),
+        "violation_count": int(summary.get("violation_count") or 0),
+    }
+
+
+def get_recommended_group_ids(recommended_negative_replays: dict[str, Any], replay_mode: str) -> list[str]:
+    field_name = "cross_sample_recommended_group_ids" if replay_mode == "cross_sample" else "recommended_group_ids"
+    values = recommended_negative_replays.get(field_name) or []
+    if not isinstance(values, list):
+        raise SystemExit(f"recommended_negative_replays.{field_name} must be a json array")
+    return [str(value).strip() for value in values if str(value).strip()]
+
+
+def select_recommended_top(group_ids: list[str], requested_top: int) -> int:
+    return requested_top or len(group_ids)
 
 
 def build_recommended_negative_replays(
@@ -273,6 +320,9 @@ def build_artifact_summary_document(
     recommended_negative_replay_summary_path: Path,
     recommended_negative_replay_requested: bool,
     recommended_negative_replay_exit_code: int | None,
+    cross_sample_recommended_negative_replay_summary_path: Path,
+    cross_sample_recommended_negative_replay_requested: bool,
+    cross_sample_recommended_negative_replay_exit_code: int | None,
 ) -> dict[str, Any]:
     manifest = load_json_document(manifest_path)
     ensure_schema(manifest, RECORD_BATCH_SCHEMA_PATH, make_repo_relative(manifest_path))
@@ -283,13 +333,14 @@ def build_artifact_summary_document(
     audit_report = load_object_if_exists(audit_report_path)
     replay_index = load_object_if_exists(replay_index_path)
     cross_sample_replay_index = load_object_if_exists(cross_sample_replay_index_path)
-    recommended_negative_replay_summary = load_object_if_exists(recommended_negative_replay_summary_path)
-    if recommended_negative_replay_summary is not None:
-        ensure_schema(
-            recommended_negative_replay_summary,
-            RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_SCHEMA_PATH,
-            make_repo_relative(recommended_negative_replay_summary_path),
-        )
+    recommended_negative_replay_summary = load_recommended_summary_if_exists(recommended_negative_replay_summary_path)
+    cross_sample_recommended_negative_replay_summary = load_recommended_summary_if_exists(
+        cross_sample_recommended_negative_replay_summary_path
+    )
+    recommended_summary_metrics = extract_recommended_summary_metrics(recommended_negative_replay_summary)
+    cross_sample_recommended_summary_metrics = extract_recommended_summary_metrics(
+        cross_sample_recommended_negative_replay_summary
+    )
 
     linked_same_sample_count = 0
     unlinked_same_sample_count = 0
@@ -329,6 +380,7 @@ def build_artifact_summary_document(
             "inference_exit_code": inference_exit_code,
             "audit_exit_code": audit_exit_code,
             "recommended_negative_replay_exit_code": recommended_negative_replay_exit_code,
+            "cross_sample_recommended_negative_replay_exit_code": cross_sample_recommended_negative_replay_exit_code,
         },
         "artifacts": {
             "manifest": {
@@ -361,6 +413,11 @@ def build_artifact_summary_document(
                 "path": make_repo_relative(recommended_negative_replay_summary_path),
                 "exists": recommended_negative_replay_summary_path.is_file(),
             },
+            "cross_sample_recommended_negative_replay_summary": {
+                "requested": cross_sample_recommended_negative_replay_requested,
+                "path": make_repo_relative(cross_sample_recommended_negative_replay_summary_path),
+                "exists": cross_sample_recommended_negative_replay_summary_path.is_file(),
+            },
         },
         "summary": {
             "captured_record_count": len(list(manifest.get("records") or [])),
@@ -375,11 +432,16 @@ def build_artifact_summary_document(
             "cross_sample_violation_group_count": cross_sample_violation_group_count,
             "linked_cross_sample_negative_count": linked_cross_sample_count,
             "unlinked_cross_sample_negative_count": unlinked_cross_sample_count,
-            "recommended_replay_group_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("selected_group_count") or 0),
-            "recommended_replay_passed_group_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("passed_group_count") or 0),
-            "recommended_replay_failed_group_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("failed_group_count") or 0),
-            "recommended_replay_sample_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("selected_sample_count") or 0),
-            "recommended_replay_violation_count": int((recommended_negative_replay_summary or {}).get("summary", {}).get("violation_count") or 0),
+            "recommended_replay_group_count": recommended_summary_metrics["group_count"],
+            "recommended_replay_passed_group_count": recommended_summary_metrics["passed_group_count"],
+            "recommended_replay_failed_group_count": recommended_summary_metrics["failed_group_count"],
+            "recommended_replay_sample_count": recommended_summary_metrics["sample_count"],
+            "recommended_replay_violation_count": recommended_summary_metrics["violation_count"],
+            "cross_sample_recommended_replay_group_count": cross_sample_recommended_summary_metrics["group_count"],
+            "cross_sample_recommended_replay_passed_group_count": cross_sample_recommended_summary_metrics["passed_group_count"],
+            "cross_sample_recommended_replay_failed_group_count": cross_sample_recommended_summary_metrics["failed_group_count"],
+            "cross_sample_recommended_replay_sample_count": cross_sample_recommended_summary_metrics["sample_count"],
+            "cross_sample_recommended_replay_violation_count": cross_sample_recommended_summary_metrics["violation_count"],
         },
         "recommended_negative_replays": build_recommended_negative_replays(
             artifact_summary_path=artifact_summary_path,
@@ -404,6 +466,8 @@ def main() -> int:
     args = parse_args()
     if args.recommended_groups_top < 0:
         raise SystemExit("--recommended-groups-top must be greater than or equal to 0")
+    if args.cross_sample_recommended_groups_top < 0:
+        raise SystemExit("--cross-sample-recommended-groups-top must be greater than or equal to 0")
     if args.build_recommended_negative_replay_summary and args.skip_audit:
         raise SystemExit("--build-recommended-negative-replay-summary cannot be used together with --skip-audit")
     if args.build_recommended_negative_replay_summary and not args.build_negative_replay:
@@ -435,12 +499,19 @@ def main() -> int:
         if args.artifact_summary_output.strip()
         else output_root / f"{args.collection_batch}.artifacts.json"
     )
-    recommended_negative_replay_summary_requested = args.build_recommended_negative_replay_summary
+    recommended_negative_replay_summary_requested = False
     recommended_negative_replay_exit_code: int | None = None
     recommended_negative_replay_summary_path = (
         resolve_repo_relative(args.recommended_summary_output)
         if args.recommended_summary_output.strip()
         else output_root / "pending.recommended-negative-replay.summary.json"
+    )
+    cross_sample_recommended_negative_replay_summary_requested = False
+    cross_sample_recommended_negative_replay_exit_code: int | None = None
+    cross_sample_recommended_negative_replay_summary_path = (
+        resolve_repo_relative(args.cross_sample_recommended_summary_output)
+        if args.cross_sample_recommended_summary_output.strip()
+        else output_root / "pending.cross-sample-recommended-negative-replay.summary.json"
     )
 
     inference_command = [
@@ -548,22 +619,50 @@ def main() -> int:
         recommended_negative_replay_summary_path=recommended_negative_replay_summary_path,
         recommended_negative_replay_requested=recommended_negative_replay_summary_requested,
         recommended_negative_replay_exit_code=recommended_negative_replay_exit_code,
+        cross_sample_recommended_negative_replay_summary_path=cross_sample_recommended_negative_replay_summary_path,
+        cross_sample_recommended_negative_replay_requested=cross_sample_recommended_negative_replay_summary_requested,
+        cross_sample_recommended_negative_replay_exit_code=cross_sample_recommended_negative_replay_exit_code,
     )
     write_json_document(artifact_summary_path, summary_document)
     print(f"wrote artifact summary to {make_repo_relative(artifact_summary_path)}", file=sys.stderr)
 
-    if recommended_negative_replay_summary_requested:
-        recommended_group_ids = list(summary_document.get("recommended_negative_replays", {}).get("recommended_group_ids") or [])
-        if recommended_group_ids:
-            recommended_top = args.recommended_groups_top or len(recommended_group_ids)
-            replay_mode = (
-                args.recommended_replay_mode.strip()
-                or str(summary_document.get("recommended_negative_replays", {}).get("default_replay_mode") or "").strip()
-                or "same_sample"
+    if args.build_recommended_negative_replay_summary:
+        recommended_negative_replays = summary_document.get("recommended_negative_replays") or {}
+        if not isinstance(recommended_negative_replays, dict):
+            raise SystemExit("recommended_negative_replays must be a json object")
+
+        replay_modes_to_generate: list[str]
+        explicit_replay_mode = args.recommended_replay_mode.strip()
+        if explicit_replay_mode:
+            replay_modes_to_generate = [explicit_replay_mode]
+        else:
+            replay_modes_to_generate = ["same_sample"]
+            if get_recommended_group_ids(recommended_negative_replays, "cross_sample"):
+                replay_modes_to_generate.append("cross_sample")
+
+        for replay_mode in replay_modes_to_generate:
+            group_ids = get_recommended_group_ids(recommended_negative_replays, replay_mode)
+            if not group_ids:
+                print(
+                    f"artifact summary does not contain {replay_mode} recommended negative replay groups; skipping",
+                    file=sys.stderr,
+                )
+                continue
+
+            requested_top = (
+                args.cross_sample_recommended_groups_top
+                if replay_mode == "cross_sample"
+                else args.recommended_groups_top
             )
-            recommended_negative_replay_summary_path = (
-                resolve_repo_relative(args.recommended_summary_output)
-                if args.recommended_summary_output.strip()
+            recommended_top = select_recommended_top(group_ids, requested_top)
+            summary_output_override = (
+                args.cross_sample_recommended_summary_output.strip()
+                if replay_mode == "cross_sample"
+                else args.recommended_summary_output.strip()
+            )
+            summary_output_path = (
+                resolve_repo_relative(summary_output_override)
+                if summary_output_override
                 else derive_recommended_summary_output_path(artifact_summary_path, recommended_top, replay_mode)
             )
 
@@ -574,28 +673,23 @@ def main() -> int:
                 make_repo_relative(artifact_summary_path),
                 "--top",
                 str(recommended_top),
+                "--replay-mode",
+                replay_mode,
                 "--summary-output",
-                make_repo_relative(recommended_negative_replay_summary_path),
+                make_repo_relative(summary_output_path),
             ]
-            if args.recommended_replay_mode.strip():
-                recommended_command.extend(["--replay-mode", args.recommended_replay_mode.strip()])
             if args.fail_on_recommended_replay_violation:
                 recommended_command.append("--fail-on-violation")
 
             recommended_result = run_command(recommended_command)
-            recommended_negative_replay_exit_code = recommended_result.returncode
-        else:
-            recommended_negative_replay_summary_path = (
-                resolve_repo_relative(args.recommended_summary_output)
-                if args.recommended_summary_output.strip()
-                else artifact_summary_path.with_name(
-                    f"{artifact_summary_path.stem}.recommended-negative-replay-empty.summary.json"
-                )
-            )
-            print(
-                "artifact summary does not contain recommended negative replay groups; skipping recommended replay summary generation",
-                file=sys.stderr,
-            )
+            if replay_mode == "cross_sample":
+                cross_sample_recommended_negative_replay_summary_requested = True
+                cross_sample_recommended_negative_replay_summary_path = summary_output_path
+                cross_sample_recommended_negative_replay_exit_code = recommended_result.returncode
+            else:
+                recommended_negative_replay_summary_requested = True
+                recommended_negative_replay_summary_path = summary_output_path
+                recommended_negative_replay_exit_code = recommended_result.returncode
 
         summary_document = build_artifact_summary_document(
             args=args,
@@ -603,12 +697,16 @@ def main() -> int:
             manifest_path=manifest_path,
             audit_report_path=audit_report_path,
             replay_index_path=replay_index_path,
+            cross_sample_replay_index_path=cross_sample_replay_index_path,
             artifact_summary_path=artifact_summary_path,
             inference_exit_code=inference_result.returncode,
             audit_exit_code=audit_exit_code,
             recommended_negative_replay_summary_path=recommended_negative_replay_summary_path,
             recommended_negative_replay_requested=recommended_negative_replay_summary_requested,
             recommended_negative_replay_exit_code=recommended_negative_replay_exit_code,
+            cross_sample_recommended_negative_replay_summary_path=cross_sample_recommended_negative_replay_summary_path,
+            cross_sample_recommended_negative_replay_requested=cross_sample_recommended_negative_replay_summary_requested,
+            cross_sample_recommended_negative_replay_exit_code=cross_sample_recommended_negative_replay_exit_code,
         )
         write_json_document(artifact_summary_path, summary_document)
         print(
@@ -622,7 +720,7 @@ def main() -> int:
         return 0
     if audit_exit_code:
         return audit_exit_code
-    return recommended_negative_replay_exit_code or 0
+    return recommended_negative_replay_exit_code or cross_sample_recommended_negative_replay_exit_code or 0
 
 
 if __name__ == "__main__":

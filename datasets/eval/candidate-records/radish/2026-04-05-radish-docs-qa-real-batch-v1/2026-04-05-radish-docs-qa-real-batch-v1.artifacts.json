@@ -11,7 +11,8 @@
   "execution": {
     "inference_exit_code": 0,
     "audit_exit_code": 0,
-    "recommended_negative_replay_exit_code": 0
+    "recommended_negative_replay_exit_code": 0,
+    "cross_sample_recommended_negative_replay_exit_code": 0
   },
   "artifacts": {
     "manifest": {
@@ -29,6 +30,11 @@
       "path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.negative-replay-index.json",
       "exists": true
     },
+    "cross_sample_negative_replay_index": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.cross-sample-replay-index.json",
+      "exists": true
+    },
     "same_sample_negative_replay": {
       "requested": true,
       "output_dir": "datasets/eval/radish-negative/2026-04-05-radish-docs-qa-real-batch-v1",
@@ -39,9 +45,9 @@
       "path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top5-same_sample.summary.json",
       "exists": true
     },
-    "cross_sample_negative_replay_index": {
+    "cross_sample_recommended_negative_replay_summary": {
       "requested": true,
-      "path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.cross-sample-replay-index.json",
+      "path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top2-cross_sample.summary.json",
       "exists": true
     }
   },
@@ -55,14 +61,19 @@
     "linked_same_sample_negative_count": 10,
     "unlinked_same_sample_negative_count": 0,
     "expected_same_sample_negative_count": 10,
+    "cross_sample_violation_group_count": 2,
+    "linked_cross_sample_negative_count": 2,
+    "unlinked_cross_sample_negative_count": 8,
     "recommended_replay_group_count": 5,
     "recommended_replay_passed_group_count": 5,
     "recommended_replay_failed_group_count": 0,
     "recommended_replay_sample_count": 10,
     "recommended_replay_violation_count": 0,
-    "cross_sample_violation_group_count": 2,
-    "linked_cross_sample_negative_count": 2,
-    "unlinked_cross_sample_negative_count": 8
+    "cross_sample_recommended_replay_group_count": 2,
+    "cross_sample_recommended_replay_passed_group_count": 2,
+    "cross_sample_recommended_replay_failed_group_count": 0,
+    "cross_sample_recommended_replay_sample_count": 2,
+    "cross_sample_recommended_replay_violation_count": 0
   },
   "recommended_negative_replays": {
     "default_replay_mode": "same_sample",
@@ -76,53 +87,63 @@
     "groups": [
       {
         "group_id": "group-003",
-        "same_sample_entry_count": 6,
+        "replay_mode": "same_sample",
+        "entry_count": 6,
         "expected_candidate_violations": [
           "is missing required action kind 'read_only_check'"
         ],
         "bash_command": "bash ./scripts/run-radish-docs-qa-negative-regression.sh --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-003 --replay-mode same_sample --fail-on-violation",
-        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-003 --replay-mode same_sample --fail-on-violation"
+        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-003 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 6
       },
       {
         "group_id": "group-001",
-        "same_sample_entry_count": 1,
+        "replay_mode": "same_sample",
+        "entry_count": 1,
         "expected_candidate_violations": [
           ".risk_level does not match evaluation.expected_risk_level",
           "must contain at least 1 issue"
         ],
         "bash_command": "bash ./scripts/run-radish-docs-qa-negative-regression.sh --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-001 --replay-mode same_sample --fail-on-violation",
-        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-001 --replay-mode same_sample --fail-on-violation"
+        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-001 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
       },
       {
         "group_id": "group-002",
-        "same_sample_entry_count": 1,
+        "replay_mode": "same_sample",
+        "entry_count": 1,
         "expected_candidate_violations": [
           ".risk_level does not match evaluation.expected_risk_level",
           "must contain at least 1 issue",
           "missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'"
         ],
         "bash_command": "bash ./scripts/run-radish-docs-qa-negative-regression.sh --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-002 --replay-mode same_sample --fail-on-violation",
-        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-002 --replay-mode same_sample --fail-on-violation"
+        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-002 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
       },
       {
         "group_id": "group-004",
-        "same_sample_entry_count": 1,
+        "replay_mode": "same_sample",
+        "entry_count": 1,
         "expected_candidate_violations": [
           "must contain at least 1 answer",
           "missing required json path '$.answers[0]'"
         ],
         "bash_command": "bash ./scripts/run-radish-docs-qa-negative-regression.sh --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-004 --replay-mode same_sample --fail-on-violation",
-        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-004 --replay-mode same_sample --fail-on-violation"
+        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-004 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
       },
       {
         "group_id": "group-005",
-        "same_sample_entry_count": 1,
+        "replay_mode": "same_sample",
+        "entry_count": 1,
         "expected_candidate_violations": [
           "referenced citation id 'faq-1' is missing from candidate_response.citations",
           "first answer must cite at least one primary artifact for official_source_precedence samples"
         ],
         "bash_command": "bash ./scripts/run-radish-docs-qa-negative-regression.sh --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-005 --replay-mode same_sample --fail-on-violation",
-        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-005 --replay-mode same_sample --fail-on-violation"
+        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-005 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
       }
     ],
     "cross_sample_recommended_group_ids": [
@@ -134,7 +155,6 @@
         "group_id": "group-001",
         "replay_mode": "cross_sample",
         "entry_count": 1,
-        "cross_sample_entry_count": 1,
         "expected_candidate_violations": [
           "candidate_response_record.input_record.current_app must match input_request.context.current_app",
           ".status does not match expected_response_shape.status",
@@ -143,13 +163,13 @@
           "missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'"
         ],
         "bash_command": "bash ./scripts/run-radish-docs-qa-negative-regression.sh --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-001 --replay-mode cross_sample --fail-on-violation",
-        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-001 --replay-mode cross_sample --fail-on-violation"
+        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-001 --replay-mode cross_sample --fail-on-violation",
+        "cross_sample_entry_count": 1
       },
       {
         "group_id": "group-002",
         "replay_mode": "cross_sample",
         "entry_count": 1,
-        "cross_sample_entry_count": 1,
         "expected_candidate_violations": [
           "candidate_response_record.input_record.route must match input_request.context.route",
           "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
@@ -157,7 +177,8 @@
           "is missing required action kind 'read_only_check'"
         ],
         "bash_command": "bash ./scripts/run-radish-docs-qa-negative-regression.sh --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-002 --replay-mode cross_sample --fail-on-violation",
-        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-002 --replay-mode cross_sample --fail-on-violation"
+        "python_command": "python3 ./scripts/run-eval-regression.py radish-docs-qa-negative --batch-artifact-summary datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json --group-id group-002 --replay-mode cross_sample --fail-on-violation",
+        "cross_sample_entry_count": 1
       }
     ]
   },

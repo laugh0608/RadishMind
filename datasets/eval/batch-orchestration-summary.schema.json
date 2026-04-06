@@ -105,6 +105,13 @@
             "null"
           ],
           "minimum": 0
+        },
+        "cross_sample_recommended_negative_replay_exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
         }
       }
     },
@@ -135,6 +142,9 @@
           "$ref": "#/$defs/negative_replay_artifact"
         },
         "recommended_negative_replay_summary": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
+        "cross_sample_recommended_negative_replay_summary": {
           "$ref": "#/$defs/staged_file_artifact"
         }
       }
@@ -224,6 +234,26 @@
           "minimum": 0
         },
         "recommended_replay_violation_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_recommended_replay_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_recommended_replay_passed_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_recommended_replay_failed_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_recommended_replay_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_recommended_replay_violation_count": {
           "type": "integer",
           "minimum": 0
         }
