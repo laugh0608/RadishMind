@@ -255,6 +255,8 @@ RADISH_DOCS_QA_REAL_BATCHES = [
         "manifest": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
         "negative_output_dir": "datasets/eval/radish-negative/2026-04-05-radish-docs-qa-real-batch-v1",
         "replay_index": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+        "cross_sample_negative_output_dir": "datasets/eval/radish-negative",
+        "cross_sample_replay_index": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.cross-sample-replay-index.json",
         "recommended_summary": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top5-same_sample.summary.json",
         "recommended_top": "5",
     },
@@ -447,8 +449,10 @@ REQUIRED_FILES.extend(
             batch["artifact_summary"],
             batch["manifest"],
             batch["replay_index"],
+            batch.get("cross_sample_replay_index"),
             batch["recommended_summary"],
         )
+        if relative_path
     ]
 )
 
@@ -593,6 +597,48 @@ def check_generated_eval_metadata() -> None:
                 "--check",
             ],
         )
+
+        cross_sample_replay_index = batch.get("cross_sample_replay_index")
+        cross_sample_negative_output_dir = batch.get("cross_sample_negative_output_dir")
+        if cross_sample_replay_index and cross_sample_negative_output_dir:
+            run_python_script(
+                "build-negative-replay-index.py",
+                [
+                    "--audit-report",
+                    batch["audit_report"],
+                    "--negative-sample-dir",
+                    cross_sample_negative_output_dir,
+                    "--output",
+                    cross_sample_replay_index,
+                    "--check",
+                ],
+            )
+
+            cross_sample_document = json.loads((REPO_ROOT / cross_sample_replay_index).read_text(encoding="utf-8"))
+            jsonschema.validate(cross_sample_document, schema)
+
+            run_python_script(
+                "build-radish-docs-negative-replay.py",
+                [
+                    "--index",
+                    cross_sample_replay_index,
+                    "--replay-mode",
+                    "cross_sample",
+                    "--check",
+                ],
+            )
+
+            run_python_script(
+                "run-eval-regression.py",
+                [
+                    "radish-docs-qa-negative",
+                    "--negative-replay-index",
+                    cross_sample_replay_index,
+                    "--replay-mode",
+                    "cross_sample",
+                    "--fail-on-violation",
+                ],
+            )
 
         run_python_script(
             "run-eval-regression.py",

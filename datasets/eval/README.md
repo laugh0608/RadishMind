@@ -516,6 +516,7 @@ python3 ./scripts/build-candidate-record-batch.py \
 - 这一步的目的只是先稳定负例批量导入形态，不代表这批样本已经变成真实 captured negative
 - 后续一旦拿到真实坏输出，应继续沿用同一入口，把真实 record 逐步补进新的 captured batch manifest
 - 第二批真实 batch 当前已把 `8 fail` 全部沉淀为 `radish-negative` replay 样本，并可通过上述索引直接看出哪些失败类型已覆盖、哪些批次仍有漏灌
+- 当前还额外提交了一份 `2026-04-05-radish-docs-qa-real-batch-v1.cross-sample-replay-index.json`，专门收口根目录 `radish-negative` 中已入仓的 cross-sample replay，并已接入 `check-repo`
 
 当前 `Radish` docs QA 已开始把部分代表性样本切到外部回灌记录：
 
