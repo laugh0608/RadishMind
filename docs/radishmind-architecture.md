@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-05
+更新时间：2026-04-06
 
 ## 架构目标
 
@@ -185,6 +185,9 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 外部 `candidate_response_record`
 - 与正例共用同一套规则的负例回放
 - 通过 `capture_metadata` 标记来源批次的真实 captured replay
+- 对真实/模拟 batch 同时沉淀 same-sample / cross-sample replay index、recommended replay summary 与 artifact summary，避免 batch 审计、推荐回放和 committed fixture 漂成三套口径
+- 对基于真实 bad record 派生的本地负例，生成独立 real-derived negative index，并按 `source_record_groups`、`violation_groups`、`pattern_groups` 做结构化审计
+- 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 对 `RadishFlow suggest_ghost_completion`，还应继续覆盖“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”的交互反馈回放样本，而不只检查静态排序
 
 ## 推荐仓库结构
@@ -230,6 +233,7 @@ RadishMind/
 - 训练数据优先从自有项目生成，不依赖大量外部脏数据
 - 评测必须从第一阶段就开始建立
 - 部署形态允许本地、局域网和远端三种模式并存，但当前不先锁定最终部署形态
+- 对 `Radish docs QA`，真实 captured negative、same-sample replay、cross-sample replay 与 real-derived negative 应保持同一条治理链，而不是分别演化成互不对齐的 fixture 体系
 
 ## 当前最小实现补充
 

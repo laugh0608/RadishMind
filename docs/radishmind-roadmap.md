@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-05
+更新时间：2026-04-06
 
 ## 路线图目标
 
@@ -93,6 +93,9 @@
 - `Radish` 建立文档、论坛和 Console 知识样本
 - 定义任务指标与离线回归脚本
 - 先把 `Radish` 的 `answer_docs_question` 落成“召回输入 + golden_response”最小回归 runner，再补外部 `candidate_response_record`、统一负例回放与真实候选输出回灌
+- 为 `Radish docs QA` 的真实/模拟 batch 建立 same-sample / cross-sample replay index、recommended replay summary 与 batch artifact summary 的统一治理链
+- 对“基于真实 bad record 派生、但仍以本地 fixture 入仓”的负例，补 `source_candidate_response_record` 结构化反链，并生成独立 real-derived index，至少支持 `source_record_groups`、`violation_groups` 与 `pattern_groups` 三个审计维度
+- 优先把真实风格 bad output 扩样成 repeated pattern，而不是继续泛化堆叠 simulated negative；当前重点围绕 `read_only_check` 缺失、citation/source drift 与 `answers` 缺失三类主失败面推进
 
 ### 推荐指标
 
@@ -106,6 +109,7 @@
 
 - 不同模型和提示词可以被稳定比较
 - 结果不再只靠主观观感判断
+- 对真实 batch 的失败样本，能够看清“哪些已沉淀为 replay、哪些已扩成 repeated real-derived pattern、哪些仍缺治理闭环”
 
 ## M4：`minimind-v` student/base 主线推进
 
@@ -191,7 +195,7 @@
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
 2. 在不打断现有三任务扩样的前提下，继续把 `RadishFlow / suggest_ghost_completion` 从“任务卡与契约已冻结”推进到“链式基线已闭环、交互反馈边界继续扩展”的 editor assist PoC 子线；当前已覆盖 `Feed -> Valve -> FlashDrum`、`Feed -> Heater -> FlashDrum`、`Feed -> Cooler -> FlashDrum` 的 `Tab / manual_only / empty` 基线，并已新增首条 `reject-no-retab`
 3. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
-4. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充与最小导入流程，作为下一主线
+4. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程，作为下一主线
 5. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
 6. 再进入模型对照、PoC 与训练路线验证
 
@@ -204,3 +208,5 @@
 - `RadishFlow` 的 `suggest_ghost_completion` 在进入更正式 PoC 前，`reject` / `dismiss` / `skip` 三类 recent-actions 是否共享同一套 cooldown 语义，还是需要区分恢复条件
 - 评测样本的标注和维护流程
 - `Radish` docs QA 的真实 captured negative 批次采用目录清单、导入脚本还是两者并行维护
+- `Radish` docs QA 的 real-derived negative pattern 是否继续只靠 `capture_metadata.tags` 约定，还是需要升级成更正式的结构化字段
+- `Radish` docs QA 的 `violation_groups` 是否要长期保持“按完整违规文案分组”，还是后续补一层更轻量的 violation pattern 归一化
