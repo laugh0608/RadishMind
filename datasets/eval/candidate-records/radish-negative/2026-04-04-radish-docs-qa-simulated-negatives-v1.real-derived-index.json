@@ -7,17 +7,123 @@
   "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
   "source": "simulated_candidate_response",
   "summary": {
-    "derived_record_count": 4,
-    "linked_negative_sample_count": 4,
+    "derived_record_count": 7,
+    "linked_negative_sample_count": 7,
     "source_manifest_count": 1,
-    "source_record_count": 4,
-    "source_record_group_count": 4,
-    "violation_group_count": 4,
+    "source_record_count": 7,
+    "source_record_group_count": 7,
+    "violation_group_count": 7,
+    "pattern_group_count": 7,
     "unlinked_derived_record_count": 0
   },
   "source_record_groups": [
     {
       "group_id": "source-001",
+      "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+      "source_record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
+      "source_sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+      "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-faq-001.record.json",
+      "source_source": "captured_candidate_response",
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-faq-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "proposed action '由文档维护者确认是否补充附件说明文字' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ],
+      "source_capture_origin": "adapter_debug_dump"
+    },
+    {
+      "group_id": "source-002",
+      "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+      "source_record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+      "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+      "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
+      "source_source": "captured_candidate_response",
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_issue_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "should not contain issues",
+            "proposed action '人工确认文档里是否存在真实 CDN 外链' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ],
+      "source_capture_origin": "adapter_debug_dump"
+    },
+    {
+      "group_id": "source-003",
+      "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+      "source_record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+      "source_sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+      "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-mixed-001.record.json",
+      "source_source": "captured_candidate_response",
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_issue_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-mixed-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "should not contain issues"
+          ]
+        }
+      ],
+      "source_capture_origin": "adapter_debug_dump"
+    },
+    {
+      "group_id": "source-004",
       "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
       "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
       "source_record_id": "captured-radish-answer-docs-question-evidence-gap-001",
@@ -30,6 +136,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-unconfirmed-operation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
+          "derived_patterns": [
+            "evidence_gap_confirmation_operation_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-evidence-gap-001",
@@ -50,7 +159,7 @@
       "source_capture_origin": "adapter_debug_dump"
     },
     {
-      "group_id": "source-002",
+      "group_id": "source-005",
       "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
       "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
       "source_record_id": "captured-radish-answer-docs-question-forum-supplement-001",
@@ -63,6 +172,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001.json",
+          "derived_patterns": [
+            "missing_answer_issue_action_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-forum-supplement-001",
@@ -83,7 +195,7 @@
       "source_capture_origin": "adapter_debug_dump"
     },
     {
-      "group_id": "source-003",
+      "group_id": "source-006",
       "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
       "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
       "source_record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
@@ -96,6 +208,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-role-boundary-multi-issues-confirmation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001.json",
+          "derived_patterns": [
+            "multi_issue_confirmation_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
@@ -115,7 +230,7 @@
       "source_capture_origin": "adapter_debug_dump"
     },
     {
-      "group_id": "source-004",
+      "group_id": "source-007",
       "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
       "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
       "source_record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
@@ -128,6 +243,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_action_confirmation_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
@@ -154,6 +272,105 @@
     {
       "group_id": "group-001",
       "expected_candidate_violations": [
+        "is missing required action kind 'read_only_check'",
+        "proposed action '由文档维护者确认是否补充附件说明文字' must not require confirmation",
+        "json path '$.requires_confirmation' should not equal 'True'"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-faq-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "proposed action '由文档维护者确认是否补充附件说明文字' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "group-002",
+      "expected_candidate_violations": [
+        "is missing required action kind 'read_only_check'",
+        "should not contain issues"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_issue_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-mixed-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "should not contain issues"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "group-003",
+      "expected_candidate_violations": [
+        "is missing required action kind 'read_only_check'",
+        "should not contain issues",
+        "proposed action '人工确认文档里是否存在真实 CDN 外链' must not require confirmation",
+        "json path '$.requires_confirmation' should not equal 'True'"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_issue_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "should not contain issues",
+            "proposed action '人工确认文档里是否存在真实 CDN 外链' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "group-004",
+      "expected_candidate_violations": [
         "json path '$.issues[1]' should not exist",
         "json path '$.requires_confirmation' expected 'False' but found 'True'",
         "json path '$.requires_confirmation' should not equal 'True'"
@@ -164,6 +381,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-role-boundary-multi-issues-confirmation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001.json",
+          "derived_patterns": [
+            "multi_issue_confirmation_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
@@ -182,7 +402,7 @@
       ]
     },
     {
-      "group_id": "group-002",
+      "group_id": "group-005",
       "expected_candidate_violations": [
         "json path '$.issues[1]' should not exist",
         "should not contain proposed_actions",
@@ -195,6 +415,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-unconfirmed-operation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
+          "derived_patterns": [
+            "evidence_gap_confirmation_operation_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-evidence-gap-001",
@@ -214,7 +437,7 @@
       ]
     },
     {
-      "group_id": "group-003",
+      "group_id": "group-006",
       "expected_candidate_violations": [
         "must contain at least 1 answer",
         "missing required json path '$.answers[0]'",
@@ -227,6 +450,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001.json",
+          "derived_patterns": [
+            "missing_answer_issue_action_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-forum-supplement-001",
@@ -246,7 +472,7 @@
       ]
     },
     {
-      "group_id": "group-004",
+      "group_id": "group-007",
       "expected_candidate_violations": [
         "referenced citation id 'faq-1' is missing from candidate_response.citations",
         "first answer must cite at least one primary artifact for official_source_precedence samples",
@@ -261,6 +487,9 @@
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
           "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_action_confirmation_drift"
+          ],
           "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
           "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
           "source_record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
@@ -275,6 +504,230 @@
             "first answer must cite at least one primary artifact for official_source_precedence samples",
             "should not contain issues",
             "should not contain proposed_actions",
+            "json path '$.requires_confirmation' expected 'False' but found 'True'",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    }
+  ],
+  "pattern_groups": [
+    {
+      "group_id": "pattern-001",
+      "derived_patterns": [
+        "citation_drift_issue_action_confirmation_drift"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_action_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
+          "source_sample_id": "radish-answer-docs-question-wiki-faq-mixed-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-wiki-faq-mixed-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
+          "expected_candidate_violations": [
+            "referenced citation id 'faq-1' is missing from candidate_response.citations",
+            "first answer must cite at least one primary artifact for official_source_precedence samples",
+            "should not contain issues",
+            "should not contain proposed_actions",
+            "json path '$.requires_confirmation' expected 'False' but found 'True'",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "pattern-002",
+      "derived_patterns": [
+        "evidence_gap_confirmation_operation_drift"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
+          "derived_patterns": [
+            "evidence_gap_confirmation_operation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-evidence-gap-001",
+          "source_sample_id": "radish-answer-docs-question-evidence-gap-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-evidence-gap-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
+          "expected_candidate_violations": [
+            "json path '$.issues[1]' should not exist",
+            "should not contain proposed_actions",
+            "json path '$.requires_confirmation' expected 'False' but found 'True'",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "pattern-003",
+      "derived_patterns": [
+        "missing_answer_issue_action_drift"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001.json",
+          "derived_patterns": [
+            "missing_answer_issue_action_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-forum-supplement-001",
+          "source_sample_id": "radish-answer-docs-question-forum-supplement-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-forum-supplement-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001.json",
+          "expected_candidate_violations": [
+            "must contain at least 1 answer",
+            "missing required json path '$.answers[0]'",
+            "should not contain issues",
+            "should not contain proposed_actions"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "pattern-004",
+      "derived_patterns": [
+        "missing_read_only_check_confirmation_drift"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-faq-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "proposed action '由文档维护者确认是否补充附件说明文字' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "pattern-005",
+      "derived_patterns": [
+        "missing_read_only_check_issue_confirmation_drift"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_issue_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "should not contain issues",
+            "proposed action '人工确认文档里是否存在真实 CDN 外链' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "pattern-006",
+      "derived_patterns": [
+        "missing_read_only_check_issue_drift"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
+          "derived_patterns": [
+            "missing_read_only_check_issue_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-mixed-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
+          "expected_candidate_violations": [
+            "is missing required action kind 'read_only_check'",
+            "should not contain issues"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "pattern-007",
+      "derived_patterns": [
+        "multi_issue_confirmation_drift"
+      ],
+      "entry_count": 1,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-role-boundary-multi-issues-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001.json",
+          "derived_patterns": [
+            "multi_issue_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
+          "source_sample_id": "radish-answer-docs-question-role-example-boundary-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-role-example-boundary-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001.json",
+          "expected_candidate_violations": [
+            "json path '$.issues[1]' should not exist",
             "json path '$.requires_confirmation' expected 'False' but found 'True'",
             "json path '$.requires_confirmation' should not equal 'True'"
           ]

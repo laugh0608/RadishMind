@@ -539,14 +539,15 @@ python3 ./scripts/build-candidate-record-batch.py \
 - 当前负例还已覆盖 `docs + attachments + faq + forum` 极端冲突与 failed-state 多 action 漂移，验证失败态里 FAQ/论坛不能联手覆盖正式口径，也不能一边失败一边继续堆动作
 - 当前负例还已覆盖“多答案 + 多 action + 多来源冲突”三者同时出现的复合失稳，开始逼近真实模型完全漂移时的坏输出形态
 - 当前负例已开始直接复用第二批真实 provider batch 的失败 record，并已把第二批 `8 fail` 全部沉淀为同样本 replay：一组是缺 `read_only_check`，另一组是 `partial` 场景下 `issues/risk_level` 不达标的真实坏输出
-- 当前负例还补了四条基于 `2026-04-05` real record 派生的本地候选输出：`evidence-gap` 上叠加 `candidate_operation + requires_confirmation=true`，`role-example-boundary` 上叠加多 `issues + requires_confirmation=true`，`wiki-faq-mixed` 上叠加 citation drift 之外的 `issues / read_only_check / requires_confirmation`，以及 `forum-supplement` 的 `answers` 缺失再叠加 `issues / read_only_check`
+- 当前负例还补了七条基于 `2026-04-05` real record 派生的本地候选输出：`evidence-gap` 上叠加 `candidate_operation + requires_confirmation=true`，`role-example-boundary` 上叠加多 `issues + requires_confirmation=true`，`wiki-faq-mixed` 上叠加 citation drift 之外的 `issues / read_only_check / requires_confirmation`，`forum-supplement` 的 `answers` 缺失再叠加 `issues / read_only_check`，以及三条 `read_only_check` 缺失继续叠加 `issue / confirmation / candidate_operation` 的复合变体
 - 这批 `real-derived` candidate record 现已补上结构化 `source_candidate_response_record` 来源字段，并额外生成 `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.json`，可直接审计“派生自哪条 real batch record、覆盖了哪组额外违规、当前是否全部挂到负例样本”
 
 当前负例侧也已补最小 manifest 导入流程：
 
 - `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json` 已将现有 simulated negative 与 real-record-derived negative 记录收口成一批
 - `datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.json` 已把 manifest 中带 `real_record_derived` 标签的候选记录，和其对应负例样本、源 real batch record 做了结构化关联
-- 当前这份 real-derived index 已覆盖四种更接近真实 provider 措辞的复合失稳：`issues + proposed_actions + requires_confirmation`、citation/source drift 叠加越界动作、以及 `answers` 缺失继续叠加 issue/action
+- 当前这份 real-derived index 已覆盖七种更接近真实 provider 措辞的复合失稳：`issues + proposed_actions + requires_confirmation`、citation/source drift 叠加越界动作、`answers` 缺失继续叠加 issue/action，以及 `read_only_check` 缺失继续叠加 `issue / confirmation / candidate_operation`
+- 当前这份 real-derived index 还会从 `capture_metadata.tags` 中解析 `derived_pattern:*`，额外输出 `pattern_groups`，用来区分“同源 real record 下到底派生了哪一类复合漂移”
 - `datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json` 已将第二批真实 batch 的 `8 fail` replay 负例按 violation 分组收口
 - `scripts/build-radish-docs-negative-replay.py` 已可根据这份 index 按 `replay_mode` 重建 same-sample / cross-sample replay 负例
 - 对应负例样本已可通过 `candidate_response_record.manifest_path + record_id` 引用，不再逐条手写单独路径

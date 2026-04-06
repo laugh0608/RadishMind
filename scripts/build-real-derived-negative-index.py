@@ -70,6 +70,19 @@ def unique_strings(values: list[str]) -> list[str]:
     return result
 
 
+def extract_derived_patterns(tags: set[str], label: str) -> list[str]:
+    patterns = unique_strings(
+        [
+            tag[len("derived_pattern:") :]
+            for tag in sorted(tags)
+            if tag.startswith("derived_pattern:") and tag[len("derived_pattern:") :].strip()
+        ]
+    )
+    if not patterns:
+        raise SystemExit(f"{label}: real-derived negative record must declare at least one 'derived_pattern:*' tag")
+    return patterns
+
+
 def default_output_path(manifest_path: Path) -> Path:
     name = manifest_path.name
     if name.endswith(".manifest.json"):
@@ -225,6 +238,7 @@ def build_index_document(
             raise SystemExit(
                 f"{make_repo_relative(record_path)}: source_candidate_response_record requires capture_metadata.tags to contain 'real_record_derived'"
             )
+        derived_patterns = extract_derived_patterns(tags, make_repo_relative(record_path))
         source_record_ref_object = expect_object(
             source_record_ref,
             f"{make_repo_relative(record_path)} capture_metadata.source_candidate_response_record",
@@ -248,6 +262,7 @@ def build_index_document(
             "derived_record_id": expect_non_empty_string(record.get("record_id"), f"{make_repo_relative(record_path)} record_id"),
             "derived_sample_id": expect_non_empty_string(record.get("sample_id"), f"{make_repo_relative(record_path)} sample_id"),
             "derived_record_path": make_repo_relative(record_path),
+            "derived_patterns": derived_patterns,
             **source_info,
         }
 
@@ -314,6 +329,25 @@ def build_index_document(
             }
         )
 
+    pattern_groups: list[dict[str, Any]] = []
+    grouped_by_pattern: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+    for entry in linked_entries:
+        group_key = tuple(entry["derived_patterns"])
+        grouped_by_pattern.setdefault(group_key, []).append(entry)
+    for index, group_key in enumerate(sorted(grouped_by_pattern), start=1):
+        entries = sorted(
+            grouped_by_pattern[group_key],
+            key=lambda item: (item["source_sample_id"], item["negative_sample_path"]),
+        )
+        pattern_groups.append(
+            {
+                "group_id": f"pattern-{index:03d}",
+                "derived_patterns": list(group_key),
+                "entry_count": len(entries),
+                "entries": entries,
+            }
+        )
+
     document: dict[str, Any] = {
         "schema_version": 1,
         "project": expect_non_empty_string(manifest.get("project"), f"{manifest_label} project"),
@@ -329,10 +363,12 @@ def build_index_document(
             "source_record_count": len(source_record_keys),
             "source_record_group_count": len(source_record_groups),
             "violation_group_count": len(violation_groups),
+            "pattern_group_count": len(pattern_groups),
             "unlinked_derived_record_count": len(unlinked_derived_records),
         },
         "source_record_groups": source_record_groups,
         "violation_groups": violation_groups,
+        "pattern_groups": pattern_groups,
         "unlinked_derived_records": sorted(
             unlinked_derived_records,
             key=lambda item: (item["source_manifest_path"], item["source_record_id"], item["derived_record_path"]),

@@ -15,6 +15,7 @@
     "summary",
     "source_record_groups",
     "violation_groups",
+    "pattern_groups",
     "unlinked_derived_records"
   ],
   "properties": {
@@ -70,6 +71,7 @@
         "source_record_count",
         "source_record_group_count",
         "violation_group_count",
+        "pattern_group_count",
         "unlinked_derived_record_count"
       ],
       "properties": {
@@ -97,6 +99,10 @@
           "type": "integer",
           "minimum": 0
         },
+        "pattern_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
         "unlinked_derived_record_count": {
           "type": "integer",
           "minimum": 0
@@ -113,6 +119,12 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/violation_group"
+      }
+    },
+    "pattern_groups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/pattern_group"
       }
     },
     "unlinked_derived_records": {
@@ -147,6 +159,7 @@
         "source_sample_id",
         "source_record_path",
         "source_source",
+        "derived_patterns",
         "expected_candidate_violations"
       ],
       "properties": {
@@ -204,6 +217,9 @@
             "adapter_debug_dump",
             "manual_fixture"
           ]
+        },
+        "derived_patterns": {
+          "$ref": "#/$defs/non_empty_string_array"
         },
         "expected_candidate_violations": {
           "$ref": "#/$defs/non_empty_string_array"
@@ -307,6 +323,36 @@
         }
       }
     },
+    "pattern_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "derived_patterns",
+        "entry_count",
+        "entries"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "pattern": "^pattern-[0-9]{3}$"
+        },
+        "derived_patterns": {
+          "$ref": "#/$defs/non_empty_string_array"
+        },
+        "entry_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/linked_entry"
+          }
+        }
+      }
+    },
     "unlinked_derived_record": {
       "type": "object",
       "additionalProperties": false,
@@ -319,7 +365,8 @@
         "source_record_id",
         "source_sample_id",
         "source_record_path",
-        "source_source"
+        "source_source",
+        "derived_patterns"
       ],
       "properties": {
         "derived_record_id": {
@@ -368,6 +415,9 @@
             "adapter_debug_dump",
             "manual_fixture"
           ]
+        },
+        "derived_patterns": {
+          "$ref": "#/$defs/non_empty_string_array"
         }
       }
     }

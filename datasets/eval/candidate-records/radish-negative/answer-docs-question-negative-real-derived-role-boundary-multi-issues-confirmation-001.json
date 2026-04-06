@@ -14,6 +14,7 @@
       "radish_docs_qa",
       "simulated_negative",
       "real_record_derived",
+      "derived_pattern:multi_issue_confirmation_drift",
       "w15_batch"
     ],
     "source_candidate_response_record": {
