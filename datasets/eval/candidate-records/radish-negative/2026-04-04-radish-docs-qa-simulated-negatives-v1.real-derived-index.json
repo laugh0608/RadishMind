@@ -7,13 +7,13 @@
   "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
   "source": "simulated_candidate_response",
   "summary": {
-    "derived_record_count": 10,
-    "linked_negative_sample_count": 10,
+    "derived_record_count": 12,
+    "linked_negative_sample_count": 12,
     "source_manifest_count": 1,
     "source_record_count": 10,
     "source_record_group_count": 10,
-    "violation_group_count": 9,
-    "pattern_group_count": 7,
+    "violation_group_count": 10,
+    "pattern_group_count": 8,
     "unlinked_derived_record_count": 0
   },
   "source_record_groups": [
@@ -94,8 +94,32 @@
       "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
       "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
       "source_source": "captured_candidate_response",
-      "entry_count": 1,
+      "entry_count": 2,
       "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_read_only_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "referenced citation id 'forum-1' is missing from candidate_response.citations",
+            "first answer must cite at least one primary artifact for official_source_precedence samples",
+            "should not contain issues",
+            "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        },
         {
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
@@ -130,8 +154,32 @@
       "source_sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
       "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-forum-conflict-001.record.json",
       "source_source": "captured_candidate_response",
-      "entry_count": 1,
+      "entry_count": 2,
       "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_read_only_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "referenced citation id 'forum-1' is missing from candidate_response.citations",
+            "first answer must cite at least one primary artifact for official_source_precedence samples",
+            "should not contain issues",
+            "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        },
         {
           "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001",
           "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001",
@@ -703,6 +751,67 @@
           ]
         }
       ]
+    },
+    {
+      "group_id": "group-010",
+      "expected_candidate_violations": [
+        "referenced citation id 'forum-1' is missing from candidate_response.citations",
+        "first answer must cite at least one primary artifact for official_source_precedence samples",
+        "should not contain issues",
+        "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+        "json path '$.requires_confirmation' should not equal 'True'"
+      ],
+      "entry_count": 2,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_read_only_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "referenced citation id 'forum-1' is missing from candidate_response.citations",
+            "first answer must cite at least one primary artifact for official_source_precedence samples",
+            "should not contain issues",
+            "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        },
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_read_only_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "referenced citation id 'forum-1' is missing from candidate_response.citations",
+            "first answer must cite at least one primary artifact for official_source_precedence samples",
+            "should not contain issues",
+            "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
     }
   ],
   "pattern_groups": [
@@ -743,6 +852,63 @@
     {
       "group_id": "pattern-002",
       "derived_patterns": [
+        "citation_drift_issue_read_only_confirmation_drift"
+      ],
+      "entry_count": 2,
+      "entries": [
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_read_only_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-attachments-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "referenced citation id 'forum-1' is missing from candidate_response.citations",
+            "first answer must cite at least one primary artifact for official_source_precedence samples",
+            "should not contain issues",
+            "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        },
+        {
+          "derived_record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "derived_record_path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "derived_patterns": [
+            "citation_drift_issue_read_only_confirmation_drift"
+          ],
+          "source_manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+          "source_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+          "source_record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "source_record_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/records/answer-docs-question-docs-faq-forum-conflict-001.record.json",
+          "source_source": "captured_candidate_response",
+          "source_capture_origin": "adapter_debug_dump",
+          "negative_sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
+          "expected_candidate_violations": [
+            "referenced citation id 'forum-1' is missing from candidate_response.citations",
+            "first answer must cite at least one primary artifact for official_source_precedence samples",
+            "should not contain issues",
+            "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+            "json path '$.requires_confirmation' should not equal 'True'"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "pattern-003",
+      "derived_patterns": [
         "evidence_gap_confirmation_operation_drift"
       ],
       "entry_count": 1,
@@ -773,7 +939,7 @@
       ]
     },
     {
-      "group_id": "pattern-003",
+      "group_id": "pattern-004",
       "derived_patterns": [
         "missing_answer_issue_action_drift"
       ],
@@ -805,7 +971,7 @@
       ]
     },
     {
-      "group_id": "pattern-004",
+      "group_id": "pattern-005",
       "derived_patterns": [
         "missing_read_only_check_confirmation_drift"
       ],
@@ -858,7 +1024,7 @@
       ]
     },
     {
-      "group_id": "pattern-005",
+      "group_id": "pattern-006",
       "derived_patterns": [
         "missing_read_only_check_issue_confirmation_drift"
       ],
@@ -913,7 +1079,7 @@
       ]
     },
     {
-      "group_id": "pattern-006",
+      "group_id": "pattern-007",
       "derived_patterns": [
         "missing_read_only_check_issue_drift"
       ],
@@ -964,7 +1130,7 @@
       ]
     },
     {
-      "group_id": "pattern-007",
+      "group_id": "pattern-008",
       "derived_patterns": [
         "multi_issue_confirmation_drift"
       ],

@@ -47,7 +47,9 @@ def main() -> int:
             "--sample-paths",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-attachment-mixed-missing-read-only-check-issue-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
@@ -82,13 +84,13 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 10, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 10, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 12, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 12, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 1, "summary.source_manifest_count")
     require_equal(summary.get("source_record_count"), 10, "summary.source_record_count")
     require_equal(summary.get("source_record_group_count"), 10, "summary.source_record_group_count")
-    require_equal(summary.get("violation_group_count"), 9, "summary.violation_group_count")
-    require_equal(summary.get("pattern_group_count"), 7, "summary.pattern_group_count")
+    require_equal(summary.get("violation_group_count"), 10, "summary.violation_group_count")
+    require_equal(summary.get("pattern_group_count"), 8, "summary.pattern_group_count")
     require_equal(summary.get("unlinked_derived_record_count"), 0, "summary.unlinked_derived_record_count")
 
     source_record_groups = index_document.get("source_record_groups")
@@ -114,14 +116,31 @@ def main() -> int:
         ],
         "source_record_groups source_sample_id set",
     )
+    source_group_entry_counts = {
+        str(expect_object(group, "source_record_group").get("source_sample_id") or ""): expect_object(
+            group,
+            "source_record_group",
+        ).get("entry_count")
+        for group in source_record_groups
+    }
+    require_equal(
+        source_group_entry_counts.get("radish-answer-docs-question-docs-attachments-forum-conflict-001"),
+        2,
+        "source_record_groups docs-attachments-forum-conflict entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get("radish-answer-docs-question-docs-faq-forum-conflict-001"),
+        2,
+        "source_record_groups docs-faq-forum-conflict entry_count",
+    )
 
     violation_groups = index_document.get("violation_groups")
-    if not isinstance(violation_groups, list) or len(violation_groups) != 9:
-        raise SystemExit("violation_groups must contain exactly 9 groups")
+    if not isinstance(violation_groups, list) or len(violation_groups) != 10:
+        raise SystemExit("violation_groups must contain exactly 10 groups")
 
     pattern_groups = index_document.get("pattern_groups")
-    if not isinstance(pattern_groups, list) or len(pattern_groups) != 7:
-        raise SystemExit("pattern_groups must contain exactly 7 groups")
+    if not isinstance(pattern_groups, list) or len(pattern_groups) != 8:
+        raise SystemExit("pattern_groups must contain exactly 8 groups")
 
     pattern_entry_counts = {
         tuple(list(expect_object(group, "pattern_group").get("derived_patterns") or [])): expect_object(
@@ -145,12 +164,22 @@ def main() -> int:
         2,
         "pattern_groups missing_read_only_check_issue_drift entry_count",
     )
+    require_equal(
+        pattern_entry_counts.get(("citation_drift_issue_read_only_confirmation_drift",)),
+        2,
+        "pattern_groups citation_drift_issue_read_only_confirmation_drift entry_count",
+    )
 
     flattened_patterns = [
         pattern
         for group in pattern_groups
         for pattern in list(expect_object(group, "pattern_group").get("derived_patterns") or [])
     ]
+    require_contains(
+        flattened_patterns,
+        "citation_drift_issue_read_only_confirmation_drift",
+        "pattern_groups derived_patterns",
+    )
     require_contains(
         flattened_patterns,
         "missing_read_only_check_confirmation_drift",
@@ -190,6 +219,11 @@ def main() -> int:
     require_contains(
         flattened_violations,
         "is missing required action kind 'read_only_check'",
+        "violation_groups expected_candidate_violations",
+    )
+    require_contains(
+        flattened_violations,
+        "referenced citation id 'forum-1' is missing from candidate_response.citations",
         "violation_groups expected_candidate_violations",
     )
     require_contains(

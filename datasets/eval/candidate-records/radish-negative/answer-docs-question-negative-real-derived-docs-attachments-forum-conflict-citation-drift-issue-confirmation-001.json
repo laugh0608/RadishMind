@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+  "request_id": "sample-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
+  "captured_at": "2026-04-06T22:15:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:citation_drift_issue_read_only_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 docs-attachments-forum-conflict 真实 record 派生，专门模拟 forum citation drift 之外再叠加 issue 与确认型 read_only_check。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "公开文档里如果想让附件链接更直观，可以参考社区帖子理解真实外链的传播方式，但当前附件仍需要结合现有 `attachment://manual-42` 的引用状态来判断。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "从现有附件状态看，`attachment://manual-42` 目前确实可直接在文档中引用；如果担心外部用户复制不便，也可以参考社区帖子里关于真实 CDN 外链更直观的建议来理解分享方式。不过这类补充经验仍应结合当前附件引用状态一起看待。",
+        "citation_ids": [
+          "att-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "SOURCE_PRIORITY_REVIEW",
+        "message": "当前回答把补充性的 forum 建议升级成了需要单独追踪的来源优先级问题。",
+        "severity": "info",
+        "citation_ids": [
+          "forum-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "人工复核正式来源与补充来源的适用边界",
+        "rationale": "当前回答错误地把原本低风险的来源核对升级成了需要确认的只读动作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "att-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 附件导入说明 上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      }
+    ],
+    "confidence": 0.74,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}
