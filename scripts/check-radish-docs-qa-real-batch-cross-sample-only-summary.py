@@ -10,19 +10,18 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from check_radish_docs_qa_real_batch_summary_common import (  # noqa: E402
-    REAL_BATCH_COLLECTION,
-    REAL_BATCH_CROSS_SAMPLE_NEGATIVE_DIR,
-    REAL_BATCH_OUTPUT_ROOT,
     RECOMMENDED_SUMMARY_SCHEMA_PATH,
-    REPO_ROOT,
     SUMMARY_SCHEMA_PATH,
+    build_real_batch_summary_command,
+    build_real_batch_summary_paths,
     expect_object,
     load_summary,
-    make_repo_relative,
+    require_artifact_entry_state,
     require_equal,
     require_false,
     require_missing_path,
     require_non_empty_list,
+    require_summary_selection,
     require_true,
     run_command,
 )
@@ -32,54 +31,20 @@ CROSS_SAMPLE_TOP = 1
 
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="radish-docs-qa-real-batch-cross-sample-only-") as temp_dir:
-        temp_root = Path(temp_dir)
-        audit_report_path = temp_root / f"{REAL_BATCH_COLLECTION}.audit.json"
-        replay_index_path = temp_root / f"{REAL_BATCH_COLLECTION}.negative-replay-index.json"
-        cross_sample_replay_index_path = temp_root / f"{REAL_BATCH_COLLECTION}.cross-sample-replay-index.json"
-        artifact_summary_path = temp_root / f"{REAL_BATCH_COLLECTION}.artifacts.json"
-        same_sample_negative_output_dir = temp_root / "same-sample-negative-replay"
-        same_sample_summary_path = temp_root / "pending.recommended-negative-replay.summary.json"
-        cross_sample_summary_path = (
-            temp_root / f"{REAL_BATCH_COLLECTION}.recommended-negative-replay-top{CROSS_SAMPLE_TOP}-cross_sample.summary.json"
+        paths = build_real_batch_summary_paths(
+            Path(temp_dir),
+            cross_sample_top=CROSS_SAMPLE_TOP,
         )
-
         run_command(
-            [
-                sys.executable,
-                str(REPO_ROOT / "scripts" / "run-radish-docs-qa-real-batch.py"),
-                "--provider",
-                "openai-compatible",
-                "--output-root",
-                make_repo_relative(REAL_BATCH_OUTPUT_ROOT),
-                "--collection-batch",
-                REAL_BATCH_COLLECTION,
-                "--resume",
-                "--audit-report-output",
-                str(audit_report_path),
-                "--replay-index-output",
-                str(replay_index_path),
-                "--cross-sample-replay-index-output",
-                str(cross_sample_replay_index_path),
-                "--artifact-summary-output",
-                str(artifact_summary_path),
-                "--build-negative-replay",
-                "--negative-output-dir",
-                str(same_sample_negative_output_dir),
-                "--build-recommended-negative-replay-summary",
-                "--recommended-replay-mode",
-                "cross_sample",
-                "--cross-sample-recommended-groups-top",
-                str(CROSS_SAMPLE_TOP),
-                "--recommended-summary-output",
-                str(cross_sample_summary_path),
-                "--cross-sample-negative-sample-dir",
-                make_repo_relative(REAL_BATCH_CROSS_SAMPLE_NEGATIVE_DIR),
-                "--fail-on-recommended-replay-violation",
-            ]
+            build_real_batch_summary_command(
+                paths,
+                cross_sample_top=CROSS_SAMPLE_TOP,
+                recommended_replay_mode="cross_sample",
+            )
         )
 
-        artifact_summary = load_summary(artifact_summary_path, SUMMARY_SCHEMA_PATH)
-        cross_sample_summary = load_summary(cross_sample_summary_path, RECOMMENDED_SUMMARY_SCHEMA_PATH)
+        artifact_summary = load_summary(paths.artifact_summary_path, SUMMARY_SCHEMA_PATH)
+        cross_sample_summary = load_summary(paths.cross_sample_summary_path, RECOMMENDED_SUMMARY_SCHEMA_PATH)
 
         require_equal(artifact_summary.get("provider"), "openai-compatible", "artifact summary provider")
         execution = expect_object(artifact_summary.get("execution"), "artifact summary execution")
@@ -95,42 +60,24 @@ def main() -> int:
         )
 
         artifacts = expect_object(artifact_summary.get("artifacts"), "artifact summary artifacts")
-        same_sample_artifact = expect_object(
-            artifacts.get("recommended_negative_replay_summary"),
-            "artifact summary artifacts.recommended_negative_replay_summary",
+        require_artifact_entry_state(
+            artifacts,
+            field_name="recommended_negative_replay_summary",
+            expected_path=paths.same_sample_summary_path,
+            expected_requested=False,
+            expected_exists=False,
+            label="artifact summary artifacts.recommended_negative_replay_summary",
         )
-        cross_sample_artifact = expect_object(
-            artifacts.get("cross_sample_recommended_negative_replay_summary"),
-            "artifact summary artifacts.cross_sample_recommended_negative_replay_summary",
-        )
-        require_false(
-            same_sample_artifact.get("requested"),
-            "artifact summary artifacts.recommended_negative_replay_summary.requested",
-        )
-        require_false(
-            same_sample_artifact.get("exists"),
-            "artifact summary artifacts.recommended_negative_replay_summary.exists",
-        )
-        require_equal(
-            same_sample_artifact.get("path"),
-            str(same_sample_summary_path),
-            "artifact summary same-sample summary placeholder path",
-        )
-        require_true(
-            cross_sample_artifact.get("requested"),
-            "artifact summary artifacts.cross_sample_recommended_negative_replay_summary.requested",
-        )
-        require_true(
-            cross_sample_artifact.get("exists"),
-            "artifact summary artifacts.cross_sample_recommended_negative_replay_summary.exists",
-        )
-        require_equal(
-            cross_sample_artifact.get("path"),
-            str(cross_sample_summary_path),
-            "artifact summary cross-sample summary path",
+        require_artifact_entry_state(
+            artifacts,
+            field_name="cross_sample_recommended_negative_replay_summary",
+            expected_path=paths.cross_sample_summary_path,
+            expected_requested=True,
+            expected_exists=True,
+            label="artifact summary artifacts.cross_sample_recommended_negative_replay_summary",
         )
         require_missing_path(
-            same_sample_summary_path,
+            paths.same_sample_summary_path,
             "same-sample recommended summary for cross-sample-only mode",
         )
 
@@ -163,12 +110,15 @@ def main() -> int:
 
         require_equal(
             cross_sample_summary.get("batch_artifact_summary_path"),
-            str(artifact_summary_path),
+            str(paths.artifact_summary_path),
             "cross-sample summary batch_artifact_summary_path",
         )
-        selection = expect_object(cross_sample_summary.get("selection"), "cross-sample summary selection")
-        require_equal(selection.get("replay_mode"), "cross_sample", "cross-sample summary replay_mode")
-        require_equal(selection.get("requested_top"), CROSS_SAMPLE_TOP, "cross-sample summary requested_top")
+        require_summary_selection(
+            cross_sample_summary,
+            replay_mode="cross_sample",
+            requested_top=CROSS_SAMPLE_TOP,
+            label="cross-sample summary",
+        )
 
     print("radish docs qa real batch cross-sample-only recommended summary check passed.")
     return 0

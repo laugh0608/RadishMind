@@ -5,6 +5,7 @@ import argparse
 import shlex
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,24 @@ RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_SCHEMA_PATH = (
     REPO_ROOT / "datasets/eval/recommended-negative-replay-summary.schema.json"
 )
 DEFAULT_NEGATIVE_OUTPUT_DIR = "datasets/eval/radish-negative"
+PENDING_RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_NAME = "pending.recommended-negative-replay.summary.json"
+PENDING_CROSS_SAMPLE_RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_NAME = (
+    "pending.cross-sample-recommended-negative-replay.summary.json"
+)
+
+
+@dataclass
+class RecommendedReplaySummaryState:
+    path: Path
+    requested: bool = False
+    exit_code: int | None = None
+
+
+@dataclass(frozen=True)
+class RecommendedReplayRunPlan:
+    replay_mode: str
+    resolved_top: int
+    output_path: Path
 
 
 def parse_args() -> argparse.Namespace:
@@ -188,6 +207,140 @@ def derive_recommended_summary_output_path(artifact_summary_path: Path, top_n: i
     )
 
 
+def get_pending_recommended_summary_path(artifact_summary_path: Path, replay_mode: str) -> Path:
+    filename = (
+        PENDING_CROSS_SAMPLE_RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_NAME
+        if replay_mode == "cross_sample"
+        else PENDING_RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_NAME
+    )
+    return artifact_summary_path.parent / filename
+
+
+def resolve_initial_recommended_summary_path(
+    args: argparse.Namespace,
+    artifact_summary_path: Path,
+    replay_mode: str,
+    explicit_recommended_replay_mode: str,
+) -> Path:
+    recommended_summary_output = args.recommended_summary_output.strip()
+    if replay_mode == "same_sample":
+        if recommended_summary_output and explicit_recommended_replay_mode != "cross_sample":
+            return resolve_repo_relative(recommended_summary_output)
+        return get_pending_recommended_summary_path(artifact_summary_path, replay_mode)
+
+    cross_sample_summary_output = args.cross_sample_recommended_summary_output.strip()
+    if cross_sample_summary_output:
+        return resolve_repo_relative(cross_sample_summary_output)
+    if recommended_summary_output and explicit_recommended_replay_mode == "cross_sample":
+        return resolve_repo_relative(recommended_summary_output)
+    return get_pending_recommended_summary_path(artifact_summary_path, replay_mode)
+
+
+def build_initial_recommended_summary_states(
+    args: argparse.Namespace,
+    artifact_summary_path: Path,
+    explicit_recommended_replay_mode: str,
+) -> dict[str, RecommendedReplaySummaryState]:
+    return {
+        "same_sample": RecommendedReplaySummaryState(
+            path=resolve_initial_recommended_summary_path(
+                args,
+                artifact_summary_path,
+                "same_sample",
+                explicit_recommended_replay_mode,
+            )
+        ),
+        "cross_sample": RecommendedReplaySummaryState(
+            path=resolve_initial_recommended_summary_path(
+                args,
+                artifact_summary_path,
+                "cross_sample",
+                explicit_recommended_replay_mode,
+            )
+        ),
+    }
+
+
+def select_recommended_replay_modes(
+    recommended_negative_replays: dict[str, Any],
+    explicit_recommended_replay_mode: str,
+) -> list[str]:
+    if explicit_recommended_replay_mode:
+        return [explicit_recommended_replay_mode]
+    replay_modes = ["same_sample"]
+    if get_recommended_group_ids(recommended_negative_replays, "cross_sample"):
+        replay_modes.append("cross_sample")
+    return replay_modes
+
+
+def resolve_requested_recommended_top(args: argparse.Namespace, replay_mode: str) -> int:
+    return args.cross_sample_recommended_groups_top if replay_mode == "cross_sample" else args.recommended_groups_top
+
+
+def resolve_planned_recommended_summary_output_path(
+    artifact_summary_path: Path,
+    replay_mode: str,
+    resolved_top: int,
+    state: RecommendedReplaySummaryState,
+) -> Path:
+    pending_path = get_pending_recommended_summary_path(artifact_summary_path, replay_mode)
+    if state.path != pending_path:
+        return state.path
+    return derive_recommended_summary_output_path(artifact_summary_path, resolved_top, replay_mode)
+
+
+def build_recommended_replay_plan(
+    *,
+    args: argparse.Namespace,
+    artifact_summary_path: Path,
+    recommended_negative_replays: dict[str, Any],
+    replay_mode: str,
+    state: RecommendedReplaySummaryState,
+) -> RecommendedReplayRunPlan | None:
+    group_ids = get_recommended_group_ids(recommended_negative_replays, replay_mode)
+    if not group_ids:
+        print(
+            f"artifact summary does not contain {replay_mode} recommended negative replay groups; skipping",
+            file=sys.stderr,
+        )
+        return None
+    requested_top = resolve_requested_recommended_top(args, replay_mode)
+    resolved_top = select_recommended_top(group_ids, requested_top)
+    return RecommendedReplayRunPlan(
+        replay_mode=replay_mode,
+        resolved_top=resolved_top,
+        output_path=resolve_planned_recommended_summary_output_path(
+            artifact_summary_path,
+            replay_mode,
+            resolved_top,
+            state,
+        ),
+    )
+
+
+def build_recommended_replay_command(
+    artifact_summary_path: Path,
+    plan: RecommendedReplayRunPlan,
+    *,
+    fail_on_recommended_replay_violation: bool,
+) -> list[str]:
+    command = [
+        sys.executable,
+        str(REPO_ROOT / "scripts/run-radish-docs-qa-negative-recommended.py"),
+        "--batch-artifact-summary",
+        make_repo_relative(artifact_summary_path),
+        "--top",
+        str(plan.resolved_top),
+        "--replay-mode",
+        plan.replay_mode,
+        "--summary-output",
+        make_repo_relative(plan.output_path),
+    ]
+    if fail_on_recommended_replay_violation:
+        command.append("--fail-on-violation")
+    return command
+
+
 def load_recommended_summary_if_exists(path: Path) -> dict[str, Any] | None:
     summary_document = load_object_if_exists(path)
     if summary_document is not None:
@@ -317,12 +470,7 @@ def build_artifact_summary_document(
     artifact_summary_path: Path,
     inference_exit_code: int,
     audit_exit_code: int | None,
-    recommended_negative_replay_summary_path: Path,
-    recommended_negative_replay_requested: bool,
-    recommended_negative_replay_exit_code: int | None,
-    cross_sample_recommended_negative_replay_summary_path: Path,
-    cross_sample_recommended_negative_replay_requested: bool,
-    cross_sample_recommended_negative_replay_exit_code: int | None,
+    recommended_summary_states: dict[str, RecommendedReplaySummaryState],
 ) -> dict[str, Any]:
     manifest = load_json_document(manifest_path)
     ensure_schema(manifest, RECORD_BATCH_SCHEMA_PATH, make_repo_relative(manifest_path))
@@ -333,10 +481,10 @@ def build_artifact_summary_document(
     audit_report = load_object_if_exists(audit_report_path)
     replay_index = load_object_if_exists(replay_index_path)
     cross_sample_replay_index = load_object_if_exists(cross_sample_replay_index_path)
-    recommended_negative_replay_summary = load_recommended_summary_if_exists(recommended_negative_replay_summary_path)
-    cross_sample_recommended_negative_replay_summary = load_recommended_summary_if_exists(
-        cross_sample_recommended_negative_replay_summary_path
-    )
+    same_sample_summary_state = recommended_summary_states["same_sample"]
+    cross_sample_summary_state = recommended_summary_states["cross_sample"]
+    recommended_negative_replay_summary = load_recommended_summary_if_exists(same_sample_summary_state.path)
+    cross_sample_recommended_negative_replay_summary = load_recommended_summary_if_exists(cross_sample_summary_state.path)
     recommended_summary_metrics = extract_recommended_summary_metrics(recommended_negative_replay_summary)
     cross_sample_recommended_summary_metrics = extract_recommended_summary_metrics(
         cross_sample_recommended_negative_replay_summary
@@ -379,8 +527,8 @@ def build_artifact_summary_document(
         "execution": {
             "inference_exit_code": inference_exit_code,
             "audit_exit_code": audit_exit_code,
-            "recommended_negative_replay_exit_code": recommended_negative_replay_exit_code,
-            "cross_sample_recommended_negative_replay_exit_code": cross_sample_recommended_negative_replay_exit_code,
+            "recommended_negative_replay_exit_code": same_sample_summary_state.exit_code,
+            "cross_sample_recommended_negative_replay_exit_code": cross_sample_summary_state.exit_code,
         },
         "artifacts": {
             "manifest": {
@@ -409,14 +557,14 @@ def build_artifact_summary_document(
                 "expected_fixture_count": linked_same_sample_count + unlinked_same_sample_count,
             },
             "recommended_negative_replay_summary": {
-                "requested": recommended_negative_replay_requested,
-                "path": make_repo_relative(recommended_negative_replay_summary_path),
-                "exists": recommended_negative_replay_summary_path.is_file(),
+                "requested": same_sample_summary_state.requested,
+                "path": make_repo_relative(same_sample_summary_state.path),
+                "exists": same_sample_summary_state.path.is_file(),
             },
             "cross_sample_recommended_negative_replay_summary": {
-                "requested": cross_sample_recommended_negative_replay_requested,
-                "path": make_repo_relative(cross_sample_recommended_negative_replay_summary_path),
-                "exists": cross_sample_recommended_negative_replay_summary_path.is_file(),
+                "requested": cross_sample_summary_state.requested,
+                "path": make_repo_relative(cross_sample_summary_state.path),
+                "exists": cross_sample_summary_state.path.is_file(),
             },
         },
         "summary": {
@@ -500,21 +648,10 @@ def main() -> int:
         else output_root / f"{args.collection_batch}.artifacts.json"
     )
     explicit_recommended_replay_mode = args.recommended_replay_mode.strip()
-    recommended_negative_replay_summary_requested = False
-    recommended_negative_replay_exit_code: int | None = None
-    recommended_negative_replay_summary_path = (
-        resolve_repo_relative(args.recommended_summary_output)
-        if args.recommended_summary_output.strip() and explicit_recommended_replay_mode != "cross_sample"
-        else artifact_summary_path.parent / "pending.recommended-negative-replay.summary.json"
-    )
-    cross_sample_recommended_negative_replay_summary_requested = False
-    cross_sample_recommended_negative_replay_exit_code: int | None = None
-    cross_sample_recommended_negative_replay_summary_path = (
-        resolve_repo_relative(args.cross_sample_recommended_summary_output)
-        if args.cross_sample_recommended_summary_output.strip()
-        else resolve_repo_relative(args.recommended_summary_output)
-        if args.recommended_summary_output.strip() and explicit_recommended_replay_mode == "cross_sample"
-        else artifact_summary_path.parent / "pending.cross-sample-recommended-negative-replay.summary.json"
+    recommended_summary_states = build_initial_recommended_summary_states(
+        args,
+        artifact_summary_path,
+        explicit_recommended_replay_mode,
     )
 
     inference_command = [
@@ -619,12 +756,7 @@ def main() -> int:
         artifact_summary_path=artifact_summary_path,
         inference_exit_code=inference_result.returncode,
         audit_exit_code=audit_exit_code,
-        recommended_negative_replay_summary_path=recommended_negative_replay_summary_path,
-        recommended_negative_replay_requested=recommended_negative_replay_summary_requested,
-        recommended_negative_replay_exit_code=recommended_negative_replay_exit_code,
-        cross_sample_recommended_negative_replay_summary_path=cross_sample_recommended_negative_replay_summary_path,
-        cross_sample_recommended_negative_replay_requested=cross_sample_recommended_negative_replay_summary_requested,
-        cross_sample_recommended_negative_replay_exit_code=cross_sample_recommended_negative_replay_exit_code,
+        recommended_summary_states=recommended_summary_states,
     )
     write_json_document(artifact_summary_path, summary_document)
     print(f"wrote artifact summary to {make_repo_relative(artifact_summary_path)}", file=sys.stderr)
@@ -634,64 +766,31 @@ def main() -> int:
         if not isinstance(recommended_negative_replays, dict):
             raise SystemExit("recommended_negative_replays must be a json object")
 
-        replay_modes_to_generate: list[str]
-        if explicit_recommended_replay_mode:
-            replay_modes_to_generate = [explicit_recommended_replay_mode]
-        else:
-            replay_modes_to_generate = ["same_sample"]
-            if get_recommended_group_ids(recommended_negative_replays, "cross_sample"):
-                replay_modes_to_generate.append("cross_sample")
-
-        for replay_mode in replay_modes_to_generate:
-            group_ids = get_recommended_group_ids(recommended_negative_replays, replay_mode)
-            if not group_ids:
-                print(
-                    f"artifact summary does not contain {replay_mode} recommended negative replay groups; skipping",
-                    file=sys.stderr,
-                )
+        for replay_mode in select_recommended_replay_modes(
+            recommended_negative_replays,
+            explicit_recommended_replay_mode,
+        ):
+            plan = build_recommended_replay_plan(
+                args=args,
+                artifact_summary_path=artifact_summary_path,
+                recommended_negative_replays=recommended_negative_replays,
+                replay_mode=replay_mode,
+                state=recommended_summary_states[replay_mode],
+            )
+            if plan is None:
                 continue
 
-            requested_top = (
-                args.cross_sample_recommended_groups_top
-                if replay_mode == "cross_sample"
-                else args.recommended_groups_top
+            recommended_result = run_command(
+                build_recommended_replay_command(
+                    artifact_summary_path,
+                    plan,
+                    fail_on_recommended_replay_violation=args.fail_on_recommended_replay_violation,
+                )
             )
-            recommended_top = select_recommended_top(group_ids, requested_top)
-            summary_output_override = (
-                args.cross_sample_recommended_summary_output.strip()
-                if replay_mode == "cross_sample"
-                else args.recommended_summary_output.strip()
-            )
-            summary_output_path = (
-                resolve_repo_relative(summary_output_override)
-                if summary_output_override
-                else derive_recommended_summary_output_path(artifact_summary_path, recommended_top, replay_mode)
-            )
-
-            recommended_command = [
-                sys.executable,
-                str(REPO_ROOT / "scripts/run-radish-docs-qa-negative-recommended.py"),
-                "--batch-artifact-summary",
-                make_repo_relative(artifact_summary_path),
-                "--top",
-                str(recommended_top),
-                "--replay-mode",
-                replay_mode,
-                "--summary-output",
-                make_repo_relative(summary_output_path),
-            ]
-            if args.fail_on_recommended_replay_violation:
-                recommended_command.append("--fail-on-violation")
-
-            recommended_result = run_command(recommended_command)
-            if replay_mode == "cross_sample":
-                cross_sample_recommended_negative_replay_summary_requested = True
-                cross_sample_recommended_negative_replay_summary_path = summary_output_path
-                cross_sample_recommended_negative_replay_exit_code = recommended_result.returncode
-            else:
-                recommended_negative_replay_summary_requested = True
-                recommended_negative_replay_summary_path = summary_output_path
-                recommended_negative_replay_exit_code = recommended_result.returncode
+            state = recommended_summary_states[replay_mode]
+            state.requested = True
+            state.path = plan.output_path
+            state.exit_code = recommended_result.returncode
 
         summary_document = build_artifact_summary_document(
             args=args,
@@ -703,12 +802,7 @@ def main() -> int:
             artifact_summary_path=artifact_summary_path,
             inference_exit_code=inference_result.returncode,
             audit_exit_code=audit_exit_code,
-            recommended_negative_replay_summary_path=recommended_negative_replay_summary_path,
-            recommended_negative_replay_requested=recommended_negative_replay_summary_requested,
-            recommended_negative_replay_exit_code=recommended_negative_replay_exit_code,
-            cross_sample_recommended_negative_replay_summary_path=cross_sample_recommended_negative_replay_summary_path,
-            cross_sample_recommended_negative_replay_requested=cross_sample_recommended_negative_replay_summary_requested,
-            cross_sample_recommended_negative_replay_exit_code=cross_sample_recommended_negative_replay_exit_code,
+            recommended_summary_states=recommended_summary_states,
         )
         write_json_document(artifact_summary_path, summary_document)
         print(
@@ -722,7 +816,11 @@ def main() -> int:
         return 0
     if audit_exit_code:
         return audit_exit_code
-    return recommended_negative_replay_exit_code or cross_sample_recommended_negative_replay_exit_code or 0
+    return (
+        recommended_summary_states["same_sample"].exit_code
+        or recommended_summary_states["cross_sample"].exit_code
+        or 0
+    )
 
 
 if __name__ == "__main__":
