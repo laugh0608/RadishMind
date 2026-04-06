@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-attachment-mixed-missing-read-only-check-issue-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-attachment-mixed-missing-read-only-check-issue-001",
+  "request_id": "sample-negative-real-derived-attachment-mixed-missing-read-only-check-issue-001",
+  "captured_at": "2026-04-06T19:05:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_issue_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-attachment-mixed-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 attachment-mixed 真实 record 派生，专门模拟缺失 read_only_check 后又额外叠加一条无端 issue。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式而非真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中安全引用。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据《附件导入说明》规范，公开文档中的附件引用必须采用 `attachment://{id}` 格式，以隐藏底层真实存储路径。结合当前附件元数据，`attachment://manual-42` 已明确标记为 `public-doc-compatible`，完全符合引用标准，可直接在文档正文中使用。",
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "ATTACHMENT_FOLLOWUP_NOTE",
+        "message": "当前回答无端把已足够明确的附件引用规则升级成了后续跟踪项。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2"
+      }
+    ],
+    "confidence": 0.88,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
