@@ -4,8 +4,6 @@
   "project": "radish",
   "task": "answer_docs_question",
   "source": "simulated_candidate_response",
-  "capture_origin": "manual_fixture",
-  "description": "Radish docs QA 现有 simulated negative 候选响应批次清单，用于把负例回放样本统一切到 manifest 导入入口。",
   "records": [
     {
       "record_id": "captured-radish-docs-qa-negative-action-confirmation-001",
@@ -21,6 +19,11 @@
       "record_id": "captured-radish-docs-qa-negative-failed-citation-drift-001",
       "sample_id": "radish-answer-docs-question-negative-failed-citation-drift-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-citation-drift-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-docs-attachments-faq-forum-citation-drift-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-docs-attachments-faq-forum-citation-drift-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-attachments-faq-forum-citation-drift-001.json"
     },
     {
       "record_id": "captured-radish-docs-qa-negative-failed-docs-attachments-faq-forum-conflict-001",
@@ -41,6 +44,11 @@
       "record_id": "captured-radish-docs-qa-negative-failed-docs-faq-forum-multi-answer-multi-action-001",
       "sample_id": "radish-answer-docs-question-negative-failed-docs-faq-forum-multi-answer-multi-action-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-faq-forum-multi-answer-multi-action-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-negative-failed-evidence-gap-multi-issue-action-001",
+      "sample_id": "radish-answer-docs-question-negative-failed-evidence-gap-multi-issue-action-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-evidence-gap-multi-issue-action-001.json"
     },
     {
       "record_id": "captured-radish-docs-qa-negative-failed-mixed-answers-001",
@@ -107,5 +115,7 @@
       "sample_id": "radish-answer-docs-question-negative-unexpected-issue-action-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-unexpected-issue-action-001.json"
     }
-  ]
+  ],
+  "capture_origin": "manual_fixture",
+  "description": "Radish docs QA 现有 simulated negative 候选响应批次清单，用于把负例回放样本统一切到 manifest 导入入口。"
 }

@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-evidence-gap-multi-issue-action-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-evidence-gap-multi-issue-action-001",
+  "request_id": "sample-negative-failed-evidence-gap-multi-issue-action-001",
+  "captured_at": "2026-04-06T02:20:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "w14_batch"
+    ],
+    "notes": "用于离线负例回放的模拟候选输出批次，先按 manifest 收口，后续可逐步替换为真实 captured negative。"
+  },
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前无法从文档确认权限，建议直接申请更高权限后再重试或删除任务。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "虽然文档没有明确写出权限，但更稳妥的做法是先按高风险处理，申请更高权限后再执行操作。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_EVIDENCE",
+        "message": "文档没有给出足够证据确认实际授权。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      },
+      {
+        "code": "AUTHORIZATION_NOT_PROVEN",
+        "message": "当前权限未被证明，建议直接升级处理。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对当前角色说明",
+        "rationale": "先确认现有文档是否继续只覆盖查看能力。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1"
+        ]
+      },
+      {
+        "kind": "candidate_operation",
+        "title": "申请更高权限后再操作任务",
+        "rationale": "既然文档没有给出明确权限说明，就直接升级为需要人工确认的操作路径。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "Hangfire 只读说明",
+        "locator": "artifact:wiki_document",
+        "excerpt": "本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "confidence": 0.61,
+    "risk_level": "high",
+    "requires_confirmation": true
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-failed-docs-attachments-faq-forum-citation-drift-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-failed-docs-attachments-faq-forum-citation-drift-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 附件导入说明\n\n上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/attachment-import",
+          "fragment_id": "public-linking",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "attachment_reference_note",
+        "mime_type": "text/plain",
+        "content": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。",
+        "metadata": {
+          "source_type": "attachments",
+          "page_slug": "guide/attachment-import",
+          "fragment_id": "attachment://manual-42",
+          "retrieval_rank": 2,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "faq_excerpt",
+        "mime_type": "text/markdown",
+        "content": "FAQ：如果用户希望附件链接更易读，可以在文档正文里补充说明文字，但仍应继续使用 `attachment://{id}` 作为实际引用。",
+        "metadata": {
+          "source_type": "faq",
+          "page_slug": "faq/attachment-import",
+          "fragment_id": "human-readable-label",
+          "retrieval_rank": 3,
+          "is_official": false
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "forum_excerpt",
+        "mime_type": "text/markdown",
+        "content": "社区帖子建议：为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。",
+        "metadata": {
+          "source_type": "forum",
+          "page_slug": "community/attachment-sharing-tips",
+          "fragment_id": "direct-cdn-link",
+          "retrieval_rank": 4,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/attachment-import",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/attachment-import",
+        "title": "附件导入说明"
+      },
+      "search_scope": [
+        "docs",
+        "attachments",
+        "faq",
+        "forum"
+      ],
+      "attachment_refs": [
+        "attachment://manual-42"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 4,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "attachments",
+      "faq",
+      "forum"
+    ],
+    "required_search_scopes": [
+      "docs",
+      "attachments",
+      "faq",
+      "forum"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allow_unofficial_sources": true,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.citations[1]",
+      "$.citations[2]",
+      "$.citations[3]",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.status=\"failed\"",
+      "$.summary=\"FAQ 和社区建议都说明可以直接公开真实 CDN 地址，当前附件也已经可用。\"",
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment",
+      "official_source_precedence"
+    ],
+    "notes": "负例回放要求捕获 failed 态里同时出现 unofficial-source override 与 citation drift 的四路冲突，证明 failed 不应绕过正式来源优先和 citation 完整性。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      ".status does not match expected_response_shape.status",
+      "first answer must cite at least one primary artifact",
+      "cannot rely only on unofficial citations",
+      "referenced citation id 'faq-2' is missing"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-negative-failed-docs-attachments-faq-forum-citation-drift-001"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "公开文档中的附件仍应使用 `attachment://{id}` 引用；当前 `attachment://manual-42` 已可直接使用，如需提升可读性，可参考 FAQ 在正文中补充说明文字，但 forum 里的真实外链建议不能覆盖正式规则。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "主结论仍以正式 docs 为准：不要暴露真实存储地址，而应使用 `attachment://{id}`。当前附件元数据确认 `attachment://manual-42` 已满足公开文档引用条件。FAQ 只补充了说明文案的可读性优化，forum 里的真实 CDN 外链做法不能替代正式引用规则。",
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "faq-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对附件引用与说明文字",
+        "rationale": "当前更适合确认文档是否继续使用 `attachment://manual-42`，并检查是否只补一段说明文案。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件导入说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://manual-42",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "附件导入 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "如果用户希望附件链接更易读，可以在文档正文里补充说明文字，但仍应继续使用 `attachment://{id}` 作为实际引用。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区帖子摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+      }
+    ],
+    "confidence": 0.92,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
