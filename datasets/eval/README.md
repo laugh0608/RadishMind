@@ -430,8 +430,17 @@ bash ./scripts/run-radish-docs-qa-negative-recommended.sh \
 - 直接转调 `run-eval-regression.py radish-docs-qa-negative`
 - 自动使用 `--recommended-groups-top <top>`
 - 保留 `--replay-mode` 和 `--sample-dir` 覆盖口
+- 若显式传入 `--replay-mode cross_sample`，则会改为消费 `recommended_negative_replays.cross_sample_recommended_group_ids`
+- 若同时传入 `--summary-output`，当前可把 same-sample 或 cross-sample 的推荐回放结果都沉淀成 committed 的结构化摘要
 
 这样“真实 batch 跑完 -> 先回放推荐前 N 组失败样本”已经变成一条更短的日常操作命令。
+
+当前仓库也已把 `2026-04-05-radish-docs-qa-real-batch-v1` 的两种推荐回放摘要都正式入仓并接入 `check-repo`：
+
+- `2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top5-same_sample.summary.json`
+- `2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top2-cross_sample.summary.json`
+
+这样 same-sample 与 cross-sample 的推荐治理结果都不再只是临时 `/tmp` 产物，而是仓库基线的一部分。
 
 如果需要把这份索引里的真实 replay 直接重建成 `datasets/eval/radish-negative/*.json`，当前还可使用：
 
