@@ -16,6 +16,10 @@
       "real_record_derived",
       "w15_batch"
     ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-evidence-gap-001"
+    },
     "notes": "基于 2026-04-05 real batch 的 evidence-gap 真实 record 派生，专门模拟在真实措辞基础上错误叠加 candidate_operation 与 requires_confirmation 的组合失稳。"
   },
   "model": "qwen/qwen3.6-plus:free-derived-negative",

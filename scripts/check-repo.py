@@ -264,6 +264,12 @@ RADISH_DOCS_QA_REAL_BATCHES = [
     },
 ]
 
+RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES = {
+    "manifest": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "negative_sample_dir": "datasets/eval/radish-negative",
+    "index": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.json",
+}
+
 REQUIRED_FILES = [
     "AGENTS.md",
     "CLAUDE.md",
@@ -347,9 +353,11 @@ REQUIRED_FILES = [
     "datasets/eval/candidate-record-batch.schema.json",
     "datasets/eval/candidate-response-dump.schema.json",
     "datasets/eval/negative-replay-index.schema.json",
+    "datasets/eval/real-derived-negative-index.schema.json",
     "datasets/eval/recommended-negative-replay-summary.schema.json",
     "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
     "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.json",
     "datasets/eval/radishflow-task-sample.schema.json",
     "datasets/eval/radish-task-sample.schema.json",
     "datasets/eval/radishflow/explain-diagnostics-global-balance-gap-001.json",
@@ -413,11 +421,13 @@ REQUIRED_FILES = [
     "scripts/check-radish-docs-qa-eval.sh",
     "scripts/check-radish-docs-qa-real-batch-cross-sample-only-summary.py",
     "scripts/check-radish-docs-qa-real-batch-dual-recommended-summary.py",
+    "scripts/check-radish-docs-qa-real-derived-negative-index.py",
     "scripts/check-radish-docs-qa-real-batch-same-sample-only-summary.py",
     "scripts/check_radish_docs_qa_real_batch_summary_common.py",
     "scripts/check-text-files.py",
     "scripts/audit-candidate-record-batch.py",
     "scripts/build-radish-docs-negative-replay.py",
+    "scripts/build-real-derived-negative-index.py",
     "scripts/build-negative-replay-index.py",
     "scripts/build-candidate-record-batch.py",
     "scripts/build-radishflow-ghost-request.py",
@@ -564,6 +574,9 @@ def check_contract_schemas() -> None:
 def check_generated_eval_metadata() -> None:
     schema = json.loads(
         (REPO_ROOT / "datasets/eval/negative-replay-index.schema.json").read_text(encoding="utf-8")
+    )
+    real_derived_index_schema = json.loads(
+        (REPO_ROOT / "datasets/eval/real-derived-negative-index.schema.json").read_text(encoding="utf-8")
     )
     artifact_summary_schema = json.loads(
         (REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json").read_text(encoding="utf-8")
@@ -714,6 +727,24 @@ def check_generated_eval_metadata() -> None:
     run_python_script("check-radish-docs-qa-real-batch-dual-recommended-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-cross-sample-only-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-same-sample-only-summary.py", [])
+
+    run_python_script(
+        "build-real-derived-negative-index.py",
+        [
+            "--manifest",
+            RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES["manifest"],
+            "--negative-sample-dir",
+            RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES["negative_sample_dir"],
+            "--output",
+            RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES["index"],
+            "--check",
+        ],
+    )
+    real_derived_index_document = json.loads(
+        (REPO_ROOT / RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES["index"]).read_text(encoding="utf-8")
+    )
+    jsonschema.validate(real_derived_index_document, real_derived_index_schema)
+    run_python_script("check-radish-docs-qa-real-derived-negative-index.py", [])
 
 
 def parse_args() -> argparse.Namespace:

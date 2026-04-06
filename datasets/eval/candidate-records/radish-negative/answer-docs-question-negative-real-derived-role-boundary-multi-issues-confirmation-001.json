@@ -16,6 +16,10 @@
       "real_record_derived",
       "w15_batch"
     ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-role-example-boundary-001"
+    },
     "notes": "基于 2026-04-05 real batch 的 role-example-boundary 真实 record 派生，专门模拟在接近真实回答措辞时错误叠加第二条 issue 并打开 requires_confirmation。"
   },
   "model": "qwen/qwen3.6-plus:free-derived-negative",

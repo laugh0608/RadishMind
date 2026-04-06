@@ -80,6 +80,24 @@
           },
           "uniqueItems": true
         },
+        "source_candidate_response_record": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "manifest_path",
+            "record_id"
+          ],
+          "properties": {
+            "manifest_path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "record_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
         "notes": {
           "type": "string"
         }
