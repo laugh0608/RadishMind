@@ -1339,6 +1339,36 @@ def validate_suggest_response(
                 f"{sample_name}: {response_label} proposed_action[{index}] target must remain ordered as {expected_type}:{expected_id}",
             )
 
+    ordered_action_citation_sequences = get_array(evaluation.get("ordered_action_citation_sequences"))
+    for ordered_action_citations in ordered_action_citation_sequences:
+        action_index = ordered_action_citations.get("action_index")
+        if not isinstance(action_index, int):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.ordered_action_citation_sequences.action_index must be an integer",
+            )
+            continue
+        if action_index >= len(actions):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing proposed_action[{action_index}] required by evaluation.ordered_action_citation_sequences",
+            )
+            continue
+
+        expected_values = [str(value) for value in get_array(ordered_action_citations.get("values"))]
+        actual_values = [str(value) for value in get_array(actions[action_index].get("citation_ids"))]
+        if len(actual_values) < len(expected_values):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].citation_ids must contain at least {len(expected_values)} items for ordered_action_citation_sequences",
+            )
+            continue
+        if actual_values[: len(expected_values)] != expected_values:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].citation_ids must remain ordered as {expected_values}",
+            )
+
     ordered_patch_keys = get_array(evaluation.get("ordered_patch_keys"))
     for ordered_patch in ordered_patch_keys:
         action_index = ordered_patch.get("action_index")

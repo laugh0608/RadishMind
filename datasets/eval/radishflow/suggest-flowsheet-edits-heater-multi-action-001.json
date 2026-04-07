@@ -127,6 +127,22 @@
         "id": "heater-1"
       }
     ],
+    "ordered_action_citation_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "action_index": 1,
+        "values": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
     "ordered_patch_keys": [
       {
         "action_index": 1,

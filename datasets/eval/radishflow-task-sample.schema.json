@@ -153,6 +153,32 @@
             }
           }
         },
+        "ordered_action_citation_sequences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action_index",
+              "values"
+            ],
+            "properties": {
+              "action_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            }
+          }
+        },
         "ordered_patch_keys": {
           "type": "array",
           "items": {
