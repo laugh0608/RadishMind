@@ -113,6 +113,16 @@
       "$.proposed_actions[0].requires_confirmation=false",
       "$.proposed_actions[1].requires_confirmation=false"
     ],
+    "ordered_action_targets": [
+      {
+        "type": "stream",
+        "id": "feed-1"
+      },
+      {
+        "type": "unit",
+        "id": "heater-1"
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

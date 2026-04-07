@@ -1306,6 +1306,25 @@ def validate_suggest_response(
     if highest_action_risk > 0 and RISK_RANKS.get(str(response.get("risk_level") or ""), 0) != highest_action_risk:
         add_violation(violations, f"{sample_name}: {response_label}.risk_level must equal the highest proposed_action risk")
 
+    ordered_action_targets = get_array(evaluation.get("ordered_action_targets"))
+    for index, ordered_target in enumerate(ordered_action_targets):
+        if index >= len(actions):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing proposed_action at index {index} required by evaluation.ordered_action_targets",
+            )
+            continue
+        actual_target = actions[index].get("target") or {}
+        expected_type = str((ordered_target or {}).get("type") or "").strip()
+        expected_id = str((ordered_target or {}).get("id") or "").strip()
+        actual_type = str((actual_target or {}).get("type") or "").strip()
+        actual_id = str((actual_target or {}).get("id") or "").strip()
+        if actual_type != expected_type or actual_id != expected_id:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{index}] target must remain ordered as {expected_type}:{expected_id}",
+            )
+
     citation_ids = {str(citation.get("id") or "") for citation in citations}
     referenced_ids: set[str] = set()
     for answer in answers:

@@ -129,6 +129,16 @@
       "$.proposed_actions[1].requires_confirmation=false",
       "$.risk_level=\"medium\""
     ],
+    "ordered_action_targets": [
+      {
+        "type": "stream",
+        "id": "liquid-product-5"
+      },
+      {
+        "type": "stream",
+        "id": "vapor-product-5"
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

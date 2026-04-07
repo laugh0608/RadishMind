@@ -52,6 +52,7 @@
 - `proposed_actions` 至少包含一个 `candidate_edit`
 - 每个 `candidate_edit` 都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`
 - `citations` 必须能定位到支撑该提案的状态、诊断或补充证据
+- 若同时存在多个 `candidate_edit`，顺序应保持稳定，并优先把更直接、更阻塞或风险更高的提案放在前面，而不是随机漂移
 
 ## 候选动作约束
 
@@ -148,6 +149,7 @@
 - 证据一致率：每个提案都应能回溯到触发它的 diagnostics 或状态
 - 建议可执行率：patch 粒度足够小，能被后续命令层映射为候选编辑
 - 风险分级正确率：高风险拓扑或关键配置调整不得降级标注
+- 多动作顺序稳定性：同一输入下，多条 `candidate_edit` 的优先级顺序不应随机变化
 
 ## 非目标
 

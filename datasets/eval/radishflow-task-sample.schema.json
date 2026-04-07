@@ -124,6 +124,27 @@
             "minLength": 1
           }
         },
+        "ordered_action_targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "id"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
         "scoring_focus": {
           "type": "array",
           "items": {
