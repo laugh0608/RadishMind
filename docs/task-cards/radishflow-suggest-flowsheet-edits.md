@@ -53,6 +53,7 @@
 - `proposed_actions` 至少包含一个 `candidate_edit`
 - 每个 `candidate_edit` 都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`
 - `citations` 必须能定位到支撑该提案的状态、诊断或补充证据
+- 若顶层 `citations` 同时包含多条证据，顺序也应保持稳定，优先直接诊断，再列目标对象 artifact，最后才是 supporting snapshot 或次级上下文
 - 若同时存在多个 `candidate_edit`，顺序应保持稳定，并优先把更直接、更阻塞或风险更高的提案放在前面，而不是随机漂移
 - 若单个 `candidate_edit.citation_ids` 同时包含多条证据，顺序也应保持稳定，优先直接触发该 patch 的诊断，再列目标对象 artifact，最后才是 snapshot 或次级上下文
 - 若单个 `candidate_edit.patch` 同时包含主要 patch 块与保护性元字段，键顺序也应保持稳定，优先输出真正的修改块，再输出 `patch_scope`、`preserve_*`、`retain_*` 这类约束字段

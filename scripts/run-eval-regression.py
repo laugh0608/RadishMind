@@ -1320,6 +1320,20 @@ def validate_suggest_response(
                 f"{sample_name}: {response_label} issues must remain ordered as {ordered_issue_codes}",
             )
 
+    ordered_citation_ids = [str(citation_id) for citation_id in get_array(evaluation.get("ordered_citation_ids"))]
+    if ordered_citation_ids:
+        actual_citation_ids = [str((citation or {}).get("id") or "") for citation in citations]
+        if len(actual_citation_ids) < len(ordered_citation_ids):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} must contain at least {len(ordered_citation_ids)} citations for evaluation.ordered_citation_ids",
+            )
+        elif actual_citation_ids[: len(ordered_citation_ids)] != ordered_citation_ids:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} citations must remain ordered as {ordered_citation_ids}",
+            )
+
     ordered_action_targets = get_array(evaluation.get("ordered_action_targets"))
     for index, ordered_target in enumerate(ordered_action_targets):
         if index >= len(actions):

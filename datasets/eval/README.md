@@ -149,6 +149,7 @@
 - `patch` 必须保持可审查的局部结构
 - `patch` 不得退化成命令式执行字段或整图重写字段
 - 若样本声明 `evaluation.ordered_issue_codes`，`issues` 的 code 顺序也必须稳定匹配该优先级约束
+- 若样本声明 `evaluation.ordered_citation_ids`，顶层 `citations` 的 id 顺序也必须稳定匹配该证据优先级约束
 - 若样本声明 `evaluation.ordered_action_targets`，多条 `candidate_edit` 的目标顺序必须稳定匹配该优先级约束
 - 若样本声明 `evaluation.ordered_action_citation_sequences`，指定 action 的 `citation_ids` 顺序也必须稳定匹配该证据优先级约束
 - 若样本声明 `evaluation.ordered_patch_keys`，指定 action 的 `patch` 键顺序也必须稳定匹配该 patch-group 优先级约束

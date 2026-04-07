@@ -139,6 +139,13 @@
         "id": "vapor-product-5"
       }
     ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "diag-2",
+      "flowdoc-stream-1",
+      "flowdoc-stream-2",
+      "snapshot-1"
+    ],
     "ordered_action_citation_sequences": [
       {
         "action_index": 0,

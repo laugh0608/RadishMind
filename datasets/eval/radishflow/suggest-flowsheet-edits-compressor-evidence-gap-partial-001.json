@@ -123,6 +123,12 @@
       "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
       "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
     ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "diag-2",
+      "flowdoc-unit-1",
+      "snapshot-1"
+    ],
     "ordered_action_citation_sequences": [
       {
         "action_index": 0,

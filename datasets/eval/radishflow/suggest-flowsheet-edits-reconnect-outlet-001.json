@@ -94,6 +94,10 @@
     "must_not_have_json_paths": [
       "$.proposed_actions[0].requires_confirmation=false"
     ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "snapshot-1"
+    ],
     "ordered_action_citation_sequences": [
       {
         "action_index": 0,

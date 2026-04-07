@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "sample_id": "radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+  "sample_id": "radishflow-suggest-flowsheet-edits-citation-ordering-diagnostics-before-artifacts-before-snapshot-001",
   "project": "radishflow",
   "task": "suggest_flowsheet_edits",
   "input_request": {
     "schema_version": 1,
-    "request_id": "rf-suggest-edit-heater-multi-action-001",
+    "request_id": "rf-suggest-edit-citation-ordering-diagnostics-before-artifacts-before-snapshot-001",
     "project": "radishflow",
     "task": "suggest_flowsheet_edits",
     "locale": "zh-CN",
@@ -16,23 +16,30 @@
         "name": "flowsheet_document",
         "mime_type": "application/json",
         "content": {
-          "document_id": "flowsheet-103",
+          "document_id": "flowsheet-120",
           "streams": [
             {
-              "id": "feed-1",
+              "id": "feed-15",
               "name": "Cold Feed",
-              "target_unit_id": "heater-1",
+              "target_unit_id": "heater-5",
               "specs": {
-                "temperature_c": 35,
-                "pressure_kpa": 210
+                "pressure_kpa": 198
+              }
+            },
+            {
+              "id": "product-15",
+              "name": "Heater Outlet",
+              "source_unit_id": "heater-5",
+              "specs": {
+                "temperature_c": 141
               }
             }
           ],
           "units": [
             {
-              "id": "heater-1",
+              "id": "heater-5",
               "kind": "Heater",
-              "name": "Feed Heater",
+              "name": "Guard Heater",
               "config": {
                 "control_mode": "outlet_temperature"
               }
@@ -42,12 +49,12 @@
       }
     ],
     "context": {
-      "document_revision": 28,
+      "document_revision": 74,
       "selected_unit_ids": [
-        "heater-1"
+        "heater-5"
       ],
       "selected_stream_ids": [
-        "feed-1"
+        "feed-15"
       ],
       "diagnostic_summary": {
         "error_count": 2,
@@ -59,16 +66,21 @@
           "message": "Cold Feed is missing flow rate specification.",
           "severity": "error",
           "target_type": "stream",
-          "target_id": "feed-1"
+          "target_id": "feed-15"
         },
         {
           "code": "UNIT_PARAMETER_INCOMPLETE",
-          "message": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing.",
+          "message": "Guard Heater is configured for outlet temperature control but outlet temperature target is missing.",
           "severity": "error",
           "target_type": "unit",
-          "target_id": "heater-1"
+          "target_id": "heater-5"
         }
-      ]
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-08T00:10:00Z"
+      }
     },
     "tool_hints": {
       "allow_retrieval": false,
@@ -81,7 +93,7 @@
     }
   },
   "expected_response_shape": {
-    "status": "ok",
+    "status": "partial",
     "requires_summary": true,
     "requires_answers": true,
     "requires_issues": true,
@@ -99,13 +111,12 @@
       "$.issues[1].code=\"UNIT_PARAMETER_INCOMPLETE\"",
       "$.proposed_actions[0].kind=\"candidate_edit\"",
       "$.proposed_actions[0].target.type=\"stream\"",
-      "$.proposed_actions[0].target.id=\"feed-1\"",
+      "$.proposed_actions[0].target.id=\"feed-15\"",
       "$.proposed_actions[0].patch.spec_placeholders[0]=\"flow_rate_kg_per_h\"",
       "$.proposed_actions[1].kind=\"candidate_edit\"",
       "$.proposed_actions[1].target.type=\"unit\"",
-      "$.proposed_actions[1].target.id=\"heater-1\"",
+      "$.proposed_actions[1].target.id=\"heater-5\"",
       "$.proposed_actions[1].patch.parameter_placeholders[0]=\"outlet_temperature_c\"",
-      "$.proposed_actions[1].patch.patch_scope=\"unit_parameters\"",
       "$.requires_confirmation=true",
       "$.risk_level=\"medium\""
     ],
@@ -113,58 +124,21 @@
       "$.proposed_actions[0].requires_confirmation=false",
       "$.proposed_actions[1].requires_confirmation=false"
     ],
-    "ordered_issue_codes": [
-      "STREAM_SPEC_MISSING",
-      "UNIT_PARAMETER_INCOMPLETE"
-    ],
     "ordered_citation_ids": [
       "diag-1",
       "diag-2",
       "flowdoc-stream-1",
-      "flowdoc-unit-1"
+      "flowdoc-unit-1",
+      "snapshot-1"
     ],
     "ordered_action_targets": [
       {
         "type": "stream",
-        "id": "feed-1"
+        "id": "feed-15"
       },
       {
         "type": "unit",
-        "id": "heater-1"
-      }
-    ],
-    "ordered_action_citation_sequences": [
-      {
-        "action_index": 0,
-        "values": [
-          "diag-1",
-          "flowdoc-stream-1"
-        ]
-      },
-      {
-        "action_index": 1,
-        "values": [
-          "diag-2",
-          "flowdoc-unit-1"
-        ]
-      }
-    ],
-    "ordered_patch_keys": [
-      {
-        "action_index": 1,
-        "keys": [
-          "parameter_placeholders",
-          "patch_scope",
-          "preserve_existing_connections"
-        ]
-      }
-    ],
-    "ordered_parameter_placeholder_sequences": [
-      {
-        "action_index": 1,
-        "values": [
-          "outlet_temperature_c"
-        ]
+        "id": "heater-5"
       }
     ],
     "scoring_focus": [
@@ -174,53 +148,56 @@
       "actionability",
       "risk_level"
     ],
-    "notes": "当诊断同时指向选中的流股和单元时，响应应拆成多个局部 candidate_edit，而不是输出整图 patch。"
+    "notes": "顶层 citations 顺序应保持稳定：先列直接诊断，再列目标对象 artifact，最后才是 supporting snapshot。"
   },
   "golden_response": {
     "schema_version": 1,
-    "status": "ok",
+    "status": "partial",
     "project": "radishflow",
     "task": "suggest_flowsheet_edits",
-    "summary": "当前建议分别补齐 Cold Feed 的缺失流量规格，并为 Feed Heater 补出温控目标占位，两个提案都保持在局部可审查范围内。",
+    "summary": "当前更合适的是分别补 feed-15 的缺规格和 heater-5 的缺参数，同时把顶层证据列表稳定保持为 diagnostics first、artifacts next、snapshot last。",
     "answers": [
       {
         "kind": "edit_rationale",
-        "text": "诊断已经把问题拆成流股缺规格和加热器缺目标参数两部分，因此更合适的输出是两个局部 candidate_edit，而不是混成一次整图改写。",
+        "text": "当前两条提案都由明确诊断直接触发，因此顶层 citations 应先列两条 diagnostics；随后补对应对象的 flowsheet artifact，最后再用求解快照补足 supporting context，而不是把 snapshot 提前打乱证据主次。",
         "citation_ids": [
           "diag-1",
           "diag-2",
           "flowdoc-stream-1",
-          "flowdoc-unit-1"
+          "flowdoc-unit-1",
+          "snapshot-1"
         ]
       }
     ],
     "issues": [
       {
         "code": "STREAM_SPEC_MISSING",
-        "message": "feed-1 当前缺少流量规格，导致上游进料条件仍不完整。",
+        "message": "feed-15 当前缺少 flow_rate_kg_per_h，导致入口状态仍不完整。",
         "severity": "error",
         "citation_ids": [
-          "diag-1"
+          "diag-1",
+          "flowdoc-stream-1"
         ]
       },
       {
         "code": "UNIT_PARAMETER_INCOMPLETE",
-        "message": "heater-1 已启用出口温度控制，但缺少 outlet_temperature_c 目标参数。",
+        "message": "heater-5 已启用出口温度控制模式，但缺少 outlet_temperature_c 目标参数。",
         "severity": "error",
         "citation_ids": [
-          "diag-2"
+          "diag-2",
+          "flowdoc-unit-1"
         ]
       }
     ],
     "proposed_actions": [
       {
         "kind": "candidate_edit",
-        "title": "为 feed-1 补充流量规格占位",
+        "title": "为 feed-15 补充流量规格占位",
         "target": {
           "type": "stream",
-          "id": "feed-1"
+          "id": "feed-15"
         },
-        "rationale": "当前诊断直接指向 feed-1 缺少流量规格，因此应先补该流股的局部规格占位，并保留已有温度和压力设置。",
+        "rationale": "当前最直接的局部问题是入口流股缺少流量规格，因此应先补充可审查的规格占位。",
         "patch": {
           "spec_placeholders": [
             "flow_rate_kg_per_h"
@@ -236,12 +213,12 @@
       },
       {
         "kind": "candidate_edit",
-        "title": "为 heater-1 补充出口温度目标占位",
+        "title": "为 heater-5 补充出口温度目标占位",
         "target": {
           "type": "unit",
-          "id": "heater-1"
+          "id": "heater-5"
         },
-        "rationale": "加热器当前已经选择了出口温度控制模式，但缺少目标值，因此 patch 只补参数占位并保持连接关系不变。",
+        "rationale": "heater-5 的控制目标参数缺失同样是明确诊断，因此可以输出局部参数占位提案。",
         "patch": {
           "parameter_placeholders": [
             "outlet_temperature_c"
@@ -270,24 +247,31 @@
         "kind": "context",
         "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
         "locator": "context:diagnostics[1]",
-        "excerpt": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing."
+        "excerpt": "Guard Heater is configured for outlet temperature control but outlet temperature target is missing."
       },
       {
         "id": "flowdoc-stream-1",
         "kind": "artifact",
-        "label": "FlowsheetDocument / feed-1",
+        "label": "FlowsheetDocument / feed-15",
         "locator": "artifact:flowsheet_document.streams[0]",
-        "excerpt": "feed-1 当前只有 temperature_c 和 pressure_kpa 两个规格。"
+        "excerpt": "feed-15 当前只有 pressure_kpa，缺少 flow_rate_kg_per_h。"
       },
       {
         "id": "flowdoc-unit-1",
         "kind": "artifact",
-        "label": "FlowsheetDocument / heater-1",
+        "label": "FlowsheetDocument / heater-5",
         "locator": "artifact:flowsheet_document.units[0]",
-        "excerpt": "heater-1 处于 outlet_temperature 控制模式，但未见目标参数。"
+        "excerpt": "heater-5 处于 outlet_temperature 控制模式，但未见目标参数。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
       }
     ],
-    "confidence": 0.92,
+    "confidence": 0.9,
     "risk_level": "medium",
     "requires_confirmation": true
   }
