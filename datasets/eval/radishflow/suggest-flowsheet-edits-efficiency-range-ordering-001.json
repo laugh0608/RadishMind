@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-efficiency-range-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-117",
+          "streams": [
+            {
+              "id": "feed-12",
+              "name": "Pump Feed",
+              "target_unit_id": "pump-3",
+              "specs": {
+                "pressure_kpa": 195,
+                "temperature_c": 30,
+                "flow_rate_kg_per_h": 880
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "pump-3",
+              "kind": "Pump",
+              "name": "Range Review Pump",
+              "config": {
+                "efficiency_percent": 109
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 69,
+      "selected_unit_ids": [
+        "pump-3"
+      ],
+      "diagnostic_summary": {
+        "error_count": 0,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+          "message": "Range Review Pump efficiency_percent=109 is outside the recommended operating range.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "pump-3"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T22:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"UNIT_PARAMETER_OUT_OF_RANGE\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"unit\"",
+      "$.proposed_actions[0].target.id=\"pump-3\"",
+      "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.action=\"clamp_to_review_range\"",
+      "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]=65",
+      "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[1]=82",
+      "$.proposed_actions[0].patch.preserve_topology=true",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false"
+    ],
+    "ordered_parameter_update_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "efficiency_percent"
+        ]
+      }
+    ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 0,
+        "parameter_key": "efficiency_percent",
+        "keys": [
+          "action",
+          "suggested_range"
+        ]
+      }
+    ],
+    "ordered_parameter_update_value_sequences": [
+      {
+        "action_index": 0,
+        "parameter_key": "efficiency_percent",
+        "detail_key": "suggested_range",
+        "values": [
+          65,
+          82
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "parameter_updates detail object 中若包含 suggested_range，这个数组顺序也应稳定保持为下界在前、上界在后，避免把可审查范围写成反向区间。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前建议把 pump-3 的效率修正收成单条局部 patch，并保持 suggested_range 顺序稳定为下界在前、上界在后。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前异常只落在 pump-3 的效率参数上，因此更合适的输出是单对象参数 review patch；同时 suggested_range 必须保持升序区间表达，避免把建议范围写成不可审查的反向区间。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "pump-3 的 efficiency_percent=109 超出了当前建议运行区间。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "复核 pump-3 的效率建议区间",
+        "target": {
+          "type": "unit",
+          "id": "pump-3"
+        },
+        "rationale": "当前最小可审查 patch 是把超范围效率收口成局部 review range，并明确保持 suggested_range 的上下界顺序。",
+        "patch": {
+          "parameter_updates": {
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                65,
+                82
+              ]
+            }
+          },
+          "preserve_topology": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Range Review Pump efficiency_percent=109 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-3 当前 efficiency_percent=109。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "confidence": 0.9,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

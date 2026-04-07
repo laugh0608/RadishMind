@@ -228,6 +228,38 @@
             }
           }
         },
+        "ordered_parameter_update_value_sequences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action_index",
+              "parameter_key",
+              "detail_key",
+              "values"
+            ],
+            "properties": {
+              "action_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "parameter_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "detail_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "values": {
+                "type": "array",
+                "items": {},
+                "minItems": 1
+              }
+            }
+          }
+        },
         "ordered_spec_placeholder_sequences": {
           "type": "array",
           "items": {

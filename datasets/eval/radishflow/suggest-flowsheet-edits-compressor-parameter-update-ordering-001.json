@@ -165,6 +165,17 @@
         ]
       }
     ],
+    "ordered_parameter_update_value_sequences": [
+      {
+        "action_index": 0,
+        "parameter_key": "efficiency_percent",
+        "detail_key": "suggested_range",
+        "values": [
+          65,
+          85
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",
