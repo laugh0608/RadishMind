@@ -57,6 +57,7 @@
 - 若单个 `candidate_edit.patch.parameter_updates` 同时包含多个字段，字段顺序也应保持稳定，优先主工艺目标参数，再到保护性或边界参数，最后才是次级运行范围修正
 - 若单个 `candidate_edit.patch.spec_placeholders` 同时包含多个规格，占位顺序也应保持稳定，优先状态基础字段，再到流量等补充字段
 - 若单个 `candidate_edit.patch.parameter_placeholders` 同时包含多个参数，占位顺序也应保持稳定，优先主工艺目标参数，再到保护性运行参数，最后才是次级基线或范围参数
+- 若单个 `candidate_edit.patch.connection_placeholder` 同时包含多个键，键顺序也应保持稳定，优先期望连接对象类型，再到人工绑定要求，最后才是源端保持等保护性约束
 
 ## 候选动作约束
 

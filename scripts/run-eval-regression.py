@@ -1454,6 +1454,39 @@ def validate_suggest_response(
                 f"{sample_name}: {response_label} proposed_action[{action_index}].patch.parameter_placeholders must remain ordered as {expected_values}",
             )
 
+    ordered_connection_placeholder_keys = get_array(evaluation.get("ordered_connection_placeholder_keys"))
+    for ordered_connection_placeholder in ordered_connection_placeholder_keys:
+        action_index = ordered_connection_placeholder.get("action_index")
+        if not isinstance(action_index, int):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.ordered_connection_placeholder_keys.action_index must be an integer",
+            )
+            continue
+        if action_index >= len(actions):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing proposed_action[{action_index}] required by evaluation.ordered_connection_placeholder_keys",
+            )
+            continue
+
+        patch = actions[action_index].get("patch") or {}
+        connection_placeholder = patch.get("connection_placeholder")
+        if not isinstance(connection_placeholder, dict):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch.connection_placeholder must be present for ordered_connection_placeholder_keys",
+            )
+            continue
+
+        actual_keys = [str(key) for key in connection_placeholder.keys()]
+        expected_keys = [str(key) for key in get_array(ordered_connection_placeholder.get("keys"))]
+        if actual_keys[: len(expected_keys)] != expected_keys:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch.connection_placeholder keys must remain ordered as {expected_keys}",
+            )
+
     citation_ids = {str(citation.get("id") or "") for citation in citations}
     referenced_ids: set[str] = set()
     for answer in answers:
