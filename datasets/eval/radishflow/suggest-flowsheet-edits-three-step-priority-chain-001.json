@@ -148,6 +148,30 @@
       "STREAM_SPEC_MISSING",
       "UNIT_PARAMETER_INCOMPLETE"
     ],
+    "ordered_issue_citation_sequences": [
+      {
+        "issue_index": 0,
+        "values": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "issue_index": 1,
+        "values": [
+          "diag-2",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "issue_index": 2,
+        "values": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
     "ordered_citation_ids": [
       "diag-1",
       "diag-2",

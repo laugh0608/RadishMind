@@ -104,6 +104,16 @@
       "flowdoc-stream-1",
       "snapshot-1"
     ],
+    "ordered_issue_citation_sequences": [
+      {
+        "issue_index": 0,
+        "values": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
     "ordered_action_citation_sequences": [
       {
         "action_index": 0,

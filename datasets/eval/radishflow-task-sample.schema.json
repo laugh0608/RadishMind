@@ -141,6 +141,32 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "ordered_issue_citation_sequences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "issue_index",
+              "values"
+            ],
+            "properties": {
+              "issue_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            }
+          }
+        },
         "ordered_action_targets": {
           "type": "array",
           "items": {

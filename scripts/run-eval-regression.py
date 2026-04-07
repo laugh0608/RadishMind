@@ -1334,6 +1334,36 @@ def validate_suggest_response(
                 f"{sample_name}: {response_label} citations must remain ordered as {ordered_citation_ids}",
             )
 
+    ordered_issue_citation_sequences = get_array(evaluation.get("ordered_issue_citation_sequences"))
+    for ordered_issue_citations in ordered_issue_citation_sequences:
+        issue_index = ordered_issue_citations.get("issue_index")
+        if not isinstance(issue_index, int):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.ordered_issue_citation_sequences.issue_index must be an integer",
+            )
+            continue
+        if issue_index >= len(issues):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing issue[{issue_index}] required by evaluation.ordered_issue_citation_sequences",
+            )
+            continue
+
+        expected_values = [str(value) for value in get_array(ordered_issue_citations.get("values"))]
+        actual_values = [str(value) for value in get_array(issues[issue_index].get("citation_ids"))]
+        if len(actual_values) < len(expected_values):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} issues[{issue_index}].citation_ids must contain at least {len(expected_values)} items for ordered_issue_citation_sequences",
+            )
+            continue
+        if actual_values[: len(expected_values)] != expected_values:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} issues[{issue_index}].citation_ids must remain ordered as {expected_values}",
+            )
+
     ordered_action_targets = get_array(evaluation.get("ordered_action_targets"))
     for index, ordered_target in enumerate(ordered_action_targets):
         if index >= len(actions):
