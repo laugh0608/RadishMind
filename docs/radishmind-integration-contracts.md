@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约草案
 
-更新时间：2026-04-05
+更新时间：2026-04-07
 
 ## 文档目的
 
@@ -233,6 +233,17 @@
 - `Feed -> Heater -> FlashDrum` 的“排序分差不足导致 manual-only”边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免第二模板的分叉态只停留在 pre-model examples
 - `Feed -> Cooler -> FlashDrum` 的正向 `Tab`、`manual_only` 与空候选停住边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免第三条模板只停留在 pre-model examples
 - `Feed -> Cooler -> FlashDrum` 的“排序分差不足导致 manual-only”边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免第三模板的分叉态只停留在 pre-model examples
+
+当前对 `suggest_flowsheet_edits` 的附加约束：
+
+- `proposed_actions` 当前应以 `candidate_edit` 为主，并保持“最小、可审查、非执行式”的局部 patch 口径
+- 若同时存在多条 `candidate_edit`，顺序必须稳定，优先更阻塞、更直接或风险更高的提案
+- 若同时存在多个 `issues`，顺序也必须稳定，优先已确认且直接对应 patch 的问题，再列未确认或保留性 warning
+- 顶层 `citations` 的顺序应稳定保持为“direct diagnostics -> target artifacts -> supporting snapshot/context”
+- `issue.citation_ids` 与 `candidate_edit.citation_ids` 的顺序也应稳定保持为“direct diagnostic -> target artifact -> supporting snapshot/context”
+- 单个 `candidate_edit.patch` 的键顺序当前也属于契约的一部分，不应把主修改块和保护性元字段随机重排
+- `patch.parameter_updates`、`patch.parameter_updates.<parameter_key>`、`patch.parameter_updates.<parameter_key>.<detail_key>`、`patch.spec_placeholders`、`patch.parameter_placeholders` 与 `patch.connection_placeholder` 的多层键/数组顺序都应保持稳定，避免同一建议在不同回归轮次里只因为序列漂移而变成“看起来像不同答案”
+- 上述稳定性约束当前已进入 `datasets/eval/radishflow-task-sample.schema.json` 与 `scripts/run-eval-regression.py` 的正式评测口径，而不是只停留在任务卡示例
 
 ### `Radish` 上下文建议
 

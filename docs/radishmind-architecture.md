@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-06
+更新时间：2026-04-07
 
 ## 架构目标
 
@@ -189,6 +189,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 对基于真实 bad record 派生的本地负例，生成独立 real-derived negative index，并按 `source_record_groups`、`violation_groups`、`pattern_groups` 做结构化审计
 - 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 对 `RadishFlow suggest_ghost_completion`，还应继续覆盖“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”的交互反馈回放样本，而不只检查静态排序
+- 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
 
 ## 推荐仓库结构
 
@@ -232,6 +233,7 @@ RadishMind/
 - 模型输出默认是建议，不直接成为最终状态
 - 训练数据优先从自有项目生成，不依赖大量外部脏数据
 - 评测必须从第一阶段就开始建立
+- 对 `suggest_flowsheet_edits` 这类 advisory patch 任务，评测不仅要检查“能不能答”，还要检查同一输入下的结构化顺序是否稳定，避免候选动作、证据引用和 patch 细节在回归中随机漂移
 - 部署形态允许本地、局域网和远端三种模式并存，但当前不先锁定最终部署形态
 - 对 `Radish docs QA`，真实 captured negative、same-sample replay、cross-sample replay 与 real-derived negative 应保持同一条治理链，而不是分别演化成互不对齐的 fixture 体系
 
