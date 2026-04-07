@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-04-06
+更新时间：2026-04-07
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -135,6 +135,7 @@
 - 多动作响应下的稳定顺序约束，包括“高风险拓扑动作优先于后续中风险局部修正”与“selection 不等于每个对象都必须落 patch”
 - 三动作优先级链样本，覆盖“blocking topology -> upstream spec -> local parameter” 的稳定排序
 - 同风险多动作样本，覆盖“都为 medium 时仍先补输入完整性，再补输出状态，再补本地参数”的稳定排序
+- 单个 `candidate_edit.patch` 的键顺序约束，覆盖“主修改块优先，保护/范围元字段后置”的稳定排序
 - 单个 `candidate_edit.patch.parameter_updates` 的字段顺序约束，覆盖“主工艺目标参数 -> 保护性运行参数 -> 次级运行范围”的稳定排序
 - 单个 `candidate_edit.patch.spec_placeholders` 的占位顺序约束，覆盖“状态基础字段 -> 流量补充字段”的稳定排序
 
@@ -144,6 +145,7 @@
 - `patch` 必须保持可审查的局部结构
 - `patch` 不得退化成命令式执行字段或整图重写字段
 - 若样本声明 `evaluation.ordered_action_targets`，多条 `candidate_edit` 的目标顺序必须稳定匹配该优先级约束
+- 若样本声明 `evaluation.ordered_patch_keys`，指定 action 的 `patch` 键顺序也必须稳定匹配该 patch-group 优先级约束
 - 若样本声明 `evaluation.ordered_parameter_update_keys`，指定 action 的 `patch.parameter_updates` 键顺序也必须稳定匹配该字段级优先级约束
 - 若样本声明 `evaluation.ordered_spec_placeholder_sequences`，指定 action 的 `patch.spec_placeholders` 顺序也必须稳定匹配该占位优先级约束
 

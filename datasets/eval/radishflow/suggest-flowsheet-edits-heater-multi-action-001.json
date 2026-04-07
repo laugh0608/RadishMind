@@ -123,6 +123,16 @@
         "id": "heater-1"
       }
     ],
+    "ordered_patch_keys": [
+      {
+        "action_index": 1,
+        "keys": [
+          "parameter_placeholders",
+          "patch_scope",
+          "preserve_existing_connections"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

@@ -1325,6 +1325,38 @@ def validate_suggest_response(
                 f"{sample_name}: {response_label} proposed_action[{index}] target must remain ordered as {expected_type}:{expected_id}",
             )
 
+    ordered_patch_keys = get_array(evaluation.get("ordered_patch_keys"))
+    for ordered_patch in ordered_patch_keys:
+        action_index = ordered_patch.get("action_index")
+        if not isinstance(action_index, int):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.ordered_patch_keys.action_index must be an integer",
+            )
+            continue
+        if action_index >= len(actions):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing proposed_action[{action_index}] required by evaluation.ordered_patch_keys",
+            )
+            continue
+
+        patch = actions[action_index].get("patch")
+        if not isinstance(patch, dict):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch must be present for ordered_patch_keys",
+            )
+            continue
+
+        actual_keys = [str(key) for key in patch.keys()]
+        expected_keys = [str(key) for key in get_array(ordered_patch.get("keys"))]
+        if actual_keys[: len(expected_keys)] != expected_keys:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch keys must remain ordered as {expected_keys}",
+            )
+
     ordered_parameter_update_keys = get_array(evaluation.get("ordered_parameter_update_keys"))
     for ordered_parameter_update in ordered_parameter_update_keys:
         action_index = ordered_parameter_update.get("action_index")

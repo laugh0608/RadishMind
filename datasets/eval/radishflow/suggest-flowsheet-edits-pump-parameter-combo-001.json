@@ -119,6 +119,15 @@
     "must_not_have_json_paths": [
       "$.proposed_actions[0].requires_confirmation=false"
     ],
+    "ordered_patch_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "parameter_updates",
+          "preserve_topology"
+        ]
+      }
+    ],
     "ordered_parameter_update_keys": [
       {
         "action_index": 0,
