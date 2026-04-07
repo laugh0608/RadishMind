@@ -197,6 +197,37 @@
             }
           }
         },
+        "ordered_parameter_update_detail_keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action_index",
+              "parameter_key",
+              "keys"
+            ],
+            "properties": {
+              "action_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "parameter_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            }
+          }
+        },
         "ordered_spec_placeholder_sequences": {
           "type": "array",
           "items": {

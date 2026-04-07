@@ -126,6 +126,24 @@
       "$.proposed_actions[0].target.id=\"flowsheet-106\"",
       "$.proposed_actions[0].patch.patch_scope=\"full_flowsheet\""
     ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 0,
+        "parameter_key": "pressure_drop_kpa",
+        "keys": [
+          "action",
+          "minimum_value"
+        ]
+      },
+      {
+        "action_index": 0,
+        "parameter_key": "opening_percent",
+        "keys": [
+          "action",
+          "suggested_maximum"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

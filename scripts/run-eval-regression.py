@@ -1390,6 +1390,55 @@ def validate_suggest_response(
                 f"{sample_name}: {response_label} proposed_action[{action_index}].patch.parameter_updates keys must remain ordered as {expected_keys}",
             )
 
+    ordered_parameter_update_detail_keys = get_array(evaluation.get("ordered_parameter_update_detail_keys"))
+    for ordered_parameter_update_detail in ordered_parameter_update_detail_keys:
+        action_index = ordered_parameter_update_detail.get("action_index")
+        if not isinstance(action_index, int):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.ordered_parameter_update_detail_keys.action_index must be an integer",
+            )
+            continue
+        if action_index >= len(actions):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing proposed_action[{action_index}] required by evaluation.ordered_parameter_update_detail_keys",
+            )
+            continue
+
+        parameter_key = str(ordered_parameter_update_detail.get("parameter_key") or "").strip()
+        if not parameter_key:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.ordered_parameter_update_detail_keys.parameter_key must be a non-empty string",
+            )
+            continue
+
+        patch = actions[action_index].get("patch") or {}
+        parameter_updates = patch.get("parameter_updates")
+        if not isinstance(parameter_updates, dict):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch.parameter_updates must be present for ordered_parameter_update_detail_keys",
+            )
+            continue
+
+        parameter_detail = parameter_updates.get(parameter_key)
+        if not isinstance(parameter_detail, dict):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch.parameter_updates.{parameter_key} must be present for ordered_parameter_update_detail_keys",
+            )
+            continue
+
+        actual_keys = [str(key) for key in parameter_detail.keys()]
+        expected_keys = [str(key) for key in get_array(ordered_parameter_update_detail.get("keys"))]
+        if actual_keys[: len(expected_keys)] != expected_keys:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch.parameter_updates.{parameter_key} keys must remain ordered as {expected_keys}",
+            )
+
     ordered_spec_placeholder_sequences = get_array(evaluation.get("ordered_spec_placeholder_sequences"))
     for ordered_spec_placeholders in ordered_spec_placeholder_sequences:
         action_index = ordered_spec_placeholders.get("action_index")

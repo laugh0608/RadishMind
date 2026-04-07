@@ -137,6 +137,7 @@
 - 同风险多动作样本，覆盖“都为 medium 时仍先补输入完整性，再补输出状态，再补本地参数”的稳定排序
 - 单个 `candidate_edit.patch` 的键顺序约束，覆盖“主修改块优先，保护/范围元字段后置”的稳定排序
 - 单个 `candidate_edit.patch.parameter_updates` 的字段顺序约束，覆盖“主工艺目标参数 -> 保护性运行参数 -> 次级运行范围”的稳定排序
+- 单个 `candidate_edit.patch.parameter_updates.<parameter_key>` 的细节键顺序约束，覆盖“action -> threshold/reference/range”的稳定排序
 - 单个 `candidate_edit.patch.spec_placeholders` 的占位顺序约束，覆盖“状态基础字段 -> 流量补充字段”的稳定排序
 - 单个 `candidate_edit.patch.parameter_placeholders` 的占位顺序约束，覆盖“主工艺目标参数 -> 保护性运行参数 -> 次级基线参数”的稳定排序
 - 单个 `candidate_edit.patch.connection_placeholder` 的键顺序约束，覆盖“期望连接对象类型 -> 人工绑定要求 -> 源端保持约束”的稳定排序
@@ -149,6 +150,7 @@
 - 若样本声明 `evaluation.ordered_action_targets`，多条 `candidate_edit` 的目标顺序必须稳定匹配该优先级约束
 - 若样本声明 `evaluation.ordered_patch_keys`，指定 action 的 `patch` 键顺序也必须稳定匹配该 patch-group 优先级约束
 - 若样本声明 `evaluation.ordered_parameter_update_keys`，指定 action 的 `patch.parameter_updates` 键顺序也必须稳定匹配该字段级优先级约束
+- 若样本声明 `evaluation.ordered_parameter_update_detail_keys`，指定 action 的 `patch.parameter_updates.<parameter_key>` 键顺序也必须稳定匹配该细节级优先级约束
 - 若样本声明 `evaluation.ordered_spec_placeholder_sequences`，指定 action 的 `patch.spec_placeholders` 顺序也必须稳定匹配该占位优先级约束
 - 若样本声明 `evaluation.ordered_parameter_placeholder_sequences`，指定 action 的 `patch.parameter_placeholders` 顺序也必须稳定匹配该占位优先级约束
 - 若样本声明 `evaluation.ordered_connection_placeholder_keys`，指定 action 的 `patch.connection_placeholder` 键顺序也必须稳定匹配该连接占位优先级约束

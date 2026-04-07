@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-detail-ordering-001",
   "project": "radishflow",
   "task": "suggest_flowsheet_edits",
   "input_request": {
     "schema_version": 1,
-    "request_id": "rf-suggest-edit-compressor-parameter-update-ordering-001",
+    "request_id": "rf-suggest-edit-compressor-parameter-update-detail-ordering-001",
     "project": "radishflow",
     "task": "suggest_flowsheet_edits",
     "locale": "zh-CN",
@@ -16,33 +16,27 @@
         "name": "flowsheet_document",
         "mime_type": "application/json",
         "content": {
-          "document_id": "flowsheet-111",
+          "document_id": "flowsheet-116",
           "streams": [
             {
-              "id": "feed-9",
-              "name": "Compressor Suction",
-              "target_unit_id": "compressor-2",
+              "id": "feed-11",
+              "name": "Review Suction",
+              "target_unit_id": "compressor-4",
               "specs": {
-                "pressure_kpa": 260,
-                "temperature_c": 41,
-                "flow_rate_kg_per_h": 1100
+                "pressure_kpa": 250,
+                "temperature_c": 42,
+                "flow_rate_kg_per_h": 1020
               }
-            },
-            {
-              "id": "product-9",
-              "name": "Compressor Discharge",
-              "source_unit_id": "compressor-2"
             }
           ],
           "units": [
             {
-              "id": "compressor-2",
+              "id": "compressor-4",
               "kind": "Compressor",
-              "name": "Booster Compressor",
+              "name": "Detail Review Compressor",
               "config": {
-                "outlet_pressure_target_kpa": 270,
-                "minimum_flow_bypass_percent": 2,
-                "efficiency_percent": 104
+                "outlet_pressure_target_kpa": 275,
+                "minimum_flow_bypass_percent": 3
               }
             }
           ]
@@ -50,41 +44,34 @@
       }
     ],
     "context": {
-      "document_revision": 52,
+      "document_revision": 66,
       "selected_unit_ids": [
-        "compressor-2"
+        "compressor-4"
       ],
       "diagnostic_summary": {
         "error_count": 2,
-        "warning_count": 1
+        "warning_count": 0
       },
       "diagnostics": [
         {
           "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
-          "message": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty.",
+          "message": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty.",
           "severity": "error",
           "target_type": "unit",
-          "target_id": "compressor-2"
+          "target_id": "compressor-4"
         },
         {
           "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
-          "message": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+          "message": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
           "severity": "error",
           "target_type": "unit",
-          "target_id": "compressor-2"
-        },
-        {
-          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
-          "message": "Booster Compressor efficiency_percent=104 is outside the recommended operating range.",
-          "severity": "warning",
-          "target_type": "unit",
-          "target_id": "compressor-2"
+          "target_id": "compressor-4"
         }
       ],
       "latest_snapshot": {
         "solver_status": "invalid_parameters",
         "residual_norm": null,
-        "last_updated": "2026-04-07T18:10:00Z"
+        "last_updated": "2026-04-07T21:40:00Z"
       }
     },
     "tool_hints": {
@@ -114,13 +101,14 @@
       "$.summary",
       "$.issues[0].code=\"COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE\"",
       "$.issues[1].code=\"COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW\"",
-      "$.issues[2].code=\"UNIT_PARAMETER_OUT_OF_RANGE\"",
       "$.proposed_actions[0].kind=\"candidate_edit\"",
       "$.proposed_actions[0].target.type=\"unit\"",
-      "$.proposed_actions[0].target.id=\"compressor-2\"",
+      "$.proposed_actions[0].target.id=\"compressor-4\"",
       "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.action=\"review_and_raise_margin\"",
+      "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.minimum_delta_kpa=95",
+      "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.reference_stream_id=\"feed-11\"",
       "$.proposed_actions[0].patch.parameter_updates.minimum_flow_bypass_percent.action=\"raise_to_anti_surge_review_floor\"",
-      "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.action=\"clamp_to_review_range\"",
+      "$.proposed_actions[0].patch.parameter_updates.minimum_flow_bypass_percent.suggested_minimum=8",
       "$.proposed_actions[0].patch.preserve_topology=true",
       "$.requires_confirmation=true",
       "$.risk_level=\"medium\""
@@ -133,8 +121,7 @@
         "action_index": 0,
         "keys": [
           "outlet_pressure_target_kpa",
-          "minimum_flow_bypass_percent",
-          "efficiency_percent"
+          "minimum_flow_bypass_percent"
         ]
       }
     ],
@@ -155,14 +142,6 @@
           "action",
           "suggested_minimum"
         ]
-      },
-      {
-        "action_index": 0,
-        "parameter_key": "efficiency_percent",
-        "keys": [
-          "action",
-          "suggested_range"
-        ]
       }
     ],
     "scoring_focus": [
@@ -172,22 +151,21 @@
       "actionability",
       "risk_level"
     ],
-    "notes": "同一对象内存在多项参数修正时，也应保持稳定顺序：先处理主工艺目标参数，再处理保护性运行参数，最后才是次级效率范围。"
+    "notes": "parameter_updates 的外层字段顺序冻结后，内层 detail object 也应稳定：先给动作类型，再给阈值/参考流股等支撑细节。"
   },
   "golden_response": {
     "schema_version": 1,
     "status": "partial",
     "project": "radishflow",
     "task": "suggest_flowsheet_edits",
-    "summary": "当前建议把 Booster Compressor 的局部参数修正收成一条可审查 patch，并按稳定顺序先处理目标压力、再处理最小流量旁路、最后处理效率范围。",
+    "summary": "当前建议把 compressor-4 的目标压力裕量与最小流量旁路审查收成一条局部 patch，并保持 parameter_updates 详情键顺序稳定：先 action，再阈值或参考依据。",
     "answers": [
       {
         "kind": "edit_rationale",
-        "text": "三个诊断都落在 compressor-2 的同一组局部参数上，因此适合合并成一个 candidate_edit；但字段顺序仍应稳定，优先处理主工艺目标和保护性运行参数，而不是先从次级效率范围开始。",
+        "text": "这两个诊断都集中在 compressor-4 的局部参数上，因此适合合并成一个 candidate_edit；同时 detail object 的键顺序也应稳定，先说明要执行的审查动作，再补充阈值和参考流股依据。",
         "citation_ids": [
           "diag-1",
           "diag-2",
-          "diag-3",
           "flowdoc-unit-1",
           "snapshot-1"
         ]
@@ -196,7 +174,7 @@
     "issues": [
       {
         "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
-        "message": "compressor-2 的 outlet_pressure_target_kpa 与入口压力过近，当前压缩裕量不足。",
+        "message": "compressor-4 的 outlet_pressure_target_kpa 与入口压力过近，当前压缩裕量不足。",
         "severity": "error",
         "citation_ids": [
           "diag-1",
@@ -205,19 +183,10 @@
       },
       {
         "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
-        "message": "compressor-2 的 minimum_flow_bypass_percent 低于当前 anti-surge 审查下限。",
+        "message": "compressor-4 的 minimum_flow_bypass_percent 低于当前 anti-surge 审查下限。",
         "severity": "error",
         "citation_ids": [
           "diag-2",
-          "flowdoc-unit-1"
-        ]
-      },
-      {
-        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
-        "message": "compressor-2 的 efficiency_percent=104 超出了当前建议运行区间。",
-        "severity": "warning",
-        "citation_ids": [
-          "diag-3",
           "flowdoc-unit-1"
         ]
       }
@@ -225,29 +194,22 @@
     "proposed_actions": [
       {
         "kind": "candidate_edit",
-        "title": "按稳定优先级调整 compressor-2 的关键参数",
+        "title": "按稳定细节顺序复核 compressor-4 的关键参数",
         "target": {
           "type": "unit",
-          "id": "compressor-2"
+          "id": "compressor-4"
         },
-        "rationale": "当前 patch 应先处理主工艺目标参数，再处理 anti-surge 保护参数，最后处理效率范围，避免同一对象的参数修正顺序随机漂移。",
+        "rationale": "当前 patch 仍应保持为局部参数审查提案；同时每个 parameter_updates detail object 都应先列出 action，再列阈值和参考依据，避免实现层随机打散细节顺序。",
         "patch": {
           "parameter_updates": {
             "outlet_pressure_target_kpa": {
               "action": "review_and_raise_margin",
-              "minimum_delta_kpa": 90,
-              "reference_stream_id": "feed-9"
+              "minimum_delta_kpa": 95,
+              "reference_stream_id": "feed-11"
             },
             "minimum_flow_bypass_percent": {
               "action": "raise_to_anti_surge_review_floor",
               "suggested_minimum": 8
-            },
-            "efficiency_percent": {
-              "action": "clamp_to_review_range",
-              "suggested_range": [
-                65,
-                85
-              ]
             }
           },
           "preserve_topology": true
@@ -257,7 +219,6 @@
         "citation_ids": [
           "diag-1",
           "diag-2",
-          "diag-3",
           "flowdoc-unit-1",
           "snapshot-1"
         ]
@@ -269,28 +230,21 @@
         "kind": "context",
         "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
         "locator": "context:diagnostics[0]",
-        "excerpt": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty."
+        "excerpt": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty."
       },
       {
         "id": "diag-2",
         "kind": "context",
         "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
         "locator": "context:diagnostics[1]",
-        "excerpt": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold."
-      },
-      {
-        "id": "diag-3",
-        "kind": "context",
-        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
-        "locator": "context:diagnostics[2]",
-        "excerpt": "Booster Compressor efficiency_percent=104 is outside the recommended operating range."
+        "excerpt": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold."
       },
       {
         "id": "flowdoc-unit-1",
         "kind": "artifact",
-        "label": "FlowsheetDocument / compressor-2",
+        "label": "FlowsheetDocument / compressor-4",
         "locator": "artifact:flowsheet_document.units[0]",
-        "excerpt": "compressor-2 当前 outlet_pressure_target_kpa=270，minimum_flow_bypass_percent=2，efficiency_percent=104。"
+        "excerpt": "compressor-4 当前 outlet_pressure_target_kpa=275，minimum_flow_bypass_percent=3。"
       },
       {
         "id": "snapshot-1",
@@ -300,7 +254,7 @@
         "excerpt": "solver_status=invalid_parameters"
       }
     ],
-    "confidence": 0.88,
+    "confidence": 0.91,
     "risk_level": "medium",
     "requires_confirmation": true
   }

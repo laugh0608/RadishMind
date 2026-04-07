@@ -137,6 +137,24 @@
         ]
       }
     ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 0,
+        "parameter_key": "outlet_pressure_target_kpa",
+        "keys": [
+          "action",
+          "minimum_reference_stream_id"
+        ]
+      },
+      {
+        "action_index": 0,
+        "parameter_key": "efficiency_percent",
+        "keys": [
+          "action",
+          "suggested_range"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

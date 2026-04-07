@@ -119,6 +119,17 @@
       "$.proposed_actions[0].requires_confirmation=false",
       "$.proposed_actions[0].target.id=\"product-3\""
     ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 0,
+        "parameter_key": "outlet_pressure_target_kpa",
+        "keys": [
+          "action",
+          "minimum_delta_kpa",
+          "reference_stream_id"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",
