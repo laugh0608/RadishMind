@@ -124,6 +124,10 @@
       "$.proposed_actions[1]",
       "$.proposed_actions[0].patch.patch_scope=\"full_flowsheet\""
     ],
+    "ordered_issue_codes": [
+      "STREAM_SPEC_MISSING",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED"
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

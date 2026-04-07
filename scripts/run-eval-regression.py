@@ -1306,6 +1306,20 @@ def validate_suggest_response(
     if highest_action_risk > 0 and RISK_RANKS.get(str(response.get("risk_level") or ""), 0) != highest_action_risk:
         add_violation(violations, f"{sample_name}: {response_label}.risk_level must equal the highest proposed_action risk")
 
+    ordered_issue_codes = [str(code) for code in get_array(evaluation.get("ordered_issue_codes"))]
+    if ordered_issue_codes:
+        actual_issue_codes = [str((issue or {}).get("code") or "") for issue in issues]
+        if len(actual_issue_codes) < len(ordered_issue_codes):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} must contain at least {len(ordered_issue_codes)} issues for evaluation.ordered_issue_codes",
+            )
+        elif actual_issue_codes[: len(ordered_issue_codes)] != ordered_issue_codes:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} issues must remain ordered as {ordered_issue_codes}",
+            )
+
     ordered_action_targets = get_array(evaluation.get("ordered_action_targets"))
     for index, ordered_target in enumerate(ordered_action_targets):
         if index >= len(actions):

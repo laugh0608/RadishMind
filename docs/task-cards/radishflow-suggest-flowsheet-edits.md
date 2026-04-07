@@ -49,6 +49,7 @@
 
 - `summary` 必须说明建议围绕哪个对象或哪类问题生成
 - `issues` 必须把触发提案的诊断或约束写清楚
+- 若同时存在多个 `issues`，顺序也应保持稳定，优先把已确认且更直接对应 patch 的问题放在前面，再列未确认、派生性或保留性 warning
 - `proposed_actions` 至少包含一个 `candidate_edit`
 - 每个 `candidate_edit` 都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`
 - `citations` 必须能定位到支撑该提案的状态、诊断或补充证据

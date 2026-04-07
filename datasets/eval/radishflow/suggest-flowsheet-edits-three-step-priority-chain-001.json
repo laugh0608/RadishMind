@@ -143,6 +143,11 @@
       "$.proposed_actions[2].requires_confirmation=false",
       "$.risk_level=\"medium\""
     ],
+    "ordered_issue_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ],
     "ordered_action_targets": [
       {
         "type": "stream",

@@ -119,6 +119,10 @@
       "$.proposed_actions[0].requires_confirmation=false",
       "$.proposed_actions[0].target.id=\"product-3\""
     ],
+    "ordered_issue_codes": [
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
+    ],
     "ordered_parameter_update_detail_keys": [
       {
         "action_index": 0,

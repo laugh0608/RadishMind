@@ -124,6 +124,14 @@
             "minLength": 1
           }
         },
+        "ordered_issue_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
         "ordered_action_targets": {
           "type": "array",
           "items": {
