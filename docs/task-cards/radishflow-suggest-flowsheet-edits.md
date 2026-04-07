@@ -53,6 +53,7 @@
 - 每个 `candidate_edit` 都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`
 - `citations` 必须能定位到支撑该提案的状态、诊断或补充证据
 - 若同时存在多个 `candidate_edit`，顺序应保持稳定，并优先把更直接、更阻塞或风险更高的提案放在前面，而不是随机漂移
+- 若单个 `candidate_edit.patch.parameter_updates` 同时包含多个字段，字段顺序也应保持稳定，优先主工艺目标参数，再到保护性或边界参数，最后才是次级运行范围修正
 
 ## 候选动作约束
 

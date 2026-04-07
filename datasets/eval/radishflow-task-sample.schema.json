@@ -145,6 +145,32 @@
             }
           }
         },
+        "ordered_parameter_update_keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action_index",
+              "keys"
+            ],
+            "properties": {
+              "action_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            }
+          }
+        },
         "scoring_focus": {
           "type": "array",
           "items": {

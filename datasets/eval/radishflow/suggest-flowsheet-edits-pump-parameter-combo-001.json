@@ -119,6 +119,15 @@
     "must_not_have_json_paths": [
       "$.proposed_actions[0].requires_confirmation=false"
     ],
+    "ordered_parameter_update_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "outlet_pressure_target_kpa",
+          "efficiency_percent"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",
