@@ -153,6 +153,15 @@
         "id": "pump-2"
       }
     ],
+    "ordered_spec_placeholder_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "temperature_c",
+          "flow_rate_kg_per_h"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

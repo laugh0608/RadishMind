@@ -171,6 +171,32 @@
             }
           }
         },
+        "ordered_spec_placeholder_sequences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action_index",
+              "values"
+            ],
+            "properties": {
+              "action_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            }
+          }
+        },
         "scoring_focus": {
           "type": "array",
           "items": {

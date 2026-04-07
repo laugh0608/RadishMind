@@ -136,6 +136,7 @@
 - 三动作优先级链样本，覆盖“blocking topology -> upstream spec -> local parameter” 的稳定排序
 - 同风险多动作样本，覆盖“都为 medium 时仍先补输入完整性，再补输出状态，再补本地参数”的稳定排序
 - 单个 `candidate_edit.patch.parameter_updates` 的字段顺序约束，覆盖“主工艺目标参数 -> 保护性运行参数 -> 次级运行范围”的稳定排序
+- 单个 `candidate_edit.patch.spec_placeholders` 的占位顺序约束，覆盖“状态基础字段 -> 流量补充字段”的稳定排序
 
 同时该任务的回归当前会额外约束：
 
@@ -144,6 +145,7 @@
 - `patch` 不得退化成命令式执行字段或整图重写字段
 - 若样本声明 `evaluation.ordered_action_targets`，多条 `candidate_edit` 的目标顺序必须稳定匹配该优先级约束
 - 若样本声明 `evaluation.ordered_parameter_update_keys`，指定 action 的 `patch.parameter_updates` 键顺序也必须稳定匹配该字段级优先级约束
+- 若样本声明 `evaluation.ordered_spec_placeholder_sequences`，指定 action 的 `patch.spec_placeholders` 顺序也必须稳定匹配该占位优先级约束
 
 其中 `suggest_ghost_completion` 当前已覆盖：
 
