@@ -1422,6 +1422,38 @@ def validate_suggest_response(
                 f"{sample_name}: {response_label} proposed_action[{action_index}].patch.spec_placeholders must remain ordered as {expected_values}",
             )
 
+    ordered_parameter_placeholder_sequences = get_array(evaluation.get("ordered_parameter_placeholder_sequences"))
+    for ordered_parameter_placeholders in ordered_parameter_placeholder_sequences:
+        action_index = ordered_parameter_placeholders.get("action_index")
+        if not isinstance(action_index, int):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.ordered_parameter_placeholder_sequences.action_index must be an integer",
+            )
+            continue
+        if action_index >= len(actions):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing proposed_action[{action_index}] required by evaluation.ordered_parameter_placeholder_sequences",
+            )
+            continue
+
+        patch = actions[action_index].get("patch") or {}
+        parameter_placeholders = get_array(patch.get("parameter_placeholders"))
+        expected_values = [str(value) for value in get_array(ordered_parameter_placeholders.get("values"))]
+        if len(parameter_placeholders) < len(expected_values):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch.parameter_placeholders must contain at least {len(expected_values)} items for ordered_parameter_placeholder_sequences",
+            )
+            continue
+        actual_values = [str(value) for value in parameter_placeholders[: len(expected_values)]]
+        if actual_values != expected_values:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} proposed_action[{action_index}].patch.parameter_placeholders must remain ordered as {expected_values}",
+            )
+
     citation_ids = {str(citation.get("id") or "") for citation in citations}
     referenced_ids: set[str] = set()
     for answer in answers:

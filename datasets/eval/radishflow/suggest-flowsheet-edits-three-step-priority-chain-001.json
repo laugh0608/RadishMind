@@ -157,6 +157,14 @@
         "id": "heater-3"
       }
     ],
+    "ordered_parameter_placeholder_sequences": [
+      {
+        "action_index": 2,
+        "values": [
+          "outlet_temperature_c"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

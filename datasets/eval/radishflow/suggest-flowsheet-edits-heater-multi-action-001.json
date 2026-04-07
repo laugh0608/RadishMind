@@ -133,6 +133,14 @@
         ]
       }
     ],
+    "ordered_parameter_placeholder_sequences": [
+      {
+        "action_index": 1,
+        "values": [
+          "outlet_temperature_c"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",
