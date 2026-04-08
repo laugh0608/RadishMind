@@ -211,6 +211,11 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-navigation-missing-read-only-check-confirmation-001.json"
     },
     {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-navigation-missing-read-only-check-issue-001",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-navigation-missing-read-only-check-issue-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-navigation-missing-read-only-check-issue-001.json"
+    },
+    {
       "record_id": "captured-radish-docs-qa-negative-real-derived-role-boundary-missing-read-only-check-confirmation-001",
       "sample_id": "radish-answer-docs-question-negative-real-derived-role-boundary-missing-read-only-check-confirmation-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-role-boundary-missing-read-only-check-confirmation-001.json"
