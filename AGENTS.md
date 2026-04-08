@@ -195,9 +195,19 @@
 示例：
 
 ```text
-docs: initialize radishmind planning baseline
-ci: add repository governance checks
-chore: establish branch and pr conventions
+docs: 更新了相关进度和协作文档
+
+- 更新了 AGENTS.md 文档
+- 为项目协作添加了相关约束规则
+- 主要是对齐了项目现状代码与文档的进度
+```
+
+```text
+ci(ruleset): add repository governance checks
+```
+
+```text
+chore(PR): establish branch and pr conventions
 ```
 
 ## 文档与开发日志更新要求
