@@ -62,6 +62,7 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-read-only-check-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-multi-issues-confirmation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-multi-issues-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-citation-drift-action-confirmation-001.json",
@@ -104,8 +105,8 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 32, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 32, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 33, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 33, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
     require_equal(summary.get("source_record_count"), 17, "summary.source_record_count")
     require_equal(summary.get("source_record_group_count"), 17, "summary.source_record_group_count")
@@ -228,6 +229,16 @@ def main() -> int:
         ),
         2,
         "source_record_groups 2026-04-05 docs-faq-forum-conflict entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-evidence-gap-001",
+            )
+        ),
+        2,
+        "source_record_groups 2026-04-05 evidence-gap entry_count",
     )
     require_equal(
         source_group_entry_counts.get(
@@ -357,7 +368,7 @@ def main() -> int:
     )
     require_equal(
         pattern_entry_counts.get(("multi_issue_confirmation_drift",)),
-        3,
+        4,
         "pattern_groups multi_issue_confirmation_drift entry_count",
     )
     require_equal(
@@ -419,6 +430,17 @@ def main() -> int:
         ).get("entry_count")
         for group in violation_groups
     }
+    require_equal(
+        violation_entry_counts.get(
+            (
+                "json path '$.issues[1]' should not exist",
+                "json path '$.requires_confirmation' expected 'False' but found 'True'",
+                "json path '$.requires_confirmation' should not equal 'True'",
+            )
+        ),
+        4,
+        "violation_groups multi_issue_confirmation entry_count",
+    )
     require_equal(
         violation_entry_counts.get(
             (

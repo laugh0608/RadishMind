@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-multi-issues-confirmation-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-multi-issues-confirmation-002",
+  "request_id": "sample-negative-real-derived-evidence-gap-multi-issues-confirmation-002",
+  "captured_at": "2026-04-08T20:15:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:multi_issue_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-evidence-gap-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 evidence-gap 真实 record 派生，专门把这条仍是单派生的 source 扩成同源双派生，并继续复用第二条 issue 加 requires_confirmation 的既有治理口径。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前文档仍只说明可以查看 Hangfire 任务状态，无法确认谁有权重试或删除任务；但当前回答又把这条证据不足边界进一步升级成了需要人工确认的状态。",
+    "answers": [
+      {
+        "kind": "evidence_limited_answer",
+        "text": "《Hangfire 只读说明》没有提供重试或删除任务的授权口径，因此当前只能停留在证据不足结论；不过当前回答又额外把这条边界升级成了需要人工确认的处理状态。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_EVIDENCE",
+        "message": "当前证据不足以确认是否允许重试或删除 Hangfire 任务。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      },
+      {
+        "code": "MANUAL_CONFIRMATION_REQUIRED",
+        "message": "当前回答额外把证据不足场景升级成了需要人工确认的处理状态。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "console/hangfire-readonly",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# Hangfire 只读说明 本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "confidence": 0.59,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}
