@@ -161,6 +161,11 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json"
     },
     {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-multi-issues-confirmation-001",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-multi-issues-confirmation-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-multi-issues-confirmation-001.json"
+    },
+    {
       "record_id": "captured-radish-docs-qa-negative-real-derived-evidence-gap-unconfirmed-operation-001",
       "sample_id": "radish-answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json"
