@@ -26,6 +26,15 @@ from services.runtime.candidate_records import (  # noqa: E402
     write_json_document,
 )
 
+IGNORED_JSON_SUFFIXES = (
+    ".manifest.json",
+    ".audit.json",
+    ".artifacts.json",
+    ".negative-replay-index.json",
+    ".real-derived-index.json",
+    ".summary.json",
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -59,7 +68,9 @@ def main() -> int:
         raise SystemExit(f"record directory does not exist: {args.record_dir}")
 
     record_paths = sorted(
-        path for path in record_dir.glob("*.json") if not path.name.endswith(".manifest.json")
+        path
+        for path in record_dir.glob("*.json")
+        if not any(path.name.endswith(suffix) for suffix in IGNORED_JSON_SUFFIXES)
     )
     if len(record_paths) == 0:
         raise SystemExit(f"no candidate record files found in: {args.record_dir}")

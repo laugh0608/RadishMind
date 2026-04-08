@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-role-boundary-multi-issues-confirmation-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-002",
+  "request_id": "sample-negative-real-derived-role-boundary-multi-issues-confirmation-002",
+  "captured_at": "2026-04-08T12:28:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:multi_issue_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-role-example-boundary-001"
+    },
+    "notes": "基于 2026-04-04 real batch 的 role-example-boundary 真实 record 派生，专门模拟在真实授权边界措辞上又额外叠加第二条 issue 并错误打开 requires_confirmation。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-permission-guide",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "文档中的 Admin 仍只是示例角色，不能直接证明当前账号已获授权；但当前回答又把这条边界提升成了需要人工确认的状态。",
+    "answers": [
+      {
+        "kind": "evidence_limited_answer",
+        "text": "《Hangfire 权限说明》已经明确 Admin 只是角色示例，不能据此认定当前 viewer 具备重试或删除任务的实际授权；不过当前回答又额外把这层边界升级成了需要人工确认的处理状态。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "AUTHORIZATION_NOT_PROVEN",
+        "message": "当前证据不足以把角色示例写成已确认的实际授权结果。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      },
+      {
+        "code": "MANUAL_CONFIRMATION_REQUIRED",
+        "message": "当前回答额外把角色示例边界升级成了需要人工确认的处理状态。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "console/hangfire-permission-guide",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# Hangfire 权限说明 文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。"
+      }
+    ],
+    "confidence": 0.83,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

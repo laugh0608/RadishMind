@@ -47,6 +47,7 @@ def main() -> int:
             "--sample-paths",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-attachment-mixed-missing-read-only-check-issue-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
@@ -54,9 +55,11 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-navigation-missing-read-only-check-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
             "--fail-on-violation",
         ],
@@ -85,24 +88,39 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 13, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 13, "summary.linked_negative_sample_count")
-    require_equal(summary.get("source_manifest_count"), 1, "summary.source_manifest_count")
-    require_equal(summary.get("source_record_count"), 11, "summary.source_record_count")
-    require_equal(summary.get("source_record_group_count"), 11, "summary.source_record_group_count")
+    require_equal(summary.get("derived_record_count"), 16, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 16, "summary.linked_negative_sample_count")
+    require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
+    require_equal(summary.get("source_record_count"), 14, "summary.source_record_count")
+    require_equal(summary.get("source_record_group_count"), 14, "summary.source_record_group_count")
     require_equal(summary.get("violation_group_count"), 10, "summary.violation_group_count")
     require_equal(summary.get("pattern_group_count"), 8, "summary.pattern_group_count")
     require_equal(summary.get("unlinked_derived_record_count"), 0, "summary.unlinked_derived_record_count")
 
     source_record_groups = index_document.get("source_record_groups")
-    if not isinstance(source_record_groups, list) or len(source_record_groups) != 11:
-        raise SystemExit("source_record_groups must contain exactly 11 groups")
+    if not isinstance(source_record_groups, list) or len(source_record_groups) != 14:
+        raise SystemExit("source_record_groups must contain exactly 14 groups")
+
+    source_manifest_paths = sorted(
+        {
+            str(expect_object(group, "source_record_group").get("source_manifest_path") or "")
+            for group in source_record_groups
+        }
+    )
+    require_equal(
+        source_manifest_paths,
+        [
+            "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+            "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+        ],
+        "source_record_groups source_manifest_path set",
+    )
 
     source_sample_ids = sorted(
         str(expect_object(group, "source_record_group").get("source_sample_id") or "") for group in source_record_groups
     )
     require_equal(
-        source_sample_ids,
+        sorted(set(source_sample_ids)),
         [
             "radish-answer-docs-question-attachment-mixed-001",
             "radish-answer-docs-question-direct-answer-001",
@@ -116,29 +134,74 @@ def main() -> int:
             "radish-answer-docs-question-role-example-boundary-001",
             "radish-answer-docs-question-wiki-faq-mixed-001",
         ],
-        "source_record_groups source_sample_id set",
+        "source_record_groups unique source_sample_id set",
     )
     source_group_entry_counts = {
-        str(expect_object(group, "source_record_group").get("source_sample_id") or ""): expect_object(
-            group,
-            "source_record_group",
-        ).get("entry_count")
+        (
+            str(expect_object(group, "source_record_group").get("source_manifest_path") or ""),
+            str(expect_object(group, "source_record_group").get("source_sample_id") or ""),
+        ): expect_object(group, "source_record_group").get("entry_count")
         for group in source_record_groups
     }
     require_equal(
-        source_group_entry_counts.get("radish-answer-docs-question-docs-attachments-forum-conflict-001"),
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+            )
+        ),
         2,
-        "source_record_groups docs-attachments-forum-conflict entry_count",
+        "source_record_groups 2026-04-05 docs-attachments-forum-conflict entry_count",
     )
     require_equal(
-        source_group_entry_counts.get("radish-answer-docs-question-docs-faq-forum-conflict-001"),
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-docs-faq-forum-conflict-001",
+            )
+        ),
         2,
-        "source_record_groups docs-faq-forum-conflict entry_count",
+        "source_record_groups 2026-04-05 docs-faq-forum-conflict entry_count",
     )
     require_equal(
-        source_group_entry_counts.get("radish-answer-docs-question-forum-supplement-001"),
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-forum-supplement-001",
+            )
+        ),
         1,
-        "source_record_groups forum-supplement entry_count",
+        "source_record_groups 2026-04-05 forum-supplement entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-docs-attachments-faq-001",
+            )
+        ),
+        1,
+        "source_record_groups 2026-04-04 docs-attachments-faq entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-evidence-gap-001",
+            )
+        ),
+        1,
+        "source_record_groups 2026-04-04 evidence-gap entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-role-example-boundary-001",
+            )
+        ),
+        1,
+        "source_record_groups 2026-04-04 role-example-boundary entry_count",
     )
 
     violation_groups = index_document.get("violation_groups")
@@ -158,7 +221,7 @@ def main() -> int:
     }
     require_equal(
         pattern_entry_counts.get(("missing_read_only_check_confirmation_drift",)),
-        2,
+        3,
         "pattern_groups missing_read_only_check_confirmation_drift entry_count",
     )
     require_equal(
@@ -180,6 +243,16 @@ def main() -> int:
         pattern_entry_counts.get(("citation_drift_issue_read_only_confirmation_drift",)),
         2,
         "pattern_groups citation_drift_issue_read_only_confirmation_drift entry_count",
+    )
+    require_equal(
+        pattern_entry_counts.get(("evidence_gap_confirmation_operation_drift",)),
+        2,
+        "pattern_groups evidence_gap_confirmation_operation_drift entry_count",
+    )
+    require_equal(
+        pattern_entry_counts.get(("multi_issue_confirmation_drift",)),
+        2,
+        "pattern_groups multi_issue_confirmation_drift entry_count",
     )
 
     flattened_patterns = [
@@ -210,6 +283,16 @@ def main() -> int:
     require_contains(
         flattened_patterns,
         "missing_read_only_check_issue_drift",
+        "pattern_groups derived_patterns",
+    )
+    require_contains(
+        flattened_patterns,
+        "evidence_gap_confirmation_operation_drift",
+        "pattern_groups derived_patterns",
+    )
+    require_contains(
+        flattened_patterns,
+        "multi_issue_confirmation_drift",
         "pattern_groups derived_patterns",
     )
 
