@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-attachment-mixed-missing-read-only-check-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-attachment-mixed-missing-read-only-check-confirmation-001",
+  "request_id": "sample-negative-real-derived-attachment-mixed-missing-read-only-check-confirmation-001",
+  "captured_at": "2026-04-08T17:05:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-attachment-mixed-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 attachment-mixed 真实 record 派生，专门模拟缺失 read_only_check 后又把说明文字补充建议升级成需要确认的 candidate_operation。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "在公开文档中引用附件时，应继续使用 `attachment://{id}` 格式；但当前回答又额外把说明文字是否需要补充升级成了一条需要人工确认的候选处理动作。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据《附件导入说明》规范，公开文档中的附件引用必须采用 `attachment://{id}` 格式，以隐藏底层真实存储路径。结合当前附件元数据，`attachment://manual-42` 已明确标记为 `public-doc-compatible`，可以直接在文档正文中使用；不过当前回答又额外把说明文字是否需要补充升级成了需要人工确认的候选处理步骤。",
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "由文档维护者确认是否补充附件说明文字",
+        "rationale": "当前回答错误地把原本应是低风险只读复核的说明文字补充建议，升级成了需要确认的候选操作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2"
+      }
+    ],
+    "confidence": 0.8,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}
