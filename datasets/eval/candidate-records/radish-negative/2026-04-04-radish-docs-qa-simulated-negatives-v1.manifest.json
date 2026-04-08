@@ -126,6 +126,11 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-confirmation-002.json"
     },
     {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-faq-missing-read-only-check-issue-confirmation-001",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-issue-confirmation-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-issue-confirmation-001.json"
+    },
+    {
       "record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
       "sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-citation-drift-issue-confirmation-001.json"
