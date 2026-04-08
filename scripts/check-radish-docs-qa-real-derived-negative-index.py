@@ -56,6 +56,7 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-citation-drift-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-read-only-check-confirmation-001.json",
@@ -103,8 +104,8 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 31, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 31, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 32, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 32, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
     require_equal(summary.get("source_record_count"), 17, "summary.source_record_count")
     require_equal(summary.get("source_record_group_count"), 17, "summary.source_record_group_count")
@@ -187,6 +188,16 @@ def main() -> int:
         ),
         2,
         "source_record_groups 2026-04-05 direct-answer entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-docs-faq-mixed-001",
+            )
+        ),
+        2,
+        "source_record_groups 2026-04-05 docs-faq-mixed entry_count",
     )
     require_equal(
         source_group_entry_counts.get(
@@ -326,7 +337,7 @@ def main() -> int:
     )
     require_equal(
         pattern_entry_counts.get(("missing_read_only_check_issue_drift",)),
-        5,
+        6,
         "pattern_groups missing_read_only_check_issue_drift entry_count",
     )
     require_equal(
@@ -415,7 +426,7 @@ def main() -> int:
                 "should not contain issues",
             )
         ),
-        5,
+        6,
         "violation_groups missing_read_only_check_issue entry_count",
     )
     require_contains(
