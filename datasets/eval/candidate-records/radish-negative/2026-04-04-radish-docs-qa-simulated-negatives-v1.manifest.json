@@ -201,6 +201,11 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-citation-drift-issue-confirmation-001.json"
     },
     {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-citation-drift-issue-confirmation-002",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-citation-drift-issue-confirmation-002",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-citation-drift-issue-confirmation-002.json"
+    },
+    {
       "record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
       "sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001.json"
