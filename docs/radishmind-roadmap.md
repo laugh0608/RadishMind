@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-07
+更新时间：2026-04-08
 
 ## 路线图目标
 
@@ -97,6 +97,7 @@
 - 为 `Radish docs QA` 的真实/模拟 batch 建立 same-sample / cross-sample replay index、recommended replay summary 与 batch artifact summary 的统一治理链
 - 对“基于真实 bad record 派生、但仍以本地 fixture 入仓”的负例，补 `source_candidate_response_record` 结构化反链，并生成独立 real-derived index，至少支持 `source_record_groups`、`violation_groups` 与 `pattern_groups` 三个审计维度
 - 优先把真实风格 bad output 扩样成 repeated pattern，而不是继续泛化堆叠 simulated negative；当前重点围绕 `read_only_check` 缺失、citation/source drift 与 `answers` 缺失三类主失败面推进
+- 当前 `Radish docs QA` 这条治理子线已把 `2026-04-05` real batch 中仍为 singleton 的 source 全部推进到同源双派生，real-derived index 已收口到 `34` 条 linked negatives；下一步重点转向跨 source 复合 drift 扩样，以及 `pattern` / `violation` 是否需要进一步结构化
 
 ### 推荐指标
 
@@ -198,7 +199,7 @@
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
 2. 在不打断现有三任务扩样的前提下，继续把 `RadishFlow / suggest_ghost_completion` 从“任务卡与契约已冻结”推进到“链式基线已闭环、交互反馈边界继续扩展”的 editor assist PoC 子线；当前已覆盖 `Feed -> Valve -> FlashDrum`、`Feed -> Heater -> FlashDrum`、`Feed -> Cooler -> FlashDrum` 的 `Tab / manual_only / empty` 基线，并已新增首条 `reject-no-retab`
 3. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
-4. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程，作为下一主线
+4. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估
 5. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
 6. 再进入模型对照、PoC 与训练路线验证
 
