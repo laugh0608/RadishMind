@@ -206,6 +206,11 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-002.json"
     },
     {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-001",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-001",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-001.json"
+    },
+    {
       "record_id": "captured-radish-docs-qa-negative-secondary-answer-unofficial-001",
       "sample_id": "radish-answer-docs-question-negative-secondary-answer-unofficial-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-secondary-answer-unofficial-001.json"

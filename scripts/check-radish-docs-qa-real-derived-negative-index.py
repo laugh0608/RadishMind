@@ -66,6 +66,7 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-002.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-001.json",
             "--fail-on-violation",
         ],
         cwd=REPO_ROOT,
@@ -93,8 +94,8 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 21, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 21, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 22, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 22, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
     require_equal(summary.get("source_record_count"), 17, "summary.source_record_count")
     require_equal(summary.get("source_record_group_count"), 17, "summary.source_record_group_count")
@@ -245,7 +246,7 @@ def main() -> int:
                 "radish-answer-docs-question-wiki-faq-mixed-001",
             )
         ),
-        1,
+        2,
         "source_record_groups 2026-04-04 wiki-faq-mixed entry_count",
     )
 
@@ -276,7 +277,7 @@ def main() -> int:
     )
     require_equal(
         pattern_entry_counts.get(("missing_read_only_check_issue_drift",)),
-        2,
+        3,
         "pattern_groups missing_read_only_check_issue_drift entry_count",
     )
     require_equal(
