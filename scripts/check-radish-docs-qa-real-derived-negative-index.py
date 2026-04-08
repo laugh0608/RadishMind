@@ -56,11 +56,13 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-002.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-citation-drift-action-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-navigation-missing-read-only-check-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-role-boundary-multi-issues-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-002.json",
             "--fail-on-violation",
         ],
         cwd=REPO_ROOT,
@@ -88,18 +90,18 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 16, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 16, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 18, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 18, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
-    require_equal(summary.get("source_record_count"), 14, "summary.source_record_count")
-    require_equal(summary.get("source_record_group_count"), 14, "summary.source_record_group_count")
-    require_equal(summary.get("violation_group_count"), 10, "summary.violation_group_count")
+    require_equal(summary.get("source_record_count"), 16, "summary.source_record_count")
+    require_equal(summary.get("source_record_group_count"), 16, "summary.source_record_group_count")
+    require_equal(summary.get("violation_group_count"), 11, "summary.violation_group_count")
     require_equal(summary.get("pattern_group_count"), 8, "summary.pattern_group_count")
     require_equal(summary.get("unlinked_derived_record_count"), 0, "summary.unlinked_derived_record_count")
 
     source_record_groups = index_document.get("source_record_groups")
-    if not isinstance(source_record_groups, list) or len(source_record_groups) != 14:
-        raise SystemExit("source_record_groups must contain exactly 14 groups")
+    if not isinstance(source_record_groups, list) or len(source_record_groups) != 16:
+        raise SystemExit("source_record_groups must contain exactly 16 groups")
 
     source_manifest_paths = sorted(
         {
@@ -197,16 +199,36 @@ def main() -> int:
         source_group_entry_counts.get(
             (
                 "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-forum-supplement-001",
+            )
+        ),
+        1,
+        "source_record_groups 2026-04-04 forum-supplement entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
                 "radish-answer-docs-question-role-example-boundary-001",
             )
         ),
         1,
         "source_record_groups 2026-04-04 role-example-boundary entry_count",
     )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-wiki-faq-mixed-001",
+            )
+        ),
+        1,
+        "source_record_groups 2026-04-04 wiki-faq-mixed entry_count",
+    )
 
     violation_groups = index_document.get("violation_groups")
-    if not isinstance(violation_groups, list) or len(violation_groups) != 10:
-        raise SystemExit("violation_groups must contain exactly 10 groups")
+    if not isinstance(violation_groups, list) or len(violation_groups) != 11:
+        raise SystemExit("violation_groups must contain exactly 11 groups")
 
     pattern_groups = index_document.get("pattern_groups")
     if not isinstance(pattern_groups, list) or len(pattern_groups) != 8:
@@ -253,6 +275,11 @@ def main() -> int:
         pattern_entry_counts.get(("multi_issue_confirmation_drift",)),
         2,
         "pattern_groups multi_issue_confirmation_drift entry_count",
+    )
+    require_equal(
+        pattern_entry_counts.get(("citation_drift_issue_action_confirmation_drift",)),
+        3,
+        "pattern_groups citation_drift_issue_action_confirmation_drift entry_count",
     )
 
     flattened_patterns = [
