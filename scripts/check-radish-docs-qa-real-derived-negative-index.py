@@ -75,6 +75,7 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-002.json",
             "--fail-on-violation",
         ],
         cwd=REPO_ROOT,
@@ -102,8 +103,8 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 30, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 30, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 31, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 31, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
     require_equal(summary.get("source_record_count"), 17, "summary.source_record_count")
     require_equal(summary.get("source_record_group_count"), 17, "summary.source_record_group_count")
@@ -287,6 +288,16 @@ def main() -> int:
         2,
         "source_record_groups 2026-04-04 wiki-faq-mixed entry_count",
     )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-wiki-faq-mixed-001",
+            )
+        ),
+        2,
+        "source_record_groups 2026-04-05 wiki-faq-mixed entry_count",
+    )
 
     violation_groups = index_document.get("violation_groups")
     if not isinstance(violation_groups, list) or len(violation_groups) != 13:
@@ -315,7 +326,7 @@ def main() -> int:
     )
     require_equal(
         pattern_entry_counts.get(("missing_read_only_check_issue_drift",)),
-        4,
+        5,
         "pattern_groups missing_read_only_check_issue_drift entry_count",
     )
     require_equal(
@@ -390,6 +401,23 @@ def main() -> int:
         for group in violation_groups
         for violation in list(expect_object(group, "violation_group").get("expected_candidate_violations") or [])
     ]
+    violation_entry_counts = {
+        tuple(list(expect_object(group, "violation_group").get("expected_candidate_violations") or [])): expect_object(
+            group,
+            "violation_group",
+        ).get("entry_count")
+        for group in violation_groups
+    }
+    require_equal(
+        violation_entry_counts.get(
+            (
+                "is missing required action kind 'read_only_check'",
+                "should not contain issues",
+            )
+        ),
+        5,
+        "violation_groups missing_read_only_check_issue entry_count",
+    )
     require_contains(
         flattened_violations,
         "must contain at least 1 answer",

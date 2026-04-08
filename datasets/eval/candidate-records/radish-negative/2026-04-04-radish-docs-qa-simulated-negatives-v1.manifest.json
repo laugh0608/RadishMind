@@ -251,6 +251,11 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-001.json"
     },
     {
+      "record_id": "captured-radish-docs-qa-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-002",
+      "sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-002",
+      "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-real-derived-wiki-faq-mixed-missing-read-only-check-issue-002.json"
+    },
+    {
       "record_id": "captured-radish-docs-qa-negative-secondary-answer-unofficial-001",
       "sample_id": "radish-answer-docs-question-negative-secondary-answer-unofficial-001",
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-secondary-answer-unofficial-001.json"
@@ -266,5 +271,6 @@
       "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-unexpected-issue-action-001.json"
     }
   ],
-  "capture_origin": "manual_fixture"
+  "capture_origin": "manual_fixture",
+  "description": "Radish docs QA simulated negative candidate response batch."
 }
