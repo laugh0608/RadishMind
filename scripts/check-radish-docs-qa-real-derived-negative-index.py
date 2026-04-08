@@ -54,6 +54,7 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-forum-supplement-citation-drift-action-confirmation-001.json",
@@ -90,18 +91,18 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 18, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 18, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 19, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 19, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
-    require_equal(summary.get("source_record_count"), 16, "summary.source_record_count")
-    require_equal(summary.get("source_record_group_count"), 16, "summary.source_record_group_count")
+    require_equal(summary.get("source_record_count"), 17, "summary.source_record_count")
+    require_equal(summary.get("source_record_group_count"), 17, "summary.source_record_group_count")
     require_equal(summary.get("violation_group_count"), 11, "summary.violation_group_count")
     require_equal(summary.get("pattern_group_count"), 8, "summary.pattern_group_count")
     require_equal(summary.get("unlinked_derived_record_count"), 0, "summary.unlinked_derived_record_count")
 
     source_record_groups = index_document.get("source_record_groups")
-    if not isinstance(source_record_groups, list) or len(source_record_groups) != 16:
-        raise SystemExit("source_record_groups must contain exactly 16 groups")
+    if not isinstance(source_record_groups, list) or len(source_record_groups) != 17:
+        raise SystemExit("source_record_groups must contain exactly 17 groups")
 
     source_manifest_paths = sorted(
         {
@@ -145,6 +146,26 @@ def main() -> int:
         ): expect_object(group, "source_record_group").get("entry_count")
         for group in source_record_groups
     }
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-direct-answer-001",
+            )
+        ),
+        1,
+        "source_record_groups 2026-04-04 direct-answer entry_count",
+    )
+    require_equal(
+        source_group_entry_counts.get(
+            (
+                "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+                "radish-answer-docs-question-direct-answer-001",
+            )
+        ),
+        1,
+        "source_record_groups 2026-04-05 direct-answer entry_count",
+    )
     require_equal(
         source_group_entry_counts.get(
             (
@@ -258,7 +279,7 @@ def main() -> int:
     )
     require_equal(
         pattern_entry_counts.get(("missing_answer_issue_action_drift",)),
-        2,
+        3,
         "pattern_groups missing_answer_issue_action_drift entry_count",
     )
     require_equal(
