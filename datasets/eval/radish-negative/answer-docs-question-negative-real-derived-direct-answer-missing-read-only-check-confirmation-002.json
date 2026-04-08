@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# 鉴权与授权指南\n\n鉴权负责确认用户是谁，授权负责确认用户能做什么。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "guide/authentication",
+          "fragment_id": "lead",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/authentication",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/authentication",
+        "title": "鉴权与授权指南"
+      },
+      "search_scope": [
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 0,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "wiki"
+    ],
+    "required_search_scopes": [
+      "wiki"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.risk_level=\"low\""
+    ],
+    "must_not_have_json_paths": [
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment"
+    ],
+    "notes": "基于 2026-04-05 real batch 的 direct-answer 真实 record 派生负例，要求捕获缺失 `read_only_check` 后又错误升级成需要确认的 candidate_operation。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "is missing required action kind 'read_only_check'",
+      "proposed action '复核鉴权与授权术语边界' must not require confirmation",
+      "json path '$.requires_confirmation' should not equal 'True'"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "按当前文档口径，鉴权解决身份确认，授权解决权限范围确认。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "复核鉴权与授权术语边界",
+        "rationale": "当前更适合先按文档口径核对术语定义，无需把术语边界校验升级成需要确认的操作。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "鉴权与授权指南",
+        "locator": "artifact:wiki_document",
+        "excerpt": "鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "confidence": 0.96,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

@@ -59,6 +59,7 @@ def main() -> int:
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-read-only-check-confirmation-001.json",
+            "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-multi-issues-confirmation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-001.json",
             "datasets/eval/radish-negative/answer-docs-question-negative-real-derived-evidence-gap-unconfirmed-operation-002.json",
@@ -99,8 +100,8 @@ def main() -> int:
     index_document = expect_object(document, "real-derived negative index")
 
     summary = expect_object(index_document.get("summary"), "real-derived negative index summary")
-    require_equal(summary.get("derived_record_count"), 27, "summary.derived_record_count")
-    require_equal(summary.get("linked_negative_sample_count"), 27, "summary.linked_negative_sample_count")
+    require_equal(summary.get("derived_record_count"), 28, "summary.derived_record_count")
+    require_equal(summary.get("linked_negative_sample_count"), 28, "summary.linked_negative_sample_count")
     require_equal(summary.get("source_manifest_count"), 2, "summary.source_manifest_count")
     require_equal(summary.get("source_record_count"), 17, "summary.source_record_count")
     require_equal(summary.get("source_record_group_count"), 17, "summary.source_record_group_count")
@@ -181,7 +182,7 @@ def main() -> int:
                 "radish-answer-docs-question-direct-answer-001",
             )
         ),
-        1,
+        2,
         "source_record_groups 2026-04-05 direct-answer entry_count",
     )
     require_equal(
@@ -292,7 +293,7 @@ def main() -> int:
     }
     require_equal(
         pattern_entry_counts.get(("missing_read_only_check_confirmation_drift",)),
-        6,
+        7,
         "pattern_groups missing_read_only_check_confirmation_drift entry_count",
     )
     require_equal(
