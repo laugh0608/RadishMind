@@ -197,7 +197,7 @@
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 在不打断现有三任务扩样的前提下，继续把 `RadishFlow / suggest_ghost_completion` 从“任务卡与契约已冻结”推进到“链式基线已闭环、交互反馈边界继续扩展”的 editor assist PoC 子线；当前已覆盖 `Feed -> Valve -> FlashDrum`、`Feed -> Heater -> FlashDrum`、`Feed -> Cooler -> FlashDrum` 的 `Tab / manual_only / empty` 基线，并已在三条模板补齐 `reject / dismiss / skip` 三类 `no-retab`
+2. 在不打断现有三任务扩样的前提下，继续把 `RadishFlow / suggest_ghost_completion` 从“任务卡与契约已冻结”推进到“链式基线已闭环、交互反馈边界继续扩展”的 editor assist PoC 子线；当前已覆盖 `Feed -> Valve -> FlashDrum`、`Feed -> Heater -> FlashDrum`、`Feed -> Cooler -> FlashDrum` 的 `Tab / manual_only / empty` 基线，并已在三条模板补齐 `reject / dismiss / skip` 三类 `no-retab`、同一 candidate 一帧 cooldown 后恢复 `Tab`，以及 `other reject / dismiss / skip` 不误伤新 candidate 的 cross-candidate 对称基线
 3. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
 4. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估
 5. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
