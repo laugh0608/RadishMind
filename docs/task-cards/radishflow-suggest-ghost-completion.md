@@ -88,6 +88,7 @@
 - 若同一 `candidate_ref` 刚被 `reject` / `dismiss` / `skip`，则它当前至多只能保留为 `manual_only` 或直接退回空建议，不应立即再次被升级成默认 `Tab`
 - 当前第一版交互语义先明确收口为：`reject` / `dismiss` / `skip` 都共享“同一 candidate 的即时 suppress-Tab”语义；若该候选仍然合法，可继续展示，但只能 `manual_only`
 - 该 suppress 语义当前同样明确限定在“同一 `candidate_ref`”范围内：若最近被否掉的是另一条 candidate，而当前高置信候选已经切换到新的 `candidate_ref`，则不应被旧反馈误伤
+- 当前最小恢复窗口也已先用 `reject` 固定一条基线：同一 `candidate_ref` 的 suppress 只压制下一帧；若当前 `document_revision` 与 `rejected_at_revision` 之间已隔一帧，且该候选仍是本地规则层给出的高置信默认候选，则可恢复默认 `Tab`
 
 当前仓库已将这条约束从 `eval` 样本推进到 `datasets/examples/` 基线：
 
@@ -118,6 +119,9 @@
 - [radishflow-ghost-candidate-set-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001-debug-full.json)
+- [radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001-debug-full.json)
 - [radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-reject-no-retab-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-reject-no-retab-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001-debug-full.json)
@@ -165,6 +169,7 @@
 而 `outlet-reject-no-retab`、`outlet-dismiss-no-retab` 与 `outlet-skip-no-retab` 三组示例则进一步固定第五条边界：即使某个 outlet 候选本身仍然合法，只要它刚在当前链式步骤里被用户 `reject` / `dismiss` / `skip`，也都不应立即再次作为默认 `Tab` 强推；若仍展示该候选，也应退回 `manual_only`。
 而 `feed-heater-flash-heater-outlet` 示例则验证这套链式 handoff 不只适用于 `Valve`，同样适用于 `Feed -> Heater -> FlashDrum` 这类第二模板。
 而 `feed-heater-flash-alternate-candidate-tab-after-other-reject` 示例则进一步固定更细一层边界：recent reject 只压制同一 `candidate_ref`，若当前高置信候选已经切到另一条 candidate，则仍允许恢复默认 `Tab`。
+而 `feed-heater-flash-outlet-tab-after-reject-cooldown` 示例则进一步固定 recent reject 的最小时间窗口：同一 `candidate_ref` 在下一帧必须 suppress-Tab，但若与 `rejected_at_revision` 之间已隔一帧，且它仍是高置信合法候选，则允许恢复默认 `Tab`。
 而 `feed-heater-flash-outlet-reject-no-retab` 示例则进一步验证第二模板对 `reject` 也沿用同一条 suppress-Tab 语义：同一候选刚被拒绝后，若仍展示，也只能退回 `manual_only`。
 而 `feed-heater-flash-outlet-dismiss-no-retab` 与 `feed-heater-flash-outlet-skip-no-retab` 两组示例则进一步验证第二模板对 `dismiss` / `skip` 也沿用同一条 suppress-Tab 语义：同一候选刚被关闭或跳过后，若仍展示，也只能退回 `manual_only`。
 而 `feed-heater-flash-outlet-name-conflict-no-tab` 示例则进一步验证第二模板也能稳定落到 `manual_only`，而不是只存在一条正向 `Tab` 路径。
@@ -185,6 +190,7 @@
 - [suggest-ghost-completion-chain-feed-valve-flash-outlet-skip-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-skip-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-heater-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-heater-outlet-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001.json)
+- [suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-reject-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-reject-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001.json)
@@ -199,7 +205,7 @@
 - [suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json)
 
-它们用于把 `Feed -> Valve -> FlashDrum` 的“链式停住空建议”“链式继续但只能 manual-only”“同一候选刚被 reject / dismiss / skip 后不可立即 retab”边界，以及 `Feed -> Heater -> FlashDrum` 与 `Feed -> Cooler -> FlashDrum` 的正向 `Tab`、`manual_only`、空建议停住与 `reject / dismiss / skip no-retab` 边界，从 pre-model handoff 再推进到 response-level regression。其中三条链式模板当前都已额外覆盖“排序分差不足导致 manual-only”的分叉态，而第二模板还进一步补了一条“旧 candidate 的 reject 不应误伤新 candidate”的 finer-grained baseline。
+它们用于把 `Feed -> Valve -> FlashDrum` 的“链式停住空建议”“链式继续但只能 manual-only”“同一候选刚被 reject / dismiss / skip 后不可立即 retab”边界，以及 `Feed -> Heater -> FlashDrum` 与 `Feed -> Cooler -> FlashDrum` 的正向 `Tab`、`manual_only`、空建议停住与 `reject / dismiss / skip no-retab` 边界，从 pre-model handoff 再推进到 response-level regression。其中三条链式模板当前都已额外覆盖“排序分差不足导致 manual-only”的分叉态，而第二模板还进一步补了“旧 candidate 的 reject 不应误伤新 candidate”与“同一 candidate 的 reject 只 suppress 下一帧、隔一帧后可恢复 Tab”两条 finer-grained baseline。
 
 ## 禁止透传
 

@@ -154,6 +154,33 @@ def get_array(value: Any) -> list[Any]:
     return [value]
 
 
+def get_immediately_suppressed_candidate_refs(request_context: dict[str, Any]) -> set[str]:
+    document_revision = request_context.get("document_revision")
+    if not isinstance(document_revision, int):
+        return set()
+
+    suppressed_candidate_refs: set[str] = set()
+    recent_actions = get_array((request_context.get("cursor_context") or {}).get("recent_actions"))
+    for recent_action in recent_actions:
+        action_kind = str((recent_action or {}).get("kind") or "").strip()
+        if action_kind not in SUPPRESSIVE_RECENT_GHOST_ACTION_KINDS:
+            continue
+
+        candidate_ref = str((recent_action or {}).get("candidate_ref") or "").strip()
+        if not candidate_ref:
+            continue
+
+        revision_key = RECENT_GHOST_ACTION_REVISION_KEYS.get(action_kind)
+        action_revision = (recent_action or {}).get(revision_key or "")
+        if not isinstance(action_revision, int):
+            continue
+
+        if document_revision - action_revision == 1:
+            suppressed_candidate_refs.add(candidate_ref)
+
+    return suppressed_candidate_refs
+
+
 def get_value(obj: Any, name: str) -> tuple[bool, Any]:
     if obj is None:
         return False, None
@@ -1866,12 +1893,7 @@ def validate_ghost_completion_response(
         if required_kind not in actual_action_kinds:
             add_violation(violations, f"{sample_name}: {response_label} is missing required action kind '{required_kind}'")
 
-    suppressed_candidate_refs = {
-        str((recent_action or {}).get("candidate_ref") or "").strip()
-        for recent_action in recent_actions
-        if str((recent_action or {}).get("kind") or "").strip() in SUPPRESSIVE_RECENT_GHOST_ACTION_KINDS
-        and str((recent_action or {}).get("candidate_ref") or "").strip()
-    }
+    suppressed_candidate_refs = get_immediately_suppressed_candidate_refs(request_context)
     highest_action_risk = 0
     for index, action in enumerate(actions):
         highest_action_risk = max(highest_action_risk, RISK_RANKS.get(str(action.get("risk_level") or ""), 0))
