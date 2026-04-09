@@ -1,0 +1,254 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-230",
+          "streams": [
+            {
+              "id": "feed-608",
+              "name": "F-608",
+              "target_unit_id": "heater-9"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-608-unit",
+              "kind": "Feed",
+              "name": "Feed 608"
+            },
+            {
+              "id": "heater-9",
+              "kind": "Heater",
+              "name": "Feed Heater 608"
+            },
+            {
+              "id": "flash-29",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 608"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 70,
+      "selected_unit_ids": [
+        "heater-9"
+      ],
+      "selected_unit": {
+        "id": "heater-9",
+        "kind": "Heater",
+        "name": "Feed Heater 608"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-29.inlet",
+          "distance_px": 62,
+          "alignment_score": 0.95,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-heater-9-outlet-flash-29",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "heater-9",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-29.inlet",
+          "suggested_stream_name": "H-608",
+          "ranking_signals": {
+            "distance_px": 62,
+            "alignment_score": 0.95,
+            "topology_score": 0.92,
+            "score_gap_to_next": 0.36,
+            "template_frequency": 0.83
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "608",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-608-to-heater-9-inlet",
+            "accepted_at_revision": 67
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-heater-9-outlet-flash-29",
+            "skipped_at_revision": 68
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-608"
+        ],
+        "existing_stream_names": [
+          "F-608"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "608"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "recent_skip_cooldown_elapsed_same_candidate_can_retab"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"heater-9\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-heater-9-outlet-flash-29\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"H-608\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当同一 Heater outlet 候选曾被 skip，但当前 document_revision 与 skipped_at_revision 之间已隔一帧，且该候选仍是高置信合法候选时，应允许它恢复默认 Tab。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "heater-9 的 outlet 候选虽在更早一帧被跳过过，但当前已越过即时 suppress 窗口，且该连线仍是唯一高置信候选，因此可恢复为默认 Tab 建议。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "cand-heater-9-outlet-flash-29 在 revision 68 被 skip，但当前请求已经推进到 revision 70，中间已有一帧间隔。既然本地规则层仍把它标成高置信默认候选，说明即时 suppress 期已过，此时可以恢复为 Tab 建议，而不必继续停留在 manual-only。",
+        "citation_ids": [
+          "ctx-recent-skip-expired",
+          "ctx-candidate-heater-outlet",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 heater-9 到 flash-29 的 outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-9",
+          "port_key": "outlet"
+        },
+        "rationale": "同一 outlet 候选虽然曾在更早一帧被 skip，但当前已经越过即时 suppress 窗口，且它仍是唯一高置信合法候选，因此可以恢复为默认 Tab ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-9-outlet-flash-29",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-608"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-9-outlet-flash-29"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-heater-outlet",
+          "ctx-recent-skip-expired"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-skip-expired",
+        "kind": "context",
+        "label": "已越过即时 suppress 窗口的最近 skip",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "skip_ghost_completion candidate_ref=cand-heater-9-outlet-flash-29 skipped_at_revision=68 current_document_revision=70"
+      },
+      {
+        "id": "ctx-candidate-heater-outlet",
+        "kind": "context",
+        "label": "恢复为默认 Tab 的 Heater outlet 候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-9-outlet-flash-29 is_tab_default=true ranking_signals.alignment_score=0.95"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "skip 冷却结束后的恢复模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "recent_skip_cooldown_elapsed_same_candidate_can_retab"
+      }
+    ],
+    "confidence": 0.92,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
