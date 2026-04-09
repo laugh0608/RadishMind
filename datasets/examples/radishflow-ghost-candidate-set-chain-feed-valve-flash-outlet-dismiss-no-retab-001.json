@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 73,
+  "selected_unit": {
+    "id": "flash-18",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 507"
+  },
+  "unconnected_ports": [
+    "vapor_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-18-vapor-lane",
+      "direction": "downstream",
+      "distance_px": 67,
+      "alignment_score": 0.93
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-507-to-valve-8-inlet",
+        "accepted_at_revision": 70
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-8-outlet-flash-18",
+        "accepted_at_revision": 71
+      },
+      {
+        "kind": "dismiss_ghost_completion",
+        "candidate_ref": "cand-flash-18-vapor-outlet",
+        "dismissed_at_revision": 72
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-507"
+    ],
+    "existing_stream_names": [
+      "F-507",
+      "V-507"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG"
+    },
+    "numeric_suffix_from_unit": "507"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection",
+    "recent_dismiss_same_candidate_requires_manual_reselect"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-flash-18-vapor-outlet",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "vapor_outlet",
+      "target_unit_id": "flash-18",
+      "suggested_stream_name": "VG-507",
+      "ranking_signals": {
+        "distance_px": 67,
+        "alignment_score": 0.93,
+        "topology_score": 0.92,
+        "score_gap_to_next": 0.0,
+        "template_frequency": 0.85
+      },
+      "naming_signals": {
+        "applied_prefix": "VG",
+        "numeric_suffix": "507",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "recent_dismiss_cooldown_active",
+        "manual_reselection_required"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "连续搭建链示例：同一 outlet ghost 刚被 dismiss 后，候选仍可见，但不应立即再次作为默认 Tab 强推。"
+  }
+}

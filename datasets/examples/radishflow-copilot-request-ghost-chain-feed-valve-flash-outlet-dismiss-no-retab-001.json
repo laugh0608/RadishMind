@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-valve-flash-outlet-dismiss-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 73,
+    "selected_unit_ids": [
+      "flash-18"
+    ],
+    "selected_unit": {
+      "id": "flash-18",
+      "kind": "FlashDrum",
+      "name": "Flash Drum 507"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-flash-18-vapor-outlet",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "vapor_outlet",
+        "target_unit_id": "flash-18",
+        "suggested_stream_name": "VG-507",
+        "is_high_confidence": false,
+        "is_tab_default": false
+      }
+    ],
+    "unconnected_ports": [
+      "vapor_outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-507-to-valve-8-inlet",
+          "accepted_at_revision": 70
+        },
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-valve-8-outlet-flash-18",
+          "accepted_at_revision": 71
+        },
+        {
+          "kind": "dismiss_ghost_completion",
+          "candidate_ref": "cand-flash-18-vapor-outlet",
+          "dismissed_at_revision": 72
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "V-507"
+      ],
+      "existing_stream_names": [
+        "F-507",
+        "V-507"
+      ],
+      "preferred_prefix_by_port": {
+        "vapor_outlet": "VG"
+      },
+      "numeric_suffix_from_unit": "507"
+    },
+    "topology_pattern_hints": [
+      "feed_valve_flash_chain",
+      "flash_split_after_valve_outlet_connection",
+      "recent_dismiss_same_candidate_requires_manual_reselect"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "stream_stub",
+        "id": "flash-18-vapor-lane",
+        "direction": "downstream"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}
