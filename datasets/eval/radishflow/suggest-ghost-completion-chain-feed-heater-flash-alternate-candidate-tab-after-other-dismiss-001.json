@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-dismiss-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-alternate-candidate-tab-after-other-dismiss-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-227",
+          "streams": [
+            {
+              "id": "feed-605",
+              "name": "F-605",
+              "target_unit_id": "heater-6"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-605-unit",
+              "kind": "Feed",
+              "name": "Feed 605"
+            },
+            {
+              "id": "heater-6",
+              "kind": "Heater",
+              "name": "Feed Heater 605"
+            },
+            {
+              "id": "flash-25",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 605A"
+            },
+            {
+              "id": "flash-26",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 605B"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 60,
+      "selected_unit_ids": [
+        "heater-6"
+      ],
+      "selected_unit": {
+        "id": "heater-6",
+        "kind": "Heater",
+        "name": "Feed Heater 605"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-26.inlet",
+          "distance_px": 58,
+          "alignment_score": 0.97,
+          "direction": "downstream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-25.inlet",
+          "distance_px": 79,
+          "alignment_score": 0.84,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-heater-6-outlet-flash-26",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "heater-6",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-26.inlet",
+          "suggested_stream_name": "H-605",
+          "ranking_signals": {
+            "distance_px": 58,
+            "alignment_score": 0.97,
+            "topology_score": 0.95,
+            "score_gap_to_next": 0.29,
+            "template_frequency": 0.85
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "605",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-605-to-heater-6-inlet",
+            "accepted_at_revision": 58
+          },
+          {
+            "kind": "dismiss_ghost_completion",
+            "candidate_ref": "cand-heater-6-outlet-flash-25",
+            "dismissed_at_revision": 59
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-605"
+        ],
+        "existing_stream_names": [
+          "F-605"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "605"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "recent_dismiss_only_suppresses_same_candidate"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"heater-6\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-heater-6-outlet-flash-26\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"H-605\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当最近 dismiss 的是另一个 candidate_ref，而当前高置信候选已经切换到新的 downstream 目标时，不应把 suppress-Tab 信号误伤到新的 candidate。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "heater-6 当前已有新的高置信 outlet 候选指向 flash-26；虽然上一帧关闭过另一条候选，但该 suppress 信号不应误伤新的 candidate_ref。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "最近被 dismiss 的是 cand-heater-6-outlet-flash-25，但当前本地规则层给出的高置信默认候选已经切换为 cand-heater-6-outlet-flash-26。recent_actions 的 suppress 信号只应压制同一 candidate_ref，不应阻止新的高置信候选继续作为 Tab 建议。",
+        "citation_ids": [
+          "ctx-recent-dismiss-other",
+          "ctx-candidate-heater-outlet",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 heater-6 到 flash-26 的 outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-6",
+          "port_key": "outlet"
+        },
+        "rationale": "上一帧被 dismiss 的是另一条 candidate_ref；当前最近且最匹配的合法候选已经切换为 flash-26，因此仍应允许把这条新候选作为默认 Tab 建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-6-outlet-flash-26",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-605"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-6-outlet-flash-26"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-heater-outlet",
+          "ctx-nearby-flash"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-dismiss-other",
+        "kind": "context",
+        "label": "最近被关闭的是另一条 candidate",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "dismiss_ghost_completion candidate_ref=cand-heater-6-outlet-flash-25 dismissed_at_revision=59"
+      },
+      {
+        "id": "ctx-candidate-heater-outlet",
+        "kind": "context",
+        "label": "当前高置信 Heater outlet 候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-6-outlet-flash-26 is_tab_default=true ranking_signals.alignment_score=0.97"
+      },
+      {
+        "id": "ctx-nearby-flash",
+        "kind": "context",
+        "label": "当前最近且更匹配的 FlashDrum inlet",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "id=flash-26.inlet distance_px=58 alignment_score=0.97"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "dismiss 只压制同一 candidate 模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "recent_dismiss_only_suppresses_same_candidate"
+      }
+    ],
+    "confidence": 0.95,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
