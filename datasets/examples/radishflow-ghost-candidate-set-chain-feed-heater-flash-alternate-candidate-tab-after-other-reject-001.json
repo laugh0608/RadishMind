@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 60,
+  "selected_unit": {
+    "id": "heater-6",
+    "kind": "Heater",
+    "name": "Feed Heater 605"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-26.inlet",
+      "direction": "downstream",
+      "distance_px": 58,
+      "alignment_score": 0.97
+    },
+    {
+      "type": "unit_port",
+      "id": "flash-25.inlet",
+      "direction": "downstream",
+      "distance_px": 79,
+      "alignment_score": 0.84
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-605-to-heater-6-inlet",
+        "accepted_at_revision": 58
+      },
+      {
+        "kind": "reject_ghost_completion",
+        "candidate_ref": "cand-heater-6-outlet-flash-25",
+        "rejected_at_revision": 59
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-605"
+    ],
+    "existing_stream_names": [
+      "F-605"
+    ],
+    "preferred_outlet_prefix": "H",
+    "numeric_suffix_from_unit": "605"
+  },
+  "topology_pattern_hints": [
+    "feed_heater_flash_chain",
+    "heater_outlet_to_flash_inlet_after_feed_connection",
+    "recent_reject_only_suppresses_same_candidate"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-heater-6-outlet-flash-26",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "heater-6",
+      "target_node_id": "flash-26.inlet",
+      "suggested_stream_name": "H-605",
+      "ranking_signals": {
+        "distance_px": 58,
+        "alignment_score": 0.97,
+        "topology_score": 0.95,
+        "score_gap_to_next": 0.29,
+        "template_frequency": 0.85
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "H",
+        "numeric_suffix": "605",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-heater-flash-chain-v1",
+    "notes": "第二条链式模板示例：最近 reject 只压制同一 candidate_ref，不应误伤新的高置信 outlet 候选。"
+  }
+}
