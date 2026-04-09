@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 62,
+  "selected_unit": {
+    "id": "cooler-13",
+    "kind": "Cooler",
+    "name": "Feed Cooler 707"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-35.inlet",
+      "direction": "downstream",
+      "distance_px": 60,
+      "alignment_score": 0.95
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-707-to-cooler-13-inlet",
+        "accepted_at_revision": 58
+      },
+      {
+        "kind": "skip_ghost_completion",
+        "candidate_ref": "cand-cooler-13-outlet-flash-35",
+        "skipped_at_revision": 60
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-707"
+    ],
+    "existing_stream_names": [
+      "F-707"
+    ],
+    "preferred_outlet_prefix": "C",
+    "numeric_suffix_from_unit": "707"
+  },
+  "topology_pattern_hints": [
+    "feed_cooler_flash_chain",
+    "cooler_outlet_to_flash_inlet_after_feed_connection",
+    "recent_skip_cooldown_elapsed_same_candidate_can_retab"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-cooler-13-outlet-flash-35",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "cooler-13",
+      "target_node_id": "flash-35.inlet",
+      "suggested_stream_name": "C-707",
+      "ranking_signals": {
+        "distance_px": 60,
+        "alignment_score": 0.95,
+        "topology_score": 0.92,
+        "score_gap_to_next": 0.37,
+        "template_frequency": 0.81
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "C",
+        "numeric_suffix": "707",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-cooler-flash-chain-v1",
+    "notes": "第三条链式模板示例：同一 outlet ghost 虽在前一帧曾被 skip，但隔一帧后若仍为高置信合法候选，应允许恢复默认 Tab。"
+  }
+}
