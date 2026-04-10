@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001-debug-full",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 75,
+    "selected_unit_ids": [
+      "heater-12"
+    ],
+    "selected_unit": {
+      "id": "heater-12",
+      "kind": "Heater",
+      "name": "Feed Heater 612"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-heater-12-outlet-flash-36",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "heater-12",
+        "target_node_id": "flash-36.inlet",
+        "suggested_stream_name": "H-612",
+        "ranking_signals": {
+          "distance_px": 57,
+          "alignment_score": 0.96,
+          "topology_score": 0.95,
+          "score_gap_to_next": 0.35,
+          "template_frequency": 0.87
+        },
+        "naming_signals": {
+          "derived_from_upstream_name": true,
+          "applied_prefix": "H",
+          "numeric_suffix": "612",
+          "reused_existing_pattern": true,
+          "collision_checked": true
+        },
+        "is_high_confidence": true,
+        "is_tab_default": true
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-612-to-heater-12-inlet",
+          "accepted_at_revision": 70
+        },
+        {
+          "kind": "dismiss_ghost_completion",
+          "candidate_ref": "cand-heater-12-outlet-flash-36",
+          "dismissed_at_revision": 72
+        },
+        {
+          "kind": "skip_ghost_completion",
+          "candidate_ref": "cand-heater-12-outlet-flash-36",
+          "skipped_at_revision": 73
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-612"
+      ],
+      "existing_stream_names": [
+        "F-612"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "612"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "recent_latest_same_candidate_skip_cooldown_elapsed_overrides_older_dismiss"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-36.inlet",
+        "direction": "downstream",
+        "distance_px": 57,
+        "alignment_score": 0.96
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

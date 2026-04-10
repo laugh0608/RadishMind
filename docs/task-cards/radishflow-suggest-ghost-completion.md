@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_ghost_completion`
 
-更新时间：2026-04-05
+更新时间：2026-04-10
 
 ## 任务目标
 
@@ -169,6 +169,9 @@
 - [radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001-debug-full.json)
+- [radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001-debug-full.json)
 - [radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-reject-no-retab-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-reject-no-retab-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-reject-no-retab-001-debug-full.json)
@@ -214,6 +217,9 @@
 - [radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001-debug-full.json)
+- [radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001-debug-full.json)
 - [radishflow-ghost-candidate-set-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001-debug-full.json)
@@ -247,6 +253,7 @@
 而 `feed-heater-flash-outlet-tab-after-reject-cooldown`、`feed-heater-flash-outlet-tab-after-dismiss-cooldown` 与 `feed-heater-flash-outlet-tab-after-skip-cooldown` 三组示例则进一步固定 recent suppress 的最小时间窗口：同一 `candidate_ref` 在下一帧必须 suppress-Tab，但若与对应 recent-action 修订号之间已隔一帧，且它仍是高置信合法候选，则允许恢复默认 `Tab`。
 而 `feed-heater-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss` 示例则把同一条“恢复窗口只看最近一条相关动作”的约束推进到第二模板：若更新一帧的同 candidate `reject` cooldown 已过，则更早的同 candidate `dismiss` 不得继续阻止默认 `Tab` 恢复。
 而 `feed-heater-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject` 示例则把同一条“恢复窗口只看最近一条相关动作”的约束推进到第二模板：若更新一帧的同 candidate `dismiss` cooldown 已过，则更早的同 candidate `reject` 不得继续阻止默认 `Tab` 恢复。
+而 `feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss` 示例则把同一条“恢复窗口只看最近一条相关动作”的约束继续推进到第二模板：若更新一帧的同 candidate `skip` cooldown 已过，则更早的同 candidate `dismiss` 不得继续阻止默认 `Tab` 恢复。
 而 `feed-heater-flash-outlet-reject-no-retab` 示例则进一步验证第二模板对 `reject` 也沿用同一条 suppress-Tab 语义：同一候选刚被拒绝后，若仍展示，也只能退回 `manual_only`。
 而 `feed-heater-flash-outlet-dismiss-no-retab` 与 `feed-heater-flash-outlet-skip-no-retab` 两组示例则进一步验证第二模板对 `dismiss` / `skip` 也沿用同一条 suppress-Tab 语义：同一候选刚被关闭或跳过后，若仍展示，也只能退回 `manual_only`。
 而 `feed-heater-flash-outlet-name-conflict-no-tab` 示例则进一步验证第二模板也能稳定落到 `manual_only`，而不是只存在一条正向 `Tab` 路径。
@@ -258,6 +265,7 @@
 而 `feed-cooler-flash-outlet-tab-after-reject-cooldown`、`feed-cooler-flash-outlet-tab-after-dismiss-cooldown` 与 `feed-cooler-flash-outlet-tab-after-skip-cooldown` 三组示例则把同一条一帧 cooldown 后可恢复 `Tab` 的时间窗口语义推进到第三模板 `Feed -> Cooler -> FlashDrum`。
 而 `feed-cooler-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss` 示例则把同一条“恢复窗口只看最近一条相关动作”的约束继续推进到第三模板：若更新一帧的同 candidate `reject` cooldown 已过，则更早的同 candidate `dismiss` 不得继续阻止默认 `Tab` 恢复。
 而 `feed-cooler-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject` 示例则把同一条“恢复窗口只看最近一条相关动作”的约束继续推进到第三模板：若更新一帧的同 candidate `dismiss` cooldown 已过，则更早的同 candidate `reject` 不得继续阻止默认 `Tab` 恢复。
+而 `feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject` 示例则把同一条“恢复窗口只看最近一条相关动作”的约束继续推进到第三模板：若更新一帧的同 candidate `skip` cooldown 已过，则更早的同 candidate `reject` 不得继续阻止默认 `Tab` 恢复。
 而 `feed-cooler-flash-outlet-ranking-ambiguous-no-tab` 示例则进一步验证第三模板的 `manual_only` 不只来自命名冲突，也可以来自两个合法 `FlashDrum inlet` 候选的分差过小。
 
 当前 `datasets/eval/` 也已补对应回归样本：
@@ -286,6 +294,7 @@
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json)
+- [suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-reject-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-reject-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001.json)
@@ -301,6 +310,7 @@
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001.json)
+- [suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-reject-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-reject-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-dismiss-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-dismiss-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001.json)

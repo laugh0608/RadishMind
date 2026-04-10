@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 76,
+  "selected_unit": {
+    "id": "cooler-18",
+    "kind": "Cooler",
+    "name": "Feed Cooler 712"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-42.inlet",
+      "direction": "downstream",
+      "distance_px": 55,
+      "alignment_score": 0.96
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-712-to-cooler-18-inlet",
+        "accepted_at_revision": 71
+      },
+      {
+        "kind": "reject_ghost_completion",
+        "candidate_ref": "cand-cooler-18-outlet-flash-42",
+        "rejected_at_revision": 73
+      },
+      {
+        "kind": "skip_ghost_completion",
+        "candidate_ref": "cand-cooler-18-outlet-flash-42",
+        "skipped_at_revision": 74
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-712"
+    ],
+    "existing_stream_names": [
+      "F-712"
+    ],
+    "preferred_outlet_prefix": "C",
+    "numeric_suffix_from_unit": "712"
+  },
+  "topology_pattern_hints": [
+    "feed_cooler_flash_chain",
+    "cooler_outlet_to_flash_inlet_after_feed_connection",
+    "recent_latest_same_candidate_skip_cooldown_elapsed_overrides_older_reject"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-cooler-18-outlet-flash-42",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "cooler-18",
+      "target_node_id": "flash-42.inlet",
+      "suggested_stream_name": "C-712",
+      "ranking_signals": {
+        "distance_px": 55,
+        "alignment_score": 0.96,
+        "topology_score": 0.95,
+        "score_gap_to_next": 0.35,
+        "template_frequency": 0.86
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "C",
+        "numeric_suffix": "712",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-cooler-flash-chain-v1",
+    "notes": "第三条链式模板示例：同一 outlet candidate 虽先被 reject 又在更新一帧被 skip，但当前已越过最新 skip 的一帧 cooldown，旧 reject 不应继续阻止默认 Tab 恢复。"
+  }
+}
