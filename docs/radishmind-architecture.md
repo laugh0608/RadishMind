@@ -109,7 +109,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 候选动作工具
   - 在不直接写入业务真相源的前提下，生成可确认的候选编辑或操作提案
   - 为编辑器辅助场景先由本地规则生成合法 ghost completion 候选集，再交给模型做排序、命名和空结果判断
-  - 对 `RadishFlow suggest_ghost_completion`，本地规则层还应显式输出 recent-actions 反馈衍生出的 suppress-Tab 信号，并把“same-candidate 即时 suppress / 一帧 cooldown 恢复 / other-candidate 不共享 suppress”作为可审计的结构化口径，而不是只留在提示词或前端隐式逻辑里
+- 对 `RadishFlow suggest_ghost_completion`，本地规则层还应显式输出 recent-actions 反馈衍生出的 suppress-Tab 信号，并把“same-candidate 即时 suppress / 一帧 cooldown 恢复 / latest-action precedence / other-candidate 不共享 suppress”作为可审计的结构化口径，而不是只留在提示词或前端隐式逻辑里
 
 原则：
 
@@ -190,7 +190,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 对基于真实 bad record 派生的本地负例，生成独立 real-derived negative index，并按 `source_record_groups`、`violation_groups`、`pattern_groups` 做结构化审计
 - 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 当前 `Radish docs QA` 的 same-sample / cross-sample replay 与 real-derived negative index 已统一纳入 `check-repo`，且 `2026-04-05` real batch 已无 singleton source；这条治理链的后续重点应转向跨 source 复合 drift、真实 captured 扩充，以及 `pattern` / `violation` 结构化升级时机评估
-- 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
+- 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、latest-action precedence 下的 reject / dismiss / skip 恢复态、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
 
 ## 推荐仓库结构
