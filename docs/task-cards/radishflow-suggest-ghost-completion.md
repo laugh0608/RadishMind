@@ -89,6 +89,7 @@
 - 当前第一版交互语义先明确收口为：`reject` / `dismiss` / `skip` 都共享“同一 candidate 的即时 suppress-Tab”语义；若该候选仍然合法，可继续展示，但只能 `manual_only`
 - 该 suppress 语义当前同样明确限定在“同一 `candidate_ref`”范围内：若最近被否掉的是另一条 candidate，而当前高置信候选已经切换到新的 `candidate_ref`，则不应被旧反馈误伤
 - 当前最小恢复窗口也已先固定一条共用基线：同一 `candidate_ref` 的 `reject` / `dismiss` / `skip` suppress 都只压制下一帧；若当前 `document_revision` 与对应 recent-action 修订号之间已隔一帧，且该候选仍是本地规则层给出的高置信默认候选，则可恢复默认 `Tab`
+- 当 `recent_actions` 中同时存在多条 ghost 反馈时，当前应以“当前 `candidate_ref` 的最近一条相关动作”作为 suppress / cooldown 判断基线：更早的同 candidate 动作不应覆盖更新动作，而其他 candidate 的更新动作也不应外溢影响当前候选
 
 当前仓库已将这条约束从 `eval` 样本推进到 `datasets/examples/` 基线：
 
