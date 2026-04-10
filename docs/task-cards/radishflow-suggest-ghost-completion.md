@@ -90,6 +90,7 @@
 - 该 suppress 语义当前同样明确限定在“同一 `candidate_ref`”范围内：若最近被否掉的是另一条 candidate，而当前高置信候选已经切换到新的 `candidate_ref`，则不应被旧反馈误伤
 - 当前最小恢复窗口也已先固定一条共用基线：同一 `candidate_ref` 的 `reject` / `dismiss` / `skip` suppress 都只压制下一帧；若当前 `document_revision` 与对应 recent-action 修订号之间已隔一帧，且该候选仍是本地规则层给出的高置信默认候选，则可恢复默认 `Tab`
 - 当 `recent_actions` 中同时存在多条 ghost 反馈时，当前应以“当前 `candidate_ref` 的最近一条相关动作”作为 suppress / cooldown 判断基线：更早的同 candidate 动作不应覆盖更新动作，而其他 candidate 的更新动作也不应外溢影响当前候选
+- 这条“最近一条相关动作优先”约束同样适用于恢复窗口：若同一 `candidate_ref` 的最新否定动作 cooldown 已过，则更早的同 candidate `reject` / `dismiss` / `skip` 不应继续把该候选压成 `manual_only`
 
 当前仓库已将这条约束从 `eval` 样本推进到 `datasets/examples/` 基线：
 
@@ -120,6 +121,9 @@
 - [radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001-debug-full.json)
+- [radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json)
+- [radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001-debug-full.json)
 - [radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001.json)
 - [radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001-debug-full.json](../../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001-debug-full.json)
@@ -217,6 +221,7 @@
 而 `outlets-ranking-ambiguous-no-tab` 示例则进一步固定第四条边界：即使命名没有冲突，只要两个 outlet 候选的排序分差过小，也不应把任一候选升级成默认 `Tab`。
 而 `outlet-reject-no-retab`、`outlet-dismiss-no-retab` 与 `outlet-skip-no-retab` 三组示例则进一步固定第五条边界：即使某个 outlet 候选本身仍然合法，只要它刚在当前链式步骤里被用户 `reject` / `dismiss` / `skip`，也都不应立即再次作为默认 `Tab` 强推；若仍展示该候选，也应退回 `manual_only`。
 而 `feed-valve-flash-outlet-tab-after-reject-cooldown`、`feed-valve-flash-outlet-tab-after-dismiss-cooldown` 与 `feed-valve-flash-outlet-tab-after-skip-cooldown` 三组示例则把同一条一帧 cooldown 后可恢复 `Tab` 的时间窗口语义推进到第一模板 `Feed -> Valve -> FlashDrum`。
+而 `feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject` 示例则进一步固定更细一层恢复语义：当同一 candidate 同时存在更早的 `reject` 和更新一帧的 `dismiss` 时，恢复窗口仍只看最新的同 candidate 动作；一旦最新 `dismiss` cooldown 已过，旧 `reject` 不得继续阻止默认 `Tab` 恢复。
 而 `feed-heater-flash-heater-outlet` 示例则验证这套链式 handoff 不只适用于 `Valve`，同样适用于 `Feed -> Heater -> FlashDrum` 这类第二模板。
 而 `feed-valve-flash-alternate-candidate-tab-after-other-reject / dismiss / skip`、`feed-heater-flash-alternate-candidate-tab-after-other-reject / dismiss / skip` 与 `feed-cooler-flash-alternate-candidate-tab-after-other-reject / dismiss / skip` 三组对称示例则进一步固定更细一层边界：`reject / dismiss / skip` 的 suppress 信号都只压制同一 `candidate_ref`，若当前高置信候选已经切到另一条 candidate，则仍允许恢复默认 `Tab`。
 而 `feed-heater-flash-outlet-tab-after-reject-cooldown`、`feed-heater-flash-outlet-tab-after-dismiss-cooldown` 与 `feed-heater-flash-outlet-tab-after-skip-cooldown` 三组示例则进一步固定 recent suppress 的最小时间窗口：同一 `candidate_ref` 在下一帧必须 suppress-Tab，但若与对应 recent-action 修订号之间已隔一帧，且它仍是高置信合法候选，则允许恢复默认 `Tab`。
@@ -241,6 +246,7 @@
 - [suggest-ghost-completion-chain-feed-valve-flash-outlet-skip-no-retab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-skip-no-retab-001.json)
 - [suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-reject-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-reject-cooldown-001.json)
 - [suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001.json)
+- [suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001.json)
 - [suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001.json)
 - [suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-reject-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-reject-001.json)
 - [suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-dismiss-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-dismiss-001.json)

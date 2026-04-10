@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-valve-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-247",
+          "streams": [
+            {
+              "id": "feed-515",
+              "name": "F-515",
+              "target_unit_id": "valve-16"
+            },
+            {
+              "id": "v-515",
+              "name": "V-515",
+              "source_unit_id": "valve-16",
+              "target_unit_id": "flash-47"
+            }
+          ],
+          "units": [
+            {
+              "id": "valve-16",
+              "kind": "Valve",
+              "name": "Throttle Valve 515"
+            },
+            {
+              "id": "flash-47",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 515"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 94,
+      "selected_unit_ids": [
+        "flash-47"
+      ],
+      "selected_unit": {
+        "id": "flash-47",
+        "kind": "FlashDrum",
+        "name": "Flash Drum 515"
+      },
+      "unconnected_ports": [
+        "vapor_outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-47-vapor-outlet",
+          "ghost_kind": "ghost_connection",
+          "target_port_key": "vapor_outlet",
+          "target_unit_id": "flash-47",
+          "suggested_stream_name": "VG-515",
+          "ranking_signals": {
+            "distance_px": 61,
+            "alignment_score": 0.96,
+            "topology_score": 0.95,
+            "score_gap_to_next": 0.35,
+            "template_frequency": 0.88
+          },
+          "naming_signals": {
+            "applied_prefix": "VG",
+            "numeric_suffix": "515",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "nearby_nodes": [
+        {
+          "type": "stream_stub",
+          "id": "flash-47-vapor-lane",
+          "distance_px": 61,
+          "alignment_score": 0.96,
+          "direction": "downstream"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-515-to-valve-16-inlet",
+            "accepted_at_revision": 89
+          },
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-valve-16-outlet-flash-47",
+            "accepted_at_revision": 90
+          },
+          {
+            "kind": "reject_ghost_completion",
+            "candidate_ref": "cand-flash-47-vapor-outlet",
+            "rejected_at_revision": 91
+          },
+          {
+            "kind": "dismiss_ghost_completion",
+            "candidate_ref": "cand-flash-47-vapor-outlet",
+            "dismissed_at_revision": 92
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "V-515"
+        ],
+        "existing_stream_names": [
+          "F-515",
+          "V-515"
+        ],
+        "preferred_prefix_by_port": {
+          "vapor_outlet": "VG"
+        },
+        "numeric_suffix_from_unit": "515"
+      },
+      "topology_pattern_hints": [
+        "feed_valve_flash_chain",
+        "flash_split_after_valve_outlet_connection",
+        "recent_latest_same_candidate_dismiss_cooldown_elapsed_overrides_older_reject"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"flash-47\"",
+      "$.proposed_actions[0].target.port_key=\"vapor_outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-47-vapor-outlet\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"VG-515\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当同一 outlet candidate 先被 reject、随后又在更新一帧被 dismiss，但当前 document_revision 与最新 dismiss 之间已隔一帧时，应以最新的同 candidate dismiss 作为 cooldown 基线恢复默认 Tab；更早的同 candidate reject 只能作为背景，不应继续把候选压成 manual-only。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "flash-47 的 vapor_outlet 候选虽先被 reject 又在更近一帧被 dismiss，但当前已越过最新 dismiss 的 suppress 窗口，旧 reject 也不能继续压制它，因此可恢复默认 Tab 建议。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "cand-flash-47-vapor-outlet 的最近一条同 candidate 反馈是 revision 92 的 dismiss，而当前请求已推进到 revision 94，说明这条更新动作的即时 suppress 窗口已经结束。revision 91 的 reject 只作为更早背景存在，不能在最新 dismiss cooldown 已过后继续让同一候选停留在 manual-only。",
+        "citation_ids": [
+          "ctx-recent-dismiss-expired",
+          "ctx-recent-reject-background",
+          "ctx-candidate-vapor",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-47 的 vapor_outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-47",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "当前应以最近一条同 candidate dismiss 的 cooldown 状态为准；既然该 suppress 窗口已过，而候选仍是唯一高置信默认项，则可以恢复为默认 Tab ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-47-vapor-outlet",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-515"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-47-vapor-outlet"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-vapor",
+          "ctx-recent-dismiss-expired",
+          "ctx-recent-reject-background"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-dismiss-expired",
+        "kind": "context",
+        "label": "已越过 suppress 窗口的最新同候选 dismiss",
+        "locator": "context:cursor_context.recent_actions[3]",
+        "excerpt": "dismiss_ghost_completion candidate_ref=cand-flash-47-vapor-outlet dismissed_at_revision=92 current_document_revision=94"
+      },
+      {
+        "id": "ctx-recent-reject-background",
+        "kind": "context",
+        "label": "更早一帧的同候选 reject 仅作背景",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "reject_ghost_completion candidate_ref=cand-flash-47-vapor-outlet rejected_at_revision=91"
+      },
+      {
+        "id": "ctx-candidate-vapor",
+        "kind": "context",
+        "label": "当前唯一高置信 vapor_outlet 候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-47-vapor-outlet target_port_key=vapor_outlet suggested_stream_name=VG-515 is_high_confidence=true is_tab_default=true"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "链式搭建与最新动作优先模式",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "recent_latest_same_candidate_dismiss_cooldown_elapsed_overrides_older_reject"
+      }
+    ],
+    "confidence": 0.94,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}
