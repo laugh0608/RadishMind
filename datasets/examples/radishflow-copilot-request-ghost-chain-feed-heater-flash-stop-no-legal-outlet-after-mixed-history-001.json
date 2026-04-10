@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 75,
+    "selected_unit_ids": [
+      "heater-11"
+    ],
+    "selected_unit": {
+      "id": "heater-11",
+      "kind": "Heater",
+      "name": "Feed Heater 610"
+    },
+    "legal_candidate_completions": [],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-610-to-heater-11-inlet",
+          "accepted_at_revision": 72
+        },
+        {
+          "kind": "reject_ghost_completion",
+          "candidate_ref": "cand-heater-11-outlet-flash-34",
+          "rejected_at_revision": 73
+        },
+        {
+          "kind": "skip_ghost_completion",
+          "candidate_ref": "cand-heater-11-outlet-flash-35",
+          "skipped_at_revision": 74
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-610"
+      ],
+      "existing_stream_names": [
+        "F-610",
+        "H-610"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "610"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "stop_when_no_legal_heater_outlet_candidates_after_mixed_history"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-34.inlet",
+        "direction": "downstream"
+      },
+      {
+        "type": "unit_port",
+        "id": "flash-35.inlet",
+        "direction": "downstream"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

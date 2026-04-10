@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-outlet-latest-dismiss-after-reject-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 69,
+    "selected_unit_ids": [
+      "heater-9"
+    ],
+    "selected_unit": {
+      "id": "heater-9",
+      "kind": "Heater",
+      "name": "Feed Heater 608"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-heater-9-outlet-flash-30",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "heater-9",
+        "target_node_id": "flash-30.inlet",
+        "suggested_stream_name": "H-608",
+        "is_high_confidence": false,
+        "is_tab_default": false
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-608-to-heater-9-inlet",
+          "accepted_at_revision": 65
+        },
+        {
+          "kind": "reject_ghost_completion",
+          "candidate_ref": "cand-heater-9-outlet-flash-30",
+          "rejected_at_revision": 67
+        },
+        {
+          "kind": "dismiss_ghost_completion",
+          "candidate_ref": "cand-heater-9-outlet-flash-30",
+          "dismissed_at_revision": 68
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-608"
+      ],
+      "existing_stream_names": [
+        "F-608"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "608"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "recent_same_candidate_latest_action_keeps_manual_reselect"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-30.inlet",
+        "direction": "downstream"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}
