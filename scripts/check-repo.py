@@ -1086,12 +1086,24 @@ RADISHFLOW_ADAPTER_REQUEST_ASSEMBLY_FIXTURES = [
         "sample": "datasets/eval/radishflow/explain-diagnostics-unit-not-converged-001.json",
     },
     {
+        "snapshot": "adapters/radishflow/examples/explain-diagnostics-multi-object-feed-conflict-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-diagnostics-multi-object-feed-conflict-001.json",
+    },
+    {
         "snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json",
         "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
     },
     {
+        "snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
+    },
+    {
         "snapshot": "adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json",
         "sample": "datasets/eval/radishflow/explain-control-plane-entitlement-expired-001.json",
+    },
+    {
+        "snapshot": "adapters/radishflow/examples/explain-control-plane-conflicting-signals-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-control-plane-conflicting-signals-001.json",
     },
 ]
 
@@ -1102,14 +1114,29 @@ RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES = [
         "sample": "datasets/eval/radishflow/explain-diagnostics-unit-not-converged-001.json",
     },
     {
+        "export_snapshot": "adapters/radishflow/exports/explain-diagnostics-multi-object-feed-conflict-001.export.json",
+        "adapter_snapshot": "adapters/radishflow/examples/explain-diagnostics-multi-object-feed-conflict-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-diagnostics-multi-object-feed-conflict-001.json",
+    },
+    {
         "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
         "adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json",
         "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
     },
     {
+        "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.export.json",
+        "adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
+    },
+    {
         "export_snapshot": "adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json",
         "adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json",
         "sample": "datasets/eval/radishflow/explain-control-plane-entitlement-expired-001.json",
+    },
+    {
+        "export_snapshot": "adapters/radishflow/exports/explain-control-plane-conflicting-signals-001.export.json",
+        "adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-conflicting-signals-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-control-plane-conflicting-signals-001.json",
     },
 ]
 
@@ -1232,11 +1259,17 @@ REQUIRED_FILES = [
     "adapters/radishflow/request_builder.py",
     "adapters/radishflow/export_snapshot.py",
     "adapters/radishflow/examples/explain-diagnostics-unit-not-converged-001.snapshot.json",
+    "adapters/radishflow/examples/explain-diagnostics-multi-object-feed-conflict-001.snapshot.json",
     "adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json",
+    "adapters/radishflow/examples/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.snapshot.json",
     "adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json",
+    "adapters/radishflow/examples/explain-control-plane-conflicting-signals-001.snapshot.json",
     "adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json",
+    "adapters/radishflow/exports/explain-diagnostics-multi-object-feed-conflict-001.export.json",
     "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
+    "adapters/radishflow/exports/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.export.json",
     "adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json",
+    "adapters/radishflow/exports/explain-control-plane-conflicting-signals-001.export.json",
     "datasets/README.md",
     "datasets/examples/README.md",
     "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",

@@ -58,7 +58,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 项目重点：
 
 - `RadishFlow`
-  - 当前仓库已先落最小 `adapter-radishflow` 骨架：`adapters/radishflow/request_builder.py` 与 `scripts/build-radishflow-request.py` 可把上游快照稳定装配为 `CopilotRequest`，并已对齐三条既有 eval sample
+  - 当前仓库已先落最小 `adapter-radishflow` 骨架：`adapters/radishflow/request_builder.py` 与 `scripts/build-radishflow-request.py` 可把上游快照稳定装配为 `CopilotRequest`，并已对齐六条既有 eval sample，覆盖最小样本、控制面冲突态与多选裁剪态
   - 当前还已补 export -> adapter 的中间转换层：`adapters/radishflow/export_snapshot.py` 与 `scripts/build-radishflow-adapter-snapshot.py` 可先把更贴近真实导出对象的嵌套快照收口成 adapter snapshot，避免 adapter 直接绑定到手工拼装的扁平 fixture
   - 当前还已补 export -> request 的直达入口：`scripts/build-radishflow-export-request.py` 可让更贴近真实导出对象的输入直接落到 runtime 请求，避免端到端链路只靠“两段脚本各自正确”来间接保证
   - 优先走状态优先打包：`FlowsheetDocument`、`document_revision`、`SelectionState`、`DiagnosticSummary`、`SolveSessionState`、`SolveSnapshot`

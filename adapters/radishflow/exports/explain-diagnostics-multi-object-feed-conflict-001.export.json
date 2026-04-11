@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-explain-diag-multi-object-feed-conflict-001",
+  "task": "explain_diagnostics",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 18,
+    "flowsheet_document": {
+      "document_id": "flowsheet-004",
+      "units": [
+        {
+          "id": "mixer-2",
+          "kind": "Mixer",
+          "name": "Feed Mixer"
+        }
+      ],
+      "streams": [
+        {
+          "id": "feed-hot",
+          "name": "Hot Feed",
+          "target_unit_id": "mixer-2",
+          "specs": {
+            "temperature_c": 180,
+            "flow_kmol_per_h": 50
+          }
+        },
+        {
+          "id": "feed-cold",
+          "name": "Cold Feed",
+          "target_unit_id": "mixer-2",
+          "specs": {
+            "temperature_c": 25,
+            "flow_kmol_per_h": 50
+          }
+        },
+        {
+          "id": "mixed-out",
+          "name": "Mixed Outlet",
+          "source_unit_id": "mixer-2"
+        }
+      ]
+    }
+  },
+  "selection_state": {
+    "selected_unit_ids": [
+      "mixer-2"
+    ],
+    "selected_stream_ids": [
+      "feed-hot",
+      "feed-cold"
+    ]
+  },
+  "diagnostics_export": {
+    "diagnostic_summary": {
+      "error_count": 1,
+      "warning_count": 1
+    },
+    "diagnostics": [
+      {
+        "code": "UNIT_INPUT_STATE_CONFLICT",
+        "message": "Feed Mixer receives inlet streams with inconsistent thermal states.",
+        "severity": "error",
+        "target_type": "unit",
+        "target_id": "mixer-2"
+      },
+      {
+        "code": "STREAM_STATE_DIFFERENCE_LARGE",
+        "message": "Hot Feed and Cold Feed differ significantly in inlet temperature.",
+        "severity": "warning",
+        "target_type": "stream_pair",
+        "target_id": "feed-hot|feed-cold"
+      }
+    ]
+  },
+  "solve_snapshot": {
+    "solver_status": "partial",
+    "residual_norm": 0.12,
+    "last_updated": "2026-04-01T03:40:00Z"
+  }
+}

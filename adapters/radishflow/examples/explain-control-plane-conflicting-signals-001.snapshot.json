@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-control-plane-conflicting-signals-001",
+  "task": "explain_control_plane_state",
+  "locale": "zh-CN",
+  "document_revision": 24,
+  "control_plane_state": {
+    "entitlement_status": "active",
+    "lease_status": "expired",
+    "sync_status": "ok",
+    "manifest_status": "current",
+    "last_error": null
+  },
+  "solve_session": {
+    "status": "blocked"
+  },
+  "supporting_artifacts": [
+    {
+      "kind": "text",
+      "role": "supporting",
+      "name": "ui_status_note",
+      "mime_type": "text/plain",
+      "content": "solver remains blocked while entitlement badge still shows active"
+    }
+  ]
+}
