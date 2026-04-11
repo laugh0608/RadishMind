@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-264",
+          "streams": [
+            {
+              "id": "feed-710",
+              "name": "F-710",
+              "target_unit_id": "cooler-16"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-710-unit",
+              "kind": "Feed",
+              "name": "Feed 710"
+            },
+            {
+              "id": "cooler-16",
+              "kind": "Cooler",
+              "name": "Feed Cooler 710"
+            },
+            {
+              "id": "flash-40",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 710"
+            },
+            {
+              "id": "flash-39",
+              "kind": "FlashDrum",
+              "name": "Legacy Flash 710"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 71,
+      "selected_unit_ids": [
+        "cooler-16"
+      ],
+      "selected_unit": {
+        "id": "cooler-16",
+        "kind": "Cooler",
+        "name": "Feed Cooler 710"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-40.inlet",
+          "distance_px": 56,
+          "alignment_score": 0.97,
+          "direction": "downstream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-39.inlet",
+          "distance_px": 80,
+          "alignment_score": 0.83,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-cooler-16-outlet-flash-40",
+          "ghost_kind": "ghost_connection",
+          "target_port_key": "outlet",
+          "target_unit_id": "cooler-16",
+          "target_node_id": "flash-40.inlet",
+          "suggested_stream_name": "C-710",
+          "ranking_signals": {
+            "distance_px": 56,
+            "alignment_score": 0.97,
+            "topology_score": 0.95,
+            "score_gap_to_next": 0.37,
+            "template_frequency": 0.86
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "710",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-710-to-cooler-16-inlet",
+            "accepted_at_revision": 67
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-cooler-16-outlet-flash-40",
+            "skipped_at_revision": 69
+          },
+          {
+            "kind": "reject_ghost_completion",
+            "candidate_ref": "cand-cooler-16-outlet-flash-39",
+            "rejected_at_revision": 70
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-710"
+        ],
+        "existing_stream_names": [
+          "F-710"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "710"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "recent_skip_cooldown_elapsed_other_reject_does_not_spill"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"cooler-16\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-cooler-16-outlet-flash-40\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"C-710\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当同一 Cooler outlet main candidate 的 skip 已越过一帧 cooldown，而更新一帧的 reject 针对的是其他 legacy candidate 时，当前默认 Tab 应重新允许 same-candidate 恢复，且不得被 other-candidate 的最近反馈误伤。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "cooler-16 的主 outlet 候选虽然更早一帧被 skip 过，但当前已越过同候选 suppress 窗口；而最新 reject 针对的是另一条 legacy 候选，不应外溢，因此可恢复默认 Tab 建议。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "cand-cooler-16-outlet-flash-40 在 revision 69 被 skip，但当前请求已经推进到 revision 71，说明它自己的 suppress 窗口已过。revision 70 的 reject 针对的是 cand-cooler-16-outlet-flash-39，这条反馈只应约束 legacy candidate，不应误伤当前 main candidate 的默认 Tab 资格。",
+        "citation_ids": [
+          "ctx-recent-skip-expired",
+          "ctx-recent-other-reject",
+          "ctx-candidate-cooler-outlet",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 cooler-16 的主 outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-16",
+          "port_key": "outlet"
+        },
+        "rationale": "当前 main candidate 自身的 skip 冷却期已过，而更新的 reject 只发生在另一条 legacy candidate 上，因此 main candidate 可以恢复为默认 Tab ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-16-outlet-flash-40",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-710"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-16-outlet-flash-40"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-cooler-outlet",
+          "ctx-recent-skip-expired",
+          "ctx-recent-other-reject"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-skip-expired",
+        "kind": "context",
+        "label": "已越过 suppress 窗口的 main candidate skip",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "skip_ghost_completion candidate_ref=cand-cooler-16-outlet-flash-40 skipped_at_revision=69 current_document_revision=71"
+      },
+      {
+        "id": "ctx-recent-other-reject",
+        "kind": "context",
+        "label": "只作用于其他 candidate 的最近 reject",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "reject_ghost_completion candidate_ref=cand-cooler-16-outlet-flash-39 rejected_at_revision=70"
+      },
+      {
+        "id": "ctx-candidate-cooler-outlet",
+        "kind": "context",
+        "label": "恢复默认 Tab 的主 Cooler outlet 候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-16-outlet-flash-40 is_tab_default=true"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "skip cooldown 已过且 other reject 不外溢的模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "recent_skip_cooldown_elapsed_other_reject_does_not_spill"
+      }
+    ],
+    "confidence": 0.93,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

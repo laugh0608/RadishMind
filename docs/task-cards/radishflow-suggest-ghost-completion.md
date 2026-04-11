@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_ghost_completion`
 
-更新时间：2026-04-10
+更新时间：2026-04-11
 
 ## 任务目标
 
@@ -91,6 +91,8 @@
 - 当前最小恢复窗口也已先固定一条共用基线：同一 `candidate_ref` 的 `reject` / `dismiss` / `skip` suppress 都只压制下一帧；若当前 `document_revision` 与对应 recent-action 修订号之间已隔一帧，且该候选仍是本地规则层给出的高置信默认候选，则可恢复默认 `Tab`
 - 当 `recent_actions` 中同时存在多条 ghost 反馈时，当前应以“当前 `candidate_ref` 的最近一条相关动作”作为 suppress / cooldown 判断基线：更早的同 candidate 动作不应覆盖更新动作，而其他 candidate 的更新动作也不应外溢影响当前候选
 - 这条“最近一条相关动作优先”约束同样适用于恢复窗口：若同一 `candidate_ref` 的最新否定动作 cooldown 已过，则更早的同 candidate `reject` / `dismiss` / `skip` 不应继续把该候选压成 `manual_only`
+- 当前样本基线已把这条约束补到更细的交错组合：若同一 candidate 先 `skip`、随后最新一帧又 `reject`，则应以最新 `reject` 为准继续保持 `manual_only`
+- 当前样本基线也已补到对称的跨 candidate 恢复态：若 same-candidate `skip` cooldown 已过，而最新一帧 `reject` 针对的是其他 candidate，则该 other-candidate 反馈不得外溢误伤当前默认 `Tab`
 
 当前仓库已将这条约束从 `eval` 样本推进到 `datasets/examples/` 基线：
 

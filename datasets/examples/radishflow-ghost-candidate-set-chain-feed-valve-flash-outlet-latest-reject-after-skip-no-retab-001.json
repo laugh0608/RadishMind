@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 85,
+  "selected_unit": {
+    "id": "flash-44",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 513"
+  },
+  "unconnected_ports": [
+    "vapor_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-44-vapor-lane",
+      "direction": "downstream",
+      "distance_px": 63,
+      "alignment_score": 0.95
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-513-to-valve-14-inlet",
+        "accepted_at_revision": 81
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-14-outlet-flash-44",
+        "accepted_at_revision": 82
+      },
+      {
+        "kind": "skip_ghost_completion",
+        "candidate_ref": "cand-flash-44-vapor-outlet",
+        "skipped_at_revision": 83
+      },
+      {
+        "kind": "reject_ghost_completion",
+        "candidate_ref": "cand-flash-44-vapor-outlet",
+        "rejected_at_revision": 84
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-513"
+    ],
+    "existing_stream_names": [
+      "F-513",
+      "V-513"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG"
+    },
+    "numeric_suffix_from_unit": "513"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection",
+    "recent_same_candidate_latest_action_keeps_manual_reselect"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-flash-44-vapor-outlet",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "vapor_outlet",
+      "target_unit_id": "flash-44",
+      "suggested_stream_name": "VG-513",
+      "ranking_signals": {
+        "distance_px": 63,
+        "alignment_score": 0.95,
+        "topology_score": 0.94,
+        "score_gap_to_next": 0.31,
+        "template_frequency": 0.87
+      },
+      "naming_signals": {
+        "applied_prefix": "VG",
+        "numeric_suffix": "513",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "recent_reject_cooldown_active",
+        "manual_reselection_required",
+        "older_same_candidate_feedback_present"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "第一条链式模板示例：同一 outlet candidate 先被 skip 又在更新一帧被 reject 时，应以最新的同 candidate 动作为准继续 suppress Tab，只保留 manual-only。"
+  }
+}
