@@ -1630,6 +1630,7 @@ REQUIRED_FILES = [
     "scripts/build-radishflow-export-request.py",
     "scripts/build-radishflow-request.py",
     "scripts/init-radishflow-export-snapshot.py",
+    "scripts/validate-radishflow-export-snapshot.py",
     "scripts/import-candidate-response-dump.py",
     "scripts/import-candidate-response-dump-batch.py",
     "scripts/run-copilot-inference.py",
@@ -1894,6 +1895,14 @@ def check_contract_schemas() -> None:
         jsonschema.validate(eval_sample["input_request"], copilot_request_schema)
 
         run_python_script(
+            "validate-radishflow-export-snapshot.py",
+            [
+                "--input",
+                fixture["export_snapshot"],
+            ],
+        )
+
+        run_python_script(
             "build-radishflow-adapter-snapshot.py",
             [
                 "--input",
@@ -1928,6 +1937,13 @@ def check_contract_schemas() -> None:
             )
             generated_template = json.loads(output_path.read_text(encoding="utf-8"))
             jsonschema.validate(generated_template, export_snapshot_schema)
+            run_python_script(
+                "validate-radishflow-export-snapshot.py",
+                [
+                    "--input",
+                    str(output_path),
+                ],
+            )
 
 
 def check_generated_eval_metadata() -> None:

@@ -136,6 +136,7 @@
 - 当前仓库也已新增 `radishflow-adapter-snapshot.schema.json` 与 `build-radishflow-request.py`，先为 `explain_diagnostics`、`suggest_flowsheet_edits` 与 `explain_control_plane_state` 提供最小 `adapter-radishflow` 上游快照 -> `CopilotRequest` 装配链
 - 当前仓库还已再前推一层：新增 `radishflow-export-snapshot.schema.json` 与 `build-radishflow-adapter-snapshot.py`，先把更贴近 `document_state / selection_state / diagnostics_export / solve_snapshot / control_plane_snapshot` 的导出对象稳定转换为 adapter snapshot，再继续装配成 `CopilotRequest`
 - 当前仓库也已新增 `build-radishflow-export-request.py`，用于把 export snapshot 直接装配为 `CopilotRequest`，并由 `check-repo` 校验其结果与既有 eval sample `input_request` 一致
+- 当前仓库也已新增 `validate-radishflow-export-snapshot.py`，用于在真实接线前先对 export snapshot 做 schema、任务级语义与敏感信息 smoke 校验，并由 `check-repo` 统一回归
 - 当前这条装配链已不只覆盖最小 happy path，还补进了 `multi-object diagnostics`、`control-plane conflicting signals` 与“multi-selection 但只允许单 actionable target” 三类代表性样本，避免 context packer 只在单对象、单诊断样本上自洽
 
 ### `RadishFlowExportSnapshot` 上游导出映射约定
@@ -210,20 +211,23 @@
 1. 先按任务选择最小模板
    - 可直接用 `python3 scripts/init-radishflow-export-snapshot.py --task <task>`
    - 该脚本会生成一份 schema-valid 的最小 export snapshot 起步模板
-2. 再替换 request 级基础字段
+2. 先跑预接线 smoke 校验
+   - 可直接用 `python3 scripts/validate-radishflow-export-snapshot.py --input <snapshot.json>`
+   - 该脚本除 schema 外，还会检查任务级必需状态块、selection 语义，以及明显敏感字段/疑似凭据透传
+3. 再替换 request 级基础字段
    - 必填：`request_id`、`locale`
    - 推荐：`request_id` 使用可追踪、可回放的业务侧请求标识
-3. 再补 `document_state`
+4. 再补 `document_state`
    - 必填：`document_revision`
    - `explain_diagnostics` / `suggest_flowsheet_edits` 必填：`flowsheet_document` 或 `flowsheet_document_uri`
-4. 再补 `selection_state`
+5. 再补 `selection_state`
    - `explain_diagnostics` / `suggest_flowsheet_edits` 至少要有 `selected_unit_ids` 或 `selected_stream_ids`
    - 若 UI 存在主焦点 unit，才补 `primary_selected_unit`
-5. 再补任务所需状态块
+6. 再补任务所需状态块
    - `explain_diagnostics` / `suggest_flowsheet_edits`：补 `diagnostics_export`
    - `explain_control_plane_state`：补 `control_plane_snapshot`
    - 有近实时求解状态时，再补 `solve_session_state` / `solve_snapshot`
-6. 最后再补 supporting 证据
+7. 最后再补 supporting 证据
    - 仅在主状态不足以解释当前 UI 表现时补 `support_artifacts`
    - 典型例子：UI note、lease summary、同步提示文本
 
@@ -256,6 +260,13 @@
 - 不透传完整控制面报文或超出当前任务所需的诊断原始堆栈
 - 对外链对象优先传 `uri + 最小摘要`，而不是大对象全文内联
 - 若 artifact 只用于解释 UI 冲突现象，优先给文本摘要，不直接给敏感原始载荷
+
+当前 `validate-radishflow-export-snapshot.py` 已先固定以下预接线校验口径：
+
+- `primary_selected_unit` 只有在显式提供时才允许出现，且应与 `selected_unit_ids[0]` 对齐
+- `explain_diagnostics` / `suggest_flowsheet_edits` 必须同时满足“有 selection”与“有 diagnostics 信息”
+- `explain_control_plane_state` 若仍带 `selection_state`，当前只记 warning，不直接判失败
+- 对 `token`、`secret`、`cookie`、`authorization`、`api_key` 等敏感 key 名，以及 `Bearer ...`、`sk-...`、`AIza...` 这类疑似凭据内容，当前直接判失败
 
 - 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序
 - 当前仓库内的 `CopilotRequest` schema 已冻结 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`cursor_context`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints` 这些 ghost 补全上下文字段

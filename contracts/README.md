@@ -1,6 +1,6 @@
 # RadishMind 统一契约文件
 
-更新时间：2026-04-10
+更新时间：2026-04-11
 
 本目录承载 `RadishMind` 第一版真实契约文件。
 
@@ -72,6 +72,7 @@
 - 当前还新增了 [build-radishflow-adapter-snapshot.py](../scripts/build-radishflow-adapter-snapshot.py)，用于把更贴近上游导出对象的 export snapshot 收口成 adapter snapshot
 - 当前还新增了 [build-radishflow-export-request.py](../scripts/build-radishflow-export-request.py)，用于把 export snapshot 直接装配为 `CopilotRequest`
 - 当前还新增了 [init-radishflow-export-snapshot.py](../scripts/init-radishflow-export-snapshot.py)，用于为三类首批 `RadishFlow` 任务生成 schema-valid 的最小 export 模板
+- 当前还新增了 [validate-radishflow-export-snapshot.py](../scripts/validate-radishflow-export-snapshot.py)，用于在真实接线前对 export snapshot 做 schema、任务级语义和敏感信息 smoke 校验
 - 当前仓库也已补六条 export snapshot 示例：
   - [explain-diagnostics-unit-not-converged-001.export.json](../adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json)
   - [explain-diagnostics-multi-object-feed-conflict-001.export.json](../adapters/radishflow/exports/explain-diagnostics-multi-object-feed-conflict-001.export.json)
@@ -82,6 +83,7 @@
 - 当前 `check-repo` 也会校验这六条 export snapshot 能稳定生成与既有 adapter snapshot 一致的中间结果，避免“导出对象 -> adapter snapshot” 漂成第二套口径
 - 当前 `check-repo` 也会校验这六条 export snapshot 能直接生成与既有 eval sample `input_request` 一致的请求对象，确保“导出对象 -> CopilotRequest” 这条端到端链路同样稳定
 - 当前 `check-repo` 也会校验 `init-radishflow-export-snapshot.py` 生成的三类最小模板本身仍满足 export schema，避免 exporter bootstrap 入口失效
+- 当前 `check-repo` 也会对六条 export snapshot 和三类 bootstrap 模板运行 `validate-radishflow-export-snapshot.py`，避免真实接线前把 selection 裁剪错误、任务级缺块或敏感字段透传带进 runtime 链路
 - 关于这些 export 字段应该如何与上游导出对象逐项对齐，当前正式说明已收口到 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 的 `RadishFlowExportSnapshot` 映射约定章节
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
