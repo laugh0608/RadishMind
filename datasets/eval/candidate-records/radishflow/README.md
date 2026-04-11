@@ -4,7 +4,7 @@
 
 当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` 与 `audit` 治理产物。
 
-当前已正式入仓的 `suggest_ghost_completion` 真实 provider 批次有六批：
+当前已正式入仓的 `suggest_ghost_completion` 真实 provider 批次有七批：
 
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`
@@ -12,8 +12,9 @@
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/`
+- `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/`
 
-这六批当前都只收口同一组 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
+这七批当前都只收口同一组 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
 
 - 对应默认 PoC 三条主路径：`Tab` / `manual_only` / `empty`
 - 真实 raw dump 经过当前 runtime 归一化后，可回放通过 `radishflow-ghost-completion` 回归
@@ -23,6 +24,7 @@
 - 第四批 `v5` 则继续验证：在批次入口改为逐样本单进程并补硬超时后，单样本卡顿不再把整批拖死；同时 `manual_only` 多动作输出里新出现的作用域提前闭合坏法，也已被当前 runtime 重新归一化后导回正式批次
 - 第五批 `v6` 则进一步验证：当默认 `openrouter` 在同一时间窗内出现 provider-wide `HTTP 429` 时，可切到 `deepseek` fallback profile 继续完成同一组 `Tab / manual_only / empty` 三样本真实 capture，且当前未观察到新的结构坏法，最终仍收口到 `audit=3/3 pass`
 - 第六批 `v7` 则继续固定两条新的 provider 侧观察项：其一是当前 `.env.example` 里的 openrouter 默认 free 模型已被上游废弃，直接返回 `404 deprecated`；其二是 `deepseek` 在 `empty` 样本上曾把 `summary` / `answer.text` 写成内嵌 JSON 字符串。当前这两条都已分别通过配置口径更新与 runtime 窄修复收口，最终仍导回正式批次并收口到 `audit=3/3 pass`
+- 第七批 `v8` 则进一步确认：当前若继续坚持“先试 openrouter”，即使先换新的 openrouter 候选模型，也仍可能先后遇到“路由不存在/无可用 endpoint”的 `HTTP 404` 与短窗口 `HTTP 429`；这轮最终已按既定口径切到 `deepseek` fallback profile 完成真实 capture，并确认本批未新增任务级结构坏法，`v7` 的摘要 JSON 字符串漂移也未复现，最终仍收口到 `audit=3/3 pass`
 
 当前不建议把 `/tmp` 下的旧 `record` / `manifest` / `audit` 直接复制进仓库。  
 若这批 dump 采集于 runtime canonicalization 修复之前，应先按当前 runtime 重新归一化 `dump.response`，再导入正式批次。

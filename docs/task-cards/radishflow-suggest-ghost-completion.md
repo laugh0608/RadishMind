@@ -49,8 +49,9 @@
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7)
+- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8)
 
-六批当前都只收口同一组 3 条 record：
+七批当前都只收口同一组 3 条 record：
 
 - `suggest-ghost-completion-flash-vapor-outlet-001.record.json`
 - `suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json`
@@ -66,6 +67,7 @@
 - 第四批 `v5` 则继续把上面的执行层问题推进到可治理状态：一方面批次入口已改为逐样本单进程并加硬超时，另一方面 `manual_only` 样本新暴露出的“多动作 JSON 提前关掉 `proposed_actions` / `answers` 作用域”坏法也已被窄修复收口，并恢复到 `audit=3/3 pass`
 - 紧接着发起的第五批尝试 `v6` 起初一度被 `openrouter` 的 provider-wide `HTTP 429` 阻塞，未能形成新 dump；但在补上 `openrouter / deepseek` 双 profile 切换后，当前已使用 `deepseek` fallback profile 重跑并正式入仓，确认这轮并未新增新的任务级 malformed JSON / 导入归一化失败面，而是供应商可用性阻塞已可绕过
 - 第六批 `v7` 则继续暴露并收口了两条新的真实失败面：其一是当前 openrouter 默认 free 模型已被上游废弃，三条样本会直接 `404 deprecated`；其二是 `deepseek` 在 `empty` 样本上会把 `summary` 与 `empty_suggestion_reason.text` 写成内嵌 JSON 字符串。前者当前已通过 provider profile 切换与 `.env.example` 口径更新收口，后者则已通过只作用于 `radishflow / suggest_ghost_completion` 的摘要文本窄修复收口，并恢复到 `audit=3/3 pass`
+- 第七批 `v8` 则继续证明：在坚持“先试 openrouter”且先轮换 openrouter 候选模型后，本轮观察到的新增阻塞仍主要是 provider/model 可用性层面的 `HTTP 404` 与 `HTTP 429`，而不是新的任务级输出坏法；当前已按既定策略切到 `deepseek` fallback profile 完成正式 capture，并确认三条样本均可回归通过、且 `v7` 暴露的摘要 JSON 字符串漂移未再次出现
 
 当前这条 PoC 仍是轻量版：
 
