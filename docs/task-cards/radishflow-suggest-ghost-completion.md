@@ -318,7 +318,7 @@
 - [suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001.json)
 - [suggest-ghost-completion-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json](../../datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json)
 
-它们用于把 `Feed -> Valve -> FlashDrum` 的“链式停住空建议”“链式继续但只能 manual-only”“同一候选刚被 reject / dismiss / skip 后不可立即 retab”，以及三条模板里的“一帧 cooldown 后可恢复 Tab”边界，从 pre-model handoff 再推进到 response-level regression。其中三条链式模板当前都已额外覆盖“排序分差不足导致 manual-only”的分叉态，并且也都已补齐“旧 candidate 的 reject / dismiss / skip 不应误伤新 candidate”的 cross-candidate 对称基线；同时三条模板都已补齐“同一 candidate 的 reject / dismiss / skip 都只 suppress 下一帧、隔一帧后可恢复 Tab”的 finer-grained baseline。
+它们用于把 `Feed -> Valve -> FlashDrum` 的“链式停住空建议”“链式继续但只能 manual-only”“同一候选刚被 reject / dismiss / skip 后不可立即 retab”，以及三条模板里的“一帧 cooldown 后可恢复 Tab”边界，从 pre-model handoff 再推进到 response-level regression。其中三条链式模板当前都已额外覆盖“排序分差不足导致 manual-only”的分叉态，并且也都已补齐“旧 candidate 的 reject / dismiss / skip 不应误伤新 candidate”的 cross-candidate 对称基线；同时三条模板都已补齐“同一 candidate 的 reject / dismiss / skip 都只 suppress 下一帧、隔一帧后可恢复 Tab”的 finer-grained baseline。最新一轮又补上了两组 stacked recent-actions 交错边界：一组固定“same-candidate dismiss cooldown 已过、但 latest other-candidate skip 不外溢时仍可恢复 `Tab`”，另一组固定“same-candidate 先 reject、后 skip 时以最新 skip 继续 no-retab”，避免 latest-action precedence 与恢复窗口只在单一动作组合上成立。
 
 ## 禁止透传
 

@@ -337,6 +337,7 @@
 - 第二条与第三条链式模板当前也已补 `reject / dismiss / skip no-retab` 示例，确保 suppress-Tab 语义不会只在 `Feed -> Valve -> FlashDrum` 这一条模板上成立
 - 三条链式模板当前都已补“other reject / dismiss / skip does not suppress new candidate”示例，确保 suppress 信号不会从旧 `candidate_ref` 外溢到新的高置信候选
 - 三条链式模板当前都已补“same candidate retab after reject / dismiss / skip cooldown”示例，确保 suppress-Tab 语义不会被误读成永久 manual-only，而是只压制下一帧
+- 三条链式模板当前也已补“same-candidate dismiss cooldown 已过、但 latest other-candidate skip 不外溢时仍可恢复 `Tab`”与“same-candidate 先 reject、后 skip 时以最新 skip 继续 no-retab”两组 stacked recent-actions 交错示例，确保恢复窗口与 latest-action precedence 不会只在单一动作对上成立
 - 上述 `no-tab` 边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免这条规则只停留在 pre-model examples
 - 上述“链式停住空建议”边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免这条规则只停留在 pre-model examples
 - `Feed -> Valve -> FlashDrum` 的“排序分差不足导致 manual-only”边界当前也已推进到 `datasets/eval/radishflow/` 的 response-level 回归样本，避免第一模板的分叉态只停留在 pre-model examples
