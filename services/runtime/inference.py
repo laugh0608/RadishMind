@@ -1041,6 +1041,16 @@ def coerce_response_document(document: dict[str, Any], copilot_request: dict[str
     coerced.setdefault("schema_version", 1)
     coerced.setdefault("project", copilot_request.get("project"))
     coerced.setdefault("task", copilot_request.get("task"))
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        extracted_summary = extract_embedded_summary_text(coerced.get("summary"))
+        if extracted_summary:
+            coerced["summary"] = extracted_summary
+        for answer in coerced.get("answers") or []:
+            if not isinstance(answer, dict):
+                continue
+            extracted_answer_text = extract_embedded_summary_text(answer.get("text"))
+            if extracted_answer_text:
+                answer["text"] = extracted_answer_text
     if not normalize_text(coerced.get("summary")) and coerced.get("answers"):
         first_answer = (coerced.get("answers") or [{}])[0]
         if isinstance(first_answer, dict):
@@ -1134,6 +1144,19 @@ def repair_malformed_ghost_json(candidate: str) -> str:
         if repaired == previous:
             break
     return repaired
+
+
+def extract_embedded_summary_text(value: Any) -> str:
+    normalized_value = normalize_text(value)
+    if not normalized_value or not normalized_value.startswith("{") or not normalized_value.endswith("}"):
+        return ""
+    try:
+        parsed = json.loads(normalized_value)
+    except json.JSONDecodeError:
+        return ""
+    if not isinstance(parsed, dict):
+        return ""
+    return normalize_text(parsed.get("summary"))
 
 
 def resolve_chat_endpoint(base_url: str) -> str:

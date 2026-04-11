@@ -48,8 +48,9 @@
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6)
+- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7)
 
-五批当前都只收口同一组 3 条 record：
+六批当前都只收口同一组 3 条 record：
 
 - `suggest-ghost-completion-flash-vapor-outlet-001.record.json`
 - `suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json`
@@ -64,6 +65,7 @@
 - 第三批 `v4` 未再暴露新的可重新归一化结构坏法；默认批次执行时 `manual_only` 样本一度出现 provider 卡顿，但拆成单样本复跑后可正常 capture，并最终仍沿同一条正式导入链收口到 `audit=3/3 pass`
 - 第四批 `v5` 则继续把上面的执行层问题推进到可治理状态：一方面批次入口已改为逐样本单进程并加硬超时，另一方面 `manual_only` 样本新暴露出的“多动作 JSON 提前关掉 `proposed_actions` / `answers` 作用域”坏法也已被窄修复收口，并恢复到 `audit=3/3 pass`
 - 紧接着发起的第五批尝试 `v6` 起初一度被 `openrouter` 的 provider-wide `HTTP 429` 阻塞，未能形成新 dump；但在补上 `openrouter / deepseek` 双 profile 切换后，当前已使用 `deepseek` fallback profile 重跑并正式入仓，确认这轮并未新增新的任务级 malformed JSON / 导入归一化失败面，而是供应商可用性阻塞已可绕过
+- 第六批 `v7` 则继续暴露并收口了两条新的真实失败面：其一是当前 openrouter 默认 free 模型已被上游废弃，三条样本会直接 `404 deprecated`；其二是 `deepseek` 在 `empty` 样本上会把 `summary` 与 `empty_suggestion_reason.text` 写成内嵌 JSON 字符串。前者当前已通过 provider profile 切换与 `.env.example` 口径更新收口，后者则已通过只作用于 `radishflow / suggest_ghost_completion` 的摘要文本窄修复收口，并恢复到 `audit=3/3 pass`
 
 当前这条 PoC 仍是轻量版：
 
@@ -71,6 +73,7 @@
 - 下一步不再是补 simulated 样本，而是继续跑下一批真实 teacher capture；只有当新增真实 batch 暴露出新的失败面且当前 runtime 修复不足以治理时，再回头补 recent-actions 或导入治理边界样本
 - 当前在继续扩批时，还应同时观察两件事：其一是真实 provider 在批处理场景下是否仍会出现单样本卡顿，其二是 `manual_only` 多动作输出是否还会继续暴露新的结构坏法；若前者继续复现，应优先继续收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
 - 若后续某一轮再次出现三条默认样本同时 `HTTP 429` 且零 capture 的情况，当前应先归类为 provider 侧容量/限流阻塞；这类现象最多驱动 capture 脚本健壮性修复或 provider 切换，不应误记成新的 `suggest_ghost_completion` 输出坏法
+- 若后续继续使用多 provider fallback 采集真实 batch，当前还应额外观察 provider 间的输出风格漂移，例如把本应是纯文本的 `summary` / `answer.text` 写成 JSON 字符串；这类现象若稳定复现，应优先在 runtime 做任务级窄修复，而不是把坏输出原样固化进正式批次
 
 ## 最小必需输入
 

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-11-radishflow-ghost-poc-real-v7",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/suggest-ghost-completion-flash-vapor-outlet-001.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第六批真实 provider 候选响应快照，openrouter 默认 free 模型已废弃时改用 DeepSeek fallback profile 覆盖 Tab/manual_only/empty 三条正式导入主路径，并收口 empty 样本 summary/answer.text 的 JSON 字符串漂移。"
+}
