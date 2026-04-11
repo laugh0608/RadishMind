@@ -44,8 +44,9 @@
 
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3)
+- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4)
 
-两批当前都只收口同一组 3 条 record：
+三批当前都只收口同一组 3 条 record：
 
 - `suggest-ghost-completion-flash-vapor-outlet-001.record.json`
 - `suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json`
@@ -57,11 +58,13 @@
 - 对应真实 raw dump 经当前 runtime 归一化后，可回放通过 `radishflow-ghost-completion` 回归
 - 已生成正式 `manifest` 与 `audit`，不再依赖 `/tmp` 下的临时批次产物
 - 第二批 `v3` 还额外暴露出一个真实 provider 失败面：两条非空样本返回的是“几乎完整但多闭合一个 `}` 的 JSON”；当前已以窄修复收口后重新导入，并恢复到 `audit=3/3 pass`
+- 第三批 `v4` 未再暴露新的可重新归一化结构坏法；默认批次执行时 `manual_only` 样本一度出现 provider 卡顿，但拆成单样本复跑后可正常 capture，并最终仍沿同一条正式导入链收口到 `audit=3/3 pass`
 
 当前这条 PoC 仍是轻量版：
 
 - 目标仍是先证明本任务可以稳定做真实候选输出 capture 与正式导入，而不是一次性复制 `Radish docs QA` 的完整 batch 治理编排
 - 下一步不再是补 simulated 样本，而是继续跑下一批真实 teacher capture；只有当新增真实 batch 暴露出新的失败面且当前 runtime 修复不足以治理时，再回头补 recent-actions 或导入治理边界样本
+- 当前在继续扩批前，还应顺手观察真实 provider 在批处理场景下的单样本卡顿是否会重复出现；若它稳定复现，应优先收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
 
 ## 最小必需输入
 
