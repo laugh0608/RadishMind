@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--provider-profile",
         default="",
-        help="Optional openai-compatible provider profile override, for example openrouter or deepseek.",
+        help="Optional real-provider profile override, for example anyrouter, sub_jlypx, qaq, or google_gemini.",
     )
     parser.add_argument("--model", default="", help="Provider model name override.")
     parser.add_argument("--base-url", default="", help="Provider base URL override.")

@@ -77,8 +77,17 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 
 ## 本地模型配置
 
-当前真实推理入口默认会优先读取仓库根 `.env` 中的以下变量：
+当前真实推理入口默认会优先读取仓库根 `.env` 中的 profile 化变量：
 
+- `RADISHMIND_MODEL_PROFILE`
+- `RADISHMIND_MODEL_PROFILE_<PROFILE>_API_STYLE`
+- `RADISHMIND_MODEL_PROFILE_<PROFILE>_BASE_URL`
+- `RADISHMIND_MODEL_PROFILE_<PROFILE>_NAME`
+- `RADISHMIND_MODEL_PROFILE_<PROFILE>_API_KEY`
+
+当前也仍兼容旧的一组单 profile 变量：
+
+- `RADISHMIND_MODEL_API_STYLE`
 - `RADISHMIND_MODEL_BASE_URL`
 - `RADISHMIND_MODEL_NAME`
 - `RADISHMIND_MODEL_API_KEY`
@@ -113,7 +122,9 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 当前 provider 形态：
 
 - `mock`：默认可用，用于打通 `request -> response -> raw dump -> record` 工程闭环
-- `openai-compatible`：预留真实模型调用入口，支持通过 `RADISHMIND_MODEL_BASE_URL`、`RADISHMIND_MODEL_API_KEY`、`RADISHMIND_MODEL_NAME` 或同名 CLI 参数接入兼容 `/v1/chat/completions` 的 provider
+- `openai-compatible`：当前保留原有 CLI/provider 名称以兼容既有脚本，但 profile 已同时支持两类真实传输
+  - 兼容 `/v1/chat/completions` 的聚合 provider
+  - Google Gemini 原生 `generateContent` provider
 
 示例：
 

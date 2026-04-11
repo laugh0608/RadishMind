@@ -106,7 +106,14 @@ def profile_env_value(profile: str, suffix: str) -> str:
 
 
 def resolve_openai_compatible_profile(provider_profile: str | None) -> str:
-    return str(provider_profile or getenv_stripped("RADISHMIND_MODEL_PROFILE") or "openrouter").strip()
+    return str(provider_profile or getenv_stripped("RADISHMIND_MODEL_PROFILE") or "anyrouter").strip()
+
+
+def infer_profile_api_style(base_url: str) -> str:
+    normalized_base_url = str(base_url or "").strip().lower()
+    if "generativelanguage.googleapis.com" in normalized_base_url:
+        return "gemini-native"
+    return "openai-compatible"
 
 
 def resolve_openai_compatible_config(
@@ -122,6 +129,11 @@ def resolve_openai_compatible_config(
     resolved_model = model or profile_env_value(resolved_profile, "NAME") or getenv_stripped("RADISHMIND_MODEL_NAME")
     resolved_base_url = base_url or profile_env_value(resolved_profile, "BASE_URL") or getenv_stripped("RADISHMIND_MODEL_BASE_URL")
     resolved_api_key = api_key or profile_env_value(resolved_profile, "API_KEY") or getenv_stripped("RADISHMIND_MODEL_API_KEY")
+    resolved_api_style = (
+        profile_env_value(resolved_profile, "API_STYLE")
+        or getenv_stripped("RADISHMIND_MODEL_API_STYLE")
+        or infer_profile_api_style(resolved_base_url)
+    )
     if request_timeout_seconds is None:
         timeout_env_value = (
             profile_env_value(resolved_profile, "REQUEST_TIMEOUT_SECONDS")
@@ -133,6 +145,7 @@ def resolve_openai_compatible_config(
     return {
         "profile": resolved_profile,
         "normalized_profile": normalized_profile,
+        "api_style": resolved_api_style,
         "model": resolved_model,
         "base_url": resolved_base_url,
         "api_key": resolved_api_key,
@@ -1168,6 +1181,15 @@ def resolve_chat_endpoint(base_url: str) -> str:
     return trimmed + "/v1/chat/completions"
 
 
+def resolve_gemini_generate_content_endpoint(base_url: str, model: str) -> str:
+    trimmed = base_url.rstrip("/")
+    if trimmed.endswith(":generateContent"):
+        return trimmed
+    if trimmed.endswith(f"/models/{model}"):
+        return trimmed + ":generateContent"
+    return f"{trimmed}/models/{model}:generateContent"
+
+
 def extract_openai_message_content(payload: dict[str, Any]) -> str:
     choices = payload.get("choices") or []
     if not choices:
@@ -1185,6 +1207,53 @@ def extract_openai_message_content(payload: dict[str, Any]) -> str:
                 text_parts.append(item["text"])
         return "\n".join(text_parts).strip()
     return ""
+
+
+def extract_gemini_message_content(payload: dict[str, Any]) -> str:
+    candidates = payload.get("candidates") or []
+    if not candidates:
+        return ""
+    content = (candidates[0] or {}).get("content") or {}
+    parts = content.get("parts") or []
+    text_parts: list[str] = []
+    for item in parts:
+        if not isinstance(item, dict):
+            continue
+        if isinstance(item.get("text"), str):
+            text_parts.append(item["text"])
+    return "\n".join(text_parts).strip()
+
+
+def extract_provider_message_content(payload: dict[str, Any]) -> str:
+    content = extract_openai_message_content(payload)
+    if content.strip():
+        return content
+    return extract_gemini_message_content(payload)
+
+
+def post_json_request(
+    *,
+    endpoint: str,
+    payload: dict[str, Any],
+    headers: dict[str, str],
+    request_timeout_seconds: float,
+) -> dict[str, Any]:
+    data = json.dumps(payload).encode("utf-8")
+    http_request = request.Request(
+        endpoint,
+        data=data,
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with request.urlopen(http_request, timeout=request_timeout_seconds) as response_obj:
+            raw_body = response_obj.read().decode("utf-8")
+    except error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"provider request failed with HTTP {exc.code}: {error_body}") from exc
+    except (error.URLError, TimeoutError, http.client.RemoteDisconnected, http.client.IncompleteRead) as exc:
+        raise RuntimeError(f"provider request failed: {exc}") from exc
+    return json.loads(raw_body)
 
 
 def call_openai_compatible(
@@ -1206,27 +1275,92 @@ def call_openai_compatible(
     raw_request = {
         "endpoint": endpoint,
         "payload": payload,
+        "transport": "openai-chat-completions",
     }
-    data = json.dumps(payload).encode("utf-8")
-    http_request = request.Request(
-        endpoint,
-        data=data,
+    raw_response = post_json_request(
+        endpoint=endpoint,
+        payload=payload,
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
         },
-        method="POST",
+        request_timeout_seconds=request_timeout_seconds,
     )
-    try:
-        with request.urlopen(http_request, timeout=request_timeout_seconds) as response_obj:
-            raw_body = response_obj.read().decode("utf-8")
-    except error.HTTPError as exc:
-        error_body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"provider request failed with HTTP {exc.code}: {error_body}") from exc
-    except (error.URLError, TimeoutError, http.client.RemoteDisconnected, http.client.IncompleteRead) as exc:
-        raise RuntimeError(f"provider request failed: {exc}") from exc
-    raw_response = json.loads(raw_body)
     content = extract_openai_message_content(raw_response)
+    response_document = normalize_openai_content(content, copilot_request)
+    validate_response_document(response_document)
+    return {
+        "provider": "openai-compatible",
+        "model": model,
+        "messages": messages,
+        "raw_request": raw_request,
+        "raw_response": raw_response,
+        "response": response_document,
+    }
+
+
+def build_gemini_payload(messages: list[dict[str, str]], temperature: float) -> dict[str, Any]:
+    system_texts: list[str] = []
+    contents: list[dict[str, Any]] = []
+    for message in messages:
+        role = str(message.get("role") or "").strip()
+        content = str(message.get("content") or "").strip()
+        if not content:
+            continue
+        if role == "system":
+            system_texts.append(content)
+            continue
+        gemini_role = "model" if role == "assistant" else "user"
+        contents.append(
+            {
+                "role": gemini_role,
+                "parts": [
+                    {
+                        "text": content,
+                    }
+                ],
+            }
+        )
+    payload: dict[str, Any] = {
+        "contents": contents,
+        "generationConfig": {
+            "temperature": temperature,
+        },
+    }
+    if system_texts:
+        payload["system_instruction"] = {
+            "parts": [{"text": text} for text in system_texts],
+        }
+    return payload
+
+
+def call_gemini_native(
+    copilot_request: dict[str, Any],
+    *,
+    model: str,
+    base_url: str,
+    api_key: str,
+    temperature: float,
+    request_timeout_seconds: float,
+) -> dict[str, Any]:
+    messages = build_messages(copilot_request)
+    endpoint = resolve_gemini_generate_content_endpoint(base_url, model)
+    payload = build_gemini_payload(messages, temperature)
+    raw_request = {
+        "endpoint": endpoint,
+        "payload": payload,
+        "transport": "gemini-generate-content",
+    }
+    raw_response = post_json_request(
+        endpoint=endpoint,
+        payload=payload,
+        headers={
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key,
+        },
+        request_timeout_seconds=request_timeout_seconds,
+    )
+    content = extract_gemini_message_content(raw_response)
     response_document = normalize_openai_content(content, copilot_request)
     validate_response_document(response_document)
     return {
@@ -1288,13 +1422,20 @@ def run_inference(
         )
         resolved_profile = str(resolved["profile"])
         normalized_profile = str(resolved["normalized_profile"])
+        resolved_api_style = str(resolved["api_style"] or "").strip() or infer_profile_api_style(str(resolved["base_url"]))
         resolved_model = str(resolved["model"])
         resolved_base_url = str(resolved["base_url"])
         resolved_api_key = str(resolved["api_key"])
         resolved_request_timeout_seconds = float(resolved["request_timeout_seconds"])
+        profile_api_style_key = profile_env_key(resolved_profile, "API_STYLE")
         profile_name_key = profile_env_key(resolved_profile, "NAME")
         profile_base_url_key = profile_env_key(resolved_profile, "BASE_URL")
         profile_api_key_key = profile_env_key(resolved_profile, "API_KEY")
+        if resolved_api_style not in {"openai-compatible", "gemini-native"}:
+            raise ValueError(
+                "provider=openai-compatible requires a supported api style via "
+                f"{profile_api_style_key} or RADISHMIND_MODEL_API_STYLE"
+            )
         if not resolved_model:
             raise ValueError(
                 "provider=openai-compatible requires --model, "
@@ -1312,18 +1453,29 @@ def run_inference(
             )
         if resolved_request_timeout_seconds <= 0:
             raise ValueError("provider=openai-compatible requires a positive request timeout")
-        result = call_openai_compatible(
-            copilot_request,
-            model=resolved_model,
-            base_url=resolved_base_url,
-            api_key=resolved_api_key,
-            temperature=temperature,
-            request_timeout_seconds=resolved_request_timeout_seconds,
-        )
+        if resolved_api_style == "gemini-native":
+            result = call_gemini_native(
+                copilot_request,
+                model=resolved_model,
+                base_url=resolved_base_url,
+                api_key=resolved_api_key,
+                temperature=temperature,
+                request_timeout_seconds=resolved_request_timeout_seconds,
+            )
+        else:
+            result = call_openai_compatible(
+                copilot_request,
+                model=resolved_model,
+                base_url=resolved_base_url,
+                api_key=resolved_api_key,
+                temperature=temperature,
+                request_timeout_seconds=resolved_request_timeout_seconds,
+            )
         raw_request = result.get("raw_request")
         if isinstance(raw_request, dict):
             raw_request["provider_profile"] = resolved_profile
             raw_request["provider_profile_env"] = normalized_profile
+            raw_request["api_style"] = resolved_api_style
         return result
 
     raise ValueError(f"unsupported provider: {provider}")
@@ -1396,7 +1548,7 @@ def recanonicalize_response_dump(
     if not isinstance(raw_response, dict):
         raise ValueError(f"{label}: raw_response is required to recanonicalize response")
 
-    content = extract_openai_message_content(raw_response)
+    content = extract_provider_message_content(raw_response)
     if not content.strip():
         raise ValueError(f"{label}: raw_response does not contain assistant content")
 
