@@ -35,7 +35,14 @@ def parse_args() -> argparse.Namespace:
         default=120.0,
         help="Per-request timeout for provider calls. Default: 120",
     )
-    parser.add_argument("--output-root", required=True, help="Batch output root.")
+    parser.add_argument(
+        "--output-root",
+        default="",
+        help=(
+            "Batch output root. Defaults to "
+            "datasets/eval/candidate-records/radishflow/<collection-batch>."
+        ),
+    )
     parser.add_argument("--collection-batch", required=True, help="Batch collection name.")
     parser.add_argument("--capture-origin", default="", help="Optional capture origin override.")
     parser.add_argument("--capture-tag", action="append", default=[], help="Additional capture tag. Can be repeated.")
@@ -118,9 +125,15 @@ def derive_report_path(args: argparse.Namespace, output_root: Path) -> Path:
     return output_root / f"{args.collection_batch}.audit.json"
 
 
+def derive_output_root(args: argparse.Namespace) -> Path:
+    if args.output_root.strip():
+        return resolve_repo_relative(args.output_root)
+    return REPO_ROOT / "datasets/eval/candidate-records/radishflow" / args.collection_batch
+
+
 def main() -> int:
     args = parse_args()
-    output_root = resolve_repo_relative(args.output_root)
+    output_root = derive_output_root(args)
     manifest_path = derive_manifest_path(args, output_root)
     report_path = derive_report_path(args, output_root)
     sample_paths = select_sample_paths(args)

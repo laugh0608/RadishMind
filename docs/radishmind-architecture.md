@@ -255,6 +255,7 @@ RadishMind/
 - `scripts/run-radishflow-ghost-real-batch.py`
   - 为 `RadishFlow suggest_ghost_completion` 提供 3 样本轻量 PoC 批次入口
   - 串起 `capture -> manifest -> audit` 的最小闭环，默认覆盖 `Tab / manual_only / empty`
+  - 若未显式提供 `--output-root`，默认直接写入 `datasets/eval/candidate-records/radishflow/<collection_batch>/`
 - `scripts/import-candidate-response-dump-batch.py`
   - 将一批 raw dump 正式导入为仓库内 `candidate_response_record`
   - 支持对 canonicalization 修复前采集的旧 dump 按当前 runtime 重新归一化后再生成正式 `manifest` 与 `audit`

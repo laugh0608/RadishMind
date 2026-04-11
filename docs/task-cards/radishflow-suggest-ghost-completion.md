@@ -34,6 +34,7 @@
 - 已补任务 prompt：[radishflow-suggest-ghost-completion-system.md](../../prompts/tasks/radishflow-suggest-ghost-completion-system.md)
 - 已补最小 runtime：`services/runtime/inference.py` 与 [run-copilot-inference.py](../../scripts/run-copilot-inference.py) 现已支持 `radishflow / suggest_ghost_completion`
 - 已补轻量批次入口：[run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py)，默认固定 3 个代表样本，覆盖 `Tab / manual_only / empty`
+- 上述批次入口当前若未显式传 `--output-root`，会默认落到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，减少后续真实 batch 入仓时的人工路径拼接
 - `datasets/eval/radishflow-task-sample.schema.json` 当前已支持外部 `candidate_response_record`，因此真实或模拟 capture 可回灌到同一条 `manifest -> audit` 校验链
 - 已补批次导入入口：[import-candidate-response-dump-batch.py](../../scripts/import-candidate-response-dump-batch.py)，可将一批 raw dump 重新归一化后正式导入仓库
 - 单条 dump 导入入口 [import-candidate-response-dump.py](../../scripts/import-candidate-response-dump.py) 当前也已支持 `--recanonicalize-response`，用于处理 canonicalization 修复前采集的旧 dump
