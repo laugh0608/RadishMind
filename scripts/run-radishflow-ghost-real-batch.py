@@ -29,6 +29,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-url", default="", help="Provider base URL override.")
     parser.add_argument("--api-key", default="", help="Provider API key override.")
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--request-timeout-seconds",
+        type=float,
+        default=120.0,
+        help="Per-request timeout for provider calls. Default: 120",
+    )
     parser.add_argument("--output-root", required=True, help="Batch output root.")
     parser.add_argument("--collection-batch", required=True, help="Batch collection name.")
     parser.add_argument("--capture-origin", default="", help="Optional capture origin override.")
@@ -118,6 +124,10 @@ def main() -> int:
     manifest_path = derive_manifest_path(args, output_root)
     report_path = derive_report_path(args, output_root)
     sample_paths = select_sample_paths(args)
+    print(
+        f"[ghost-poc] provider={args.provider} sample_count={len(sample_paths)} "
+        f"output_root={make_repo_relative(output_root)} collection_batch={args.collection_batch}"
+    )
 
     with tempfile.TemporaryDirectory(prefix="radishflow-ghost-poc-") as temp_dir:
         temp_path = Path(temp_dir)
@@ -139,6 +149,8 @@ def main() -> int:
             args.collection_batch,
             "--temperature",
             str(args.temperature),
+            "--request-timeout-seconds",
+            str(args.request_timeout_seconds),
             "--manifest-output",
             str(manifest_path),
             "--manifest-description",
@@ -173,6 +185,7 @@ def main() -> int:
 
         audit_result: subprocess.CompletedProcess[str] | None = None
         if not args.skip_audit and manifest_path.is_file():
+            print(f"[ghost-poc] auditing manifest={make_repo_relative(manifest_path)}")
             audit_command = [
                 sys.executable,
                 str(REPO_ROOT / "scripts/audit-candidate-record-batch.py"),

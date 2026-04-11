@@ -39,6 +39,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-url", default="", help="Provider base URL or /v1 endpoint for openai-compatible.")
     parser.add_argument("--api-key", default="", help="Provider API key for openai-compatible.")
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--request-timeout-seconds",
+        type=float,
+        default=120.0,
+        help="Per-request timeout for provider calls. Default: 120",
+    )
     parser.add_argument("--sample-id", default="", help="Optional sample_id override when using --request.")
     parser.add_argument("--sample-pattern", default="*.json", help="Glob used with --sample-dir. Default: *.json")
     parser.add_argument("--response-output", default="", help="Optional path to write the normalized response json.")
@@ -173,6 +179,7 @@ def run_inference_with_retry(
                 base_url=args.base_url.strip() or None,
                 api_key=args.api_key.strip() or None,
                 temperature=args.temperature,
+                request_timeout_seconds=args.request_timeout_seconds,
             )
         except Exception as exc:
             last_exception = exc
@@ -258,6 +265,9 @@ def run_batch(args: argparse.Namespace) -> int:
     responses_dir = output_root / "responses"
     dumps_dir = output_root / "dumps"
     records_dir = output_root / "records"
+    responses_dir.mkdir(parents=True, exist_ok=True)
+    dumps_dir.mkdir(parents=True, exist_ok=True)
+    records_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = (
         resolve_relative_to_repo(args.manifest_output)
         if args.manifest_output
@@ -268,8 +278,12 @@ def run_batch(args: argparse.Namespace) -> int:
     record_paths: list[Path] = []
     batch_results: list[dict[str, str]] = []
     failed_samples: list[dict[str, str]] = []
+    print(
+        f"[batch-start] provider={args.provider} sample_count={len(sample_paths)} "
+        f"output_root={output_root} collection_batch={collection_batch}"
+    )
 
-    for sample_path in sample_paths:
+    for index, sample_path in enumerate(sample_paths, start=1):
         sample_id, copilot_request = load_sample_request(sample_path)
         validate_request_document(copilot_request)
 
@@ -277,6 +291,7 @@ def run_batch(args: argparse.Namespace) -> int:
         dump_path = dumps_dir / f"{sample_path.stem}.dump.json"
         record_path = records_dir / f"{sample_path.stem}.record.json"
         if args.resume and response_path.is_file() and dump_path.is_file() and record_path.is_file():
+            print(f"[skip {index}/{len(sample_paths)}] {sample_id}: existing outputs found")
             record_paths.append(record_path)
             batch_results.append(
                 {
@@ -289,6 +304,7 @@ def run_batch(args: argparse.Namespace) -> int:
             )
             continue
 
+        print(f"[start {index}/{len(sample_paths)}] {sample_id}")
         try:
             result = run_inference_with_retry(
                 copilot_request,
@@ -338,6 +354,10 @@ def run_batch(args: argparse.Namespace) -> int:
                 "record_path": str(record_path.relative_to(output_root)),
                 "status": "captured",
             }
+        )
+        print(
+            f"[captured {index}/{len(sample_paths)}] {sample_id}: "
+            f"record={record_path.relative_to(output_root)}"
         )
 
     manifest_written = False
