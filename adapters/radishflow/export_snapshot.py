@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .request_builder import build_request_from_snapshot
+
 
 SUPPORTED_TASKS = {
     "explain_diagnostics",
@@ -68,3 +70,7 @@ def build_adapter_snapshot_from_export_snapshot(export_snapshot: dict[str, Any])
     if selected_unit:
         adapter_snapshot["selected_unit"] = selected_unit
     return adapter_snapshot
+
+
+def build_request_from_export_snapshot(export_snapshot: dict[str, Any]) -> dict[str, Any]:
+    return build_request_from_snapshot(build_adapter_snapshot_from_export_snapshot(export_snapshot))

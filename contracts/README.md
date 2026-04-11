@@ -67,11 +67,13 @@
   - [explain-control-plane-entitlement-expired-001.snapshot.json](../adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json)
 - 当前 `check-repo` 会校验这三条 adapter snapshot 能稳定生成与现有 eval sample `input_request` 一致的请求对象，避免“上游快照 -> CopilotRequest” 只停留在手工拼装
 - 当前还新增了 [build-radishflow-adapter-snapshot.py](../scripts/build-radishflow-adapter-snapshot.py)，用于把更贴近上游导出对象的 export snapshot 收口成 adapter snapshot
+- 当前还新增了 [build-radishflow-export-request.py](../scripts/build-radishflow-export-request.py)，用于把 export snapshot 直接装配为 `CopilotRequest`
 - 当前仓库也已补三条 export snapshot 示例：
   - [explain-diagnostics-unit-not-converged-001.export.json](../adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json)
   - [suggest-flowsheet-edits-reconnect-outlet-001.export.json](../adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json)
   - [explain-control-plane-entitlement-expired-001.export.json](../adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json)
 - 当前 `check-repo` 也会校验这三条 export snapshot 能稳定生成与既有 adapter snapshot 一致的中间结果，避免“导出对象 -> adapter snapshot” 漂成第二套口径
+- 当前 `check-repo` 也会校验这三条 export snapshot 能直接生成与既有 eval sample `input_request` 一致的请求对象，确保“导出对象 -> CopilotRequest” 这条端到端链路同样稳定
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
 - 当前 `check-repo` 已同时校验基础 `FlashDrum`、`Valve ambiguous`、`Feed -> Valve -> FlashDrum` 连续搭建链正向示例和链式停住示例，避免 `recent_actions` 与空候选请求的装配逻辑只停留在 `eval` 样本说明层

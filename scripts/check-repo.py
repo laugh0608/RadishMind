@@ -1099,14 +1099,17 @@ RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES = [
     {
         "export_snapshot": "adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json",
         "adapter_snapshot": "adapters/radishflow/examples/explain-diagnostics-unit-not-converged-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-diagnostics-unit-not-converged-001.json",
     },
     {
         "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
         "adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
     },
     {
         "export_snapshot": "adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json",
         "adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-control-plane-entitlement-expired-001.json",
     },
 ]
 
@@ -1591,6 +1594,7 @@ REQUIRED_FILES = [
     "scripts/build-candidate-record-batch.py",
     "scripts/build-radishflow-ghost-request.py",
     "scripts/build-radishflow-adapter-snapshot.py",
+    "scripts/build-radishflow-export-request.py",
     "scripts/build-radishflow-request.py",
     "scripts/import-candidate-response-dump.py",
     "scripts/import-candidate-response-dump-batch.py",
@@ -1850,6 +1854,11 @@ def check_contract_schemas() -> None:
         adapter_snapshot_example = json.loads((REPO_ROOT / fixture["adapter_snapshot"]).read_text(encoding="utf-8"))
         jsonschema.validate(adapter_snapshot_example, adapter_snapshot_schema)
 
+        eval_sample = json.loads((REPO_ROOT / fixture["sample"]).read_text(encoding="utf-8"))
+        if not isinstance(eval_sample, dict) or not isinstance(eval_sample.get("input_request"), dict):
+            raise SystemExit(f"{fixture['sample']} is missing input_request")
+        jsonschema.validate(eval_sample["input_request"], copilot_request_schema)
+
         run_python_script(
             "build-radishflow-adapter-snapshot.py",
             [
@@ -1857,6 +1866,16 @@ def check_contract_schemas() -> None:
                 fixture["export_snapshot"],
                 "--check-snapshot",
                 fixture["adapter_snapshot"],
+            ],
+        )
+
+        run_python_script(
+            "build-radishflow-export-request.py",
+            [
+                "--input",
+                fixture["export_snapshot"],
+                "--check-sample",
+                fixture["sample"],
             ],
         )
 
