@@ -27,6 +27,20 @@
 - 哪个邻近节点或物流线最适合作为 ghost connection 候选
 - 哪个 ghost stream name 最符合当前局部命名习惯
 
+## 当前 PoC 进展
+
+当前仓库已将本任务从“只有样本和契约”推进到“capture-ready”的最小工程骨架：
+
+- 已补任务 prompt：[radishflow-suggest-ghost-completion-system.md](../../prompts/tasks/radishflow-suggest-ghost-completion-system.md)
+- 已补最小 runtime：`services/runtime/inference.py` 与 [run-copilot-inference.py](../../scripts/run-copilot-inference.py) 现已支持 `radishflow / suggest_ghost_completion`
+- 已补轻量批次入口：[run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py)，默认固定 3 个代表样本，覆盖 `Tab / manual_only / empty`
+- `datasets/eval/radishflow-task-sample.schema.json` 当前已支持外部 `candidate_response_record`，因此真实或模拟 capture 可回灌到同一条 `manifest -> audit` 校验链
+
+当前这条 PoC 仍是轻量版：
+
+- 目标是先证明本任务可以稳定做真实候选输出 capture，而不是一次性复制 `Radish docs QA` 的完整 batch 治理编排
+- 下一步优先接真实 teacher provider 跑默认 3 样本批次，再根据真实 capture 判断是否仍需要继续补 recent-actions 边界样本
+
 ## 最小必需输入
 
 请求至少应包含以下内容：

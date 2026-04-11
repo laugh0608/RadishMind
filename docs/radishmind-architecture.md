@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-09
+更新时间：2026-04-11
 
 ## 架构目标
 
@@ -191,6 +191,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 当前 `Radish docs QA` 的 same-sample / cross-sample replay 与 real-derived negative index 已统一纳入 `check-repo`，且 `2026-04-05` real batch 已无 singleton source；这条治理链的后续重点应转向跨 source 复合 drift、真实 captured 扩充，以及 `pattern` / `violation` 结构化升级时机评估
 - 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、latest-action precedence 下的 reject / dismiss / skip 恢复态、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
+- 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获候选输出”
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
 
 ## 推荐仓库结构
@@ -242,16 +243,21 @@ RadishMind/
 
 ## 当前最小实现补充
 
-当前仓库已补第一条最小实现链路，用于把“只有评测资产”的状态推进到“能实际吐出结构化响应”的状态：
+当前仓库已补第一条最小实现链路，用于把“只有评测资产”的状态推进到“能实际吐出结构化响应并最小落盘 capture”的状态：
 
 - `services/runtime/inference.py`
-  - 提供 `radish / answer_docs_question` 的最小 runtime
+  - 提供 `radish / answer_docs_question` 与 `radishflow / suggest_ghost_completion` 的最小 runtime
   - 内置 `mock` provider，用于工程闭环验证
   - 预留 `openai-compatible` provider，用于真实模型接入
 - `scripts/run-copilot-inference.py`
   - 允许从 `datasets/eval` 样本或独立 `CopilotRequest` 运行最小推理
   - 可直接写出 normalized `CopilotResponse` 与 raw dump
+- `scripts/run-radishflow-ghost-real-batch.py`
+  - 为 `RadishFlow suggest_ghost_completion` 提供 3 样本轻量 PoC 批次入口
+  - 串起 `capture -> manifest -> audit` 的最小闭环，默认覆盖 `Tab / manual_only / empty`
 - `prompts/tasks/radish-answer-docs-question-system.md`
   - 冻结当前单任务系统提示的最小口径
+- `prompts/tasks/radishflow-suggest-ghost-completion-system.md`
+  - 冻结 ghost completion 的最小任务提示口径，并限制模型只能从 `legal_candidate_completions` 中选候选
 
-这一步仍不是完整服务化实现，但已经把“prompt 组装 -> provider 调用 -> 响应归一化 -> raw dump 落盘”这条链路落地，可作为后续 gateway、adapter 和真实模型 provider 的起点。
+这一步仍不是完整服务化实现，但已经把“prompt 组装 -> provider 调用 -> 响应归一化 -> raw dump 落盘 / 最小批次审计”这条链路落地，可作为后续 gateway、adapter 和真实模型 provider 的起点。

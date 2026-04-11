@@ -417,6 +417,7 @@
             "citation_hit",
             "actionability",
             "risk_level",
+            "candidate_record_alignment",
             "fact_grounding",
             "hypothesis_labeling",
             "ghost_candidate_legality",
@@ -429,6 +430,64 @@
         },
         "notes": {
           "type": "string"
+        }
+      }
+    },
+    "candidate_response_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "manifest_path",
+            "record_id"
+          ]
+        }
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_source": {
+          "type": "string",
+          "enum": [
+            "captured_candidate_response",
+            "simulated_candidate_response"
+          ]
+        },
+        "required_capture_origin": {
+          "type": "string",
+          "enum": [
+            "interactive_session",
+            "adapter_debug_dump",
+            "manual_fixture"
+          ]
+        },
+        "required_collection_batch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
         }
       }
     },

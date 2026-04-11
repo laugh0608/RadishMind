@@ -28,7 +28,7 @@ from services.runtime.candidate_records import (  # noqa: E402
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run the minimal RadishMind inference flow for radish / answer_docs_question.",
+        description="Run the minimal RadishMind inference flow for supported Copilot tasks.",
     )
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument("--sample", help="Path to an eval sample file; inference uses sample.input_request.")

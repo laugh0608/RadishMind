@@ -151,6 +151,8 @@
 - 当 `recent_actions` 同时包含多条 ghost 反馈时，当前应以“当前 `candidate_ref` 的最近一条相关动作”作为 suppress / cooldown 的直接依据：更早的同 candidate 反馈只能作为背景，不应覆盖更新动作；而其他 `candidate_ref` 的更新反馈也不应外溢误伤当前候选
 - 这条“最近一条相关动作优先”约束同样适用于 cooldown 恢复态：若同一 `candidate_ref` 的最新否定动作 suppress 窗口已过，则更早的同 candidate 反馈不应继续阻止默认 `Tab` 恢复
 - 当前 recent-actions 基线还已补齐两类 stacked 对称组合：同一 candidate 若先 `skip`、后又被最新一帧 `reject`，则应继续以最新同 candidate `reject` 维持 `manual_only`；而若 same-candidate `skip` cooldown 已过、最新 `reject` 针对的是其他 candidate，则该 other-candidate 反馈不得外溢压制当前默认 `Tab`
+- `datasets/eval/radishflow-task-sample.schema.json` 当前也已支持外部 `candidate_response_record` 回灌，可将真实或模拟的 ghost completion capture 重新接回同一条 audit / regression 口径，而不必只停留在样本内联 `candidate_response`
+- 当前仓库已提供 `scripts/run-radishflow-ghost-real-batch.py` 作为轻量批次入口，先以 3 个代表样本覆盖 `Tab / manual_only / empty` 三条用户侧主路径，完成 `capture -> manifest -> audit` 的最小 PoC 闭环；这一步当前仍是 capture-ready 骨架，不等同于 `Radish docs QA` 那种更完整的 batch 治理编排
 - 当前仓库已用 `Feed -> Valve -> FlashDrum` 连续搭建链 example 固定这条口径：
   - [radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json)
   - [radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json)

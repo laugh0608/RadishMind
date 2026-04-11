@@ -15,7 +15,10 @@ import jsonschema
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 REQUEST_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-request.schema.json"
 RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
-PROMPT_PATH = REPO_ROOT / "prompts/tasks/radish-answer-docs-question-system.md"
+PROMPT_PATHS = {
+    ("radish", "answer_docs_question"): REPO_ROOT / "prompts/tasks/radish-answer-docs-question-system.md",
+    ("radishflow", "suggest_ghost_completion"): REPO_ROOT / "prompts/tasks/radishflow-suggest-ghost-completion-system.md",
+}
 SCHEMA_CACHE: dict[Path, Any] = {}
 SENTENCE_BREAK_RE = re.compile(r"(?<=[。！？.!?])\s+")
 ENV_FILE_PATH = REPO_ROOT / ".env"
@@ -103,6 +106,22 @@ def derive_input_record(copilot_request: dict[str, Any]) -> dict[str, Any]:
         "search_scope": [str(item).strip() for item in (context.get("search_scope") or []) if str(item).strip()],
         "artifact_names": artifact_names,
     }
+    if str(copilot_request.get("project") or "") == "radishflow" and str(copilot_request.get("task") or "") == "suggest_ghost_completion":
+        selected_unit_ids = [
+            str(unit_id).strip()
+            for unit_id in (context.get("selected_unit_ids") or [])
+            if str(unit_id).strip()
+        ]
+        legal_candidate_refs = [
+            str((candidate or {}).get("candidate_ref") or "").strip()
+            for candidate in (context.get("legal_candidate_completions") or [])
+            if str((candidate or {}).get("candidate_ref") or "").strip()
+        ]
+        input_record["document_revision"] = context.get("document_revision")
+        if selected_unit_ids:
+            input_record["selected_unit_ids"] = selected_unit_ids
+        if legal_candidate_refs:
+            input_record["legal_candidate_refs"] = legal_candidate_refs
     return {key: value for key, value in input_record.items() if value}
 
 
@@ -121,6 +140,11 @@ def citation_prefix_for_artifact(artifact: dict[str, Any]) -> str:
 
 
 def build_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
+    project = str(copilot_request.get("project") or "").strip()
+    task = str(copilot_request.get("task") or "").strip()
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        return build_ghost_context_citations(copilot_request)
+
     citations: list[dict[str, Any]] = []
     counters: dict[str, int] = {}
     context = copilot_request.get("context") or {}
@@ -145,6 +169,99 @@ def build_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
         if excerpt:
             citation["excerpt"] = excerpt
         citations.append(citation)
+    return citations
+
+
+def build_ghost_context_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
+    context = copilot_request.get("context") or {}
+    citations: list[dict[str, Any]] = []
+    selected_unit = context.get("selected_unit") or {}
+    if isinstance(selected_unit, dict) and str(selected_unit.get("id") or "").strip():
+        citations.append(
+            {
+                "id": "ctx-unit",
+                "kind": "context",
+                "label": f"当前选中的 {selected_unit.get('id')}",
+                "locator": "context:selected_unit",
+                "excerpt": (
+                    f"selected_unit={selected_unit.get('id')} "
+                    f"kind={selected_unit.get('kind')} "
+                    f"name={selected_unit.get('name')}"
+                ).strip(),
+            }
+        )
+
+    legal_candidates = list(context.get("legal_candidate_completions") or [])
+    if not legal_candidates:
+        citations.append(
+            {
+                "id": "ctx-empty-candidates",
+                "kind": "context",
+                "label": "空的 legal_candidate_completions",
+                "locator": "context:legal_candidate_completions",
+                "excerpt": "legal_candidate_completions=[]",
+            }
+        )
+    else:
+        for index, candidate in enumerate(legal_candidates[:3], start=1):
+            candidate_ref = str((candidate or {}).get("candidate_ref") or "").strip()
+            target_port_key = str((candidate or {}).get("target_port_key") or "").strip()
+            citations.append(
+                {
+                    "id": f"ctx-candidate-{index}",
+                    "kind": "context",
+                    "label": f"候选 {candidate_ref or index}",
+                    "locator": f"context:legal_candidate_completions[{index - 1}]",
+                    "excerpt": (
+                        f"candidate_ref={candidate_ref} "
+                        f"target_port_key={target_port_key} "
+                        f"is_tab_default={candidate.get('is_tab_default')} "
+                        f"is_high_confidence={candidate.get('is_high_confidence')}"
+                    ).strip(),
+                }
+            )
+
+    naming_hints = context.get("naming_hints")
+    if isinstance(naming_hints, dict) and naming_hints:
+        citations.append(
+            {
+                "id": "ctx-naming-hints",
+                "kind": "context",
+                "label": "ghost 命名提示",
+                "locator": "context:naming_hints",
+                "excerpt": normalize_text(naming_hints)[:180],
+            }
+        )
+
+    topology_pattern_hints = [
+        str(item).strip()
+        for item in (context.get("topology_pattern_hints") or [])
+        if str(item).strip()
+    ]
+    if topology_pattern_hints:
+        citations.append(
+            {
+                "id": "ctx-pattern",
+                "kind": "context",
+                "label": "拓扑模式提示",
+                "locator": "context:topology_pattern_hints[0]",
+                "excerpt": topology_pattern_hints[0],
+            }
+        )
+
+    recent_actions = list(((context.get("cursor_context") or {}).get("recent_actions") or []))
+    if recent_actions:
+        latest_recent_action = recent_actions[-1] or {}
+        citations.append(
+            {
+                "id": "ctx-recent-action",
+                "kind": "context",
+                "label": "最近 ghost 动作",
+                "locator": f"context:cursor_context.recent_actions[{len(recent_actions) - 1}]",
+                "excerpt": normalize_text(latest_recent_action)[:180],
+            }
+        )
+
     return citations
 
 
@@ -216,14 +333,19 @@ def make_mock_docs_qa_response(copilot_request: dict[str, Any]) -> dict[str, Any
     }
 
 
-def load_system_prompt() -> str:
-    return PROMPT_PATH.read_text(encoding="utf-8").strip()
+def load_system_prompt(copilot_request: dict[str, Any]) -> str:
+    project = str(copilot_request.get("project") or "").strip()
+    task = str(copilot_request.get("task") or "").strip()
+    prompt_path = PROMPT_PATHS.get((project, task))
+    if prompt_path is None:
+        raise ValueError(f"unsupported prompt target: {project} / {task}")
+    return prompt_path.read_text(encoding="utf-8").strip()
 
 
 def build_docs_qa_messages(copilot_request: dict[str, Any]) -> list[dict[str, str]]:
     request_payload = json.dumps(copilot_request, ensure_ascii=False, indent=2)
     return [
-        {"role": "system", "content": load_system_prompt()},
+        {"role": "system", "content": load_system_prompt(copilot_request)},
         {
             "role": "user",
             "content": (
@@ -233,6 +355,194 @@ def build_docs_qa_messages(copilot_request: dict[str, Any]) -> list[dict[str, st
             ),
         },
     ]
+
+
+def build_ghost_completion_messages(copilot_request: dict[str, Any]) -> list[dict[str, str]]:
+    request_payload = json.dumps(copilot_request, ensure_ascii=False, indent=2)
+    return [
+        {"role": "system", "content": load_system_prompt(copilot_request)},
+        {
+            "role": "user",
+            "content": (
+                "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。"
+                "不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n"
+                f"{request_payload}"
+            ),
+        },
+    ]
+
+
+def build_messages(copilot_request: dict[str, Any]) -> list[dict[str, str]]:
+    project = str(copilot_request.get("project") or "").strip()
+    task = str(copilot_request.get("task") or "").strip()
+    if project == "radish" and task == "answer_docs_question":
+        return build_docs_qa_messages(copilot_request)
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        return build_ghost_completion_messages(copilot_request)
+    raise ValueError(f"unsupported message target: {project} / {task}")
+
+
+def pick_primary_ghost_candidate(legal_candidates: list[dict[str, Any]]) -> dict[str, Any] | None:
+    for candidate in legal_candidates:
+        conflict_flags = [str(flag).strip() for flag in (candidate.get("conflict_flags") or []) if str(flag).strip()]
+        if candidate.get("is_tab_default") is True and candidate.get("is_high_confidence") is True and not conflict_flags:
+            return candidate
+    return legal_candidates[0] if legal_candidates else None
+
+
+def build_ghost_completion_action(
+    candidate: dict[str, Any],
+    *,
+    action_index: int,
+    accept_key: str,
+    risk_level: str,
+    citation_ids: list[str],
+) -> dict[str, Any]:
+    candidate_ref = str(candidate.get("candidate_ref") or "").strip()
+    target_unit_id = str(candidate.get("target_unit_id") or "").strip()
+    target_port_key = str(candidate.get("target_port_key") or "").strip()
+    suggested_stream_name = str(candidate.get("suggested_stream_name") or "").strip()
+    target_label = target_port_key or candidate_ref or f"ghost-{action_index}"
+    title_prefix = "补全" if accept_key == "Tab" else "保留"
+    rationale_prefix = (
+        "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。"
+        if accept_key == "Tab"
+        else "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。"
+    )
+    return {
+        "kind": "ghost_completion",
+        "title": f"{title_prefix} {target_unit_id} 的 {target_label} ghost 候选",
+        "target": {
+            "type": "unit_port",
+            "unit_id": target_unit_id,
+            "port_key": target_port_key,
+        },
+        "rationale": rationale_prefix,
+        "patch": {
+            "ghost_kind": str(candidate.get("ghost_kind") or "ghost_connection"),
+            "candidate_ref": candidate_ref,
+            "target_port_key": target_port_key,
+            **({"ghost_stream_name": suggested_stream_name} if suggested_stream_name else {}),
+        },
+        "preview": {
+            "ghost_color": "gray",
+            "accept_key": accept_key,
+            "render_priority": action_index,
+        },
+        "apply": {
+            "command_kind": "accept_ghost_completion",
+            "payload": {
+                "candidate_ref": candidate_ref,
+            },
+        },
+        "risk_level": risk_level,
+        "requires_confirmation": False,
+        "citation_ids": citation_ids,
+    }
+
+
+def make_mock_ghost_completion_response(copilot_request: dict[str, Any]) -> dict[str, Any]:
+    context = copilot_request.get("context") or {}
+    selected_unit = context.get("selected_unit") or {}
+    selected_unit_id = str(selected_unit.get("id") or "").strip() or str((context.get("selected_unit_ids") or [""])[0] or "")
+    legal_candidates = [
+        candidate
+        for candidate in (context.get("legal_candidate_completions") or [])
+        if isinstance(candidate, dict) and str(candidate.get("candidate_ref") or "").strip()
+    ]
+    citations = build_ghost_context_citations(copilot_request)
+    citation_ids = [str(citation.get("id") or "") for citation in citations if str(citation.get("id") or "")]
+
+    if not legal_candidates:
+        return {
+            "schema_version": 1,
+            "status": "partial",
+            "project": "radishflow",
+            "task": "suggest_ghost_completion",
+            "summary": f"{selected_unit_id or '当前单元'} 当前没有可确认的合法 ghost 候选，因此不返回默认补全建议。",
+            "answers": [
+                {
+                    "kind": "empty_suggestion_reason",
+                    "text": "当前上下文里没有本地规则确认的合法 ghost completion 候选，因此此时应保持空建议。",
+                    "citation_ids": [citation_id for citation_id in citation_ids if citation_id in {"ctx-empty-candidates", "ctx-unit", "ctx-pattern", "ctx-recent-action"}],
+                }
+            ],
+            "issues": [
+                {
+                    "code": "INSUFFICIENT_GHOST_CONTEXT",
+                    "message": "当前没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认或手动 ghost 建议。",
+                    "severity": "info",
+                    "citation_ids": [citation_id for citation_id in citation_ids if citation_id in {"ctx-empty-candidates", "ctx-pattern"}],
+                }
+            ],
+            "proposed_actions": [],
+            "citations": citations,
+            "confidence": 0.9,
+            "risk_level": "low",
+            "requires_confirmation": False,
+        }
+
+    primary_candidate = pick_primary_ghost_candidate(legal_candidates)
+    actions: list[dict[str, Any]] = []
+    answers: list[dict[str, Any]] = []
+
+    if primary_candidate and primary_candidate.get("is_tab_default") is True and primary_candidate.get("is_high_confidence") is True:
+        actions.append(
+            build_ghost_completion_action(
+                primary_candidate,
+                action_index=1,
+                accept_key="Tab",
+                risk_level="low",
+                citation_ids=[citation_id for citation_id in citation_ids if citation_id in {"ctx-unit", "ctx-candidate-1", "ctx-naming-hints", "ctx-pattern"}] or citation_ids[:2],
+            )
+        )
+        primary_port = str(primary_candidate.get("target_port_key") or "").strip() or "默认端口"
+        answers.append(
+            {
+                "kind": "ghost_rationale",
+                "text": f"{selected_unit_id or '当前单元'} 的 {primary_port} 当前是本地规则层给出的默认高置信候选，因此应作为首个 ghost 建议。",
+                "citation_ids": [citation_id for citation_id in citation_ids if citation_id in {"ctx-candidate-1", "ctx-naming-hints", "ctx-unit"}] or citation_ids[:2],
+            }
+        )
+        summary = f"{selected_unit_id or '当前单元'} 当前最适合作为默认 ghost 的候选已明确，可优先渲染首条 `Tab` 建议。"
+        confidence = 0.93
+        risk_level = "low"
+    else:
+        for index, candidate in enumerate(legal_candidates[:2], start=1):
+            actions.append(
+                build_ghost_completion_action(
+                    candidate,
+                    action_index=index,
+                    accept_key="manual_only",
+                    risk_level="medium",
+                    citation_ids=[citation_id for citation_id in citation_ids if citation_id in {f"ctx-candidate-{index}", "ctx-pattern"}] or citation_ids[:2],
+                )
+            )
+        answers.append(
+            {
+                "kind": "ghost_rationale",
+                "text": "当前合法候选之间没有形成足够清晰的领先者，因此只应返回可见 ghost，而不应把任何一条候选直接升级成默认 Tab。",
+                "citation_ids": [citation_id for citation_id in citation_ids if citation_id in {"ctx-candidate-1", "ctx-candidate-2", "ctx-pattern"}] or citation_ids[:2],
+            }
+        )
+        summary = f"{selected_unit_id or '当前单元'} 当前存在多个合法 ghost 候选，但证据不足以默认选中其中任意一条。"
+        confidence = 0.78
+        risk_level = "medium"
+
+    return {
+        "schema_version": 1,
+        "status": "ok",
+        "project": "radishflow",
+        "task": "suggest_ghost_completion",
+        "summary": summary,
+        "answers": answers,
+        "issues": [],
+        "proposed_actions": actions,
+        "citations": citations,
+        "confidence": confidence,
+        "risk_level": risk_level,
+        "requires_confirmation": False,
+    }
 
 
 def make_failed_response(copilot_request: dict[str, Any], summary: str, raw_text: str, code: str) -> dict[str, Any]:
@@ -365,6 +675,9 @@ def normalize_issues(
 def normalize_actions(
     actions: Any,
     artifact_name_to_citation_id: dict[str, str],
+    *,
+    project: str,
+    task: str,
 ) -> list[dict[str, Any]]:
     normalized_actions: list[dict[str, Any]] = []
     for action in actions or []:
@@ -375,8 +688,11 @@ def normalize_actions(
         if not title or not rationale:
             continue
         kind = str(action.get("kind") or "read_only_check").strip()
-        if kind not in {"candidate_edit", "candidate_operation", "read_only_check"}:
-            kind = "read_only_check"
+        allowed_kinds = {"candidate_edit", "candidate_operation", "read_only_check"}
+        if project == "radishflow" and task == "suggest_ghost_completion":
+            allowed_kinds = {"ghost_completion"}
+        if kind not in allowed_kinds:
+            kind = "ghost_completion" if project == "radishflow" and task == "suggest_ghost_completion" else "read_only_check"
         risk_level = str(action.get("risk_level") or "low").strip().lower()
         if risk_level not in {"low", "medium", "high"}:
             risk_level = "low"
@@ -395,6 +711,11 @@ def normalize_actions(
             normalized_action["target"] = action["target"]
         if isinstance(action.get("patch"), dict):
             normalized_action["patch"] = action["patch"]
+        if project == "radishflow" and task == "suggest_ghost_completion":
+            if isinstance(action.get("preview"), dict):
+                normalized_action["preview"] = action["preview"]
+            if isinstance(action.get("apply"), dict):
+                normalized_action["apply"] = action["apply"]
         normalized_actions.append(normalized_action)
     return normalized_actions
 
@@ -448,12 +769,16 @@ def normalize_citations_from_document(
 def coerce_response_document(document: dict[str, Any], copilot_request: dict[str, Any], raw_text: str) -> dict[str, Any]:
     coerced = dict(document)
     fallback_citations, artifact_name_to_citation_id = build_citation_maps(copilot_request)
+    project = str(copilot_request.get("project") or "").strip()
+    task = str(copilot_request.get("task") or "").strip()
     coerced["status"] = map_status(coerced.get("status"))
     coerced["answers"] = normalize_answers(coerced.get("answers"), artifact_name_to_citation_id)
     coerced["issues"] = normalize_issues(coerced.get("issues"), artifact_name_to_citation_id)
     coerced["proposed_actions"] = normalize_actions(
         coerced.get("proposed_actions"),
         artifact_name_to_citation_id,
+        project=project,
+        task=task,
     )
     coerced["citations"] = normalize_citations_from_document(
         coerced.get("citations"),
@@ -560,7 +885,7 @@ def call_openai_compatible(
     api_key: str,
     temperature: float,
 ) -> dict[str, Any]:
-    messages = build_docs_qa_messages(copilot_request)
+    messages = build_messages(copilot_request)
     endpoint = resolve_chat_endpoint(base_url)
     payload = {
         "model": model,
@@ -614,16 +939,21 @@ def run_inference(
 ) -> dict[str, Any]:
     load_env_file(ENV_FILE_PATH)
     validate_request_document(copilot_request)
-    if str(copilot_request.get("project")) != "radish" or str(copilot_request.get("task")) != "answer_docs_question":
-        raise ValueError("minimal runtime currently only supports radish / answer_docs_question")
+    project = str(copilot_request.get("project") or "").strip()
+    task = str(copilot_request.get("task") or "").strip()
 
     if provider == "mock":
-        response_document = make_mock_docs_qa_response(copilot_request)
+        if project == "radish" and task == "answer_docs_question":
+            response_document = make_mock_docs_qa_response(copilot_request)
+        elif project == "radishflow" and task == "suggest_ghost_completion":
+            response_document = make_mock_ghost_completion_response(copilot_request)
+        else:
+            raise ValueError(f"mock provider does not support {project} / {task}")
         validate_response_document(response_document)
         return {
             "provider": "mock",
-            "model": model or "radishmind-mock-answer-docs-question-v1",
-            "messages": build_docs_qa_messages(copilot_request),
+            "model": model or f"radishmind-mock-{project}-{task}-v1",
+            "messages": build_messages(copilot_request),
             "raw_request": {
                 "provider": "mock",
                 "mode": "deterministic-rule-based",
@@ -672,7 +1002,9 @@ def build_candidate_response_dump(
     request_id = str(copilot_request.get("request_id") or "").strip() or f"{copilot_request['task']}-request"
     source = "simulated_candidate_response" if inference_result["provider"] == "mock" else "captured_candidate_response"
     default_capture_origin = "manual_fixture" if inference_result["provider"] == "mock" else "adapter_debug_dump"
-    merged_tags: list[str] = ["radish_docs_qa", inference_result["provider"]]
+    project = str(copilot_request.get("project") or "").strip()
+    task = str(copilot_request.get("task") or "").strip()
+    merged_tags: list[str] = [f"{project}_{task}", inference_result["provider"]]
     if source == "captured_candidate_response":
         merged_tags.append("real_capture")
     for tag in tags or []:

@@ -25,6 +25,7 @@ from services.runtime.eval_regression import parse_regression_output  # noqa: E4
 
 TASK_SAMPLE_DIRS = {
     "radish-docs-qa": REPO_ROOT / "datasets/eval/radish",
+    "radishflow-ghost-completion": REPO_ROOT / "datasets/eval/radishflow",
 }
 
 
