@@ -33,6 +33,22 @@ SENSITIVE_VALUE_PATTERNS = (
     re.compile(r"\bsk-[A-Za-z0-9]{16,}\b"),
     re.compile(r"\bAIza[0-9A-Za-z\-_]{20,}\b"),
 )
+SUPPORT_ARTIFACT_SUMMARY_KEYS = ("summary", "redaction_summary", "sanitized_summary")
+RAW_SUPPORT_ARTIFACT_KEYS = {
+    "headers",
+    "request_headers",
+    "response_headers",
+    "request_body",
+    "response_body",
+    "raw_body",
+    "raw_payload",
+    "raw_request",
+    "raw_response",
+    "full_payload",
+    "full_response",
+    "stack_trace",
+    "traceback",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -91,16 +107,58 @@ def _validate_selection_semantics(selection_state: dict[str, Any], errors: list[
         errors.append("selection_state.primary_selected_unit requires selection_state.selected_unit_ids")
         return
 
-    if len(selected_unit_ids) != 1:
-        errors.append("selection_state.primary_selected_unit requires exactly one selected_unit_id")
-        return
-
     primary_id = str(primary_selected_unit.get("id") or "").strip()
     selected_id = str(selected_unit_ids[0]).strip()
     if primary_id and primary_id != selected_id:
         errors.append("selection_state.primary_selected_unit.id does not match selection_state.selected_unit_ids[0]")
     if not primary_id:
         warnings.append("selection_state.primary_selected_unit is missing id; adapter can only treat it as opaque context")
+
+
+def _scan_raw_support_artifact_keys(value: Any, path: str, errors: list[str]) -> None:
+    if isinstance(value, dict):
+        for key, item in value.items():
+            normalized_key = str(key).strip().lower().replace("-", "_")
+            if normalized_key in RAW_SUPPORT_ARTIFACT_KEYS:
+                errors.append(f"{path}.{key}: looks like a raw payload field; export only minimal redacted summaries")
+            _scan_raw_support_artifact_keys(item, f"{path}.{key}", errors)
+        return
+
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            _scan_raw_support_artifact_keys(item, f"{path}[{index}]", errors)
+
+
+def _has_summary_metadata(metadata: Any) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    return any(str(metadata.get(key) or "").strip() for key in SUPPORT_ARTIFACT_SUMMARY_KEYS)
+
+
+def _validate_support_artifacts(support_artifacts: Any, errors: list[str], warnings: list[str]) -> None:
+    if not isinstance(support_artifacts, list):
+        return
+
+    for index, artifact in enumerate(support_artifacts):
+        if not isinstance(artifact, dict):
+            continue
+
+        path = f"support_artifacts[{index}]"
+        uri = str(artifact.get("uri") or "").strip()
+        content = artifact.get("content")
+        metadata = artifact.get("metadata")
+
+        if uri and content is None and not _has_summary_metadata(metadata):
+            warnings.append(f"{path} uses uri without metadata.summary; prefer uri + minimal redacted summary")
+
+        if isinstance(content, str):
+            if len(content) > 280 or content.count("\n") >= 3:
+                warnings.append(f"{path}.content looks verbose; prefer a shorter redacted summary")
+        elif isinstance(content, dict):
+            _scan_raw_support_artifact_keys(content, f"{path}.content", errors)
+
+        if isinstance(metadata, dict):
+            _scan_raw_support_artifact_keys(metadata, f"{path}.metadata", errors)
 
 
 def _validate_task_specific_semantics(snapshot: dict[str, Any], errors: list[str], warnings: list[str]) -> None:
@@ -120,13 +178,6 @@ def _validate_task_specific_semantics(snapshot: dict[str, Any], errors: list[str
             errors.append(f"{task} requires diagnostics_export.diagnostic_summary or diagnostics_export.diagnostics")
 
         _validate_selection_semantics(selection_state, errors, warnings)
-
-        if task == "suggest_flowsheet_edits":
-            if _is_non_empty_list(selection_state.get("selected_unit_ids")) and _is_non_empty_list(selection_state.get("selected_stream_ids")):
-                warnings.append(
-                    "suggest_flowsheet_edits carries both selected_unit_ids and selected_stream_ids; "
-                    "confirm the exporter is preserving a true multi-selection state rather than duplicating focus"
-                )
         return
 
     if task == "explain_control_plane_state":
@@ -146,6 +197,7 @@ def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
     _validate_task_specific_semantics(snapshot, errors, warnings)
+    _validate_support_artifacts(snapshot.get("support_artifacts"), errors, warnings)
     _scan_sensitive_content(snapshot, "$", errors)
 
     label = make_repo_relative(input_path)

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-three-step-priority-chain-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 47,
+    "flowsheet_document": {
+      "document_id": "flowsheet-109",
+      "streams": [
+        {
+          "id": "feed-7",
+          "name": "Heater Feed",
+          "target_unit_id": "heater-3",
+          "specs": {
+            "pressure_kpa": 215
+          }
+        },
+        {
+          "id": "product-7",
+          "name": "Heater Outlet",
+          "source_unit_id": "heater-3",
+          "specs": {
+            "temperature_c": 155
+          }
+        }
+      ],
+      "units": [
+        {
+          "id": "heater-3",
+          "kind": "Heater",
+          "name": "Trim Heater",
+          "config": {
+            "control_mode": "outlet_temperature"
+          }
+        }
+      ]
+    }
+  },
+  "selection_state": {
+    "selected_unit_ids": [
+      "heater-3"
+    ],
+    "selected_stream_ids": [
+      "feed-7",
+      "product-7"
+    ]
+  },
+  "diagnostics_export": {
+    "diagnostic_summary": {
+      "error_count": 3,
+      "warning_count": 0
+    },
+    "diagnostics": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Heater Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "target_type": "stream",
+        "target_id": "product-7"
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Heater Feed is missing temperature and flow rate specifications.",
+        "severity": "error",
+        "target_type": "stream",
+        "target_id": "feed-7"
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "target_type": "unit",
+        "target_id": "heater-3"
+      }
+    ]
+  },
+  "solve_snapshot": {
+    "solver_status": "invalid_topology",
+    "residual_norm": null,
+    "last_updated": "2026-04-07T14:10:00Z"
+  }
+}

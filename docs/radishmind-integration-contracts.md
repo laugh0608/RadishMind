@@ -162,6 +162,7 @@
 - `selection_state.primary_selected_unit`
   - 只有当上游确实存在“主焦点 unit”语义时才提供
   - 当前 adapter 只会在这个字段显式存在时才写入 `selected_unit`，不得再从 `selected_unit_ids + flowsheet_document` 反推
+  - 它当前允许与 `selected_stream_ids` 等联合选择态并存；若同时给了 `selected_unit_ids`，则应与 `selected_unit_ids[0]` 对齐
 - `diagnostics_export.diagnostic_summary`
   - 来源应是当前诊断摘要，例如 error / warning 计数
   - 若上游没有摘要，可省略，由 `diagnostics` 独立成立
@@ -180,6 +181,7 @@
 - `support_artifacts`
   - 来源应是额外但必要的 supporting 证据，例如 UI note、lease summary、操作面文本提示
   - 只允许补充解释证据，不得夹带 token、credential、cookie 或其他敏感原文
+  - 若 artifact 指向外部 capture 或对象引用，当前优先采用 `uri + metadata.summary` 的最小脱敏摘要，而不是把原始控制面载荷整段内联
 
 当前任务级最小导出要求建议固定为：
 
@@ -263,10 +265,12 @@
 
 当前 `validate-radishflow-export-snapshot.py` 已先固定以下预接线校验口径：
 
-- `primary_selected_unit` 只有在显式提供时才允许出现，且应与 `selected_unit_ids[0]` 对齐
+- `primary_selected_unit` 只有在显式提供时才允许出现，且应与 `selected_unit_ids[0]` 对齐；它可以和 `selected_stream_ids` 这类联合选择态并存
 - `explain_diagnostics` / `suggest_flowsheet_edits` 必须同时满足“有 selection”与“有 diagnostics 信息”
 - `explain_control_plane_state` 若仍带 `selection_state`，当前只记 warning，不直接判失败
 - 对 `token`、`secret`、`cookie`、`authorization`、`api_key` 等敏感 key 名，以及 `Bearer ...`、`sk-...`、`AIza...` 这类疑似凭据内容，当前直接判失败
+- `support_artifacts` 若只给 `uri` 而没有内联 `content`，当前会提示补 `metadata.summary` 这类最小脱敏摘要；若内联文本过长，也会提示缩成更短摘要
+- `support_artifacts` 若出现 `raw_payload`、`response_body`、`headers`、`stack_trace` 等疑似原始载荷字段，当前直接判失败
 
 - 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序
 - 当前仓库内的 `CopilotRequest` schema 已冻结 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`cursor_context`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints` 这些 ghost 补全上下文字段

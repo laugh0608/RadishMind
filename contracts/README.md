@@ -61,29 +61,36 @@
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json)，用于固定第三条模板里“候选存在，但排序分差过小导致只能 manual-only”的边界
 - 当前还提供了从候选集装配到模型请求的可执行入口 [build-radishflow-ghost-request.py](../scripts/build-radishflow-ghost-request.py)，并用 [radishflow-copilot-request-ghost-flash-basic-001.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json) 固定其最小输出
 - 当前还新增了通用装配入口 [build-radishflow-request.py](../scripts/build-radishflow-request.py)，用于把 `adapter-radishflow` 上游快照装配为 `CopilotRequest`
-- 当前仓库已补六条 adapter snapshot 示例，既覆盖最小链路，也覆盖更贴近真实接入的冲突态与多选态：
+- 当前仓库已补九条 adapter snapshot 示例，既覆盖最小链路，也覆盖更贴近真实接入的冲突态、多选态与 exporter 真实边界：
   - [explain-diagnostics-unit-not-converged-001.snapshot.json](../adapters/radishflow/examples/explain-diagnostics-unit-not-converged-001.snapshot.json)
   - [explain-diagnostics-multi-object-feed-conflict-001.snapshot.json](../adapters/radishflow/examples/explain-diagnostics-multi-object-feed-conflict-001.snapshot.json)
   - [suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json](../adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json)
   - [suggest-flowsheet-edits-multi-selection-single-actionable-target-001.snapshot.json](../adapters/radishflow/examples/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.snapshot.json)
+  - [suggest-flowsheet-edits-joint-selection-primary-focus-001.snapshot.json](../adapters/radishflow/examples/suggest-flowsheet-edits-joint-selection-primary-focus-001.snapshot.json)
+  - [suggest-flowsheet-edits-three-step-priority-chain-001.snapshot.json](../adapters/radishflow/examples/suggest-flowsheet-edits-three-step-priority-chain-001.snapshot.json)
   - [explain-control-plane-entitlement-expired-001.snapshot.json](../adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json)
   - [explain-control-plane-conflicting-signals-001.snapshot.json](../adapters/radishflow/examples/explain-control-plane-conflicting-signals-001.snapshot.json)
+  - [explain-control-plane-redacted-support-summary-001.snapshot.json](../adapters/radishflow/examples/explain-control-plane-redacted-support-summary-001.snapshot.json)
 - 当前 `check-repo` 会校验这六条 adapter snapshot 能稳定生成与现有 eval sample `input_request` 一致的请求对象，避免“上游快照 -> CopilotRequest” 只停留在手工拼装
 - 当前还新增了 [build-radishflow-adapter-snapshot.py](../scripts/build-radishflow-adapter-snapshot.py)，用于把更贴近上游导出对象的 export snapshot 收口成 adapter snapshot
 - 当前还新增了 [build-radishflow-export-request.py](../scripts/build-radishflow-export-request.py)，用于把 export snapshot 直接装配为 `CopilotRequest`
 - 当前还新增了 [init-radishflow-export-snapshot.py](../scripts/init-radishflow-export-snapshot.py)，用于为三类首批 `RadishFlow` 任务生成 schema-valid 的最小 export 模板
 - 当前还新增了 [validate-radishflow-export-snapshot.py](../scripts/validate-radishflow-export-snapshot.py)，用于在真实接线前对 export snapshot 做 schema、任务级语义和敏感信息 smoke 校验
-- 当前仓库也已补六条 export snapshot 示例：
+- 当前仓库也已补九条 export snapshot 示例：
   - [explain-diagnostics-unit-not-converged-001.export.json](../adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json)
   - [explain-diagnostics-multi-object-feed-conflict-001.export.json](../adapters/radishflow/exports/explain-diagnostics-multi-object-feed-conflict-001.export.json)
   - [suggest-flowsheet-edits-reconnect-outlet-001.export.json](../adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json)
   - [suggest-flowsheet-edits-multi-selection-single-actionable-target-001.export.json](../adapters/radishflow/exports/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.export.json)
+  - [suggest-flowsheet-edits-joint-selection-primary-focus-001.export.json](../adapters/radishflow/exports/suggest-flowsheet-edits-joint-selection-primary-focus-001.export.json)
+  - [suggest-flowsheet-edits-three-step-priority-chain-001.export.json](../adapters/radishflow/exports/suggest-flowsheet-edits-three-step-priority-chain-001.export.json)
   - [explain-control-plane-entitlement-expired-001.export.json](../adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json)
   - [explain-control-plane-conflicting-signals-001.export.json](../adapters/radishflow/exports/explain-control-plane-conflicting-signals-001.export.json)
+  - [explain-control-plane-redacted-support-summary-001.export.json](../adapters/radishflow/exports/explain-control-plane-redacted-support-summary-001.export.json)
 - 当前 `check-repo` 也会校验这六条 export snapshot 能稳定生成与既有 adapter snapshot 一致的中间结果，避免“导出对象 -> adapter snapshot” 漂成第二套口径
 - 当前 `check-repo` 也会校验这六条 export snapshot 能直接生成与既有 eval sample `input_request` 一致的请求对象，确保“导出对象 -> CopilotRequest” 这条端到端链路同样稳定
 - 当前 `check-repo` 也会校验 `init-radishflow-export-snapshot.py` 生成的三类最小模板本身仍满足 export schema，避免 exporter bootstrap 入口失效
-- 当前 `check-repo` 也会对六条 export snapshot 和三类 bootstrap 模板运行 `validate-radishflow-export-snapshot.py`，避免真实接线前把 selection 裁剪错误、任务级缺块或敏感字段透传带进 runtime 链路
+- 当前 `check-repo` 也会对九条 export snapshot 和三类 bootstrap 模板运行 `validate-radishflow-export-snapshot.py`，避免真实接线前把 selection 裁剪错误、任务级缺块或敏感字段透传带进 runtime 链路
+- 当前新增三条 exporter 边界 fixture，分别固定“联合选择态 + `primary_selected_unit` 并存”“`support_artifacts` 采用 `uri + metadata.summary` 的最小脱敏摘要”以及“多对象 selection 下三动作优先级顺序”这三类真实接线口径
 - 关于这些 export 字段应该如何与上游导出对象逐项对齐，当前正式说明已收口到 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 的 `RadishFlowExportSnapshot` 映射约定章节
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径

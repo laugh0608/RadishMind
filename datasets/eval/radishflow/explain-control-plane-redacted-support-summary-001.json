@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-redacted-support-summary-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-redacted-support-summary-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "attachment_ref",
+        "role": "supporting",
+        "name": "lease_refresh_capture",
+        "mime_type": "application/json",
+        "uri": "capture://radishflow/control-plane/lease-refresh-403-001",
+        "metadata": {
+          "summary": "lease refresh endpoint returned 403 after one retry; authorization, cookie, and token fields were redacted by exporter",
+          "redactions": [
+            "authorization",
+            "cookie",
+            "token"
+          ]
+        }
+      },
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "ui_banner_summary",
+        "mime_type": "text/plain",
+        "content": "UI still shows a cached active entitlement badge from the previous successful sync."
+      }
+    ],
+    "context": {
+      "document_revision": 26,
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "refresh_failed",
+        "sync_status": "blocked",
+        "manifest_status": "current",
+        "last_error": "license refresh rejected by upstream"
+      },
+      "solve_session": {
+        "status": "blocked"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "conflict_explanation",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "candidate_operation"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"CONTROL_PLANE_REFRESH_BLOCKED\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"review-redacted-refresh-capture\"",
+      "$.proposed_actions[0].risk_level=\"medium\"",
+      "$.proposed_actions[0].requires_confirmation=true",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=true"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.summary=\"请直接重放完整 refresh 请求报文。\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "support_artifacts 若引用外部 capture，应优先传 uri 加最小脱敏摘要，而不是把原始控制面载荷直接内联到请求。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面更像是 refresh 链路被上游拒绝而非 entitlement 已明确失效；exporter 提供的是脱敏后的最小摘要，而不是原始 refresh 报文。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "control_plane_state 显示 entitlement 仍为 active，但 lease refresh 已失败且会话 blocked，因此当前重点应放在 refresh 失败链路，而不是直接下 entitlement 失效结论。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "conflict_explanation",
+        "text": "更合理的解释是 refresh 链路可能被上游访问策略拒绝；当前 support_artifacts 只保留了最小脱敏摘要，足以说明 403 现象，但并没有把 authorization、cookie 或 token 原文带进请求。",
+        "citation_ids": [
+          "cp-2"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "下一步应人工结合脱敏 capture 摘要和 UI 状态复核 refresh 失败原因，再决定是否需要重新认证或继续调查缓存展示链路。",
+        "citation_ids": [
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "CONTROL_PLANE_REFRESH_BLOCKED",
+        "message": "lease refresh 已被上游拒绝，当前控制面恢复链路处于阻塞状态。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工复核脱敏后的 refresh capture 摘要",
+        "target": {
+          "type": "control_plane",
+          "id": "review-redacted-refresh-capture"
+        },
+        "rationale": "当前已有足够证据表明 refresh 链路异常，但仍需要人工复核脱敏摘要与 UI 现象，再决定后续恢复动作。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "cp-1",
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=refresh_failed, sync_status=blocked, manifest_status=current"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "lease_refresh_capture summary",
+        "locator": "artifact:lease_refresh_capture.metadata.summary",
+        "excerpt": "lease refresh endpoint returned 403 after one retry; authorization, cookie, and token fields were redacted by exporter"
+      },
+      {
+        "id": "cp-3",
+        "kind": "artifact",
+        "label": "ui_banner_summary",
+        "locator": "artifact:ui_banner_summary",
+        "excerpt": "UI still shows a cached active entitlement badge from the previous successful sync."
+      }
+    ],
+    "confidence": 0.82,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}
