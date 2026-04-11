@@ -62,12 +62,14 @@
 - 第二批 `v3` 还额外暴露出一个真实 provider 失败面：两条非空样本返回的是“几乎完整但多闭合一个 `}` 的 JSON”；当前已以窄修复收口后重新导入，并恢复到 `audit=3/3 pass`
 - 第三批 `v4` 未再暴露新的可重新归一化结构坏法；默认批次执行时 `manual_only` 样本一度出现 provider 卡顿，但拆成单样本复跑后可正常 capture，并最终仍沿同一条正式导入链收口到 `audit=3/3 pass`
 - 第四批 `v5` 则继续把上面的执行层问题推进到可治理状态：一方面批次入口已改为逐样本单进程并加硬超时，另一方面 `manual_only` 样本新暴露出的“多动作 JSON 提前关掉 `proposed_actions` / `answers` 作用域”坏法也已被窄修复收口，并恢复到 `audit=3/3 pass`
+- 紧接着发起的第五批尝试 `v6` 当前尚未正式入仓：短窗口复跑显示 3 条默认样本都直接命中 provider `HTTP 429`，没有形成新的 raw dump；因此这轮现阶段应判定为 provider 可用性阻塞，而不是新的任务级 malformed JSON / 导入归一化失败面
 
 当前这条 PoC 仍是轻量版：
 
 - 目标仍是先证明本任务可以稳定做真实候选输出 capture 与正式导入，而不是一次性复制 `Radish docs QA` 的完整 batch 治理编排
 - 下一步不再是补 simulated 样本，而是继续跑下一批真实 teacher capture；只有当新增真实 batch 暴露出新的失败面且当前 runtime 修复不足以治理时，再回头补 recent-actions 或导入治理边界样本
 - 当前在继续扩批时，还应同时观察两件事：其一是真实 provider 在批处理场景下是否仍会出现单样本卡顿，其二是 `manual_only` 多动作输出是否还会继续暴露新的结构坏法；若前者继续复现，应优先继续收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
+- 若像 `v6` 这样出现三条默认样本同时 `HTTP 429` 且零 capture 的情况，当前应先归类为 provider 侧容量/限流阻塞；这类现象最多驱动 capture 脚本的收尾健壮性修复，不应误记成新的 `suggest_ghost_completion` 输出坏法，也不应生成正式批次目录
 
 ## 最小必需输入
 

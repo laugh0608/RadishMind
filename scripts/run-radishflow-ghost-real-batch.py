@@ -96,6 +96,14 @@ def make_repo_relative(path: Path) -> str:
     return str(resolved)
 
 
+def coerce_subprocess_text(payload: str | bytes | None) -> str:
+    if payload is None:
+        return ""
+    if isinstance(payload, bytes):
+        return payload.decode("utf-8", errors="replace")
+    return payload
+
+
 def run_command(command: list[str], *, timeout_seconds: float | None = None) -> subprocess.CompletedProcess[str]:
     try:
         result = subprocess.run(
@@ -106,8 +114,8 @@ def run_command(command: list[str], *, timeout_seconds: float | None = None) -> 
             timeout=timeout_seconds,
         )
     except subprocess.TimeoutExpired as exc:
-        stdout_text = exc.stdout or ""
-        stderr_text = exc.stderr or ""
+        stdout_text = coerce_subprocess_text(exc.stdout)
+        stderr_text = coerce_subprocess_text(exc.stderr)
         timeout_message = (
             f"command timed out after {timeout_seconds:.1f}s: "
             + " ".join(command)
