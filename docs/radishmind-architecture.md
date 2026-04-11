@@ -59,6 +59,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 
 - `RadishFlow`
   - 当前仓库已先落最小 `adapter-radishflow` 骨架：`adapters/radishflow/request_builder.py` 与 `scripts/build-radishflow-request.py` 可把上游快照稳定装配为 `CopilotRequest`，并已对齐三条既有 eval sample
+  - 当前还已补 export -> adapter 的中间转换层：`adapters/radishflow/export_snapshot.py` 与 `scripts/build-radishflow-adapter-snapshot.py` 可先把更贴近真实导出对象的嵌套快照收口成 adapter snapshot，避免 adapter 直接绑定到手工拼装的扁平 fixture
   - 优先走状态优先打包：`FlowsheetDocument`、`document_revision`、`SelectionState`、`DiagnosticSummary`、`SolveSessionState`、`SolveSnapshot`
   - 对编辑器辅助场景，额外打包 `selected_unit`、`unconnected_ports`、`nearby_nodes`、`cursor_context` 与本地规则筛出的 `legal_candidate_completions`
   - `cursor_context.recent_actions` 当前不仅承接“最近 accept 了哪条 ghost”，也承接“最近 reject / dismiss / skip 了哪条 ghost”；其第一版正式语义已收口为三条链式模板共享的同一套规则：只压制同一 `candidate_ref` 的下一帧默认 `Tab`，隔一帧且候选仍是高置信合法默认项时允许恢复，而不同 `candidate_ref` 不共享 suppress 信号

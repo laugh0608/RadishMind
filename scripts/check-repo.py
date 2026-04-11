@@ -1095,6 +1095,21 @@ RADISHFLOW_ADAPTER_REQUEST_ASSEMBLY_FIXTURES = [
     },
 ]
 
+RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES = [
+    {
+        "export_snapshot": "adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json",
+        "adapter_snapshot": "adapters/radishflow/examples/explain-diagnostics-unit-not-converged-001.snapshot.json",
+    },
+    {
+        "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
+        "adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json",
+    },
+    {
+        "export_snapshot": "adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json",
+        "adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json",
+    },
+]
+
 RADISH_DOCS_QA_REAL_BATCHES = [
     {
         "audit_report": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
@@ -1209,11 +1224,16 @@ REQUIRED_FILES = [
     "contracts/copilot-response.schema.json",
     "contracts/radishflow-ghost-candidate-set.schema.json",
     "contracts/radishflow-adapter-snapshot.schema.json",
+    "contracts/radishflow-export-snapshot.schema.json",
     "adapters/radishflow/__init__.py",
     "adapters/radishflow/request_builder.py",
+    "adapters/radishflow/export_snapshot.py",
     "adapters/radishflow/examples/explain-diagnostics-unit-not-converged-001.snapshot.json",
     "adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json",
     "adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json",
+    "adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json",
+    "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
+    "adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json",
     "datasets/README.md",
     "datasets/examples/README.md",
     "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
@@ -1570,6 +1590,7 @@ REQUIRED_FILES = [
     "scripts/build-negative-replay-index.py",
     "scripts/build-candidate-record-batch.py",
     "scripts/build-radishflow-ghost-request.py",
+    "scripts/build-radishflow-adapter-snapshot.py",
     "scripts/build-radishflow-request.py",
     "scripts/import-candidate-response-dump.py",
     "scripts/import-candidate-response-dump-batch.py",
@@ -1762,6 +1783,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/copilot-response.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
+        REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
     ]
     for schema_path in contract_schema_paths:
         document = json.loads(schema_path.read_text(encoding="utf-8"))
@@ -1772,6 +1794,9 @@ def check_contract_schemas() -> None:
     )
     adapter_snapshot_schema = json.loads(
         (REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json").read_text(encoding="utf-8")
+    )
+    export_snapshot_schema = json.loads(
+        (REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json").read_text(encoding="utf-8")
     )
     copilot_request_schema = json.loads((REPO_ROOT / "contracts/copilot-request.schema.json").read_text(encoding="utf-8"))
     for fixture in GHOST_REQUEST_ASSEMBLY_FIXTURES:
@@ -1815,6 +1840,23 @@ def check_contract_schemas() -> None:
                 fixture["snapshot"],
                 "--check-sample",
                 fixture["sample"],
+            ],
+        )
+
+    for fixture in RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES:
+        export_snapshot_example = json.loads((REPO_ROOT / fixture["export_snapshot"]).read_text(encoding="utf-8"))
+        jsonschema.validate(export_snapshot_example, export_snapshot_schema)
+
+        adapter_snapshot_example = json.loads((REPO_ROOT / fixture["adapter_snapshot"]).read_text(encoding="utf-8"))
+        jsonschema.validate(adapter_snapshot_example, adapter_snapshot_schema)
+
+        run_python_script(
+            "build-radishflow-adapter-snapshot.py",
+            [
+                "--input",
+                fixture["export_snapshot"],
+                "--check-snapshot",
+                fixture["adapter_snapshot"],
             ],
         )
 

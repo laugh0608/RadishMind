@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-explain-diag-unit-not-converged-001",
+  "task": "explain_diagnostics",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 27,
+    "flowsheet_document": {
+      "document_id": "flowsheet-002",
+      "units": [
+        {
+          "id": "reactor-1",
+          "kind": "Reactor",
+          "name": "Main Reactor"
+        }
+      ],
+      "streams": [
+        {
+          "id": "feed-reactor-1",
+          "name": "Reactor Feed",
+          "target_unit_id": "reactor-1",
+          "specs": {
+            "flow_kmol_per_h": 120
+          }
+        },
+        {
+          "id": "product-reactor-1",
+          "name": "Reactor Product",
+          "source_unit_id": "reactor-1"
+        }
+      ]
+    }
+  },
+  "selection_state": {
+    "selected_unit_ids": [
+      "reactor-1"
+    ]
+  },
+  "diagnostics_export": {
+    "diagnostic_summary": {
+      "error_count": 1,
+      "warning_count": 1
+    },
+    "diagnostics": [
+      {
+        "code": "UNIT_NOT_CONVERGED",
+        "message": "Reactor 1 failed to converge within the iteration limit.",
+        "severity": "error",
+        "target_type": "unit",
+        "target_id": "reactor-1"
+      },
+      {
+        "code": "INLET_STATE_INCOMPLETE",
+        "message": "Reactor 1 inlet stream is missing a complete phase state.",
+        "severity": "warning",
+        "target_type": "stream",
+        "target_id": "feed-reactor-1"
+      }
+    ]
+  },
+  "solve_session_state": {
+    "status": "failed",
+    "iteration_limit": 25
+  },
+  "solve_snapshot": {
+    "solver_status": "not_converged",
+    "residual_norm": 0.38,
+    "last_updated": "2026-03-31T09:20:00Z"
+  }
+}
