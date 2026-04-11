@@ -50,8 +50,9 @@
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8)
+- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9)
 
-七批当前都只收口同一组 3 条 record：
+八批当前都只收口同一组 3 条 record：
 
 - `suggest-ghost-completion-flash-vapor-outlet-001.record.json`
 - `suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json`
@@ -68,6 +69,7 @@
 - 紧接着发起的第五批尝试 `v6` 起初一度被 `openrouter` 的 provider-wide `HTTP 429` 阻塞，未能形成新 dump；但在补上 `openrouter / deepseek` 双 profile 切换后，当前已使用 `deepseek` fallback profile 重跑并正式入仓，确认这轮并未新增新的任务级 malformed JSON / 导入归一化失败面，而是供应商可用性阻塞已可绕过
 - 第六批 `v7` 则继续暴露并收口了两条新的真实失败面：其一是当前 openrouter 默认 free 模型已被上游废弃，三条样本会直接 `404 deprecated`；其二是 `deepseek` 在 `empty` 样本上会把 `summary` 与 `empty_suggestion_reason.text` 写成内嵌 JSON 字符串。前者当前已通过 provider profile 切换与 `.env.example` 口径更新收口，后者则已通过只作用于 `radishflow / suggest_ghost_completion` 的摘要文本窄修复收口，并恢复到 `audit=3/3 pass`
 - 第七批 `v8` 则继续证明：在坚持“先试 openrouter”且先轮换 openrouter 候选模型后，本轮观察到的新增阻塞仍主要是 provider/model 可用性层面的 `HTTP 404` 与 `HTTP 429`，而不是新的任务级输出坏法；当前已按既定策略切到 `deepseek` fallback profile 完成正式 capture，并确认三条样本均可回归通过、且 `v7` 暴露的摘要 JSON 字符串漂移未再次出现
+- 第八批 `v9` 则继续把“先试 openrouter，再按情况切 provider”的边界推进到更细一层：本轮除了继续遇到默认 free 模型废弃、付费额度门槛与短窗口限流外，还观察到 `openrouter` 的 `nemotron-nano` 虽可完成 `Tab`/`empty` 样本，却在 `manual_only` 样本上退化成 project 名错误、空动作和错误 citation 结构的 schema-invalid JSON。当前这条坏法不属于适合通过 runtime 窄修复后正式导入的范围，因此只作为模型质量漂移观察项保留；正式入仓仍改由 `deepseek` fallback profile 完成，并确认当前未新增新的可治理导入/归一化失败面
 
 当前这条 PoC 仍是轻量版：
 
