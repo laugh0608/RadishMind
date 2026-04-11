@@ -1117,6 +1117,12 @@ RADISHFLOW_GHOST_REAL_BATCHES = [
         "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2",
         "manifest": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/2026-04-11-radishflow-ghost-poc-real-v2.manifest.json",
         "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/2026-04-11-radishflow-ghost-poc-real-v2.audit.json",
+    },
+    {
+        "task": "radishflow-ghost-completion",
+        "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3",
+        "manifest": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/2026-04-11-radishflow-ghost-poc-real-v3.manifest.json",
+        "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/2026-04-11-radishflow-ghost-poc-real-v3.audit.json",
     }
 ]
 

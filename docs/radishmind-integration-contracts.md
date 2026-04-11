@@ -155,7 +155,8 @@
 - 当前仓库已提供 `scripts/run-radishflow-ghost-real-batch.py` 作为轻量批次入口，先以 3 个代表样本覆盖 `Tab / manual_only / empty` 三条用户侧主路径，完成 `capture -> manifest -> audit` 的最小 PoC 闭环
 - 该入口当前若未显式传 `--output-root`，默认会直接落到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，使后续真实 batch 可以按正式目录直接产出
 - 对于已采集但仍停留在临时目录、且可能早于当前 canonicalization 修复的 ghost raw dump，当前推荐再通过 `scripts/import-candidate-response-dump-batch.py` 做一次“按当前 runtime 重新归一化后再导入正式批次”的收口，而不是直接把 `/tmp` 下的旧 `record` / `manifest` / `audit` 复制进仓库
-- 当前首批已正式入仓的 ghost real batch 位于 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`，其中 3 条 record 分别覆盖 `Tab`、`manual_only` 与 `empty` 三条正式导入主路径，且 `audit` 已收口到 `3/3 pass`
+- 当前已正式入仓两批 ghost real batch：`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`；两批都收口同一组 3 条 record，分别覆盖 `Tab`、`manual_only` 与 `empty` 三条正式导入主路径，且 `audit` 都已收口到 `3/3 pass`
+- 第二批 `v3` 当前也已固定一个真实 provider 失败面：非空 ghost 输出可能返回“几乎完整但多闭合一个 `}`”的 JSON；runtime 现已先在 `radishflow / suggest_ghost_completion` 下做窄范围 repair，再继续沿用同一条 canonicalization 与导入链
 - 当前仓库已用 `Feed -> Valve -> FlashDrum` 连续搭建链 example 固定这条口径：
   - [radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json)
   - [radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json)

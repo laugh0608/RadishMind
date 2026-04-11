@@ -4,15 +4,17 @@
 
 当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` 与 `audit` 治理产物。
 
-当前首批正式入仓的是 `suggest_ghost_completion` 的真实 provider 批次：
+当前已正式入仓的 `suggest_ghost_completion` 真实 provider 批次有两批：
 
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`
+- `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`
 
-这批次当前只收口 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
+这两批当前都只收口同一组 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
 
 - 对应默认 PoC 三条主路径：`Tab` / `manual_only` / `empty`
 - 真实 raw dump 经过当前 runtime 归一化后，可回放通过 `radishflow-ghost-completion` 回归
 - 已能生成正式 `manifest` 与 `audit`，因此适合作为第一批正式治理资产入仓
+- 其中第二批 `v3` 还额外证明：即使真实 provider 返回“几乎完整但多闭合一个 `}`”的 malformed JSON，只要该坏法已被当前 runtime 以窄修复收口，原始 dump 仍可重新归一化后导回正式批次
 
 当前不建议把 `/tmp` 下的旧 `record` / `manifest` / `audit` 直接复制进仓库。  
 若这批 dump 采集于 runtime canonicalization 修复之前，应先按当前 runtime 重新归一化 `dump.response`，再导入正式批次。
@@ -41,5 +43,6 @@ python3 ./scripts/import-candidate-response-dump.py \
 
 - 原始 raw dump 继续保留在临时或外部采集目录，不强制入仓
 - 正式入仓资产以 `candidate_response_record`、`manifest`、`audit` 为主
+- 正式批次目录应尽量只保留上述治理资产，不混入执行态 `dumps/`、`responses/` 或中间 `records/` 子目录
 - 只有通过当前回归 / audit 的记录，才应进入首批正式正向批次
 - 若后续真实 capture 暴露出新的失败面，应优先新增下一批真实 batch，而不是回头篡改已入仓批次

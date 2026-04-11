@@ -22,6 +22,18 @@ PROMPT_PATHS = {
 SCHEMA_CACHE: dict[Path, Any] = {}
 SENTENCE_BREAK_RE = re.compile(r"(?<=[。！？.!?])\s+")
 ENV_FILE_PATH = REPO_ROOT / ".env"
+# Narrow repair for a stable provider failure observed in the second real ghost batch:
+# near-complete JSON with one extra closing brace before ghost action tail fields.
+GHOST_MALFORMED_JSON_REPAIR_PATTERNS = (
+    (
+        re.compile(r"}}(?=,\"(?:preview|apply|risk_level|requires_confirmation|citation_ids)\")"),
+        "}",
+    ),
+    (
+        re.compile(r"}}(?=\],\"(?:citations|issues|confidence|risk_level|requires_confirmation|status|summary)\")"),
+        "}",
+    ),
+)
 RESPONSE_TOP_LEVEL_KEYS = {
     "schema_version",
     "status",
@@ -1016,6 +1028,16 @@ def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> d
             document = json.loads(candidate)
         except json.JSONDecodeError:
             document = None
+            if (
+                str(copilot_request.get("project") or "").strip() == "radishflow"
+                and str(copilot_request.get("task") or "").strip() == "suggest_ghost_completion"
+            ):
+                repaired_candidate = repair_malformed_ghost_json(candidate)
+                if repaired_candidate != candidate:
+                    try:
+                        document = json.loads(repaired_candidate)
+                    except json.JSONDecodeError:
+                        document = None
         if isinstance(document, dict):
             return coerce_response_document(document, copilot_request, raw_text=content)
     return make_failed_response(
@@ -1024,6 +1046,17 @@ def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> d
         raw_text=content,
         code="MODEL_OUTPUT_NOT_JSON",
     )
+
+
+def repair_malformed_ghost_json(candidate: str) -> str:
+    repaired = candidate
+    for _ in range(4):
+        previous = repaired
+        for pattern, replacement in GHOST_MALFORMED_JSON_REPAIR_PATTERNS:
+            repaired = pattern.sub(replacement, repaired)
+        if repaired == previous:
+            break
+    return repaired
 
 
 def resolve_chat_endpoint(base_url: str) -> str:
