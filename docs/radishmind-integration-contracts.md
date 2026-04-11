@@ -203,6 +203,60 @@
 - 不在 export 层决定哪个 selection object 最终可落 `candidate_edit`
 - 不在 export 层透传敏感控制面凭据或超出当前任务所需的大体量原始状态
 
+### 上游实现清单
+
+若上游项目准备首次接线，当前建议按以下清单实现 exporter：
+
+1. 先按任务选择最小模板
+   - 可直接用 `python3 scripts/init-radishflow-export-snapshot.py --task <task>`
+   - 该脚本会生成一份 schema-valid 的最小 export snapshot 起步模板
+2. 再替换 request 级基础字段
+   - 必填：`request_id`、`locale`
+   - 推荐：`request_id` 使用可追踪、可回放的业务侧请求标识
+3. 再补 `document_state`
+   - 必填：`document_revision`
+   - `explain_diagnostics` / `suggest_flowsheet_edits` 必填：`flowsheet_document` 或 `flowsheet_document_uri`
+4. 再补 `selection_state`
+   - `explain_diagnostics` / `suggest_flowsheet_edits` 至少要有 `selected_unit_ids` 或 `selected_stream_ids`
+   - 若 UI 存在主焦点 unit，才补 `primary_selected_unit`
+5. 再补任务所需状态块
+   - `explain_diagnostics` / `suggest_flowsheet_edits`：补 `diagnostics_export`
+   - `explain_control_plane_state`：补 `control_plane_snapshot`
+   - 有近实时求解状态时，再补 `solve_session_state` / `solve_snapshot`
+6. 最后再补 supporting 证据
+   - 仅在主状态不足以解释当前 UI 表现时补 `support_artifacts`
+   - 典型例子：UI note、lease summary、同步提示文本
+
+当前任务级 checklist 建议固定为：
+
+- `explain_diagnostics`
+  - 必填：`request_id`、`locale`、`document_state.document_revision`
+  - 必填：`flowsheet_document` 或 `flowsheet_document_uri`
+  - 必填：`selected_unit_ids` 或 `selected_stream_ids`
+  - 必填：`diagnostic_summary` 或 `diagnostics`
+  - 可选：`solve_session_state`
+  - 可选：`solve_snapshot`
+- `suggest_flowsheet_edits`
+  - 必填：`request_id`、`locale`、`document_state.document_revision`
+  - 必填：`flowsheet_document` 或 `flowsheet_document_uri`
+  - 必填：`selected_unit_ids` 或 `selected_stream_ids`
+  - 必填：`diagnostic_summary` 或 `diagnostics`
+  - 可选：`solve_session_state`
+  - 可选：`solve_snapshot`
+  - 额外约束：不得因为最终只想 patch 一个对象，就在 export 层删掉其他已选对象
+- `explain_control_plane_state`
+  - 必填：`request_id`、`locale`、`document_state.document_revision`
+  - 必填：`control_plane_snapshot`
+  - 可选：`solve_session_state`
+  - 可选：`support_artifacts`
+
+当前脱敏清单建议固定为：
+
+- 不透传 access token、refresh token、cookie、license secret、credential 原文
+- 不透传完整控制面报文或超出当前任务所需的诊断原始堆栈
+- 对外链对象优先传 `uri + 最小摘要`，而不是大对象全文内联
+- 若 artifact 只用于解释 UI 冲突现象，优先给文本摘要，不直接给敏感原始载荷
+
 - 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序
 - 当前仓库内的 `CopilotRequest` schema 已冻结 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`cursor_context`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints` 这些 ghost 补全上下文字段
 - 对 `task=suggest_ghost_completion`，schema 当前还会强制要求 `document_revision`、单个 `selected_unit_ids`、`legal_candidate_completions`，以及至少一组 `unconnected_ports` 或 `missing_canonical_ports`

@@ -1629,6 +1629,7 @@ REQUIRED_FILES = [
     "scripts/build-radishflow-adapter-snapshot.py",
     "scripts/build-radishflow-export-request.py",
     "scripts/build-radishflow-request.py",
+    "scripts/init-radishflow-export-snapshot.py",
     "scripts/import-candidate-response-dump.py",
     "scripts/import-candidate-response-dump-batch.py",
     "scripts/run-copilot-inference.py",
@@ -1911,6 +1912,22 @@ def check_contract_schemas() -> None:
                 fixture["sample"],
             ],
         )
+
+    with tempfile.TemporaryDirectory(prefix="check-repo-export-template-") as temp_dir:
+        temp_dir_path = Path(temp_dir)
+        for task in ("explain_diagnostics", "suggest_flowsheet_edits", "explain_control_plane_state"):
+            output_path = temp_dir_path / f"{task}.export.json"
+            run_python_script(
+                "init-radishflow-export-snapshot.py",
+                [
+                    "--task",
+                    task,
+                    "--output",
+                    str(output_path),
+                ],
+            )
+            generated_template = json.loads(output_path.read_text(encoding="utf-8"))
+            jsonschema.validate(generated_template, export_snapshot_schema)
 
 
 def check_generated_eval_metadata() -> None:
