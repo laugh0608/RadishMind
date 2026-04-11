@@ -29,24 +29,26 @@
 
 ## 当前 PoC 进展
 
-当前仓库已将本任务从“只有样本和契约”推进到“已完成两批真实 capture 正式导入”的最小工程骨架：
+当前仓库已将本任务从“只有样本和契约”推进到“已完成多批真实 capture 正式导入”的最小工程骨架：
 
 - 已补任务 prompt：[radishflow-suggest-ghost-completion-system.md](../../prompts/tasks/radishflow-suggest-ghost-completion-system.md)
 - 已补最小 runtime：`services/runtime/inference.py` 与 [run-copilot-inference.py](../../scripts/run-copilot-inference.py) 现已支持 `radishflow / suggest_ghost_completion`
 - 已补轻量批次入口：[run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py)，默认固定 3 个代表样本，覆盖 `Tab / manual_only / empty`
 - 上述批次入口当前若未显式传 `--output-root`，会默认落到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，减少后续真实 batch 入仓时的人工路径拼接
+- 上述批次入口当前也已从“单进程多请求 capture”收口为“逐样本单进程 capture + openai-compatible provider 单样本硬超时”，避免单条真实 provider 请求失控时把整批卡死
 - `datasets/eval/radishflow-task-sample.schema.json` 当前已支持外部 `candidate_response_record`，因此真实或模拟 capture 可回灌到同一条 `manifest -> audit` 校验链
 - 已补批次导入入口：[import-candidate-response-dump-batch.py](../../scripts/import-candidate-response-dump-batch.py)，可将一批 raw dump 重新归一化后正式导入仓库
 - 单条 dump 导入入口 [import-candidate-response-dump.py](../../scripts/import-candidate-response-dump.py) 当前也已支持 `--recanonicalize-response`，用于处理 canonicalization 修复前采集的旧 dump
-- 已补一条窄范围 malformed JSON 修复：针对 `radishflow / suggest_ghost_completion` 的稳定 provider 坏法，当前会在首次 `json.loads` 失败后尝试修复“多闭合一个 `}`”再继续走既有 canonicalizer，避免把接近完整的真实输出直接固化成 `MODEL_OUTPUT_NOT_JSON`
+- 已补两条窄范围 malformed JSON 修复：针对 `radishflow / suggest_ghost_completion` 的稳定 provider 坏法，当前会在首次 `json.loads` 失败后尝试修复“多闭合一个 `}`”以及 `manual_only` 多动作输出中提前关掉 `proposed_actions` / `answers` 作用域的坏法，再继续走既有 canonicalizer，避免把接近完整的真实输出直接固化成 `MODEL_OUTPUT_NOT_JSON`
 
 当前已正式入仓的真实 batch 位于：
 
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3)
 - [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4)
+- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5)
 
-三批当前都只收口同一组 3 条 record：
+四批当前都只收口同一组 3 条 record：
 
 - `suggest-ghost-completion-flash-vapor-outlet-001.record.json`
 - `suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json`
@@ -59,12 +61,13 @@
 - 已生成正式 `manifest` 与 `audit`，不再依赖 `/tmp` 下的临时批次产物
 - 第二批 `v3` 还额外暴露出一个真实 provider 失败面：两条非空样本返回的是“几乎完整但多闭合一个 `}` 的 JSON”；当前已以窄修复收口后重新导入，并恢复到 `audit=3/3 pass`
 - 第三批 `v4` 未再暴露新的可重新归一化结构坏法；默认批次执行时 `manual_only` 样本一度出现 provider 卡顿，但拆成单样本复跑后可正常 capture，并最终仍沿同一条正式导入链收口到 `audit=3/3 pass`
+- 第四批 `v5` 则继续把上面的执行层问题推进到可治理状态：一方面批次入口已改为逐样本单进程并加硬超时，另一方面 `manual_only` 样本新暴露出的“多动作 JSON 提前关掉 `proposed_actions` / `answers` 作用域”坏法也已被窄修复收口，并恢复到 `audit=3/3 pass`
 
 当前这条 PoC 仍是轻量版：
 
 - 目标仍是先证明本任务可以稳定做真实候选输出 capture 与正式导入，而不是一次性复制 `Radish docs QA` 的完整 batch 治理编排
 - 下一步不再是补 simulated 样本，而是继续跑下一批真实 teacher capture；只有当新增真实 batch 暴露出新的失败面且当前 runtime 修复不足以治理时，再回头补 recent-actions 或导入治理边界样本
-- 当前在继续扩批前，还应顺手观察真实 provider 在批处理场景下的单样本卡顿是否会重复出现；若它稳定复现，应优先收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
+- 当前在继续扩批时，还应同时观察两件事：其一是真实 provider 在批处理场景下是否仍会出现单样本卡顿，其二是 `manual_only` 多动作输出是否还会继续暴露新的结构坏法；若前者继续复现，应优先继续收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
 
 ## 最小必需输入
 

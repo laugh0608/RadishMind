@@ -22,8 +22,9 @@ PROMPT_PATHS = {
 SCHEMA_CACHE: dict[Path, Any] = {}
 SENTENCE_BREAK_RE = re.compile(r"(?<=[。！？.!?])\s+")
 ENV_FILE_PATH = REPO_ROOT / ".env"
-# Narrow repair for a stable provider failure observed in the second real ghost batch:
-# near-complete JSON with one extra closing brace before ghost action tail fields.
+# Narrow repairs for stable provider failures observed in real ghost batches:
+# - near-complete JSON with one extra closing brace before ghost action tail fields
+# - manual_only multi-action payloads that prematurely close proposed_actions / answer scopes
 GHOST_MALFORMED_JSON_REPAIR_PATTERNS = (
     (
         re.compile(r"}}(?=,\"(?:preview|apply|risk_level|requires_confirmation|citation_ids)\")"),
@@ -32,6 +33,16 @@ GHOST_MALFORMED_JSON_REPAIR_PATTERNS = (
     (
         re.compile(r"}}(?=\],\"(?:citations|issues|confidence|risk_level|requires_confirmation|status|summary)\")"),
         "}",
+    ),
+)
+GHOST_MANUAL_MULTI_ACTION_REPAIR_PATTERNS = (
+    (
+        re.compile(r"}}]\},(?=\{\"action_id\":\"act-[^\"]+\",\"action_kind\":\"ghost_completion\",\"ghost_completion\":)"),
+        "}},",
+    ),
+    (
+        re.compile(r"\"manual_only\":true}}}],(?=\"issues\")"),
+        "\"manual_only\":true}}],",
     ),
 )
 RESPONSE_TOP_LEVEL_KEYS = {
@@ -1049,6 +1060,16 @@ def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> d
 
 
 def repair_malformed_ghost_json(candidate: str) -> str:
+    manual_multi_action_repaired = candidate
+    for pattern, replacement in GHOST_MANUAL_MULTI_ACTION_REPAIR_PATTERNS:
+        manual_multi_action_repaired = pattern.sub(replacement, manual_multi_action_repaired)
+    if manual_multi_action_repaired != candidate:
+        try:
+            json.loads(manual_multi_action_repaired)
+            return manual_multi_action_repaired
+        except json.JSONDecodeError:
+            pass
+
     repaired = candidate
     for _ in range(4):
         previous = repaired
