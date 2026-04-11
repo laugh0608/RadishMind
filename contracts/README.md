@@ -80,6 +80,7 @@
   - [explain-control-plane-conflicting-signals-001.export.json](../adapters/radishflow/exports/explain-control-plane-conflicting-signals-001.export.json)
 - 当前 `check-repo` 也会校验这六条 export snapshot 能稳定生成与既有 adapter snapshot 一致的中间结果，避免“导出对象 -> adapter snapshot” 漂成第二套口径
 - 当前 `check-repo` 也会校验这六条 export snapshot 能直接生成与既有 eval sample `input_request` 一致的请求对象，确保“导出对象 -> CopilotRequest” 这条端到端链路同样稳定
+- 关于这些 export 字段应该如何与上游导出对象逐项对齐，当前正式说明已收口到 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 的 `RadishFlowExportSnapshot` 映射约定章节
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
 - 当前 `check-repo` 已同时校验基础 `FlashDrum`、`Valve ambiguous`、`Feed -> Valve -> FlashDrum` 连续搭建链正向示例和链式停住示例，避免 `recent_actions` 与空候选请求的装配逻辑只停留在 `eval` 样本说明层

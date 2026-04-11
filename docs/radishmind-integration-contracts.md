@@ -137,6 +137,72 @@
 - 当前仓库还已再前推一层：新增 `radishflow-export-snapshot.schema.json` 与 `build-radishflow-adapter-snapshot.py`，先把更贴近 `document_state / selection_state / diagnostics_export / solve_snapshot / control_plane_snapshot` 的导出对象稳定转换为 adapter snapshot，再继续装配成 `CopilotRequest`
 - 当前仓库也已新增 `build-radishflow-export-request.py`，用于把 export snapshot 直接装配为 `CopilotRequest`，并由 `check-repo` 校验其结果与既有 eval sample `input_request` 一致
 - 当前这条装配链已不只覆盖最小 happy path，还补进了 `multi-object diagnostics`、`control-plane conflicting signals` 与“multi-selection 但只允许单 actionable target” 三类代表性样本，避免 context packer 只在单对象、单诊断样本上自洽
+
+### `RadishFlowExportSnapshot` 上游导出映射约定
+
+`RadishFlowExportSnapshot` 当前定位为“上游导出对象和 adapter 之间的稳定边界”。
+
+它的职责不是直接替代 `CopilotRequest`，而是先把上游更贴近真实对象结构的状态冻结下来，再由 adapter 决定怎样装配到统一协议。
+
+当前建议按以下口径对齐：
+
+- `document_state.document_revision`
+  - 来源应是当前文档修订号或等价版本号
+  - 这是所有后续选择集、诊断和 recent state 的统一时间基线
+- `document_state.flowsheet_document`
+  - 来源应是当前可供解释或建议使用的结构化 `FlowsheetDocument`
+  - 若对象过大、已有稳定对象存储，也可改为只给 `flowsheet_document_uri`
+- `selection_state.selected_unit_ids`
+  - 来源应是 UI 或编辑器当前选择集中的 unit id 列表
+  - 对多选场景必须保留完整选择集，不能为了下游简化而提前裁掉
+- `selection_state.selected_stream_ids`
+  - 来源应是 UI 或编辑器当前选择集中的 stream id 列表
+  - 与 `selected_unit_ids` 可同时存在，用于表达“单元 + 流股”联合选择态
+- `selection_state.primary_selected_unit`
+  - 只有当上游确实存在“主焦点 unit”语义时才提供
+  - 当前 adapter 只会在这个字段显式存在时才写入 `selected_unit`，不得再从 `selected_unit_ids + flowsheet_document` 反推
+- `diagnostics_export.diagnostic_summary`
+  - 来源应是当前诊断摘要，例如 error / warning 计数
+  - 若上游没有摘要，可省略，由 `diagnostics` 独立成立
+- `diagnostics_export.diagnostics`
+  - 来源应是当前任务可见的诊断对象数组
+  - 多对象诊断、`stream_pair` 这类 target 语义应原样保留，不在导出层擅自改写成单对象解释
+- `solve_session_state`
+  - 来源应是当前求解会话摘要，例如 `status`、iteration limit、blocked state
+  - 该块表达“会话状态”，不负责代替诊断或控制面定因
+- `solve_snapshot`
+  - 来源应是最近一次求解快照或 snapshot 摘要
+  - 它适合提供 residual、solver_status、last_updated 等“近实时状态”
+- `control_plane_snapshot`
+  - 来源应是 entitlement / lease / sync / manifest 等控制面摘要
+  - 若上游状态彼此冲突，应原样保留冲突，不得在导出层提前归一成单一根因
+- `support_artifacts`
+  - 来源应是额外但必要的 supporting 证据，例如 UI note、lease summary、操作面文本提示
+  - 只允许补充解释证据，不得夹带 token、credential、cookie 或其他敏感原文
+
+当前任务级最小导出要求建议固定为：
+
+- `task=explain_diagnostics`
+  - 至少提供 `document_state.document_revision`
+  - 至少提供 `flowsheet_document` 或 `flowsheet_document_uri`
+  - 至少提供一类 selection 信息和一类 diagnostics 信息
+  - 可选补充 `solve_session_state`、`solve_snapshot`
+- `task=suggest_flowsheet_edits`
+  - 与 `explain_diagnostics` 共享相同最小导出口径
+  - 即使最终只有单个对象可落 patch，也必须保留完整 selection，不能在导出层提前裁掉其他已选对象
+- `task=explain_control_plane_state`
+  - 至少提供 `document_state.document_revision`
+  - 至少提供 `control_plane_snapshot`
+  - 可选补充 `solve_session_state` 与 `support_artifacts`
+
+当前导出层的非目标也应明确：
+
+- 不在 export 层推导 `selected_unit`
+- 不在 export 层把多对象诊断改写成单对象结论
+- 不在 export 层把冲突控制面信号提前收口成单一根因
+- 不在 export 层决定哪个 selection object 最终可落 `candidate_edit`
+- 不在 export 层透传敏感控制面凭据或超出当前任务所需的大体量原始状态
+
 - 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序
 - 当前仓库内的 `CopilotRequest` schema 已冻结 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`cursor_context`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints` 这些 ghost 补全上下文字段
 - 对 `task=suggest_ghost_completion`，schema 当前还会强制要求 `document_revision`、单个 `selected_unit_ids`、`legal_candidate_completions`，以及至少一组 `unconnected_ports` 或 `missing_canonical_ports`
