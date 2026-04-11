@@ -26,6 +26,7 @@ from services.runtime.candidate_records import (  # noqa: E402
     resolve_relative_to_repo,
     write_json_document,
 )
+from services.runtime.inference import recanonicalize_response_dump  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,6 +39,11 @@ def parse_args() -> argparse.Namespace:
         "--record-id",
         default="",
         help="Optional record_id override. Defaults to dump.record_id, then dump.dump_id.",
+    )
+    parser.add_argument(
+        "--recanonicalize-response",
+        action="store_true",
+        help="Rebuild dump.response from raw_response using the current runtime canonicalization before import.",
     )
     return parser.parse_args()
 
@@ -53,6 +59,8 @@ def main() -> int:
     dump = load_json_document(input_path)
     input_label = make_repo_relative(input_path)
     output_label = make_repo_relative(output_path)
+    if args.recanonicalize_response:
+        dump = recanonicalize_response_dump(dump, label=input_label)
     record = candidate_response_record_from_dump(
         dump,
         record_id_override=args.record_id,

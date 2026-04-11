@@ -5,6 +5,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import jsonschema
@@ -1110,6 +1111,15 @@ RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES = {
     "index": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.json",
 }
 
+RADISHFLOW_GHOST_REAL_BATCHES = [
+    {
+        "task": "radishflow-ghost-completion",
+        "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2",
+        "manifest": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/2026-04-11-radishflow-ghost-poc-real-v2.manifest.json",
+        "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/2026-04-11-radishflow-ghost-poc-real-v2.audit.json",
+    }
+]
+
 REQUIRED_FILES = [
     "AGENTS.md",
     "CLAUDE.md",
@@ -1364,6 +1374,7 @@ REQUIRED_FILES = [
     "datasets/eval/real-derived-negative-index.schema.json",
     "datasets/eval/recommended-negative-replay-summary.schema.json",
     "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
+    "datasets/eval/candidate-records/radishflow/README.md",
     "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
     "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.json",
     "datasets/eval/radishflow-task-sample.schema.json",
@@ -1497,6 +1508,7 @@ REQUIRED_FILES = [
     "scripts/build-candidate-record-batch.py",
     "scripts/build-radishflow-ghost-request.py",
     "scripts/import-candidate-response-dump.py",
+    "scripts/import-candidate-response-dump-batch.py",
     "scripts/run-copilot-inference.py",
     "scripts/run-radishflow-ghost-real-batch.py",
     "scripts/run-radish-docs-qa-real-batch.py",
@@ -1538,12 +1550,95 @@ REQUIRED_FILES.extend(
         if relative_path
     ]
 )
+REQUIRED_FILES.extend(
+    [
+        relative_path
+        for batch in RADISHFLOW_GHOST_REAL_BATCHES
+        for relative_path in (
+            batch["manifest"],
+            batch["audit_report"],
+        )
+        if relative_path
+    ]
+)
 
 
 def run_python_script(script_name: str, args: list[str]) -> None:
     result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / script_name), *args], cwd=REPO_ROOT)
     if result.returncode != 0:
         raise SystemExit(result.returncode)
+
+
+def load_json_file(relative_path: str) -> object:
+    return json.loads((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+
+
+def run_python_script_capture(script_name: str, args: list[str]) -> None:
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts" / script_name), *args],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        if result.stdout:
+            print(result.stdout, end="")
+        if result.stderr:
+            print(result.stderr, end="", file=sys.stderr)
+        raise SystemExit(result.returncode)
+
+
+def assert_json_equal(expected: object, actual: object, *, label: str) -> None:
+    if expected != actual:
+        raise SystemExit(f"{label} does not match regenerated output")
+
+
+def check_committed_candidate_record_batches() -> None:
+    for batch in RADISHFLOW_GHOST_REAL_BATCHES:
+        manifest_document = load_json_file(batch["manifest"])
+        description = str((manifest_document or {}).get("description") or "").strip() if isinstance(manifest_document, dict) else ""
+        with tempfile.TemporaryDirectory(prefix="check-repo-ghost-batch-") as temp_dir:
+            temp_dir_path = Path(temp_dir)
+            temp_manifest_path = temp_dir_path / "manifest.json"
+            run_python_script_capture(
+                "build-candidate-record-batch.py",
+                [
+                    "--record-dir",
+                    batch["record_dir"],
+                    "--output",
+                    str(temp_manifest_path),
+                    *(
+                        ["--description", description]
+                        if description
+                        else []
+                    ),
+                ],
+            )
+            regenerated_manifest = json.loads(temp_manifest_path.read_text(encoding="utf-8"))
+            assert_json_equal(
+                manifest_document,
+                regenerated_manifest,
+                label=batch["manifest"],
+            )
+
+            temp_audit_path = temp_dir_path / "audit.json"
+            run_python_script_capture(
+                "audit-candidate-record-batch.py",
+                [
+                    batch["task"],
+                    "--manifest",
+                    batch["manifest"],
+                    "--report-output",
+                    str(temp_audit_path),
+                ],
+            )
+            committed_audit = load_json_file(batch["audit_report"])
+            regenerated_audit = json.loads(temp_audit_path.read_text(encoding="utf-8"))
+            assert_json_equal(
+                committed_audit,
+                regenerated_audit,
+                label=batch["audit_report"],
+            )
 
 
 def check_required_files() -> None:
@@ -1811,6 +1906,7 @@ def check_generated_eval_metadata() -> None:
     )
     jsonschema.validate(real_derived_index_document, real_derived_index_schema)
     run_python_script("check-radish-docs-qa-real-derived-negative-index.py", [])
+    check_committed_candidate_record_batches()
 
 
 def parse_args() -> argparse.Namespace:

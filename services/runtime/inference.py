@@ -1224,3 +1224,29 @@ def build_candidate_response_dump(
         "raw_response": inference_result.get("raw_response"),
         "response": inference_result["response"],
     }
+
+
+def recanonicalize_response_dump(
+    dump: dict[str, Any],
+    *,
+    label: str = "candidate response dump",
+) -> dict[str, Any]:
+    copilot_request = dump.get("input_request")
+    if not isinstance(copilot_request, dict):
+        raise ValueError(f"{label}: input_request is required to recanonicalize response")
+    validate_request_document(copilot_request)
+
+    raw_response = dump.get("raw_response")
+    if not isinstance(raw_response, dict):
+        raise ValueError(f"{label}: raw_response is required to recanonicalize response")
+
+    content = extract_openai_message_content(raw_response)
+    if not content.strip():
+        raise ValueError(f"{label}: raw_response does not contain assistant content")
+
+    normalized_response = normalize_openai_content(content, copilot_request)
+    validate_response_document(normalized_response)
+
+    updated_dump = dict(dump)
+    updated_dump["response"] = normalized_response
+    return updated_dump

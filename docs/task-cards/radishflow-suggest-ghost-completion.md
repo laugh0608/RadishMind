@@ -29,17 +29,35 @@
 
 ## 当前 PoC 进展
 
-当前仓库已将本任务从“只有样本和契约”推进到“capture-ready”的最小工程骨架：
+当前仓库已将本任务从“只有样本和契约”推进到“已完成首批真实 capture 正式导入”的最小工程骨架：
 
 - 已补任务 prompt：[radishflow-suggest-ghost-completion-system.md](../../prompts/tasks/radishflow-suggest-ghost-completion-system.md)
 - 已补最小 runtime：`services/runtime/inference.py` 与 [run-copilot-inference.py](../../scripts/run-copilot-inference.py) 现已支持 `radishflow / suggest_ghost_completion`
 - 已补轻量批次入口：[run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py)，默认固定 3 个代表样本，覆盖 `Tab / manual_only / empty`
 - `datasets/eval/radishflow-task-sample.schema.json` 当前已支持外部 `candidate_response_record`，因此真实或模拟 capture 可回灌到同一条 `manifest -> audit` 校验链
+- 已补批次导入入口：[import-candidate-response-dump-batch.py](../../scripts/import-candidate-response-dump-batch.py)，可将一批 raw dump 重新归一化后正式导入仓库
+- 单条 dump 导入入口 [import-candidate-response-dump.py](../../scripts/import-candidate-response-dump.py) 当前也已支持 `--recanonicalize-response`，用于处理 canonicalization 修复前采集的旧 dump
+
+当前首批已正式入仓的真实 batch 位于：
+
+- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2)
+
+这批当前只收口 3 条 record：
+
+- `suggest-ghost-completion-flash-vapor-outlet-001.record.json`
+- `suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json`
+- `suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.record.json`
+
+它们之所以应入仓，是因为当前同时满足：
+
+- 覆盖默认 PoC 三条主路径：`Tab` / `manual_only` / `empty`
+- 对应真实 raw dump 经当前 runtime 归一化后，可回放通过 `radishflow-ghost-completion` 回归
+- 已生成正式 `manifest` 与 `audit`，不再依赖 `/tmp` 下的临时批次产物
 
 当前这条 PoC 仍是轻量版：
 
-- 目标是先证明本任务可以稳定做真实候选输出 capture，而不是一次性复制 `Radish docs QA` 的完整 batch 治理编排
-- 下一步优先接真实 teacher provider 跑默认 3 样本批次，再根据真实 capture 判断是否仍需要继续补 recent-actions 边界样本
+- 目标仍是先证明本任务可以稳定做真实候选输出 capture 与正式导入，而不是一次性复制 `Radish docs QA` 的完整 batch 治理编排
+- 下一步不再是补 simulated 样本，而是继续跑下一批真实 teacher capture；只有当新增真实 batch 暴露出新的失败面时，再回头补 recent-actions 边界样本
 
 ## 最小必需输入
 

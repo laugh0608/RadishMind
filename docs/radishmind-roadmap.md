@@ -70,8 +70,8 @@
 - 基于 `FlowsheetDocument`、选择集、诊断摘要和求解状态建立首批样本
 - 为编辑器辅助场景冻结 `suggest_ghost_completion` 的输入输出口径，并优先围绕 `FlashDrum` / `Mixer` 建立最小样本
 - 在 `suggest_ghost_completion` 上把 pre-model handoff、request assembly 与 response-level regression 推进到链式基线，并已先在三条链式模板上收口 `Tab / manual_only / empty / reject-no-retab / dismiss-no-retab / skip-no-retab`、same-candidate 一帧 cooldown 恢复 `Tab`、恢复窗口只看最近一条同 candidate 动作，以及 other-candidate 不共享 suppress 信号这四类交互边界
-- 将 `suggest_ghost_completion` 从“只有 golden/eval 样本”推进到“capture-ready”的最小 PoC：补齐任务 prompt、最小 runtime、批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链；当前默认先固定 3 个代表样本覆盖 `Tab / manual_only / empty`
-- 在上述 capture-ready PoC 上接入教师模型做默认批次，而不是继续无上限扩张 fallback 样本
+- 将 `suggest_ghost_completion` 从“只有 golden/eval 样本”推进到“已具备正式导入链”的最小 PoC：补齐任务 prompt、最小 runtime、批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链；当前首批真实 batch 已正式收口到 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`，固定 3 个代表样本覆盖 `Tab / manual_only / empty`
+- 在上述正式导入 PoC 上继续接入后续真实教师批次，而不是继续无上限扩张 fallback 样本
 - 设计结构化输出与 UI 侧回显方式
 - 保留 `canvas screenshot` 作为补充输入，而不是强依赖入口
 
@@ -198,7 +198,7 @@
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“可真实 capture + audit 的 editor assist PoC”；当前仓库已补齐任务 prompt、最小 runtime、轻量批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链，默认先固定 3 个代表样本覆盖 `Tab / manual_only / empty`。下一步应直接跑真实 teacher provider 的默认 PoC 批次，再根据真实 capture 判断是否还需要继续补 recent-actions 样本
+2. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“真实 capture 已正式入仓的 editor assist PoC”；当前仓库已补齐任务 prompt、最小 runtime、轻量批次 capture 入口，以及 dump 重新归一化后的正式导入链，首批 `Tab / manual_only / empty` 三样本真实 batch 已完成入仓与 `audit=3/3 pass`。下一步应继续跑下一批真实 teacher provider capture，再根据新增真实 batch 暴露的失败面决定是否补 recent-actions 样本
 3. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
 4. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估
 5. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略

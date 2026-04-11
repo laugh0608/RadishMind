@@ -191,7 +191,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 当前 `Radish docs QA` 的 same-sample / cross-sample replay 与 real-derived negative index 已统一纳入 `check-repo`，且 `2026-04-05` real batch 已无 singleton source；这条治理链的后续重点应转向跨 source 复合 drift、真实 captured 扩充，以及 `pattern` / `violation` 结构化升级时机评估
 - 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、latest-action precedence 下的 reject / dismiss / skip 恢复态、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
-- 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获候选输出”
+- 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，并已将首批真实 capture 正式导入 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获并治理候选输出”
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
 
 ## 推荐仓库结构
@@ -255,6 +255,9 @@ RadishMind/
 - `scripts/run-radishflow-ghost-real-batch.py`
   - 为 `RadishFlow suggest_ghost_completion` 提供 3 样本轻量 PoC 批次入口
   - 串起 `capture -> manifest -> audit` 的最小闭环，默认覆盖 `Tab / manual_only / empty`
+- `scripts/import-candidate-response-dump-batch.py`
+  - 将一批 raw dump 正式导入为仓库内 `candidate_response_record`
+  - 支持对 canonicalization 修复前采集的旧 dump 按当前 runtime 重新归一化后再生成正式 `manifest` 与 `audit`
 - `prompts/tasks/radish-answer-docs-question-system.md`
   - 冻结当前单任务系统提示的最小口径
 - `prompts/tasks/radishflow-suggest-ghost-completion-system.md`
