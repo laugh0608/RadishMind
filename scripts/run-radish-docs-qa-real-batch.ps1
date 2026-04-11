@@ -4,6 +4,7 @@ param(
     [string]$SamplePattern,
     [ValidateSet("mock", "openai-compatible")]
     [string]$Provider = "openai-compatible",
+    [string]$ProviderProfile,
     [string]$Model,
     [string]$BaseUrl,
     [string]$ApiKey,
@@ -84,6 +85,11 @@ if (-not [string]::IsNullOrWhiteSpace($SamplePattern)) {
 if (-not [string]::IsNullOrWhiteSpace($Model)) {
     $arguments += "--model"
     $arguments += $Model
+}
+
+if (-not [string]::IsNullOrWhiteSpace($ProviderProfile)) {
+    $arguments += "--provider-profile"
+    $arguments += $ProviderProfile
 }
 
 if (-not [string]::IsNullOrWhiteSpace($BaseUrl)) {

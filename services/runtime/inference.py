@@ -84,6 +84,62 @@ def load_env_file(path: Path) -> None:
         os.environ[key] = parsed
 
 
+def getenv_stripped(name: str) -> str:
+    return os.getenv(name, "").strip()
+
+
+def normalize_provider_profile_name(profile: str | None) -> str:
+    normalized = re.sub(r"[^A-Za-z0-9]+", "_", str(profile or "").strip()).strip("_").upper()
+    return normalized
+
+
+def profile_env_key(profile: str, suffix: str) -> str:
+    normalized_profile = normalize_provider_profile_name(profile)
+    return f"RADISHMIND_MODEL_PROFILE_{normalized_profile}_{suffix}"
+
+
+def profile_env_value(profile: str, suffix: str) -> str:
+    normalized_profile = normalize_provider_profile_name(profile)
+    if not normalized_profile:
+        return ""
+    return getenv_stripped(profile_env_key(profile, suffix))
+
+
+def resolve_openai_compatible_profile(provider_profile: str | None) -> str:
+    return str(provider_profile or getenv_stripped("RADISHMIND_MODEL_PROFILE") or "openrouter").strip()
+
+
+def resolve_openai_compatible_config(
+    *,
+    provider_profile: str | None,
+    model: str | None,
+    base_url: str | None,
+    api_key: str | None,
+    request_timeout_seconds: float | None,
+) -> dict[str, Any]:
+    resolved_profile = resolve_openai_compatible_profile(provider_profile)
+    normalized_profile = normalize_provider_profile_name(resolved_profile)
+    resolved_model = model or profile_env_value(resolved_profile, "NAME") or getenv_stripped("RADISHMIND_MODEL_NAME")
+    resolved_base_url = base_url or profile_env_value(resolved_profile, "BASE_URL") or getenv_stripped("RADISHMIND_MODEL_BASE_URL")
+    resolved_api_key = api_key or profile_env_value(resolved_profile, "API_KEY") or getenv_stripped("RADISHMIND_MODEL_API_KEY")
+    if request_timeout_seconds is None:
+        timeout_env_value = (
+            profile_env_value(resolved_profile, "REQUEST_TIMEOUT_SECONDS")
+            or getenv_stripped("RADISHMIND_MODEL_REQUEST_TIMEOUT_SECONDS")
+        )
+        resolved_request_timeout_seconds = float(timeout_env_value) if timeout_env_value else 120.0
+    else:
+        resolved_request_timeout_seconds = float(request_timeout_seconds)
+    return {
+        "profile": resolved_profile,
+        "normalized_profile": normalized_profile,
+        "model": resolved_model,
+        "base_url": resolved_base_url,
+        "api_key": resolved_api_key,
+        "request_timeout_seconds": resolved_request_timeout_seconds,
+    }
+
+
 def validate_request_document(document: Any) -> None:
     jsonschema.validate(document, load_schema(REQUEST_SCHEMA_PATH))
 
@@ -1164,6 +1220,7 @@ def run_inference(
     copilot_request: dict[str, Any],
     *,
     provider: str,
+    provider_profile: str | None = None,
     model: str | None = None,
     base_url: str | None = None,
     api_key: str | None = None,
@@ -1199,23 +1256,40 @@ def run_inference(
         }
 
     if provider == "openai-compatible":
-        resolved_model = model or os.getenv("RADISHMIND_MODEL_NAME", "").strip()
-        resolved_base_url = base_url or os.getenv("RADISHMIND_MODEL_BASE_URL", "").strip()
-        resolved_api_key = api_key or os.getenv("RADISHMIND_MODEL_API_KEY", "").strip()
-        if request_timeout_seconds is None:
-            timeout_env_value = os.getenv("RADISHMIND_MODEL_REQUEST_TIMEOUT_SECONDS", "").strip()
-            resolved_request_timeout_seconds = float(timeout_env_value) if timeout_env_value else 120.0
-        else:
-            resolved_request_timeout_seconds = float(request_timeout_seconds)
+        resolved = resolve_openai_compatible_config(
+            provider_profile=provider_profile,
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+            request_timeout_seconds=request_timeout_seconds,
+        )
+        resolved_profile = str(resolved["profile"])
+        normalized_profile = str(resolved["normalized_profile"])
+        resolved_model = str(resolved["model"])
+        resolved_base_url = str(resolved["base_url"])
+        resolved_api_key = str(resolved["api_key"])
+        resolved_request_timeout_seconds = float(resolved["request_timeout_seconds"])
+        profile_name_key = profile_env_key(resolved_profile, "NAME")
+        profile_base_url_key = profile_env_key(resolved_profile, "BASE_URL")
+        profile_api_key_key = profile_env_key(resolved_profile, "API_KEY")
         if not resolved_model:
-            raise ValueError("provider=openai-compatible requires --model or RADISHMIND_MODEL_NAME")
+            raise ValueError(
+                "provider=openai-compatible requires --model, "
+                f"{profile_name_key}, or RADISHMIND_MODEL_NAME"
+            )
         if not resolved_base_url:
-            raise ValueError("provider=openai-compatible requires --base-url or RADISHMIND_MODEL_BASE_URL")
+            raise ValueError(
+                "provider=openai-compatible requires --base-url, "
+                f"{profile_base_url_key}, or RADISHMIND_MODEL_BASE_URL"
+            )
         if not resolved_api_key:
-            raise ValueError("provider=openai-compatible requires --api-key or RADISHMIND_MODEL_API_KEY")
+            raise ValueError(
+                "provider=openai-compatible requires --api-key, "
+                f"{profile_api_key_key}, or RADISHMIND_MODEL_API_KEY"
+            )
         if resolved_request_timeout_seconds <= 0:
             raise ValueError("provider=openai-compatible requires a positive request timeout")
-        return call_openai_compatible(
+        result = call_openai_compatible(
             copilot_request,
             model=resolved_model,
             base_url=resolved_base_url,
@@ -1223,6 +1297,11 @@ def run_inference(
             temperature=temperature,
             request_timeout_seconds=resolved_request_timeout_seconds,
         )
+        raw_request = result.get("raw_request")
+        if isinstance(raw_request, dict):
+            raw_request["provider_profile"] = resolved_profile
+            raw_request["provider_profile_env"] = normalized_profile
+        return result
 
     raise ValueError(f"unsupported provider: {provider}")
 

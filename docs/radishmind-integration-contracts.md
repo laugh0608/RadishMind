@@ -154,12 +154,13 @@
 - `datasets/eval/radishflow-task-sample.schema.json` 当前也已支持外部 `candidate_response_record` 回灌，可将真实或模拟的 ghost completion capture 重新接回同一条 audit / regression 口径，而不必只停留在样本内联 `candidate_response`
 - 当前仓库已提供 `scripts/run-radishflow-ghost-real-batch.py` 作为轻量批次入口，先以 3 个代表样本覆盖 `Tab / manual_only / empty` 三条用户侧主路径，完成 `capture -> manifest -> audit` 的最小 PoC 闭环
 - 该入口当前若未显式传 `--output-root`，默认会直接落到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，使后续真实 batch 可以按正式目录直接产出
-- 该入口当前也已补逐样本单进程 capture 与 openai-compatible provider 单样本硬超时，避免单条真实 provider 请求失控时把整批 capture 一并拖住
+- 该入口当前也已补逐样本单进程 capture 与 openai-compatible provider 单样本硬超时，避免单条真实 provider 请求失控时把整批 capture 一并拖住；同时本地已补 `openrouter / deepseek` 双 profile 切换口径，默认走前者，必要时可切后者继续做真实验证
 - 对于已采集但仍停留在临时目录、且可能早于当前 canonicalization 修复的 ghost raw dump，当前推荐再通过 `scripts/import-candidate-response-dump-batch.py` 做一次“按当前 runtime 重新归一化后再导入正式批次”的收口，而不是直接把 `/tmp` 下的旧 `record` / `manifest` / `audit` 复制进仓库
-- 当前已正式入仓四批 ghost real batch：`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`；四批都收口同一组 3 条 record，分别覆盖 `Tab`、`manual_only` 与 `empty` 三条正式导入主路径，且 `audit` 都已收口到 `3/3 pass`
+- 当前已正式入仓五批 ghost real batch：`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`；五批都收口同一组 3 条 record，分别覆盖 `Tab`、`manual_only` 与 `empty` 三条正式导入主路径，且 `audit` 都已收口到 `3/3 pass`
 - 第二批 `v3` 当前也已固定一个真实 provider 失败面：非空 ghost 输出可能返回“几乎完整但多闭合一个 `}`”的 JSON；runtime 现已先在 `radishflow / suggest_ghost_completion` 下做窄范围 repair，再继续沿用同一条 canonicalization 与导入链
 - 第三批 `v4` 当前则确认：在延续同一组 3 样本 capture 时，尚未出现新的可重新归一化结构坏法；新增观察项主要是批处理执行中 `manual_only` 样本一度出现 provider 卡顿，但拆为单样本后仍可沿同一条 capture -> recanonicalize -> import -> audit 链完成正式入仓
 - 第四批 `v5` 当前继续固定了另一条真实 provider 坏法：`manual_only` 多动作输出可能在第一条 action 后提前关掉 `proposed_actions` / `answers` 作用域，导致第二条 action 漂到错误层级；runtime 现已先在 `radishflow / suggest_ghost_completion` 下做窄范围 repair，再继续沿用同一条 canonicalization 与导入链
+- 第五批 `v6` 当前则确认：当默认 `openrouter` 在同一时间窗内出现 provider-wide `HTTP 429` 时，`deepseek` fallback profile 已可继续完成同一组 3 样本真实 capture，且当前未再暴露新的结构坏法，仍可沿同一条 capture -> recanonicalize -> import -> audit 链完成正式入仓
 - 当前仓库已用 `Feed -> Valve -> FlashDrum` 连续搭建链 example 固定这条口径：
   - [radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json)
   - [radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json](../datasets/examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json)

@@ -35,6 +35,11 @@ def parse_args() -> argparse.Namespace:
     input_group.add_argument("--request", help="Path to a CopilotRequest json file.")
     input_group.add_argument("--sample-dir", help="Directory containing eval sample json files for batch inference.")
     parser.add_argument("--provider", choices=["mock", "openai-compatible"], default="mock")
+    parser.add_argument(
+        "--provider-profile",
+        default="",
+        help="Optional openai-compatible provider profile override, for example openrouter or deepseek.",
+    )
     parser.add_argument("--model", default="", help="Provider model name. Required for openai-compatible when env is absent.")
     parser.add_argument("--base-url", default="", help="Provider base URL or /v1 endpoint for openai-compatible.")
     parser.add_argument("--api-key", default="", help="Provider API key for openai-compatible.")
@@ -175,6 +180,7 @@ def run_inference_with_retry(
             return run_inference(
                 copilot_request,
                 provider=args.provider,
+                provider_profile=args.provider_profile.strip() or None,
                 model=args.model.strip() or None,
                 base_url=args.base_url.strip() or None,
                 api_key=args.api_key.strip() or None,

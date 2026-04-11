@@ -33,6 +33,11 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--provider", choices=["mock", "openai-compatible"], default="mock")
+    parser.add_argument(
+        "--provider-profile",
+        default="",
+        help="Optional openai-compatible provider profile override, for example openrouter or deepseek.",
+    )
     parser.add_argument("--model", default="", help="Provider model name override.")
     parser.add_argument("--base-url", default="", help="Provider base URL override.")
     parser.add_argument("--api-key", default="", help="Provider API key override.")
@@ -264,6 +269,8 @@ def main() -> int:
                 "--retry-base-delay-seconds",
                 str(args.retry_base_delay_seconds),
             ]
+            if args.provider_profile.strip():
+                inference_command.extend(["--provider-profile", args.provider_profile.strip()])
             if args.model.strip():
                 inference_command.extend(["--model", args.model.strip()])
             if args.base_url.strip():
