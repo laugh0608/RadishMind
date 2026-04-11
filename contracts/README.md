@@ -15,6 +15,7 @@
 1. `copilot-request.schema.json`
 2. `copilot-response.schema.json`
 3. `radishflow-ghost-candidate-set.schema.json`
+4. `radishflow-adapter-snapshot.schema.json`
 
 使用原则：
 
@@ -24,6 +25,7 @@
 - 任务级最小输入和风险规则以 [docs/task-cards/README.md](../docs/task-cards/README.md) 为准
 - 当前 `Radish` 文档问答回归会直接复用这两份 schema 校验 `input_request` 与 `golden_response`，再叠加任务级召回边界与输出对照规则
 - 当前 `RadishFlow` 已在 schema 中补入 `suggest_ghost_completion` 与 `ghost_completion` 候选动作，用于承接编辑器内的 ghost 补全建议
+- 当前 `radishflow-adapter-snapshot.schema.json` 用于冻结 `adapter-radishflow` 的最小上游快照输入，先覆盖 `explain_diagnostics`、`suggest_flowsheet_edits` 与 `explain_control_plane_state`
 - 当前 `CopilotRequest` schema 已进一步冻结 `suggest_ghost_completion` 依赖的关键上下文字段，包括 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints`
 - 对 `task=suggest_ghost_completion`，schema 当前还会额外要求 `document_revision`、单个 `selected_unit_ids` 和 `legal_candidate_completions`，并要求至少提供 `unconnected_ports` 或 `missing_canonical_ports`
 - `legal_candidate_completions` 当前已支持结构化的 `ranking_signals`、`naming_signals` 与 `conflict_flags`，用于把本地规则层的排序证据、命名证据和冲突标记显式传给模型与回归
@@ -56,6 +58,12 @@
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json)，用于固定第三条模板里“recent_actions 已存在，但合法候选仍为空时必须停住”的边界
 - 当前仓库还补了 [radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json](../datasets/examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json)，用于固定第三条模板里“候选存在，但排序分差过小导致只能 manual-only”的边界
 - 当前还提供了从候选集装配到模型请求的可执行入口 [build-radishflow-ghost-request.py](../scripts/build-radishflow-ghost-request.py)，并用 [radishflow-copilot-request-ghost-flash-basic-001.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json) 固定其最小输出
+- 当前还新增了通用装配入口 [build-radishflow-request.py](../scripts/build-radishflow-request.py)，用于把 `adapter-radishflow` 上游快照装配为 `CopilotRequest`
+- 当前仓库已补三条最小 adapter snapshot 示例：
+  - [explain-diagnostics-unit-not-converged-001.snapshot.json](../adapters/radishflow/examples/explain-diagnostics-unit-not-converged-001.snapshot.json)
+  - [suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json](../adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json)
+  - [explain-control-plane-entitlement-expired-001.snapshot.json](../adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json)
+- 当前 `check-repo` 会校验这三条 adapter snapshot 能稳定生成与现有 eval sample `input_request` 一致的请求对象，避免“上游快照 -> CopilotRequest” 只停留在手工拼装
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
 - 当前 `check-repo` 已同时校验基础 `FlashDrum`、`Valve ambiguous`、`Feed -> Valve -> FlashDrum` 连续搭建链正向示例和链式停住示例，避免 `recent_actions` 与空候选请求的装配逻辑只停留在 `eval` 样本说明层

@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/radishflow-adapter-snapshot.schema.json",
+  "title": "RadishFlowAdapterSnapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "task",
+    "locale"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task": {
+      "type": "string",
+      "enum": [
+        "explain_diagnostics",
+        "suggest_flowsheet_edits",
+        "explain_control_plane_state"
+      ]
+    },
+    "locale": {
+      "type": "string",
+      "minLength": 2
+    },
+    "conversation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "document_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "flowsheet_document": {
+      "type": "object"
+    },
+    "flowsheet_document_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "selected_unit_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "selected_unit": {
+      "type": "object"
+    },
+    "selected_stream_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "diagnostic_summary": {
+      "type": "object"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "solve_session": {
+      "type": "object"
+    },
+    "latest_snapshot": {
+      "type": "object"
+    },
+    "control_plane_state": {
+      "type": "object"
+    },
+    "supporting_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/supporting_artifact"
+      }
+    },
+    "tool_hints": {
+      "$ref": "#/$defs/tool_hints"
+    },
+    "safety": {
+      "$ref": "#/$defs/safety"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "enum": [
+              "explain_diagnostics",
+              "suggest_flowsheet_edits"
+            ]
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "document_revision"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "flowsheet_document"
+            ]
+          },
+          {
+            "required": [
+              "flowsheet_document_uri"
+            ]
+          }
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "diagnostic_summary"
+            ]
+          },
+          {
+            "required": [
+              "diagnostics"
+            ]
+          }
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "selected_unit_ids"
+            ]
+          },
+          {
+            "required": [
+              "selected_stream_ids"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "const": "explain_control_plane_state"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "then": {
+        "required": [
+          "document_revision",
+          "control_plane_state"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "tool_hints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allow_retrieval",
+        "allow_tool_calls",
+        "allow_image_reasoning"
+      ],
+      "properties": {
+        "allow_retrieval": {
+          "type": "boolean"
+        },
+        "allow_tool_calls": {
+          "type": "boolean"
+        },
+        "allow_image_reasoning": {
+          "type": "boolean"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "requires_confirmation_for_actions"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "advisory"
+          ]
+        },
+        "requires_confirmation_for_actions": {
+          "type": "boolean"
+        }
+      }
+    },
+    "supporting_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "role",
+        "name",
+        "mime_type"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "json",
+            "markdown",
+            "text",
+            "image",
+            "attachment_ref"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "supporting",
+            "reference"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mime_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {},
+        "metadata": {
+          "type": "object",
+          "default": {}
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "uri"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ]
+        }
+      ]
+    }
+  }
+}
