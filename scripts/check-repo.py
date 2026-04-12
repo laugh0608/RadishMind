@@ -1744,6 +1744,7 @@ REQUIRED_FILES = [
     "scripts/check-artifact-metadata-contract.py",
     "scripts/check-copilot-request-artifact-metadata.py",
     "scripts/check-radishflow-export-artifact-metadata-assembly.py",
+    "scripts/check-radishflow-export-artifact-metadata-assembly-negative.py",
     "scripts/check-radishflow-export-validator-support-artifacts.py",
     "scripts/check_radish_docs_qa_real_batch_summary_common.py",
     "scripts/check-text-files.py",
@@ -2076,6 +2077,7 @@ def check_contract_schemas() -> None:
     run_python_script("check-artifact-metadata-contract.py", [])
     run_python_script("check-copilot-request-artifact-metadata.py", [])
     run_python_script("check-radishflow-export-artifact-metadata-assembly.py", [])
+    run_python_script("check-radishflow-export-artifact-metadata-assembly-negative.py", [])
     run_python_script("check-radishflow-export-validator-support-artifacts.py", [])
 
 
