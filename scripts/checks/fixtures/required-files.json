@@ -433,6 +433,7 @@
   "scripts/check-copilot-request-artifact-metadata.py",
   "scripts/check-radishflow-export-artifact-metadata-assembly.py",
   "scripts/check-radishflow-export-artifact-metadata-assembly-negative.py",
+  "scripts/check-radishflow-export-priority-contract.py",
   "scripts/check-radishflow-export-selection-contract.py",
   "scripts/check-radishflow-export-validator-support-artifacts.py",
   "scripts/check-text-files.py",
