@@ -137,7 +137,7 @@
 - 当前仓库还已再前推一层：新增 `radishflow-export-snapshot.schema.json` 与 `build-radishflow-adapter-snapshot.py`，先把更贴近 `document_state / selection_state / diagnostics_export / solve_snapshot / control_plane_snapshot` 的导出对象稳定转换为 adapter snapshot，再继续装配成 `CopilotRequest`
 - 当前仓库也已新增 `build-radishflow-export-request.py`，用于把 export snapshot 直接装配为 `CopilotRequest`，并由 `check-repo` 校验其结果与既有 eval sample `input_request` 一致
 - 当前仓库也已新增 `validate-radishflow-export-snapshot.py`，用于在真实接线前先对 export snapshot 做 schema、任务级语义与敏感信息 smoke 校验，并由 `check-repo` 统一回归
-- 当前这条装配链已不只覆盖最小 happy path，还补进了 `multi-object diagnostics`、`control-plane conflicting signals`、“multi-selection 但只允许单 actionable target”、`multi-unit + multi-stream + 单 primary focus`，以及纯 `uri + metadata.summary` 的 control-plane supporting capture 这几类代表性样本，避免 context packer 只在单对象、单诊断样本上自洽
+- 当前这条装配链已不只覆盖最小 happy path，还补进了 `multi-object diagnostics`、`control-plane conflicting signals`、“multi-selection 但只允许单 actionable target”、`multi-unit + multi-stream + 单 primary focus`、selection 顺序保持，以及纯 `uri + metadata.summary` 与 mixed support summary 的 control-plane supporting capture 这几类代表性样本，避免 context packer 只在单对象、单诊断样本上自洽
 
 ### `RadishFlowExportSnapshot` 上游导出映射约定
 
@@ -164,6 +164,7 @@
   - 当前 adapter 只会在这个字段显式存在时才写入 `selected_unit`，不得再从 `selected_unit_ids + flowsheet_document` 反推
   - 它当前允许与 `selected_stream_ids` 等联合选择态并存；若同时给了 `selected_unit_ids`，则应与 `selected_unit_ids[0]` 对齐
   - 当前 committed fixture 也已覆盖“`selected_unit_ids` 中存在多个 unit，且同时保留多条 stream selection，但只落一个 `primary_selected_unit`”的组合，避免这条口径只停留在文档约定
+  - 当前 committed fixture 还已固定 `selected_unit_ids` 与 `selected_stream_ids` 的输入顺序不会在 export -> adapter -> request 链中被偷偷重排，避免 UI 侧 selection chronology 在装配阶段丢失
 - `diagnostics_export.diagnostic_summary`
   - 来源应是当前诊断摘要，例如 error / warning 计数
   - 若上游没有摘要，可省略，由 `diagnostics` 独立成立
@@ -184,6 +185,7 @@
   - 只允许补充解释证据，不得夹带 token、credential、cookie 或其他敏感原文
   - 若 artifact 指向外部 capture 或对象引用，当前优先采用 `uri + metadata.summary` 的最小脱敏摘要，而不是把原始控制面载荷整段内联
   - 当前 committed fixture 也已覆盖“纯 `uri + metadata.summary`、不再额外内联 `content`”的 control-plane capture 摘要形态，避免 export 侧默认回退到长文本或原始 JSON 载荷
+  - 当前 committed fixture 也已覆盖 `attachment_ref + json summary + text note` 的 mixed summary 组合，避免一旦需要多种 supporting 视角就退回到原始 telemetry 或长文本拼接
 
 当前任务级最小导出要求建议固定为：
 

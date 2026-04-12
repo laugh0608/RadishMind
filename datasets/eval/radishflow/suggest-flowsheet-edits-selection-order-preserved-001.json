@@ -1,0 +1,306 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-selection-order-preserved-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-selection-order-preserved-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-152",
+          "streams": [
+            {
+              "id": "feed-31",
+              "name": "Polisher Feed",
+              "target_unit_id": "cooler-5",
+              "specs": {
+                "temperature_c": 96
+              }
+            },
+            {
+              "id": "intermediate-31",
+              "name": "Polisher Cooler Outlet",
+              "source_unit_id": "cooler-5",
+              "target_unit_id": "separator-4",
+              "specs": {
+                "pressure_kpa": 172
+              }
+            },
+            {
+              "id": "product-31",
+              "name": "Polisher Vapor",
+              "source_unit_id": "separator-4",
+              "specs": {
+                "pressure_kpa": 165
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "separator-4",
+              "kind": "FlashDrum",
+              "name": "Polisher Separator",
+              "config": {
+                "pressure_mode": "free"
+              }
+            },
+            {
+              "id": "cooler-5",
+              "kind": "Cooler",
+              "name": "Polisher Cooler",
+              "config": {
+                "control_mode": "duty"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 63,
+      "selected_unit_ids": [
+        "separator-4",
+        "cooler-5"
+      ],
+      "selected_unit": {
+        "id": "separator-4",
+        "kind": "FlashDrum",
+        "name": "Polisher Separator",
+        "config": {
+          "pressure_mode": "free"
+        }
+      },
+      "selected_stream_ids": [
+        "product-31",
+        "feed-31",
+        "intermediate-31"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Polisher Feed is missing pressure specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-31"
+        },
+        {
+          "code": "SEPARATOR_STATE_DEPENDENT",
+          "message": "Polisher Separator behavior still depends on unresolved upstream feed pressure.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "separator-4"
+        },
+        {
+          "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Polisher Cooler outlet response may still be influenced by the incomplete feed pressure state.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "cooler-5"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "partial_convergence",
+        "residual_norm": 0.12,
+        "last_updated": "2026-04-12T05:40:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_SPEC_MISSING\"",
+      "$.issues[1].code=\"SEPARATOR_STATE_DEPENDENT\"",
+      "$.issues[2].code=\"COOLER_OUTLET_EFFECT_UNCONFIRMED\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"feed-31\"",
+      "$.proposed_actions[0].patch.spec_placeholders[0]=\"pressure_kpa\"",
+      "$.proposed_actions[0].patch.retain_existing_specs=true",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].target.id=\"separator-4\"",
+      "$.proposed_actions[0].target.id=\"cooler-5\"",
+      "$.proposed_actions[1]",
+      "$.proposed_actions[0].patch.patch_scope=\"full_flowsheet\""
+    ],
+    "ordered_issue_codes": [
+      "STREAM_SPEC_MISSING",
+      "SEPARATOR_STATE_DEPENDENT",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "当前样本明确固定 `selected_unit_ids=[separator-4,cooler-5]` 与 `selected_stream_ids=[product-31,feed-31,intermediate-31]` 的原始顺序；adapter/export request assembly 不应自行重排这些数组，也不应因为 primary focus 是 separator-4 就把 candidate_edit 误落到主焦点 unit。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前 selection 顺序先落在 separator-4，再到 cooler-5，并保留了 `product -> feed -> intermediate` 的流股顺序；但可直接落 patch 的仍只有 feed-31 的缺压力规格问题，primary focus 不应误导为 unit patch。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前选择顺序体现的是 UI 上的观察与框选顺序，而不是 patch 目标顺序。虽然主焦点是 separator-4，且 `product-31` 在 selection 中排在最前，但现有证据里只有 feed-31 的 pressure_kpa 缺失具备明确、局部且可审查的修改面。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "focus-1",
+          "order-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "feed-31 缺少 pressure_kpa，当前入口压力状态不完整。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "SEPARATOR_STATE_DEPENDENT",
+        "message": "separator-4 当前仍依赖未补齐的上游 feed 压力，暂不应把主焦点 unit 直接改写成 patch 目标。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "focus-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "cooler-5 的出口表现也仍受 feed 压力缺口影响，当前不应因为它在 selection 中排第二就生成 unit patch。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "order-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-31 补充压力规格占位",
+        "target": {
+          "type": "stream",
+          "id": "feed-31"
+        },
+        "rationale": "selection 顺序只用于保留当前观察上下文，不应重排成 patch 优先级；当前唯一证据充分的修改面仍是为 feed-31 补 pressure_kpa 占位。",
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Polisher Feed is missing pressure specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Polisher Separator behavior still depends on unresolved upstream feed pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Polisher Cooler outlet response may still be influenced by the incomplete feed pressure state."
+      },
+      {
+        "id": "focus-1",
+        "kind": "context",
+        "label": "当前主焦点单元",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=separator-4 kind=FlashDrum"
+      },
+      {
+        "id": "order-1",
+        "kind": "context",
+        "label": "保留的 selection 顺序",
+        "locator": "context:selected_stream_ids",
+        "excerpt": "selected_stream_ids=product-31,feed-31,intermediate-31"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-31",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-31 当前只有 temperature_c，缺少 pressure_kpa。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence, residual_norm=0.12"
+      }
+    ],
+    "confidence": 0.85,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-mixed-support-summaries-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-mixed-support-summaries-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "attachment_ref",
+        "role": "supporting",
+        "name": "source_access_capture",
+        "mime_type": "application/json",
+        "uri": "capture://radishflow/control-plane/private-source-429-001",
+        "metadata": {
+          "summary": "private add-on source returned 429 while public base manifest remained reachable",
+          "redaction_summary": "request headers removed; only source scope and status summary retained",
+          "source_scope": "control_plane"
+        }
+      },
+      {
+        "kind": "json",
+        "role": "supporting",
+        "name": "source_scope_summary",
+        "mime_type": "application/json",
+        "content": {
+          "public_source_status": "ok",
+          "private_source_status": "429",
+          "retry_after_seconds": 30,
+          "scope_split": true
+        },
+        "metadata": {
+          "summary": "minimal source scope summary derived from sync telemetry without raw request bodies"
+        }
+      },
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "ui_banner_note",
+        "mime_type": "text/plain",
+        "content": "UI shows package sync warning for private add-on source while public package list is still available."
+      }
+    ],
+    "context": {
+      "document_revision": 34,
+      "solve_session": {
+        "status": "ready"
+      },
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "stale",
+        "sync_status": "partial_failed",
+        "manifest_status": "partially_available",
+        "last_error": "private add-on source returned 429 while public manifest stayed current"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "cause_hypothesis",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"PACKAGE_SOURCE_SCOPE_SPLIT\"",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"mixed-support-summary-check\"",
+      "$.proposed_actions[0].risk_level=\"low\"",
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.summary=\"请直接检查原始 429 报文与完整请求头。\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "当 control-plane supporting artifacts 同时包含 `attachment_ref` 摘要、最小 `json` summary 和 UI 文本提示时，回答应复用这些最小摘要交叉解释问题，而不是要求 exporter 回退到原始报文。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面更像 package source 范围和 freshness 信号同时出现分裂：public manifest 仍可达，但 private add-on source 返回 429，且本地 lease 已 stale；这些最小摘要已经足够解释现象，不需要回退到原始报文。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "control_plane_state 显示 entitlement 仍为 active，但 lease 已 stale、sync 处于 partial_failed，说明当前不是所有控制面状态都一起失效，而是 source scope 与 freshness 信号发生了分裂。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "cause_hypothesis",
+        "text": "更合理的解释可能是 private add-on source 的访问窗口或节流策略与 public source 不一致，这会让局部 package sync 先退化成 429；当前证据仍不足以把它直接写成全局 entitlement 失效或必须重放原始请求头。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2",
+          "cp-3"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "建议先只读核对 source scope summary、capture 摘要与 UI banner 是否指向同一条 private source 429 链路，再决定是否需要后续人工恢复操作。",
+        "citation_ids": [
+          "cp-2",
+          "cp-3",
+          "cp-4"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "PACKAGE_SOURCE_SCOPE_SPLIT",
+        "message": "当前 public/private package source 的可达性与 freshness 状态出现分裂，暂不能把 private source 的 429 升级成全局授权失效。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对 mixed support summaries 是否指向同一 private source 链路",
+        "target": {
+          "type": "control_plane",
+          "id": "mixed-support-summary-check"
+        },
+        "rationale": "当前已有 capture 摘要、json scope summary 和 UI note 三类最小证据，应先做只读核对，确认它们是否都在描述同一条 private source 429 失败链。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "cp-2",
+          "cp-3",
+          "cp-4"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=stale, sync_status=partial_failed, manifest_status=partially_available"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "source_access_capture summary",
+        "locator": "artifact:source_access_capture.metadata.summary",
+        "excerpt": "private add-on source returned 429 while public base manifest remained reachable"
+      },
+      {
+        "id": "cp-3",
+        "kind": "artifact",
+        "label": "source_scope_summary",
+        "locator": "artifact:source_scope_summary",
+        "excerpt": "public_source_status=ok, private_source_status=429, retry_after_seconds=30, scope_split=true"
+      },
+      {
+        "id": "cp-4",
+        "kind": "artifact",
+        "label": "ui_banner_note",
+        "locator": "artifact:ui_banner_note",
+        "excerpt": "UI shows package sync warning for private add-on source while public package list is still available."
+      }
+    ],
+    "confidence": 0.84,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

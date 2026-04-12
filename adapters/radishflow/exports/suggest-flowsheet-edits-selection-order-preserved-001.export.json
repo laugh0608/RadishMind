@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-selection-order-preserved-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 63,
+    "flowsheet_document": {
+      "document_id": "flowsheet-152",
+      "streams": [
+        {
+          "id": "feed-31",
+          "name": "Polisher Feed",
+          "target_unit_id": "cooler-5",
+          "specs": {
+            "temperature_c": 96
+          }
+        },
+        {
+          "id": "intermediate-31",
+          "name": "Polisher Cooler Outlet",
+          "source_unit_id": "cooler-5",
+          "target_unit_id": "separator-4",
+          "specs": {
+            "pressure_kpa": 172
+          }
+        },
+        {
+          "id": "product-31",
+          "name": "Polisher Vapor",
+          "source_unit_id": "separator-4",
+          "specs": {
+            "pressure_kpa": 165
+          }
+        }
+      ],
+      "units": [
+        {
+          "id": "separator-4",
+          "kind": "FlashDrum",
+          "name": "Polisher Separator",
+          "config": {
+            "pressure_mode": "free"
+          }
+        },
+        {
+          "id": "cooler-5",
+          "kind": "Cooler",
+          "name": "Polisher Cooler",
+          "config": {
+            "control_mode": "duty"
+          }
+        }
+      ]
+    }
+  },
+  "selection_state": {
+    "selected_unit_ids": [
+      "separator-4",
+      "cooler-5"
+    ],
+    "selected_stream_ids": [
+      "product-31",
+      "feed-31",
+      "intermediate-31"
+    ],
+    "primary_selected_unit": {
+      "id": "separator-4",
+      "kind": "FlashDrum",
+      "name": "Polisher Separator",
+      "config": {
+        "pressure_mode": "free"
+      }
+    }
+  },
+  "diagnostics_export": {
+    "diagnostic_summary": {
+      "error_count": 1,
+      "warning_count": 2
+    },
+    "diagnostics": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Polisher Feed is missing pressure specification.",
+        "severity": "error",
+        "target_type": "stream",
+        "target_id": "feed-31"
+      },
+      {
+        "code": "SEPARATOR_STATE_DEPENDENT",
+        "message": "Polisher Separator behavior still depends on unresolved upstream feed pressure.",
+        "severity": "warning",
+        "target_type": "unit",
+        "target_id": "separator-4"
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Polisher Cooler outlet response may still be influenced by the incomplete feed pressure state.",
+        "severity": "warning",
+        "target_type": "unit",
+        "target_id": "cooler-5"
+      }
+    ]
+  },
+  "solve_snapshot": {
+    "solver_status": "partial_convergence",
+    "residual_norm": 0.12,
+    "last_updated": "2026-04-12T05:40:00Z"
+  }
+}
