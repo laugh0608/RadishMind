@@ -186,8 +186,11 @@
   - 只允许补充解释证据，不得夹带 token、credential、cookie 或其他敏感原文
   - 若 artifact 指向外部 capture 或对象引用，当前优先采用 `uri + metadata.summary` 这类最小脱敏摘要，而不是把原始控制面载荷整段内联；若上游更适合输出 `metadata.redaction_summary` 或 `metadata.sanitized_summary`，当前也视为同类摘要键
   - 当前下游消费口径也已先收口：若 artifact 带可用 `content`，citation/excerpt 默认仍取 `content`；仅在没有可用 `content` 时，才按 `metadata.summary -> metadata.sanitized_summary -> metadata.redaction_summary` 的顺序回退到脱敏摘要键
+  - 当前 runtime 已进一步冻结 artifact-backed citation canonicalization：只要 citation 能映射回 request 中真实 artifact，最终 `label / locator / excerpt` 就必须以该 artifact 的 canonical 字段为准，而不是保留模型自己生成的 metadata 派生文案
+  - 这意味着 `metadata.redactions`、`metadata.source_scope`、`metadata.summary_variant` 这类审计/辅助元数据可以随 artifact 一起进入请求契约，但它们不能被当作最终 citation excerpt 或 locator 的展示源
   - 当前 committed fixture 也已覆盖“纯 `uri + metadata.summary`、不再额外内联 `content`”的 control-plane capture 摘要形态，避免 export 侧默认回退到长文本或原始 JSON 载荷
   - 当前 committed fixture 也已覆盖 `attachment_ref + json summary + text note` 的 mixed summary 组合，以及 `sanitized_summary + summary/redaction_summary + 最小 json rollup + text note` 的更复杂 mixed summary 变体，避免一旦需要多种 supporting 视角或不同脱敏摘要键就退回到原始 telemetry 或长文本拼接
+  - 当前 eval regression 也已把这条 canonicalization 前推成正式约束：`explain_control_plane_state` 样本会逐字段校验 artifact citation 的 `label / locator / excerpt` 是否与 request artifact 保持一致，并额外阻止 excerpt 泄漏 `redactions`、`source_scope`、`summary_variant` 这类 metadata 字段名
 
 当前任务级最小导出要求建议固定为：
 

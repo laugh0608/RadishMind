@@ -167,6 +167,32 @@
             }
           }
         },
+        "ordered_answer_citation_sequences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "answer_index",
+              "values"
+            ],
+            "properties": {
+              "answer_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            }
+          }
+        },
         "ordered_action_targets": {
           "type": "array",
           "items": {
@@ -209,6 +235,35 @@
                   "minLength": 1
                 },
                 "minItems": 1,
+                "uniqueItems": true
+              }
+            }
+          }
+        },
+        "artifact_citation_expectations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "citation_id",
+              "artifact_name"
+            ],
+            "properties": {
+              "citation_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "artifact_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "excerpt_must_not_contain": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
                 "uniqueItems": true
               }
             }
@@ -423,7 +478,8 @@
             "ghost_candidate_legality",
             "ghost_tab_accept",
             "empty_suggestion_boundary",
-            "pending_ghost_semantics"
+            "pending_ghost_semantics",
+            "artifact_citation_canonicalization"
           ]
         },
           "uniqueItems": true

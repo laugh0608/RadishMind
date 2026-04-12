@@ -19,6 +19,11 @@ except ModuleNotFoundError:
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from services.runtime.inference import build_artifact_citation_fields  # noqa: E402
+
 ALLOWED_PRIMARY_KINDS = {"markdown", "text"}
 UNOFFICIAL_SOURCE_TYPES = {"faq", "forum"}
 RISK_RANKS = {"low": 1, "medium": 2, "high": 3}
@@ -218,6 +223,147 @@ def parse_artifact_name_from_locator(locator: Any) -> str:
         return ""
     artifact_ref = locator_text[len("artifact:") :]
     return artifact_ref.split(".", 1)[0].strip()
+
+
+def test_ordered_citation_sequences(
+    items: list[Any],
+    expectations: Any,
+    *,
+    response_label: str,
+    sample_name: str,
+    violations: list[str],
+    field_name: str,
+    index_key: str,
+    item_label: str,
+) -> None:
+    for ordered_citations in get_array(expectations):
+        item_index = ordered_citations.get(index_key)
+        if not isinstance(item_index, int):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} evaluation.{field_name}.{index_key} must be an integer",
+            )
+            continue
+        if item_index < 0 or item_index >= len(items):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing {item_label}[{item_index}] required by evaluation.{field_name}",
+            )
+            continue
+
+        expected_values = [str(value) for value in get_array(ordered_citations.get("values"))]
+        actual_values = [str(value) for value in get_array((items[item_index] or {}).get("citation_ids"))]
+        if len(actual_values) < len(expected_values):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} {item_label}[{item_index}].citation_ids must contain at least "
+                f"{len(expected_values)} items for {field_name}",
+            )
+            continue
+        if actual_values[: len(expected_values)] != expected_values:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} {item_label}[{item_index}].citation_ids must remain ordered as {expected_values}",
+            )
+
+
+def test_artifact_citation_expectations(
+    sample: dict[str, Any],
+    citations: list[Any],
+    *,
+    response_label: str,
+    sample_name: str,
+    violations: list[str],
+) -> None:
+    evaluation = sample.get("evaluation") or {}
+    expectations = get_array(evaluation.get("artifact_citation_expectations"))
+    if not expectations:
+        return
+
+    request = sample.get("input_request") or {}
+    request_context = request.get("context") or {}
+    resource = request_context.get("resource") or {}
+    resource_title = str(resource.get("title") or "").strip()
+    request_artifacts = {
+        str((artifact or {}).get("name") or "").strip(): artifact
+        for artifact in get_array(request.get("artifacts"))
+        if str((artifact or {}).get("name") or "").strip()
+    }
+    citations_by_id = {
+        str((citation or {}).get("id") or "").strip(): citation
+        for citation in citations
+        if isinstance(citation, dict) and str((citation or {}).get("id") or "").strip()
+    }
+
+    for expectation in expectations:
+        citation_id = str((expectation or {}).get("citation_id") or "").strip()
+        artifact_name = str((expectation or {}).get("artifact_name") or "").strip()
+        if not citation_id or not artifact_name:
+            continue
+
+        citation = citations_by_id.get(citation_id)
+        if citation is None:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} is missing citation '{citation_id}' required by evaluation.artifact_citation_expectations",
+            )
+            continue
+
+        artifact = request_artifacts.get(artifact_name)
+        if artifact is None:
+            add_violation(
+                violations,
+                f"{sample_name}: evaluation.artifact_citation_expectations references unknown input_request artifact '{artifact_name}'",
+            )
+            continue
+
+        expected_fields = build_artifact_citation_fields(artifact, resource_title)
+        if str(citation.get("kind") or "").strip() != "artifact":
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} citation '{citation_id}' must remain kind='artifact' for artifact-backed expectations",
+            )
+
+        expected_label = expected_fields.get("label")
+        actual_label = str(citation.get("label") or "").strip()
+        if expected_label and actual_label != expected_label:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} citation '{citation_id}' label must remain '{expected_label}'",
+            )
+
+        expected_locator = expected_fields.get("locator")
+        actual_locator = str(citation.get("locator") or "").strip()
+        if expected_locator and actual_locator != expected_locator:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} citation '{citation_id}' locator must remain '{expected_locator}'",
+            )
+
+        expected_excerpt = expected_fields.get("excerpt")
+        actual_excerpt = str(citation.get("excerpt") or "").strip()
+        if expected_excerpt:
+            if actual_excerpt != expected_excerpt:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} citation '{citation_id}' excerpt must remain canonicalized from input_request artifact '{artifact_name}'",
+                )
+        elif actual_excerpt:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} citation '{citation_id}' must not synthesize excerpt when artifact '{artifact_name}' has no canonical excerpt source",
+            )
+
+        for substring in [
+            str(item)
+            for item in get_array((expectation or {}).get("excerpt_must_not_contain"))
+            if str(item).strip()
+        ]:
+            if substring in actual_excerpt:
+                add_violation(
+                    violations,
+                    f"{sample_name}: {response_label} citation '{citation_id}' excerpt must not contain '{substring}'",
+                )
 
 
 def resolve_json_path(document: Any, path: str) -> tuple[bool, Any]:
@@ -1198,6 +1344,57 @@ def validate_diagnostics_response(
         if citation_id not in citation_ids:
             add_violation(violations, f"{sample_name}: referenced citation id '{citation_id}' is missing from {response_label}.citations")
 
+    ordered_citation_ids = [str(citation_id) for citation_id in get_array(evaluation.get("ordered_citation_ids"))]
+    if ordered_citation_ids:
+        actual_citation_ids = [str((citation or {}).get("id") or "") for citation in citations]
+        if len(actual_citation_ids) < len(ordered_citation_ids):
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} must contain at least {len(ordered_citation_ids)} citations for evaluation.ordered_citation_ids",
+            )
+        elif actual_citation_ids[: len(ordered_citation_ids)] != ordered_citation_ids:
+            add_violation(
+                violations,
+                f"{sample_name}: {response_label} citations must remain ordered as {ordered_citation_ids}",
+            )
+
+    test_ordered_citation_sequences(
+        answers,
+        evaluation.get("ordered_answer_citation_sequences"),
+        response_label=response_label,
+        sample_name=sample_name,
+        violations=violations,
+        field_name="ordered_answer_citation_sequences",
+        index_key="answer_index",
+        item_label="answers",
+    )
+    test_ordered_citation_sequences(
+        issues,
+        evaluation.get("ordered_issue_citation_sequences"),
+        response_label=response_label,
+        sample_name=sample_name,
+        violations=violations,
+        field_name="ordered_issue_citation_sequences",
+        index_key="issue_index",
+        item_label="issues",
+    )
+    test_ordered_citation_sequences(
+        actions,
+        evaluation.get("ordered_action_citation_sequences"),
+        response_label=response_label,
+        sample_name=sample_name,
+        violations=violations,
+        field_name="ordered_action_citation_sequences",
+        index_key="action_index",
+        item_label="proposed_action",
+    )
+    test_artifact_citation_expectations(
+        sample,
+        citations,
+        response_label=response_label,
+        sample_name=sample_name,
+        violations=violations,
+    )
     test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, f"{sample_name}:{response_label}", violations)
     test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
 

@@ -89,6 +89,71 @@
       "$.proposed_actions[0].kind=\"candidate_edit\"",
       "$.summary=\"请直接重放完整 refresh 请求报文。\""
     ],
+    "ordered_citation_ids": [
+      "cp-1",
+      "cp-2",
+      "cp-3"
+    ],
+    "ordered_answer_citation_sequences": [
+      {
+        "answer_index": 0,
+        "values": [
+          "cp-1"
+        ]
+      },
+      {
+        "answer_index": 1,
+        "values": [
+          "cp-2"
+        ]
+      },
+      {
+        "answer_index": 2,
+        "values": [
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "ordered_issue_citation_sequences": [
+      {
+        "issue_index": 0,
+        "values": [
+          "cp-1",
+          "cp-2"
+        ]
+      }
+    ],
+    "ordered_action_citation_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "cp-1",
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "artifact_citation_expectations": [
+      {
+        "citation_id": "cp-2",
+        "artifact_name": "lease_refresh_capture",
+        "excerpt_must_not_contain": [
+          "redactions",
+          "source_scope",
+          "summary_variant"
+        ]
+      },
+      {
+        "citation_id": "cp-3",
+        "artifact_name": "ui_banner_summary",
+        "excerpt_must_not_contain": [
+          "redactions",
+          "source_scope",
+          "summary_variant"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",
@@ -96,7 +161,8 @@
       "actionability",
       "risk_level",
       "fact_grounding",
-      "hypothesis_labeling"
+      "hypothesis_labeling",
+      "artifact_citation_canonicalization"
     ],
     "notes": "support_artifacts 若引用外部 capture，应优先传 uri 加最小脱敏摘要，而不是把原始控制面载荷直接内联到请求。"
   },
