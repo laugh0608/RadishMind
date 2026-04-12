@@ -12,11 +12,7 @@
     "negative_sample_dir",
     "collection_batch",
     "source",
-    "summary",
-    "source_record_groups",
-    "violation_groups",
-    "pattern_groups",
-    "unlinked_derived_records"
+    "summary"
   ],
   "properties": {
     "schema_version": {
@@ -115,11 +111,19 @@
         "$ref": "#/$defs/source_record_group"
       }
     },
+    "source_record_groups_path": {
+      "type": "string",
+      "minLength": 1
+    },
     "violation_groups": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/violation_group"
       }
+    },
+    "violation_groups_path": {
+      "type": "string",
+      "minLength": 1
     },
     "pattern_groups": {
       "type": "array",
@@ -127,13 +131,79 @@
         "$ref": "#/$defs/pattern_group"
       }
     },
+    "pattern_groups_path": {
+      "type": "string",
+      "minLength": 1
+    },
     "unlinked_derived_records": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/unlinked_derived_record"
       }
+    },
+    "unlinked_derived_records_path": {
+      "type": "string",
+      "minLength": 1
     }
   },
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "source_record_groups"
+          ]
+        },
+        {
+          "required": [
+            "source_record_groups_path"
+          ]
+        }
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "required": [
+            "violation_groups"
+          ]
+        },
+        {
+          "required": [
+            "violation_groups_path"
+          ]
+        }
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "required": [
+            "pattern_groups"
+          ]
+        },
+        {
+          "required": [
+            "pattern_groups_path"
+          ]
+        }
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "required": [
+            "unlinked_derived_records"
+          ]
+        },
+        {
+          "required": [
+            "unlinked_derived_records_path"
+          ]
+        }
+      ]
+    }
+  ],
   "$defs": {
     "non_empty_string_array": {
       "type": "array",

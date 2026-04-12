@@ -1,0 +1,24 @@
+[
+  {
+    "audit_report": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.artifacts.json",
+    "manifest": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+    "negative_output_dir": "datasets/eval/radish-negative",
+    "replay_index": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+    "recommended_summary": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.recommended-negative-replay-top4-same_sample.summary.json",
+    "recommended_top": "4"
+  },
+  {
+    "audit_report": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json",
+    "manifest": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+    "negative_output_dir": "datasets/eval/radish-negative/2026-04-05-radish-docs-qa-real-batch-v1",
+    "replay_index": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.negative-replay-index.json",
+    "cross_sample_negative_output_dir": "datasets/eval/radish-negative",
+    "cross_sample_replay_index": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.cross-sample-replay-index.json",
+    "recommended_summary": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top5-same_sample.summary.json",
+    "recommended_top": "5",
+    "cross_sample_recommended_summary": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top2-cross_sample.summary.json",
+    "cross_sample_recommended_top": "2"
+  }
+]

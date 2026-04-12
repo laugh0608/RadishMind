@@ -17,7 +17,10 @@ from services.runtime.candidate_records import (  # noqa: E402
     load_json_document,
     make_repo_relative,
     resolve_relative_to_repo,
-    write_json_document,
+)
+from services.runtime.real_derived_negative_index import (  # noqa: E402
+    load_real_derived_negative_index,
+    write_real_derived_negative_index,
 )
 
 INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/real-derived-negative-index.schema.json"
@@ -403,13 +406,13 @@ def main() -> int:
     if args.check:
         if not output_path.is_file():
             raise SystemExit(f"real-derived negative index file not found for --check: {make_repo_relative(output_path)}")
-        existing = load_json_document(output_path)
+        existing = load_real_derived_negative_index(output_path)
         if existing != document:
             raise SystemExit(f"real-derived negative index is out of date: {make_repo_relative(output_path)}")
         print(f"real-derived negative index is up to date: {make_repo_relative(output_path)}", file=sys.stdout)
         return 0
 
-    write_json_document(output_path, document)
+    write_real_derived_negative_index(output_path, document)
     print(
         f"wrote real-derived negative index with {document['summary']['linked_negative_sample_count']} linked sample(s) to {make_repo_relative(output_path)}",
         file=sys.stdout,

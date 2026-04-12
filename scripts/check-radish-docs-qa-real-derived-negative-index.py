@@ -9,7 +9,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from services.runtime.candidate_records import ensure_schema, load_json_document  # noqa: E402
+from services.runtime.candidate_records import ensure_schema  # noqa: E402
+from services.runtime.real_derived_negative_index import load_real_derived_negative_index  # noqa: E402
 
 INDEX_PATH = REPO_ROOT / (
     "datasets/eval/candidate-records/radish-negative/"
@@ -101,7 +102,7 @@ def main() -> int:
         check=True,
     )
 
-    document = load_json_document(INDEX_PATH)
+    document = load_real_derived_negative_index(INDEX_PATH)
     ensure_schema(document, INDEX_SCHEMA_PATH, str(INDEX_PATH.relative_to(REPO_ROOT)))
     index_document = expect_object(document, "real-derived negative index")
 

@@ -9,7 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from check_radish_docs_qa_real_batch_summary_common import (  # noqa: E402
+from scripts.checks.radish_docs_qa_real_batch_summary_common import (  # noqa: E402
     RECOMMENDED_SUMMARY_SCHEMA_PATH,
     SUMMARY_SCHEMA_PATH,
     build_real_batch_summary_command,

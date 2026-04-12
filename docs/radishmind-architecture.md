@@ -201,6 +201,16 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，并已将八批真实 capture 正式导入 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/`，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获并治理候选输出”；其中当前新增观察项已分成五层：批处理编排下的 provider 卡顿稳定性、`manual_only` 多动作输出的结构坏法、供应商级限流或路由不可用时通过备用 profile 继续保持真实 capture 连续性、同 provider 备选模型虽可调用但仍可能出现不可正式导入的任务质量漂移，以及不同 provider 输出风格漂移下的字段文本归一化
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
 
+## 当前文件与脚本组织约定
+
+- committed `Python` 与 `JSON` 文件默认不超过 `1000` 行；超过时优先按职责拆分，而不是继续堆长
+- 大型 committed JSON 索引优先采用“主索引 + `.parts/` 分片文件”方式收口，避免单个长数组文件失控增长
+- `scripts/` 根目录优先只保留稳定入口与平台包装；较长实现、内部 helper 与静态 fixture 应放进浅层分类子目录
+- 当前脚本目录已先收口为 `scripts/checks/` 与 `scripts/eval/` 两个浅层分组：
+  - `scripts/checks/` 承接仓库检查实现和静态 fixture
+  - `scripts/eval/` 承接评测 runner 的共享实现与任务级校验
+- 后续若还需按项目拆分脚本，优先继续新增同层级目录，而不是把嵌套层级继续拉深
+
 ## 推荐仓库结构
 
 建议先采用如下结构：

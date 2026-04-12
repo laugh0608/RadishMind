@@ -20,6 +20,7 @@
 7. [首批任务卡](task-cards/README.md)
 8. [统一契约文件说明](../contracts/README.md)
 9. [数据集与评测目录说明](../datasets/README.md)
+10. [脚本目录说明](../scripts/README.md)
 
 ## 当前规划原则
 
