@@ -15,6 +15,24 @@
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/`
 - `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/`
 
+此外，当前还新增了一批 `suggest_flowsheet_edits` 的最小 mock PoC：
+
+- `datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/`
+
+这批当前不是“真实 provider capture”，而是为了先把 `suggest_flowsheet_edits` 的 `candidate_response_record -> manifest -> audit` 正式治理入口补齐。它固定 3 条代表样本：
+
+- 高风险重连占位：`suggest-flowsheet-edits-reconnect-outlet-001`
+- 局部规格占位：`suggest-flowsheet-edits-stream-spec-placeholder-001`
+- 三步优先级链：`suggest-flowsheet-edits-three-step-priority-chain-001`
+
+这批当前收口到：
+
+- `manifest` / `audit` 已正式入仓
+- `audit=3/3 pass`
+- `source=simulated_candidate_response`
+- `capture_origin=manual_fixture`
+- 目录内暂保留 `responses/`、`dumps/` 与 `records/` 子目录，方便当前阶段直接复核 mock PoC 的导出物；若后续升级为真实 provider 正式批次，再按 ghost 批次口径收口治理资产
+
 这八批当前都只收口同一组 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
 
 - 对应默认 PoC 三条主路径：`Tab` / `manual_only` / `empty`
@@ -55,7 +73,8 @@ python3 ./scripts/import-candidate-response-dump.py \
 
 - 原始 raw dump 继续保留在临时或外部采集目录，不强制入仓
 - 正式入仓资产以 `candidate_response_record`、`manifest`、`audit` 为主
-- 正式批次目录应尽量只保留上述治理资产，不混入执行态 `dumps/`、`responses/` 或中间 `records/` 子目录
+- 对 `suggest_ghost_completion` 这类已完成正式收口的真实批次，目录应尽量只保留上述治理资产，不混入执行态 `dumps/`、`responses/` 或中间 `records/` 子目录
+- 对仍处于最小 mock PoC 阶段的批次，可暂时保留 `responses/`、`dumps/` 与 `records/` 子目录，但后续若升级为正式真实批次，应再收口为以治理资产为主
 - 只有通过当前回归 / audit 的记录，才应进入首批正式正向批次
 - 若后续真实 capture 暴露出新的失败面，应优先新增下一批真实 batch，而不是回头篡改已入仓批次
 - 若后续继续遇到类似 `v4` 的单样本 provider 卡顿，应优先视为 capture orchestration 稳定性观察项，先复跑或拆样本确认，再决定是否需要继续加强脚本级超时/重试治理

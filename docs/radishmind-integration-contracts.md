@@ -307,6 +307,7 @@
 - 当前 recent-actions 基线还已补齐两类 stacked 对称组合：同一 candidate 若先 `skip`、后又被最新一帧 `reject`，则应继续以最新同 candidate `reject` 维持 `manual_only`；而若 same-candidate `skip` cooldown 已过、最新 `reject` 针对的是其他 candidate，则该 other-candidate 反馈不得外溢压制当前默认 `Tab`
 - `datasets/eval/radishflow-task-sample.schema.json` 当前也已支持外部 `candidate_response_record` 回灌，可将真实或模拟的 ghost completion capture 重新接回同一条 audit / regression 口径，而不必只停留在样本内联 `candidate_response`
 - 当前仓库已提供 `scripts/run-radishflow-ghost-real-batch.py` 作为轻量批次入口，先以 3 个代表样本覆盖 `Tab / manual_only / empty` 三条用户侧主路径，完成 `capture -> manifest -> audit` 的最小 PoC 闭环
+- 当前仓库也已提供 `scripts/run-radishflow-suggest-edits-poc-batch.py` 作为 `suggest_flowsheet_edits` 的最小批次入口：在 `mock` 模式下可直接基于 curated eval sample 的 `golden_response` 生成 `candidate_response_record -> manifest -> audit` 正式治理资产，先把高风险重连、局部规格占位与三步优先级链 3 条主路径补成 committed PoC；后续若切到真实 provider，则沿同一脚本入口继续做真实 capture
 - 该入口当前若未显式传 `--output-root`，默认会直接落到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，使后续真实 batch 可以按正式目录直接产出
 - 该入口当前也已补逐样本单进程 capture 与 openai-compatible provider 单样本硬超时，避免单条真实 provider 请求失控时把整批 capture 一并拖住；同时本地 provider profile 已扩到 `anyrouter / sub_jlypx / qaq / google_gemini` 主链，并保留 `deepseek` 作为历史回放或临时 fallback；当前默认不再走 `openrouter`
 - 对于已采集但仍停留在临时目录、且可能早于当前 canonicalization 修复的 ghost raw dump，当前推荐再通过 `scripts/import-candidate-response-dump-batch.py` 做一次“按当前 runtime 重新归一化后再导入正式批次”的收口，而不是直接把 `/tmp` 下的旧 `record` / `manifest` / `audit` 复制进仓库

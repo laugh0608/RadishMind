@@ -46,6 +46,7 @@ RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES = list(
 RADISH_DOCS_QA_REAL_BATCHES = list(load_fixture_json("radish-docs-real-batches.json") or [])
 RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES = dict(load_fixture_json("radish-docs-real-derived-negatives.json") or {})
 RADISHFLOW_GHOST_REAL_BATCHES = list(load_fixture_json("radishflow-ghost-real-batches.json") or [])
+RADISHFLOW_SUGGEST_EDITS_POC_BATCHES = list(load_fixture_json("radishflow-suggest-edits-poc-batches.json") or [])
 REQUIRED_FILES = list(load_fixture_json("required-files.json") or [])
 
 def run_python_script(script_name: str, args: list[str]) -> None:
@@ -79,7 +80,7 @@ def assert_json_equal(expected: object, actual: object, *, label: str) -> None:
 
 
 def check_committed_candidate_record_batches() -> None:
-    for batch in RADISHFLOW_GHOST_REAL_BATCHES:
+    for batch in [*RADISHFLOW_GHOST_REAL_BATCHES, *RADISHFLOW_SUGGEST_EDITS_POC_BATCHES]:
         manifest_document = load_json_file(batch["manifest"])
         description = str((manifest_document or {}).get("description") or "").strip() if isinstance(manifest_document, dict) else ""
         with tempfile.TemporaryDirectory(prefix="check-repo-ghost-batch-") as temp_dir:

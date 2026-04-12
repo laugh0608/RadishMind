@@ -1,0 +1,8 @@
+[
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/2026-04-12-radishflow-suggest-edits-poc-mock-v1.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/2026-04-12-radishflow-suggest-edits-poc-mock-v1.audit.json"
+  }
+]
