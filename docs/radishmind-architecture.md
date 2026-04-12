@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-11
+更新时间：2026-04-12
 
 ## 架构目标
 
@@ -64,7 +64,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
   - `RadishFlowExportSnapshot` 当前已在集成契约中补上字段映射约定：上游负责直接导出 `document_state / selection_state / diagnostics_export / solve_session_state / solve_snapshot / control_plane_snapshot`，而 adapter 不再擅自反推 `selected_unit` 或提前替上游做根因归一
   - 当前还已补 exporter bootstrap 入口：`scripts/init-radishflow-export-snapshot.py` 可按任务生成最小 schema-valid 模板，作为真实接线前的起步骨架
   - 当前还已补 exporter preflight 入口：`scripts/validate-radishflow-export-snapshot.py` 可在真实接线前先做 schema、任务级语义与敏感透传 smoke 校验，再进入 export -> adapter -> request 正式链路
-  - 当前 exporter fixture 已继续补到三类更贴近真实接线的边界：联合选择态下 `primary_selected_unit` 与完整 selection 并存、`support_artifacts` 采用 `uri + metadata.summary` 的最小脱敏摘要，以及多对象 selection 下三动作优先级顺序不漂移
+  - 当前 exporter fixture 已继续补到三类更贴近真实接线的边界：联合选择态下 `primary_selected_unit` 与完整 selection 并存、`multi-unit + multi-stream + 单 primary focus` 组合仍稳定映射成 `selected_unit + 完整 selection`、`support_artifacts` 采用纯 `uri + metadata.summary` 的最小脱敏摘要，以及多对象 selection 下三动作优先级顺序不漂移
   - 优先走状态优先打包：`FlowsheetDocument`、`document_revision`、`SelectionState`、`DiagnosticSummary`、`SolveSessionState`、`SolveSnapshot`
   - 对编辑器辅助场景，额外打包 `selected_unit`、`unconnected_ports`、`nearby_nodes`、`cursor_context` 与本地规则筛出的 `legal_candidate_completions`
   - `cursor_context.recent_actions` 当前不仅承接“最近 accept 了哪条 ghost”，也承接“最近 reject / dismiss / skip 了哪条 ghost”；其第一版正式语义已收口为三条链式模板共享的同一套规则：只压制同一 `candidate_ref` 的下一帧默认 `Tab`，隔一帧且候选仍是高置信合法默认项时允许恢复，而不同 `candidate_ref` 不共享 suppress 信号

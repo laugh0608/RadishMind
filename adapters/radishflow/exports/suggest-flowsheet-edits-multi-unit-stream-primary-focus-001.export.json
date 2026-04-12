@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-multi-unit-stream-primary-focus-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 61,
+    "flowsheet_document": {
+      "document_id": "flowsheet-145",
+      "streams": [
+        {
+          "id": "feed-21",
+          "name": "Cooler Feed",
+          "target_unit_id": "cooler-3",
+          "specs": {
+            "temperature_c": 118
+          }
+        },
+        {
+          "id": "intermediate-21",
+          "name": "Cooler Outlet",
+          "source_unit_id": "cooler-3",
+          "target_unit_id": "separator-2",
+          "specs": {
+            "temperature_c": 42
+          }
+        },
+        {
+          "id": "product-21",
+          "name": "Separator Vapor",
+          "source_unit_id": "separator-2",
+          "specs": {
+            "pressure_kpa": 142
+          }
+        }
+      ],
+      "units": [
+        {
+          "id": "cooler-3",
+          "kind": "Cooler",
+          "name": "Overhead Cooler",
+          "config": {
+            "control_mode": "duty"
+          }
+        },
+        {
+          "id": "separator-2",
+          "kind": "FlashDrum",
+          "name": "Overhead Separator",
+          "config": {
+            "pressure_mode": "free"
+          }
+        }
+      ]
+    }
+  },
+  "selection_state": {
+    "selected_unit_ids": [
+      "cooler-3",
+      "separator-2"
+    ],
+    "selected_stream_ids": [
+      "feed-21",
+      "intermediate-21",
+      "product-21"
+    ],
+    "primary_selected_unit": {
+      "id": "cooler-3",
+      "kind": "Cooler",
+      "name": "Overhead Cooler",
+      "config": {
+        "control_mode": "duty"
+      }
+    }
+  },
+  "diagnostics_export": {
+    "diagnostic_summary": {
+      "error_count": 1,
+      "warning_count": 2
+    },
+    "diagnostics": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Cooler Feed is missing pressure specification.",
+        "severity": "error",
+        "target_type": "stream",
+        "target_id": "feed-21"
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Overhead Cooler outlet response may still be driven by the incomplete feed pressure state, so the cooler itself is not yet a confirmed root cause.",
+        "severity": "warning",
+        "target_type": "unit",
+        "target_id": "cooler-3"
+      },
+      {
+        "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+        "message": "Overhead Separator behavior still depends on the unresolved upstream feed pressure gap.",
+        "severity": "warning",
+        "target_type": "unit",
+        "target_id": "separator-2"
+      }
+    ]
+  },
+  "solve_snapshot": {
+    "solver_status": "partial_convergence",
+    "residual_norm": 0.14,
+    "last_updated": "2026-04-12T03:20:00Z"
+  }
+}

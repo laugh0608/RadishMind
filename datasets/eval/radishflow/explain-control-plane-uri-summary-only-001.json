@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-uri-summary-only-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-uri-summary-only-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "attachment_ref",
+        "role": "supporting",
+        "name": "lease_refresh_capture",
+        "mime_type": "application/json",
+        "uri": "capture://radishflow/control-plane/lease-refresh-stale-401-001",
+        "metadata": {
+          "summary": "lease refresh capture shows a stale local lease handle after a 401 response; authorization and cookie fields were removed",
+          "redaction_summary": "authorization and cookie fields removed",
+          "source_scope": "control_plane"
+        }
+      },
+      {
+        "kind": "attachment_ref",
+        "role": "supporting",
+        "name": "package_sync_capture",
+        "mime_type": "application/json",
+        "uri": "capture://radishflow/control-plane/package-sync-429-001",
+        "metadata": {
+          "summary": "package sync capture shows repeated 429 responses while manifest state remains current; request and response bodies were not inlined",
+          "redaction_summary": "request and response bodies omitted",
+          "source_scope": "control_plane"
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 31,
+      "solve_session": {
+        "status": "blocked"
+      },
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "stale",
+        "sync_status": "warning",
+        "manifest_status": "current",
+        "last_error": "package sync paused after repeated 429 responses"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "conflict_explanation",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "candidate_operation"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"CONTROL_PLANE_STATE_CONFLICT\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"review-summary-only-captures\"",
+      "$.proposed_actions[0].risk_level=\"medium\"",
+      "$.proposed_actions[0].requires_confirmation=true",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=true"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.summary=\"请直接查看完整 401 与 429 原始报文。\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "当 support_artifacts 只提供 uri 与 metadata.summary 时，回答应明确这是足够解释现象的脱敏摘要，而不是要求 export 直接透传原始 401/429 载荷。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面信号更接近 freshness/refresh 链路异常，而不是 entitlement 已被确认失效；export 只提供了两条基于 uri 的脱敏摘要，已经足够说明 stale lease 与 repeated 429 的冲突态。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "control_plane_state 同时显示 entitlement 仍为 active、lease 已 stale、sync 处于 warning 且会话 blocked，这说明当前更像是控制面刷新链路失真，而不是单一字段已经给出确定性根因。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "conflict_explanation",
+        "text": "support_artifacts 没有内联原始 401/429 载荷，而是只保留了 uri 加最小脱敏摘要；这些摘要更像是在提示 lease refresh 与 package sync 都可能存在 freshness 问题，因此当前还不能据此要求 export 透传完整敏感报文。",
+        "citation_ids": [
+          "cp-2",
+          "cp-3"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "下一步应人工复核 stale lease 与 429 sync warning 的时间关系，再判断是优先刷新会话、重试同步，还是继续检查展示链路缓存。",
+        "citation_ids": [
+          "cp-1",
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "CONTROL_PLANE_STATE_CONFLICT",
+        "message": "active entitlement、stale lease、warning sync 与 blocked 会话并存，当前属于需要人工复核的控制面冲突态。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工复核 summary-only 控制面 captures",
+        "target": {
+          "type": "control_plane",
+          "id": "review-summary-only-captures"
+        },
+        "rationale": "当前已经有足够的脱敏摘要用于定位 freshness 冲突，但仍需要人工复核 lease refresh 与 package sync 的先后关系，再决定后续恢复动作。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "cp-1",
+          "cp-2",
+          "cp-3"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=stale, sync_status=warning, manifest_status=current"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "lease_refresh_capture summary",
+        "locator": "artifact:lease_refresh_capture.metadata.summary",
+        "excerpt": "lease refresh capture shows a stale local lease handle after a 401 response; authorization and cookie fields were removed"
+      },
+      {
+        "id": "cp-3",
+        "kind": "artifact",
+        "label": "package_sync_capture summary",
+        "locator": "artifact:package_sync_capture.metadata.summary",
+        "excerpt": "package sync capture shows repeated 429 responses while manifest state remains current; request and response bodies were not inlined"
+      }
+    ],
+    "confidence": 0.83,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}
