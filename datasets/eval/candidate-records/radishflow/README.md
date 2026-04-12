@@ -1,6 +1,6 @@
 # `RadishFlow` 真实候选记录说明
 
-更新时间：2026-04-11
+更新时间：2026-04-12
 
 当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` 与 `audit` 治理产物。
 
@@ -32,6 +32,7 @@
 - `source=simulated_candidate_response`
 - `capture_origin=manual_fixture`
 - 目录内暂保留 `responses/`、`dumps/` 与 `records/` 子目录，方便当前阶段直接复核 mock PoC 的导出物；若后续升级为真实 provider 正式批次，再按 ghost 批次口径收口治理资产
+- 它当前的定位是“把治理链打通”，不是“替代真实 capture”；后续主线应继续用同一入口补首批真实 provider 批次，而不是长期停留在 mock 资产
 
 这八批当前都只收口同一组 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
 

@@ -201,12 +201,13 @@
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 继续沿 `RadishFlow export -> adapter -> request` 主线补更真实的 exporter 边界，并观察是否需要把更复杂 selection/focus 顺序与 `support_artifacts` 摘要策略升级成更正式契约；当前已正式补入 `multi-unit + multi-stream + 单 primary focus`、更复杂 selection chronology + 单 actionable target、selection 顺序保持、纯 `uri + metadata.summary`、基础 mixed support summary 与 mixed summary variant 六类 committed fixture
+2. 将 `RadishFlow suggest_flowsheet_edits` 从“已具备 mock candidate-record PoC”继续推进到首批真实 provider capture；当前 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 已把高风险重连、局部规格占位与三步优先级链 3 条主路径接进 `candidate_response_record -> manifest -> audit`，下一步应沿同一入口补真实 teacher 批次，而不是继续停留在离线 fixture 或 mock 批次
 3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“真实 capture 已正式入仓的 editor assist PoC”；当前仓库已补齐任务 prompt、最小 runtime、轻量批次 capture 入口，以及 dump 重新归一化后的正式导入链，`v2 / v3 / v4 / v5 / v6 / v7 / v8 / v9` 八批 `Tab / manual_only / empty` 三样本真实 batch 都已完成入仓与 `audit=3/3 pass`，其中 `v3` 已把真实 provider 的稳定 malformed JSON 失败面收口进 runtime，`v4` 暴露出批处理中的单样本 provider 卡顿观察项，`v5` 则继续把这条执行层问题收口为逐样本单进程 + 硬超时治理，并新增吸收了 `manual_only` 多动作 JSON 提前关掉 `proposed_actions` / `answers` 作用域的坏法，`v6` 验证了当前 provider 链路已可通过 `openrouter / deepseek` fallback 继续完成真实 capture，`v7` 则继续把 openrouter 默认模型废弃与 `summary` / `answer.text` JSON 字符串漂移收口进配置口径和 runtime，`v8` 进一步确认当前新增阻塞主要仍集中在 openrouter 模型可用性与短窗口限流，而 `v9` 则继续确认即便某些 openrouter 备选模型已可调用，也仍可能在 `manual_only` 主路径上暴露不可正式导入的 schema-invalid 质量漂移，因此正式批次仍需按既定口径切回 `deepseek` fallback 收口。下一步应继续跑下一批真实 teacher provider capture，并同时观察这些结构失败面、模型质量漂移与供应商可用性阻塞是否还会复现，再根据新增真实 batch 暴露的失败面决定是否补 recent-actions 样本或扩展导入治理
-4. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
-5. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估
-6. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
-7. 再进入模型对照、PoC 与训练路线验证
+4. 继续沿 `RadishFlow export -> adapter -> request` 主线补更真实的 exporter 边界，但从“补单个 fixture”转到“优先补批量 smoke 或正式契约”；当前已具备 selection 契约、priority 契约与 batch smoke 入口，后续除非上游 exporter 继续暴露新边界，否则不再优先深挖这一层
+5. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
+6. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估
+7. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
+8. 再进入模型对照、PoC 与训练路线验证
 
 ## 当前仍缺的关键决策
 
