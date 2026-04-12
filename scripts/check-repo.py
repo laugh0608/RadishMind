@@ -1740,6 +1740,7 @@ REQUIRED_FILES = [
     "scripts/check-radish-docs-qa-real-derived-negative-index.py",
     "scripts/check-radish-docs-qa-real-batch-same-sample-only-summary.py",
     "scripts/check-radishflow-artifact-summary-consumption.py",
+    "scripts/check-copilot-request-artifact-metadata.py",
     "scripts/check-radishflow-export-validator-support-artifacts.py",
     "scripts/check_radish_docs_qa_real_batch_summary_common.py",
     "scripts/check-text-files.py",
@@ -2069,6 +2070,7 @@ def check_contract_schemas() -> None:
             )
 
     run_python_script("check-radishflow-artifact-summary-consumption.py", [])
+    run_python_script("check-copilot-request-artifact-metadata.py", [])
     run_python_script("check-radishflow-export-validator-support-artifacts.py", [])
 
 

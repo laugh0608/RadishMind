@@ -92,6 +92,7 @@
 - 当前 `check-repo` 也会对这些 export snapshot 和三类 bootstrap 模板运行 `validate-radishflow-export-snapshot.py`，避免真实接线前把 selection 裁剪错误、任务级缺块或敏感字段透传带进 runtime 链路
 - 当前新增的 exporter 边界 fixture 已覆盖“联合选择态 + `primary_selected_unit` 并存”“更复杂 selection chronology + 单 actionable target”“`support_artifacts` 采用 `uri + metadata.summary` 的最小脱敏摘要”以及“多对象 selection 下三动作优先级顺序”这些真实接线口径
 - 当前 `radishflow-export-snapshot.schema.json` 与 `radishflow-adapter-snapshot.schema.json` 也已把 `support_artifacts.metadata` 的正式契约再前推一格：显式保留 `summary / sanitized_summary / redaction_summary / redactions / source_scope / summary_variant` 这些常用脱敏摘要字段，并在 schema 层直接拦截 `headers`、`raw_payload`、`response_body`、`stack_trace` 等原始载荷键名，避免这条边界只停留在 Python validator 里
+- 当前 `copilot-request.schema.json` 也已同步对齐 artifact metadata 的正式契约：既显式保留 `RadishFlow` control-plane 摘要字段，也显式保留 `Radish docs QA` 的 `source_type / page_slug / fragment_id / retrieval_rank / is_official` 检索字段，并在 request 层同样拦截 `headers`、`raw_payload`、`response_body`、`stack_trace` 等原始载荷键名
 - 关于这些 export 字段应该如何与上游导出对象逐项对齐，当前正式说明已收口到 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 的 `RadishFlowExportSnapshot` 映射约定章节
 - 该装配入口当前默认采用 `model-minimal` profile：`ranking_signals`、`naming_signals`、`conflict_flags` 这类本地排序证据默认保留在候选集侧，不直接透传到模型请求
 - 若需要检查完整装配上下文，当前另有对照示例 [radishflow-copilot-request-ghost-flash-basic-001-debug-full.json](../datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json)，用于冻结 `debug-full` profile 的全量透传口径
