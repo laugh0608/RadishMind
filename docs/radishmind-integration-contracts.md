@@ -184,9 +184,9 @@
 - `support_artifacts`
   - 来源应是额外但必要的 supporting 证据，例如 UI note、lease summary、操作面文本提示
   - 只允许补充解释证据，不得夹带 token、credential、cookie 或其他敏感原文
-  - 若 artifact 指向外部 capture 或对象引用，当前优先采用 `uri + metadata.summary` 的最小脱敏摘要，而不是把原始控制面载荷整段内联
+  - 若 artifact 指向外部 capture 或对象引用，当前优先采用 `uri + metadata.summary` 这类最小脱敏摘要，而不是把原始控制面载荷整段内联；若上游更适合输出 `metadata.redaction_summary` 或 `metadata.sanitized_summary`，当前也视为同类摘要键
   - 当前 committed fixture 也已覆盖“纯 `uri + metadata.summary`、不再额外内联 `content`”的 control-plane capture 摘要形态，避免 export 侧默认回退到长文本或原始 JSON 载荷
-  - 当前 committed fixture 也已覆盖 `attachment_ref + json summary + text note` 的 mixed summary 组合，避免一旦需要多种 supporting 视角就退回到原始 telemetry 或长文本拼接
+  - 当前 committed fixture 也已覆盖 `attachment_ref + json summary + text note` 的 mixed summary 组合，以及 `sanitized_summary + summary/redaction_summary + 最小 json rollup + text note` 的更复杂 mixed summary 变体，避免一旦需要多种 supporting 视角或不同脱敏摘要键就退回到原始 telemetry 或长文本拼接
 
 当前任务级最小导出要求建议固定为：
 
@@ -275,7 +275,7 @@
 - `explain_diagnostics` / `suggest_flowsheet_edits` 必须同时满足“有 selection”与“有 diagnostics 信息”
 - `explain_control_plane_state` 若仍带 `selection_state`，当前只记 warning，不直接判失败
 - 对 `token`、`secret`、`cookie`、`authorization`、`api_key` 等敏感 key 名，以及 `Bearer ...`、`sk-...`、`AIza...` 这类疑似凭据内容，当前直接判失败
-- `support_artifacts` 若只给 `uri` 而没有内联 `content`，当前会提示补 `metadata.summary` 这类最小脱敏摘要；若内联文本过长，也会提示缩成更短摘要
+- `support_artifacts` 若只给 `uri` 而没有内联 `content`，当前会提示补 `metadata.summary` / `metadata.redaction_summary` / `metadata.sanitized_summary` 这类最小脱敏摘要；若内联文本过长，也会提示缩成更短摘要
 - `support_artifacts` 若出现 `raw_payload`、`response_body`、`headers`、`stack_trace` 等疑似原始载荷字段，当前直接判失败
 
 - 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序

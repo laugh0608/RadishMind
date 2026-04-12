@@ -44,7 +44,7 @@
 
 ## 下一步优先推进
 
-1. 继续沿 `RadishFlow export -> adapter -> request` 主线补更贴近真实 exporter 的边界样本和 validator 规则，优先观察更复杂的联合选择、同风险多动作并列优先级，以及 `support_artifacts` 混合摘要形态。
+1. 继续沿 `RadishFlow export -> adapter -> request` 主线补更贴近真实 exporter 的边界样本和 validator 规则，优先观察更复杂的联合选择、同风险多动作并列优先级，以及 `support_artifacts` 在更高阶 mixed summary 变体之后是否还需要升级成正式契约。
 2. 继续把 `RadishFlow` 的 `suggest_ghost_completion` 从“链式三模板主干基线已闭环”推进到“多动作 recent-actions 恢复窗口更细化”的阶段；当前已补齐三模板上的 `Tab / manual_only / empty`、`reject / dismiss / skip no-retab`、same-candidate cooldown 恢复、latest-action precedence 与 cross-candidate suppress 作用域，下一步优先扩充更复杂交错历史。
 3. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已具备真实/模拟 batch 编排、`manifest / audit / replay index / same-sample negatives / artifacts.json / recommended replay summary` 这条最小闭环，下一步优先扩大真实 captured negative 批次并沉淀更多高频违规类型。
 4. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-control-plane-mixed-summary-variants-001",
+  "task": "explain_control_plane_state",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 42
+  },
+  "control_plane_snapshot": {
+    "entitlement_status": "active",
+    "lease_status": "stale",
+    "sync_status": "partial_failed",
+    "manifest_status": "current",
+    "last_error": "private package source kept returning 429 while cached lease stayed usable"
+  },
+  "solve_session_state": {
+    "status": "ready"
+  },
+  "support_artifacts": [
+    {
+      "kind": "attachment_ref",
+      "role": "supporting",
+      "name": "private_registry_capture",
+      "mime_type": "application/json",
+      "uri": "capture://radishflow/control-plane/private-registry-429-002",
+      "metadata": {
+        "sanitized_summary": "private package source returned repeated 429 responses; request and response bodies plus auth headers were stripped",
+        "source_scope": "control_plane",
+        "summary_variant": "sanitized_only"
+      }
+    },
+    {
+      "kind": "attachment_ref",
+      "role": "supporting",
+      "name": "lease_cache_capture",
+      "mime_type": "application/json",
+      "uri": "capture://radishflow/control-plane/lease-cache-stale-002",
+      "metadata": {
+        "summary": "cached lease snapshot still marks the entitlement window as usable for 14 more minutes",
+        "redaction_summary": "lease token hash and refresh cookie were omitted",
+        "source_scope": "control_plane",
+        "summary_variant": "summary_plus_redaction"
+      }
+    },
+    {
+      "kind": "json",
+      "role": "supporting",
+      "name": "source_scope_rollup",
+      "mime_type": "application/json",
+      "content": {
+        "public_manifest_status": "ok",
+        "private_source_status": "429",
+        "cached_lease_minutes_remaining": 14,
+        "scope_split": true
+      },
+      "metadata": {
+        "summary": "minimal source scope rollup derived from control-plane telemetry without raw payload bodies"
+      }
+    },
+    {
+      "kind": "text",
+      "role": "supporting",
+      "name": "ui_warning_note",
+      "mime_type": "text/plain",
+      "content": "UI keeps showing a degraded package sync warning while the entitlement badge remains green."
+    }
+  ]
+}

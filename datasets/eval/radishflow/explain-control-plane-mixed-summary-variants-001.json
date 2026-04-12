@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-explain-control-plane-mixed-summary-variants-001",
+  "project": "radishflow",
+  "task": "explain_control_plane_state",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-control-plane-mixed-summary-variants-001",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "attachment_ref",
+        "role": "supporting",
+        "name": "private_registry_capture",
+        "mime_type": "application/json",
+        "uri": "capture://radishflow/control-plane/private-registry-429-002",
+        "metadata": {
+          "sanitized_summary": "private package source returned repeated 429 responses; request and response bodies plus auth headers were stripped",
+          "source_scope": "control_plane",
+          "summary_variant": "sanitized_only"
+        }
+      },
+      {
+        "kind": "attachment_ref",
+        "role": "supporting",
+        "name": "lease_cache_capture",
+        "mime_type": "application/json",
+        "uri": "capture://radishflow/control-plane/lease-cache-stale-002",
+        "metadata": {
+          "summary": "cached lease snapshot still marks the entitlement window as usable for 14 more minutes",
+          "redaction_summary": "lease token hash and refresh cookie were omitted",
+          "source_scope": "control_plane",
+          "summary_variant": "summary_plus_redaction"
+        }
+      },
+      {
+        "kind": "json",
+        "role": "supporting",
+        "name": "source_scope_rollup",
+        "mime_type": "application/json",
+        "content": {
+          "public_manifest_status": "ok",
+          "private_source_status": "429",
+          "cached_lease_minutes_remaining": 14,
+          "scope_split": true
+        },
+        "metadata": {
+          "summary": "minimal source scope rollup derived from control-plane telemetry without raw payload bodies"
+        }
+      },
+      {
+        "kind": "text",
+        "role": "supporting",
+        "name": "ui_warning_note",
+        "mime_type": "text/plain",
+        "content": "UI keeps showing a degraded package sync warning while the entitlement badge remains green."
+      }
+    ],
+    "context": {
+      "document_revision": 42,
+      "solve_session": {
+        "status": "ready"
+      },
+      "control_plane_state": {
+        "entitlement_status": "active",
+        "lease_status": "stale",
+        "sync_status": "partial_failed",
+        "manifest_status": "current",
+        "last_error": "private package source kept returning 429 while cached lease stayed usable"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_answer_kinds": [
+      "state_summary",
+      "cause_hypothesis",
+      "next_step"
+    ],
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"CONTROL_PLANE_SCOPE_SPLIT\"",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.proposed_actions[0].target.type=\"control_plane\"",
+      "$.proposed_actions[0].target.id=\"review-mixed-summary-variants\"",
+      "$.proposed_actions[0].risk_level=\"low\"",
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.summary=\"请直接拉取完整 429 原始载荷和 lease token。\"",
+      "$.proposed_actions[0].kind=\"candidate_operation\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "fact_grounding",
+      "hypothesis_labeling"
+    ],
+    "notes": "当 support_artifacts 同时混合 `metadata.sanitized_summary`、`metadata.summary + redaction_summary`、最小 json rollup 与 UI 文本提示时，回答应复用这些脱敏摘要交叉解释状态，而不是要求 exporter 回退到完整 telemetry 或敏感载荷。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "explain_control_plane_state",
+    "summary": "当前控制面更像 private package source 的可达性与本地 lease freshness 出现分裂：private source 持续 429，但缓存 lease 仍短时可用；现有 mixed summary 变体已经足够解释现象，不需要回退到原始 telemetry。",
+    "answers": [
+      {
+        "kind": "state_summary",
+        "text": "control_plane_state 显示 entitlement 仍为 active、lease 为 stale、sync 处于 partial_failed，但 solve_session 仍然 ready，说明当前更像局部 source 与 freshness 信号分裂，而不是整个控制面同时不可用。",
+        "citation_ids": [
+          "cp-1"
+        ]
+      },
+      {
+        "kind": "cause_hypothesis",
+        "text": "更合理的解释可能是 private package source 先遭遇 429，而本地仍暂时依赖缓存 lease 保持部分可用；这组 supporting artifacts 已分别用 sanitized summary、redaction summary、最小 json rollup 和 UI note 描述同一现象，因此当前证据不足以再要求 exporter 透传完整敏感载荷。",
+        "citation_ids": [
+          "cp-2",
+          "cp-3",
+          "cp-4",
+          "cp-5"
+        ]
+      },
+      {
+        "kind": "next_step",
+        "text": "建议先只读核对 private registry capture、lease cache capture、scope rollup 与 UI warning 是否都指向同一条 package source 退化链路，再决定是否需要后续人工恢复操作。",
+        "citation_ids": [
+          "cp-2",
+          "cp-3",
+          "cp-4",
+          "cp-5"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "CONTROL_PLANE_SCOPE_SPLIT",
+        "message": "当前 private source 的可达性退化与缓存 lease 的短时可用并存，属于需要先做只读核对的控制面 scope split。",
+        "severity": "warning",
+        "citation_ids": [
+          "cp-1",
+          "cp-2",
+          "cp-3",
+          "cp-4"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对 mixed summary variants 是否指向同一 package source 退化链路",
+        "target": {
+          "type": "control_plane",
+          "id": "review-mixed-summary-variants"
+        },
+        "rationale": "当前已有四类脱敏 supporting 证据，应先只读核对它们是否都在描述同一条 private source 429 与 stale lease 共存的链路。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "cp-2",
+          "cp-3",
+          "cp-4",
+          "cp-5"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "cp-1",
+        "kind": "context",
+        "label": "control_plane_state",
+        "locator": "context:control_plane_state",
+        "excerpt": "entitlement_status=active, lease_status=stale, sync_status=partial_failed, manifest_status=current"
+      },
+      {
+        "id": "cp-2",
+        "kind": "artifact",
+        "label": "private_registry_capture sanitized summary",
+        "locator": "artifact:private_registry_capture.metadata.sanitized_summary",
+        "excerpt": "private package source returned repeated 429 responses; request and response bodies plus auth headers were stripped"
+      },
+      {
+        "id": "cp-3",
+        "kind": "artifact",
+        "label": "lease_cache_capture summary",
+        "locator": "artifact:lease_cache_capture.metadata.summary",
+        "excerpt": "cached lease snapshot still marks the entitlement window as usable for 14 more minutes"
+      },
+      {
+        "id": "cp-4",
+        "kind": "artifact",
+        "label": "source_scope_rollup",
+        "locator": "artifact:source_scope_rollup",
+        "excerpt": "public_manifest_status=ok, private_source_status=429, cached_lease_minutes_remaining=14, scope_split=true"
+      },
+      {
+        "id": "cp-5",
+        "kind": "artifact",
+        "label": "ui_warning_note",
+        "locator": "artifact:ui_warning_note",
+        "excerpt": "UI keeps showing a degraded package sync warning while the entitlement badge remains green."
+      }
+    ],
+    "confidence": 0.85,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

@@ -1141,6 +1141,10 @@ RADISHFLOW_ADAPTER_REQUEST_ASSEMBLY_FIXTURES = [
         "snapshot": "adapters/radishflow/examples/explain-control-plane-mixed-support-summaries-001.snapshot.json",
         "sample": "datasets/eval/radishflow/explain-control-plane-mixed-support-summaries-001.json",
     },
+    {
+        "snapshot": "adapters/radishflow/examples/explain-control-plane-mixed-summary-variants-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-control-plane-mixed-summary-variants-001.json",
+    },
 ]
 
 RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES = [
@@ -1218,6 +1222,11 @@ RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES = [
         "export_snapshot": "adapters/radishflow/exports/explain-control-plane-mixed-support-summaries-001.export.json",
         "adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-mixed-support-summaries-001.snapshot.json",
         "sample": "datasets/eval/radishflow/explain-control-plane-mixed-support-summaries-001.json",
+    },
+    {
+        "export_snapshot": "adapters/radishflow/exports/explain-control-plane-mixed-summary-variants-001.export.json",
+        "adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-mixed-summary-variants-001.snapshot.json",
+        "sample": "datasets/eval/radishflow/explain-control-plane-mixed-summary-variants-001.json",
     },
 ]
 
@@ -1354,6 +1363,7 @@ REQUIRED_FILES = [
     "adapters/radishflow/examples/explain-control-plane-redacted-support-summary-001.snapshot.json",
     "adapters/radishflow/examples/explain-control-plane-uri-summary-only-001.snapshot.json",
     "adapters/radishflow/examples/explain-control-plane-mixed-support-summaries-001.snapshot.json",
+    "adapters/radishflow/examples/explain-control-plane-mixed-summary-variants-001.snapshot.json",
     "adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json",
     "adapters/radishflow/exports/explain-diagnostics-multi-object-feed-conflict-001.export.json",
     "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
@@ -1369,6 +1379,7 @@ REQUIRED_FILES = [
     "adapters/radishflow/exports/explain-control-plane-redacted-support-summary-001.export.json",
     "adapters/radishflow/exports/explain-control-plane-uri-summary-only-001.export.json",
     "adapters/radishflow/exports/explain-control-plane-mixed-support-summaries-001.export.json",
+    "adapters/radishflow/exports/explain-control-plane-mixed-summary-variants-001.export.json",
     "datasets/README.md",
     "datasets/examples/README.md",
     "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
@@ -1694,6 +1705,7 @@ REQUIRED_FILES = [
     "datasets/eval/radishflow/explain-control-plane-redacted-support-summary-001.json",
     "datasets/eval/radishflow/explain-control-plane-uri-summary-only-001.json",
     "datasets/eval/radishflow/explain-control-plane-mixed-support-summaries-001.json",
+    "datasets/eval/radishflow/explain-control-plane-mixed-summary-variants-001.json",
     "datasets/eval/radish/answer-docs-question-attachment-mixed-001.json",
     "datasets/eval/radish/answer-docs-question-docs-attachments-faq-001.json",
     "datasets/eval/radish/answer-docs-question-docs-attachments-forum-conflict-001.json",
