@@ -12,11 +12,11 @@
   "summary": {
     "audited_sample_count": 11,
     "failed_sample_count": 10,
-    "linked_negative_sample_count": 8,
-    "linked_failed_sample_count": 8,
+    "linked_negative_sample_count": 10,
+    "linked_failed_sample_count": 10,
     "linked_non_failed_sample_count": 0,
-    "unlinked_failed_sample_count": 2,
-    "violation_group_count": 3
+    "unlinked_failed_sample_count": 0,
+    "violation_group_count": 4
   },
   "violation_groups": [
     {
@@ -227,31 +227,72 @@
           ]
         }
       ]
-    }
-  ],
-  "linked_non_failed_samples": [],
-  "unlinked_failed_samples": [
-    {
-      "source_sample_id": "radish-answer-docs-question-evidence-gap-001",
-      "source_sample_file": "answer-docs-question-evidence-gap-001.json",
-      "record_id": "captured-radish-answer-docs-question-evidence-gap-001",
-      "audit_violations": [
-        "answer-docs-question-evidence-gap-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
-        "answer-docs-question-evidence-gap-001.json: candidate_response must contain at least 1 issue",
-        "answer-docs-question-evidence-gap-001.json:candidate_response: missing required json path '$.issues[0]'"
-      ]
     },
     {
-      "source_sample_id": "radish-answer-docs-question-role-example-boundary-001",
-      "source_sample_file": "answer-docs-question-role-example-boundary-001.json",
-      "record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
-      "audit_violations": [
+      "group_id": "group-004",
+      "expected_candidate_violations": [
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        "candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug",
+        ".risk_level does not match evaluation.expected_risk_level",
+        "must contain at least 1 issue"
+      ],
+      "audit_violation_fragments": [
+        "answer-docs-question-evidence-gap-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
+        "answer-docs-question-evidence-gap-001.json: candidate_response must contain at least 1 issue",
+        "answer-docs-question-evidence-gap-001.json:candidate_response: missing required json path '$.issues[0]'",
         "answer-docs-question-role-example-boundary-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
         "answer-docs-question-role-example-boundary-001.json: candidate_response must contain at least 1 issue",
         "answer-docs-question-role-example-boundary-001.json:candidate_response: missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'",
         "answer-docs-question-role-example-boundary-001.json:candidate_response: json path '$.risk_level' expected 'medium' but found 'low'"
+      ],
+      "entry_count": 2,
+      "entries": [
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-evidence-gap-role-boundary-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-evidence-gap-role-boundary-001.json",
+          "source_sample_id": "radish-answer-docs-question-evidence-gap-001",
+          "source_sample_file": "answer-docs-question-evidence-gap-001.json",
+          "record_id": "captured-radish-answer-docs-question-evidence-gap-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-evidence-gap-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
+            "answer-docs-question-evidence-gap-001.json: candidate_response must contain at least 1 issue",
+            "answer-docs-question-evidence-gap-001.json:candidate_response: missing required json path '$.issues[0]'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug",
+            ".risk_level does not match evaluation.expected_risk_level",
+            "must contain at least 1 issue"
+          ]
+        },
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-role-boundary-evidence-gap-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-role-boundary-evidence-gap-001.json",
+          "source_sample_id": "radish-answer-docs-question-role-example-boundary-001",
+          "source_sample_file": "answer-docs-question-role-example-boundary-001.json",
+          "record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-role-example-boundary-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
+            "answer-docs-question-role-example-boundary-001.json: candidate_response must contain at least 1 issue",
+            "answer-docs-question-role-example-boundary-001.json:candidate_response: missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'",
+            "answer-docs-question-role-example-boundary-001.json:candidate_response: json path '$.risk_level' expected 'medium' but found 'low'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug",
+            ".risk_level does not match evaluation.expected_risk_level",
+            "must contain at least 1 issue"
+          ]
+        }
       ]
     }
   ],
+  "linked_non_failed_samples": [],
+  "unlinked_failed_samples": [],
   "capture_origin": "adapter_debug_dump"
 }

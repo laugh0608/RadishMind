@@ -66,7 +66,8 @@
 治理现状：
 
 - same-sample replay 已覆盖，见 `negative-replay-index` 中的 `group-001` 与 `group-002`
-- `role-example-boundary` 当前仍通过 `wiki-faq-mixed -> role-boundary` 这条 cross-sample 负例保留在推荐链中，用于验证跨样本回灌时仍会暴露更强的授权/风险违规
+- cross-sample replay 现已额外补成一组 2 条的“低风险无 issue + record 对齐漂移”复用簇，见 `cross-sample-replay-index` 中的 `group-004`
+- `role-example-boundary` 仍同时通过 `wiki-faq-mixed -> role-boundary` 这条 cross-sample 负例保留在推荐链中，用于验证跨样本回灌时仍会暴露更强的授权/风险违规
 - real-derived repeated pattern 已继续扩成 `evidence-gap` 的 `multi_issues_confirmation` / `unconfirmed_operation`，以及 `role-boundary` 的 `missing_read_only_check_confirmation` / `multi_issues_confirmation`
 
 ### 3. `answers` 缺失
@@ -109,8 +110,8 @@
 从治理角度看，这批真实失败目前已经不是“散点样本”，而是进入了可追踪状态：
 
 - same-sample replay: `failed_sample_count=10`，`linked_failed_sample_count=10`，当前无未回灌失败样本
-- cross-sample replay: `failed_sample_count=10`，`linked_failed_sample_count=8`，当前还剩 2 条失败未进入 cross-sample 推荐链
-- violation groups: same-sample 当前收口到 5 组，cross-sample 当前收口到 3 组
+- cross-sample replay: `failed_sample_count=10`，`linked_failed_sample_count=10`，当前无未回灌失败样本
+- violation groups: same-sample 当前收口到 5 组，cross-sample 当前收口到 4 组
 
 这意味着当前仓库已经能稳定回答三个问题：
 
@@ -118,10 +119,7 @@
 - 哪些失败已经值得跨样本复用
 - 哪些失败虽然已有 same-sample replay，但尚未进入 cross-sample 推荐链
 
-当前 remaining only-same-sample source 已缩到两条：
-
-- `answer-docs-question-evidence-gap-001.json`
-- `answer-docs-question-role-example-boundary-001.json`
+当前这批真实失败已经没有 remaining only-same-sample source；10 条失败都已进入 cross-sample 推荐索引。
 
 ## 为什么 `check-repo` 末尾会打印 `FAIL`
 
@@ -141,5 +139,5 @@
 
 当前建议优先继续做两件事：
 
-1. 继续把剩余 2 条 only same-sample 的真实失败推进到 cross-sample 推荐链，当前优先只剩“低风险无 issue”这一类主问题。
+1. 继续把已经进入 cross-sample 的 4 组失败面往 repeated pattern 扩展，优先仍围绕 `low-risk/no-issue` 与 `read_only_check` 缺失两类高频问题做更稳定的派生覆盖。
 2. 继续把这批真实失败派生成更稳定的 repeated pattern，但保持“真实 bad record 原失败面 + 一层额外漂移”的口径，不回退到纯 simulated negative 堆叠。

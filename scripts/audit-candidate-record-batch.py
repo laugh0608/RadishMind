@@ -27,6 +27,7 @@ TASK_SAMPLE_DIRS = {
     "radish-docs-qa": REPO_ROOT / "datasets/eval/radish",
     "radishflow-ghost-completion": REPO_ROOT / "datasets/eval/radishflow",
 }
+DEFAULT_NEGATIVE_OUTPUT_DIR = "datasets/eval/radish-negative"
 
 
 def parse_args() -> argparse.Namespace:
@@ -182,6 +183,10 @@ def build_negative_replay_index_args(report_path: Path, replay_index_output: Pat
     return script_args
 
 
+def resolve_same_sample_negative_output_dir(args: argparse.Namespace) -> str:
+    return args.negative_output_dir.strip() or DEFAULT_NEGATIVE_OUTPUT_DIR
+
+
 def main() -> int:
     args = parse_args()
     if (args.replay_index_output.strip() or args.build_negative_replay) and not args.report_output.strip():
@@ -301,7 +306,12 @@ def main() -> int:
                     else derive_negative_replay_index_output(report_path)
                 )
                 initial_negative_sample_dir = ""
-                if args.negative_output_dir.strip():
+                same_sample_negative_output_dir = resolve_same_sample_negative_output_dir(args)
+                if args.build_negative_replay:
+                    bootstrap_negative_output_dir = temp_path / "bootstrap-negative-replay"
+                    bootstrap_negative_output_dir.mkdir(parents=True, exist_ok=True)
+                    initial_negative_sample_dir = str(bootstrap_negative_output_dir)
+                elif args.negative_output_dir.strip():
                     initial_negative_output_dir = resolve_relative_to_repo(args.negative_output_dir)
                     if initial_negative_output_dir.is_dir():
                         initial_negative_sample_dir = args.negative_output_dir
@@ -320,16 +330,20 @@ def main() -> int:
                         negative_args = [
                             "--index",
                             make_repo_relative(replay_index_output),
+                            "--output-dir",
+                            same_sample_negative_output_dir,
                         ]
-                        if args.negative_output_dir.strip():
-                            negative_args.extend(["--output-dir", args.negative_output_dir.strip()])
                         run_repo_script(
                             "build-radish-docs-negative-replay.py",
                             negative_args,
                         )
                         run_repo_script(
                             "build-negative-replay-index.py",
-                            build_negative_replay_index_args(report_path, replay_index_output, args.negative_output_dir),
+                            build_negative_replay_index_args(
+                                report_path,
+                                replay_index_output,
+                                same_sample_negative_output_dir,
+                            ),
                         )
         return result.returncode
 

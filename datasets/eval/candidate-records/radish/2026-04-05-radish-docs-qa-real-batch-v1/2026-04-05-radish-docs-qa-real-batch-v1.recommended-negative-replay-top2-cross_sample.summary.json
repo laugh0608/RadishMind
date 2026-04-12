@@ -13,7 +13,7 @@
     "requested_top": 2,
     "selected_group_ids": [
       "group-003",
-      "group-001"
+      "group-004"
     ],
     "replay_mode": "cross_sample",
     "sample_dir_override": "",
@@ -26,8 +26,8 @@
     "selected_group_count": 2,
     "passed_group_count": 2,
     "failed_group_count": 0,
-    "selected_sample_count": 7,
-    "passed_sample_count": 7,
+    "selected_sample_count": 8,
+    "passed_sample_count": 8,
     "failed_sample_count": 0,
     "violation_count": 0
   },
@@ -74,23 +74,24 @@
       }
     },
     {
-      "group_id": "group-001",
+      "group_id": "group-004",
       "replay_mode": "cross_sample",
-      "requested_entry_count": 1,
-      "selected_sample_count": 1,
+      "requested_entry_count": 2,
+      "selected_sample_count": 2,
       "exit_code": 0,
-      "passed_sample_count": 1,
+      "passed_sample_count": 2,
       "failed_sample_count": 0,
       "violation_count": 0,
       "expected_candidate_violations": [
-        "candidate_response_record.input_record.current_app must match input_request.context.current_app",
-        ".status does not match expected_response_shape.status",
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        "candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug",
         ".risk_level does not match evaluation.expected_risk_level",
-        "must contain at least 1 issue",
-        "missing required json path '$.issues[0].code=\"AUTHORIZATION_NOT_PROVEN\"'"
+        "must contain at least 1 issue"
       ],
       "sample_files": [
-        "answer-docs-question-negative-cross-sample-real-record-wiki-faq-role-boundary-001.json"
+        "answer-docs-question-negative-cross-sample-real-record-evidence-gap-role-boundary-001.json",
+        "answer-docs-question-negative-cross-sample-real-record-role-boundary-evidence-gap-001.json"
       ],
       "summary_line": "radish docs qa negative regression passed.",
       "warning_line": "",
@@ -102,7 +103,7 @@
           "--batch-artifact-summary",
           "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json",
           "--group-id",
-          "group-001",
+          "group-004",
           "--replay-mode",
           "cross_sample",
           "--fail-on-violation"
