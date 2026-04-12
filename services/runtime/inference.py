@@ -11,6 +11,8 @@ from urllib import error, request
 
 import jsonschema
 
+from .artifact_summary import extract_artifact_summary_metadata
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 REQUEST_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-request.schema.json"
@@ -59,11 +61,6 @@ RESPONSE_TOP_LEVEL_KEYS = {
     "risk_level",
     "requires_confirmation",
 }
-ARTIFACT_SUMMARY_METADATA_KEYS = (
-    ("summary", "summary"),
-    ("sanitized_summary", "sanitized summary"),
-    ("redaction_summary", "redaction summary"),
-)
 
 
 def load_schema(path: Path) -> Any:
@@ -185,14 +182,7 @@ def artifact_content_text(artifact: dict[str, Any]) -> str:
 
 
 def artifact_metadata_summary_text(artifact: dict[str, Any]) -> tuple[str, str, str]:
-    metadata = artifact.get("metadata") or {}
-    if not isinstance(metadata, dict):
-        return "", "", ""
-    for key, label_suffix in ARTIFACT_SUMMARY_METADATA_KEYS:
-        text = normalize_text(metadata.get(key))
-        if text:
-            return text, key, label_suffix
-    return "", "", ""
+    return extract_artifact_summary_metadata(artifact.get("metadata") or {})
 
 
 def artifact_citation_excerpt_source(artifact: dict[str, Any]) -> tuple[str, str, str]:

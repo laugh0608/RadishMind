@@ -1721,6 +1721,7 @@ REQUIRED_FILES = [
     "prompts/tasks/radishflow-suggest-ghost-completion-system.md",
     "services/__init__.py",
     "services/runtime/__init__.py",
+    "services/runtime/artifact_summary.py",
     "services/runtime/candidate_records.py",
     "services/runtime/inference.py",
     "services/runtime/eval_regression.py",

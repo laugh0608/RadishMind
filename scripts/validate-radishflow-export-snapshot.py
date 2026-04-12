@@ -12,6 +12,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from services.runtime.candidate_records import ensure_schema, load_json_document, make_repo_relative, resolve_relative_to_repo  # noqa: E402
+from services.runtime.artifact_summary import (  # noqa: E402
+    artifact_summary_metadata_hint,
+    has_artifact_summary_metadata,
+)
 
 
 EXPORT_SNAPSHOT_SCHEMA_PATH = REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json"
@@ -33,7 +37,6 @@ SENSITIVE_VALUE_PATTERNS = (
     re.compile(r"\bsk-[A-Za-z0-9]{16,}\b"),
     re.compile(r"\bAIza[0-9A-Za-z\-_]{20,}\b"),
 )
-SUPPORT_ARTIFACT_SUMMARY_KEYS = ("summary", "redaction_summary", "sanitized_summary")
 RAW_SUPPORT_ARTIFACT_KEYS = {
     "headers",
     "request_headers",
@@ -130,9 +133,7 @@ def _scan_raw_support_artifact_keys(value: Any, path: str, errors: list[str]) ->
 
 
 def _has_summary_metadata(metadata: Any) -> bool:
-    if not isinstance(metadata, dict):
-        return False
-    return any(str(metadata.get(key) or "").strip() for key in SUPPORT_ARTIFACT_SUMMARY_KEYS)
+    return has_artifact_summary_metadata(metadata)
 
 
 def _validate_support_artifacts(support_artifacts: Any, errors: list[str], warnings: list[str]) -> None:
@@ -149,7 +150,7 @@ def _validate_support_artifacts(support_artifacts: Any, errors: list[str], warni
         metadata = artifact.get("metadata")
 
         if uri and content is None and not _has_summary_metadata(metadata):
-            warnings.append(f"{path} uses uri without metadata.summary; prefer uri + minimal redacted summary")
+            warnings.append(f"{path} uses uri without {artifact_summary_metadata_hint()}; prefer uri + minimal redacted summary")
 
         if isinstance(content, str):
             if len(content) > 280 or content.count("\n") >= 3:
