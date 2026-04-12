@@ -59,6 +59,11 @@ RESPONSE_TOP_LEVEL_KEYS = {
     "risk_level",
     "requires_confirmation",
 }
+ARTIFACT_SUMMARY_METADATA_KEYS = (
+    ("summary", "summary"),
+    ("sanitized_summary", "sanitized summary"),
+    ("redaction_summary", "redaction summary"),
+)
 
 
 def load_schema(path: Path) -> Any:
@@ -179,11 +184,57 @@ def artifact_content_text(artifact: dict[str, Any]) -> str:
     return normalize_text(artifact.get("content"))
 
 
+def artifact_metadata_summary_text(artifact: dict[str, Any]) -> tuple[str, str, str]:
+    metadata = artifact.get("metadata") or {}
+    if not isinstance(metadata, dict):
+        return "", "", ""
+    for key, label_suffix in ARTIFACT_SUMMARY_METADATA_KEYS:
+        text = normalize_text(metadata.get(key))
+        if text:
+            return text, key, label_suffix
+    return "", "", ""
+
+
+def artifact_citation_excerpt_source(artifact: dict[str, Any]) -> tuple[str, str, str]:
+    content_text = artifact_content_text(artifact)
+    if content_text:
+        return content_text, "", ""
+    return artifact_metadata_summary_text(artifact)
+
+
 def artifact_excerpt(artifact: dict[str, Any], limit: int = 180) -> str:
-    text = artifact_content_text(artifact)
+    text, _, _ = artifact_citation_excerpt_source(artifact)
     if len(text) <= limit:
         return text
     return text[: limit - 1].rstrip() + "…"
+
+
+def build_artifact_citation_fields(artifact: dict[str, Any], resource_title: str = "", limit: int = 180) -> dict[str, str]:
+    artifact_name = str(artifact.get("name") or "").strip()
+    metadata = artifact.get("metadata") or {}
+    page_slug = str((metadata.get("page_slug") if isinstance(metadata, dict) else "") or "").strip()
+    excerpt_source_text, summary_key, summary_label_suffix = artifact_citation_excerpt_source(artifact)
+
+    label = page_slug or str(resource_title or "").strip() or artifact_name
+    if not label and artifact_name and summary_label_suffix:
+        label = f"{artifact_name} {summary_label_suffix}"
+    elif label == artifact_name and summary_label_suffix:
+        label = f"{artifact_name} {summary_label_suffix}"
+
+    locator = f"artifact:{artifact_name}" if artifact_name else ""
+    if locator and summary_key:
+        locator = f"{locator}.metadata.{summary_key}"
+
+    fields: dict[str, str] = {}
+    if label:
+        fields["label"] = label
+    if locator:
+        fields["locator"] = locator
+
+    excerpt = excerpt_source_text
+    if excerpt:
+        fields["excerpt"] = excerpt if len(excerpt) <= limit else excerpt[: limit - 1].rstrip() + "…"
+    return fields
 
 
 def first_sentences(text: str, max_sentences: int = 2) -> str:
@@ -259,19 +310,16 @@ def build_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
         prefix = citation_prefix_for_artifact(artifact)
         counters[prefix] = counters.get(prefix, 0) + 1
         citation_id = f"{prefix}-{counters[prefix]}"
-        label = (
-            str((artifact.get("metadata") or {}).get("page_slug") or "").strip()
-            or str(resource.get("title") or "").strip()
-            or str(artifact.get("name") or "").strip()
-            or citation_id
-        )
+        citation_fields = build_artifact_citation_fields(artifact, str(resource.get("title") or "").strip())
         citation = {
             "id": citation_id,
             "kind": "artifact",
-            "label": label,
-            "locator": f"artifact:{artifact.get('name')}",
+            "label": citation_fields.get("label") or citation_id,
         }
-        excerpt = artifact_excerpt(artifact)
+        locator = citation_fields.get("locator")
+        if locator:
+            citation["locator"] = locator
+        excerpt = citation_fields.get("excerpt") or artifact_excerpt(artifact)
         if excerpt:
             citation["excerpt"] = excerpt
         citations.append(citation)
@@ -872,6 +920,8 @@ def normalize_citations_from_document(
         for artifact in copilot_request.get("artifacts") or []
         if str((artifact or {}).get("name") or "").strip()
     }
+    context = copilot_request.get("context") or {}
+    resource = context.get("resource") or {}
     normalized_citations: list[dict[str, Any]] = []
     for index, citation in enumerate(citations or [], start=1):
         if not isinstance(citation, dict):
@@ -887,9 +937,10 @@ def normalize_citations_from_document(
         if not citation_id:
             fallback = next((item for item in fallback_citations if str(item.get("locator") or "") == f"artifact:{artifact_name}"), None)
             citation_id = str((fallback or {}).get("id") or f"doc-{index}")
+        citation_fields = build_artifact_citation_fields(artifact, str(resource.get("title") or "").strip())
         label = (
             normalize_text(citation.get("label"))
-            or str(((artifact.get("metadata") or {}).get("page_slug") or "")).strip()
+            or citation_fields.get("label")
             or artifact_name
             or citation_id
         )
@@ -898,10 +949,12 @@ def normalize_citations_from_document(
             "kind": str(citation.get("kind") or "artifact").strip() or "artifact",
             "label": label,
         }
-        locator = normalize_text(citation.get("locator")) or (f"artifact:{artifact_name}" if artifact_name else "")
+        locator = normalize_text(citation.get("locator")) or citation_fields.get("locator") or (
+            f"artifact:{artifact_name}" if artifact_name else ""
+        )
         if locator:
             normalized_citation["locator"] = locator
-        excerpt = normalize_text(citation.get("excerpt") or citation.get("text"))
+        excerpt = normalize_text(citation.get("excerpt") or citation.get("text")) or citation_fields.get("excerpt")
         if excerpt:
             normalized_citation["excerpt"] = excerpt
         normalized_citations.append(normalized_citation)
