@@ -61,6 +61,7 @@
 - `eval/radishflow/*.json`
 - `eval/radish/*.json`
 - `eval/README.md`
+- `eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/README.md`
 
 当前原则：
 
@@ -69,6 +70,7 @@
 - 在 `Radish` 首个场景收口前，不急着平铺多任务数据
 - 当前 `RadishFlow explain_diagnostics` 已补首批 `golden_response` 样本与最小回归 runner，后续优先扩展更多真实诊断场景
 - 当前 `Radish` 文档问答样本已补最小召回输入约束与回归 runner，后续优先扩展真实样本和候选输出对照入口
+- 当前 `Radish docs QA` 的 `2026-04-05` real batch 已补一份批次级 README，用于把真实 bad record 的主失败面、same-sample / cross-sample replay 覆盖状态，以及 `check-repo` 末尾 recommended replay 输出为何会打印 `FAIL` 统一解释清楚
 - 当前 `examples/` 目录开始承接“schema + 实例”双校验，避免新契约只有结构没有真实对象参照
 - 当前 `build-radishflow-ghost-request.py` 已可把本地 ghost 候选集示例装配成最小 `CopilotRequest`，默认使用 `model-minimal` profile 裁剪本地排序/冲突证据，同时保留 `debug-full` 对照示例，并由 `check-repo` 校验基础 `FlashDrum`、`Valve ambiguous`、连续搭建链正向与链式停住边界几组输出都不漂移
 - 当前 `examples/` 已新增 `Feed -> Valve -> FlashDrum` 连续搭建链基线，把 `cursor_context.recent_actions` 从 `eval` 样本推进到 pre-model candidate set 与 request assembly 示例，固定“上一跳已接受 ghost 会影响下一跳默认建议”的最小口径
