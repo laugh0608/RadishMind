@@ -137,7 +137,7 @@
 - 当前仓库还已再前推一层：新增 `radishflow-export-snapshot.schema.json` 与 `build-radishflow-adapter-snapshot.py`，先把更贴近 `document_state / selection_state / diagnostics_export / solve_snapshot / control_plane_snapshot` 的导出对象稳定转换为 adapter snapshot，再继续装配成 `CopilotRequest`
 - 当前仓库也已新增 `build-radishflow-export-request.py`，用于把 export snapshot 直接装配为 `CopilotRequest`，并由 `check-repo` 校验其结果与既有 eval sample `input_request` 一致
 - 当前仓库也已新增 `validate-radishflow-export-snapshot.py`，用于在真实接线前先对 export snapshot 做 schema、任务级语义与敏感信息 smoke 校验，并由 `check-repo` 统一回归
-- 当前这条装配链已不只覆盖最小 happy path，还补进了 `multi-object diagnostics`、`control-plane conflicting signals`、“multi-selection 但只允许单 actionable target”、`multi-unit + multi-stream + 单 primary focus`、selection 顺序保持，以及纯 `uri + metadata.summary` 与 mixed support summary 的 control-plane supporting capture 这几类代表性样本，避免 context packer 只在单对象、单诊断样本上自洽
+- 当前这条装配链已不只覆盖最小 happy path，还补进了 `multi-object diagnostics`、`control-plane conflicting signals`、“multi-selection 但只允许单 actionable target”、`multi-unit + multi-stream + 单 primary focus`、selection 顺序保持、同风险多动作时的 input-first 排序理由，以及纯 `uri + metadata.summary` 与 mixed support summary 的 control-plane supporting capture 这几类代表性样本，避免 context packer 只在单对象、单诊断样本上自洽
 
 ### `RadishFlowExportSnapshot` 上游导出映射约定
 
