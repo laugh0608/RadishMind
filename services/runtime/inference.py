@@ -409,14 +409,17 @@ def build_ghost_context_citations(copilot_request: dict[str, Any]) -> list[dict[
     return citations
 
 
-def build_citation_maps(copilot_request: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, str]]:
+def build_citation_maps(copilot_request: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, str], dict[int, str]]:
     citations = build_citations(copilot_request)
     artifact_name_to_citation_id: dict[str, str] = {}
+    artifact_index_to_citation_id: dict[int, str] = {}
     for citation, artifact in zip(citations, copilot_request.get("artifacts") or []):
         artifact_name = str((artifact or {}).get("name") or "").strip()
+        citation_id = str(citation.get("id") or "")
         if artifact_name:
-            artifact_name_to_citation_id[artifact_name] = str(citation.get("id") or "")
-    return citations, artifact_name_to_citation_id
+            artifact_name_to_citation_id[artifact_name] = citation_id
+        artifact_index_to_citation_id[len(artifact_index_to_citation_id)] = citation_id
+    return citations, artifact_name_to_citation_id, artifact_index_to_citation_id
 
 
 def classify_docs_qa_request(copilot_request: dict[str, Any], primary_text: str) -> tuple[str, str, list[dict[str, Any]]]:
@@ -733,13 +736,17 @@ def map_status(value: Any) -> str:
     return "partial"
 
 
-def normalize_citation_ids(value: Any, artifact_name_to_citation_id: dict[str, str]) -> list[str]:
+def normalize_citation_ids(
+    value: Any,
+    artifact_name_to_citation_id: dict[str, str],
+    artifact_index_to_citation_id: dict[int, str],
+) -> list[str]:
     normalized_ids: list[str] = []
     for item in value or []:
         if isinstance(item, dict):
             artifact_index = item.get("artifact_index")
             if isinstance(artifact_index, int):
-                fallback_id = f"doc-{artifact_index + 1}"
+                fallback_id = artifact_index_to_citation_id.get(artifact_index, f"doc-{artifact_index + 1}")
                 normalized_ids.append(fallback_id)
                 continue
             artifact_name = str(item.get("artifact_id") or item.get("artifact_name") or "").strip()
@@ -756,6 +763,7 @@ def normalize_citation_ids(value: Any, artifact_name_to_citation_id: dict[str, s
 def normalize_answers(
     answers: Any,
     artifact_name_to_citation_id: dict[str, str],
+    artifact_index_to_citation_id: dict[int, str],
 ) -> list[dict[str, Any]]:
     normalized_answers: list[dict[str, Any]] = []
     for answer in answers or []:
@@ -782,6 +790,7 @@ def normalize_answers(
                 "citation_ids": normalize_citation_ids(
                     answer.get("citation_ids") or answer.get("citations"),
                     artifact_name_to_citation_id,
+                    artifact_index_to_citation_id,
                 ),
             }
         )
@@ -803,6 +812,7 @@ def extract_answer_embedded_actions(answers: Any) -> list[Any]:
 def normalize_issues(
     issues: Any,
     artifact_name_to_citation_id: dict[str, str],
+    artifact_index_to_citation_id: dict[int, str],
 ) -> list[dict[str, Any]]:
     normalized_issues: list[dict[str, Any]] = []
     for issue in issues or []:
@@ -822,6 +832,7 @@ def normalize_issues(
                 "citation_ids": normalize_citation_ids(
                     issue.get("citation_ids") or issue.get("citations"),
                     artifact_name_to_citation_id,
+                    artifact_index_to_citation_id,
                 ),
             }
         )
@@ -831,6 +842,7 @@ def normalize_issues(
 def normalize_actions(
     actions: Any,
     artifact_name_to_citation_id: dict[str, str],
+    artifact_index_to_citation_id: dict[int, str],
     *,
     project: str,
     task: str,
@@ -870,6 +882,7 @@ def normalize_actions(
             "citation_ids": normalize_citation_ids(
                 source_action.get("citation_ids") or source_action.get("citations"),
                 artifact_name_to_citation_id,
+                artifact_index_to_citation_id,
             ),
         }
         if isinstance(source_action.get("target"), dict):
@@ -1069,7 +1082,7 @@ def canonicalize_ghost_response(
 
 def coerce_response_document(document: dict[str, Any], copilot_request: dict[str, Any], raw_text: str) -> dict[str, Any]:
     coerced = dict(document)
-    fallback_citations, artifact_name_to_citation_id = build_citation_maps(copilot_request)
+    fallback_citations, artifact_name_to_citation_id, artifact_index_to_citation_id = build_citation_maps(copilot_request)
     project = str(copilot_request.get("project") or "").strip()
     task = str(copilot_request.get("task") or "").strip()
     embedded_actions = extract_answer_embedded_actions(coerced.get("answers"))
@@ -1078,11 +1091,20 @@ def coerce_response_document(document: dict[str, Any], copilot_request: dict[str
     elif embedded_actions and not (coerced.get("proposed_actions") or []):
         coerced["proposed_actions"] = embedded_actions
     coerced["status"] = map_status(coerced.get("status"))
-    coerced["answers"] = normalize_answers(coerced.get("answers"), artifact_name_to_citation_id)
-    coerced["issues"] = normalize_issues(coerced.get("issues"), artifact_name_to_citation_id)
+    coerced["answers"] = normalize_answers(
+        coerced.get("answers"),
+        artifact_name_to_citation_id,
+        artifact_index_to_citation_id,
+    )
+    coerced["issues"] = normalize_issues(
+        coerced.get("issues"),
+        artifact_name_to_citation_id,
+        artifact_index_to_citation_id,
+    )
     coerced["proposed_actions"] = normalize_actions(
         coerced.get("proposed_actions"),
         artifact_name_to_citation_id,
+        artifact_index_to_citation_id,
         project=project,
         task=task,
     )
