@@ -23,6 +23,11 @@ REAL_BATCH_COLLECTION = "2026-04-05-radish-docs-qa-real-batch-v1"
 REAL_BATCH_CROSS_SAMPLE_NEGATIVE_DIR = REPO_ROOT / "datasets/eval/radish-negative"
 PENDING_SAME_SAMPLE_SUMMARY_NAME = "pending.recommended-negative-replay.summary.json"
 PENDING_CROSS_SAMPLE_SUMMARY_NAME = "pending.cross-sample-recommended-negative-replay.summary.json"
+EXPECTED_REAL_BATCH_FAILURE_NOTE = (
+    "INFO: the next Radish docs QA real-batch audit output intentionally replays known failing "
+    "captured candidate responses to build recommended negative replay summaries; printed FAIL/WARNING "
+    "lines below are expected input signals unless this checker itself exits non-zero."
+)
 
 
 @dataclass(frozen=True)
@@ -44,6 +49,7 @@ def expect_object(document: Any, label: str) -> dict[str, Any]:
 
 
 def run_command(command: list[str]) -> None:
+    print(EXPECTED_REAL_BATCH_FAILURE_NOTE, file=sys.stderr)
     result = subprocess.run(
         command,
         cwd=REPO_ROOT,
