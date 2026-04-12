@@ -111,6 +111,59 @@ def main() -> int:
         str(mixed_summary_request["artifacts"][0]["metadata"]["summary_variant"]),
         "mixed-summary coerced citation excerpt should not leak summary_variant",
     )
+    mixed_summary_leaky_citation_response = {
+        "status": "partial",
+        "summary": "control plane summary remains partially degraded",
+        "answers": [
+            {
+                "kind": "state_summary",
+                "text": "private registry capture should stay grounded on the sanitized metadata summary",
+                "citation_ids": [{"artifact_id": "private_registry_capture"}],
+            }
+        ],
+        "issues": [],
+        "proposed_actions": [],
+        "citations": [
+            {
+                "artifact_id": "private_registry_capture",
+                "label": "private_registry_capture summary_variant=sanitized_only",
+                "locator": "artifact:private_registry_capture.metadata.summary_variant",
+                "excerpt": "summary_variant=sanitized_only source_scope=control_plane redactions=[]",
+            }
+        ],
+        "risk_level": "low",
+        "requires_confirmation": False,
+    }
+    coerced_mixed_summary_leaky = coerce_response_document(
+        mixed_summary_leaky_citation_response,
+        mixed_summary_request,
+        raw_text="",
+    )
+    require_equal(
+        coerced_mixed_summary_leaky["citations"][0]["label"],
+        "private_registry_capture sanitized summary",
+        "mixed-summary coerced citation should canonicalize label from artifact metadata",
+    )
+    require_equal(
+        coerced_mixed_summary_leaky["citations"][0]["locator"],
+        "artifact:private_registry_capture.metadata.sanitized_summary",
+        "mixed-summary coerced citation should canonicalize locator from artifact metadata",
+    )
+    require_equal(
+        coerced_mixed_summary_leaky["citations"][0]["excerpt"],
+        mixed_summary_request["artifacts"][0]["metadata"]["sanitized_summary"],
+        "mixed-summary coerced citation should canonicalize excerpt from artifact metadata",
+    )
+    require_not_contains(
+        str(coerced_mixed_summary_leaky["citations"][0]["excerpt"]),
+        "summary_variant=sanitized_only",
+        "mixed-summary coerced citation should discard model-provided summary_variant excerpt",
+    )
+    require_not_contains(
+        str(coerced_mixed_summary_leaky["citations"][0]["locator"]),
+        "summary_variant",
+        "mixed-summary coerced citation should discard model-provided summary_variant locator",
+    )
 
     redacted_request = load_input_request("datasets/eval/radishflow/explain-control-plane-redacted-support-summary-001.json")
     redacted_response = {
@@ -183,6 +236,44 @@ def main() -> int:
         str(coerced_redacted["citations"][0]["excerpt"]),
         str(redacted_request["artifacts"][0]["metadata"]["redactions"]),
         "redacted coerced citation excerpt should not serialize redactions metadata",
+    )
+    redacted_leaky_citation_response = {
+        "status": "partial",
+        "summary": "refresh path remains blocked",
+        "answers": [],
+        "issues": [],
+        "proposed_actions": [],
+        "citations": [
+            {
+                "artifact_id": "lease_refresh_capture",
+                "label": "lease_refresh_capture redactions",
+                "locator": "artifact:lease_refresh_capture.metadata.redactions",
+                "excerpt": "redactions=['authorization', 'cookie', 'token']",
+            }
+        ],
+        "risk_level": "medium",
+        "requires_confirmation": True,
+    }
+    coerced_redacted_leaky = coerce_response_document(redacted_leaky_citation_response, redacted_request, raw_text="")
+    require_equal(
+        coerced_redacted_leaky["citations"][0]["label"],
+        "lease_refresh_capture summary",
+        "redacted coerced citation should canonicalize label from artifact summary metadata",
+    )
+    require_equal(
+        coerced_redacted_leaky["citations"][0]["locator"],
+        "artifact:lease_refresh_capture.metadata.summary",
+        "redacted coerced citation should canonicalize locator from artifact summary metadata",
+    )
+    require_equal(
+        coerced_redacted_leaky["citations"][0]["excerpt"],
+        redacted_request["artifacts"][0]["metadata"]["summary"],
+        "redacted coerced citation should canonicalize excerpt from artifact summary metadata",
+    )
+    require_not_contains(
+        str(coerced_redacted_leaky["citations"][0]["excerpt"]),
+        "redactions=",
+        "redacted coerced citation should discard model-provided redactions excerpt",
     )
 
     print("radishflow runtime artifact metadata response coercion regression passed.")

@@ -948,23 +948,33 @@ def normalize_citations_from_document(
             )
             citation_id = str((fallback or {}).get("id") or f"doc-{index}")
         citation_fields = build_artifact_citation_fields(artifact, str(resource.get("title") or "").strip())
-        label = (
-            normalize_text(citation.get("label"))
-            or citation_fields.get("label")
-            or artifact_name
-            or citation_id
-        )
+        has_artifact_backing = bool(artifact_name and artifact)
+        if has_artifact_backing:
+            label = citation_fields.get("label") or artifact_name or citation_id
+        else:
+            label = (
+                normalize_text(citation.get("label"))
+                or citation_fields.get("label")
+                or artifact_name
+                or citation_id
+            )
         normalized_citation = {
             "id": citation_id,
             "kind": str(citation.get("kind") or "artifact").strip() or "artifact",
             "label": label,
         }
-        locator = normalize_text(citation.get("locator")) or citation_fields.get("locator") or (
-            f"artifact:{artifact_name}" if artifact_name else ""
-        )
+        if has_artifact_backing:
+            locator = citation_fields.get("locator") or f"artifact:{artifact_name}"
+        else:
+            locator = normalize_text(citation.get("locator")) or citation_fields.get("locator") or (
+                f"artifact:{artifact_name}" if artifact_name else ""
+            )
         if locator:
             normalized_citation["locator"] = locator
-        excerpt = normalize_text(citation.get("excerpt") or citation.get("text")) or citation_fields.get("excerpt")
+        if has_artifact_backing:
+            excerpt = citation_fields.get("excerpt") or ""
+        else:
+            excerpt = normalize_text(citation.get("excerpt") or citation.get("text")) or citation_fields.get("excerpt")
         if excerpt:
             normalized_citation["excerpt"] = excerpt
         normalized_citations.append(normalized_citation)
