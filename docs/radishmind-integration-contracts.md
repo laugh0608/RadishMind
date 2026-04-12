@@ -281,6 +281,7 @@
 - 当前 `radishflow-export-snapshot.schema.json` 与 `radishflow-adapter-snapshot.schema.json` 也已把 `support_artifacts.metadata` 的常用字段显式收口到 `summary`、`sanitized_summary`、`redaction_summary`、`redactions`、`source_scope` 与 `summary_variant`，并在 schema 层先拦截 `headers`、`raw_payload`、`response_body`、`stack_trace` 等原始载荷键名
 - 当前 `services/runtime/artifact_summary.py` 也是这条摘要键优先级的共享真相源：当 runtime 或 validator 需要判断“哪个 metadata 摘要键可用、提示文案该怎么写”时，统一按 `summary -> sanitized_summary -> redaction_summary` 的既定口径复用，而不再各自维护一套顺序
 - 当前 `CopilotRequest.artifacts[*].metadata` 也已同步纳入同一条正式契约：除了 `RadishFlow` control-plane 常用的 `summary`、`sanitized_summary`、`redaction_summary`、`redactions`、`source_scope` 与 `summary_variant` 外，也显式保留 `Radish docs QA` 侧已稳定使用的 `source_type`、`page_slug`、`fragment_id`、`retrieval_rank` 与 `is_official`；同时 request 层也一样禁止 `headers`、`raw_payload`、`response_body`、`stack_trace` 等原始载荷键名进入 artifact metadata
+- 当前 `services/runtime/artifact_metadata.py` 已成为这组三层契约字段和禁用键名的共享真相源，`check-artifact-metadata-contract.py` 会在 `check-repo` 中持续核对 `radishflow-export-snapshot`、`radishflow-adapter-snapshot` 与 `copilot-request` 三份 schema 是否仍与该真相源一致
 
 - 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序
 - 当前仓库内的 `CopilotRequest` schema 已冻结 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`cursor_context`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints` 这些 ghost 补全上下文字段

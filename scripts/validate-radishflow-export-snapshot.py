@@ -12,6 +12,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from services.runtime.candidate_records import ensure_schema, load_json_document, make_repo_relative, resolve_relative_to_repo  # noqa: E402
+from services.runtime.artifact_metadata import RAW_ARTIFACT_PAYLOAD_METADATA_KEYS  # noqa: E402
 from services.runtime.artifact_summary import (  # noqa: E402
     artifact_summary_metadata_hint,
     has_artifact_summary_metadata,
@@ -37,21 +38,7 @@ SENSITIVE_VALUE_PATTERNS = (
     re.compile(r"\bsk-[A-Za-z0-9]{16,}\b"),
     re.compile(r"\bAIza[0-9A-Za-z\-_]{20,}\b"),
 )
-RAW_SUPPORT_ARTIFACT_KEYS = {
-    "headers",
-    "request_headers",
-    "response_headers",
-    "request_body",
-    "response_body",
-    "raw_body",
-    "raw_payload",
-    "raw_request",
-    "raw_response",
-    "full_payload",
-    "full_response",
-    "stack_trace",
-    "traceback",
-}
+RAW_SUPPORT_ARTIFACT_KEYS = set(RAW_ARTIFACT_PAYLOAD_METADATA_KEYS)
 
 
 def parse_args() -> argparse.Namespace:

@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 
-
-ARTIFACT_SUMMARY_METADATA_FIELDS = (
-    ("summary", "summary"),
-    ("sanitized_summary", "sanitized summary"),
-    ("redaction_summary", "redaction summary"),
+from .artifact_metadata import (
+    ARTIFACT_SUMMARY_METADATA_FIELDS,
+    ARTIFACT_SUMMARY_METADATA_KEYS,
+    artifact_summary_metadata_hint,
 )
-ARTIFACT_SUMMARY_METADATA_KEYS = tuple(field[0] for field in ARTIFACT_SUMMARY_METADATA_FIELDS)
 
 
 def normalize_summary_text(value: Any) -> str:
@@ -32,7 +30,3 @@ def extract_artifact_summary_metadata(metadata: Any) -> tuple[str, str, str]:
 def has_artifact_summary_metadata(metadata: Any) -> bool:
     text, _, _ = extract_artifact_summary_metadata(metadata)
     return bool(text)
-
-
-def artifact_summary_metadata_hint() -> str:
-    return "metadata.summary / metadata.sanitized_summary / metadata.redaction_summary"

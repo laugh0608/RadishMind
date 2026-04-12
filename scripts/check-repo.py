@@ -1721,6 +1721,7 @@ REQUIRED_FILES = [
     "prompts/tasks/radishflow-suggest-ghost-completion-system.md",
     "services/__init__.py",
     "services/runtime/__init__.py",
+    "services/runtime/artifact_metadata.py",
     "services/runtime/artifact_summary.py",
     "services/runtime/candidate_records.py",
     "services/runtime/inference.py",
@@ -1740,6 +1741,7 @@ REQUIRED_FILES = [
     "scripts/check-radish-docs-qa-real-derived-negative-index.py",
     "scripts/check-radish-docs-qa-real-batch-same-sample-only-summary.py",
     "scripts/check-radishflow-artifact-summary-consumption.py",
+    "scripts/check-artifact-metadata-contract.py",
     "scripts/check-copilot-request-artifact-metadata.py",
     "scripts/check-radishflow-export-validator-support-artifacts.py",
     "scripts/check_radish_docs_qa_real_batch_summary_common.py",
@@ -2070,6 +2072,7 @@ def check_contract_schemas() -> None:
             )
 
     run_python_script("check-radishflow-artifact-summary-consumption.py", [])
+    run_python_script("check-artifact-metadata-contract.py", [])
     run_python_script("check-copilot-request-artifact-metadata.py", [])
     run_python_script("check-radishflow-export-validator-support-artifacts.py", [])
 
