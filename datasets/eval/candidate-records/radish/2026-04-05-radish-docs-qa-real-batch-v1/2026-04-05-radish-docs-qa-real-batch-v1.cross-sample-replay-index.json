@@ -12,11 +12,11 @@
   "summary": {
     "audited_sample_count": 11,
     "failed_sample_count": 10,
-    "linked_negative_sample_count": 2,
-    "linked_failed_sample_count": 2,
+    "linked_negative_sample_count": 8,
+    "linked_failed_sample_count": 8,
     "linked_non_failed_sample_count": 0,
-    "unlinked_failed_sample_count": 8,
-    "violation_group_count": 2
+    "unlinked_failed_sample_count": 2,
+    "violation_group_count": 3
   },
   "violation_groups": [
     {
@@ -88,55 +88,149 @@
           ]
         }
       ]
+    },
+    {
+      "group_id": "group-003",
+      "expected_candidate_violations": [
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+        "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+        "is missing required action kind 'read_only_check'"
+      ],
+      "audit_violation_fragments": [
+        "answer-docs-question-attachment-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-attachment-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'",
+        "answer-docs-question-docs-attachments-faq-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-attachments-faq-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'",
+        "answer-docs-question-docs-attachments-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-attachments-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'",
+        "answer-docs-question-docs-faq-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-faq-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'",
+        "answer-docs-question-docs-faq-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
+        "answer-docs-question-docs-faq-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'",
+        "answer-docs-question-navigation-001.json: candidate_response is missing required action kind 'read_only_check'"
+      ],
+      "entry_count": 6,
+      "entries": [
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-attachment-mixed-attachments-faq-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-attachment-mixed-attachments-faq-001.json",
+          "source_sample_id": "radish-answer-docs-question-attachment-mixed-001",
+          "source_sample_file": "answer-docs-question-attachment-mixed-001.json",
+          "record_id": "captured-radish-answer-docs-question-attachment-mixed-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-attachment-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
+            "answer-docs-question-attachment-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+            "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+            "is missing required action kind 'read_only_check'"
+          ]
+        },
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-docs-attachments-faq-attachments-forum-conflict-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-docs-attachments-faq-attachments-forum-conflict-001.json",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+          "source_sample_file": "answer-docs-question-docs-attachments-faq-001.json",
+          "record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-docs-attachments-faq-001.json: candidate_response is missing required action kind 'read_only_check'",
+            "answer-docs-question-docs-attachments-faq-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+            "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+            "is missing required action kind 'read_only_check'"
+          ]
+        },
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-docs-attachments-forum-conflict-attachments-faq-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-docs-attachments-forum-conflict-attachments-faq-001.json",
+          "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "source_sample_file": "answer-docs-question-docs-attachments-forum-conflict-001.json",
+          "record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-docs-attachments-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
+            "answer-docs-question-docs-attachments-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+            "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+            "is missing required action kind 'read_only_check'"
+          ]
+        },
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-docs-faq-forum-conflict-faq-mixed-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-docs-faq-forum-conflict-faq-mixed-001.json",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "source_sample_file": "answer-docs-question-docs-faq-forum-conflict-001.json",
+          "record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-docs-faq-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
+            "answer-docs-question-docs-faq-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+            "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+            "is missing required action kind 'read_only_check'"
+          ]
+        },
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-docs-faq-mixed-faq-forum-conflict-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-docs-faq-mixed-faq-forum-conflict-001.json",
+          "source_sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+          "source_sample_file": "answer-docs-question-docs-faq-mixed-001.json",
+          "record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-docs-faq-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
+            "answer-docs-question-docs-faq-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+            "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+            "is missing required action kind 'read_only_check'"
+          ]
+        },
+        {
+          "negative_sample_id": "radish-answer-docs-question-negative-cross-sample-real-record-navigation-attachments-faq-001",
+          "negative_sample_path": "datasets/eval/radish-negative/answer-docs-question-negative-cross-sample-real-record-navigation-attachments-faq-001.json",
+          "source_sample_id": "radish-answer-docs-question-navigation-001",
+          "source_sample_file": "answer-docs-question-navigation-001.json",
+          "record_id": "captured-radish-answer-docs-question-navigation-001",
+          "replay_mode": "cross_sample",
+          "audit_violations": [
+            "answer-docs-question-navigation-001.json: candidate_response is missing required action kind 'read_only_check'"
+          ],
+          "expected_candidate_violations": [
+            "candidate_response_record.sample_id must match sample_id",
+            "candidate_response_record.request_id must match input_request.request_id",
+            "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+            "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+            "is missing required action kind 'read_only_check'"
+          ]
+        }
+      ]
     }
   ],
   "linked_non_failed_samples": [],
   "unlinked_failed_samples": [
-    {
-      "source_sample_id": "radish-answer-docs-question-attachment-mixed-001",
-      "source_sample_file": "answer-docs-question-attachment-mixed-001.json",
-      "record_id": "captured-radish-answer-docs-question-attachment-mixed-001",
-      "audit_violations": [
-        "answer-docs-question-attachment-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
-        "answer-docs-question-attachment-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
-      ]
-    },
-    {
-      "source_sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
-      "source_sample_file": "answer-docs-question-docs-attachments-faq-001.json",
-      "record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
-      "audit_violations": [
-        "answer-docs-question-docs-attachments-faq-001.json: candidate_response is missing required action kind 'read_only_check'",
-        "answer-docs-question-docs-attachments-faq-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
-      ]
-    },
-    {
-      "source_sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
-      "source_sample_file": "answer-docs-question-docs-attachments-forum-conflict-001.json",
-      "record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
-      "audit_violations": [
-        "answer-docs-question-docs-attachments-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
-        "answer-docs-question-docs-attachments-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
-      ]
-    },
-    {
-      "source_sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
-      "source_sample_file": "answer-docs-question-docs-faq-forum-conflict-001.json",
-      "record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
-      "audit_violations": [
-        "answer-docs-question-docs-faq-forum-conflict-001.json: candidate_response is missing required action kind 'read_only_check'",
-        "answer-docs-question-docs-faq-forum-conflict-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
-      ]
-    },
-    {
-      "source_sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
-      "source_sample_file": "answer-docs-question-docs-faq-mixed-001.json",
-      "record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
-      "audit_violations": [
-        "answer-docs-question-docs-faq-mixed-001.json: candidate_response is missing required action kind 'read_only_check'",
-        "answer-docs-question-docs-faq-mixed-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"read_only_check\"'"
-      ]
-    },
     {
       "source_sample_id": "radish-answer-docs-question-evidence-gap-001",
       "source_sample_file": "answer-docs-question-evidence-gap-001.json",
@@ -145,14 +239,6 @@
         "answer-docs-question-evidence-gap-001.json: candidate_response.risk_level does not match evaluation.expected_risk_level",
         "answer-docs-question-evidence-gap-001.json: candidate_response must contain at least 1 issue",
         "answer-docs-question-evidence-gap-001.json:candidate_response: missing required json path '$.issues[0]'"
-      ]
-    },
-    {
-      "source_sample_id": "radish-answer-docs-question-navigation-001",
-      "source_sample_file": "answer-docs-question-navigation-001.json",
-      "record_id": "captured-radish-answer-docs-question-navigation-001",
-      "audit_violations": [
-        "answer-docs-question-navigation-001.json: candidate_response is missing required action kind 'read_only_check'"
       ]
     },
     {
