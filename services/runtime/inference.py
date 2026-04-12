@@ -925,7 +925,14 @@ def normalize_citations_from_document(
         artifact = artifact_map.get(artifact_name) or {}
         citation_id = str(citation.get("id") or "").strip()
         if not citation_id:
-            fallback = next((item for item in fallback_citations if str(item.get("locator") or "") == f"artifact:{artifact_name}"), None)
+            fallback = next(
+                (
+                    item
+                    for item in fallback_citations
+                    if str(item.get("locator") or "").startswith(f"artifact:{artifact_name}")
+                ),
+                None,
+            )
             citation_id = str((fallback or {}).get("id") or f"doc-{index}")
         citation_fields = build_artifact_citation_fields(artifact, str(resource.get("title") or "").strip())
         label = (
