@@ -225,6 +225,7 @@
 2. 先跑预接线 smoke 校验
    - 可直接用 `python3 scripts/validate-radishflow-export-snapshot.py --input <snapshot.json>`
    - 该脚本除 schema 外，还会检查任务级必需状态块、selection 语义，以及明显敏感字段/疑似凭据透传
+   - 若上游已经能一次导出多条 snapshot，当前也可直接用 `python3 scripts/run-radishflow-export-smoke.py --manifest <manifest.json> --summary-output <summary.json>` 批量跑 `validate -> adapter -> request` smoke；manifest 里既可只填 `export_snapshot` 做最小装配烟测，也可附带 `expected_adapter_snapshot` / `expected_request_sample` 做更严格对照
 3. 再替换 request 级基础字段
    - 必填：`request_id`、`locale`
    - 推荐：`request_id` 使用可追踪、可回放的业务侧请求标识

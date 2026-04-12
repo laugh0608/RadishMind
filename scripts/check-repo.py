@@ -184,6 +184,8 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
+        REPO_ROOT / "datasets/eval/radishflow-export-smoke-manifest.schema.json",
+        REPO_ROOT / "datasets/eval/radishflow-export-smoke-summary.schema.json",
     ]
     for schema_path in contract_schema_paths:
         document = json.loads(schema_path.read_text(encoding="utf-8"))
@@ -313,6 +315,15 @@ def check_contract_schemas() -> None:
     run_python_script("check-copilot-request-artifact-metadata.py", [])
     run_python_script("check-radishflow-export-selection-contract.py", [])
     run_python_script("check-radishflow-export-priority-contract.py", [])
+    run_python_script(
+        "run-radishflow-export-smoke.py",
+        [
+            "--manifest",
+            "scripts/checks/fixtures/radishflow-export-smoke-fixtures.json",
+            "--check-summary",
+            "scripts/checks/fixtures/radishflow-export-smoke-summary.json",
+        ],
+    )
     run_python_script("check-radishflow-export-artifact-metadata-assembly.py", [])
     run_python_script("check-radishflow-export-artifact-metadata-assembly-negative.py", [])
     run_python_script("check-radishflow-export-validator-support-artifacts.py", [])
