@@ -108,9 +108,9 @@ def _validate_selection_semantics(selection_state: dict[str, Any], errors: list[
         return
 
     primary_id = str(primary_selected_unit.get("id") or "").strip()
-    selected_id = str(selected_unit_ids[0]).strip()
-    if primary_id and primary_id != selected_id:
-        errors.append("selection_state.primary_selected_unit.id does not match selection_state.selected_unit_ids[0]")
+    selected_ids = {str(unit_id).strip() for unit_id in selected_unit_ids if str(unit_id).strip()}
+    if primary_id and primary_id not in selected_ids:
+        errors.append("selection_state.primary_selected_unit.id is not present in selection_state.selected_unit_ids")
     if not primary_id:
         warnings.append("selection_state.primary_selected_unit is missing id; adapter can only treat it as opaque context")
 

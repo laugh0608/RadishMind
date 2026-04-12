@@ -162,9 +162,10 @@
 - `selection_state.primary_selected_unit`
   - 只有当上游确实存在“主焦点 unit”语义时才提供
   - 当前 adapter 只会在这个字段显式存在时才写入 `selected_unit`，不得再从 `selected_unit_ids + flowsheet_document` 反推
-  - 它当前允许与 `selected_stream_ids` 等联合选择态并存；若同时给了 `selected_unit_ids`，则应与 `selected_unit_ids[0]` 对齐
+  - 它当前允许与 `selected_stream_ids` 等联合选择态并存；若同时给了 `selected_unit_ids`，则应显式落在该列表中，但不要求与 selection chronology 的第一项重合
   - 当前 committed fixture 也已覆盖“`selected_unit_ids` 中存在多个 unit，且同时保留多条 stream selection，但只落一个 `primary_selected_unit`”的组合，避免这条口径只停留在文档约定
   - 当前 committed fixture 还已固定 `selected_unit_ids` 与 `selected_stream_ids` 的输入顺序不会在 export -> adapter -> request 链中被偷偷重排，避免 UI 侧 selection chronology 在装配阶段丢失
+  - 当前 committed fixture 还已进一步覆盖“更复杂 selection chronology + 单 actionable target”的组合：主焦点 `selected_unit` 可独立于 chronology 第一项存在，但 candidate_edit 仍只能落到证据充分的单一局部对象
 - `diagnostics_export.diagnostic_summary`
   - 来源应是当前诊断摘要，例如 error / warning 计数
   - 若上游没有摘要，可省略，由 `diagnostics` 独立成立
@@ -229,6 +230,7 @@
 5. 再补 `selection_state`
    - `explain_diagnostics` / `suggest_flowsheet_edits` 至少要有 `selected_unit_ids` 或 `selected_stream_ids`
    - 若 UI 存在主焦点 unit，才补 `primary_selected_unit`
+   - 若主焦点 unit 与 UI chronology 第一项不是同一对象，也应保留原始 `selected_unit_ids` / `selected_stream_ids` 顺序，不要为了对齐 focus 重排 selection
 6. 再补任务所需状态块
    - `explain_diagnostics` / `suggest_flowsheet_edits`：补 `diagnostics_export`
    - `explain_control_plane_state`：补 `control_plane_snapshot`
@@ -269,7 +271,7 @@
 
 当前 `validate-radishflow-export-snapshot.py` 已先固定以下预接线校验口径：
 
-- `primary_selected_unit` 只有在显式提供时才允许出现，且应与 `selected_unit_ids[0]` 对齐；它可以和 `selected_stream_ids` 这类联合选择态并存
+- `primary_selected_unit` 只有在显式提供时才允许出现，且其 `id` 必须显式出现在 `selected_unit_ids` 中；它可以和 `selected_stream_ids` 这类联合选择态并存，也不要求与 chronology 第一项重合
 - `explain_diagnostics` / `suggest_flowsheet_edits` 必须同时满足“有 selection”与“有 diagnostics 信息”
 - `explain_control_plane_state` 若仍带 `selection_state`，当前只记 warning，不直接判失败
 - 对 `token`、`secret`、`cookie`、`authorization`、`api_key` 等敏感 key 名，以及 `Bearer ...`、`sk-...`、`AIza...` 这类疑似凭据内容，当前直接判失败
