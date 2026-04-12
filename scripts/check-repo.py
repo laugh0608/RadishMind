@@ -311,6 +311,7 @@ def check_contract_schemas() -> None:
     run_python_script("check-radishflow-runtime-artifact-metadata-response-coercion.py", [])
     run_python_script("check-artifact-metadata-contract.py", [])
     run_python_script("check-copilot-request-artifact-metadata.py", [])
+    run_python_script("check-radishflow-export-selection-contract.py", [])
     run_python_script("check-radishflow-export-artifact-metadata-assembly.py", [])
     run_python_script("check-radishflow-export-artifact-metadata-assembly-negative.py", [])
     run_python_script("check-radishflow-export-validator-support-artifacts.py", [])
