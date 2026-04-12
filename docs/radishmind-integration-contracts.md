@@ -278,6 +278,8 @@
 - 对 `token`、`secret`、`cookie`、`authorization`、`api_key` 等敏感 key 名，以及 `Bearer ...`、`sk-...`、`AIza...` 这类疑似凭据内容，当前直接判失败
 - `support_artifacts` 若只给 `uri` 而没有内联 `content`，当前会提示补 `metadata.summary` / `metadata.redaction_summary` / `metadata.sanitized_summary` 这类最小脱敏摘要；若内联文本过长，也会提示缩成更短摘要
 - `support_artifacts` 若出现 `raw_payload`、`response_body`、`headers`、`stack_trace` 等疑似原始载荷字段，当前直接判失败
+- 当前 `radishflow-export-snapshot.schema.json` 与 `radishflow-adapter-snapshot.schema.json` 也已把 `support_artifacts.metadata` 的常用字段显式收口到 `summary`、`sanitized_summary`、`redaction_summary`、`redactions`、`source_scope` 与 `summary_variant`，并在 schema 层先拦截 `headers`、`raw_payload`、`response_body`、`stack_trace` 等原始载荷键名
+- 当前 `services/runtime/artifact_summary.py` 也是这条摘要键优先级的共享真相源：当 runtime 或 validator 需要判断“哪个 metadata 摘要键可用、提示文案该怎么写”时，统一按 `summary -> sanitized_summary -> redaction_summary` 的既定口径复用，而不再各自维护一套顺序
 
 - 对 `suggest_ghost_completion` 这类编辑器辅助任务，建议优先由本地规则层预生成 `legal_candidate_completions`，模型只在合法候选集中排序
 - 当前仓库内的 `CopilotRequest` schema 已冻结 `selected_unit`、`unconnected_ports`、`missing_canonical_ports`、`nearby_nodes`、`cursor_context`、`legal_candidate_completions`、`naming_hints` 与 `topology_pattern_hints` 这些 ghost 补全上下文字段

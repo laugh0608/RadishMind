@@ -49,6 +49,10 @@ def require_contains(output: str, needle: str, label: str) -> None:
         raise SystemExit(f"{label}: expected output to contain {needle!r}, got: {output!r}")
 
 
+def combined_output(result: subprocess.CompletedProcess[str]) -> str:
+    return f"{result.stdout}{result.stderr}"
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="radishflow-export-validator-support-artifacts-") as temp_dir:
         temp_root = Path(temp_dir)
@@ -115,6 +119,38 @@ def main() -> int:
             warning_strict_result.stdout,
             "passed with warnings",
             "strict warning support artifact regression",
+        )
+
+        raw_metadata_snapshot = build_base_snapshot()
+        raw_metadata_snapshot["support_artifacts"] = [
+            {
+                "kind": "attachment_ref",
+                "role": "supporting",
+                "name": "raw_metadata_capture",
+                "mime_type": "application/json",
+                "uri": "capture://radishflow/control-plane/raw-metadata-validator",
+                "metadata": {
+                    "summary": "should fail because metadata still exposes a raw payload-shaped field name",
+                    "headers": {
+                        "authorization": "redacted",
+                    },
+                },
+            }
+        ]
+        raw_metadata_path = temp_root / "raw-metadata.export.json"
+        write_snapshot(raw_metadata_path, raw_metadata_snapshot)
+        raw_metadata_result = run_validator(raw_metadata_path)
+        if raw_metadata_result.returncode == 0:
+            raise SystemExit("validator should fail when support_artifacts.metadata includes raw payload-like keys")
+        require_contains(
+            combined_output(raw_metadata_result),
+            "schema validation failed",
+            "raw metadata support artifact regression",
+        )
+        require_contains(
+            combined_output(raw_metadata_result),
+            "'headers' should not be valid",
+            "raw metadata support artifact regression",
         )
 
         raw_payload_snapshot = build_base_snapshot()

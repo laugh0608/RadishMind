@@ -119,6 +119,19 @@ def build_minimal_export_snapshot(task: str) -> dict[str, Any]:
             "solve_session_state": {
                 "status": "unknown",
             },
+            "support_artifacts": [
+                {
+                    "kind": "attachment_ref",
+                    "role": "supporting",
+                    "name": "control_plane_capture_summary",
+                    "mime_type": "application/json",
+                    "uri": "capture://radishflow/control-plane/example",
+                    "metadata": {
+                        "summary": "Replace with a minimal redacted summary instead of raw control-plane payloads.",
+                        "source_scope": "control_plane",
+                    },
+                }
+            ],
         }
     raise ValueError(f"unsupported task: {task}")
 

@@ -253,8 +253,7 @@
         },
         "content": {},
         "metadata": {
-          "type": "object",
-          "default": {}
+          "$ref": "#/$defs/supporting_artifact_metadata"
         }
       },
       "anyOf": [
@@ -269,6 +268,58 @@
           ]
         }
       ]
+    },
+    "supporting_artifact_metadata": {
+      "type": "object",
+      "default": {},
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sanitized_summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "redaction_summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "redactions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "source_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary_variant": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "propertyNames": {
+        "not": {
+          "enum": [
+            "headers",
+            "request_headers",
+            "response_headers",
+            "request_body",
+            "response_body",
+            "raw_body",
+            "raw_payload",
+            "raw_request",
+            "raw_response",
+            "full_payload",
+            "full_response",
+            "stack_trace",
+            "traceback"
+          ]
+        }
+      }
     }
   }
 }
