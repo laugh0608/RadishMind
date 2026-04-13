@@ -1,12 +1,22 @@
 # `RadishFlow` 任务卡：`suggest_flowsheet_edits`
 
-更新时间：2026-04-07
+更新时间：2026-04-13
 
 ## 任务目标
 
 基于 `FlowsheetDocument`、选择集和诊断结果，输出结构化的候选编辑提案。
 
 当前任务关注的是“可确认的候选动作”，不是直接改图。所有输出都必须能被人工审查、规则层复核或业务命令层再次校验。
+
+## 当前 PoC 进展
+
+当前仓库已把本任务从“只有样本 / golden_response / mock candidate-record PoC”继续推进到“可沿同一入口发起真实 provider capture”的状态：
+
+- 已补任务 prompt：[radishflow-suggest-flowsheet-edits-system.md](../../prompts/tasks/radishflow-suggest-flowsheet-edits-system.md)
+- 已补最小 runtime：`services/runtime/inference.py` 与 [run-copilot-inference.py](../../scripts/run-copilot-inference.py) 当前已支持 `radishflow / suggest_flowsheet_edits`
+- 已有最小批次入口：[run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py)，当前仍固定 3 个代表样本，覆盖高风险重连、局部规格占位与三步优先级链
+- 上述入口在 `mock` 模式下仍会沿 `candidate_response_record -> manifest -> audit` 固定首批 committed PoC，而切到真实 provider 时也继续沿同一脚本入口收口，不另起第二套导入流程
+- 当前默认输出目录仍收口到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，让后续真实 batch 可以直接落正式目录
 
 ## 请求映射
 

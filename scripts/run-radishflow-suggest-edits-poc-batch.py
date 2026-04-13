@@ -354,6 +354,8 @@ def build_result_document(
             }
         )
     return {
+        "schema_version": 1,
+        "pipeline": "radishflow-suggest-edits-poc-batch",
         "mode": "batch",
         "provider": provider,
         "sample_count": len(sample_paths),
@@ -452,7 +454,11 @@ def main() -> int:
             record_paths,
             description=(
                 args.manifest_description.strip()
-                or "RadishFlow suggest_flowsheet_edits 首批 mock PoC 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+                or (
+                    "RadishFlow suggest_flowsheet_edits 首批真实 provider capture 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+                    if args.provider != "mock"
+                    else "RadishFlow suggest_flowsheet_edits 首批 mock PoC 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+                )
             ),
             collection_batch_override=args.collection_batch,
             capture_origin_override=args.capture_origin.strip(),

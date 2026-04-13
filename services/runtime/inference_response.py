@@ -4,6 +4,8 @@ import json
 import re
 from typing import Any
 
+import jsonschema
+
 from .inference_support import (
     GHOST_MALFORMED_JSON_REPAIR_PATTERNS,
     GHOST_MANUAL_MULTI_ACTION_REPAIR_PATTERNS,
@@ -11,6 +13,8 @@ from .inference_support import (
     RESPONSE_SCHEMA_PATH,
     build_artifact_citation_fields,
     build_citation_maps,
+    infer_parameter_placeholders,
+    infer_stream_spec_placeholders,
     load_schema,
     make_failed_response,
     normalize_text,
@@ -283,6 +287,381 @@ def normalize_existing_citation_ids(value: Any, known_ids: set[str], fallback_id
     return fallback_ids
 
 
+def risk_level_rank(value: str) -> int:
+    order = {"low": 0, "medium": 1, "high": 2}
+    return order.get(str(value).strip().lower(), 0)
+
+
+def max_risk_level(values: list[str]) -> str:
+    normalized = [str(value).strip().lower() for value in values if str(value).strip()]
+    if not normalized:
+        return "medium"
+    return max(normalized, key=risk_level_rank)
+
+
+def synthesize_suggest_edits_citation_ids(
+    *,
+    target_type: str,
+    target_id: str,
+    diagnostics: list[dict[str, Any]],
+    fallback_citations: list[dict[str, Any]],
+    existing_ids: list[str] | None = None,
+) -> list[str]:
+    known_ids = {
+        str(citation.get("id") or "").strip()
+        for citation in fallback_citations
+        if str(citation.get("id") or "").strip()
+    }
+    if existing_ids:
+        normalized_existing = [
+            str(item).strip() for item in existing_ids if str(item).strip() and str(item).strip() in known_ids
+        ]
+        if normalized_existing:
+            return list(dict.fromkeys(normalized_existing))
+
+    citation_ids: list[str] = []
+    normalized_target_type = str(target_type or "").strip().lower()
+    normalized_target_id = str(target_id or "").strip()
+    for index, diagnostic in enumerate(diagnostics, start=1):
+        diagnostic_target_type = str((diagnostic or {}).get("target_type") or "").strip().lower()
+        diagnostic_target_id = str((diagnostic or {}).get("target_id") or "").strip()
+        if normalized_target_id and diagnostic_target_id != normalized_target_id:
+            continue
+        if normalized_target_type and diagnostic_target_type and diagnostic_target_type != normalized_target_type:
+            continue
+        citation_ids.append(f"diag-{index}")
+
+    for citation in fallback_citations:
+        citation_id = str(citation.get("id") or "").strip()
+        if not citation_id or not citation_id.startswith("flowdoc-"):
+            continue
+        label = str(citation.get("label") or "").strip()
+        if normalized_target_id and label.endswith(normalized_target_id):
+            citation_ids.append(citation_id)
+            break
+
+    for citation in fallback_citations:
+        citation_id = str(citation.get("id") or "").strip()
+        if citation_id.startswith("snapshot-") or citation_id.startswith("diag-summary-"):
+            citation_ids.append(citation_id)
+            break
+    return list(dict.fromkeys(citation_ids))
+
+
+def build_suggest_edits_target_citation_lookup(citations: list[dict[str, Any]]) -> dict[tuple[str, str], str]:
+    target_citation_lookup: dict[tuple[str, str], str] = {}
+    for citation in citations:
+        citation_id = str(citation.get("id") or "").strip()
+        label = str(citation.get("label") or "").strip()
+        if citation_id.startswith("flowdoc-stream-") and "/" in label:
+            target_citation_lookup[("stream", label.split("/")[-1].strip())] = citation_id
+        elif citation_id.startswith("flowdoc-unit-") and "/" in label:
+            target_citation_lookup[("unit", label.split("/")[-1].strip())] = citation_id
+    return target_citation_lookup
+
+
+def build_suggest_edits_response_citation_ids(
+    *,
+    diagnostic_index: int,
+    diagnostic_code: str,
+    target_type: str,
+    target_id: str,
+    target_citation_lookup: dict[tuple[str, str], str],
+    snapshot_citation_id: str,
+    total_diagnostics: int,
+    item_kind: str,
+) -> list[str]:
+    citation_ids: list[str] = [f"diag-{diagnostic_index}"]
+    target_citation_id = target_citation_lookup.get((target_type, target_id))
+    is_single_disconnected = total_diagnostics == 1 and diagnostic_code == "STREAM_DISCONNECTED"
+
+    if item_kind == "issue" and is_single_disconnected:
+        return citation_ids
+
+    if target_citation_id and not is_single_disconnected:
+        citation_ids.append(target_citation_id)
+    if diagnostic_code == "STREAM_DISCONNECTED" and snapshot_citation_id:
+        citation_ids.append(snapshot_citation_id)
+    if target_citation_id and is_single_disconnected and item_kind == "answer":
+        citation_ids.append(target_citation_id)
+    return list(dict.fromkeys(citation_ids))
+
+
+def synthesize_suggest_edits_action(
+    diagnostic: dict[str, Any],
+    *,
+    diagnostic_index: int,
+    total_diagnostics: int,
+    target_citation_lookup: dict[tuple[str, str], str],
+    snapshot_citation_id: str,
+) -> dict[str, Any]:
+    diagnostic_code = str(diagnostic.get("code") or "").strip()
+    message = normalize_text(diagnostic.get("message") or diagnostic.get("text") or "")
+    target_type = str(diagnostic.get("target_type") or "").strip().lower()
+    target_id = str(diagnostic.get("target_id") or "").strip()
+    if target_type not in {"stream", "unit"}:
+        target_type = "stream" if "stream" in diagnostic_code.lower() else "unit"
+    citation_ids = build_suggest_edits_response_citation_ids(
+        diagnostic_index=diagnostic_index,
+        diagnostic_code=diagnostic_code,
+        target_type=target_type,
+        target_id=target_id,
+        target_citation_lookup=target_citation_lookup,
+        snapshot_citation_id=snapshot_citation_id,
+        total_diagnostics=total_diagnostics,
+        item_kind="action",
+    )
+
+    if diagnostic_code == "STREAM_DISCONNECTED":
+        return {
+            "kind": "candidate_edit",
+            "title": f"为 {target_id} 预留下游重连占位",
+            "target": {
+                "type": "stream",
+                "id": target_id,
+            },
+            "rationale": "当前断链问题只能通过人工确认后续去向来处理，因此 patch 仅保留候选连接占位。",
+            "patch": {
+                "connection_placeholder": {
+                    "expected_downstream_kind": "consumer_or_export_sink",
+                    "requires_manual_binding": True,
+                }
+            },
+            "risk_level": "high",
+            "requires_confirmation": True,
+            "citation_ids": citation_ids,
+        }
+    if diagnostic_code == "STREAM_SPEC_MISSING":
+        return {
+            "kind": "candidate_edit",
+            "title": f"为 {target_id} 补充缺失规格占位",
+            "target": {
+                "type": "stream",
+                "id": target_id,
+            },
+            "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+            "patch": {
+                "spec_placeholders": infer_stream_spec_placeholders(message),
+                "retain_existing_specs": True,
+            },
+            "risk_level": "medium",
+            "requires_confirmation": True,
+            "citation_ids": citation_ids,
+        }
+    return {
+        "kind": "candidate_edit",
+        "title": f"为 {target_id} 补充局部参数占位",
+        "target": {
+            "type": target_type,
+            "id": target_id,
+        },
+        "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+        "patch": {
+            "parameter_placeholders": infer_parameter_placeholders(message),
+            "patch_scope": "unit_parameters" if target_type == "unit" else "stream_parameters",
+        },
+        "risk_level": "medium",
+        "requires_confirmation": True,
+        "citation_ids": citation_ids,
+    }
+
+
+def canonicalize_suggest_edits_response(
+    coerced: dict[str, Any],
+    copilot_request: dict[str, Any],
+    fallback_citations: list[dict[str, Any]],
+) -> dict[str, Any]:
+    context = copilot_request.get("context") or {}
+    diagnostics = [diagnostic for diagnostic in (context.get("diagnostics") or []) if isinstance(diagnostic, dict)]
+    target_citation_lookup = build_suggest_edits_target_citation_lookup(fallback_citations)
+    snapshot_citation_id = next(
+        (
+            str(citation.get("id") or "").strip()
+            for citation in fallback_citations
+            if str(citation.get("id") or "").strip() == "snapshot-1"
+        ),
+        "",
+    )
+    existing_actions_by_target: dict[tuple[str, str], dict[str, Any]] = {}
+    for action in list(coerced.get("proposed_actions") or []):
+        if not isinstance(action, dict):
+            continue
+        target = action.get("target") or {}
+        target_type = str(target.get("type") or "").strip().lower()
+        target_id = str(target.get("id") or "").strip()
+        if target_type in {"stream", "unit"} and target_id and (target_type, target_id) not in existing_actions_by_target:
+            existing_actions_by_target[(target_type, target_id)] = dict(action)
+
+    normalized_actions: list[dict[str, Any]] = []
+    for diagnostic_index, diagnostic in enumerate(diagnostics, start=1):
+        synthesized_action = synthesize_suggest_edits_action(
+            diagnostic,
+            diagnostic_index=diagnostic_index,
+            total_diagnostics=len(diagnostics),
+            target_citation_lookup=target_citation_lookup,
+            snapshot_citation_id=snapshot_citation_id,
+        )
+        target = synthesized_action.get("target") or {}
+        target_type = str(target.get("type") or "").strip().lower()
+        target_id = str(target.get("id") or "").strip()
+        existing_action = existing_actions_by_target.get((target_type, target_id), {})
+        merged_action = dict(existing_action)
+        merged_action["kind"] = "candidate_edit"
+        merged_action["target"] = synthesized_action["target"]
+        merged_action["title"] = normalize_text(merged_action.get("title")) or synthesized_action["title"]
+        merged_action["rationale"] = normalize_text(merged_action.get("rationale")) or synthesized_action["rationale"]
+        merged_patch = merged_action.get("patch")
+        if not isinstance(merged_patch, dict):
+            merged_patch = {}
+        synthesized_patch = dict(synthesized_action.get("patch") or {})
+        if str(diagnostic.get("code") or "").strip() == "STREAM_DISCONNECTED":
+            connection_placeholder = merged_patch.get("connection_placeholder")
+            if not isinstance(connection_placeholder, dict):
+                connection_placeholder = {}
+            merged_patch["connection_placeholder"] = {
+                "expected_downstream_kind": str(
+                    connection_placeholder.get("expected_downstream_kind")
+                    or synthesized_patch["connection_placeholder"]["expected_downstream_kind"]
+                ),
+                "requires_manual_binding": bool(
+                    connection_placeholder.get("requires_manual_binding", True)
+                ),
+            }
+        elif str(diagnostic.get("code") or "").strip() == "STREAM_SPEC_MISSING":
+            spec_placeholders = [
+                str(item).strip()
+                for item in (merged_patch.get("spec_placeholders") or [])
+                if str(item).strip()
+            ]
+            merged_patch = {
+                "spec_placeholders": spec_placeholders or list(synthesized_patch.get("spec_placeholders") or []),
+                "retain_existing_specs": bool(merged_patch.get("retain_existing_specs", True)),
+            }
+        else:
+            parameter_placeholders = [
+                str(item).strip()
+                for item in (merged_patch.get("parameter_placeholders") or [])
+                if str(item).strip()
+            ]
+            merged_patch = {
+                "parameter_placeholders": parameter_placeholders or list(synthesized_patch.get("parameter_placeholders") or []),
+                "patch_scope": str(
+                    merged_patch.get("patch_scope") or synthesized_patch.get("patch_scope") or ""
+                ).strip()
+                or str(synthesized_patch.get("patch_scope") or ""),
+            }
+        merged_action["patch"] = merged_patch
+        merged_action["risk_level"] = max_risk_level(
+            [str(existing_action.get("risk_level") or ""), str(synthesized_action.get("risk_level") or "")]
+        )
+        if str(diagnostic.get("code") or "").strip() == "STREAM_DISCONNECTED":
+            merged_action["risk_level"] = "high"
+        merged_action["requires_confirmation"] = True
+        merged_action["citation_ids"] = list(synthesized_action.get("citation_ids") or [])
+        normalized_actions.append(merged_action)
+
+    synthesized_issues: list[dict[str, Any]] = []
+    existing_issues_by_code: dict[str, dict[str, Any]] = {}
+    for issue in list(coerced.get("issues") or []):
+        if not isinstance(issue, dict):
+            continue
+        code = str(issue.get("code") or "").strip()
+        if code and code not in existing_issues_by_code:
+            existing_issues_by_code[code] = dict(issue)
+    for diagnostic_index, diagnostic in enumerate(diagnostics, start=1):
+        diagnostic_code = str(diagnostic.get("code") or "").strip()
+        target_type = str(diagnostic.get("target_type") or "").strip().lower()
+        target_id = str(diagnostic.get("target_id") or "").strip()
+        existing_issue = existing_issues_by_code.get(diagnostic_code, {})
+        issue_message = normalize_text(existing_issue.get("message")) or normalize_text(
+            diagnostic.get("message") or diagnostic.get("text") or ""
+        )
+        synthesized_issues.append(
+            {
+                "code": diagnostic_code,
+                "message": issue_message or f"{target_id or '当前对象'} 存在需要人工复核的编辑问题。",
+                "severity": str(diagnostic.get("severity") or existing_issue.get("severity") or "warning").strip().lower()
+                or "warning",
+                "citation_ids": build_suggest_edits_response_citation_ids(
+                    diagnostic_index=diagnostic_index,
+                    diagnostic_code=diagnostic_code,
+                    target_type=target_type,
+                    target_id=target_id,
+                    target_citation_lookup=target_citation_lookup,
+                    snapshot_citation_id=snapshot_citation_id,
+                    total_diagnostics=len(diagnostics),
+                    item_kind="issue",
+                ),
+            }
+        )
+
+    if not coerced.get("answers"):
+        answer_citation_ids = list(
+            dict.fromkeys(
+                citation_id
+                for action in normalized_actions
+                for citation_id in (action.get("citation_ids") or [])
+                if str(citation_id).strip()
+            )
+        )
+        coerced["answers"] = [
+            {
+                "kind": "edit_rationale",
+                "text": normalize_text(coerced.get("summary"))
+                or "当前响应已收口为候选编辑提案，仍需人工确认后再决定是否应用。",
+                "citation_ids": answer_citation_ids,
+            }
+        ]
+    else:
+        for answer in coerced.get("answers") or []:
+            if not isinstance(answer, dict):
+                continue
+            if not (answer.get("citation_ids") or []):
+                answer["citation_ids"] = list(
+                    dict.fromkeys(
+                        citation_id
+                        for action in normalized_actions
+                        for citation_id in (action.get("citation_ids") or [])
+                        if str(citation_id).strip()
+                    )
+                )
+    if len(diagnostics) == 1 and str(diagnostics[0].get("code") or "").strip() == "STREAM_DISCONNECTED":
+        primary_action_citation_ids = list((normalized_actions[0] or {}).get("citation_ids") or []) if normalized_actions else []
+        for answer in coerced.get("answers") or []:
+            if not isinstance(answer, dict):
+                continue
+            answer["citation_ids"] = primary_action_citation_ids
+
+    referenced_citation_ids = list(
+        dict.fromkeys(
+            citation_id
+            for section in [coerced.get("answers") or [], synthesized_issues, normalized_actions]
+            for item in section
+            if isinstance(item, dict)
+            for citation_id in (item.get("citation_ids") or [])
+            if str(citation_id).strip()
+        )
+    )
+    coerced["issues"] = synthesized_issues
+    coerced["proposed_actions"] = normalized_actions
+    coerced["citations"] = [
+        citation
+        for citation in fallback_citations
+        if str(citation.get("id") or "").strip() in referenced_citation_ids
+    ]
+    coerced["requires_confirmation"] = bool(normalized_actions)
+    coerced["status"] = "partial" if normalized_actions else "failed"
+    coerced["risk_level"] = max_risk_level(
+        [str(action.get("risk_level") or "") for action in normalized_actions]
+        or [str(coerced.get("risk_level") or "")]
+    )
+    if not normalize_text(coerced.get("summary")) and normalized_actions:
+        first_action = normalized_actions[0]
+        target_id = str(((first_action.get("target") or {}).get("id")) or "").strip()
+        coerced["summary"] = f"当前围绕 {target_id or '当前对象'} 生成候选编辑提案。"
+    return coerced
+
+
 def canonicalize_ghost_response(
     coerced: dict[str, Any],
     copilot_request: dict[str, Any],
@@ -459,6 +838,8 @@ def coerce_response_document(document: dict[str, Any], copilot_request: dict[str
             ]
     if project == "radishflow" and task == "suggest_ghost_completion":
         coerced = canonicalize_ghost_response(coerced, copilot_request, fallback_citations)
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        coerced = canonicalize_suggest_edits_response(coerced, copilot_request, fallback_citations)
     coerced.setdefault("summary", "模型已返回结构化响应，但摘要字段为空。")
     coerced.setdefault("answers", [])
     coerced.setdefault("issues", [])

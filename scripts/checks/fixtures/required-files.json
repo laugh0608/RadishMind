@@ -407,6 +407,7 @@
   "datasets/eval/radish/answer-docs-question-wiki-faq-mixed-001.json",
   "prompts/tasks/radish-answer-docs-question-system.md",
   "prompts/tasks/radishflow-suggest-ghost-completion-system.md",
+  "prompts/tasks/radishflow-suggest-flowsheet-edits-system.md",
   "services/__init__.py",
   "services/runtime/__init__.py",
   "services/runtime/artifact_metadata.py",

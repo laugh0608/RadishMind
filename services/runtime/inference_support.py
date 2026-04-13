@@ -19,6 +19,7 @@ REQUEST_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-request.schema.json"
 RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 PROMPT_PATHS = {
     ("radish", "answer_docs_question"): REPO_ROOT / "prompts/tasks/radish-answer-docs-question-system.md",
+    ("radishflow", "suggest_flowsheet_edits"): REPO_ROOT / "prompts/tasks/radishflow-suggest-flowsheet-edits-system.md",
     ("radishflow", "suggest_ghost_completion"): REPO_ROOT / "prompts/tasks/radishflow-suggest-ghost-completion-system.md",
 }
 SCHEMA_CACHE: dict[Path, Any] = {}
@@ -109,6 +110,25 @@ def profile_env_value(profile: str, suffix: str) -> str:
 
 def resolve_openai_compatible_profile(provider_profile: str | None) -> str:
     return str(provider_profile or getenv_stripped("RADISHMIND_MODEL_PROFILE") or "anyrouter").strip()
+
+
+def resolve_openai_compatible_profile_chain(provider_profile: str | None) -> list[str]:
+    explicit_profile = str(provider_profile or "").strip()
+    if explicit_profile:
+        return [explicit_profile]
+
+    configured_profiles = [
+        str(item).strip()
+        for item in getenv_stripped("RADISHMIND_MODEL_PROFILE_FALLBACKS").split(",")
+        if str(item).strip()
+    ]
+    default_profile = resolve_openai_compatible_profile(None)
+
+    ordered_profiles: list[str] = []
+    for profile in [*configured_profiles, default_profile]:
+        if profile and profile not in ordered_profiles:
+            ordered_profiles.append(profile)
+    return ordered_profiles or [default_profile]
 
 
 def infer_profile_api_style(base_url: str) -> str:
@@ -269,6 +289,29 @@ def derive_input_record(copilot_request: dict[str, Any]) -> dict[str, Any]:
             input_record["selected_unit_ids"] = selected_unit_ids
         if legal_candidate_refs:
             input_record["legal_candidate_refs"] = legal_candidate_refs
+    if str(copilot_request.get("project") or "") == "radishflow" and str(copilot_request.get("task") or "") == "suggest_flowsheet_edits":
+        selected_unit_ids = [
+            str(unit_id).strip()
+            for unit_id in (context.get("selected_unit_ids") or [])
+            if str(unit_id).strip()
+        ]
+        selected_stream_ids = [
+            str(stream_id).strip()
+            for stream_id in (context.get("selected_stream_ids") or [])
+            if str(stream_id).strip()
+        ]
+        diagnostic_codes = [
+            str((diagnostic or {}).get("code") or "").strip()
+            for diagnostic in (context.get("diagnostics") or [])
+            if str((diagnostic or {}).get("code") or "").strip()
+        ]
+        input_record["document_revision"] = context.get("document_revision")
+        if selected_unit_ids:
+            input_record["selected_unit_ids"] = selected_unit_ids
+        if selected_stream_ids:
+            input_record["selected_stream_ids"] = selected_stream_ids
+        if diagnostic_codes:
+            input_record["diagnostic_codes"] = diagnostic_codes
     return {key: value for key, value in input_record.items() if value}
 
 
@@ -289,6 +332,8 @@ def citation_prefix_for_artifact(artifact: dict[str, Any]) -> str:
 def build_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
     project = str(copilot_request.get("project") or "").strip()
     task = str(copilot_request.get("task") or "").strip()
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        return build_suggest_edits_context_citations(copilot_request)
     if project == "radishflow" and task == "suggest_ghost_completion":
         return build_ghost_context_citations(copilot_request)
 
@@ -313,6 +358,157 @@ def build_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
         if excerpt:
             citation["excerpt"] = excerpt
         citations.append(citation)
+    return citations
+
+
+def summarize_flowdoc_object(object_type: str, object_document: dict[str, Any]) -> str:
+    object_id = str(object_document.get("id") or "").strip()
+    object_name = str(object_document.get("name") or "").strip()
+    if object_type == "stream":
+        parts = [
+            object_id or "stream",
+            object_name,
+            f"source_unit_id={object_document.get('source_unit_id')}" if object_document.get("source_unit_id") is not None else "",
+            f"target_unit_id={object_document.get('target_unit_id')}" if object_document.get("target_unit_id") is not None else "",
+        ]
+    else:
+        parts = [
+            object_id or "unit",
+            object_name,
+            f"kind={object_document.get('kind')}" if object_document.get("kind") is not None else "",
+        ]
+    summary = " ".join(part for part in parts if part).strip()
+    if not summary:
+        summary = normalize_text(object_document)
+    return summary[:180]
+
+
+def build_suggest_edits_context_citations(copilot_request: dict[str, Any]) -> list[dict[str, Any]]:
+    context = copilot_request.get("context") or {}
+    artifacts = copilot_request.get("artifacts") or []
+    citations: list[dict[str, Any]] = []
+
+    for index, diagnostic in enumerate(context.get("diagnostics") or [], start=1):
+        if not isinstance(diagnostic, dict):
+            continue
+        code = str(diagnostic.get("code") or "").strip()
+        message = normalize_text(diagnostic.get("message") or diagnostic.get("text") or diagnostic)
+        citations.append(
+            {
+                "id": f"diag-{index}",
+                "kind": "context",
+                "label": f"诊断 {code or index}",
+                "locator": f"context:diagnostics[{index - 1}]",
+                "excerpt": message[:180] if message else f"diagnostic {index}",
+            }
+        )
+
+    primary_flowdoc = next(
+        (
+            artifact
+            for artifact in artifacts
+            if str((artifact or {}).get("name") or "").strip() == "flowsheet_document"
+            and isinstance((artifact or {}).get("content"), dict)
+        ),
+        None,
+    )
+    if isinstance(primary_flowdoc, dict):
+        flowdoc_content = primary_flowdoc.get("content") or {}
+        units = list(flowdoc_content.get("units") or [])
+        streams = list(flowdoc_content.get("streams") or [])
+        stream_id_to_entry = {
+            str((stream or {}).get("id") or "").strip(): (stream_index, stream)
+            for stream_index, stream in enumerate(streams)
+            if isinstance(stream, dict) and str((stream or {}).get("id") or "").strip()
+        }
+        unit_id_to_entry = {
+            str((unit or {}).get("id") or "").strip(): (unit_index, unit)
+            for unit_index, unit in enumerate(units)
+            if isinstance(unit, dict) and str((unit or {}).get("id") or "").strip()
+        }
+        ordered_targets: list[tuple[str, str]] = []
+        for diagnostic in context.get("diagnostics") or []:
+            if not isinstance(diagnostic, dict):
+                continue
+            target_type = str(diagnostic.get("target_type") or "").strip().lower()
+            target_id = str(diagnostic.get("target_id") or "").strip()
+            if target_type in {"stream", "unit"} and target_id:
+                candidate = (target_type, target_id)
+                if candidate not in ordered_targets:
+                    ordered_targets.append(candidate)
+        for stream_id in context.get("selected_stream_ids") or []:
+            normalized_stream_id = str(stream_id).strip()
+            if normalized_stream_id and ("stream", normalized_stream_id) not in ordered_targets:
+                ordered_targets.append(("stream", normalized_stream_id))
+        for unit_id in context.get("selected_unit_ids") or []:
+            normalized_unit_id = str(unit_id).strip()
+            if normalized_unit_id and ("unit", normalized_unit_id) not in ordered_targets:
+                ordered_targets.append(("unit", normalized_unit_id))
+
+        stream_counter = 0
+        unit_counter = 0
+        for target_type, target_id in ordered_targets:
+            if target_type == "stream":
+                entry = stream_id_to_entry.get(target_id)
+                if entry is None:
+                    continue
+                stream_counter += 1
+                stream_index, stream_document = entry
+                citations.append(
+                    {
+                        "id": f"flowdoc-stream-{stream_counter}",
+                        "kind": "artifact",
+                        "label": f"FlowsheetDocument / {target_id}",
+                        "locator": f"artifact:flowsheet_document.streams[{stream_index}]",
+                        "excerpt": summarize_flowdoc_object("stream", stream_document),
+                    }
+                )
+                continue
+            entry = unit_id_to_entry.get(target_id)
+            if entry is None:
+                continue
+            unit_counter += 1
+            unit_index, unit_document = entry
+            citations.append(
+                {
+                    "id": f"flowdoc-unit-{unit_counter}",
+                    "kind": "artifact",
+                    "label": f"FlowsheetDocument / {target_id}",
+                    "locator": f"artifact:flowsheet_document.units[{unit_index}]",
+                    "excerpt": summarize_flowdoc_object("unit", unit_document),
+                }
+            )
+
+    latest_snapshot = context.get("latest_snapshot")
+    if isinstance(latest_snapshot, dict) and latest_snapshot:
+        excerpt_parts = [
+            f"solver_status={latest_snapshot.get('solver_status')}" if latest_snapshot.get("solver_status") is not None else "",
+            f"residual_norm={latest_snapshot.get('residual_norm')}" if latest_snapshot.get("residual_norm") is not None else "",
+        ]
+        citations.append(
+            {
+                "id": "snapshot-1",
+                "kind": "context",
+                "label": "求解快照 latest_snapshot",
+                "locator": "context:latest_snapshot",
+                "excerpt": " ".join(part for part in excerpt_parts if part).strip() or normalize_text(latest_snapshot)[:180],
+            }
+        )
+
+    diagnostic_summary = context.get("diagnostic_summary")
+    if isinstance(diagnostic_summary, dict) and diagnostic_summary and not any(
+        str(citation.get("id") or "") == "snapshot-1" for citation in citations
+    ):
+        citations.append(
+            {
+                "id": "diag-summary-1",
+                "kind": "context",
+                "label": "诊断摘要 diagnostic_summary",
+                "locator": "context:diagnostic_summary",
+                "excerpt": normalize_text(diagnostic_summary)[:180],
+            }
+        )
+
     return citations
 
 
@@ -480,6 +676,241 @@ def make_mock_docs_qa_response(copilot_request: dict[str, Any]) -> dict[str, Any
     }
 
 
+def infer_stream_spec_placeholders(message: str) -> list[str]:
+    lowered = message.lower()
+    placeholders: list[str] = []
+    mapping = [
+        ("flow rate", "flow_rate_kg_per_h"),
+        ("mass flow", "flow_rate_kg_per_h"),
+        ("temperature", "temperature_c"),
+        ("pressure", "pressure_kpa"),
+        ("composition", "composition"),
+        ("vapor fraction", "vapor_fraction"),
+    ]
+    for marker, placeholder in mapping:
+        if marker in lowered and placeholder not in placeholders:
+            placeholders.append(placeholder)
+    return placeholders or ["flow_rate_kg_per_h"]
+
+
+def infer_parameter_placeholders(message: str) -> list[str]:
+    lowered = message.lower()
+    placeholders: list[str] = []
+    mapping = [
+        ("outlet temperature", "outlet_temperature_c"),
+        ("temperature target", "outlet_temperature_c"),
+        ("efficiency", "efficiency"),
+        ("pressure ratio", "pressure_ratio"),
+        ("duty", "duty_kw"),
+        ("reflux", "reflux_ratio"),
+    ]
+    for marker, placeholder in mapping:
+        if marker in lowered and placeholder not in placeholders:
+            placeholders.append(placeholder)
+    return placeholders or ["review_required_parameter"]
+
+
+def build_suggest_edits_mock_action(
+    diagnostic: dict[str, Any],
+    *,
+    artifact_citation_by_target: dict[tuple[str, str], str],
+    snapshot_citation_id: str,
+) -> dict[str, Any]:
+    code = str(diagnostic.get("code") or "").strip()
+    message = normalize_text(diagnostic.get("message") or diagnostic.get("text") or "")
+    target_type = str(diagnostic.get("target_type") or "").strip().lower()
+    target_id = str(diagnostic.get("target_id") or "").strip()
+    if target_type not in {"stream", "unit"}:
+        target_type = "stream" if "stream" in code.lower() else "unit"
+    citation_ids = [citation_id for citation_id in [f"diag-{diagnostic.get('_index', 1)}", artifact_citation_by_target.get((target_type, target_id)), snapshot_citation_id] if citation_id]
+
+    if code == "STREAM_DISCONNECTED":
+        return {
+            "kind": "candidate_edit",
+            "title": f"为 {target_id} 预留下游重连占位",
+            "target": {
+                "type": "stream",
+                "id": target_id,
+            },
+            "rationale": "当前断链问题只能通过人工确认后续去向来处理，因此 patch 仅保留候选连接占位。",
+            "patch": {
+                "connection_placeholder": {
+                    "expected_downstream_kind": "consumer_or_export_sink",
+                    "requires_manual_binding": True,
+                }
+            },
+            "risk_level": "high",
+            "requires_confirmation": True,
+            "citation_ids": citation_ids,
+        }
+    if code == "STREAM_SPEC_MISSING":
+        return {
+            "kind": "candidate_edit",
+            "title": f"为 {target_id} 补充缺失规格占位",
+            "target": {
+                "type": "stream",
+                "id": target_id,
+            },
+            "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+            "patch": {
+                "spec_placeholders": infer_stream_spec_placeholders(message),
+                "retain_existing_specs": True,
+            },
+            "risk_level": "medium",
+            "requires_confirmation": True,
+            "citation_ids": citation_ids,
+        }
+    return {
+        "kind": "candidate_edit",
+        "title": f"为 {target_id} 补充局部参数占位",
+        "target": {
+            "type": target_type,
+            "id": target_id,
+        },
+        "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+        "patch": {
+            "parameter_placeholders": infer_parameter_placeholders(message),
+            "patch_scope": "unit_parameters" if target_type == "unit" else "stream_parameters",
+        },
+        "risk_level": "medium",
+        "requires_confirmation": True,
+        "citation_ids": citation_ids,
+    }
+
+
+def make_mock_suggest_edits_response(copilot_request: dict[str, Any]) -> dict[str, Any]:
+    context = copilot_request.get("context") or {}
+    diagnostics = [diagnostic for diagnostic in (context.get("diagnostics") or []) if isinstance(diagnostic, dict)]
+    citations = build_suggest_edits_context_citations(copilot_request)
+    artifact_citation_by_target: dict[tuple[str, str], str] = {}
+    snapshot_citation_id = ""
+    for citation in citations:
+        citation_id = str(citation.get("id") or "").strip()
+        locator = str(citation.get("locator") or "").strip()
+        if citation_id == "snapshot-1":
+            snapshot_citation_id = citation_id
+            continue
+        if citation_id.startswith("flowdoc-stream-"):
+            target_id = str(citation.get("label") or "").split("/")[-1].strip()
+            if target_id:
+                artifact_citation_by_target[("stream", target_id)] = citation_id
+        if citation_id.startswith("flowdoc-unit-"):
+            target_id = str(citation.get("label") or "").split("/")[-1].strip()
+            if target_id:
+                artifact_citation_by_target[("unit", target_id)] = citation_id
+        if locator.startswith("artifact:flowsheet_document.streams[") and citation_id.startswith("flowdoc-stream-"):
+            target_id = str(citation.get("label") or "").split("/")[-1].strip()
+            if target_id:
+                artifact_citation_by_target[("stream", target_id)] = citation_id
+        if locator.startswith("artifact:flowsheet_document.units[") and citation_id.startswith("flowdoc-unit-"):
+            target_id = str(citation.get("label") or "").split("/")[-1].strip()
+            if target_id:
+                artifact_citation_by_target[("unit", target_id)] = citation_id
+
+    issues: list[dict[str, Any]] = []
+    proposed_actions: list[dict[str, Any]] = []
+    for index, diagnostic in enumerate(diagnostics, start=1):
+        code = str(diagnostic.get("code") or "").strip()
+        message = normalize_text(diagnostic.get("message") or diagnostic.get("text") or "")
+        target_type = str(diagnostic.get("target_type") or "").strip().lower()
+        target_id = str(diagnostic.get("target_id") or "").strip()
+        citation_ids = [
+            citation_id
+            for citation_id in [
+                f"diag-{index}",
+                artifact_citation_by_target.get((target_type, target_id)),
+                snapshot_citation_id,
+            ]
+            if citation_id
+        ]
+        issues.append(
+            {
+                "code": code,
+                "message": message or f"{target_id or '当前对象'} 存在需要人工复核的编辑问题。",
+                "severity": str(diagnostic.get("severity") or "warning").strip().lower() or "warning",
+                "citation_ids": citation_ids or [f"diag-{index}"],
+            }
+        )
+        action_diagnostic = dict(diagnostic)
+        action_diagnostic["_index"] = index
+        proposed_actions.append(
+            build_suggest_edits_mock_action(
+                action_diagnostic,
+                artifact_citation_by_target=artifact_citation_by_target,
+                snapshot_citation_id=snapshot_citation_id,
+            )
+        )
+
+    if not proposed_actions:
+        return {
+            "schema_version": 1,
+            "status": "failed",
+            "project": "radishflow",
+            "task": "suggest_flowsheet_edits",
+            "summary": "当前请求缺少可直接驱动候选编辑的结构化诊断，因此无法生成稳妥的 candidate_edit。",
+            "answers": [
+                {
+                    "kind": "edit_rationale",
+                    "text": "缺少结构化 diagnostics 时，不应凭主观猜测输出 patch。",
+                    "citation_ids": [],
+                }
+            ],
+            "issues": [
+                {
+                    "code": "DIAGNOSTICS_REQUIRED",
+                    "message": "当前请求没有足够的 diagnostics 证据来支撑 candidate_edit。",
+                    "severity": "warning",
+                    "citation_ids": [],
+                }
+            ],
+            "proposed_actions": [],
+            "citations": citations,
+            "confidence": 0.2,
+            "risk_level": "medium",
+            "requires_confirmation": False,
+        }
+
+    highest_risk = "low"
+    if any(str(action.get("risk_level") or "") == "high" for action in proposed_actions):
+        highest_risk = "high"
+    elif any(str(action.get("risk_level") or "") == "medium" for action in proposed_actions):
+        highest_risk = "medium"
+    answer_citation_ids = list(
+        dict.fromkeys(
+            citation_id
+            for action in proposed_actions
+            for citation_id in (action.get("citation_ids") or [])
+            if str(citation_id).strip()
+        )
+    )
+    first_target = str(((proposed_actions[0] or {}).get("target") or {}).get("id") or "").strip()
+    summary = (
+        f"当前更合适的是围绕 {first_target or '当前对象'} 生成可审查的候选编辑提案。"
+        if len(proposed_actions) == 1
+        else "当前更合适的是按诊断优先级输出多条局部 candidate_edit，并保持证据与动作顺序稳定。"
+    )
+    return {
+        "schema_version": 1,
+        "status": "partial",
+        "project": "radishflow",
+        "task": "suggest_flowsheet_edits",
+        "summary": summary,
+        "answers": [
+            {
+                "kind": "edit_rationale",
+                "text": "这些提案都只保留为候选 patch：优先直接响应明确诊断，再补目标对象证据，最后才引用 supporting snapshot。",
+                "citation_ids": answer_citation_ids,
+            }
+        ],
+        "issues": issues,
+        "proposed_actions": proposed_actions,
+        "citations": citations,
+        "confidence": 0.81 if highest_risk == "high" else 0.84,
+        "risk_level": highest_risk,
+        "requires_confirmation": True,
+    }
+
+
 def load_system_prompt(copilot_request: dict[str, Any]) -> str:
     project = str(copilot_request.get("project") or "").strip()
     task = str(copilot_request.get("task") or "").strip()
@@ -490,6 +921,21 @@ def load_system_prompt(copilot_request: dict[str, Any]) -> str:
 
 
 def build_docs_qa_messages(copilot_request: dict[str, Any]) -> list[dict[str, str]]:
+    request_payload = json.dumps(copilot_request, ensure_ascii=False, indent=2)
+    return [
+        {"role": "system", "content": load_system_prompt(copilot_request)},
+        {
+            "role": "user",
+            "content": (
+                "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。"
+                "不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n"
+                f"{request_payload}"
+            ),
+        },
+    ]
+
+
+def build_suggest_edits_messages(copilot_request: dict[str, Any]) -> list[dict[str, str]]:
     request_payload = json.dumps(copilot_request, ensure_ascii=False, indent=2)
     return [
         {"role": "system", "content": load_system_prompt(copilot_request)},
@@ -524,6 +970,8 @@ def build_messages(copilot_request: dict[str, Any]) -> list[dict[str, str]]:
     task = str(copilot_request.get("task") or "").strip()
     if project == "radish" and task == "answer_docs_question":
         return build_docs_qa_messages(copilot_request)
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        return build_suggest_edits_messages(copilot_request)
     if project == "radishflow" and task == "suggest_ghost_completion":
         return build_ghost_completion_messages(copilot_request)
     raise ValueError(f"unsupported message target: {project} / {task}")
@@ -721,4 +1169,3 @@ def make_failed_response(copilot_request: dict[str, Any], summary: str, raw_text
         "risk_level": "medium",
         "requires_confirmation": False,
     }
-

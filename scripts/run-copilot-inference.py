@@ -18,6 +18,11 @@ from services.runtime.inference import (  # noqa: E402
     validate_request_document,
     validate_response_document,
 )
+from services.runtime.inference_support import (  # noqa: E402
+    ENV_FILE_PATH,
+    load_env_file,
+    resolve_openai_compatible_profile_chain,
+)
 from services.runtime.candidate_records import (  # noqa: E402
     build_candidate_record_batch_manifest,
     candidate_response_record_from_dump,
@@ -165,39 +170,76 @@ def is_retryable_inference_error(exc: Exception) -> bool:
     return False
 
 
+def should_fallback_to_next_profile(exc: Exception) -> bool:
+    if isinstance(exc, RuntimeError) and "provider request failed" in str(exc):
+        return True
+    if isinstance(exc, ValueError) and "provider=openai-compatible requires" in str(exc):
+        return True
+    return False
+
+
+def resolve_provider_profile_sequence(args: argparse.Namespace) -> list[str | None]:
+    if args.provider != "openai-compatible":
+        return [None]
+    if args.provider_profile.strip():
+        return [args.provider_profile.strip()]
+    if args.model.strip() or args.base_url.strip() or args.api_key.strip():
+        return [None]
+    load_env_file(ENV_FILE_PATH)
+    return [profile for profile in resolve_openai_compatible_profile_chain(None) if profile]
+
+
 def run_inference_with_retry(
     copilot_request: dict[str, Any],
     *,
     args: argparse.Namespace,
     sample_label: str,
 ) -> dict[str, Any]:
+    profile_sequence = resolve_provider_profile_sequence(args)
     max_attempts = max(1, int(args.max_attempts))
     base_delay_seconds = max(0.0, float(args.retry_base_delay_seconds))
     last_exception: Exception | None = None
 
-    for attempt in range(1, max_attempts + 1):
-        try:
-            return run_inference(
-                copilot_request,
-                provider=args.provider,
-                provider_profile=args.provider_profile.strip() or None,
-                model=args.model.strip() or None,
-                base_url=args.base_url.strip() or None,
-                api_key=args.api_key.strip() or None,
-                temperature=args.temperature,
-                request_timeout_seconds=args.request_timeout_seconds,
-            )
-        except Exception as exc:
-            last_exception = exc
-            if attempt >= max_attempts or not is_retryable_inference_error(exc):
-                raise
-
-            delay_seconds = base_delay_seconds * (2 ** (attempt - 1))
+    for profile_index, profile_name in enumerate(profile_sequence, start=1):
+        profile_label = profile_name or "default"
+        if args.provider == "openai-compatible" and len(profile_sequence) > 1:
             print(
-                f"[retry {attempt}/{max_attempts}] {sample_label}: {exc}; sleeping {delay_seconds:.1f}s before retry",
+                f"[provider-profile {profile_index}/{len(profile_sequence)}] {sample_label}: using {profile_label}",
                 file=sys.stderr,
             )
-            time.sleep(delay_seconds)
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return run_inference(
+                    copilot_request,
+                    provider=args.provider,
+                    provider_profile=profile_name,
+                    model=args.model.strip() or None,
+                    base_url=args.base_url.strip() or None,
+                    api_key=args.api_key.strip() or None,
+                    temperature=args.temperature,
+                    request_timeout_seconds=args.request_timeout_seconds,
+                )
+            except Exception as exc:
+                last_exception = exc
+                retryable = is_retryable_inference_error(exc)
+                is_last_attempt = attempt >= max_attempts
+                has_next_profile = profile_index < len(profile_sequence)
+                if not is_last_attempt and retryable:
+                    delay_seconds = base_delay_seconds * (2 ** (attempt - 1))
+                    print(
+                        f"[retry {attempt}/{max_attempts}] {sample_label} ({profile_label}): {exc}; sleeping {delay_seconds:.1f}s before retry",
+                        file=sys.stderr,
+                    )
+                    time.sleep(delay_seconds)
+                    continue
+                if has_next_profile and should_fallback_to_next_profile(exc):
+                    next_profile = profile_sequence[profile_index]
+                    print(
+                        f"[fallback] {sample_label}: profile {profile_label} unavailable ({exc}); switching to {next_profile}",
+                        file=sys.stderr,
+                    )
+                    break
+                raise
 
     if last_exception is not None:
         raise last_exception

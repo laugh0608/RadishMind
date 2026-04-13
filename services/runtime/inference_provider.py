@@ -8,15 +8,19 @@ from urllib import error, request
 
 from .inference_response import coerce_response_document
 from .inference_support import (
+    ENV_FILE_PATH,
     GHOST_MALFORMED_JSON_REPAIR_PATTERNS,
     GHOST_MANUAL_MULTI_ACTION_REPAIR_PATTERNS,
     build_messages,
     derive_input_record,
+    infer_profile_api_style,
     load_env_file,
     make_failed_response,
     make_mock_docs_qa_response,
+    make_mock_suggest_edits_response,
     make_mock_ghost_completion_response,
     normalize_text,
+    profile_env_key,
     resolve_openai_compatible_config,
     utc_now_iso,
     validate_request_document,
@@ -110,6 +114,15 @@ def resolve_gemini_generate_content_endpoint(base_url: str, model: str) -> str:
     return f"{trimmed}/models/{model}:generateContent"
 
 
+def resolve_anthropic_messages_endpoint(base_url: str) -> str:
+    trimmed = base_url.rstrip("/")
+    if trimmed.endswith("/messages"):
+        return trimmed
+    if trimmed.endswith("/v1"):
+        return trimmed + "/messages"
+    return trimmed + "/v1/messages"
+
+
 def extract_openai_message_content(payload: dict[str, Any]) -> str:
     choices = payload.get("choices") or []
     if not choices:
@@ -144,11 +157,27 @@ def extract_gemini_message_content(payload: dict[str, Any]) -> str:
     return "\n".join(text_parts).strip()
 
 
+def extract_anthropic_message_content(payload: dict[str, Any]) -> str:
+    content = payload.get("content")
+    if not isinstance(content, list):
+        return ""
+    text_parts: list[str] = []
+    for item in content:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") == "text" and isinstance(item.get("text"), str):
+            text_parts.append(item["text"])
+    return "\n".join(text_parts).strip()
+
+
 def extract_provider_message_content(payload: dict[str, Any]) -> str:
     content = extract_openai_message_content(payload)
     if content.strip():
         return content
-    return extract_gemini_message_content(payload)
+    content = extract_gemini_message_content(payload)
+    if content.strip():
+        return content
+    return extract_anthropic_message_content(payload)
 
 
 def post_json_request(
@@ -254,6 +283,35 @@ def build_gemini_payload(messages: list[dict[str, str]], temperature: float) -> 
     return payload
 
 
+def build_anthropic_payload(messages: list[dict[str, str]], model: str, temperature: float) -> dict[str, Any]:
+    system_texts: list[str] = []
+    anthropic_messages: list[dict[str, Any]] = []
+    for message in messages:
+        role = str(message.get("role") or "").strip()
+        content = str(message.get("content") or "").strip()
+        if not content:
+            continue
+        if role == "system":
+            system_texts.append(content)
+            continue
+        anthropic_role = "assistant" if role == "assistant" else "user"
+        anthropic_messages.append(
+            {
+                "role": anthropic_role,
+                "content": content,
+            }
+        )
+    payload: dict[str, Any] = {
+        "model": model,
+        "max_tokens": 4096,
+        "temperature": temperature,
+        "messages": anthropic_messages,
+    }
+    if system_texts:
+        payload["system"] = "\n\n".join(system_texts)
+    return payload
+
+
 def call_gemini_native(
     copilot_request: dict[str, Any],
     *,
@@ -293,6 +351,46 @@ def call_gemini_native(
     }
 
 
+def call_anthropic_messages(
+    copilot_request: dict[str, Any],
+    *,
+    model: str,
+    base_url: str,
+    api_key: str,
+    temperature: float,
+    request_timeout_seconds: float,
+) -> dict[str, Any]:
+    messages = build_messages(copilot_request)
+    endpoint = resolve_anthropic_messages_endpoint(base_url)
+    payload = build_anthropic_payload(messages, model, temperature)
+    raw_request = {
+        "endpoint": endpoint,
+        "payload": payload,
+        "transport": "anthropic-messages",
+    }
+    raw_response = post_json_request(
+        endpoint=endpoint,
+        payload=payload,
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        },
+        request_timeout_seconds=request_timeout_seconds,
+    )
+    content = extract_anthropic_message_content(raw_response)
+    response_document = normalize_openai_content(content, copilot_request)
+    validate_response_document(response_document)
+    return {
+        "provider": "openai-compatible",
+        "model": model,
+        "messages": messages,
+        "raw_request": raw_request,
+        "raw_response": raw_response,
+        "response": response_document,
+    }
+
+
 def run_inference(
     copilot_request: dict[str, Any],
     *,
@@ -312,6 +410,8 @@ def run_inference(
     if provider == "mock":
         if project == "radish" and task == "answer_docs_question":
             response_document = make_mock_docs_qa_response(copilot_request)
+        elif project == "radishflow" and task == "suggest_flowsheet_edits":
+            response_document = make_mock_suggest_edits_response(copilot_request)
         elif project == "radishflow" and task == "suggest_ghost_completion":
             response_document = make_mock_ghost_completion_response(copilot_request)
         else:
@@ -351,7 +451,7 @@ def run_inference(
         profile_name_key = profile_env_key(resolved_profile, "NAME")
         profile_base_url_key = profile_env_key(resolved_profile, "BASE_URL")
         profile_api_key_key = profile_env_key(resolved_profile, "API_KEY")
-        if resolved_api_style not in {"openai-compatible", "gemini-native"}:
+        if resolved_api_style not in {"openai-compatible", "gemini-native", "anthropic-messages"}:
             raise ValueError(
                 "provider=openai-compatible requires a supported api style via "
                 f"{profile_api_style_key} or RADISHMIND_MODEL_API_STYLE"
@@ -375,6 +475,15 @@ def run_inference(
             raise ValueError("provider=openai-compatible requires a positive request timeout")
         if resolved_api_style == "gemini-native":
             result = call_gemini_native(
+                copilot_request,
+                model=resolved_model,
+                base_url=resolved_base_url,
+                api_key=resolved_api_key,
+                temperature=temperature,
+                request_timeout_seconds=resolved_request_timeout_seconds,
+            )
+        elif resolved_api_style == "anthropic-messages":
+            result = call_anthropic_messages(
                 copilot_request,
                 model=resolved_model,
                 base_url=resolved_base_url,
