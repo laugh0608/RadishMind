@@ -1,6 +1,6 @@
 # RadishMind 数据集与评测目录
 
-更新时间：2026-04-01
+更新时间：2026-04-05
 
 本目录用于承载 `RadishMind` 的样本、评测和后续训练输入。
 
@@ -10,15 +10,58 @@
 
 - `synthetic/`: 合成样本
 - `annotated/`: 人工校正样本
+- `examples/`: 面向契约与适配器的最小示例对象
 - `eval/`: 离线评测样本、样本 schema 和回归输入
 
 当前已经先落地：
 
+- `examples/radishflow-ghost-candidate-set-flash-basic-001.json`
+- `examples/radishflow-copilot-request-ghost-flash-basic-001.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-flash-outlets-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-flash-outlets-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-name-conflict-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-valve-flash-outlet-reject-no-retab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-heater-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-heater-outlet-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-cooler-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-cooler-outlet-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001-debug-full.json`
+- `examples/radishflow-ghost-candidate-set-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001.json`
+- `examples/radishflow-copilot-request-ghost-chain-feed-cooler-flash-outlet-ranking-ambiguous-no-tab-001-debug-full.json`
 - `eval/radishflow-task-sample.schema.json`
 - `eval/radish-task-sample.schema.json`
 - `eval/radishflow/*.json`
 - `eval/radish/*.json`
 - `eval/README.md`
+- `eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/README.md`
 
 当前原则：
 
@@ -27,3 +70,17 @@
 - 在 `Radish` 首个场景收口前，不急着平铺多任务数据
 - 当前 `RadishFlow explain_diagnostics` 已补首批 `golden_response` 样本与最小回归 runner，后续优先扩展更多真实诊断场景
 - 当前 `Radish` 文档问答样本已补最小召回输入约束与回归 runner，后续优先扩展真实样本和候选输出对照入口
+- 当前 `Radish docs QA` 的 `2026-04-05` real batch 已补一份批次级 README，用于把真实 bad record 的主失败面、same-sample / cross-sample replay 覆盖状态，以及 `check-repo` 末尾 recommended replay 输出为何会打印 `FAIL` 统一解释清楚
+- 当前 `examples/` 目录开始承接“schema + 实例”双校验，避免新契约只有结构没有真实对象参照
+- 当前 `build-radishflow-ghost-request.py` 已可把本地 ghost 候选集示例装配成最小 `CopilotRequest`，默认使用 `model-minimal` profile 裁剪本地排序/冲突证据，同时保留 `debug-full` 对照示例，并由 `check-repo` 校验基础 `FlashDrum`、`Valve ambiguous`、连续搭建链正向与链式停住边界几组输出都不漂移
+- 当前 `examples/` 已新增 `Feed -> Valve -> FlashDrum` 连续搭建链基线，把 `cursor_context.recent_actions` 从 `eval` 样本推进到 pre-model candidate set 与 request assembly 示例，固定“上一跳已接受 ghost 会影响下一跳默认建议”的最小口径
+- 当前 `examples/` 还补了同一条连续搭建链的“停住边界”基线，固定 `recent_actions` 已存在但 `legal_candidate_completions=[]` 时，适配层仍需稳定装配空候选请求而不是回退成主观猜测
+- 当前 `examples/` 继续补了同一条连续搭建链的“命名冲突但可见 ghost”基线，固定 `legal_candidate_completions` 非空但 `conflict_flags` 阻止默认 `Tab` 的 handoff 与 request assembly 边界
+- 当前 `examples/` 继续补了同一条连续搭建链的“排序分差不足但可见 ghost”基线，固定第一模板里 `manual_only` 也可以来自 outlet 优先级分差过小，而不是只来自命名冲突
+- 当前 `examples/` 继续补了同一条连续搭建链的“最近 reject 后 no-retab”基线，固定同一候选刚被用户拒绝时，适配层仍可保留候选，但不得立即再次把它升级成默认 `Tab`
+- 当前 `examples/` 还补了第二条链式模板 `Feed -> Heater -> FlashDrum`，用于验证链式 handoff、request assembly 与 `Tab` 默认接受边界并未耦合到 `Valve`
+- 当前 `examples/` 继续补了第二条链式模板的命名冲突 no-tab 基线，验证 `Feed -> Heater -> FlashDrum` 也能稳定落到 `manual_only` 边界
+- 当前 `examples/` 继续补了第二条链式模板的停住空建议基线，验证 `Feed -> Heater -> FlashDrum` 也能在 `recent_actions` 已存在但 `legal_candidate_completions=[]` 时稳定停在空建议边界
+- 当前 `examples/` 继续补了第二条链式模板的排名歧义 no-tab 基线，验证 `Feed -> Heater -> FlashDrum` 的 `manual_only` 不只来自命名冲突，也可以来自多候选分差不足
+- 当前 `examples/` 继续补了第三条链式模板 `Feed -> Cooler -> FlashDrum` 的 `Tab / manual_only / empty` 三联基线，验证链式 handoff、request assembly 与空建议边界同样不依赖 `Valve` 或 `Heater`
+- 当前 `examples/` 继续补了第三条链式模板的排名歧义 no-tab 基线，验证 `Feed -> Cooler -> FlashDrum` 的 `manual_only` 不只来自命名冲突，也可以来自多候选分差不足

@@ -1,0 +1,309 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-mixed-risk-reconnect-plus-spec-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-107",
+          "streams": [
+            {
+              "id": "feed-5",
+              "name": "Separator Feed",
+              "target_unit_id": "separator-3",
+              "specs": {
+                "pressure_kpa": 240,
+                "temperature_c": 46,
+                "flow_rate_kg_per_h": 960
+              }
+            },
+            {
+              "id": "liquid-product-5",
+              "name": "Liquid Product",
+              "source_unit_id": "separator-3"
+            },
+            {
+              "id": "vapor-product-5",
+              "name": "Vapor Product",
+              "source_unit_id": "separator-3",
+              "specs": {
+                "pressure_kpa": 235
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "separator-3",
+              "kind": "FlashDrum",
+              "name": "Product Separator"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 41,
+      "selected_stream_ids": [
+        "liquid-product-5",
+        "vapor-product-5"
+      ],
+      "diagnostic_summary": {
+        "error_count": 2,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "liquid-product-5"
+        },
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Vapor Product is missing temperature specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "vapor-product-5"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-06T20:00:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "high",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_DISCONNECTED\"",
+      "$.issues[1].code=\"STREAM_SPEC_MISSING\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"liquid-product-5\"",
+      "$.proposed_actions[0].patch.connection_placeholder.expected_downstream_kind=\"consumer_or_export_sink\"",
+      "$.proposed_actions[0].risk_level=\"high\"",
+      "$.proposed_actions[1].kind=\"candidate_edit\"",
+      "$.proposed_actions[1].target.type=\"stream\"",
+      "$.proposed_actions[1].target.id=\"vapor-product-5\"",
+      "$.proposed_actions[1].patch.spec_placeholders[0]=\"temperature_c\"",
+      "$.proposed_actions[1].risk_level=\"medium\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"high\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.proposed_actions[1].requires_confirmation=false",
+      "$.risk_level=\"medium\""
+    ],
+    "ordered_action_targets": [
+      {
+        "type": "stream",
+        "id": "liquid-product-5"
+      },
+      {
+        "type": "stream",
+        "id": "vapor-product-5"
+      }
+    ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "diag-2",
+      "flowdoc-stream-1",
+      "flowdoc-stream-2",
+      "snapshot-1"
+    ],
+    "ordered_action_citation_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "action_index": 1,
+        "values": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ]
+      }
+    ],
+    "ordered_connection_placeholder_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "expected_downstream_kind",
+          "requires_manual_binding"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "当同一响应同时包含高风险拓扑重连和中风险规格占位时，整体 risk_level 必须提升到 high。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前可以同时提出 Liquid Product 的断链重连占位和 Vapor Product 的缺规格占位，但因为其中包含拓扑重连提案，整体风险需要按高风险处理。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "两个问题都落在当前选择集内，但它们的风险等级不同：断链重连属于高风险拓扑动作，缺规格占位只是中风险局部补充，因此整体响应必须采用两者中的更高风险等级。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "snapshot-1",
+          "flowdoc-stream-1",
+          "flowdoc-stream-2"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "liquid-product-5 当前没有下游连接，需要人工确认目标去向。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "vapor-product-5 缺少温度规格，当前流股状态仍不完整。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 liquid-product-5 预留下游重连占位",
+        "target": {
+          "type": "stream",
+          "id": "liquid-product-5"
+        },
+        "rationale": "当前断链问题只能通过人工确认后的拓扑绑定来解决，因此 patch 只能停留在候选连接占位层。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 vapor-product-5 补充温度规格占位",
+        "target": {
+          "type": "stream",
+          "id": "vapor-product-5"
+        },
+        "rationale": "温度规格缺失属于局部信息不完整问题，适合用保留既有规格的占位式 patch 处理。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Vapor Product is missing temperature specification."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / liquid-product-5",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "liquid-product-5 当前只有 source_unit_id，没有下游连接信息。"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / vapor-product-5",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "vapor-product-5 当前只有 pressure_kpa，缺少 temperature_c。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "confidence": 0.91,
+    "risk_level": "high",
+    "requires_confirmation": true
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 77,
+  "selected_unit": {
+    "id": "flash-30",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 509"
+  },
+  "unconnected_ports": [
+    "vapor_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-30-vapor-lane",
+      "direction": "downstream",
+      "distance_px": 66,
+      "alignment_score": 0.95
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-509-to-valve-10-inlet",
+        "accepted_at_revision": 73
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-10-outlet-flash-30",
+        "accepted_at_revision": 74
+      },
+      {
+        "kind": "reject_ghost_completion",
+        "candidate_ref": "cand-flash-30-vapor-outlet",
+        "rejected_at_revision": 75
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-509"
+    ],
+    "existing_stream_names": [
+      "F-509",
+      "V-509"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG"
+    },
+    "numeric_suffix_from_unit": "509"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection",
+    "recent_reject_cooldown_elapsed_same_candidate_can_retab"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-flash-30-vapor-outlet",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "vapor_outlet",
+      "target_unit_id": "flash-30",
+      "suggested_stream_name": "VG-509",
+      "ranking_signals": {
+        "distance_px": 66,
+        "alignment_score": 0.95,
+        "topology_score": 0.94,
+        "score_gap_to_next": 0.37,
+        "template_frequency": 0.86
+      },
+      "naming_signals": {
+        "applied_prefix": "VG",
+        "numeric_suffix": "509",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "第一条链式模板示例：同一 vapor outlet ghost 虽在前一帧曾被 reject，但隔一帧后若仍为高置信合法候选，应允许恢复默认 Tab。"
+  }
+}

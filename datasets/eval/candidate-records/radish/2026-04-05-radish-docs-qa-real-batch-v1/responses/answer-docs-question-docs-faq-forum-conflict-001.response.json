@@ -1,0 +1,46 @@
+{
+  "project": "radish",
+  "task": "answer_docs_question",
+  "status": "ok",
+  "summary": "公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。",
+      "citation_ids": [
+        "doc-1",
+        "faq-1",
+        "forum-1"
+      ]
+    }
+  ],
+  "issues": [],
+  "confidence": 0.85,
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "proposed_actions": [],
+  "citations": [
+    {
+      "id": "doc-1",
+      "kind": "artifact",
+      "label": "guide/publishing",
+      "locator": "artifact:docs_page",
+      "excerpt": "# 文档发布说明 公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+    },
+    {
+      "id": "faq-1",
+      "kind": "artifact",
+      "label": "faq/publishing",
+      "locator": "artifact:faq_excerpt",
+      "excerpt": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+    },
+    {
+      "id": "forum-1",
+      "kind": "artifact",
+      "label": "community/publishing-tips",
+      "locator": "artifact:forum_excerpt",
+      "excerpt": "社区帖子建议：如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。"
+    }
+  ],
+  "schema_version": 1
+}

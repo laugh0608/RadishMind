@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-valve-ambiguous-001-debug-full",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 48,
+    "selected_unit_ids": [
+      "valve-1"
+    ],
+    "selected_unit": {
+      "id": "valve-1",
+      "kind": "Valve",
+      "name": "Throttle Valve 401"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-valve-1-outlet-cooler",
+        "ghost_kind": "ghost_connection",
+        "target_unit_id": "valve-1",
+        "target_port_key": "outlet",
+        "target_node_id": "cooler-401.inlet",
+        "suggested_stream_name": "V-401A",
+        "ranking_signals": {
+          "distance_px": 96,
+          "alignment_score": 0.84,
+          "topology_score": 0.79,
+          "score_gap_to_next": 0.03,
+          "template_frequency": 0.51
+        },
+        "conflict_flags": [
+          "score_gap_too_small"
+        ],
+        "is_high_confidence": false,
+        "is_tab_default": false
+      },
+      {
+        "candidate_ref": "cand-valve-1-outlet-flash",
+        "ghost_kind": "ghost_connection",
+        "target_unit_id": "valve-1",
+        "target_port_key": "outlet",
+        "target_node_id": "flash-401.inlet",
+        "suggested_stream_name": "V-401B",
+        "ranking_signals": {
+          "distance_px": 104,
+          "alignment_score": 0.81,
+          "topology_score": 0.77,
+          "score_gap_to_next": 0.0,
+          "template_frequency": 0.48
+        },
+        "conflict_flags": [
+          "score_gap_too_small"
+        ],
+        "is_high_confidence": false,
+        "is_tab_default": false
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "cooler-401.inlet",
+        "distance_px": 96,
+        "alignment_score": 0.84,
+        "direction": "downstream"
+      },
+      {
+        "type": "unit_port",
+        "id": "flash-401.inlet",
+        "distance_px": 104,
+        "alignment_score": 0.81,
+        "direction": "downstream"
+      }
+    ],
+    "topology_pattern_hints": [
+      "valve_to_cooler_or_flash_both_seen_in_templates"
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

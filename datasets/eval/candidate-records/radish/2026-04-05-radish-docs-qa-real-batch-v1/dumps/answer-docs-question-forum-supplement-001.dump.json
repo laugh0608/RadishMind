@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-forum-supplement-001",
+  "record_id": "captured-radish-answer-docs-question-forum-supplement-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-forum-supplement-001",
+  "request_id": "sample-forum-supplement-001",
+  "captured_at": "2026-04-05T01:11:27Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/faq-import",
+    "resource_slug": "guide/faq-import",
+    "search_scope": [
+      "docs",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "forum_excerpt"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-forum-supplement-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 文档编辑建议\n\n批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/faq-import",
+          "fragment_id": "title-policy",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "forum_excerpt",
+        "mime_type": "text/markdown",
+        "content": "社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。",
+        "metadata": {
+          "source_type": "forum",
+          "page_slug": "community/faq-import-tips",
+          "fragment_id": "alias-note",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/faq-import",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/faq-import",
+        "title": "文档编辑建议"
+      },
+      "search_scope": [
+        "docs",
+        "forum"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-forum-supplement-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"docs_page\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 文档编辑建议\\n\\n批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。\",\n      \"metadata\": {\n        \"source_type\": \"docs\",\n        \"page_slug\": \"guide/faq-import\",\n        \"fragment_id\": \"title-policy\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"supporting\",\n      \"name\": \"forum_excerpt\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。\",\n      \"metadata\": {\n        \"source_type\": \"forum\",\n        \"page_slug\": \"community/faq-import-tips\",\n        \"fragment_id\": \"alias-note\",\n        \"retrieval_rank\": 2,\n        \"is_official\": false\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/faq-import\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/faq-import\",\n      \"title\": \"文档编辑建议\"\n    },\n    \"search_scope\": [\n      \"docs\",\n      \"forum\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351421-uKTmUWo8xf8QX0Yj4TdX",
+    "object": "chat.completion",
+    "created": 1775351421,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"success\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.9,\n  \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n  \"answers\": [\n    {\n      \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\",\n      \"citations\": [\n        \"docs_page\",\n        \"forum_excerpt\"\n      ]\n    }\n  ],\n  \"proposed_actions\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (implied by the prompt, though the request itself doesn't explicitly state a question, I need to infer it from the context/artifacts or generate a response that addresses the implicit question about FAQ import title/alias policy).\n   - **Artifacts:**\n     - `docs_page` (primary, official): \"批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。\"\n     - `forum_excerpt` (supporting, unofficial): \"社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。\"\n   - **Context:** App: `document`, Route: `/document/guide/faq-import`, Resource: `wiki_document` titled \"文档编辑建议\".\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - `status` can be `partial` if evidence is insufficient/conflicting, but here it's consistent.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Official docs > forum.\n     - If docs are just examples/guidelines, don't write as absolute authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify Implicit Question:**\n   The prompt doesn't explicitly state a user question, but the artifacts and context revolve around \"FAQ批量导入时的标题与别名/标签处理策略\". I will formulate the response to address this policy directly. The `summary` should state the policy clearly.\n\n3.  **Draft Response (Mental Refinement):**\n   - `project`: \"radish\"\n   - `task`: \"answer_docs_question\"\n   - `status`: \"success\" (evidence is clear and consistent)\n   - `risk_level`: \"low\"\n   - `requires_confirmation`: false\n   - `confidence`: 0.95 (official doc is clear, forum supports it)\n   - `summary`: 批量导入 FAQ 时，默认应保留原始标题。仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\n   - `answers`: Array of answer objects. I'll structure it to directly reflect the policy.\n     - `answer_text`: 根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持这一做法，强调追加别名前需确认不影响检索。\n     - `citations`: [\"docs_page\", \"forum_excerpt\"]\n   - `proposed_actions`: []\n   - `issues`: [] (or omit if not needed, but schema might expect it. I'll include an empty array or omit based on standard JSON. I'll stick to providing it if needed, but the prompt says \"只有在证据不足...时再使用\", so I'll omit it or leave it empty. I'll just not include it if not required, but to be safe, I'll follow typical structure. Actually, I'll just output the required fields.)\n   - Check constraints: `summary` must directly answer first. `risk_level=low`, `requires_confirmation=false`. `proposed_actions` empty. `citations` only from input. Official > forum.\n\n   Let's construct the JSON carefully.\n\n   Structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n     \"answers\": [\n       {\n         \"answer_text\": \"根据官方文档指引，批量导入 FAQ 时应优先保留原始标题。若业务需要补充标签或别名，必须先行评估，确保该操作不会干扰或破坏原有的检索语义。社区实践也建议遵循此原则，在追加别名前需确认不影响原文检索效果。\",\n         \"citations\": [\"docs_page\", \"forum_excerpt\"]\n       }\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n\n4.  **Self-Correction/Verification against Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status`? \"success\" is fine.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes, `docs_page` and `forum_excerpt`.\n   - Official > forum? The answer prioritizes the official doc and mentions forum as supporting.\n   - Not treating as absolute authorization? It's phrased as a guideline/policy (\"应优先保留\", \"必须先行评估\"), which matches the doc's tone (\"默认先保留\", \"只有在确认...才考虑\").\n   - `project` & `task` fixed? Yes.\n   - `answers` >= 1? Yes.\n   - `confidence` 0-1? Yes, 0.95.\n   - `issues`? Not needed, so omitted.\n\n   One minor point: The prompt says \"普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\". I have that.\n   The prompt says \"不要凭空生成高风险动作；`proposed_actions` 默认应为空\". I have that.\n   The prompt says \"正式文档优先于 FAQ 或 forum 这类非正式来源\". I structured the answer to reflect this.\n   The prompt says \"如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\". The doc says \"建议\", so I used \"建议/指引\" and \"应/可考虑\", avoiding absolute mandates.\n\n   All constraints met. I will generate the raw JSON string.\n   I'll make sure the JSON is perfectly formatted and contains no extra whitespace or markdown.\n   I will double-check the exact field names expected. The prompt mentions `CopilotResponse` structure but doesn't give the exact schema. I'll use standard fields: `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `proposed_actions`, `citations` (inside answers or top level? Usually inside answers or top level. I'll put it in answers as `citations` array of strings, or top level. I'll stick to `answers` containing `citations` as it's common, or I'll put `citations` at the top level if needed. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll put it at the top level or inside answers. I'll put it inside answers for clarity, or top level. I'll follow a safe structure: `answers` array with `text`/`citations`. Actually, I'll just put `citations` at the top level to be safe, or inside each answer. I'll stick to inside answers as it's standard for QA. Wait, the prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll add it to the answer object.\n\n   Let's construct carefully.\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n     \"answers\": [\n       {\n         \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\",\n         \"citations\": [\"docs_page\", \"forum_excerpt\"]\n       }\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n   This looks solid. I will output exactly this JSON. No markdown. No extra text.\n   One check: `citations` might be expected at the root level. I'll move it to root to be safe, or keep it in answers. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll put it at the root level as an array of strings, which is common. Actually, it doesn't matter much as long as it's valid JSON. I'll keep it in answers for direct mapping, or root. I'll put it at root for simplicity: `\"citations\": [\"docs_page\", \"forum_excerpt\"]`.\n   I'll stick to the structure I drafted. It's fine.\n   Final check of the prompt: \"只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\". I don't have the exact schema, but I'll use standard fields.\n   I will generate it now. \n   Output matches exactly.✅\n   Proceeds. \n   *Self-Correction/Refinement during thought*: \n   I should ensure the JSON keys match typical CopilotResponse if possible, but since it's not provided, I'll use the ones mentioned: `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `proposed_actions`, `citations`. I'll place `citations` at the top level to be safe. I'll also make sure `answers` is an array of objects with `text` or `answer_text`. I'll use `answer_text`.\n   All good. \n   Output generation. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"success\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\", \"answers\": [ { \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\", \"citations\": [\"docs_page\", \"forum_excerpt\"] } ], \"proposed_actions\": [] }`\n   Matches constraints. Ready. \n   Output matches exactly. \n   *(Note: I will format it nicely with indentation for readability, but it's still a single JSON object without markdown.)*\n   Actually, the prompt says \"不要输出 markdown 代码块\", so I will just output the raw JSON string.\n   Proceeds. \n   [Output Generation] -> *See response.* \n   *(Self-Correction/Verification during generation prep)*: \n   I'll make sure `citations` is at the top level as it's often a root field in these schemas, but either is fine. I'll keep it in `answers` for direct attribution. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\", so I'll list them. \n   All constraints met. Output matches. \n   `{...}` (raw JSON)\n   Done. \n   *Output Generation* (matches the final refined JSON)\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n     \"answers\": [\n       {\n         \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\",\n         \"citations\": [\"docs_page\", \"forum_excerpt\"]\n       }\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n   Wait, the prompt says \"不要输出 markdown 代码块\". I will strictly output just the JSON text.\n   I will remove the markdown formatting in the final output.\n   All good. \n   Proceeds. \n   [Output Generation] -> *Raw JSON string* (as requested)\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"success\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\", \"answers\": [ { \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\", \"citations\": [\"docs_page\", \"forum_excerpt\"] } ], \"proposed_actions\": [] }`\n   This is valid. I will output it now. \n   *(Self-Correction/Note during thought)*: I should ensure the JSON is properly formatted with newlines for readability, but without markdown backticks. The prompt says \"不要输出 markdown 代码块\", so plain text JSON is fine.\n   I will generate it now. \n   [Done] \n   *Output Generation* (matches response)\n   `{...}` (raw)\n   *(Final Check)*: \n   - `project`: \"radish\" ✅\n   - `task`: \"answer_docs_question\" ✅\n   - `summary` directly answers ✅\n   - `risk_level`: \"low\" ✅\n   - `requires_confirmation`: false ✅\n   - `proposed_actions`: [] ✅\n   - `citations` only from input ✅\n   - Official > forum ✅\n   - Not absolute ✅\n   - `confidence` 0-1 ✅\n   - `answers` >= 1 ✅\n   All good. \n   Proceeds. \n   [Output Generation] -> *See response.* \n   *(Note: I will output the JSON directly without any surrounding text or formatting.)*\n   `{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"success\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.9,\n  \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n  \"answers\": [\n    {\n      \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\",\n      \"citations\": [\n        \"docs_page\",\n        \"forum_excerpt\"\n      ]\n    }\n  ],\n  \"proposed_actions\": []\n}`\n   This matches all constraints. Output matches. \n   [Done] \n   *(Self-Correction/Verification during output prep)*: I'll make sure the JSON is strictly valid. It is.\n   I will output it now. \n   *(Final Output Generation)* -> *Proceeds.* \n   [Output] (matches the response exactly)\n   `{...}` (raw JSON)\n   *(Done.)*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (implied by the prompt, though the request itself doesn't explicitly state a question, I need to infer it from the context/artifacts or generate a response that addresses the implicit question about FAQ import title/alias policy).\n   - **Artifacts:**\n     - `docs_page` (primary, official): \"批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。\"\n     - `forum_excerpt` (supporting, unofficial): \"社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。\"\n   - **Context:** App: `document`, Route: `/document/guide/faq-import`, Resource: `wiki_document` titled \"文档编辑建议\".\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - `status` can be `partial` if evidence is insufficient/conflicting, but here it's consistent.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Official docs > forum.\n     - If docs are just examples/guidelines, don't write as absolute authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify Implicit Question:**\n   The prompt doesn't explicitly state a user question, but the artifacts and context revolve around \"FAQ批量导入时的标题与别名/标签处理策略\". I will formulate the response to address this policy directly. The `summary` should state the policy clearly.\n\n3.  **Draft Response (Mental Refinement):**\n   - `project`: \"radish\"\n   - `task`: \"answer_docs_question\"\n   - `status`: \"success\" (evidence is clear and consistent)\n   - `risk_level`: \"low\"\n   - `requires_confirmation`: false\n   - `confidence`: 0.95 (official doc is clear, forum supports it)\n   - `summary`: 批量导入 FAQ 时，默认应保留原始标题。仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\n   - `answers`: Array of answer objects. I'll structure it to directly reflect the policy.\n     - `answer_text`: 根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持这一做法，强调追加别名前需确认不影响检索。\n     - `citations`: [\"docs_page\", \"forum_excerpt\"]\n   - `proposed_actions`: []\n   - `issues`: [] (or omit if not needed, but schema might expect it. I'll include an empty array or omit based on standard JSON. I'll stick to providing it if needed, but the prompt says \"只有在证据不足...时再使用\", so I'll omit it or leave it empty. I'll just not include it if not required, but to be safe, I'll follow typical structure. Actually, I'll just output the required fields.)\n   - Check constraints: `summary` must directly answer first. `risk_level=low`, `requires_confirmation=false`. `proposed_actions` empty. `citations` only from input. Official > forum.\n\n   Let's construct the JSON carefully.\n\n   Structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n     \"answers\": [\n       {\n         \"answer_text\": \"根据官方文档指引，批量导入 FAQ 时应优先保留原始标题。若业务需要补充标签或别名，必须先行评估，确保该操作不会干扰或破坏原有的检索语义。社区实践也建议遵循此原则，在追加别名前需确认不影响原文检索效果。\",\n         \"citations\": [\"docs_page\", \"forum_excerpt\"]\n       }\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n\n4.  **Self-Correction/Verification against Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status`? \"success\" is fine.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes, `docs_page` and `forum_excerpt`.\n   - Official > forum? The answer prioritizes the official doc and mentions forum as supporting.\n   - Not treating as absolute authorization? It's phrased as a guideline/policy (\"应优先保留\", \"必须先行评估\"), which matches the doc's tone (\"默认先保留\", \"只有在确认...才考虑\").\n   - `project` & `task` fixed? Yes.\n   - `answers` >= 1? Yes.\n   - `confidence` 0-1? Yes, 0.95.\n   - `issues`? Not needed, so omitted.\n\n   One minor point: The prompt says \"普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\". I have that.\n   The prompt says \"不要凭空生成高风险动作；`proposed_actions` 默认应为空\". I have that.\n   The prompt says \"正式文档优先于 FAQ 或 forum 这类非正式来源\". I structured the answer to reflect this.\n   The prompt says \"如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\". The doc says \"建议\", so I used \"建议/指引\" and \"应/可考虑\", avoiding absolute mandates.\n\n   All constraints met. I will generate the raw JSON string.\n   I'll make sure the JSON is perfectly formatted and contains no extra whitespace or markdown.\n   I will double-check the exact field names expected. The prompt mentions `CopilotResponse` structure but doesn't give the exact schema. I'll use standard fields: `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `proposed_actions`, `citations` (inside answers or top level? Usually inside answers or top level. I'll put it in answers as `citations` array of strings, or top level. I'll stick to `answers` containing `citations` as it's common, or I'll put `citations` at the top level if needed. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll put it at the top level or inside answers. I'll put it inside answers for clarity, or top level. I'll follow a safe structure: `answers` array with `text`/`citations`. Actually, I'll just put `citations` at the top level to be safe, or inside each answer. I'll stick to inside answers as it's standard for QA. Wait, the prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll add it to the answer object.\n\n   Let's construct carefully.\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n     \"answers\": [\n       {\n         \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\",\n         \"citations\": [\"docs_page\", \"forum_excerpt\"]\n       }\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n   This looks solid. I will output exactly this JSON. No markdown. No extra text.\n   One check: `citations` might be expected at the root level. I'll move it to root to be safe, or keep it in answers. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\". I'll put it at the root level as an array of strings, which is common. Actually, it doesn't matter much as long as it's valid JSON. I'll keep it in answers for direct mapping, or root. I'll put it at root for simplicity: `\"citations\": [\"docs_page\", \"forum_excerpt\"]`.\n   I'll stick to the structure I drafted. It's fine.\n   Final check of the prompt: \"只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\". I don't have the exact schema, but I'll use standard fields.\n   I will generate it now. \n   Output matches exactly.✅\n   Proceeds. \n   *Self-Correction/Refinement during thought*: \n   I should ensure the JSON keys match typical CopilotResponse if possible, but since it's not provided, I'll use the ones mentioned: `project`, `task`, `status`, `risk_level`, `requires_confirmation`, `confidence`, `summary`, `answers`, `proposed_actions`, `citations`. I'll place `citations` at the top level to be safe. I'll also make sure `answers` is an array of objects with `text` or `answer_text`. I'll use `answer_text`.\n   All good. \n   Output generation. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"success\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\", \"answers\": [ { \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\", \"citations\": [\"docs_page\", \"forum_excerpt\"] } ], \"proposed_actions\": [] }`\n   Matches constraints. Ready. \n   Output matches exactly. \n   *(Note: I will format it nicely with indentation for readability, but it's still a single JSON object without markdown.)*\n   Actually, the prompt says \"不要输出 markdown 代码块\", so I will just output the raw JSON string.\n   Proceeds. \n   [Output Generation] -> *See response.* \n   *(Self-Correction/Verification during generation prep)*: \n   I'll make sure `citations` is at the top level as it's often a root field in these schemas, but either is fine. I'll keep it in `answers` for direct attribution. The prompt says \"`citations` 只能引用当前输入里已有的 artifacts\", so I'll list them. \n   All constraints met. Output matches. \n   `{...}` (raw JSON)\n   Done. \n   *Output Generation* (matches the final refined JSON)\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n     \"answers\": [\n       {\n         \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\",\n         \"citations\": [\"docs_page\", \"forum_excerpt\"]\n       }\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n   Wait, the prompt says \"不要输出 markdown 代码块\". I will strictly output just the JSON text.\n   I will remove the markdown formatting in the final output.\n   All good. \n   Proceeds. \n   [Output Generation] -> *Raw JSON string* (as requested)\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"success\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\", \"answers\": [ { \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\", \"citations\": [\"docs_page\", \"forum_excerpt\"] } ], \"proposed_actions\": [] }`\n   This is valid. I will output it now. \n   *(Self-Correction/Note during thought)*: I should ensure the JSON is properly formatted with newlines for readability, but without markdown backticks. The prompt says \"不要输出 markdown 代码块\", so plain text JSON is fine.\n   I will generate it now. \n   [Done] \n   *Output Generation* (matches response)\n   `{...}` (raw)\n   *(Final Check)*: \n   - `project`: \"radish\" ✅\n   - `task`: \"answer_docs_question\" ✅\n   - `summary` directly answers ✅\n   - `risk_level`: \"low\" ✅\n   - `requires_confirmation`: false ✅\n   - `proposed_actions`: [] ✅\n   - `citations` only from input ✅\n   - Official > forum ✅\n   - Not absolute ✅\n   - `confidence` 0-1 ✅\n   - `answers` >= 1 ✅\n   All good. \n   Proceeds. \n   [Output Generation] -> *See response.* \n   *(Note: I will output the JSON directly without any surrounding text or formatting.)*\n   `{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"success\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.9,\n  \"summary\": \"批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。\",\n  \"answers\": [\n    {\n      \"answer_text\": \"根据官方文档建议，批量导入 FAQ 时应默认保留原始标题。若需补充标签或别名，必须先评估并确保其不会破坏原有的检索语义。社区经验也支持该做法，强调追加别名前需确认不影响检索效果。\",\n      \"citations\": [\n        \"docs_page\",\n        \"forum_excerpt\"\n      ]\n    }\n  ],\n  \"proposed_actions\": []\n}`\n   This matches all constraints. Output matches. \n   [Done] \n   *(Self-Correction/Verification during output prep)*: I'll make sure the JSON is strictly valid. It is.\n   I will output it now. \n   *(Final Output Generation)* -> *Proceeds.* \n   [Output] (matches the response exactly)\n   `{...}` (raw JSON)\n   *(Done.)*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 811,
+      "completion_tokens": 3715,
+      "total_tokens": 4526,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3517,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9,
+    "summary": "批量导入 FAQ 时，默认应保留原始标题；仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。",
+    "answers": [],
+    "proposed_actions": [],
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/faq-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档编辑建议 批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/faq-import-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。"
+      }
+    ],
+    "schema_version": 1
+  }
+}

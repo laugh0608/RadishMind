@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-same-risk-input-first-ordering-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_revision": 49,
+  "flowsheet_document": {
+    "document_id": "flowsheet-110",
+    "streams": [
+      {
+        "id": "feed-8",
+        "name": "Pump Suction",
+        "target_unit_id": "pump-2",
+        "specs": {
+          "pressure_kpa": 190
+        }
+      },
+      {
+        "id": "product-8",
+        "name": "Pump Discharge",
+        "source_unit_id": "pump-2",
+        "specs": {
+          "temperature_c": 34
+        }
+      }
+    ],
+    "units": [
+      {
+        "id": "pump-2",
+        "kind": "Pump",
+        "name": "Transfer Pump",
+        "config": {
+          "efficiency_percent": 88
+        }
+      }
+    ]
+  },
+  "selected_unit_ids": [
+    "pump-2"
+  ],
+  "selected_stream_ids": [
+    "feed-8",
+    "product-8"
+  ],
+  "diagnostic_summary": {
+    "error_count": 3,
+    "warning_count": 0
+  },
+  "diagnostics": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Pump Suction is missing temperature and flow rate specifications.",
+      "severity": "error",
+      "target_type": "stream",
+      "target_id": "feed-8"
+    },
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Pump Discharge is missing pressure specification.",
+      "severity": "error",
+      "target_type": "stream",
+      "target_id": "product-8"
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Transfer Pump is missing outlet pressure target for the current transfer scenario.",
+      "severity": "error",
+      "target_type": "unit",
+      "target_id": "pump-2"
+    }
+  ],
+  "latest_snapshot": {
+    "solver_status": "invalid_parameters",
+    "residual_norm": null,
+    "last_updated": "2026-04-07T16:20:00Z"
+  }
+}

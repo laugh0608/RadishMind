@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-real-derived-wiki-faq-citation-drift-action-confirmation-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-real-derived-wiki-faq-citation-drift-action-confirmation-002",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# 双重验证恢复指南\n\n启用双重验证后，恢复码会在开启时一次性生成，用户应自行妥善保存。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "guide/two-factor-recovery",
+          "fragment_id": "recovery-code-baseline",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "faq_excerpt",
+        "mime_type": "text/markdown",
+        "content": "FAQ：如果恢复码已经遗失，当前建议先完成身份核验，再禁用并重新启用双重验证以生成一组新的恢复码。",
+        "metadata": {
+          "source_type": "faq",
+          "page_slug": "faq/two-factor-recovery",
+          "fragment_id": "regenerate-codes",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/two-factor-recovery",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/two-factor-recovery",
+        "title": "双重验证恢复指南"
+      },
+      "search_scope": [
+        "wiki",
+        "faq"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 2,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "wiki",
+      "faq"
+    ],
+    "required_search_scopes": [
+      "wiki",
+      "faq"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "attachments"
+    ],
+    "allow_unofficial_sources": true,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": false
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.citations[1]",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]",
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment",
+      "official_source_precedence"
+    ],
+    "notes": "基于 2026-04-04 real batch 的 wiki-faq-mixed 真实 record 派生负例，要求捕获真实 citation drift 上再额外叠加 issues / read_only_check / requires_confirmation 的组合失稳。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "referenced citation id 'faq-1' is missing from candidate_response.citations",
+      "first answer must cite at least one primary artifact for official_source_precedence samples",
+      "should not contain issues",
+      "should not contain proposed_actions",
+      "json path '$.requires_confirmation' expected 'False' but found 'True'",
+      "json path '$.requires_confirmation' should not equal 'True'"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-negative-real-derived-wiki-faq-citation-drift-action-confirmation-002"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "恢复码会在开启双重验证时一次性生成并应妥善保存；如果已经遗失，可按 FAQ 补充流程在完成身份核验后重置双重验证并生成新恢复码。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前正式 wiki 先给出基线：恢复码不是随时可见的常驻信息，而是在启用双重验证时一次性生成；FAQ 再补充说明，如果这组恢复码已经遗失，需要先完成身份核验，再禁用并重新启用双重验证来生成新的恢复码。",
+        "citation_ids": [
+          "wiki-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "wiki-1",
+        "kind": "artifact",
+        "label": "双重验证恢复指南",
+        "locator": "artifact:wiki_document",
+        "excerpt": "启用双重验证后，恢复码会在开启时一次性生成，用户应自行妥善保存。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "双重验证 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "如果恢复码已经遗失，当前建议先完成身份核验，再禁用并重新启用双重验证以生成一组新的恢复码。"
+      }
+    ],
+    "confidence": 0.9,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

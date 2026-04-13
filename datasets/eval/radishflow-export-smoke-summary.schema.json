@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/radishflow-export-smoke-summary.schema.json",
+  "title": "RadishFlowExportSmokeSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pipeline",
+    "project",
+    "manifest_path",
+    "summary",
+    "results"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "pipeline": {
+      "type": "string",
+      "const": "radishflow-export-smoke"
+    },
+    "project": {
+      "type": "string",
+      "const": "radishflow"
+    },
+    "manifest_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_count",
+        "passed_case_count",
+        "warning_case_count",
+        "failed_case_count",
+        "checked_adapter_snapshot_count",
+        "checked_request_sample_count"
+      ],
+      "properties": {
+        "case_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed_case_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warning_case_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_case_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "checked_adapter_snapshot_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "checked_request_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/result"
+      }
+    }
+  },
+  "$defs": {
+    "result_status": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "passed_with_warnings",
+        "failed",
+        "not_checked"
+      ]
+    },
+    "repo_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "export_snapshot",
+        "validator_status",
+        "adapter_snapshot_status",
+        "request_status",
+        "passed"
+      ],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "export_snapshot": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "expected_adapter_snapshot": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "expected_request_sample": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "generated_adapter_snapshot": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "generated_request": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "validator_status": {
+          "$ref": "#/$defs/result_status"
+        },
+        "adapter_snapshot_status": {
+          "$ref": "#/$defs/result_status"
+        },
+        "request_status": {
+          "$ref": "#/$defs/result_status"
+        },
+        "strict_validator": {
+          "type": "boolean"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "failure_reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

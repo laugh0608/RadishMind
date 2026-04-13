@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "pipeline": "radishflow-export-smoke",
+  "project": "radishflow",
+  "manifest_path": "scripts/checks/fixtures/radishflow-export-smoke-fixtures.json",
+  "summary": {
+    "case_count": 16,
+    "passed_case_count": 16,
+    "warning_case_count": 0,
+    "failed_case_count": 0,
+    "checked_adapter_snapshot_count": 16,
+    "checked_request_sample_count": 16
+  },
+  "results": [
+    {
+      "label": "explain-diagnostics-unit-not-converged",
+      "export_snapshot": "adapters/radishflow/exports/explain-diagnostics-unit-not-converged-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-diagnostics-unit-not-converged-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-diagnostics-unit-not-converged-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "explain-diagnostics-multi-object-feed-conflict",
+      "export_snapshot": "adapters/radishflow/exports/explain-diagnostics-multi-object-feed-conflict-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-diagnostics-multi-object-feed-conflict-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-diagnostics-multi-object-feed-conflict-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-reconnect-outlet",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-reconnect-outlet-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-multi-selection-single-actionable-target",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-joint-selection-primary-focus",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-joint-selection-primary-focus-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-joint-selection-primary-focus-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-joint-selection-primary-focus-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-multi-unit-stream-primary-focus",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-multi-unit-stream-primary-focus-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-multi-unit-stream-primary-focus-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-multi-unit-stream-primary-focus-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-selection-order-preserved",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-selection-order-preserved-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-selection-order-preserved-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-selection-order-preserved-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-selection-chronology-single-actionable-target",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-selection-chronology-single-actionable-target-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-selection-chronology-single-actionable-target-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-selection-chronology-single-actionable-target-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-same-risk-input-first-ordering",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-same-risk-input-first-ordering-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-same-risk-input-first-ordering-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-same-risk-input-first-ordering-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "suggest-edits-three-step-priority-chain",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-three-step-priority-chain-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/suggest-flowsheet-edits-three-step-priority-chain-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "explain-control-plane-entitlement-expired",
+      "export_snapshot": "adapters/radishflow/exports/explain-control-plane-entitlement-expired-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-entitlement-expired-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-control-plane-entitlement-expired-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "explain-control-plane-conflicting-signals",
+      "export_snapshot": "adapters/radishflow/exports/explain-control-plane-conflicting-signals-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-conflicting-signals-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-control-plane-conflicting-signals-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "explain-control-plane-redacted-support-summary",
+      "export_snapshot": "adapters/radishflow/exports/explain-control-plane-redacted-support-summary-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-redacted-support-summary-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-control-plane-redacted-support-summary-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "explain-control-plane-uri-summary-only",
+      "export_snapshot": "adapters/radishflow/exports/explain-control-plane-uri-summary-only-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-uri-summary-only-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-control-plane-uri-summary-only-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "explain-control-plane-mixed-support-summaries",
+      "export_snapshot": "adapters/radishflow/exports/explain-control-plane-mixed-support-summaries-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-mixed-support-summaries-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-control-plane-mixed-support-summaries-001.json",
+      "strict_validator": false
+    },
+    {
+      "label": "explain-control-plane-mixed-summary-variants",
+      "export_snapshot": "adapters/radishflow/exports/explain-control-plane-mixed-summary-variants-001.export.json",
+      "validator_status": "passed",
+      "adapter_snapshot_status": "passed",
+      "request_status": "passed",
+      "passed": true,
+      "expected_adapter_snapshot": "adapters/radishflow/examples/explain-control-plane-mixed-summary-variants-001.snapshot.json",
+      "expected_request_sample": "datasets/eval/radishflow/explain-control-plane-mixed-summary-variants-001.json",
+      "strict_validator": false
+    }
+  ]
+}

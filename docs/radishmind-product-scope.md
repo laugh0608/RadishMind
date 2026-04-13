@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-04-03
+更新时间：2026-04-05
 
 ## 项目目标
 
@@ -38,6 +38,7 @@
 
 - `FlowsheetDocument + SelectionState + DiagnosticSummary` 驱动的问题解释与诊断问答
 - 基于 `selected_units` / `selected_streams` 的候选编辑提案生成
+- 基于单元放置、canonical ports 和邻近拓扑的 ghost port / ghost connection / ghost stream name 补全建议
 - `SolveSessionState + SolveSnapshot` 驱动的运行状态说明、差异总结和下一步建议
 - 控制面 / entitlement / lease / package sync 错误的人工可读解释
 - 画布截图理解作为补充输入，在 `rf-canvas` 和真实 UI 边界更稳定后再增强
@@ -50,6 +51,7 @@
 - `DiagnosticSummary` / `DiagnosticSnapshot`
 - `SolveSessionState` / `SolveSnapshot`
 - `EntitlementSnapshot`、`PropertyPackageManifestList`、离线租约刷新结果与同步错误摘要
+- `selected_unit`、`unconnected_ports`、`nearby_nodes`、`cursor_context` 与本地规则预先筛出的 `legal_candidate_completions`
 - 可选 `canvas snapshot`
 
 ### 明确不能让 AI 侵入的部分
@@ -99,6 +101,7 @@
 
 - `RadishFlow`
   - flowsheet 语义、修订号、选择集、诊断与候选编辑
+  - 基于本地合法候选集的 ghost 补全排序与命名建议
   - 控制面状态解释和离线授权边界
 - `Radish`
   - 文档语义、论坛内容、Console 权限知识和附件协议

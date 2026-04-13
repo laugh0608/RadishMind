@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/negative-replay-index.schema.json",
+  "title": "NegativeReplayIndex",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "eval_task",
+    "project",
+    "task",
+    "source_manifest_path",
+    "audit_report_path",
+    "audit_sample_dir",
+    "negative_sample_dir",
+    "collection_batch",
+    "source",
+    "summary",
+    "violation_groups",
+    "linked_non_failed_samples",
+    "unlinked_failed_samples"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "eval_task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radish",
+        "radishflow"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_manifest_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audit_report_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audit_sample_dir": {
+      "type": "string",
+      "minLength": 1
+    },
+    "negative_sample_dir": {
+      "type": "string",
+      "minLength": 1
+    },
+    "collection_batch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "captured_candidate_response",
+        "simulated_candidate_response"
+      ]
+    },
+    "capture_origin": {
+      "type": "string",
+      "enum": [
+        "interactive_session",
+        "adapter_debug_dump",
+        "manual_fixture"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audited_sample_count",
+        "failed_sample_count",
+        "linked_negative_sample_count",
+        "linked_failed_sample_count",
+        "linked_non_failed_sample_count",
+        "unlinked_failed_sample_count",
+        "violation_group_count"
+      ],
+      "properties": {
+        "audited_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_negative_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_non_failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unlinked_failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violation_group_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "violation_groups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/violation_group"
+      }
+    },
+    "linked_non_failed_samples": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/replay_entry"
+      }
+    },
+    "unlinked_failed_samples": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unlinked_failed_sample"
+      }
+    }
+  },
+  "$defs": {
+    "non_empty_string_array": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "replay_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "negative_sample_id",
+        "negative_sample_path",
+        "source_sample_id",
+        "source_sample_file",
+        "record_id",
+        "replay_mode",
+        "audit_violations",
+        "expected_candidate_violations"
+      ],
+      "properties": {
+        "negative_sample_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "negative_sample_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_sample_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_sample_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "replay_mode": {
+          "type": "string",
+          "enum": [
+            "same_sample",
+            "cross_sample"
+          ]
+        },
+        "audit_violations": {
+          "$ref": "#/$defs/non_empty_string_array"
+        },
+        "expected_candidate_violations": {
+          "$ref": "#/$defs/non_empty_string_array"
+        }
+      }
+    },
+    "unlinked_failed_sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_sample_id",
+        "source_sample_file",
+        "record_id",
+        "audit_violations"
+      ],
+      "properties": {
+        "source_sample_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_sample_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "audit_violations": {
+          "$ref": "#/$defs/non_empty_string_array"
+        }
+      }
+    },
+    "violation_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "expected_candidate_violations",
+        "audit_violation_fragments",
+        "entry_count",
+        "entries"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "pattern": "^group-[0-9]{3}$"
+        },
+        "expected_candidate_violations": {
+          "$ref": "#/$defs/non_empty_string_array"
+        },
+        "audit_violation_fragments": {
+          "$ref": "#/$defs/non_empty_string_array"
+        },
+        "entry_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/replay_entry"
+          }
+        }
+      }
+    }
+  }
+}

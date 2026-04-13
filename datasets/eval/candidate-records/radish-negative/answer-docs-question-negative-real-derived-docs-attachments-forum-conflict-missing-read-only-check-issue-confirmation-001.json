@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+  "request_id": "sample-negative-real-derived-docs-attachments-forum-conflict-missing-read-only-check-issue-confirmation-001",
+  "captured_at": "2026-04-06T18:18:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_issue_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 docs-attachments-forum-conflict 真实 record 派生，专门模拟缺失 read_only_check 后又额外叠加 issue 与确认型 candidate_operation。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "公开文档中的附件仍应使用 `attachment://manual-42` 引用，forum 里直接公开真实 CDN 地址的建议不应覆盖正式规则；但当前回答又额外把这个边界升级成了一条需要确认的处理路径。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前正式 docs 与附件元数据已经足够说明 `attachment://manual-42` 应继续作为公开文档引用格式，forum 里的真实 CDN 地址建议不能覆盖正式口径；不过当前回答又额外把这件事升级成了一条需要人工确认的候选处理动作。",
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "FORUM_OVERRIDE_REVIEW",
+        "message": "当前回答额外把 forum 冲突边界提升成了一条需要显式跟踪的 review issue。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工确认文档里是否存在真实 CDN 外链",
+        "rationale": "当前回答错误地把原本应是低风险只读核对的动作，升级成了需要确认的候选操作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 附件导入说明 上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/attachment-sharing-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区帖子建议：为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+      }
+    ],
+    "confidence": 0.72,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}

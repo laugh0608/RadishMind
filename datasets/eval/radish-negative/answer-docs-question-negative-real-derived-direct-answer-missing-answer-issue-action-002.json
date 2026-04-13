@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-real-derived-direct-answer-missing-answer-issue-action-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-real-derived-direct-answer-missing-answer-issue-action-002",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# 鉴权与授权指南\n\n鉴权负责确认用户是谁，授权负责确认用户能做什么。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "guide/authentication",
+          "fragment_id": "lead",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/authentication",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/authentication",
+        "title": "鉴权与授权指南"
+      },
+      "search_scope": [
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 0,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "wiki"
+    ],
+    "required_search_scopes": [
+      "wiki"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": false
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.risk_level"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]",
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment"
+    ],
+    "notes": "基于 2026-04-04 real batch 的 direct-answer 真实 record 派生负例，要求捕获 answers 缺失的真实短答输出继续叠加 issues / read_only_check 的组合失稳。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "must contain at least 1 answer",
+      "missing required json path '$.answers[0]'",
+      "should not contain issues",
+      "should not contain proposed_actions"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-negative-real-derived-direct-answer-missing-answer-issue-action-002"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "鉴权负责确认用户身份，授权负责确认用户操作权限。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据当前文档，鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "鉴权与授权指南",
+        "locator": "artifact:wiki_document",
+        "excerpt": "鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "confidence": 0.95,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

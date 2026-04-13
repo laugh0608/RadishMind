@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-citation-drift-action-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-citation-drift-action-confirmation-001",
+  "request_id": "sample-negative-real-derived-forum-supplement-citation-drift-action-confirmation-001",
+  "captured_at": "2026-04-08T13:42:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:citation_drift_issue_action_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-forum-supplement-001"
+    },
+    "notes": "基于 2026-04-04 real batch 的 forum-supplement 真实 record 派生，专门模拟在 docs+forum 混合来源上出现 citation drift 之外又叠加 issue / read_only_check / requires_confirmation 的组合失稳。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/faq-import",
+    "resource_slug": "guide/faq-import",
+    "search_scope": [
+      "docs",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "批量导入 FAQ 时，仍应以正式 docs 为主；社区帖子只是补充说明可以在不影响检索语义时追加简短别名。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前主结论仍应以 docs 为准：默认先保留原始标题；forum 只补充说明在不影响检索语义的前提下，可考虑追加简短别名。",
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "SOURCE_PRIORITY_REVIEW",
+        "message": "当前回答额外把补充性的 forum 经验升级成了需要显式追踪的来源优先级问题。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "补充核对正式文档与社区经验的适用边界",
+        "rationale": "当前回答错误地把低风险来源核对升级成了需要确认的只读复核动作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/faq-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档编辑建议 批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。"
+      }
+    ],
+    "confidence": 0.77,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}

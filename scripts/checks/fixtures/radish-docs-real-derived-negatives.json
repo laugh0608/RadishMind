@@ -1,0 +1,5 @@
+{
+  "manifest": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+  "negative_sample_dir": "datasets/eval/radish-negative",
+  "index": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.json"
+}

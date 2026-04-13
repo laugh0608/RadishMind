@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-reconnect-outlet-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_revision": 22,
+  "flowsheet_document": {
+    "document_id": "flowsheet-102",
+    "units": [
+      {
+        "id": "separator-1",
+        "kind": "Separator",
+        "name": "Main Separator"
+      }
+    ],
+    "streams": [
+      {
+        "id": "stream-out-1",
+        "name": "Product Outlet",
+        "source_unit_id": "separator-1"
+      }
+    ]
+  },
+  "selected_stream_ids": [
+    "stream-out-1"
+  ],
+  "diagnostic_summary": {
+    "error_count": 1,
+    "warning_count": 0
+  },
+  "diagnostics": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Product Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "target_type": "stream",
+      "target_id": "stream-out-1"
+    }
+  ],
+  "latest_snapshot": {
+    "solver_status": "invalid_topology",
+    "residual_norm": null,
+    "last_updated": "2026-04-01T04:20:00Z"
+  }
+}

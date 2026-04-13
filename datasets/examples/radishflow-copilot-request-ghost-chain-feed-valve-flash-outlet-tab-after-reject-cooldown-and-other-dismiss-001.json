@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-valve-flash-outlet-tab-after-reject-cooldown-and-other-dismiss-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 90,
+    "selected_unit_ids": [
+      "flash-46"
+    ],
+    "selected_unit": {
+      "id": "flash-46",
+      "kind": "FlashDrum",
+      "name": "Flash Drum 514"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-flash-46-vapor-outlet-main",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "vapor_outlet",
+        "target_unit_id": "flash-46",
+        "suggested_stream_name": "VG-514",
+        "is_high_confidence": true,
+        "is_tab_default": true
+      }
+    ],
+    "unconnected_ports": [
+      "vapor_outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-514-to-valve-15-inlet",
+          "accepted_at_revision": 86
+        },
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-valve-15-outlet-flash-46",
+          "accepted_at_revision": 87
+        },
+        {
+          "kind": "reject_ghost_completion",
+          "candidate_ref": "cand-flash-46-vapor-outlet-main",
+          "rejected_at_revision": 88
+        },
+        {
+          "kind": "dismiss_ghost_completion",
+          "candidate_ref": "cand-flash-46-vapor-outlet-legacy",
+          "dismissed_at_revision": 89
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "V-514"
+      ],
+      "existing_stream_names": [
+        "F-514",
+        "V-514"
+      ],
+      "preferred_prefix_by_port": {
+        "vapor_outlet": "VG"
+      },
+      "numeric_suffix_from_unit": "514"
+    },
+    "topology_pattern_hints": [
+      "feed_valve_flash_chain",
+      "flash_split_after_valve_outlet_connection",
+      "recent_reject_cooldown_elapsed_other_dismiss_does_not_spill"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "stream_stub",
+        "id": "flash-46-vapor-lane-main",
+        "direction": "downstream"
+      },
+      {
+        "type": "stream_stub",
+        "id": "flash-46-vapor-lane-legacy",
+        "direction": "downstream"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

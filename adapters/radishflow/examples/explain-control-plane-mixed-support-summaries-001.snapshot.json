@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-control-plane-mixed-support-summaries-001",
+  "task": "explain_control_plane_state",
+  "locale": "zh-CN",
+  "document_revision": 34,
+  "solve_session": {
+    "status": "ready"
+  },
+  "control_plane_state": {
+    "entitlement_status": "active",
+    "lease_status": "stale",
+    "sync_status": "partial_failed",
+    "manifest_status": "partially_available",
+    "last_error": "private add-on source returned 429 while public manifest stayed current"
+  },
+  "supporting_artifacts": [
+    {
+      "kind": "attachment_ref",
+      "role": "supporting",
+      "name": "source_access_capture",
+      "mime_type": "application/json",
+      "uri": "capture://radishflow/control-plane/private-source-429-001",
+      "metadata": {
+        "summary": "private add-on source returned 429 while public base manifest remained reachable",
+        "redaction_summary": "request headers removed; only source scope and status summary retained",
+        "source_scope": "control_plane"
+      }
+    },
+    {
+      "kind": "json",
+      "role": "supporting",
+      "name": "source_scope_summary",
+      "mime_type": "application/json",
+      "content": {
+        "public_source_status": "ok",
+        "private_source_status": "429",
+        "retry_after_seconds": 30,
+        "scope_split": true
+      },
+      "metadata": {
+        "summary": "minimal source scope summary derived from sync telemetry without raw request bodies"
+      }
+    },
+    {
+      "kind": "text",
+      "role": "supporting",
+      "name": "ui_banner_note",
+      "mime_type": "text/plain",
+      "content": "UI shows package sync warning for private add-on source while public package list is still available."
+    }
+  ]
+}

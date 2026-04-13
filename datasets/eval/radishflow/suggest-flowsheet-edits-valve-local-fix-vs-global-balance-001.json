@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-valve-local-fix-vs-global-balance-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-106",
+          "streams": [
+            {
+              "id": "feed-4",
+              "name": "Valve Feed",
+              "target_unit_id": "valve-1",
+              "specs": {
+                "pressure_kpa": 460,
+                "temperature_c": 32,
+                "flow_rate_kg_per_h": 850
+              }
+            },
+            {
+              "id": "product-4",
+              "name": "Valve Outlet",
+              "source_unit_id": "valve-1",
+              "target_unit_id": "separator-2"
+            }
+          ],
+          "units": [
+            {
+              "id": "valve-1",
+              "kind": "Valve",
+              "name": "Feed Valve",
+              "config": {
+                "pressure_drop_kpa": -15,
+                "opening_percent": 100
+              }
+            },
+            {
+              "id": "separator-2",
+              "kind": "Separator",
+              "name": "Downstream Separator"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 36,
+      "selected_unit_ids": [
+        "valve-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "VALVE_PRESSURE_DROP_INVALID",
+          "message": "Feed Valve pressure_drop_kpa is negative and conflicts with the intended throttling direction.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "valve-1"
+        },
+        {
+          "code": "GLOBAL_BALANCE_GAP",
+          "message": "The current flowsheet still shows a global mass balance gap after the last solve attempt.",
+          "severity": "warning",
+          "target_type": "flowsheet",
+          "target_id": "flowsheet-106"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "residual_above_threshold",
+        "residual_norm": 0.24,
+        "last_updated": "2026-04-06T19:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"VALVE_PRESSURE_DROP_INVALID\"",
+      "$.issues[1].code=\"GLOBAL_BALANCE_GAP\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"unit\"",
+      "$.proposed_actions[0].target.id=\"valve-1\"",
+      "$.proposed_actions[0].patch.parameter_updates.pressure_drop_kpa.action=\"review_and_make_positive\"",
+      "$.proposed_actions[0].patch.parameter_updates.opening_percent.action=\"review_with_throttling_margin\"",
+      "$.proposed_actions[0].patch.patch_scope=\"local_unit_parameters\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.proposed_actions[0].target.id=\"flowsheet-106\"",
+      "$.proposed_actions[0].patch.patch_scope=\"full_flowsheet\""
+    ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 0,
+        "parameter_key": "pressure_drop_kpa",
+        "keys": [
+          "action",
+          "minimum_value"
+        ]
+      },
+      {
+        "action_index": 0,
+        "parameter_key": "opening_percent",
+        "keys": [
+          "action",
+          "suggested_maximum"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "即使同时存在 GLOBAL_BALANCE_GAP，candidate_edit 仍必须聚焦当前选中的 valve-1，不能升级成整图修复提案。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前更合适的是先修正 Feed Valve 的局部压降参数；全局物料衡算缺口仍需后续继续排查，但不应把这次 patch 扩成整图修改。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "局部错误已经明确落在 valve-1 的压力降设置上，因此可以先给该单元的参数级提案；GLOBAL_BALANCE_GAP 只说明当前仍有全局残差，不能据此把 patch 扩展到整个 flowsheet。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "VALVE_PRESSURE_DROP_INVALID",
+        "message": "valve-1 当前 pressure_drop_kpa 为负值，与节流方向不一致。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "GLOBAL_BALANCE_GAP",
+        "message": "本轮求解后仍存在全局物料衡算缺口，但这条信息只能作为背景诊断，不能直接转成整图 patch。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "修正 valve-1 的局部节流参数",
+        "target": {
+          "type": "unit",
+          "id": "valve-1"
+        },
+        "rationale": "当前可确认的异常首先是 valve-1 的压降参数方向错误，因此 patch 应限定在该单元的局部参数，而不是泛化成对未选中对象的批量修改。",
+        "patch": {
+          "parameter_updates": {
+            "pressure_drop_kpa": {
+              "action": "review_and_make_positive",
+              "minimum_value": 10
+            },
+            "opening_percent": {
+              "action": "review_with_throttling_margin",
+              "suggested_maximum": 85
+            }
+          },
+          "patch_scope": "local_unit_parameters",
+          "preserve_topology": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 VALVE_PRESSURE_DROP_INVALID",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed Valve pressure_drop_kpa is negative and conflicts with the intended throttling direction."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 GLOBAL_BALANCE_GAP",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "The current flowsheet still shows a global mass balance gap after the last solve attempt."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / valve-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "valve-1 当前 pressure_drop_kpa=-15，opening_percent=100。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=residual_above_threshold, residual_norm=0.24"
+      }
+    ],
+    "confidence": 0.88,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

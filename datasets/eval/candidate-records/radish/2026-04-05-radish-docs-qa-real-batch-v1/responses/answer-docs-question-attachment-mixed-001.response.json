@@ -1,0 +1,31 @@
+{
+  "project": "radish",
+  "task": "answer_docs_question",
+  "status": "ok",
+  "summary": "在公开文档中引用附件时，应默认使用 `attachment://{id}` 格式而非真实存储地址。附件 `attachment://manual-42` 已标记为公开文档兼容，可直接在文档中安全引用。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "根据《附件导入说明》规范，公开文档中的附件引用必须采用 `attachment://{id}` 格式，以隐藏底层真实存储路径。结合当前附件元数据，`attachment://manual-42` 已明确标记为 `public-doc-compatible`，完全符合引用标准，可直接在文档正文中使用。",
+      "citation_ids": []
+    }
+  ],
+  "citations": [
+    {
+      "id": "doc-1",
+      "kind": "artifact",
+      "label": "doc-1"
+    },
+    {
+      "id": "doc-2",
+      "kind": "artifact",
+      "label": "doc-2"
+    }
+  ],
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "proposed_actions": [],
+  "confidence": 0.95,
+  "issues": [],
+  "schema_version": 1
+}

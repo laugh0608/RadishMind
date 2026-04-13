@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 94,
+  "selected_unit": {
+    "id": "flash-47",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 515"
+  },
+  "unconnected_ports": [
+    "vapor_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-47-vapor-lane",
+      "direction": "downstream",
+      "distance_px": 61,
+      "alignment_score": 0.96
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-515-to-valve-16-inlet",
+        "accepted_at_revision": 89
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-16-outlet-flash-47",
+        "accepted_at_revision": 90
+      },
+      {
+        "kind": "reject_ghost_completion",
+        "candidate_ref": "cand-flash-47-vapor-outlet",
+        "rejected_at_revision": 91
+      },
+      {
+        "kind": "dismiss_ghost_completion",
+        "candidate_ref": "cand-flash-47-vapor-outlet",
+        "dismissed_at_revision": 92
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-515"
+    ],
+    "existing_stream_names": [
+      "F-515",
+      "V-515"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG"
+    },
+    "numeric_suffix_from_unit": "515"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection",
+    "recent_latest_same_candidate_dismiss_cooldown_elapsed_overrides_older_reject"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-flash-47-vapor-outlet",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "vapor_outlet",
+      "target_unit_id": "flash-47",
+      "suggested_stream_name": "VG-515",
+      "ranking_signals": {
+        "distance_px": 61,
+        "alignment_score": 0.96,
+        "topology_score": 0.95,
+        "score_gap_to_next": 0.35,
+        "template_frequency": 0.88
+      },
+      "naming_signals": {
+        "applied_prefix": "VG",
+        "numeric_suffix": "515",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "第一条链式模板示例：同一 outlet candidate 虽先被 reject 又在更新一帧被 dismiss，但当前已越过最新 dismiss 的一帧 cooldown，旧 reject 不应继续阻止默认 Tab 恢复。"
+  }
+}

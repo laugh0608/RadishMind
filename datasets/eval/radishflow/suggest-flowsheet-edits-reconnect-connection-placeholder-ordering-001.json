@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-reconnect-connection-placeholder-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-115",
+          "units": [
+            {
+              "id": "separator-2",
+              "kind": "Separator",
+              "name": "Export Separator"
+            }
+          ],
+          "streams": [
+            {
+              "id": "liquid-out-2",
+              "name": "Liquid Product",
+              "source_unit_id": "separator-2"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 64,
+      "selected_stream_ids": [
+        "liquid-out-2"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "liquid-out-2"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T21:00:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "high",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_DISCONNECTED\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"liquid-out-2\"",
+      "$.proposed_actions[0].patch.connection_placeholder.expected_downstream_kind=\"consumer_or_export_sink\"",
+      "$.proposed_actions[0].patch.connection_placeholder.requires_manual_binding=true",
+      "$.proposed_actions[0].patch.connection_placeholder.retain_existing_source_binding=true",
+      "$.proposed_actions[0].risk_level=\"high\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"high\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false"
+    ],
+    "ordered_connection_placeholder_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "expected_downstream_kind",
+          "requires_manual_binding",
+          "retain_existing_source_binding"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "connection_placeholder 也应保持稳定键顺序：先声明期望连接对象类型，再声明人工绑定要求，最后补已有源端绑定的保护性约束。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前建议为 Liquid Product 预留下游重连占位，并保持 connection_placeholder 键顺序稳定：先期望下游类型，再人工绑定要求，最后是源端保持约束。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前断链问题属于高风险拓扑修改，只能先输出可审查的 connection_placeholder；同时对象内键顺序也应稳定，先说明目标连接类型，再说明人工绑定要求，最后补保护性约束。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "liquid-out-2 当前没有下游连接，需要人工确认最终去向。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 liquid-out-2 预留下游重连占位",
+        "target": {
+          "type": "stream",
+          "id": "liquid-out-2"
+        },
+        "rationale": "当前断链问题只能停留在候选连接占位层，不能直接替用户完成拓扑重连；同时应保留现有源端绑定，只把缺失的下游连接开放给人工确认。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / liquid-out-2",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "liquid-out-2 当前只保留 source_unit_id=separator-2，未见下游连接。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "confidence": 0.86,
+    "risk_level": "high",
+    "requires_confirmation": true
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-navigation-missing-read-only-check-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-navigation-missing-read-only-check-confirmation-001",
+  "request_id": "sample-negative-real-derived-navigation-missing-read-only-check-confirmation-001",
+  "captured_at": "2026-04-06T19:18:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-navigation-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 navigation 真实 record 派生，专门模拟缺失 read_only_check 后又错误升级成需要确认的 candidate_operation。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachments",
+    "resource_slug": "guide/attachments",
+    "search_scope": [
+      "docs",
+      "wiki"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "docs_page_related"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。",
+    "answers": [
+      {
+        "kind": "navigation_answer",
+        "text": "根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式（例如 `attachment://123456789`）。该引用格式会在文档渲染或运行时由系统自动解析为实际的附件访问地址，无需手动维护完整 URL。",
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工确认当前页面是否还需要补充附件导航提示",
+        "rationale": "当前回答错误地把原本应是低风险只读导航提示，升级成了需要确认的候选操作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "doc-1",
+        "excerpt": "公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "doc-2",
+        "excerpt": "在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "confidence": 0.78,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}

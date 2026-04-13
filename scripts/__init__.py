@@ -1,0 +1,1 @@
+"""RadishMind script package."""

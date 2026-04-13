@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 68,
+    "selected_unit_ids": [
+      "heater-8"
+    ],
+    "selected_unit": {
+      "id": "heater-8",
+      "kind": "Heater",
+      "name": "Feed Heater 607"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-heater-8-outlet-flash-28",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "heater-8",
+        "target_node_id": "flash-28.inlet",
+        "suggested_stream_name": "H-607",
+        "is_high_confidence": true,
+        "is_tab_default": true
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-607-to-heater-8-inlet",
+          "accepted_at_revision": 65
+        },
+        {
+          "kind": "dismiss_ghost_completion",
+          "candidate_ref": "cand-heater-8-outlet-flash-28",
+          "dismissed_at_revision": 66
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-607"
+      ],
+      "existing_stream_names": [
+        "F-607"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "607"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "recent_dismiss_cooldown_elapsed_same_candidate_can_retab"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-28.inlet",
+        "direction": "downstream"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

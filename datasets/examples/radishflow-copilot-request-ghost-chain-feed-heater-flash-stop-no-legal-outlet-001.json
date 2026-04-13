@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-stop-no-legal-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 55,
+    "selected_unit_ids": [
+      "heater-4"
+    ],
+    "selected_unit": {
+      "id": "heater-4",
+      "kind": "Heater",
+      "name": "Feed Heater 603"
+    },
+    "legal_candidate_completions": [],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-603-to-heater-4-inlet",
+          "accepted_at_revision": 54
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-603"
+      ],
+      "existing_stream_names": [
+        "F-603",
+        "HL-603"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "603"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "stop_when_no_legal_heater_outlet_candidates"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-16.inlet",
+        "direction": "downstream"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

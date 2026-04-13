@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-valve-flash-stop-no-legal-outlet-after-mixed-history-001-debug-full",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 95,
+    "selected_unit_ids": [
+      "flash-48"
+    ],
+    "selected_unit": {
+      "id": "flash-48",
+      "kind": "FlashDrum",
+      "name": "Flash Drum 515"
+    },
+    "legal_candidate_completions": [],
+    "unconnected_ports": [
+      "vapor_outlet",
+      "liquid_outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-515-to-valve-16-inlet",
+          "accepted_at_revision": 91
+        },
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-valve-16-outlet-flash-48",
+          "accepted_at_revision": 92
+        },
+        {
+          "kind": "reject_ghost_completion",
+          "candidate_ref": "cand-flash-48-vapor-outlet",
+          "rejected_at_revision": 93
+        },
+        {
+          "kind": "skip_ghost_completion",
+          "candidate_ref": "cand-flash-48-liquid-outlet",
+          "skipped_at_revision": 94
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "V-515"
+      ],
+      "existing_stream_names": [
+        "F-515",
+        "V-515",
+        "VG-515"
+      ],
+      "preferred_prefix_by_port": {
+        "vapor_outlet": "VG",
+        "liquid_outlet": "VL"
+      },
+      "numeric_suffix_from_unit": "515"
+    },
+    "topology_pattern_hints": [
+      "feed_valve_flash_chain",
+      "flash_split_after_valve_outlet_connection",
+      "stop_when_no_legal_outlet_candidates_after_mixed_history"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "stream_stub",
+        "id": "flash-48-vapor-lane",
+        "direction": "downstream",
+        "distance_px": 69,
+        "alignment_score": 0.9,
+        "blocked_reason": "occupied_by_existing_stream"
+      },
+      {
+        "type": "stream_stub",
+        "id": "flash-48-liquid-lane",
+        "direction": "downstream",
+        "distance_px": 77,
+        "alignment_score": 0.86,
+        "blocked_reason": "manual_skip_left_no_remaining_legal_route"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

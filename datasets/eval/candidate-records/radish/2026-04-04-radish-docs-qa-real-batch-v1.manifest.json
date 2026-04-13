@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radish-answer-docs-question-attachment-mixed-001",
+      "sample_id": "radish-answer-docs-question-attachment-mixed-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-attachment-mixed-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-direct-answer-001",
+      "sample_id": "radish-answer-docs-question-direct-answer-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-direct-answer-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001",
+      "sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-docs-attachments-faq-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-docs-attachments-forum-conflict-001",
+      "sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-docs-attachments-forum-conflict-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-docs-faq-forum-conflict-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+      "sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-docs-faq-mixed-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-evidence-gap-001",
+      "sample_id": "radish-answer-docs-question-evidence-gap-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-evidence-gap-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-forum-supplement-001",
+      "sample_id": "radish-answer-docs-question-forum-supplement-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-forum-supplement-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-navigation-001",
+      "sample_id": "radish-answer-docs-question-navigation-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-navigation-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
+      "sample_id": "radish-answer-docs-question-role-example-boundary-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-role-example-boundary-001.record.json"
+    },
+    {
+      "record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
+      "sample_id": "radish-answer-docs-question-wiki-faq-mixed-001",
+      "path": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1/answer-docs-question-wiki-faq-mixed-001.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "Radish docs QA 第二批真实 provider 候选响应快照，用于批量审计与后续择优回灌。"
+}

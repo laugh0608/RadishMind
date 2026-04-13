@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-real-derived-navigation-missing-read-only-check-issue-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-real-derived-navigation-missing-read-only-check-issue-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 附件使用说明\n\n公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/attachments",
+          "fragment_id": "runtime-resolution",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "docs_page_related",
+        "mime_type": "text/markdown",
+        "content": "在编辑器中插入附件时，优先使用系统生成的引用格式。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "guide/attachments-editor",
+          "fragment_id": "insert-attachment",
+          "retrieval_rank": 2,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/attachments",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/attachments",
+        "title": "附件使用说明"
+      },
+      "search_scope": [
+        "docs",
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 2,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "wiki"
+    ],
+    "required_search_scopes": [
+      "docs",
+      "wiki"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.citations[1]",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.risk_level=\"low\""
+    ],
+    "must_not_have_json_paths": [
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment"
+    ],
+    "notes": "基于 2026-04-05 real batch 的 navigation 真实 record 派生负例，要求捕获缺失 `read_only_check` 后又无端附加 issue 的组合失稳。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "is missing required action kind 'read_only_check'",
+      "should not contain issues"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-negative-real-derived-navigation-missing-read-only-check-issue-001"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "在文档中引用附件时，应使用 `attachment://{id}` 格式，系统会在运行时自动将其解析为真实地址。",
+    "answers": [
+      {
+        "kind": "navigation_answer",
+        "text": "根据官方文档说明，公开文档和富文本编辑器在插入或引用附件时，应优先使用系统生成的 `attachment://{id}` 格式。该引用格式会在文档渲染或运行时自动解析为实际附件地址，无需手动维护完整 URL。",
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "核对附件引用导航口径",
+        "rationale": "当前问题只需要低风险确认文档是否继续沿用 `attachment://{id}` 导航提示，不需要额外升级为问题项。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件使用说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "附件编辑器说明",
+        "locator": "artifact:docs_page_related",
+        "excerpt": "在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "confidence": 0.92,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 71,
+  "selected_unit": {
+    "id": "cooler-16",
+    "kind": "Cooler",
+    "name": "Feed Cooler 710"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-40.inlet",
+      "direction": "downstream",
+      "distance_px": 56,
+      "alignment_score": 0.97
+    },
+    {
+      "type": "unit_port",
+      "id": "flash-39.inlet",
+      "direction": "downstream",
+      "distance_px": 80,
+      "alignment_score": 0.83
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-710-to-cooler-16-inlet",
+        "accepted_at_revision": 67
+      },
+      {
+        "kind": "reject_ghost_completion",
+        "candidate_ref": "cand-cooler-16-outlet-flash-40",
+        "rejected_at_revision": 69
+      },
+      {
+        "kind": "dismiss_ghost_completion",
+        "candidate_ref": "cand-cooler-16-outlet-flash-39",
+        "dismissed_at_revision": 70
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-710"
+    ],
+    "existing_stream_names": [
+      "F-710"
+    ],
+    "preferred_outlet_prefix": "C",
+    "numeric_suffix_from_unit": "710"
+  },
+  "topology_pattern_hints": [
+    "feed_cooler_flash_chain",
+    "cooler_outlet_to_flash_inlet_after_feed_connection",
+    "recent_reject_cooldown_elapsed_other_dismiss_does_not_spill"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-cooler-16-outlet-flash-40",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "cooler-16",
+      "target_node_id": "flash-40.inlet",
+      "suggested_stream_name": "C-710",
+      "ranking_signals": {
+        "distance_px": 56,
+        "alignment_score": 0.97,
+        "topology_score": 0.95,
+        "score_gap_to_next": 0.37,
+        "template_frequency": 0.86
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "C",
+        "numeric_suffix": "710",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-cooler-flash-chain-v1",
+    "notes": "第三条链式模板示例：同一 main candidate 的 reject 已越过一帧 cooldown，而更近一帧对其他 legacy candidate 的 dismiss 不得外溢误伤当前默认 Tab 候选。"
+  }
+}

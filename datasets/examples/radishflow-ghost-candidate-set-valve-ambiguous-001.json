@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 48,
+  "selected_unit": {
+    "id": "valve-1",
+    "kind": "Valve",
+    "name": "Throttle Valve 401"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "cooler-401.inlet",
+      "distance_px": 96,
+      "alignment_score": 0.84,
+      "direction": "downstream"
+    },
+    {
+      "type": "unit_port",
+      "id": "flash-401.inlet",
+      "distance_px": 104,
+      "alignment_score": 0.81,
+      "direction": "downstream"
+    }
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-valve-1-outlet-cooler",
+      "ghost_kind": "ghost_connection",
+      "target_unit_id": "valve-1",
+      "target_port_key": "outlet",
+      "target_node_id": "cooler-401.inlet",
+      "suggested_stream_name": "V-401A",
+      "ranking_signals": {
+        "distance_px": 96,
+        "alignment_score": 0.84,
+        "topology_score": 0.79,
+        "score_gap_to_next": 0.03,
+        "template_frequency": 0.51
+      },
+      "conflict_flags": [
+        "score_gap_too_small"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    },
+    {
+      "candidate_ref": "cand-valve-1-outlet-flash",
+      "ghost_kind": "ghost_connection",
+      "target_unit_id": "valve-1",
+      "target_port_key": "outlet",
+      "target_node_id": "flash-401.inlet",
+      "suggested_stream_name": "V-401B",
+      "ranking_signals": {
+        "distance_px": 104,
+        "alignment_score": 0.81,
+        "topology_score": 0.77,
+        "score_gap_to_next": 0.0,
+        "template_frequency": 0.48
+      },
+      "conflict_flags": [
+        "score_gap_too_small"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "topology_pattern_hints": [
+    "valve_to_cooler_or_flash_both_seen_in_templates"
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "valve-downstream-choice-v1",
+    "notes": "两个合法下游非常接近，因此只允许可见 ghost，不默认 Tab。"
+  }
+}

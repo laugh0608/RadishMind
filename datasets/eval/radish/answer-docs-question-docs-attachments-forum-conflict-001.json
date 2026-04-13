@@ -157,7 +157,8 @@
     "notes": "回答应优先遵循 docs 的附件引用规则，再用 attachment 元数据确认当前引用有效，并明确 forum 的真实 CDN 地址建议不能覆盖正式口径。"
   },
   "candidate_response_record": {
-    "path": "datasets/eval/candidate-records/radish/answer-docs-question-docs-attachments-forum-conflict-001.json"
+    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-docs-attachments-forum-conflict-001"
   },
   "golden_response": {
     "schema_version": 1,

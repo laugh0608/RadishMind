@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-control-plane-redacted-support-summary-001",
+  "task": "explain_control_plane_state",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 26
+  },
+  "control_plane_snapshot": {
+    "entitlement_status": "active",
+    "lease_status": "refresh_failed",
+    "sync_status": "blocked",
+    "manifest_status": "current",
+    "last_error": "license refresh rejected by upstream"
+  },
+  "solve_session_state": {
+    "status": "blocked"
+  },
+  "support_artifacts": [
+    {
+      "kind": "attachment_ref",
+      "role": "supporting",
+      "name": "lease_refresh_capture",
+      "mime_type": "application/json",
+      "uri": "capture://radishflow/control-plane/lease-refresh-403-001",
+      "metadata": {
+        "summary": "lease refresh endpoint returned 403 after one retry; authorization, cookie, and token fields were redacted by exporter",
+        "redactions": [
+          "authorization",
+          "cookie",
+          "token"
+        ]
+      }
+    },
+    {
+      "kind": "text",
+      "role": "supporting",
+      "name": "ui_banner_summary",
+      "mime_type": "text/plain",
+      "content": "UI still shows a cached active entitlement badge from the previous successful sync."
+    }
+  ]
+}

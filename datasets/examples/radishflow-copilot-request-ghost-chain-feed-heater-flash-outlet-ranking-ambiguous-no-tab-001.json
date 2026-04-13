@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 56,
+    "selected_unit_ids": [
+      "heater-5"
+    ],
+    "selected_unit": {
+      "id": "heater-5",
+      "kind": "Heater",
+      "name": "Feed Heater 604"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-heater-5-outlet-flash-17",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "heater-5",
+        "target_node_id": "flash-17.inlet",
+        "suggested_stream_name": "H-604A",
+        "is_high_confidence": false,
+        "is_tab_default": false
+      },
+      {
+        "candidate_ref": "cand-heater-5-outlet-flash-18",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "heater-5",
+        "target_node_id": "flash-18.inlet",
+        "suggested_stream_name": "H-604B",
+        "is_high_confidence": false,
+        "is_tab_default": false
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-604-to-heater-5-inlet",
+          "accepted_at_revision": 55
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-604"
+      ],
+      "existing_stream_names": [
+        "F-604"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "604"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "heater_outlet_parallel_flash_choice_requires_manual_selection"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-17.inlet",
+        "direction": "downstream"
+      },
+      {
+        "type": "unit_port",
+        "id": "flash-18.inlet",
+        "direction": "downstream"
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

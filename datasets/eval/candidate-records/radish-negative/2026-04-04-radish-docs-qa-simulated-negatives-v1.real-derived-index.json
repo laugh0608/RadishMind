@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "project": "radish",
+  "task": "answer_docs_question",
+  "record_manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+  "negative_sample_dir": "datasets/eval/radish-negative",
+  "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+  "source": "simulated_candidate_response",
+  "summary": {
+    "derived_record_count": 34,
+    "linked_negative_sample_count": 34,
+    "source_manifest_count": 2,
+    "source_record_count": 17,
+    "source_record_group_count": 17,
+    "violation_group_count": 13,
+    "pattern_group_count": 8,
+    "unlinked_derived_record_count": 0
+  },
+  "capture_origin": "manual_fixture",
+  "source_record_groups_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/source-record-groups.json",
+  "violation_groups_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/violation-groups.json",
+  "pattern_groups_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/pattern-groups.json",
+  "unlinked_derived_records_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/unlinked-derived-records.json"
+}

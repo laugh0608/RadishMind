@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+  "request_id": "sample-negative-real-derived-docs-faq-mixed-missing-read-only-check-issue-001",
+  "captured_at": "2026-04-06T18:24:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_issue_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 docs-faq-mixed 真实 record 派生，专门模拟缺失 read_only_check 后又无端加出一条 issue。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "公开文档发布后仍应优先保持原有 slug 稳定；FAQ 只是在确需调整标题时补充了 alias 过渡做法。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前正式 docs 的主结论仍是优先保持既有访问地址稳定；如果确需调整标题，可把 FAQ 中的 alias 做法视为补充经验。不过当前回答又额外把这件事写成了一条需要跟踪的问题。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "ALIAS_FOLLOWUP_REVIEW",
+        "message": "当前回答无端把 alias 过渡建议升级成了一条需要显式跟踪的 issue。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/publishing",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档发布说明 公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/publishing",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      }
+    ],
+    "confidence": 0.79,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

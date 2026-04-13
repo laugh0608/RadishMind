@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 54,
+  "selected_unit": {
+    "id": "heater-3",
+    "kind": "Heater",
+    "name": "Feed Heater 602"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-15.inlet",
+      "direction": "downstream",
+      "distance_px": 64,
+      "alignment_score": 0.94
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-602-to-heater-3-inlet",
+        "accepted_at_revision": 53
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-602"
+    ],
+    "existing_stream_names": [
+      "F-602",
+      "H-602"
+    ],
+    "preferred_outlet_prefix": "H",
+    "numeric_suffix_from_unit": "602"
+  },
+  "topology_pattern_hints": [
+    "feed_heater_flash_chain",
+    "heater_outlet_to_flash_inlet_after_feed_connection",
+    "heater_name_conflict_requires_manual_choice"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-heater-3-outlet-flash-15-name-conflict",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "heater-3",
+      "target_node_id": "flash-15.inlet",
+      "suggested_stream_name": "H-602",
+      "ranking_signals": {
+        "distance_px": 64,
+        "alignment_score": 0.94,
+        "topology_score": 0.91,
+        "score_gap_to_next": 0.39,
+        "template_frequency": 0.83
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "H",
+        "numeric_suffix": "602",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "suggested_name_collision",
+        "manual_name_resolution_required"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-heater-flash-chain-v1",
+    "notes": "第二条链式模板命名冲突示例：Heater outlet 候选存在，但建议名与现有流股重名，因此只能显示 ghost，不默认 Tab。"
+  }
+}

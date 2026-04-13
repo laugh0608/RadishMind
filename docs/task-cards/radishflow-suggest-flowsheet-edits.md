@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_flowsheet_edits`
 
-更新时间：2026-04-03
+更新时间：2026-04-07
 
 ## 任务目标
 
@@ -49,9 +49,21 @@
 
 - `summary` 必须说明建议围绕哪个对象或哪类问题生成
 - `issues` 必须把触发提案的诊断或约束写清楚
+- 若同时存在多个 `issues`，顺序也应保持稳定，优先把已确认且更直接对应 patch 的问题放在前面，再列未确认、派生性或保留性 warning
+- 若单个 `issue.citation_ids` 同时包含多条证据，顺序也应保持稳定，优先直接诊断，再列目标对象 artifact，最后才是 supporting snapshot 或次级上下文
 - `proposed_actions` 至少包含一个 `candidate_edit`
 - 每个 `candidate_edit` 都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`
 - `citations` 必须能定位到支撑该提案的状态、诊断或补充证据
+- 若顶层 `citations` 同时包含多条证据，顺序也应保持稳定，优先直接诊断，再列目标对象 artifact，最后才是 supporting snapshot 或次级上下文
+- 若同时存在多个 `candidate_edit`，顺序应保持稳定，并优先把更直接、更阻塞或风险更高的提案放在前面，而不是随机漂移
+- 若单个 `candidate_edit.citation_ids` 同时包含多条证据，顺序也应保持稳定，优先直接触发该 patch 的诊断，再列目标对象 artifact，最后才是 snapshot 或次级上下文
+- 若单个 `candidate_edit.patch` 同时包含主要 patch 块与保护性元字段，键顺序也应保持稳定，优先输出真正的修改块，再输出 `patch_scope`、`preserve_*`、`retain_*` 这类约束字段
+- 若单个 `candidate_edit.patch.parameter_updates` 同时包含多个字段，字段顺序也应保持稳定，优先主工艺目标参数，再到保护性或边界参数，最后才是次级运行范围修正
+- 若单个 `candidate_edit.patch.parameter_updates.<parameter_key>` 同时包含多个细节字段，键顺序也应保持稳定，优先动作类型，再到阈值、参考流股或建议范围等支撑细节
+- 若单个 `candidate_edit.patch.parameter_updates.<parameter_key>.<detail_key>` 是数组值，顺序也应保持稳定；例如 `suggested_range` 应明确保持下界在前、上界在后
+- 若单个 `candidate_edit.patch.spec_placeholders` 同时包含多个规格，占位顺序也应保持稳定，优先状态基础字段，再到流量等补充字段
+- 若单个 `candidate_edit.patch.parameter_placeholders` 同时包含多个参数，占位顺序也应保持稳定，优先主工艺目标参数，再到保护性运行参数，最后才是次级基线或范围参数
+- 若单个 `candidate_edit.patch.connection_placeholder` 同时包含多个键，键顺序也应保持稳定，优先期望连接对象类型，再到人工绑定要求，最后才是源端保持等保护性约束
 
 ## 候选动作约束
 
@@ -148,6 +160,7 @@
 - 证据一致率：每个提案都应能回溯到触发它的 diagnostics 或状态
 - 建议可执行率：patch 粒度足够小，能被后续命令层映射为候选编辑
 - 风险分级正确率：高风险拓扑或关键配置调整不得降级标注
+- 多动作顺序稳定性：同一输入下，多条 `candidate_edit` 的优先级顺序不应随机变化
 
 ## 非目标
 

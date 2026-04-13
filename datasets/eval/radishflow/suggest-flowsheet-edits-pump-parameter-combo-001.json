@@ -119,6 +119,53 @@
     "must_not_have_json_paths": [
       "$.proposed_actions[0].requires_confirmation=false"
     ],
+    "ordered_patch_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "parameter_updates",
+          "preserve_topology"
+        ]
+      }
+    ],
+    "ordered_parameter_update_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "outlet_pressure_target_kpa",
+          "efficiency_percent"
+        ]
+      }
+    ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 0,
+        "parameter_key": "outlet_pressure_target_kpa",
+        "keys": [
+          "action",
+          "minimum_reference_stream_id"
+        ]
+      },
+      {
+        "action_index": 0,
+        "parameter_key": "efficiency_percent",
+        "keys": [
+          "action",
+          "suggested_range"
+        ]
+      }
+    ],
+    "ordered_parameter_update_value_sequences": [
+      {
+        "action_index": 0,
+        "parameter_key": "efficiency_percent",
+        "detail_key": "suggested_range",
+        "values": [
+          60,
+          85
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

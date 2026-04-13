@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-valve-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-valve-flash-valve-outlet-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-209",
+          "streams": [
+            {
+              "id": "feed-501",
+              "name": "F-501",
+              "target_unit_id": "valve-2"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-501-unit",
+              "kind": "Feed",
+              "name": "Feed 501"
+            },
+            {
+              "id": "valve-2",
+              "kind": "Valve",
+              "name": "Throttle Valve 501"
+            },
+            {
+              "id": "flash-7",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 501"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 49,
+      "selected_unit_ids": [
+        "valve-2"
+      ],
+      "selected_unit": {
+        "id": "valve-2",
+        "kind": "Valve",
+        "name": "Throttle Valve 501"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-7.inlet",
+          "distance_px": 68,
+          "alignment_score": 0.94,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-valve-2-outlet-flash-7",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "valve-2",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-7.inlet",
+          "suggested_stream_name": "V-501",
+          "ranking_signals": {
+            "distance_px": 68,
+            "alignment_score": 0.94,
+            "topology_score": 0.93,
+            "score_gap_to_next": 0.41,
+            "template_frequency": 0.86
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-501-to-valve-2-inlet",
+            "accepted_at_revision": 48
+          }
+        ]
+      },
+      "topology_pattern_hints": [
+        "feed_valve_flash_chain",
+        "valve_outlet_to_flash_inlet_after_feed_connection"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"valve-2\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-valve-2-outlet-flash-7\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"V-501\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当 Feed 已接入 Valve，且当前链路模式明显指向 FlashDrum 时，下一步应优先建议 Valve outlet 到 FlashDrum inlet 的 ghost connection。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "在 Feed 已接入 valve-2 的前提下，当前链路最自然的下一步是把 valve-2 的 outlet 补到 flash-7 的 inlet。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "上一动作刚接受了 Feed 到 valve-2 的入口 ghost，而本地候选与链路模式都表明阀后最常见的后续单元是紧邻的 flash-7，因此 outlet 到 flash-7 inlet 应作为默认 Tab 建议。",
+        "citation_ids": [
+          "ctx-recent-action",
+          "ctx-candidate-valve-outlet",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 valve-2 到 flash-7 的 outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "valve-2",
+          "port_key": "outlet"
+        },
+        "rationale": "Feed 已接入 valve-2 后，当前最近且最匹配的下游标准单元是 flash-7，本地规则也将该连线标记为高置信默认候选。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-valve-2-outlet-flash-7",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "V-501"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-valve-2-outlet-flash-7"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-valve-outlet",
+          "ctx-nearby-flash"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近接受的上一步 ghost",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "accept_ghost_completion candidate_ref=cand-feed-501-to-valve-2-inlet accepted_at_revision=48"
+      },
+      {
+        "id": "ctx-candidate-valve-outlet",
+        "kind": "context",
+        "label": "Valve outlet 合法候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-valve-2-outlet-flash-7 is_tab_default=true ranking_signals.alignment_score=0.94"
+      },
+      {
+        "id": "ctx-nearby-flash",
+        "kind": "context",
+        "label": "紧邻的 FlashDrum inlet",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "flash-7.inlet distance_px=68 alignment_score=0.94"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "链路模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      }
+    ],
+    "confidence": 0.95,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

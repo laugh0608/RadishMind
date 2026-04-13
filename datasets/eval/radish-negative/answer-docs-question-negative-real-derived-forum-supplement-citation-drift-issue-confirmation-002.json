@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-citation-drift-issue-confirmation-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-negative-real-derived-forum-supplement-citation-drift-issue-confirmation-002",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 文档编辑建议\n\n批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/faq-import",
+          "fragment_id": "title-policy",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "forum_excerpt",
+        "mime_type": "text/markdown",
+        "content": "社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。",
+        "metadata": {
+          "source_type": "forum",
+          "page_slug": "community/faq-import-tips",
+          "fragment_id": "alias-note",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/faq-import",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/faq-import",
+        "title": "文档编辑建议"
+      },
+      "search_scope": [
+        "docs",
+        "forum"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 2,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "forum"
+    ],
+    "required_search_scopes": [
+      "docs"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "faq",
+      "forum",
+      "attachments"
+    ],
+    "allow_unofficial_sources": true,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]",
+      "$.citations[1]",
+      "$.proposed_actions[0].kind=\"read_only_check\"",
+      "$.risk_level=\"low\""
+    ],
+    "must_not_have_json_paths": [
+      "$.requires_confirmation=true",
+      "$.summary=\"社区建议应直接覆盖正式文档。\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment",
+      "official_source_precedence"
+    ],
+    "notes": "基于 2026-04-05 real batch 的 forum-supplement 真实 record 派生负例，要求继续捕获 docs+forum 混合来源上的 citation drift 再叠加 issue 与确认型 read_only_check 的组合失稳。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "referenced citation id 'forum-1' is missing from candidate_response.citations",
+      "first answer must cite at least one primary artifact for official_source_precedence samples",
+      "should not contain issues",
+      "proposed action '人工复核正式来源与补充来源的适用边界' must not require confirmation",
+      "json path '$.requires_confirmation' should not equal 'True'"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-citation-drift-issue-confirmation-002"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前正式文档建议批量导入 FAQ 时先保留原始标题；社区帖子只补充说明可在不破坏检索语义时追加别名，不能反过来覆盖正式口径。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前更应遵循正式 docs：默认先保留原始标题；forum 经验只是在不影响检索语义的前提下，补充了可追加简短别名这一实践建议，不能替代正式规则。",
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "人工复核正式来源与补充来源的适用边界",
+        "rationale": "当前更适合先核对 FAQ 标题策略是否仍按正式文档执行，并确认社区经验是否只是补充说明，无需直接改动现有标题。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "文档编辑建议",
+        "locator": "artifact:docs_page",
+        "excerpt": "批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区经验帖摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。"
+      }
+    ],
+    "confidence": 0.9,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-failed-docs-attachments-faq-forum-citation-drift-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-failed-docs-attachments-faq-forum-citation-drift-001",
+  "request_id": "sample-negative-failed-docs-attachments-faq-forum-citation-drift-001",
+  "captured_at": "2026-04-06T02:10:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "w14_batch"
+    ],
+    "notes": "用于离线负例回放的模拟候选输出批次，先按 manifest 收口，后续可逐步替换为真实 captured negative。"
+  },
+  "model": "qwen2.5-vl-negative-snapshot",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "attachments",
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "artifact_names": [
+      "attachment_reference_note",
+      "docs_page",
+      "faq_excerpt",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "failed",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "FAQ 和社区建议都说明可以直接公开真实 CDN 地址，当前附件也已经可用。",
+    "answers": [
+      {
+        "kind": "failed_answer",
+        "text": "当前可以按 FAQ 和论坛经验直接公开真实附件地址，不必继续坚持 `attachment://`。",
+        "citation_ids": [
+          "faq-2",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件导入说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "attachment://manual-42",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "附件导入 FAQ",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "如果用户希望附件链接更易读，可以在文档正文里补充说明文字，但仍应继续使用 `attachment://{id}` 作为实际引用。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "社区帖子摘录",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+      }
+    ],
+    "confidence": 0.64,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

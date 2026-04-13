@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-multi-selection-single-actionable-target-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 44,
+    "flowsheet_document": {
+      "document_id": "flowsheet-108",
+      "streams": [
+        {
+          "id": "feed-6",
+          "name": "Preheater Feed",
+          "target_unit_id": "heater-2",
+          "specs": {
+            "pressure_kpa": 205
+          }
+        },
+        {
+          "id": "product-6",
+          "name": "Preheater Outlet",
+          "source_unit_id": "heater-2",
+          "specs": {
+            "temperature_c": 145
+          }
+        }
+      ],
+      "units": [
+        {
+          "id": "heater-2",
+          "kind": "Heater",
+          "name": "Preheater",
+          "config": {
+            "control_mode": "duty"
+          }
+        }
+      ]
+    }
+  },
+  "selection_state": {
+    "selected_unit_ids": [
+      "heater-2"
+    ],
+    "selected_stream_ids": [
+      "feed-6",
+      "product-6"
+    ]
+  },
+  "diagnostics_export": {
+    "diagnostic_summary": {
+      "error_count": 1,
+      "warning_count": 1
+    },
+    "diagnostics": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Preheater Feed is missing temperature specification.",
+        "severity": "error",
+        "target_type": "stream",
+        "target_id": "feed-6"
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "The current outlet response may still be influenced by upstream uncertainty, so the heater effect is not yet confirmed as a separate root cause.",
+        "severity": "warning",
+        "target_type": "unit",
+        "target_id": "heater-2"
+      }
+    ]
+  },
+  "solve_snapshot": {
+    "solver_status": "partial_convergence",
+    "residual_norm": 0.11,
+    "last_updated": "2026-04-07T12:20:00Z"
+  }
+}

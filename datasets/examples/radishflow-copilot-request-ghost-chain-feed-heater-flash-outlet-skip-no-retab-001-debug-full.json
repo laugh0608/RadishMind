@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-outlet-skip-no-retab-001-debug-full",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 56,
+    "selected_unit_ids": [
+      "heater-4"
+    ],
+    "selected_unit": {
+      "id": "heater-4",
+      "kind": "Heater",
+      "name": "Feed Heater 603"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-heater-4-outlet-flash-16",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "heater-4",
+        "target_node_id": "flash-16.inlet",
+        "suggested_stream_name": "H-603",
+        "ranking_signals": {
+          "distance_px": 64,
+          "alignment_score": 0.93,
+          "topology_score": 0.9,
+          "score_gap_to_next": 0.0,
+          "template_frequency": 0.82
+        },
+        "naming_signals": {
+          "derived_from_upstream_name": true,
+          "applied_prefix": "H",
+          "numeric_suffix": "603",
+          "reused_existing_pattern": true,
+          "collision_checked": true
+        },
+        "conflict_flags": [
+          "recent_skip_cooldown_active",
+          "manual_reselection_required"
+        ],
+        "is_high_confidence": false,
+        "is_tab_default": false
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-603-to-heater-4-inlet",
+          "accepted_at_revision": 54
+        },
+        {
+          "kind": "skip_ghost_completion",
+          "candidate_ref": "cand-heater-4-outlet-flash-16",
+          "skipped_at_revision": 55
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-603"
+      ],
+      "existing_stream_names": [
+        "F-603"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "603"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "recent_skip_same_candidate_requires_manual_reselect"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-16.inlet",
+        "direction": "downstream",
+        "distance_px": 64,
+        "alignment_score": 0.93
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

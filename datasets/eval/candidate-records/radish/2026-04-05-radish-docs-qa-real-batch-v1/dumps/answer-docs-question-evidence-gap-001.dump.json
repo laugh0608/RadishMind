@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-evidence-gap-001",
+  "record_id": "captured-radish-answer-docs-question-evidence-gap-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-evidence-gap-001",
+  "request_id": "sample-evidence-gap-001",
+  "captured_at": "2026-04-05T01:10:21Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-readonly",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-evidence-gap-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# Hangfire 只读说明\n\n本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "console/hangfire-readonly",
+          "fragment_id": "lead",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "console",
+      "route": "/console/hangfire",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "console/hangfire-readonly",
+        "title": "Hangfire 只读说明"
+      },
+      "viewer": {
+        "is_authenticated": true,
+        "roles": [
+          "Admin"
+        ],
+        "permissions": [
+          "console.hangfire.view"
+        ]
+      },
+      "search_scope": [
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-evidence-gap-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"wiki_document\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# Hangfire 只读说明\\n\\n本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。\",\n      \"metadata\": {\n        \"source_type\": \"wiki\",\n        \"page_slug\": \"console/hangfire-readonly\",\n        \"fragment_id\": \"lead\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"console\",\n    \"route\": \"/console/hangfire\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"console/hangfire-readonly\",\n      \"title\": \"Hangfire 只读说明\"\n    },\n    \"viewer\": {\n      \"is_authenticated\": true,\n      \"roles\": [\n        \"Admin\"\n      ],\n      \"permissions\": [\n        \"console.hangfire.view\"\n      ]\n    },\n    \"search_scope\": [\n      \"wiki\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351382-oa9tMdlXLYXxT7JtE9eW",
+    "object": "chat.completion",
+    "created": 1775351383,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"summary\": \"根据当前文档，仅说明可以查看任务状态，未明确谁有权重试或删除任务。\",\n  \"status\": \"partial\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.6,\n  \"answers\": [\n    {\n      \"content\": \"提供的《Hangfire 只读说明》文档仅指出可查看任务状态，未包含任务重试或删除的权限定义。因此无法基于现有材料确认具体操作权限。\",\n      \"status\": \"partial\",\n      \"confidence\": 0.6,\n      \"citations\": [\n        \"wiki_document\"\n      ]\n    }\n  ],\n  \"issues\": [\n    \"文档明确声明未说明重试或删除任务的权限归属，证据不足，无法给出确定性结论。\"\n  ],\n  \"proposed_actions\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input JSON:** Contains a `CopilotRequest` with artifacts, context, tool hints, and safety settings.\n   - **Artifact:** A markdown wiki document titled \"Hangfire 只读说明\" (Hangfire Read-only Instructions). Content: \"本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。\" (This document only explains that task status can be viewed, and does not specify who has the right to retry or delete tasks.)\n   - **Context:** App: `console`, Route: `/console/hangfire`, Viewer: Authenticated, Role: `Admin`, Permissions: `[\"console.hangfire.view\"]`. Search scope: `wiki`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - If evidence is insufficient, sources conflict, or permissions can't be confirmed, degrade to `status=partial`.\n     - `proposed_actions` default to empty.\n     - `citations` only reference provided artifacts.\n     - Formal docs > informal.\n     - If doc is just an example/boundary hint, don't treat as definitive authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifact imply a question like: \"Who has permission to retry or delete Hangfire tasks?\" or \"What are the permissions for Hangfire tasks?\" Given the artifact explicitly says it *only* covers viewing status and *does not* specify retry/delete permissions, the answer must address this gap.\n\n3.  **Formulate Response based on Constraints:**\n   - `summary`: 直接回答问题。根据提供的文档，当前仅说明可以查看任务状态，未明确说明谁有权重试或删除任务。\n   - `status`: `partial` (because evidence is insufficient regarding retry/delete permissions).\n   - `risk_level`: `low` (default).\n   - `requires_confirmation`: `false` (default).\n   - `confidence`: `0.6` (or similar, reflecting the gap).\n   - `answers`: Array with at least one answer object. Should contain the summary, status, etc. Wait, the structure usually has `answers` as an array of objects, each with `content`, `status`, `confidence`, etc. I'll structure it according to typical `CopilotResponse` schema. Let's assume a standard structure:\n     ```json\n     {\n       \"project\": \"radish\",\n       \"task\": \"answer_docs_question\",\n       \"summary\": \"根据提供的文档，当前仅说明可以查看任务状态，未明确说明谁有权重试或删除任务。\",\n       \"status\": \"partial\",\n       \"risk_level\": \"low\",\n       \"requires_confirmation\": false,\n       \"confidence\": 0.6,\n       \"answers\": [\n         {\n           \"content\": \"当前文档仅说明具备查看任务状态的权限，未提供关于重试或删除任务的具体权限说明。\",\n           \"status\": \"partial\",\n           \"confidence\": 0.6,\n           \"citations\": [\"wiki_document\"]\n         }\n       ],\n       \"issues\": [\n         \"提供的文档未涵盖任务重试与删除的权限定义，无法确认 Admin 角色是否具备相关操作权限。\"\n       ],\n       \"proposed_actions\": []\n     }\n     ```\n   - Check constraints:\n     - `project`: \"radish\" ✓\n     - `task`: \"answer_docs_question\" ✓\n     - `summary` directly answers first ✓\n     - `risk_level`: \"low\" ✓\n     - `requires_confirmation`: false ✓\n     - `status`: \"partial\" due to evidence gap ✓\n     - `proposed_actions`: [] ✓\n     - `citations`: only references `wiki_document` (from artifact name) ✓\n     - `confidence`: 0.6 (0-1) ✓\n     - `issues`: used because evidence is insufficient ✓\n     - No markdown, just JSON ✓\n\n   Let's refine the JSON structure to strictly match typical `CopilotResponse` expectations. I'll make sure the keys align with common patterns. The prompt says \"结构必须满足 `CopilotResponse`\", but doesn't give the exact schema. I will use a standard, logical structure that fits the field reminders.\n\n   Structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"summary\": \"根据当前文档，仅说明可以查看任务状态，未明确谁有权重试或删除任务。\",\n     \"status\": \"partial\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.6,\n     \"answers\": [\n       {\n         \"content\": \"提供的《Hangfire 只读说明》文档仅指出可查看任务状态，未包含任务重试或删除的权限定义。因此无法基于现有材料确认具体操作权限。\",\n         \"status\": \"partial\",\n         \"confidence\": 0.6,\n         \"citations\": [\"wiki_document\"]\n       }\n     ],\n     \"issues\": [\n       \"文档明确声明未说明重试或删除任务的权限归属，证据不足，无法给出确定性结论。\"\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n\n   Check against constraints:\n   1. Only JSON object? Yes.\n   2. No markdown? Yes.\n   3. `summary` directly answers first? Yes.\n   4. `risk_level=low`, `requires_confirmation=false`? Yes.\n   5. `status=partial` due to insufficient evidence? Yes.\n   6. `proposed_actions` empty? Yes.\n   7. `citations` only reference existing artifacts? Yes, `wiki_document` matches the artifact name.\n   8. Formal doc priority? It's the only doc.\n   9. Don't treat as definitive authorization? Handled by `status=partial` and explicit wording.\n   10. Fields: `project`, `task`, `answers` >=1, `issues` used appropriately, `confidence` 0-1. All good.\n\n   One minor thing: The prompt says `citations` can only reference artifacts in the input. The artifact has `\"name\": \"wiki_document\"`. So `[\"wiki_document\"]` is correct.\n   I will ensure the JSON is perfectly formatted and contains no extra text.\n   Ready. Output matches exactly. \n   Self-Correction/Verification during thought:\n   - Should `answers` contain `citations` as an array of strings or objects? Usually strings referencing artifact names/IDs. I'll stick to strings.\n   - `confidence` is a float. 0.6 is fine.\n   - `status` at top level and inside `answers`? I'll keep it consistent.\n   - The prompt says \"普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\". I'll set them.\n   - All constraints met.\n\n   Generate JSON. \n   Output matches the refined structure.✅\n   Proceeds. \n   Output Generation. \n   *(Self-Correction/Refinement during generation prep)*: I'll make sure the JSON keys exactly match what's typically expected. I'll structure it cleanly.\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"summary\": \"根据当前文档，仅说明可以查看任务状态，未明确谁有权重试或删除任务。\",\n     \"status\": \"partial\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.6,\n     \"answers\": [\n       {\n         \"content\": \"提供的《Hangfire 只读说明》文档仅指出可查看任务状态，未包含任务重试或删除的权限定义。因此无法基于现有材料确认具体操作权限。\",\n         \"status\": \"partial\",\n         \"confidence\": 0.6,\n         \"citations\": [\"wiki_document\"]\n       }\n     ],\n     \"issues\": [\n       \"文档明确声明未说明重试或删除任务的权限归属，证据不足，无法给出确定性结论。\"\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n   This looks solid. Matches all constraints. No extra text. Direct JSON. Proceeds. \n   Output matches exactly. \n   [Done] \n   *Self-Correction/Note during thought*: The prompt says \"只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\". I will ensure the JSON is valid and strictly follows the requested fields. I'll output it directly.✅\n   Final Check of the prompt: \"summary 必须先直接回答问题\" -> Checked.\n   \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> Checked.\n   \"若证据不足...可退化为 status=partial\" -> Checked.\n   \"proposed_actions 默认应为空\" -> Checked.\n   \"citations 只能引用当前输入里已有的 artifacts\" -> Checked.\n   All good. \n   Output Generation. \n   *(Proceeds)*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input JSON:** Contains a `CopilotRequest` with artifacts, context, tool hints, and safety settings.\n   - **Artifact:** A markdown wiki document titled \"Hangfire 只读说明\" (Hangfire Read-only Instructions). Content: \"本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。\" (This document only explains that task status can be viewed, and does not specify who has the right to retry or delete tasks.)\n   - **Context:** App: `console`, Route: `/console/hangfire`, Viewer: Authenticated, Role: `Admin`, Permissions: `[\"console.hangfire.view\"]`. Search scope: `wiki`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - If evidence is insufficient, sources conflict, or permissions can't be confirmed, degrade to `status=partial`.\n     - `proposed_actions` default to empty.\n     - `citations` only reference provided artifacts.\n     - Formal docs > informal.\n     - If doc is just an example/boundary hint, don't treat as definitive authorization.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifact imply a question like: \"Who has permission to retry or delete Hangfire tasks?\" or \"What are the permissions for Hangfire tasks?\" Given the artifact explicitly says it *only* covers viewing status and *does not* specify retry/delete permissions, the answer must address this gap.\n\n3.  **Formulate Response based on Constraints:**\n   - `summary`: 直接回答问题。根据提供的文档，当前仅说明可以查看任务状态，未明确说明谁有权重试或删除任务。\n   - `status`: `partial` (because evidence is insufficient regarding retry/delete permissions).\n   - `risk_level`: `low` (default).\n   - `requires_confirmation`: `false` (default).\n   - `confidence`: `0.6` (or similar, reflecting the gap).\n   - `answers`: Array with at least one answer object. Should contain the summary, status, etc. Wait, the structure usually has `answers` as an array of objects, each with `content`, `status`, `confidence`, etc. I'll structure it according to typical `CopilotResponse` schema. Let's assume a standard structure:\n     ```json\n     {\n       \"project\": \"radish\",\n       \"task\": \"answer_docs_question\",\n       \"summary\": \"根据提供的文档，当前仅说明可以查看任务状态，未明确说明谁有权重试或删除任务。\",\n       \"status\": \"partial\",\n       \"risk_level\": \"low\",\n       \"requires_confirmation\": false,\n       \"confidence\": 0.6,\n       \"answers\": [\n         {\n           \"content\": \"当前文档仅说明具备查看任务状态的权限，未提供关于重试或删除任务的具体权限说明。\",\n           \"status\": \"partial\",\n           \"confidence\": 0.6,\n           \"citations\": [\"wiki_document\"]\n         }\n       ],\n       \"issues\": [\n         \"提供的文档未涵盖任务重试与删除的权限定义，无法确认 Admin 角色是否具备相关操作权限。\"\n       ],\n       \"proposed_actions\": []\n     }\n     ```\n   - Check constraints:\n     - `project`: \"radish\" ✓\n     - `task`: \"answer_docs_question\" ✓\n     - `summary` directly answers first ✓\n     - `risk_level`: \"low\" ✓\n     - `requires_confirmation`: false ✓\n     - `status`: \"partial\" due to evidence gap ✓\n     - `proposed_actions`: [] ✓\n     - `citations`: only references `wiki_document` (from artifact name) ✓\n     - `confidence`: 0.6 (0-1) ✓\n     - `issues`: used because evidence is insufficient ✓\n     - No markdown, just JSON ✓\n\n   Let's refine the JSON structure to strictly match typical `CopilotResponse` expectations. I'll make sure the keys align with common patterns. The prompt says \"结构必须满足 `CopilotResponse`\", but doesn't give the exact schema. I will use a standard, logical structure that fits the field reminders.\n\n   Structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"summary\": \"根据当前文档，仅说明可以查看任务状态，未明确谁有权重试或删除任务。\",\n     \"status\": \"partial\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.6,\n     \"answers\": [\n       {\n         \"content\": \"提供的《Hangfire 只读说明》文档仅指出可查看任务状态，未包含任务重试或删除的权限定义。因此无法基于现有材料确认具体操作权限。\",\n         \"status\": \"partial\",\n         \"confidence\": 0.6,\n         \"citations\": [\"wiki_document\"]\n       }\n     ],\n     \"issues\": [\n       \"文档明确声明未说明重试或删除任务的权限归属，证据不足，无法给出确定性结论。\"\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n\n   Check against constraints:\n   1. Only JSON object? Yes.\n   2. No markdown? Yes.\n   3. `summary` directly answers first? Yes.\n   4. `risk_level=low`, `requires_confirmation=false`? Yes.\n   5. `status=partial` due to insufficient evidence? Yes.\n   6. `proposed_actions` empty? Yes.\n   7. `citations` only reference existing artifacts? Yes, `wiki_document` matches the artifact name.\n   8. Formal doc priority? It's the only doc.\n   9. Don't treat as definitive authorization? Handled by `status=partial` and explicit wording.\n   10. Fields: `project`, `task`, `answers` >=1, `issues` used appropriately, `confidence` 0-1. All good.\n\n   One minor thing: The prompt says `citations` can only reference artifacts in the input. The artifact has `\"name\": \"wiki_document\"`. So `[\"wiki_document\"]` is correct.\n   I will ensure the JSON is perfectly formatted and contains no extra text.\n   Ready. Output matches exactly. \n   Self-Correction/Verification during thought:\n   - Should `answers` contain `citations` as an array of strings or objects? Usually strings referencing artifact names/IDs. I'll stick to strings.\n   - `confidence` is a float. 0.6 is fine.\n   - `status` at top level and inside `answers`? I'll keep it consistent.\n   - The prompt says \"普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\". I'll set them.\n   - All constraints met.\n\n   Generate JSON. \n   Output matches the refined structure.✅\n   Proceeds. \n   Output Generation. \n   *(Self-Correction/Refinement during generation prep)*: I'll make sure the JSON keys exactly match what's typically expected. I'll structure it cleanly.\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"summary\": \"根据当前文档，仅说明可以查看任务状态，未明确谁有权重试或删除任务。\",\n     \"status\": \"partial\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.6,\n     \"answers\": [\n       {\n         \"content\": \"提供的《Hangfire 只读说明》文档仅指出可查看任务状态，未包含任务重试或删除的权限定义。因此无法基于现有材料确认具体操作权限。\",\n         \"status\": \"partial\",\n         \"confidence\": 0.6,\n         \"citations\": [\"wiki_document\"]\n       }\n     ],\n     \"issues\": [\n       \"文档明确声明未说明重试或删除任务的权限归属，证据不足，无法给出确定性结论。\"\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n   This looks solid. Matches all constraints. No extra text. Direct JSON. Proceeds. \n   Output matches exactly. \n   [Done] \n   *Self-Correction/Note during thought*: The prompt says \"只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\". I will ensure the JSON is valid and strictly follows the requested fields. I'll output it directly.✅\n   Final Check of the prompt: \"summary 必须先直接回答问题\" -> Checked.\n   \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> Checked.\n   \"若证据不足...可退化为 status=partial\" -> Checked.\n   \"proposed_actions 默认应为空\" -> Checked.\n   \"citations 只能引用当前输入里已有的 artifacts\" -> Checked.\n   All good. \n   Output Generation. \n   *(Proceeds)*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 722,
+      "completion_tokens": 2318,
+      "total_tokens": 3040,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2099,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "根据当前文档，仅说明可以查看任务状态，未明确谁有权重试或删除任务。",
+    "status": "partial",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.6,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "提供的《Hangfire 只读说明》文档仅指出可查看任务状态，未包含任务重试或删除的权限定义。因此无法基于现有材料确认具体操作权限。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "console/hangfire-readonly",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# Hangfire 只读说明 本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "schema_version": 1
+  }
+}

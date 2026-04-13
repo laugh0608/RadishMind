@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-navigation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-navigation-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 附件说明\n\n公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/attachments",
+          "fragment_id": "usage",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "docs_page_related",
+        "mime_type": "text/markdown",
+        "content": "# 富文本编辑器说明\n\n在编辑器中插入附件时，优先使用系统生成的引用格式。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/rich-text-editor",
+          "fragment_id": "attachments",
+          "retrieval_rank": 2,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/attachments",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/attachments",
+        "title": "附件使用指南"
+      },
+      "search_scope": [
+        "docs",
+        "wiki"
+      ],
+      "attachment_refs": [
+        "attachment://123456789"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 3,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "required_search_scopes": [
+      "docs"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "docs",
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "read_only_check"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.citations[0]"
+    ],
+    "must_not_have_json_paths": [
+      "$.requires_confirmation=true"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "citation_hit",
+      "actionability",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment"
+    ],
+    "notes": "使用批次 `2026-04-05-radish-docs-qa-real-batch-v1` 中同样本的真实候选快照做负例 replay，保持原样本的 sample_id/request_id，对齐通过后验证真实候选回答命中这些违规：`is missing required action kind 'read_only_check'`。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "is missing required action kind 'read_only_check'"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+    "record_id": "captured-radish-answer-docs-question-navigation-001",
+    "expected_source": "captured_candidate_response",
+    "required_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+    "required_capture_origin": "adapter_debug_dump",
+    "required_tags": [
+      "radish_docs_qa",
+      "real_capture"
+    ]
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前文档建议优先使用 `attachment://{id}` 这种引用格式，再由运行时解析为真实附件地址。",
+    "answers": [
+      {
+        "kind": "navigation_answer",
+        "text": "如果你是在文档或编辑器里插入附件，优先使用系统生成的 `attachment://{id}` 引用格式，而不是手写真实地址。",
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "查看附件使用指南",
+        "rationale": "当前页面已经与附件指南相关，继续查看该页面即可确认引用格式。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "doc-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "附件说明",
+        "locator": "artifact:docs_page",
+        "excerpt": "公开文档建议使用 `attachment://{id}` 引用，再由运行时解析为真实地址。"
+      },
+      {
+        "id": "doc-2",
+        "kind": "artifact",
+        "label": "富文本编辑器说明",
+        "locator": "artifact:docs_page_related",
+        "excerpt": "在编辑器中插入附件时，优先使用系统生成的引用格式。"
+      }
+    ],
+    "confidence": 0.94,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

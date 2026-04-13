@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-docs-faq-mixed-001",
+  "record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+  "request_id": "sample-docs-faq-mixed-001",
+  "captured_at": "2026-04-05T01:09:43Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-docs-faq-mixed-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "docs_page",
+        "mime_type": "text/markdown",
+        "content": "# 文档发布说明\n\n公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。",
+        "metadata": {
+          "source_type": "docs",
+          "page_slug": "guide/publishing",
+          "fragment_id": "slug-stability",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      },
+      {
+        "kind": "markdown",
+        "role": "supporting",
+        "name": "faq_excerpt",
+        "mime_type": "text/markdown",
+        "content": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。",
+        "metadata": {
+          "source_type": "faq",
+          "page_slug": "faq/publishing",
+          "fragment_id": "slug-alias",
+          "retrieval_rank": 2,
+          "is_official": false
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/publishing",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/publishing",
+        "title": "文档发布说明"
+      },
+      "search_scope": [
+        "docs",
+        "faq"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-docs-faq-mixed-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"docs_page\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 文档发布说明\\n\\n公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。\",\n      \"metadata\": {\n        \"source_type\": \"docs\",\n        \"page_slug\": \"guide/publishing\",\n        \"fragment_id\": \"slug-stability\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    },\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"supporting\",\n      \"name\": \"faq_excerpt\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。\",\n      \"metadata\": {\n        \"source_type\": \"faq\",\n        \"page_slug\": \"faq/publishing\",\n        \"fragment_id\": \"slug-alias\",\n        \"retrieval_rank\": 2,\n        \"is_official\": false\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/publishing\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/publishing\",\n      \"title\": \"文档发布说明\"\n    },\n    \"search_scope\": [\n      \"docs\",\n      \"faq\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351336-CAIMk1D0qMKHmILkQ5Rn",
+    "object": "chat.completion",
+    "created": 1775351336,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"complete\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.95,\n  \"summary\": \"公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。\",\n  \"answers\": [\n    {\n      \"question\": \"发布后如何调整文档标题或访问地址？\",\n      \"answer\": \"根据官方文档规范，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若确需调整标题，可参考补充建议：为文档配置 alias 以保留旧链接，随后再逐步切换至新标题。\",\n      \"citations\": [\n        {\n          \"artifact_name\": \"docs_page\",\n          \"fragment_id\": \"slug-stability\"\n        },\n        {\n          \"artifact_name\": \"faq_excerpt\",\n          \"fragment_id\": \"slug-alias\"\n        }\n      ]\n    }\n  ],\n  \"proposed_actions\": [],\n  \"issues\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `docs_page` (primary, official): States that after public doc release, the original slug should remain stable. If title needs adjustment, avoid directly changing the existing access URL.\n     - `faq_excerpt` (supporting, non-official): FAQ says if title adjustment is necessary, add an alias to keep the old link, then gradually switch to the new title.\n   - **Context:** App: `document`, Route: `/document/guide/publishing`, Resource: `wiki_document` with slug `guide/publishing`, title `文档发布说明`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, the prompt doesn't explicitly state a question, but implies answering based on the docs. I need to infer the implicit question: \"How to handle title/slug changes after publishing?\" or just summarize the policy.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `status=partial` if evidence is insufficient/conflicting. Here, they align well (docs say keep slug stable, FAQ says use alias if change is needed). So `status=complete`.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Formal docs > FAQ.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n   - **Implicit Question:** The prompt doesn't give an explicit user question, but the context and artifacts are about document publishing and slug/title stability. I will frame the answer around the policy for changing titles/slugs after publication.\n\n2.  **Determine Response Structure (`CopilotResponse`):**\n   Need to construct a JSON with typical fields for this task. Based on standard CopilotResponse schemas for doc QA:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后如何调整文档标题或 slug？\",\n         \"answer\": \"根据官方文档说明，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若业务确需调整标题，可参考 FAQ 建议：为文档补一个 alias 以保留旧链接，随后再逐步切换至新标题。\",\n         \"citations\": [\n           {\"artifact_name\": \"docs_page\", \"fragment_id\": \"slug-stability\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"slug-alias\"}\n         ]\n       }\n     ],\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n\n3.  **Check Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status`? `complete` is fine.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes.\n   - Formal > FAQ? I prioritized the docs page in the answer and cited both appropriately.\n   - `project` & `task` fixed? Yes.\n   - `answers` >= 1? Yes.\n   - `confidence` 0-1? 0.95 is fine.\n   - Language: zh-CN (matches input).\n\n   One minor thing: The prompt says \"summary 必须先直接回答问题\". Since there's no explicit question in the prompt, I will assume the implicit question is about the publishing/slug policy. I'll make the summary a direct statement of the policy.\n\n   Let's refine the JSON to strictly match typical `CopilotResponse` structure for this specific task. I'll ensure all required fields are present and correctly formatted.\n\n   Structure check:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。\",\n     \"answers\": [\n       {\n         \"content\": \"根据官方文档规范，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若确需调整标题，可参考补充建议：为文档配置 alias 以保留旧链接，随后再逐步切换至新标题。\",\n         \"citations\": [\n           {\n             \"artifact_name\": \"docs_page\",\n             \"fragment_id\": \"slug-stability\"\n           },\n           {\n             \"artifact_name\": \"faq_excerpt\",\n             \"fragment_id\": \"slug-alias\"\n           }\n         ]\n       }\n     ],\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n   Wait, `answers` usually has `question` and `answer` or just `content`. I'll stick to a simple structure. The prompt says `answers` 至少 1 条. I'll use `question` and `answer` for clarity, or just `answer`. I'll follow a standard format.\n\n   Let's verify constraints:\n   - \"summary 必须先直接回答问题\" -> I'll make it direct.\n   - \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> Checked.\n   - \"citations 只能引用当前输入里已有的 artifacts\" -> Checked.\n   - \"正式文档优先于 FAQ\" -> I'll explicitly state the official doc rule first, then mention the FAQ as a supplementary workaround.\n   - \"不要凭空生成高风险动作；proposed_actions 默认应为空\" -> Checked.\n   - \"issues 只有在证据不足...再使用\" -> Empty array.\n\n   All good. I will generate the raw JSON string. No markdown formatting. Ensure valid JSON.\n   One detail: `citations` format might need `source` or `artifact_name`. I'll use `artifact_name` and `fragment_id` as they are in the input metadata.\n   I will construct it carefully.\n\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后如何调整文档标题或访问地址？\",\n         \"answer\": \"根据官方文档规范，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若业务确需调整标题，可参考 FAQ 建议：为文档补一个 alias 以保留旧链接，随后再逐步切换至新标题。\",\n         \"citations\": [\n           {\"artifact_name\": \"docs_page\", \"fragment_id\": \"slug-stability\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"slug-alias\"}\n         ]\n       }\n     ],\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n   This matches all constraints. I will output exactly this JSON. No extra text. No markdown.\n   One thing: The prompt says \"summary 必须先直接回答问题\". Since there's no explicit question, I'll assume the question is implied by the context/artifacts. The summary directly states the policy. That's fine.\n   I will produce the JSON now. \n   Self-Correction/Refinement during thought: \n   Should I include `locale`? Not required by prompt, but usually part of response. I'll stick to the explicitly requested fields. The prompt says \"结构必须满足 CopilotResponse\", but doesn't give the exact schema. I'll use standard fields.\n   I'll make sure the JSON is perfectly valid and strictly follows the rules.\n   Output matches exactly.✅\n   Proceed. \n   Output Generation. \n   *(Self-Correction/Verification during generation prep)*\n   Wait, the prompt says \"不要输出 markdown 代码块，不要输出 JSON 之外的解释\". I will output raw JSON starting with `{` and ending with `}`.\n   All constraints met.\n   Ready. \n   Output matches the refined JSON. \n   Proceeds. \n   `[Output Generation]` -> *See response.* \n   *(Note: I will ensure the JSON is compact or pretty-printed, but without markdown backticks.)*\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", ... }` -> valid.\n   All good. \n   Output matches response. \n   *(Done.)*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` for project `radish`.\n   - **Input Artifacts:**\n     - `docs_page` (primary, official): States that after public doc release, the original slug should remain stable. If title needs adjustment, avoid directly changing the existing access URL.\n     - `faq_excerpt` (supporting, non-official): FAQ says if title adjustment is necessary, add an alias to keep the old link, then gradually switch to the new title.\n   - **Context:** App: `document`, Route: `/document/guide/publishing`, Resource: `wiki_document` with slug `guide/publishing`, title `文档发布说明`.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, the prompt doesn't explicitly state a question, but implies answering based on the docs. I need to infer the implicit question: \"How to handle title/slug changes after publishing?\" or just summarize the policy.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `status=partial` if evidence is insufficient/conflicting. Here, they align well (docs say keep slug stable, FAQ says use alias if change is needed). So `status=complete`.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Formal docs > FAQ.\n     - Fields: `project=\"radish\"`, `task=\"answer_docs_question\"`, `answers` >= 1, `issues` only if needed, `confidence` 0-1.\n   - **Implicit Question:** The prompt doesn't give an explicit user question, but the context and artifacts are about document publishing and slug/title stability. I will frame the answer around the policy for changing titles/slugs after publication.\n\n2.  **Determine Response Structure (`CopilotResponse`):**\n   Need to construct a JSON with typical fields for this task. Based on standard CopilotResponse schemas for doc QA:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后如何调整文档标题或 slug？\",\n         \"answer\": \"根据官方文档说明，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若业务确需调整标题，可参考 FAQ 建议：为文档补一个 alias 以保留旧链接，随后再逐步切换至新标题。\",\n         \"citations\": [\n           {\"artifact_name\": \"docs_page\", \"fragment_id\": \"slug-stability\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"slug-alias\"}\n         ]\n       }\n     ],\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n\n3.  **Check Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status`? `complete` is fine.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes.\n   - Formal > FAQ? I prioritized the docs page in the answer and cited both appropriately.\n   - `project` & `task` fixed? Yes.\n   - `answers` >= 1? Yes.\n   - `confidence` 0-1? 0.95 is fine.\n   - Language: zh-CN (matches input).\n\n   One minor thing: The prompt says \"summary 必须先直接回答问题\". Since there's no explicit question in the prompt, I will assume the implicit question is about the publishing/slug policy. I'll make the summary a direct statement of the policy.\n\n   Let's refine the JSON to strictly match typical `CopilotResponse` structure for this specific task. I'll ensure all required fields are present and correctly formatted.\n\n   Structure check:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。\",\n     \"answers\": [\n       {\n         \"content\": \"根据官方文档规范，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若确需调整标题，可参考补充建议：为文档配置 alias 以保留旧链接，随后再逐步切换至新标题。\",\n         \"citations\": [\n           {\n             \"artifact_name\": \"docs_page\",\n             \"fragment_id\": \"slug-stability\"\n           },\n           {\n             \"artifact_name\": \"faq_excerpt\",\n             \"fragment_id\": \"slug-alias\"\n           }\n         ]\n       }\n     ],\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n   Wait, `answers` usually has `question` and `answer` or just `content`. I'll stick to a simple structure. The prompt says `answers` 至少 1 条. I'll use `question` and `answer` for clarity, or just `answer`. I'll follow a standard format.\n\n   Let's verify constraints:\n   - \"summary 必须先直接回答问题\" -> I'll make it direct.\n   - \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\" -> Checked.\n   - \"citations 只能引用当前输入里已有的 artifacts\" -> Checked.\n   - \"正式文档优先于 FAQ\" -> I'll explicitly state the official doc rule first, then mention the FAQ as a supplementary workaround.\n   - \"不要凭空生成高风险动作；proposed_actions 默认应为空\" -> Checked.\n   - \"issues 只有在证据不足...再使用\" -> Empty array.\n\n   All good. I will generate the raw JSON string. No markdown formatting. Ensure valid JSON.\n   One detail: `citations` format might need `source` or `artifact_name`. I'll use `artifact_name` and `fragment_id` as they are in the input metadata.\n   I will construct it carefully.\n\n   Final check of the JSON structure:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"complete\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.95,\n     \"summary\": \"公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。\",\n     \"answers\": [\n       {\n         \"question\": \"发布后如何调整文档标题或访问地址？\",\n         \"answer\": \"根据官方文档规范，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若业务确需调整标题，可参考 FAQ 建议：为文档补一个 alias 以保留旧链接，随后再逐步切换至新标题。\",\n         \"citations\": [\n           {\"artifact_name\": \"docs_page\", \"fragment_id\": \"slug-stability\"},\n           {\"artifact_name\": \"faq_excerpt\", \"fragment_id\": \"slug-alias\"}\n         ]\n       }\n     ],\n     \"proposed_actions\": [],\n     \"issues\": []\n   }\n   ```\n   This matches all constraints. I will output exactly this JSON. No extra text. No markdown.\n   One thing: The prompt says \"summary 必须先直接回答问题\". Since there's no explicit question, I'll assume the question is implied by the context/artifacts. The summary directly states the policy. That's fine.\n   I will produce the JSON now. \n   Self-Correction/Refinement during thought: \n   Should I include `locale`? Not required by prompt, but usually part of response. I'll stick to the explicitly requested fields. The prompt says \"结构必须满足 CopilotResponse\", but doesn't give the exact schema. I'll use standard fields.\n   I'll make sure the JSON is perfectly valid and strictly follows the rules.\n   Output matches exactly.✅\n   Proceed. \n   Output Generation. \n   *(Self-Correction/Verification during generation prep)*\n   Wait, the prompt says \"不要输出 markdown 代码块，不要输出 JSON 之外的解释\". I will output raw JSON starting with `{` and ending with `}`.\n   All constraints met.\n   Ready. \n   Output matches the refined JSON. \n   Proceeds. \n   `[Output Generation]` -> *See response.* \n   *(Note: I will ensure the JSON is compact or pretty-printed, but without markdown backticks.)*\n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", ... }` -> valid.\n   All good. \n   Output matches response. \n   *(Done.)*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 819,
+      "completion_tokens": 2419,
+      "total_tokens": 3238,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2140,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.95,
+    "summary": "公开文档发布后应默认保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，建议通过添加 alias 保留旧链接，再逐步过渡到新标题。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档规范，公开文档发布后应优先保持原有 slug 稳定，避免直接改动既有访问地址。若确需调整标题，可参考补充建议：为文档配置 alias 以保留旧链接，随后再逐步切换至新标题。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/publishing",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档发布说明 公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/publishing",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      }
+    ],
+    "schema_version": 1
+  }
+}

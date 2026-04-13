@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-11-radishflow-ghost-poc-real-v9-deepseek",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/suggest-ghost-completion-flash-vapor-outlet-001.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/suggest-ghost-completion-valve-ambiguous-no-tab-001.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第八批真实 provider 候选响应快照。本轮先按 openrouter 主链依次观察到默认 free 模型废弃、本地 qwen 付费额度门槛、gemma 短窗口限流，以及 nemotron-nano 在 ambiguous 样本上的 schema-invalid 质量漂移；随后切到 DeepSeek fallback profile 覆盖 Tab/manual_only/empty 三条正式导入主路径，并确认当前未新增可通过 runtime 窄修复治理的任务级结构坏法。"
+}

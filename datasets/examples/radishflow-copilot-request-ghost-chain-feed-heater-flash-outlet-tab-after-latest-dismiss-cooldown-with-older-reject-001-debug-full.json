@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-ghost-request-chain-feed-heater-flash-outlet-tab-after-latest-dismiss-cooldown-with-older-reject-001-debug-full",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "locale": "zh-CN",
+  "artifacts": [
+    {
+      "kind": "json",
+      "role": "primary",
+      "name": "flowsheet_document",
+      "mime_type": "application/json",
+      "uri": "artifact://flowsheet/current"
+    }
+  ],
+  "context": {
+    "document_revision": 72,
+    "selected_unit_ids": [
+      "heater-10"
+    ],
+    "selected_unit": {
+      "id": "heater-10",
+      "kind": "Heater",
+      "name": "Feed Heater 609"
+    },
+    "legal_candidate_completions": [
+      {
+        "candidate_ref": "cand-heater-10-outlet-flash-32",
+        "ghost_kind": "ghost_connection",
+        "target_port_key": "outlet",
+        "target_unit_id": "heater-10",
+        "target_node_id": "flash-32.inlet",
+        "suggested_stream_name": "H-609",
+        "ranking_signals": {
+          "distance_px": 58,
+          "alignment_score": 0.96,
+          "topology_score": 0.95,
+          "score_gap_to_next": 0.36,
+          "template_frequency": 0.87
+        },
+        "naming_signals": {
+          "derived_from_upstream_name": true,
+          "applied_prefix": "H",
+          "numeric_suffix": "609",
+          "reused_existing_pattern": true,
+          "collision_checked": true
+        },
+        "is_high_confidence": true,
+        "is_tab_default": true
+      }
+    ],
+    "unconnected_ports": [
+      "outlet"
+    ],
+    "cursor_context": {
+      "mode": "unit_selected",
+      "recent_actions": [
+        {
+          "kind": "accept_ghost_completion",
+          "candidate_ref": "cand-feed-609-to-heater-10-inlet",
+          "accepted_at_revision": 67
+        },
+        {
+          "kind": "reject_ghost_completion",
+          "candidate_ref": "cand-heater-10-outlet-flash-32",
+          "rejected_at_revision": 69
+        },
+        {
+          "kind": "dismiss_ghost_completion",
+          "candidate_ref": "cand-heater-10-outlet-flash-32",
+          "dismissed_at_revision": 70
+        }
+      ]
+    },
+    "naming_hints": {
+      "upstream_stream_names": [
+        "F-609"
+      ],
+      "existing_stream_names": [
+        "F-609"
+      ],
+      "preferred_outlet_prefix": "H",
+      "numeric_suffix_from_unit": "609"
+    },
+    "topology_pattern_hints": [
+      "feed_heater_flash_chain",
+      "heater_outlet_to_flash_inlet_after_feed_connection",
+      "recent_latest_same_candidate_dismiss_cooldown_elapsed_overrides_older_reject"
+    ],
+    "nearby_nodes": [
+      {
+        "type": "unit_port",
+        "id": "flash-32.inlet",
+        "direction": "downstream",
+        "distance_px": 58,
+        "alignment_score": 0.96
+      }
+    ]
+  },
+  "tool_hints": {
+    "allow_retrieval": false,
+    "allow_tool_calls": false,
+    "allow_image_reasoning": false
+  },
+  "safety": {
+    "mode": "advisory",
+    "requires_confirmation_for_actions": false
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 75,
+  "selected_unit": {
+    "id": "heater-11",
+    "kind": "Heater",
+    "name": "Feed Heater 610"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-34.inlet",
+      "direction": "downstream",
+      "distance_px": 66,
+      "alignment_score": 0.91,
+      "blocked_reason": "occupied_by_existing_stream"
+    },
+    {
+      "type": "unit_port",
+      "id": "flash-35.inlet",
+      "direction": "downstream",
+      "distance_px": 79,
+      "alignment_score": 0.84,
+      "blocked_reason": "manual_skip_left_no_remaining_legal_route"
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-610-to-heater-11-inlet",
+        "accepted_at_revision": 72
+      },
+      {
+        "kind": "reject_ghost_completion",
+        "candidate_ref": "cand-heater-11-outlet-flash-34",
+        "rejected_at_revision": 73
+      },
+      {
+        "kind": "skip_ghost_completion",
+        "candidate_ref": "cand-heater-11-outlet-flash-35",
+        "skipped_at_revision": 74
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-610"
+    ],
+    "existing_stream_names": [
+      "F-610",
+      "H-610"
+    ],
+    "preferred_outlet_prefix": "H",
+    "numeric_suffix_from_unit": "610"
+  },
+  "topology_pattern_hints": [
+    "feed_heater_flash_chain",
+    "heater_outlet_to_flash_inlet_after_feed_connection",
+    "stop_when_no_legal_heater_outlet_candidates_after_mixed_history"
+  ],
+  "legal_candidate_completions": [],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-heater-flash-chain-v1",
+    "notes": "第二条链式模板示例：即使 recent_actions 中已经叠加了 accept、reject 与 skip，只要当前合法 outlet 候选为空，就必须稳定停在空建议。"
+  }
+}

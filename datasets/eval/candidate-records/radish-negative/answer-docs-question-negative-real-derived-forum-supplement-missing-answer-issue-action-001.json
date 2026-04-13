@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
+  "request_id": "sample-negative-real-derived-forum-supplement-missing-answer-issue-action-001",
+  "captured_at": "2026-04-06T11:27:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_answer_issue_action_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-forum-supplement-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 forum-supplement 真实 record 派生，专门模拟 answers 缺失的真实坏输出继续叠加 issue / read_only_check 的组合失稳。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/faq-import",
+    "resource_slug": "guide/faq-import",
+    "search_scope": [
+      "docs",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "批量导入 FAQ 时仍应先保留原始标题；社区帖子只补充了可在不破坏检索语义前提下追加别名的实践经验。",
+    "answers": [],
+    "issues": [
+      {
+        "code": "ALIAS_REVIEW_NOTE",
+        "message": "当前回答额外把“是否追加别名”提升成了一条需要显式跟踪的问题。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "read_only_check",
+        "title": "复核追加别名是否影响检索语义",
+        "rationale": "虽然正式文档已经给出边界，但当前回答又额外把论坛补充建议落成了一条只读复核动作。",
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/faq-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档编辑建议 批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/faq-import-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。"
+      }
+    ],
+    "confidence": 0.83,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

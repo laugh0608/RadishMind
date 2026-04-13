@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-mixer-outlet-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-204",
+          "streams": [
+            {
+              "id": "feed-a",
+              "name": "A-201",
+              "target_unit_id": "mixer-1"
+            },
+            {
+              "id": "feed-b",
+              "name": "B-201",
+              "target_unit_id": "mixer-1"
+            }
+          ],
+          "units": [
+            {
+              "id": "mixer-1",
+              "kind": "Mixer",
+              "name": "Mixer 201"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 44,
+      "selected_unit_ids": [
+        "mixer-1"
+      ],
+      "selected_unit": {
+        "id": "mixer-1",
+        "kind": "Mixer",
+        "name": "Mixer 201"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-mixer-1-outlet-stub",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "mixer-1",
+          "target_port_key": "outlet",
+          "suggested_stream_name": "MIX-201",
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "topology_pattern_hints": [
+        "standard_mixer_two_in_one_out"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].target.unit_id=\"mixer-1\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-mixer-1-outlet-stub\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"MIX-201\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept"
+    ],
+    "notes": "Mixer 在两入一出的标准局部拓扑下，应优先补单一 outlet，而不是额外猜测更多入口。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "mixer-1 已具备两个入口，当前最稳定的下一步是补 outlet 的灰态连线占位。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "在标准的两入一出 Mixer 拓扑下，入口已齐备时应优先补 outlet，且本地规则当前只给出一个合法候选。",
+        "citation_ids": [
+          "art-feed-a",
+          "art-feed-b",
+          "ctx-candidate-outlet"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 mixer-1 的 outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "mixer-1",
+          "port_key": "outlet"
+        },
+        "rationale": "当前输入侧已经满足标准 Mixer 拓扑，因此 outlet 是最少副作用的下一步补全。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-mixer-1-outlet-stub",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "MIX-201"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-mixer-1-outlet-stub"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-outlet",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "art-feed-a",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-a",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-a 已连接到 mixer-1。"
+      },
+      {
+        "id": "art-feed-b",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-b",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "feed-b 已连接到 mixer-1。"
+      },
+      {
+        "id": "ctx-candidate-outlet",
+        "kind": "context",
+        "label": "Mixer outlet 合法候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-mixer-1-outlet-stub target_port_key=outlet"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "标准 Mixer 模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "standard_mixer_two_in_one_out"
+      }
+    ],
+    "confidence": 0.94,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

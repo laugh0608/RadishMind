@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-03
+更新时间：2026-04-12
 
 ## 架构目标
 
@@ -58,7 +58,18 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 项目重点：
 
 - `RadishFlow`
+  - 当前仓库已先落最小 `adapter-radishflow` 骨架：`adapters/radishflow/request_builder.py` 与 `scripts/build-radishflow-request.py` 可把上游快照稳定装配为 `CopilotRequest`，并已对齐六条既有 eval sample，覆盖最小样本、控制面冲突态与多选裁剪态
+  - 当前还已补 export -> adapter 的中间转换层：`adapters/radishflow/export_snapshot.py` 与 `scripts/build-radishflow-adapter-snapshot.py` 可先把更贴近真实导出对象的嵌套快照收口成 adapter snapshot，避免 adapter 直接绑定到手工拼装的扁平 fixture
+  - 当前还已补 export -> request 的直达入口：`scripts/build-radishflow-export-request.py` 可让更贴近真实导出对象的输入直接落到 runtime 请求，避免端到端链路只靠“两段脚本各自正确”来间接保证
+  - `RadishFlowExportSnapshot` 当前已在集成契约中补上字段映射约定：上游负责直接导出 `document_state / selection_state / diagnostics_export / solve_session_state / solve_snapshot / control_plane_snapshot`，而 adapter 不再擅自反推 `selected_unit` 或提前替上游做根因归一
+  - 当前还已补 exporter bootstrap 入口：`scripts/init-radishflow-export-snapshot.py` 可按任务生成最小 schema-valid 模板，作为真实接线前的起步骨架
+  - 当前还已补 exporter preflight 入口：`scripts/validate-radishflow-export-snapshot.py` 可在真实接线前先做 schema、任务级语义与敏感透传 smoke 校验，再进入 export -> adapter -> request 正式链路
+  - 当前还已补 exporter batch smoke 入口：`scripts/run-radishflow-export-smoke.py` 可对一组 committed export snapshot 批量执行 `validate -> adapter -> request`，并用结构化 summary 固定“真实 exporter 接线最小入口”是否仍保持稳定
+  - 当前 exporter fixture 已继续补到更贴近真实接线的边界：联合选择态下 `primary_selected_unit` 与完整 selection 并存、`multi-unit + multi-stream + 单 primary focus` 组合仍稳定映射成 `selected_unit + 完整 selection` 且不重排 selection 顺序、更复杂 selection chronology 下主焦点与 chronology 解耦但仍只保留单 actionable target、同风险多动作并列时仍稳定优先补输入完整性、`support_artifacts` 既覆盖纯 `uri + metadata.summary` 的最小脱敏摘要，也覆盖 `attachment_ref + json summary + text note` 与 `sanitized_summary + summary/redaction_summary + 最小 json rollup + text note` 两档 mixed summary 组合，以及多对象 selection 下三动作优先级顺序不漂移
+  - 对 `RadishFlow suggest_flowsheet_edits`，当前除 response-level regression 外，也已补一条最小 `candidate_response_record -> manifest -> audit` PoC：`scripts/run-radishflow-suggest-edits-poc-batch.py` 先以 3 条代表样本固定高风险重连、局部规格占位与三步优先级链，让本任务不再只停留在离线 fixture 层
   - 优先走状态优先打包：`FlowsheetDocument`、`document_revision`、`SelectionState`、`DiagnosticSummary`、`SolveSessionState`、`SolveSnapshot`
+  - 对编辑器辅助场景，额外打包 `selected_unit`、`unconnected_ports`、`nearby_nodes`、`cursor_context` 与本地规则筛出的 `legal_candidate_completions`
+  - `cursor_context.recent_actions` 当前不仅承接“最近 accept 了哪条 ghost”，也承接“最近 reject / dismiss / skip 了哪条 ghost”；其第一版正式语义已收口为三条链式模板共享的同一套规则：只压制同一 `candidate_ref` 的下一帧默认 `Tab`，隔一帧且候选仍是高置信合法默认项时允许恢复，而不同 `candidate_ref` 不共享 suppress 信号
   - 控制面相关只打包 entitlement / manifest / lease / sync 的摘要，不透传 token 或 credential
 - `Radish`
   - 优先走知识优先打包：固定文档、在线文档、论坛/文档 Markdown、Console 权限知识、附件引用
@@ -106,12 +117,17 @@ Adapter 映射回各自 UI / 日志 / 候选提案
   - 读取固定文档、在线文档、论坛正文、附件摘要、结构化状态
 - 候选动作工具
   - 在不直接写入业务真相源的前提下，生成可确认的候选编辑或操作提案
+  - 为编辑器辅助场景先由本地规则生成合法 ghost completion 候选集，再交给模型做排序、命名和空结果判断
+- 对 `RadishFlow suggest_ghost_completion`，本地规则层还应显式输出 recent-actions 反馈衍生出的 suppress-Tab 信号，并把“same-candidate 即时 suppress / 一帧 cooldown 恢复 / latest-action precedence / other-candidate 不共享 suppress”作为可审计的结构化口径，而不是只留在提示词或前端隐式逻辑里
 
 原则：
 
 - 能规则化的逻辑，不强行让模型背
 - 能提前压缩的上下文，不把全部原始状态直接丢给模型
 - 任何高风险动作都只能输出候选动作，不直接执行
+- 对 `RadishFlow` ghost completion 这类编辑器辅助任务，应先由本地规则系统裁剪到“合法候选空间”，再让模型排序，而不是直接从零猜拓扑
+- 对同一 ghost candidate 的最近接受/拒绝/关闭/跳过反馈，优先由适配层与本地规则层编码成结构化 recent-actions 和 conflict/suppress 信号，再决定是否仍允许 `Tab`
+- 对 `RadishFlow suggest_ghost_completion` 当前这条 editor assist 主线，recent-actions 相关判定不应只在单模板成立，而应在 `Feed -> Valve -> FlashDrum`、`Feed -> Heater -> FlashDrum` 与 `Feed -> Cooler -> FlashDrum` 三条链式模板上保持对称
 
 ### 4. Model Runtime Layer
 
@@ -179,6 +195,24 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 外部 `candidate_response_record`
 - 与正例共用同一套规则的负例回放
 - 通过 `capture_metadata` 标记来源批次的真实 captured replay
+- 对真实/模拟 batch 同时沉淀 same-sample / cross-sample replay index、recommended replay summary 与 artifact summary，避免 batch 审计、推荐回放和 committed fixture 漂成三套口径
+- 对基于真实 bad record 派生的本地负例，生成独立 real-derived negative index，并按 `source_record_groups`、`violation_groups`、`pattern_groups` 做结构化审计
+- 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
+- 当前 `Radish docs QA` 的 same-sample / cross-sample replay 与 real-derived negative index 已统一纳入 `check-repo`，且 `2026-04-05` real batch 已无 singleton source；这条治理链的后续重点应转向跨 source 复合 drift、真实 captured 扩充，以及 `pattern` / `violation` 结构化升级时机评估
+- 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、latest-action precedence 下的 reject / dismiss / skip 恢复态、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
+- 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，并已将八批真实 capture 正式导入 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/`，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获并治理候选输出”；其中当前新增观察项已分成五层：批处理编排下的 provider 卡顿稳定性、`manual_only` 多动作输出的结构坏法、供应商级限流或路由不可用时通过备用 profile 继续保持真实 capture 连续性、同 provider 备选模型虽可调用但仍可能出现不可正式导入的任务质量漂移，以及不同 provider 输出风格漂移下的字段文本归一化
+- 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
+- 对 `RadishFlow suggest_flowsheet_edits`，除顺序回归外，当前也已允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先用 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 固定一批 3 样本 mock PoC，下一步应沿同一入口继续接真实 provider capture，而不是再回头扩离线兜底 fixture
+
+## 当前文件与脚本组织约定
+
+- committed `Python` 与 `JSON` 文件默认不超过 `1000` 行；超过时优先按职责拆分，而不是继续堆长
+- 大型 committed JSON 索引优先采用“主索引 + `.parts/` 分片文件”方式收口，避免单个长数组文件失控增长
+- `scripts/` 根目录优先只保留稳定入口与平台包装；较长实现、内部 helper 与静态 fixture 应放进浅层分类子目录
+- 当前脚本目录已先收口为 `scripts/checks/` 与 `scripts/eval/` 两个浅层分组：
+  - `scripts/checks/` 承接仓库检查实现和静态 fixture
+  - `scripts/eval/` 承接评测 runner 的共享实现与任务级校验
+- 后续若还需按项目拆分脚本，优先继续新增同层级目录，而不是把嵌套层级继续拉深
 
 ## 推荐仓库结构
 
@@ -222,4 +256,32 @@ RadishMind/
 - 模型输出默认是建议，不直接成为最终状态
 - 训练数据优先从自有项目生成，不依赖大量外部脏数据
 - 评测必须从第一阶段就开始建立
+- 对 `suggest_flowsheet_edits` 这类 advisory patch 任务，评测不仅要检查“能不能答”，还要检查同一输入下的结构化顺序是否稳定，避免候选动作、证据引用和 patch 细节在回归中随机漂移
 - 部署形态允许本地、局域网和远端三种模式并存，但当前不先锁定最终部署形态
+- 对 `Radish docs QA`，真实 captured negative、same-sample replay、cross-sample replay 与 real-derived negative 应保持同一条治理链，而不是分别演化成互不对齐的 fixture 体系
+- 对 `Radish docs QA` 的 real-derived 扩样，当前继续优先复用既有 `derived_pattern` 与 `expected_candidate_violations`，避免为单次样本扩张过早引入新的 `pattern_group` / `violation_group`
+
+## 当前最小实现补充
+
+当前仓库已补第一条最小实现链路，用于把“只有评测资产”的状态推进到“能实际吐出结构化响应并最小落盘 capture”的状态：
+
+- `services/runtime/inference.py`
+  - 提供 `radish / answer_docs_question` 与 `radishflow / suggest_ghost_completion` 的最小 runtime
+  - 内置 `mock` provider，用于工程闭环验证
+  - 预留 `openai-compatible` provider，用于真实模型接入
+- `scripts/run-copilot-inference.py`
+  - 允许从 `datasets/eval` 样本或独立 `CopilotRequest` 运行最小推理
+  - 可直接写出 normalized `CopilotResponse` 与 raw dump
+- `scripts/run-radishflow-ghost-real-batch.py`
+  - 为 `RadishFlow suggest_ghost_completion` 提供 3 样本轻量 PoC 批次入口
+  - 串起 `capture -> manifest -> audit` 的最小闭环，默认覆盖 `Tab / manual_only / empty`
+  - 若未显式提供 `--output-root`，默认直接写入 `datasets/eval/candidate-records/radishflow/<collection_batch>/`
+- `scripts/import-candidate-response-dump-batch.py`
+  - 将一批 raw dump 正式导入为仓库内 `candidate_response_record`
+  - 支持对 canonicalization 修复前采集的旧 dump 按当前 runtime 重新归一化后再生成正式 `manifest` 与 `audit`
+- `prompts/tasks/radish-answer-docs-question-system.md`
+  - 冻结当前单任务系统提示的最小口径
+- `prompts/tasks/radishflow-suggest-ghost-completion-system.md`
+  - 冻结 ghost completion 的最小任务提示口径，并限制模型只能从 `legal_candidate_completions` 中选候选
+
+这一步仍不是完整服务化实现，但已经把“prompt 组装 -> provider 调用 -> 响应归一化 -> raw dump 落盘 / 最小批次审计”这条链路落地，可作为后续 gateway、adapter 和真实模型 provider 的起点。

@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-role-example-boundary-001",
+  "record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-role-example-boundary-001",
+  "request_id": "sample-role-example-boundary-001",
+  "captured_at": "2026-04-05T01:12:56Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-permission-guide",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-role-example-boundary-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# Hangfire 权限说明\n\n文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "console/hangfire-permission-guide",
+          "fragment_id": "role-example-boundary",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "console",
+      "route": "/console/hangfire",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "console/hangfire-permission-guide",
+        "title": "Hangfire 权限说明"
+      },
+      "viewer": {
+        "is_authenticated": true,
+        "roles": [
+          "Admin"
+        ],
+        "permissions": [
+          "console.hangfire.view"
+        ]
+      },
+      "search_scope": [
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-role-example-boundary-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"wiki_document\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# Hangfire 权限说明\\n\\n文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。\",\n      \"metadata\": {\n        \"source_type\": \"wiki\",\n        \"page_slug\": \"console/hangfire-permission-guide\",\n        \"fragment_id\": \"role-example-boundary\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"console\",\n    \"route\": \"/console/hangfire\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"console/hangfire-permission-guide\",\n      \"title\": \"Hangfire 权限说明\"\n    },\n    \"viewer\": {\n      \"is_authenticated\": true,\n      \"roles\": [\n        \"Admin\"\n      ],\n      \"permissions\": [\n        \"console.hangfire.view\"\n      ]\n    },\n    \"search_scope\": [\n      \"wiki\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351526-qcLs628VvPMPR4G8ySUw",
+    "object": "chat.completion",
+    "created": 1775351526,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"partial\",\n  \"summary\": \"文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限。\",\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"confidence\": 0.9,\n  \"answers\": [\n    {\n      \"content\": \"根据提供的《Hangfire 权限说明》，文档中提及的 Admin 仅用于说明常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前上下文显示您仅拥有 console.hangfire.view 权限，因此无法直接确认是否可执行相关操作。\",\n      \"citations\": [\n        {\n          \"artifact_index\": 0,\n          \"fragment_id\": \"role-example-boundary\"\n        }\n      ]\n    }\n  ],\n  \"issues\": [\n    \"当前文档仅为边界提示与示例说明，未提供具体的权限分配规则或查询方式，实际权限需结合服务端配置确认。\"\n  ],\n  \"proposed_actions\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (implied by the prompt, though the request JSON has `task: \"answer_docs_question\"`)\n   - **Project:** `radish`\n   - **Locale:** `zh-CN`\n   - **Artifacts:** One markdown document titled \"Hangfire 权限说明\". Content explicitly states: \"文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。\" (The `Admin` in the doc is just an example. Actual retry/delete permissions depend on server-side checks for `console.hangfire.retry` and `console.hangfire.delete`.)\n   - **Context:** Viewer has role `Admin` and permission `console.hangfire.view`. Route is `/console/hangfire`.\n   - **Constraints from Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - If evidence is insufficient/boundary hint, can use `status=partial`.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Formal docs > informal.\n     - If doc is just an example/boundary hint, don't write it as definitive authorization.\n     - Fields: `project`, `task`, `answers` (at least 1), `issues` (if needed), `confidence` (0-1).\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifact imply a question like: \"作为 Admin 角色，我是否可以重试或删除 Hangfire 任务？\" (As an Admin, can I retry or delete Hangfire tasks?) or \"文档中的 Admin 角色是否拥有重试/删除权限？\"\n   I need to formulate the answer based on the provided artifact. The artifact clearly says `Admin` is just an example, and actual permissions depend on `console.hangfire.retry` and `console.hangfire.delete`. The viewer currently only has `console.hangfire.view`.\n\n3.  **Formulate Response Content:**\n   - **Summary:** 文档中的 `Admin` 仅为示例角色，不代表实际权限。您目前仅拥有 `console.hangfire.view` 权限，能否重试或删除任务取决于服务端是否为您分配了 `console.hangfire.retry` 与 `console.hangfire.delete` 权限。\n   - **Status:** `partial` (because the doc explicitly states it's a boundary/example and actual permission depends on server-side config not fully provided in context, or I can just use `success` but note the boundary. The prompt says \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `partial` to be safe, or `success` with a clear explanation. Actually, `partial` fits well since the doc is a boundary hint.)\n   - **Confidence:** 0.9 (high confidence in the doc's statement, but the actual permission status is unknown).\n   - **Risk Level:** `low`\n   - **Requires Confirmation:** `false`\n   - **Proposed Actions:** `[]`\n   - **Citations:** Reference the provided artifact.\n   - **Issues:** Can mention that the document is a boundary/example and actual permissions require server-side verification.\n\n   Let's structure the JSON carefully according to typical `CopilotResponse` schema (inferred from prompt constraints):\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"partial\",\n     \"summary\": \"文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限，当前上下文仅显示您拥有 console.hangfire.view 权限。\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"answers\": [\n       {\n         \"content\": \"根据提供的《Hangfire 权限说明》，文档中提及的 Admin 角色仅作为常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前您的权限列表中仅包含 console.hangfire.view，因此无法直接确认是否可执行重试或删除操作。\",\n         \"citations\": [\n           {\n             \"artifact_index\": 0,\n             \"fragment_id\": \"role-example-boundary\"\n           }\n         ]\n       }\n     ],\n     \"issues\": [\n       \"当前文档仅为边界提示与示例说明，未提供具体的权限分配规则或查询接口，实际权限需结合服务端配置确认。\"\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n\n4.  **Check Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status=partial` used appropriately? Yes, due to boundary hint.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes, `artifact_index: 0`.\n   - Formal doc priority? It's the only doc.\n   - Don't treat example as definitive? Explicitly stated in summary and answer.\n   - Fields: `project`, `task`, `answers` (>=1), `issues`, `confidence` (0-1). All present.\n   - Schema matches `CopilotResponse`? I'll ensure standard keys are used. The prompt says \"结构必须满足 CopilotResponse\", I'll stick to the keys mentioned and standard ones.\n\n   One minor adjustment: The prompt says \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\". I have that.\n   I will make sure the JSON is strictly valid and contains no extra text.\n   I'll double-check the `citations` format. Usually it's `[{ \"artifact_index\": 0, \"text\": \"...\" }]` or similar. I'll keep it simple: `{\"artifact_index\": 0}`.\n   I will structure it carefully.\n\n   Let's draft it. \n   Structure:\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"partial\",\n     \"summary\": \"文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限。\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"answers\": [\n       {\n         \"content\": \"根据《Hangfire 权限说明》，文档中提及的 Admin 仅用于说明常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前上下文显示您仅拥有 console.hangfire.view 权限，因此无法直接确认是否可执行相关操作。\",\n         \"citations\": [\n           {\n             \"artifact_index\": 0,\n             \"fragment_id\": \"role-example-boundary\"\n           }\n         ]\n       }\n     ],\n     \"issues\": [\n       \"当前文档仅为边界提示与示例说明，未提供具体的权限分配规则，实际权限需结合服务端配置确认。\"\n     ],\n     \"proposed_actions\": []\n   }\n\n   All constraints met. Output matches exactly. No markdown. Direct JSON. Proceeds. \n   One thing: `CopilotResponse` might expect specific casing. I'll stick to snake_case as used in the prompt. The prompt says `risk_level`, `requires_confirmation`, `proposed_actions`, `citations`, `summary`, `status`, `confidence`, `project`, `task`, `answers`, `issues`. All good.\n   I will generate the raw JSON string.✅\n   Output matches request. \n   Proceeds. \n   [Self-Correction/Verification during thought]\n   - Check constraint 3: `summary` 必须先直接回答问题。 (Done)\n   - Check constraint 4: 默认 `risk_level=low` 且 `requires_confirmation=false`。 (Done)\n   - Check constraint 5: 若证据不足、边界提示...可退化为 `status=partial`。 (Done)\n   - Check constraint 6: `proposed_actions` 默认应为空。 (Done)\n   - Check constraint 7: `citations` 只能引用当前输入里已有的 artifacts。 (Done)\n   - Check constraint 8: 正式文档优先... (Only one doc, it's wiki/official)\n   - Check constraint 9: 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定。 (Explicitly handled in summary and answer)\n   - JSON structure: Valid.\n   - No markdown: Will output raw JSON.\n   All good. \n   Output generation. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"partial\", \"summary\": \"文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限。\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"answers\": [ { \"content\": \"根据提供的《Hangfire 权限说明》，文档中提及的 Admin 仅用于说明常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前上下文显示您仅拥有 console.hangfire.view 权限，因此无法直接确认是否可执行相关操作。\", \"citations\": [ { \"artifact_index\": 0, \"fragment_id\": \"role-example-boundary\" } ] } ], \"issues\": [ \"当前文档仅为边界提示与示例说明，未提供具体的权限分配规则，实际权限需结合服务端配置确认。\" ], \"proposed_actions\": [] }`\n   Matches perfectly. Output matches exactly. \n   Proceeds. \n   [Output Generation] -> *Self-Correction/Refinement during generation prep*: I'll make sure the JSON is properly formatted with standard indentation for readability, but the prompt says \"不要输出 markdown 代码块\", so raw text is fine. I will output it as a single line or pretty-printed JSON without backticks. I'll stick to pretty-printed for safety, but ensure absolutely no markdown.\n\n   Final check of the prompt: \"只输出一个 JSON 对象，结构必须满足 CopilotResponse\". I will output just the JSON string.\n   All set. \n   Output matches response. \n   [Done] \n   *Self-Correction/Note during thought*: I should ensure the JSON keys exactly match typical expectations. The prompt gives field reminders. I'll use them exactly.\n   `project`, `task`, `status`, `summary`, `risk_level`, `requires_confirmation`, `confidence`, `answers`, `issues`, `proposed_actions`.\n   `answers` is an array of objects. Each has `content` and `citations`.\n   `citations` array of objects with `artifact_index` and optionally `fragment_id`.\n   Everything looks solid.\n   Proceeds. \n   Output Generation. \n   *(Done.)*\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** `answer_docs_question` (implied by the prompt, though the request JSON has `task: \"answer_docs_question\"`)\n   - **Project:** `radish`\n   - **Locale:** `zh-CN`\n   - **Artifacts:** One markdown document titled \"Hangfire 权限说明\". Content explicitly states: \"文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。\" (The `Admin` in the doc is just an example. Actual retry/delete permissions depend on server-side checks for `console.hangfire.retry` and `console.hangfire.delete`.)\n   - **Context:** Viewer has role `Admin` and permission `console.hangfire.view`. Route is `/console/hangfire`.\n   - **Constraints from Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown, no extra text.\n     - `summary` must directly answer the question first.\n     - Default `risk_level=low`, `requires_confirmation=false`.\n     - If evidence is insufficient/boundary hint, can use `status=partial`.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - Formal docs > informal.\n     - If doc is just an example/boundary hint, don't write it as definitive authorization.\n     - Fields: `project`, `task`, `answers` (at least 1), `issues` (if needed), `confidence` (0-1).\n\n2.  **Identify the Implicit Question:**\n   The prompt doesn't explicitly state a question, but the context and artifact imply a question like: \"作为 Admin 角色，我是否可以重试或删除 Hangfire 任务？\" (As an Admin, can I retry or delete Hangfire tasks?) or \"文档中的 Admin 角色是否拥有重试/删除权限？\"\n   I need to formulate the answer based on the provided artifact. The artifact clearly says `Admin` is just an example, and actual permissions depend on `console.hangfire.retry` and `console.hangfire.delete`. The viewer currently only has `console.hangfire.view`.\n\n3.  **Formulate Response Content:**\n   - **Summary:** 文档中的 `Admin` 仅为示例角色，不代表实际权限。您目前仅拥有 `console.hangfire.view` 权限，能否重试或删除任务取决于服务端是否为您分配了 `console.hangfire.retry` 与 `console.hangfire.delete` 权限。\n   - **Status:** `partial` (because the doc explicitly states it's a boundary/example and actual permission depends on server-side config not fully provided in context, or I can just use `success` but note the boundary. The prompt says \"若证据不足、来源冲突或权限结论无法确认，可退化为 status=partial\". I'll use `partial` to be safe, or `success` with a clear explanation. Actually, `partial` fits well since the doc is a boundary hint.)\n   - **Confidence:** 0.9 (high confidence in the doc's statement, but the actual permission status is unknown).\n   - **Risk Level:** `low`\n   - **Requires Confirmation:** `false`\n   - **Proposed Actions:** `[]`\n   - **Citations:** Reference the provided artifact.\n   - **Issues:** Can mention that the document is a boundary/example and actual permissions require server-side verification.\n\n   Let's structure the JSON carefully according to typical `CopilotResponse` schema (inferred from prompt constraints):\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"partial\",\n     \"summary\": \"文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限，当前上下文仅显示您拥有 console.hangfire.view 权限。\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"answers\": [\n       {\n         \"content\": \"根据提供的《Hangfire 权限说明》，文档中提及的 Admin 角色仅作为常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前您的权限列表中仅包含 console.hangfire.view，因此无法直接确认是否可执行重试或删除操作。\",\n         \"citations\": [\n           {\n             \"artifact_index\": 0,\n             \"fragment_id\": \"role-example-boundary\"\n           }\n         ]\n       }\n     ],\n     \"issues\": [\n       \"当前文档仅为边界提示与示例说明，未提供具体的权限分配规则或查询接口，实际权限需结合服务端配置确认。\"\n     ],\n     \"proposed_actions\": []\n   }\n   ```\n\n4.  **Check Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `status=partial` used appropriately? Yes, due to boundary hint.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes, `artifact_index: 0`.\n   - Formal doc priority? It's the only doc.\n   - Don't treat example as definitive? Explicitly stated in summary and answer.\n   - Fields: `project`, `task`, `answers` (>=1), `issues`, `confidence` (0-1). All present.\n   - Schema matches `CopilotResponse`? I'll ensure standard keys are used. The prompt says \"结构必须满足 CopilotResponse\", I'll stick to the keys mentioned and standard ones.\n\n   One minor adjustment: The prompt says \"普通文档问答默认 risk_level=low 且 requires_confirmation=false\". I have that.\n   I will make sure the JSON is strictly valid and contains no extra text.\n   I'll double-check the `citations` format. Usually it's `[{ \"artifact_index\": 0, \"text\": \"...\" }]` or similar. I'll keep it simple: `{\"artifact_index\": 0}`.\n   I will structure it carefully.\n\n   Let's draft it. \n   Structure:\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"partial\",\n     \"summary\": \"文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限。\",\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"confidence\": 0.9,\n     \"answers\": [\n       {\n         \"content\": \"根据《Hangfire 权限说明》，文档中提及的 Admin 仅用于说明常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前上下文显示您仅拥有 console.hangfire.view 权限，因此无法直接确认是否可执行相关操作。\",\n         \"citations\": [\n           {\n             \"artifact_index\": 0,\n             \"fragment_id\": \"role-example-boundary\"\n           }\n         ]\n       }\n     ],\n     \"issues\": [\n       \"当前文档仅为边界提示与示例说明，未提供具体的权限分配规则，实际权限需结合服务端配置确认。\"\n     ],\n     \"proposed_actions\": []\n   }\n\n   All constraints met. Output matches exactly. No markdown. Direct JSON. Proceeds. \n   One thing: `CopilotResponse` might expect specific casing. I'll stick to snake_case as used in the prompt. The prompt says `risk_level`, `requires_confirmation`, `proposed_actions`, `citations`, `summary`, `status`, `confidence`, `project`, `task`, `answers`, `issues`. All good.\n   I will generate the raw JSON string.✅\n   Output matches request. \n   Proceeds. \n   [Self-Correction/Verification during thought]\n   - Check constraint 3: `summary` 必须先直接回答问题。 (Done)\n   - Check constraint 4: 默认 `risk_level=low` 且 `requires_confirmation=false`。 (Done)\n   - Check constraint 5: 若证据不足、边界提示...可退化为 `status=partial`。 (Done)\n   - Check constraint 6: `proposed_actions` 默认应为空。 (Done)\n   - Check constraint 7: `citations` 只能引用当前输入里已有的 artifacts。 (Done)\n   - Check constraint 8: 正式文档优先... (Only one doc, it's wiki/official)\n   - Check constraint 9: 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定。 (Explicitly handled in summary and answer)\n   - JSON structure: Valid.\n   - No markdown: Will output raw JSON.\n   All good. \n   Output generation. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"partial\", \"summary\": \"文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限。\", \"risk_level\": \"low\", \"requires_confirmation\": false, \"confidence\": 0.9, \"answers\": [ { \"content\": \"根据提供的《Hangfire 权限说明》，文档中提及的 Admin 仅用于说明常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前上下文显示您仅拥有 console.hangfire.view 权限，因此无法直接确认是否可执行相关操作。\", \"citations\": [ { \"artifact_index\": 0, \"fragment_id\": \"role-example-boundary\" } ] } ], \"issues\": [ \"当前文档仅为边界提示与示例说明，未提供具体的权限分配规则，实际权限需结合服务端配置确认。\" ], \"proposed_actions\": [] }`\n   Matches perfectly. Output matches exactly. \n   Proceeds. \n   [Output Generation] -> *Self-Correction/Refinement during generation prep*: I'll make sure the JSON is properly formatted with standard indentation for readability, but the prompt says \"不要输出 markdown 代码块\", so raw text is fine. I will output it as a single line or pretty-printed JSON without backticks. I'll stick to pretty-printed for safety, but ensure absolutely no markdown.\n\n   Final check of the prompt: \"只输出一个 JSON 对象，结构必须满足 CopilotResponse\". I will output just the JSON string.\n   All set. \n   Output matches response. \n   [Done] \n   *Self-Correction/Note during thought*: I should ensure the JSON keys exactly match typical expectations. The prompt gives field reminders. I'll use them exactly.\n   `project`, `task`, `status`, `summary`, `risk_level`, `requires_confirmation`, `confidence`, `answers`, `issues`, `proposed_actions`.\n   `answers` is an array of objects. Each has `content` and `citations`.\n   `citations` array of objects with `artifact_index` and optionally `fragment_id`.\n   Everything looks solid.\n   Proceeds. \n   Output Generation. \n   *(Done.)*\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 754,
+      "completion_tokens": 2873,
+      "total_tokens": 3627,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2579,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "partial",
+    "summary": "文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端是否为您分配了 console.hangfire.retry 与 console.hangfire.delete 权限。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据提供的《Hangfire 权限说明》，文档中提及的 Admin 仅用于说明常见角色示例，并非最终授权依据。实际是否具备重试或删除任务的权限，需以服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际权限判定为准。当前上下文显示您仅拥有 console.hangfire.view 权限，因此无法直接确认是否可执行相关操作。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "console/hangfire-permission-guide",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# Hangfire 权限说明 文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。"
+      }
+    ],
+    "schema_version": 1
+  }
+}

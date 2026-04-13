@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-same-risk-input-first-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-same-risk-input-first-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-110",
+          "streams": [
+            {
+              "id": "feed-8",
+              "name": "Pump Suction",
+              "target_unit_id": "pump-2",
+              "specs": {
+                "pressure_kpa": 190
+              }
+            },
+            {
+              "id": "product-8",
+              "name": "Pump Discharge",
+              "source_unit_id": "pump-2",
+              "specs": {
+                "temperature_c": 34
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "pump-2",
+              "kind": "Pump",
+              "name": "Transfer Pump",
+              "config": {
+                "efficiency_percent": 88
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 49,
+      "selected_unit_ids": [
+        "pump-2"
+      ],
+      "selected_stream_ids": [
+        "feed-8",
+        "product-8"
+      ],
+      "diagnostic_summary": {
+        "error_count": 3,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Pump Suction is missing temperature and flow rate specifications.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-8"
+        },
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Pump Discharge is missing pressure specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "product-8"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Transfer Pump is missing outlet pressure target for the current transfer scenario.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "pump-2"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T16:20:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_SPEC_MISSING\"",
+      "$.issues[1].code=\"STREAM_SPEC_MISSING\"",
+      "$.issues[2].code=\"UNIT_PARAMETER_INCOMPLETE\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"feed-8\"",
+      "$.proposed_actions[0].patch.spec_placeholders[0]=\"temperature_c\"",
+      "$.proposed_actions[0].patch.spec_placeholders[1]=\"flow_rate_kg_per_h\"",
+      "$.proposed_actions[1].kind=\"candidate_edit\"",
+      "$.proposed_actions[1].target.type=\"stream\"",
+      "$.proposed_actions[1].target.id=\"product-8\"",
+      "$.proposed_actions[1].patch.spec_placeholders[0]=\"pressure_kpa\"",
+      "$.proposed_actions[2].kind=\"candidate_edit\"",
+      "$.proposed_actions[2].target.type=\"unit\"",
+      "$.proposed_actions[2].target.id=\"pump-2\"",
+      "$.proposed_actions[2].patch.parameter_placeholders[0]=\"outlet_pressure_target_kpa\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.proposed_actions[1].requires_confirmation=false",
+      "$.proposed_actions[2].requires_confirmation=false"
+    ],
+    "ordered_issue_codes": [
+      "STREAM_SPEC_MISSING",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ],
+    "ordered_action_targets": [
+      {
+        "type": "stream",
+        "id": "feed-8"
+      },
+      {
+        "type": "stream",
+        "id": "product-8"
+      },
+      {
+        "type": "unit",
+        "id": "pump-2"
+      }
+    ],
+    "ordered_spec_placeholder_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "temperature_c",
+          "flow_rate_kg_per_h"
+        ]
+      }
+    ],
+    "ordered_parameter_placeholder_sequences": [
+      {
+        "action_index": 2,
+        "values": [
+          "outlet_pressure_target_kpa"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "当多条动作都属于 medium 风险时，顺序仍应稳定优先补输入完整性，再补输出状态完整性，最后才是单元本地参数。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前三条提案都属于中风险，但顺序仍应稳定为先补 Pump Suction 的输入规格，再补 Pump Discharge 的状态规格，最后为 Transfer Pump 补目标压力参数。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "虽然这三条修改都只是 medium 风险的局部 patch，但优先级不应随机漂移：上游输入规格缺失会先限制整个对象链的状态完整性，其次才是下游流股的状态字段，最后才是单元自身的目标参数占位。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-stream-1",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "feed-8 缺少 temperature_c 和 flow_rate_kg_per_h，当前入口状态仍不完整。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "product-8 缺少 pressure_kpa，当前下游状态记录仍不完整。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "pump-2 当前缺少 outlet_pressure_target_kpa 目标参数。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-8 补充输入规格占位",
+        "target": {
+          "type": "stream",
+          "id": "feed-8"
+        },
+        "rationale": "当前首先需要补齐上游输入规格，否则后续单元和出口状态都缺乏完整输入基础。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 product-8 补充出口压力规格占位",
+        "target": {
+          "type": "stream",
+          "id": "product-8"
+        },
+        "rationale": "在上游输入规格之后，下一步应补齐出口流股的关键状态字段，使对象链的状态记录更完整。",
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 pump-2 补充目标压力参数占位",
+        "target": {
+          "type": "unit",
+          "id": "pump-2"
+        },
+        "rationale": "单元本地参数同样需要补齐，但优先级应排在输入与输出规格之后，因此最后给出局部参数占位。",
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_pressure_target_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING / feed-8",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Pump Suction is missing temperature and flow rate specifications."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING / product-8",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Pump Discharge is missing pressure specification."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Transfer Pump is missing outlet pressure target for the current transfer scenario."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-8",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-8 当前只有 pressure_kpa，缺少 temperature_c 和 flow_rate_kg_per_h。"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-8",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-8 当前只有 temperature_c，缺少 pressure_kpa。"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-2",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-2 当前只有 efficiency_percent，缺少 outlet_pressure_target_kpa。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "confidence": 0.89,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

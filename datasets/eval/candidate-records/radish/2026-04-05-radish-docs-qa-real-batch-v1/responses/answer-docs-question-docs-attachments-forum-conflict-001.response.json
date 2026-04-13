@@ -1,0 +1,45 @@
+{
+  "project": "radish",
+  "task": "answer_docs_question",
+  "status": "ok",
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "confidence": 0.9,
+  "summary": "在公开文档中引用附件时，应严格使用 `attachment://manual-42` 格式，禁止直接暴露真实存储地址或 CDN 链接。该附件已获官方标记为 public-doc-compatible，可直接安全引用。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "根据官方规范，上传到公开文档的附件默认必须使用 `attachment://{id}` 格式引用，不得直接暴露真实存储地址。附件 `attachment://manual-42` 已明确标记为 public-doc-compatible，支持直接在文档中引用。虽然社区论坛建议使用真实 CDN 地址以便外部复制，但正式文档的优先级高于非正式论坛建议，请以官方 `attachment://` 协议为准。",
+      "citation_ids": [
+        "doc-1",
+        "att-1"
+      ]
+    }
+  ],
+  "issues": [],
+  "proposed_actions": [],
+  "citations": [
+    {
+      "id": "doc-1",
+      "kind": "artifact",
+      "label": "guide/attachment-import",
+      "locator": "artifact:docs_page",
+      "excerpt": "# 附件导入说明 上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+    },
+    {
+      "id": "att-1",
+      "kind": "artifact",
+      "label": "guide/attachment-import",
+      "locator": "artifact:attachment_reference_note",
+      "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+    },
+    {
+      "id": "forum-1",
+      "kind": "artifact",
+      "label": "community/attachment-sharing-tips",
+      "locator": "artifact:forum_excerpt",
+      "excerpt": "社区帖子建议：为了方便复制给外部用户，可以直接把附件的真实 CDN 地址贴到文档里，比 `attachment://` 更直观。"
+    }
+  ],
+  "schema_version": 1
+}

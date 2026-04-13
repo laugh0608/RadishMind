@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-forum-supplement-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-forum-supplement-001",
+  "request_id": "sample-forum-supplement-001",
+  "captured_at": "2026-04-04T05:19:25Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/faq-import",
+    "resource_slug": "guide/faq-import",
+    "search_scope": [
+      "docs",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.95,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "批量导入 FAQ 时，默认应保留原始标题。仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。",
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/faq-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档编辑建议 批量导入 FAQ 时，默认先保留原始标题；只有在确认不会破坏检索语义时，才考虑补充标签或别名。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/faq-import-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区经验帖建议在标题后追加简短别名，但需要先确认不会影响原文检索。"
+      }
+    ],
+    "schema_version": 1,
+    "summary": "批量导入 FAQ 时，默认应保留原始标题。仅在确认不会破坏检索语义的前提下，才可考虑补充标签或别名。"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

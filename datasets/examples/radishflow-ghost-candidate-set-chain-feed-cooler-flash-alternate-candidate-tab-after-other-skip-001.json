@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 64,
+  "selected_unit": {
+    "id": "cooler-14",
+    "kind": "Cooler",
+    "name": "Feed Cooler 708"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-36.inlet",
+      "direction": "downstream",
+      "distance_px": 57,
+      "alignment_score": 0.97
+    },
+    {
+      "type": "unit_port",
+      "id": "flash-37.inlet",
+      "direction": "downstream",
+      "distance_px": 78,
+      "alignment_score": 0.84
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-708-to-cooler-14-inlet",
+        "accepted_at_revision": 62
+      },
+      {
+        "kind": "skip_ghost_completion",
+        "candidate_ref": "cand-cooler-14-outlet-flash-37",
+        "skipped_at_revision": 63
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-708"
+    ],
+    "existing_stream_names": [
+      "F-708"
+    ],
+    "preferred_outlet_prefix": "C",
+    "numeric_suffix_from_unit": "708"
+  },
+  "topology_pattern_hints": [
+    "feed_cooler_flash_chain",
+    "cooler_outlet_to_flash_inlet_after_feed_connection",
+    "recent_skip_only_suppresses_same_candidate"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-cooler-14-outlet-flash-36",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "cooler-14",
+      "target_node_id": "flash-36.inlet",
+      "suggested_stream_name": "C-708",
+      "ranking_signals": {
+        "distance_px": 57,
+        "alignment_score": 0.97,
+        "topology_score": 0.95,
+        "score_gap_to_next": 0.3,
+        "template_frequency": 0.84
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "C",
+        "numeric_suffix": "708",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-cooler-flash-chain-v1",
+    "notes": "第三条链式模板示例：最近 skip 只压制同一 candidate_ref，不应误伤新的高置信 outlet 候选。"
+  }
+}

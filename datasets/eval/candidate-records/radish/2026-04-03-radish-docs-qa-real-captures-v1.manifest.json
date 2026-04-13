@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-03-radish-docs-qa-real-captures-v1",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "source": "captured_candidate_response",
+  "capture_origin": "interactive_session",
+  "description": "Radish docs QA 首批真实 captured 候选响应快照批次清单，用于同样本回灌与跨样本 replay。",
+  "records": [
+    {
+      "record_id": "captured-radish-docs-qa-docs-attachments-forum-conflict-001",
+      "sample_id": "radish-answer-docs-question-docs-attachments-forum-conflict-001",
+      "path": "datasets/eval/candidate-records/radish/answer-docs-question-docs-attachments-forum-conflict-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-role-example-boundary-001",
+      "sample_id": "radish-answer-docs-question-role-example-boundary-001",
+      "path": "datasets/eval/candidate-records/radish/answer-docs-question-role-example-boundary-001.json"
+    },
+    {
+      "record_id": "captured-radish-docs-qa-wiki-faq-mixed-001",
+      "sample_id": "radish-answer-docs-question-wiki-faq-mixed-001",
+      "path": "datasets/eval/candidate-records/radish/answer-docs-question-wiki-faq-mixed-001.json"
+    }
+  ]
+}

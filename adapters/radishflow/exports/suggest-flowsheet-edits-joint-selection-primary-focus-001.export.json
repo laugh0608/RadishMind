@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-joint-selection-primary-focus-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 52,
+    "flowsheet_document": {
+      "document_id": "flowsheet-112",
+      "streams": [
+        {
+          "id": "feed-10",
+          "name": "Stabilizer Feed",
+          "target_unit_id": "heater-4",
+          "specs": {
+            "pressure_kpa": 230
+          }
+        },
+        {
+          "id": "outlet-10",
+          "name": "Stabilizer Outlet",
+          "source_unit_id": "heater-4",
+          "specs": {
+            "temperature_c": 160
+          }
+        }
+      ],
+      "units": [
+        {
+          "id": "heater-4",
+          "kind": "Heater",
+          "name": "Stabilizer Heater",
+          "config": {
+            "control_mode": "duty"
+          }
+        }
+      ]
+    }
+  },
+  "selection_state": {
+    "selected_unit_ids": [
+      "heater-4"
+    ],
+    "selected_stream_ids": [
+      "feed-10",
+      "outlet-10"
+    ],
+    "primary_selected_unit": {
+      "id": "heater-4",
+      "kind": "Heater",
+      "name": "Stabilizer Heater",
+      "config": {
+        "control_mode": "duty"
+      }
+    }
+  },
+  "diagnostics_export": {
+    "diagnostic_summary": {
+      "error_count": 1,
+      "warning_count": 1
+    },
+    "diagnostics": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Stabilizer Feed is missing temperature specification.",
+        "severity": "error",
+        "target_type": "stream",
+        "target_id": "feed-10"
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause.",
+        "severity": "warning",
+        "target_type": "unit",
+        "target_id": "heater-4"
+      }
+    ]
+  },
+  "solve_snapshot": {
+    "solver_status": "partial_convergence",
+    "residual_norm": 0.09,
+    "last_updated": "2026-04-10T03:15:00Z"
+  }
+}

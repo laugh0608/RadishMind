@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-name-conflict-no-tab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-218",
+          "streams": [
+            {
+              "id": "feed-702",
+              "name": "F-702",
+              "target_unit_id": "cooler-8"
+            },
+            {
+              "id": "existing-c-702",
+              "name": "C-702",
+              "source_unit_id": "cooler-legacy"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-702-unit",
+              "kind": "Feed",
+              "name": "Feed 702"
+            },
+            {
+              "id": "cooler-8",
+              "kind": "Cooler",
+              "name": "Feed Cooler 702"
+            },
+            {
+              "id": "flash-18",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 702"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 57,
+      "selected_unit_ids": [
+        "cooler-8"
+      ],
+      "selected_unit": {
+        "id": "cooler-8",
+        "kind": "Cooler",
+        "name": "Feed Cooler 702"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-18.inlet",
+          "distance_px": 65,
+          "alignment_score": 0.95,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-cooler-8-outlet-flash-18-name-conflict",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "cooler-8",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-18.inlet",
+          "suggested_stream_name": "C-702",
+          "ranking_signals": {
+            "distance_px": 65,
+            "alignment_score": 0.95,
+            "topology_score": 0.92,
+            "score_gap_to_next": 0.41,
+            "template_frequency": 0.81
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "702",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "suggested_name_collision",
+            "manual_name_resolution_required"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-702-to-cooler-8-inlet",
+            "accepted_at_revision": 56
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-702"
+        ],
+        "existing_stream_names": [
+          "F-702",
+          "C-702"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "702"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "cooler_name_conflict_requires_manual_choice"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"cooler-8\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-cooler-8-outlet-flash-18-name-conflict\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"C-702\"",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "risk_level",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当 Feed 已接入 Cooler，且 Cooler outlet 到 FlashDrum inlet 的拓扑候选明确存在，但建议命名与现有流股冲突时，可以返回可见 ghost，但不应把该建议默认绑定到 Tab。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "cooler-8 当前已具备下游 FlashDrum 候选，但建议名 C-702 与现有流股冲突，因此只能显示手动可选 ghost，不应默认 Tab。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "虽然 cooler-8 的 outlet 到 flash-18 inlet 是当前最自然的链式下一步，但建议名 C-702 已被现有流股占用，因此该候选只能保留为 manual-only ghost。",
+        "citation_ids": [
+          "ctx-recent-action",
+          "ctx-name-hints",
+          "ctx-candidate-cooler-outlet"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "将 cooler-8 到 flash-18 的 outlet 作为手动 ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-8",
+          "port_key": "outlet"
+        },
+        "rationale": "cooler-8 outlet 候选在拓扑上明确成立，但建议名 C-702 与现有流股冲突，因此不能升级成默认 Tab，只能保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-8-outlet-flash-18-name-conflict",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-702"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-8-outlet-flash-18-name-conflict"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-cooler-outlet",
+          "ctx-name-hints"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近接受的上一步 ghost",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "accept_ghost_completion candidate_ref=cand-feed-702-to-cooler-8-inlet accepted_at_revision=56"
+      },
+      {
+        "id": "ctx-candidate-cooler-outlet",
+        "kind": "context",
+        "label": "Cooler outlet 命名冲突候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-8-outlet-flash-18-name-conflict is_tab_default=false conflict_flags=[suggested_name_collision,manual_name_resolution_required]"
+      },
+      {
+        "id": "ctx-name-hints",
+        "kind": "context",
+        "label": "Cooler outlet 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "existing_stream_names=[F-702,C-702] preferred_outlet_prefix=C numeric_suffix_from_unit=702"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "第三模板命名冲突模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "cooler_name_conflict_requires_manual_choice"
+      }
+    ],
+    "confidence": 0.81,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

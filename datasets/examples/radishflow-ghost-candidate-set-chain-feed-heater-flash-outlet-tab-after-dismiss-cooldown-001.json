@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 68,
+  "selected_unit": {
+    "id": "heater-8",
+    "kind": "Heater",
+    "name": "Feed Heater 607"
+  },
+  "unconnected_ports": [
+    "outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "unit_port",
+      "id": "flash-28.inlet",
+      "direction": "downstream",
+      "distance_px": 60,
+      "alignment_score": 0.95
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-607-to-heater-8-inlet",
+        "accepted_at_revision": 65
+      },
+      {
+        "kind": "dismiss_ghost_completion",
+        "candidate_ref": "cand-heater-8-outlet-flash-28",
+        "dismissed_at_revision": 66
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "F-607"
+    ],
+    "existing_stream_names": [
+      "F-607"
+    ],
+    "preferred_outlet_prefix": "H",
+    "numeric_suffix_from_unit": "607"
+  },
+  "topology_pattern_hints": [
+    "feed_heater_flash_chain",
+    "heater_outlet_to_flash_inlet_after_feed_connection",
+    "recent_dismiss_cooldown_elapsed_same_candidate_can_retab"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-heater-8-outlet-flash-28",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "outlet",
+      "target_unit_id": "heater-8",
+      "target_node_id": "flash-28.inlet",
+      "suggested_stream_name": "H-607",
+      "ranking_signals": {
+        "distance_px": 60,
+        "alignment_score": 0.95,
+        "topology_score": 0.92,
+        "score_gap_to_next": 0.38,
+        "template_frequency": 0.84
+      },
+      "naming_signals": {
+        "derived_from_upstream_name": true,
+        "applied_prefix": "H",
+        "numeric_suffix": "607",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-heater-flash-chain-v1",
+    "notes": "第二条链式模板示例：同一 outlet ghost 虽在前一帧曾被 dismiss，但隔一帧后若仍为高置信合法候选，应允许恢复默认 Tab。"
+  }
+}

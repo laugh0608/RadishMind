@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 62,
+  "selected_unit": {
+    "id": "flash-13",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 505"
+  },
+  "unconnected_ports": [
+    "vapor_outlet",
+    "liquid_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-13-vapor-lane",
+      "direction": "downstream",
+      "distance_px": 69,
+      "alignment_score": 0.94
+    },
+    {
+      "type": "stream_stub",
+      "id": "flash-13-liquid-lane",
+      "direction": "downstream",
+      "distance_px": 77,
+      "alignment_score": 0.88
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-505-to-valve-6-inlet",
+        "accepted_at_revision": 60
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-6-outlet-flash-13",
+        "accepted_at_revision": 61
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-505"
+    ],
+    "existing_stream_names": [
+      "F-505",
+      "V-505",
+      "VG-505",
+      "VL-505"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG",
+      "liquid_outlet": "VL"
+    },
+    "numeric_suffix_from_unit": "505"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection",
+    "name_conflict_requires_manual_outlet_choice"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-flash-13-vapor-outlet-name-conflict",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "vapor_outlet",
+      "target_unit_id": "flash-13",
+      "suggested_stream_name": "VG-505",
+      "ranking_signals": {
+        "distance_px": 69,
+        "alignment_score": 0.94,
+        "topology_score": 0.92,
+        "score_gap_to_next": 0.11,
+        "template_frequency": 0.86
+      },
+      "naming_signals": {
+        "applied_prefix": "VG",
+        "numeric_suffix": "505",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "suggested_name_collision",
+        "manual_name_resolution_required"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    },
+    {
+      "candidate_ref": "cand-flash-13-liquid-outlet-name-conflict",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "liquid_outlet",
+      "target_unit_id": "flash-13",
+      "suggested_stream_name": "VL-505",
+      "ranking_signals": {
+        "distance_px": 77,
+        "alignment_score": 0.88,
+        "topology_score": 0.84,
+        "score_gap_to_next": 0.0,
+        "template_frequency": 0.81
+      },
+      "naming_signals": {
+        "applied_prefix": "VL",
+        "numeric_suffix": "505",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "conflict_flags": [
+        "suggested_name_collision",
+        "manual_name_resolution_required"
+      ],
+      "is_high_confidence": false,
+      "is_tab_default": false
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "连续搭建链命名冲突示例：FlashDrum outlet 候选存在，但建议名与现有流股重名，因此只能显示 ghost，不默认 Tab。"
+  }
+}

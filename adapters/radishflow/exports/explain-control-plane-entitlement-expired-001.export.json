@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-control-plane-entitlement-expired-001",
+  "task": "explain_control_plane_state",
+  "locale": "zh-CN",
+  "document_state": {
+    "document_revision": 21
+  },
+  "control_plane_snapshot": {
+    "entitlement_status": "expired",
+    "lease_status": "refresh_failed",
+    "sync_status": "blocked",
+    "last_error": "offline lease refresh failed"
+  },
+  "solve_session_state": {
+    "status": "blocked"
+  },
+  "support_artifacts": [
+    {
+      "kind": "text",
+      "role": "supporting",
+      "name": "lease_refresh_summary",
+      "mime_type": "text/plain",
+      "content": "offline lease refresh failed after entitlement expired"
+    }
+  ]
+}

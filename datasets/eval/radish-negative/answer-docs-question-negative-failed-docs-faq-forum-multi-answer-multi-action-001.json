@@ -167,7 +167,8 @@
     ]
   },
   "candidate_response_record": {
-    "path": "datasets/eval/candidate-records/radish-negative/answer-docs-question-negative-failed-docs-faq-forum-multi-answer-multi-action-001.json"
+    "manifest_path": "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-negative-failed-docs-faq-forum-multi-answer-multi-action-001"
   },
   "golden_response": {
     "schema_version": 1,

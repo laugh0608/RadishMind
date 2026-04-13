@@ -159,11 +159,29 @@
     "candidate_response_record": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "path"
+      "oneOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "manifest_path",
+            "record_id"
+          ]
+        }
       ],
       "properties": {
         "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_id": {
           "type": "string",
           "minLength": 1
         },

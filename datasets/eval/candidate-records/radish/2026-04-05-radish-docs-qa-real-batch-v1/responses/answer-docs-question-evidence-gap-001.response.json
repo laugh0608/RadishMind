@@ -1,0 +1,30 @@
+{
+  "project": "radish",
+  "task": "answer_docs_question",
+  "summary": "根据当前文档，仅说明可以查看任务状态，未明确谁有权重试或删除任务。",
+  "status": "partial",
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "confidence": 0.6,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "提供的《Hangfire 只读说明》文档仅指出可查看任务状态，未包含任务重试或删除的权限定义。因此无法基于现有材料确认具体操作权限。",
+      "citation_ids": [
+        "doc-1"
+      ]
+    }
+  ],
+  "issues": [],
+  "proposed_actions": [],
+  "citations": [
+    {
+      "id": "doc-1",
+      "kind": "artifact",
+      "label": "console/hangfire-readonly",
+      "locator": "artifact:wiki_document",
+      "excerpt": "# Hangfire 只读说明 本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+    }
+  ],
+  "schema_version": 1
+}

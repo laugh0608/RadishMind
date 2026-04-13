@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "sample_id": "radish-answer-docs-question-evidence-gap-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-evidence-gap-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# Hangfire 只读说明\n\n本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "console/hangfire-readonly",
+          "fragment_id": "lead",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "console",
+      "route": "/console/hangfire",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "console/hangfire-readonly",
+        "title": "Hangfire 只读说明"
+      },
+      "viewer": {
+        "is_authenticated": true,
+        "roles": [
+          "Admin"
+        ],
+        "permissions": [
+          "console.hangfire.view"
+        ]
+      },
+      "search_scope": [
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "retrieval_expectations": {
+    "require_primary_artifact": true,
+    "max_primary_artifacts": 1,
+    "max_supporting_artifacts": 0,
+    "max_reference_artifacts": 0,
+    "allowed_search_scopes": [
+      "wiki"
+    ],
+    "required_search_scopes": [
+      "wiki"
+    ],
+    "disallowed_search_scopes": [
+      "console"
+    ],
+    "allowed_primary_source_types": [
+      "wiki"
+    ],
+    "allowed_supporting_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allowed_reference_source_types": [
+      "docs",
+      "wiki",
+      "attachments"
+    ],
+    "allow_unofficial_sources": false,
+    "require_primary_resource_match": true,
+    "require_artifact_source_metadata": true
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": false
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0]",
+      "$.issues[0]",
+      "$.citations[0]",
+      "$.risk_level"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "risk_level",
+      "retrieval_contract",
+      "candidate_record_alignment"
+    ],
+    "notes": "使用批次 `2026-04-05-radish-docs-qa-real-batch-v1` 中同样本的真实候选快照做负例 replay，保持原样本的 sample_id/request_id，对齐通过后验证真实候选回答命中这些违规：`.risk_level does not match evaluation.expected_risk_level`；`must contain at least 1 issue`。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      ".risk_level does not match evaluation.expected_risk_level",
+      "must contain at least 1 issue"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+    "record_id": "captured-radish-answer-docs-question-evidence-gap-001",
+    "expected_source": "captured_candidate_response",
+    "required_collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+    "required_capture_origin": "adapter_debug_dump",
+    "required_tags": [
+      "radish_docs_qa",
+      "real_capture"
+    ]
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "当前文档只说明可以查看 Hangfire 任务状态，不能据此确认谁有权重试或删除任务。",
+    "answers": [
+      {
+        "kind": "evidence_limited_answer",
+        "text": "现有文档只覆盖查看能力，没有给出重试或删除任务的授权口径，因此不能直接下权限结论。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_EVIDENCE",
+        "message": "当前证据不足以确认是否允许重试或删除 Hangfire 任务。",
+        "severity": "warning",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "Hangfire 只读说明",
+        "locator": "artifact:wiki_document",
+        "excerpt": "本文档仅说明可以查看任务状态，未说明谁有权重试或删除任务。"
+      }
+    ],
+    "confidence": 0.82,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

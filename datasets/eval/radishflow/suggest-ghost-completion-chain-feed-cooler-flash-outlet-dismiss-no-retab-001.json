@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-dismiss-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-dismiss-no-retab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-223",
+          "streams": [
+            {
+              "id": "feed-702",
+              "name": "F-702",
+              "target_unit_id": "cooler-8"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-702-unit",
+              "kind": "Feed",
+              "name": "Feed 702"
+            },
+            {
+              "id": "cooler-8",
+              "kind": "Cooler",
+              "name": "Feed Cooler 702"
+            },
+            {
+              "id": "flash-21",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 702"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 57,
+      "selected_unit_ids": [
+        "cooler-8"
+      ],
+      "selected_unit": {
+        "id": "cooler-8",
+        "kind": "Cooler",
+        "name": "Feed Cooler 702"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-21.inlet",
+          "distance_px": 62,
+          "alignment_score": 0.95,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-cooler-8-outlet-flash-21",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "cooler-8",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-21.inlet",
+          "suggested_stream_name": "C-702",
+          "ranking_signals": {
+            "distance_px": 62,
+            "alignment_score": 0.95,
+            "topology_score": 0.92,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.81
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "702",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "recent_dismiss_cooldown_active",
+            "manual_reselection_required"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-702-to-cooler-8-inlet",
+            "accepted_at_revision": 55
+          },
+          {
+            "kind": "dismiss_ghost_completion",
+            "candidate_ref": "cand-cooler-8-outlet-flash-21",
+            "dismissed_at_revision": 56
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-702"
+        ],
+        "existing_stream_names": [
+          "F-702"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "702"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "recent_dismiss_same_candidate_requires_manual_reselect"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"cooler-8\"",
+      "$.proposed_actions[0].target.port_key=\"outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-cooler-8-outlet-flash-21\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"C-702\"",
+      "$.proposed_actions[0].preview.accept_key=\"manual_only\"",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "risk_level",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当 Feed 已接入 Cooler，且同一 Cooler outlet ghost 刚被 dismiss 时，不应立即再次把同一 candidate 作为默认 Tab 强推；若仍展示该候选，也只能降为 manual_only。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "cooler-8 已进入出口补全阶段，但 outlet 候选刚被用户关闭，因此当前只能继续显示手动可选 ghost，不能立即再次绑定到 Tab。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "虽然 cand-cooler-8-outlet-flash-21 仍然合法，但它刚在当前链式步骤里被 dismiss，系统此时不应再次把同一候选作为默认接受键强推，只能保留为 manual-only 供用户显式重选。",
+        "citation_ids": [
+          "ctx-recent-dismiss",
+          "ctx-candidate-cooler-outlet",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "将 cooler-8 的 outlet 保留为手动 ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-8",
+          "port_key": "outlet"
+        },
+        "rationale": "同一 Cooler outlet 候选刚被 dismiss，当前只应保留为手动可选 ghost，避免马上再次用 Tab 强推同一 candidate。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-8-outlet-flash-21",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-702"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-8-outlet-flash-21"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-cooler-outlet",
+          "ctx-recent-dismiss"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-recent-dismiss",
+        "kind": "context",
+        "label": "最近关闭的同一 Cooler outlet 候选",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "dismiss_ghost_completion candidate_ref=cand-cooler-8-outlet-flash-21 dismissed_at_revision=56"
+      },
+      {
+        "id": "ctx-candidate-cooler-outlet",
+        "kind": "context",
+        "label": "Cooler outlet 候选已进入 dismiss 冷却期",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-8-outlet-flash-21 is_tab_default=false conflict_flags=[recent_dismiss_cooldown_active,manual_reselection_required]"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "dismiss 后需显式重选模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "recent_dismiss_same_candidate_requires_manual_reselect"
+      }
+    ],
+    "confidence": 0.78,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  }
+}

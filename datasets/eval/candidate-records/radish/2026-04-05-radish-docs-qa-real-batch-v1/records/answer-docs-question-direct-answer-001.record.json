@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-direct-answer-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-direct-answer-001",
+  "request_id": "sample-direct-answer-001",
+  "captured_at": "2026-04-05T01:06:07Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/authentication",
+    "resource_slug": "guide/authentication",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "summary": "鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据《鉴权与授权指南》，鉴权的核心职责是确认用户是谁（身份验证），而授权的核心职责是确认用户能做什么（权限分配）。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "confidence": 0.95,
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/authentication",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# 鉴权与授权指南 鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  }
+}

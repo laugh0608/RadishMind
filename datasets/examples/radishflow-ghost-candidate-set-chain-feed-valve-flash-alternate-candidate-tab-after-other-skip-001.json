@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "local_rules",
+  "document_revision": 81,
+  "selected_unit": {
+    "id": "flash-40",
+    "kind": "FlashDrum",
+    "name": "Flash Drum 512"
+  },
+  "unconnected_ports": [
+    "vapor_outlet"
+  ],
+  "nearby_nodes": [
+    {
+      "type": "stream_stub",
+      "id": "flash-40-vapor-lane-main",
+      "direction": "downstream",
+      "distance_px": 64,
+      "alignment_score": 0.96
+    },
+    {
+      "type": "stream_stub",
+      "id": "flash-40-vapor-lane-legacy",
+      "direction": "downstream",
+      "distance_px": 79,
+      "alignment_score": 0.83
+    }
+  ],
+  "cursor_context": {
+    "mode": "unit_selected",
+    "recent_actions": [
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-feed-512-to-valve-13-inlet",
+        "accepted_at_revision": 78
+      },
+      {
+        "kind": "accept_ghost_completion",
+        "candidate_ref": "cand-valve-13-outlet-flash-40",
+        "accepted_at_revision": 79
+      },
+      {
+        "kind": "skip_ghost_completion",
+        "candidate_ref": "cand-flash-40-vapor-outlet-legacy",
+        "skipped_at_revision": 80
+      }
+    ]
+  },
+  "naming_hints": {
+    "upstream_stream_names": [
+      "V-512"
+    ],
+    "existing_stream_names": [
+      "F-512",
+      "V-512"
+    ],
+    "preferred_prefix_by_port": {
+      "vapor_outlet": "VG"
+    },
+    "numeric_suffix_from_unit": "512"
+  },
+  "topology_pattern_hints": [
+    "feed_valve_flash_chain",
+    "flash_split_after_valve_outlet_connection",
+    "recent_skip_only_suppresses_same_candidate"
+  ],
+  "legal_candidate_completions": [
+    {
+      "candidate_ref": "cand-flash-40-vapor-outlet-main",
+      "ghost_kind": "ghost_connection",
+      "target_port_key": "vapor_outlet",
+      "target_unit_id": "flash-40",
+      "suggested_stream_name": "VG-512",
+      "ranking_signals": {
+        "distance_px": 64,
+        "alignment_score": 0.96,
+        "topology_score": 0.94,
+        "score_gap_to_next": 0.28,
+        "template_frequency": 0.86
+      },
+      "naming_signals": {
+        "applied_prefix": "VG",
+        "numeric_suffix": "512",
+        "reused_existing_pattern": true,
+        "collision_checked": true
+      },
+      "is_high_confidence": true,
+      "is_tab_default": true
+    }
+  ],
+  "generation_metadata": {
+    "generator_kind": "local_rules",
+    "generator_version": "ghost-rule-engine/0.1.0",
+    "policy_version": "feed-valve-flash-chain-v1",
+    "notes": "第一条链式模板示例：最近 skip 只压制同一 candidate_ref，不应误伤新的高置信 vapor outlet 候选。"
+  }
+}

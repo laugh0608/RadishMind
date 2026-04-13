@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-role-example-boundary-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-role-example-boundary-001",
+  "request_id": "sample-role-example-boundary-001",
+  "captured_at": "2026-04-04T05:23:02Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "console",
+    "route": "/console/hangfire",
+    "resource_slug": "console/hangfire-permission-guide",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "partial",
+    "summary": "文档中的 Admin 仅为示例角色，不代表实际权限。能否重试或删除任务取决于服务端对 console.hangfire.retry 与 console.hangfire.delete 的实际判定。您当前仅具备 console.hangfire.view 权限，无法执行相关操作。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据提供的权限说明文档，文中提及的 Admin 角色仅作为常见示例，并非最终授权依据。Hangfire 任务的重试与删除权限严格依赖服务端对 console.hangfire.retry 和 console.hangfire.delete 的实际校验。结合您当前上下文，您仅拥有 console.hangfire.view 权限，因此不具备重试或删除任务的权限。如需操作，请联系管理员申请对应权限。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "confidence": 0.85,
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "console/hangfire-permission-guide",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# Hangfire 权限说明 文档中的 `Admin` 仅用于说明常见角色示例。是否真的可以重试或删除任务，仍以服务端对 `console.hangfire.retry` 与 `console.hangfire.delete` 的实际权限判定为准。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

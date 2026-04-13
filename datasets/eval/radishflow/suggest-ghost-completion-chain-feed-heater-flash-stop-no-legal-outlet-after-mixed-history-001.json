@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-253",
+          "streams": [
+            {
+              "id": "feed-610",
+              "name": "F-610",
+              "target_unit_id": "heater-11"
+            },
+            {
+              "id": "existing-h-610",
+              "name": "H-610",
+              "source_unit_id": "heater-legacy",
+              "target_unit_id": "flash-34"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-610-unit",
+              "kind": "Feed",
+              "name": "Feed 610"
+            },
+            {
+              "id": "heater-11",
+              "kind": "Heater",
+              "name": "Feed Heater 610"
+            },
+            {
+              "id": "flash-34",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 610A"
+            },
+            {
+              "id": "flash-35",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 610B"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 75,
+      "selected_unit_ids": [
+        "heater-11"
+      ],
+      "selected_unit": {
+        "id": "heater-11",
+        "kind": "Heater",
+        "name": "Feed Heater 610"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "legal_candidate_completions": [],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-34.inlet",
+          "distance_px": 66,
+          "alignment_score": 0.91,
+          "direction": "downstream",
+          "blocked_reason": "occupied_by_existing_stream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-35.inlet",
+          "distance_px": 79,
+          "alignment_score": 0.84,
+          "direction": "downstream",
+          "blocked_reason": "manual_skip_left_no_remaining_legal_route"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-610-to-heater-11-inlet",
+            "accepted_at_revision": 72
+          },
+          {
+            "kind": "reject_ghost_completion",
+            "candidate_ref": "cand-heater-11-outlet-flash-34",
+            "rejected_at_revision": 73
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-heater-11-outlet-flash-35",
+            "skipped_at_revision": 74
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-610"
+        ],
+        "existing_stream_names": [
+          "F-610",
+          "H-610"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "610"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "stop_when_no_legal_heater_outlet_candidates_after_mixed_history"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0].kind=\"empty_suggestion_reason\"",
+      "$.issues[0].code=\"INSUFFICIENT_GHOST_CONTEXT\"",
+      "$.issues[0].severity=\"info\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "empty_suggestion_boundary",
+      "pending_ghost_semantics"
+    ],
+    "notes": "当 recent_actions 已叠加 accept、reject 与 skip，但本地规则层仍未给出任何合法 Heater outlet 候选时，响应必须稳定保持空建议，而不是被历史动作误导出默认或手动 ghost。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "heater-11 虽然已经积累了多条 recent_actions 反馈，但当前依然没有任何合法 outlet ghost 候选，因此必须停在空建议。",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "recent_actions 说明当前链式搭建已经进入 Heater 出口阶段，并且不同下游方向都发生过反馈；但本地规则层仍返回空候选集，所以这里不能因为历史动作很多就主观补一个默认或 manual-only ghost。",
+        "citation_ids": [
+          "ctx-recent-reject",
+          "ctx-recent-skip",
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前 recent_actions 已提供链式反馈背景，但本地规则尚未提供任何合法 Heater outlet 候选，不能安全地产生 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern",
+          "ctx-nearby-blocked"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "ctx-recent-reject",
+        "kind": "context",
+        "label": "最近 reject 的 Heater outlet 候选",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "reject_ghost_completion candidate_ref=cand-heater-11-outlet-flash-34 rejected_at_revision=73"
+      },
+      {
+        "id": "ctx-recent-skip",
+        "kind": "context",
+        "label": "最近 skip 的 Heater outlet 候选",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "skip_ghost_completion candidate_ref=cand-heater-11-outlet-flash-35 skipped_at_revision=74"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 Heater outlet 候选集",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "mixed-history 下仍需停住的 Heater 模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "stop_when_no_legal_heater_outlet_candidates_after_mixed_history"
+      },
+      {
+        "id": "ctx-nearby-blocked",
+        "kind": "context",
+        "label": "紧邻的 FlashDrum inlet 仍被阻塞",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "flash-34.inlet blocked_reason=occupied_by_existing_stream"
+      }
+    ],
+    "confidence": 0.91,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

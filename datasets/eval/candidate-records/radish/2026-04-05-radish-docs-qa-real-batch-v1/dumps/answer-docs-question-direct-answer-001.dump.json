@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-radish-answer-docs-question-direct-answer-001",
+  "record_id": "captured-radish-answer-docs-question-direct-answer-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-direct-answer-001",
+  "request_id": "sample-direct-answer-001",
+  "captured_at": "2026-04-05T01:06:07Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1"
+  },
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/authentication",
+    "resource_slug": "guide/authentication",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "sample-direct-answer-001",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "markdown",
+        "role": "primary",
+        "name": "wiki_document",
+        "mime_type": "text/markdown",
+        "content": "# 鉴权与授权指南\n\n鉴权负责确认用户是谁，授权负责确认用户能做什么。",
+        "metadata": {
+          "source_type": "wiki",
+          "page_slug": "guide/authentication",
+          "fragment_id": "lead",
+          "retrieval_rank": 1,
+          "is_official": true
+        }
+      }
+    ],
+    "context": {
+      "current_app": "document",
+      "route": "/document/guide/authentication",
+      "resource": {
+        "kind": "wiki_document",
+        "slug": "guide/authentication",
+        "title": "鉴权与授权指南"
+      },
+      "search_scope": [
+        "wiki"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": true,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "payload": {
+      "model": "qwen/qwen3.6-plus:free",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的文档问答推理器，只处理 `radish / answer_docs_question`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `summary` 必须先直接回答问题\n4. 普通文档问答默认 `risk_level=low` 且 `requires_confirmation=false`\n5. 若证据不足、来源冲突或权限结论无法确认，可退化为 `status=partial`\n6. 不要凭空生成高风险动作；`proposed_actions` 默认应为空\n7. `citations` 只能引用当前输入里已有的 artifacts\n8. 正式文档优先于 FAQ 或 forum 这类非正式来源\n9. 如果当前文档只是示例、说明或边界提示，不要把它写成确定性授权或最终判定\n\n字段提醒：\n\n- `project` 固定回写为 `radish`\n- `task` 固定回写为 `answer_docs_question`\n- `answers` 至少 1 条\n- `issues` 只有在证据不足、边界提示或来源冲突时再使用\n- `confidence` 使用 0 到 1 之间的小数"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"sample-direct-answer-001\",\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"markdown\",\n      \"role\": \"primary\",\n      \"name\": \"wiki_document\",\n      \"mime_type\": \"text/markdown\",\n      \"content\": \"# 鉴权与授权指南\\n\\n鉴权负责确认用户是谁，授权负责确认用户能做什么。\",\n      \"metadata\": {\n        \"source_type\": \"wiki\",\n        \"page_slug\": \"guide/authentication\",\n        \"fragment_id\": \"lead\",\n        \"retrieval_rank\": 1,\n        \"is_official\": true\n      }\n    }\n  ],\n  \"context\": {\n    \"current_app\": \"document\",\n    \"route\": \"/document/guide/authentication\",\n    \"resource\": {\n      \"kind\": \"wiki_document\",\n      \"slug\": \"guide/authentication\",\n      \"title\": \"鉴权与授权指南\"\n    },\n    \"search_scope\": [\n      \"wiki\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": true,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    }
+  },
+  "raw_response": {
+    "id": "gen-1775351129-ORpCxXtM576dQECSlUWF",
+    "object": "chat.completion",
+    "created": 1775351129,
+    "model": "qwen/qwen3.6-plus-04-02:free",
+    "provider": "Alibaba",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radish\",\n  \"task\": \"answer_docs_question\",\n  \"status\": \"success\",\n  \"summary\": \"鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。\",\n  \"answers\": [\n    {\n      \"question\": \"鉴权与授权的核心区别是什么？\",\n      \"answer\": \"根据《鉴权与授权指南》，鉴权的核心职责是确认用户是谁（身份验证），而授权的核心职责是确认用户能做什么（权限分配）。\",\n      \"citations\": [\n        {\n          \"artifact_name\": \"wiki_document\",\n          \"fragment_id\": \"lead\",\n          \"source_type\": \"wiki\"\n        }\n      ]\n    }\n  ],\n  \"risk_level\": \"low\",\n  \"requires_confirmation\": false,\n  \"proposed_actions\": [],\n  \"confidence\": 0.95,\n  \"issues\": []\n}",
+          "refusal": null,
+          "reasoning": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Input Type:** `CopilotRequest` for `radish / answer_docs_question`\n   - **Artifacts:** One markdown document titled \"鉴权与授权指南\" (Authentication & Authorization Guide). Content: \"鉴权负责确认用户是谁，授权负责确认用户能做什么。\" (Authentication is responsible for confirming who the user is, authorization is responsible for confirming what the user can do.)\n   - **Context:** App: `document`, Route: `/document/guide/authentication`, Resource: wiki document.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, there's no explicit question in the prompt, but the task is `answer_docs_question`. I need to infer the question or just summarize the provided document's core content as the answer to an implicit \"what is this about?\" or just state the core concept. I will frame the summary to directly address the content provided.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - `project` = `radish`, `task` = `answer_docs_question`.\n     - `answers` at least 1.\n     - `confidence` 0-1.\n     - `issues` only if evidence insufficient/conflict.\n\n2.  **Identify Missing/Implicit Information:**\n   - The prompt doesn't explicitly state a user question. In such cases, I should generate a response that summarizes the provided document as the answer to a general inquiry about the document's content, or assume the question is \"鉴权与授权的区别是什么？\" (What is the difference between authentication and authorization?) based on the content. I will craft the `summary` to directly state the core definition provided in the text.\n   - I will structure the JSON carefully.\n\n3.  **Construct JSON Structure (Mental Draft):**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"summary\": \"鉴权负责确认用户身份，而授权负责确认用户具备的操作权限。\",\n     \"answers\": [\n       {\n         \"question\": \"鉴权与授权的核心区别是什么？\",\n         \"answer\": \"根据《鉴权与授权指南》，鉴权（Authentication）的核心作用是确认用户是谁，即验证身份；授权（Authorization）的核心作用是确认用户能做什么，即分配操作权限。\",\n         \"citations\": [\n           {\n             \"artifact_name\": \"wiki_document\",\n             \"fragment_id\": \"lead\",\n             \"source_type\": \"wiki\"\n           }\n         ]\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95,\n     \"issues\": []\n   }\n   ```\n\n4.  **Check Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes, references `wiki_document`.\n   - `project` & `task` correct? Yes.\n   - `answers` at least 1? Yes.\n   - `confidence` 0-1? Yes.\n   - Formal doc prioritized? It's a wiki doc, marked official.\n   - No high-risk actions? Yes.\n   - Structure matches `CopilotResponse`? I'll ensure standard fields are present. The prompt says \"结构必须满足 `CopilotResponse`\", I'll use typical fields: `project`, `task`, `status`, `summary`, `answers`, `risk_level`, `requires_confirmation`, `proposed_actions`, `confidence`, `issues`.\n\n   One minor point: The prompt says \"summary 必须先直接回答问题\". Since no explicit question was provided in the request, I will assume the implicit question is about the document's content or the difference between authN and authZ. I'll make the summary a direct statement of the fact.\n\n   Let's refine the JSON to strictly match expected schema without extra fluff.\n   I will ensure the JSON is valid and compact.\n\n   Structure check:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"summary\": \"鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。\",\n     \"answers\": [\n       {\n         \"question\": \"鉴权与授权的定义与区别是什么？\",\n         \"answer\": \"根据提供的《鉴权与授权指南》，鉴权的核心职责是确认用户是谁（身份验证），而授权的核心职责是确认用户能做什么（权限分配）。\",\n         \"citations\": [\n           {\n             \"artifact_name\": \"wiki_document\",\n             \"fragment_id\": \"lead\",\n             \"source_type\": \"wiki\"\n           }\n         ]\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95,\n     \"issues\": []\n   }\n   ```\n\n   All constraints met. I will output exactly this JSON string. No markdown formatting. Ensure proper escaping if needed, but it's straightforward.\n   One thing: `citations` format might need to match typical Radish schema. I'll keep it simple with `artifact_name`, `fragment_id`, `source_type` as derived from metadata.\n   The prompt says \"citations 只能引用当前输入里已有的 artifacts\". I'll use the exact name `wiki_document`.\n   I will produce the raw JSON.✅\n   Proceed. \n   Output matches exactly. \n   Self-Correction/Verification during thought:\n   - Check constraint 3: `summary` 必须先直接回答问题。 (Since no question is given, I will phrase it as a direct answer to the implicit topic).\n   - Check constraint 4: `risk_level=low`, `requires_confirmation=false`.\n   - Check constraint 6: `proposed_actions` default empty.\n   - Check constraint 7: `citations` only from input.\n   - All good.\n   Output generation. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"success\", \"summary\": \"鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。\", \"answers\": [ { \"question\": \"鉴权与授权的核心区别是什么？\", \"answer\": \"根据《鉴权与授权指南》，鉴权的核心职责是确认用户是谁，而授权的核心职责是确认用户能做什么。\", \"citations\": [ { \"artifact_name\": \"wiki_document\", \"fragment_id\": \"lead\", \"source_type\": \"wiki\" } ] } ], \"risk_level\": \"low\", \"requires_confirmation\": false, \"proposed_actions\": [], \"confidence\": 0.95, \"issues\": [] }`\n   Matches perfectly. No extra text. Ready. \n   Output matches response. \n   Proceeds. \n   [Done] \n   *Self-Correction/Refinement during generation prep*: \n   I should make sure the JSON is strictly valid and follows the exact field names expected. The prompt doesn't give a strict schema for `CopilotResponse` but implies standard fields. I'll stick to the drafted structure. It's safe.\n   I will output just the JSON string.✅\n   Final Check of the prompt: \"不要输出 markdown 代码块，不要输出 JSON 之外的解释\" -> I will output raw JSON.\n   All good. \n   Output matches. \n   [Proceeds]\n",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Input Type:** `CopilotRequest` for `radish / answer_docs_question`\n   - **Artifacts:** One markdown document titled \"鉴权与授权指南\" (Authentication & Authorization Guide). Content: \"鉴权负责确认用户是谁，授权负责确认用户能做什么。\" (Authentication is responsible for confirming who the user is, authorization is responsible for confirming what the user can do.)\n   - **Context:** App: `document`, Route: `/document/guide/authentication`, Resource: wiki document.\n   - **Constraints from System Prompt:**\n     - Output only a JSON object matching `CopilotResponse`.\n     - No markdown code blocks, no extra text.\n     - `summary` must directly answer the question first. (Wait, there's no explicit question in the prompt, but the task is `answer_docs_question`. I need to infer the question or just summarize the provided document's core content as the answer to an implicit \"what is this about?\" or just state the core concept. I will frame the summary to directly address the content provided.)\n     - `risk_level=low`, `requires_confirmation=false` by default.\n     - `proposed_actions` default empty.\n     - `citations` only from provided artifacts.\n     - `project` = `radish`, `task` = `answer_docs_question`.\n     - `answers` at least 1.\n     - `confidence` 0-1.\n     - `issues` only if evidence insufficient/conflict.\n\n2.  **Identify Missing/Implicit Information:**\n   - The prompt doesn't explicitly state a user question. In such cases, I should generate a response that summarizes the provided document as the answer to a general inquiry about the document's content, or assume the question is \"鉴权与授权的区别是什么？\" (What is the difference between authentication and authorization?) based on the content. I will craft the `summary` to directly state the core definition provided in the text.\n   - I will structure the JSON carefully.\n\n3.  **Construct JSON Structure (Mental Draft):**\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"summary\": \"鉴权负责确认用户身份，而授权负责确认用户具备的操作权限。\",\n     \"answers\": [\n       {\n         \"question\": \"鉴权与授权的核心区别是什么？\",\n         \"answer\": \"根据《鉴权与授权指南》，鉴权（Authentication）的核心作用是确认用户是谁，即验证身份；授权（Authorization）的核心作用是确认用户能做什么，即分配操作权限。\",\n         \"citations\": [\n           {\n             \"artifact_name\": \"wiki_document\",\n             \"fragment_id\": \"lead\",\n             \"source_type\": \"wiki\"\n           }\n         ]\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95,\n     \"issues\": []\n   }\n   ```\n\n4.  **Check Constraints:**\n   - Only JSON? Yes.\n   - No markdown? Yes.\n   - `summary` directly answers? Yes.\n   - `risk_level=low`, `requires_confirmation=false`? Yes.\n   - `proposed_actions` empty? Yes.\n   - `citations` only from input? Yes, references `wiki_document`.\n   - `project` & `task` correct? Yes.\n   - `answers` at least 1? Yes.\n   - `confidence` 0-1? Yes.\n   - Formal doc prioritized? It's a wiki doc, marked official.\n   - No high-risk actions? Yes.\n   - Structure matches `CopilotResponse`? I'll ensure standard fields are present. The prompt says \"结构必须满足 `CopilotResponse`\", I'll use typical fields: `project`, `task`, `status`, `summary`, `answers`, `risk_level`, `requires_confirmation`, `proposed_actions`, `confidence`, `issues`.\n\n   One minor point: The prompt says \"summary 必须先直接回答问题\". Since no explicit question was provided in the request, I will assume the implicit question is about the document's content or the difference between authN and authZ. I'll make the summary a direct statement of the fact.\n\n   Let's refine the JSON to strictly match expected schema without extra fluff.\n   I will ensure the JSON is valid and compact.\n\n   Structure check:\n   ```json\n   {\n     \"project\": \"radish\",\n     \"task\": \"answer_docs_question\",\n     \"status\": \"success\",\n     \"summary\": \"鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。\",\n     \"answers\": [\n       {\n         \"question\": \"鉴权与授权的定义与区别是什么？\",\n         \"answer\": \"根据提供的《鉴权与授权指南》，鉴权的核心职责是确认用户是谁（身份验证），而授权的核心职责是确认用户能做什么（权限分配）。\",\n         \"citations\": [\n           {\n             \"artifact_name\": \"wiki_document\",\n             \"fragment_id\": \"lead\",\n             \"source_type\": \"wiki\"\n           }\n         ]\n       }\n     ],\n     \"risk_level\": \"low\",\n     \"requires_confirmation\": false,\n     \"proposed_actions\": [],\n     \"confidence\": 0.95,\n     \"issues\": []\n   }\n   ```\n\n   All constraints met. I will output exactly this JSON string. No markdown formatting. Ensure proper escaping if needed, but it's straightforward.\n   One thing: `citations` format might need to match typical Radish schema. I'll keep it simple with `artifact_name`, `fragment_id`, `source_type` as derived from metadata.\n   The prompt says \"citations 只能引用当前输入里已有的 artifacts\". I'll use the exact name `wiki_document`.\n   I will produce the raw JSON.✅\n   Proceed. \n   Output matches exactly. \n   Self-Correction/Verification during thought:\n   - Check constraint 3: `summary` 必须先直接回答问题。 (Since no question is given, I will phrase it as a direct answer to the implicit topic).\n   - Check constraint 4: `risk_level=low`, `requires_confirmation=false`.\n   - Check constraint 6: `proposed_actions` default empty.\n   - Check constraint 7: `citations` only from input.\n   - All good.\n   Output generation. \n   `{ \"project\": \"radish\", \"task\": \"answer_docs_question\", \"status\": \"success\", \"summary\": \"鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。\", \"answers\": [ { \"question\": \"鉴权与授权的核心区别是什么？\", \"answer\": \"根据《鉴权与授权指南》，鉴权的核心职责是确认用户是谁，而授权的核心职责是确认用户能做什么。\", \"citations\": [ { \"artifact_name\": \"wiki_document\", \"fragment_id\": \"lead\", \"source_type\": \"wiki\" } ] } ], \"risk_level\": \"low\", \"requires_confirmation\": false, \"proposed_actions\": [], \"confidence\": 0.95, \"issues\": [] }`\n   Matches perfectly. No extra text. Ready. \n   Output matches response. \n   Proceeds. \n   [Done] \n   *Self-Correction/Refinement during generation prep*: \n   I should make sure the JSON is strictly valid and follows the exact field names expected. The prompt doesn't give a strict schema for `CopilotResponse` but implies standard fields. I'll stick to the drafted structure. It's safe.\n   I will output just the JSON string.✅\n   Final Check of the prompt: \"不要输出 markdown 代码块，不要输出 JSON 之外的解释\" -> I will output raw JSON.\n   All good. \n   Output matches. \n   [Proceeds]\n",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 660,
+      "completion_tokens": 1968,
+      "total_tokens": 2628,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1754,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "summary": "鉴权负责确认用户身份，授权负责确认用户可执行的操作权限。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据《鉴权与授权指南》，鉴权的核心职责是确认用户是谁（身份验证），而授权的核心职责是确认用户能做什么（权限分配）。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "confidence": 0.95,
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/authentication",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# 鉴权与授权指南 鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "schema_version": 1
+  }
+}

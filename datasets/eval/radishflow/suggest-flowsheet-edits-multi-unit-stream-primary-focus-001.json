@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-multi-unit-stream-primary-focus-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-multi-unit-stream-primary-focus-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-145",
+          "streams": [
+            {
+              "id": "feed-21",
+              "name": "Cooler Feed",
+              "target_unit_id": "cooler-3",
+              "specs": {
+                "temperature_c": 118
+              }
+            },
+            {
+              "id": "intermediate-21",
+              "name": "Cooler Outlet",
+              "source_unit_id": "cooler-3",
+              "target_unit_id": "separator-2",
+              "specs": {
+                "temperature_c": 42
+              }
+            },
+            {
+              "id": "product-21",
+              "name": "Separator Vapor",
+              "source_unit_id": "separator-2",
+              "specs": {
+                "pressure_kpa": 142
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "cooler-3",
+              "kind": "Cooler",
+              "name": "Overhead Cooler",
+              "config": {
+                "control_mode": "duty"
+              }
+            },
+            {
+              "id": "separator-2",
+              "kind": "FlashDrum",
+              "name": "Overhead Separator",
+              "config": {
+                "pressure_mode": "free"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 61,
+      "selected_unit_ids": [
+        "cooler-3",
+        "separator-2"
+      ],
+      "selected_unit": {
+        "id": "cooler-3",
+        "kind": "Cooler",
+        "name": "Overhead Cooler",
+        "config": {
+          "control_mode": "duty"
+        }
+      },
+      "selected_stream_ids": [
+        "feed-21",
+        "intermediate-21",
+        "product-21"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Cooler Feed is missing pressure specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-21"
+        },
+        {
+          "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Overhead Cooler outlet response may still be driven by the incomplete feed pressure state, so the cooler itself is not yet a confirmed root cause.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "cooler-3"
+        },
+        {
+          "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+          "message": "Overhead Separator behavior still depends on the unresolved upstream feed pressure gap.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "separator-2"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "partial_convergence",
+        "residual_norm": 0.14,
+        "last_updated": "2026-04-12T03:20:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_SPEC_MISSING\"",
+      "$.issues[1].code=\"COOLER_OUTLET_EFFECT_UNCONFIRMED\"",
+      "$.issues[2].code=\"DOWNSTREAM_SEPARATOR_STATE_DEPENDENT\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"feed-21\"",
+      "$.proposed_actions[0].patch.spec_placeholders[0]=\"pressure_kpa\"",
+      "$.proposed_actions[0].patch.retain_existing_specs=true",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].target.id=\"cooler-3\"",
+      "$.proposed_actions[0].target.id=\"separator-2\"",
+      "$.proposed_actions[1]",
+      "$.proposed_actions[0].patch.patch_scope=\"full_flowsheet\""
+    ],
+    "ordered_issue_codes": [
+      "STREAM_SPEC_MISSING",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "当 export 同时保留多 unit、多 stream 与单 primary focus 时，adapter 应保留完整 selection，同时只把 primary focus 下沉为 selected_unit；candidate_edit 仍只能落在证据充分的局部对象上。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前 export 同时保留了 Overhead Cooler、Overhead Separator 及三条关联流股，但可直接落 patch 的仍只有 feed-21 的缺压力规格问题；primary focus 只用于解释当前观察中心，不应把两个 unit 一并改写。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前 selection 里既有主焦点 cooler-3，也保留了下游 separator-2 与相关流股，因此解释应覆盖整段局部拓扑；但现有证据里只有 feed-21 的 pressure_kpa 缺失具备明确、局部且可审查的修改面。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "focus-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "feed-21 缺少 pressure_kpa，当前入口压力状态不完整。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "cooler-3 的出口表现仍可能受上游缺压力规格影响，暂不能把 cooler 本体确认为独立根因。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "focus-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+        "message": "separator-2 当前仍受未解决的上游压力缺口影响，暂不应对其直接生成 patch。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-21 补充压力规格占位",
+        "target": {
+          "type": "stream",
+          "id": "feed-21"
+        },
+        "rationale": "当前最小且证据最充分的修改面仍是补齐 feed-21 的 pressure_kpa 占位；对 cooler-3 与 separator-2 应继续停留在解释和观察层，而不是因为都在 selection 内就扩成多对象 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cooler Feed is missing pressure specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Overhead Cooler outlet response may still be driven by the incomplete feed pressure state."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Overhead Separator behavior still depends on the unresolved upstream feed pressure gap."
+      },
+      {
+        "id": "focus-1",
+        "kind": "context",
+        "label": "当前主焦点单元",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-3 kind=Cooler"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-21",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-21 当前只有 temperature_c，缺少 pressure_kpa。"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "cooler-3 当前是 duty 控制模式，但缺少足够证据支撑直接参数 patch。"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-2",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-2 当前仍处于 free pressure 模式，状态解释依赖上游缺口是否补齐。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence, residual_norm=0.14"
+      }
+    ],
+    "confidence": 0.86,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

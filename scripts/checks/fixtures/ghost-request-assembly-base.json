@@ -1,0 +1,32 @@
+[
+  {
+    "candidate_set": "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",
+    "requests": [
+      {
+        "output": "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001.json",
+        "request_id": "rf-ghost-request-flash-basic-001",
+        "assembly_profile": "model-minimal"
+      },
+      {
+        "output": "datasets/examples/radishflow-copilot-request-ghost-flash-basic-001-debug-full.json",
+        "request_id": "rf-ghost-request-flash-basic-001-debug-full",
+        "assembly_profile": "debug-full"
+      }
+    ]
+  },
+  {
+    "candidate_set": "datasets/examples/radishflow-ghost-candidate-set-valve-ambiguous-001.json",
+    "requests": [
+      {
+        "output": "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json",
+        "request_id": "rf-ghost-request-valve-ambiguous-001",
+        "assembly_profile": "model-minimal"
+      },
+      {
+        "output": "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001-debug-full.json",
+        "request_id": "rf-ghost-request-valve-ambiguous-001-debug-full",
+        "assembly_profile": "debug-full"
+      }
+    ]
+  }
+]

@@ -94,6 +94,28 @@
     "must_not_have_json_paths": [
       "$.proposed_actions[0].requires_confirmation=false"
     ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "snapshot-1"
+    ],
+    "ordered_action_citation_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "diag-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "ordered_connection_placeholder_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "expected_downstream_kind",
+          "requires_manual_binding"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",

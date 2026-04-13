@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-detail-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-compressor-parameter-update-detail-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-116",
+          "streams": [
+            {
+              "id": "feed-11",
+              "name": "Review Suction",
+              "target_unit_id": "compressor-4",
+              "specs": {
+                "pressure_kpa": 250,
+                "temperature_c": 42,
+                "flow_rate_kg_per_h": 1020
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "compressor-4",
+              "kind": "Compressor",
+              "name": "Detail Review Compressor",
+              "config": {
+                "outlet_pressure_target_kpa": 275,
+                "minimum_flow_bypass_percent": 3
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 66,
+      "selected_unit_ids": [
+        "compressor-4"
+      ],
+      "diagnostic_summary": {
+        "error_count": 2,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+          "message": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-4"
+        },
+        {
+          "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+          "message": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-4"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T21:40:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE\"",
+      "$.issues[1].code=\"COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"unit\"",
+      "$.proposed_actions[0].target.id=\"compressor-4\"",
+      "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.action=\"review_and_raise_margin\"",
+      "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.minimum_delta_kpa=95",
+      "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.reference_stream_id=\"feed-11\"",
+      "$.proposed_actions[0].patch.parameter_updates.minimum_flow_bypass_percent.action=\"raise_to_anti_surge_review_floor\"",
+      "$.proposed_actions[0].patch.parameter_updates.minimum_flow_bypass_percent.suggested_minimum=8",
+      "$.proposed_actions[0].patch.preserve_topology=true",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false"
+    ],
+    "ordered_parameter_update_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "outlet_pressure_target_kpa",
+          "minimum_flow_bypass_percent"
+        ]
+      }
+    ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 0,
+        "parameter_key": "outlet_pressure_target_kpa",
+        "keys": [
+          "action",
+          "minimum_delta_kpa",
+          "reference_stream_id"
+        ]
+      },
+      {
+        "action_index": 0,
+        "parameter_key": "minimum_flow_bypass_percent",
+        "keys": [
+          "action",
+          "suggested_minimum"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "parameter_updates 的外层字段顺序冻结后，内层 detail object 也应稳定：先给动作类型，再给阈值/参考流股等支撑细节。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前建议把 compressor-4 的目标压力裕量与最小流量旁路审查收成一条局部 patch，并保持 parameter_updates 详情键顺序稳定：先 action，再阈值或参考依据。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "这两个诊断都集中在 compressor-4 的局部参数上，因此适合合并成一个 candidate_edit；同时 detail object 的键顺序也应稳定，先说明要执行的审查动作，再补充阈值和参考流股依据。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "message": "compressor-4 的 outlet_pressure_target_kpa 与入口压力过近，当前压缩裕量不足。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+        "message": "compressor-4 的 minimum_flow_bypass_percent 低于当前 anti-surge 审查下限。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "按稳定细节顺序复核 compressor-4 的关键参数",
+        "target": {
+          "type": "unit",
+          "id": "compressor-4"
+        },
+        "rationale": "当前 patch 仍应保持为局部参数审查提案；同时每个 parameter_updates detail object 都应先列出 action，再列阈值和参考依据，避免实现层随机打散细节顺序。",
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_margin",
+              "minimum_delta_kpa": 95,
+              "reference_stream_id": "feed-11"
+            },
+            "minimum_flow_bypass_percent": {
+              "action": "raise_to_anti_surge_review_floor",
+              "suggested_minimum": 8
+            }
+          },
+          "preserve_topology": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-4",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-4 当前 outlet_pressure_target_kpa=275，minimum_flow_bypass_percent=3。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "confidence": 0.91,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

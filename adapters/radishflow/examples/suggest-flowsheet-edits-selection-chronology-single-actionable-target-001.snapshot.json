@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "request_id": "rf-suggest-edit-selection-chronology-single-actionable-target-001",
+  "task": "suggest_flowsheet_edits",
+  "locale": "zh-CN",
+  "document_revision": 68,
+  "flowsheet_document": {
+    "document_id": "flowsheet-163",
+    "streams": [
+      {
+        "id": "feed-44",
+        "name": "Recycle Feed",
+        "target_unit_id": "heater-6",
+        "specs": {
+          "temperature_c": 88
+        }
+      },
+      {
+        "id": "heated-44",
+        "name": "Trim Heater Outlet",
+        "source_unit_id": "heater-6",
+        "target_unit_id": "cooler-7",
+        "specs": {
+          "temperature_c": 136,
+          "pressure_kpa": 208
+        }
+      },
+      {
+        "id": "cooled-44",
+        "name": "Recycle Cooler Outlet",
+        "source_unit_id": "cooler-7",
+        "target_unit_id": "separator-7",
+        "specs": {
+          "temperature_c": 49,
+          "pressure_kpa": 201
+        }
+      },
+      {
+        "id": "vapor-44",
+        "name": "Recycle Separator Vapor",
+        "source_unit_id": "separator-7",
+        "specs": {
+          "pressure_kpa": 195
+        }
+      }
+    ],
+    "units": [
+      {
+        "id": "heater-6",
+        "kind": "Heater",
+        "name": "Feed Trim Heater",
+        "config": {
+          "control_mode": "duty"
+        }
+      },
+      {
+        "id": "cooler-7",
+        "kind": "Cooler",
+        "name": "Recycle Cooler",
+        "config": {
+          "control_mode": "duty"
+        }
+      },
+      {
+        "id": "separator-7",
+        "kind": "FlashDrum",
+        "name": "Recycle Separator",
+        "config": {
+          "pressure_mode": "free"
+        }
+      }
+    ]
+  },
+  "selected_unit_ids": [
+    "separator-7",
+    "heater-6",
+    "cooler-7"
+  ],
+  "selected_unit": {
+    "id": "cooler-7",
+    "kind": "Cooler",
+    "name": "Recycle Cooler",
+    "config": {
+      "control_mode": "duty"
+    }
+  },
+  "selected_stream_ids": [
+    "vapor-44",
+    "feed-44",
+    "cooled-44",
+    "heated-44"
+  ],
+  "diagnostic_summary": {
+    "error_count": 1,
+    "warning_count": 3
+  },
+  "diagnostics": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Recycle Feed is missing pressure specification.",
+      "severity": "error",
+      "target_type": "stream",
+      "target_id": "feed-44"
+    },
+    {
+      "code": "SEPARATOR_STATE_DEPENDENT",
+      "message": "Recycle Separator behavior still depends on the unresolved upstream feed pressure.",
+      "severity": "warning",
+      "target_type": "unit",
+      "target_id": "separator-7"
+    },
+    {
+      "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Feed Trim Heater outlet response may still be influenced by the incomplete feed pressure state.",
+      "severity": "warning",
+      "target_type": "unit",
+      "target_id": "heater-6"
+    },
+    {
+      "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Recycle Cooler outlet response is still downstream of the unresolved feed pressure gap, so the cooler itself is not yet a confirmed root cause.",
+      "severity": "warning",
+      "target_type": "unit",
+      "target_id": "cooler-7"
+    }
+  ],
+  "latest_snapshot": {
+    "solver_status": "partial_convergence",
+    "residual_norm": 0.13,
+    "last_updated": "2026-04-12T06:25:00Z"
+  }
+}

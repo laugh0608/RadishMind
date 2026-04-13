@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001",
+  "request_id": "sample-negative-real-derived-docs-faq-forum-conflict-missing-read-only-check-issue-confirmation-001",
+  "captured_at": "2026-04-06T19:12:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_issue_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-docs-faq-forum-conflict-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 docs-faq-forum-conflict 真实 record 派生，专门模拟缺失 read_only_check 后又叠加 issue 与确认型 candidate_operation。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq",
+      "forum"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt",
+      "forum_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "公开文档发布后应优先保持原有 slug 稳定，避免直接修改访问地址。如确需调整标题，官方建议通过添加 alias 保留旧链接并逐步过渡；社区建议的低流量直接修改方案与官方规范存在冲突，不建议作为首选。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，尽量避免直接改动既有访问地址。若业务确需调整标题，推荐做法是补设 alias 以保留旧链接的可用性，随后再逐步切换至新标题。社区论坛中提及的“直接修改 slug 并删除旧链接”属于非官方建议，且与官方稳定性要求冲突，不建议在生产环境中使用。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "SLUG_FOLLOWUP_REVIEW",
+        "message": "当前回答无端把正式文档已经明确的边界升级成了一条额外 review issue。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "人工确认旧 slug 是否仍暴露旧链接跳转",
+        "rationale": "当前回答错误地把应为低风险只读核对的工作升级成了需要确认的候选操作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "faq-1",
+          "forum-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/publishing",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档发布说明 公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/publishing",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      },
+      {
+        "id": "forum-1",
+        "kind": "artifact",
+        "label": "community/publishing-tips",
+        "locator": "artifact:forum_excerpt",
+        "excerpt": "社区帖子建议：如果页面流量不高，可以直接改掉 slug 并删除旧链接，后续再让搜索慢慢收敛。"
+      }
+    ],
+    "confidence": 0.73,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}

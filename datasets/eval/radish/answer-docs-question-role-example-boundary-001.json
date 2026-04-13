@@ -120,7 +120,8 @@
     "notes": "回答应明确说明文档里的 Admin 只是角色示例，不能把它写成当前 viewer 已具备重试或删除 Hangfire 任务的最终授权。"
   },
   "candidate_response_record": {
-    "path": "datasets/eval/candidate-records/radish/answer-docs-question-role-example-boundary-001.json"
+    "manifest_path": "datasets/eval/candidate-records/radish/2026-04-03-radish-docs-qa-real-captures-v1.manifest.json",
+    "record_id": "captured-radish-docs-qa-role-example-boundary-001"
   },
   "golden_response": {
     "schema_version": 1,

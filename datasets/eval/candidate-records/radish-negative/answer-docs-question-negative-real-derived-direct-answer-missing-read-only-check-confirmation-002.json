@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002",
+  "request_id": "sample-negative-real-derived-direct-answer-missing-read-only-check-confirmation-002",
+  "captured_at": "2026-04-08T18:10:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-direct-answer-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 direct-answer 真实 record 派生，专门模拟缺失 read_only_check 后又错误升级成需要确认的 candidate_operation。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/authentication",
+    "resource_slug": "guide/authentication",
+    "search_scope": [
+      "wiki"
+    ],
+    "artifact_names": [
+      "wiki_document"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "鉴权负责确认用户身份，授权负责确认用户可执行的操作权限，但当前回答又额外把这组术语边界升级成了一条需要人工确认的候选处理动作。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据《鉴权与授权指南》，鉴权的核心职责是确认用户是谁，授权的核心职责是确认用户能做什么；不过当前回答又额外把这组术语区分升级成了一条需要人工确认的候选处理动作。",
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "复核鉴权与授权术语边界",
+        "rationale": "当前回答错误地把应为低风险只读复核的术语边界核对，升级成了需要确认的候选操作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/authentication",
+        "locator": "artifact:wiki_document",
+        "excerpt": "# 鉴权与授权指南 鉴权负责确认用户是谁，授权负责确认用户能做什么。"
+      }
+    ],
+    "confidence": 0.82,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}

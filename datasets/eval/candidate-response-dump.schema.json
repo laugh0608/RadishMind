@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/candidate-response-dump.schema.json",
+  "title": "CandidateResponseDump",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dump_id",
+    "project",
+    "task",
+    "sample_id",
+    "request_id",
+    "captured_at",
+    "source",
+    "model",
+    "input_record",
+    "response"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "dump_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radish",
+        "radishflow"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sample_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "captured_candidate_response",
+        "simulated_candidate_response"
+      ]
+    },
+    "capture_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "capture_origin": {
+          "type": "string",
+          "enum": [
+            "interactive_session",
+            "adapter_debug_dump",
+            "manual_fixture"
+          ]
+        },
+        "collection_batch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_record": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "input_request": {},
+    "raw_request": {},
+    "raw_response": {},
+    "response": {
+      "type": "object"
+    }
+  }
+}

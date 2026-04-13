@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-docs-qa-negative-real-derived-docs-attachments-faq-missing-read-only-check-issue-confirmation-002",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-negative-real-derived-docs-attachments-faq-missing-read-only-check-issue-confirmation-002",
+  "request_id": "sample-negative-real-derived-docs-attachments-faq-missing-read-only-check-issue-confirmation-002",
+  "captured_at": "2026-04-08T17:45:00Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-04-radish-docs-qa-simulated-negatives-v1",
+    "tags": [
+      "radish_docs_qa",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:missing_read_only_check_issue_confirmation_drift",
+      "w15_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.manifest.json",
+      "record_id": "captured-radish-answer-docs-question-docs-attachments-faq-001"
+    },
+    "notes": "基于 2026-04-05 real batch 的 docs-attachments-faq 真实 record 派生，专门模拟缺失 read_only_check 后又叠加 issue 与确认型 candidate_operation。"
+  },
+  "model": "qwen/qwen3.6-plus:free-derived-negative",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/attachment-import",
+    "resource_slug": "guide/attachment-import",
+    "search_scope": [
+      "docs",
+      "attachments",
+      "faq"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "attachment_reference_note",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radish",
+    "task": "answer_docs_question",
+    "summary": "公开文档中的附件仍应使用 `attachment://{id}` 引用；当前 `attachment://manual-42` 已可直接使用，如需提升可读性，FAQ 只补充了可以在正文中附带说明文字，但当前回答又额外把这条说明升级成了需确认的处理路径。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前正式 docs 仍明确要求附件继续使用 `attachment://{id}`，现有附件元数据也说明 `attachment://manual-42` 已可直接在公开文档中引用。FAQ 的补充只涉及说明文字的可读性，不过当前回答又额外把这件事升级成了一条需要人工确认的候选处理动作。",
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "ATTACHMENT_EXPLANATION_REVIEW",
+        "message": "当前回答额外把 FAQ 的补充说明路径升级成了一条需要显式跟踪的 review issue。",
+        "severity": "info",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_operation",
+        "title": "由文档维护者确认是否补充附件说明文字",
+        "rationale": "当前回答错误地把应为低风险只读核对的工作升级成了需要确认的候选操作。",
+        "risk_level": "low",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "doc-1",
+          "att-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 附件导入说明 上传到公开文档的附件，默认应使用 `attachment://{id}` 引用，而不是直接暴露真实存储地址。"
+      },
+      {
+        "id": "att-1",
+        "kind": "artifact",
+        "label": "guide/attachment-import",
+        "locator": "artifact:attachment_reference_note",
+        "excerpt": "附件 `attachment://manual-42` 当前标记为 public-doc-compatible，可直接在文档中引用。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/attachment-import",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：如果用户希望附件链接更易读，可以在文档正文里补充说明文字，但仍应继续使用 `attachment://{id}` 作为实际引用。"
+      }
+    ],
+    "confidence": 0.76,
+    "risk_level": "low",
+    "requires_confirmation": true
+  }
+}

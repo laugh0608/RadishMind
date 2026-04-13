@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "pipeline": "radish-docs-qa-recommended-negative-replay",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "eval_task": "radish-docs-qa-negative",
+  "provider": "openai-compatible",
+  "collection_batch": "2026-04-05-radish-docs-qa-real-batch-v1",
+  "batch_artifact_summary_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json",
+  "negative_replay_index_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.cross-sample-replay-index.json",
+  "output_path": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.recommended-negative-replay-top2-cross_sample.summary.json",
+  "selection": {
+    "requested_top": 2,
+    "selected_group_ids": [
+      "group-003",
+      "group-004"
+    ],
+    "replay_mode": "cross_sample",
+    "sample_dir_override": "",
+    "fail_on_violation": true
+  },
+  "execution": {
+    "overall_exit_code": 0
+  },
+  "summary": {
+    "selected_group_count": 2,
+    "passed_group_count": 2,
+    "failed_group_count": 0,
+    "selected_sample_count": 8,
+    "passed_sample_count": 8,
+    "failed_sample_count": 0,
+    "violation_count": 0
+  },
+  "groups": [
+    {
+      "group_id": "group-003",
+      "replay_mode": "cross_sample",
+      "requested_entry_count": 6,
+      "selected_sample_count": 6,
+      "exit_code": 0,
+      "passed_sample_count": 6,
+      "failed_sample_count": 0,
+      "violation_count": 0,
+      "expected_candidate_violations": [
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        "candidate_response_record.input_record.artifact_names must match input_request artifacts",
+        "candidate_response_record.input_record.search_scope must match input_request.context.search_scope",
+        "is missing required action kind 'read_only_check'"
+      ],
+      "sample_files": [
+        "answer-docs-question-negative-cross-sample-real-record-attachment-mixed-attachments-faq-001.json",
+        "answer-docs-question-negative-cross-sample-real-record-docs-attachments-faq-attachments-forum-conflict-001.json",
+        "answer-docs-question-negative-cross-sample-real-record-docs-attachments-forum-conflict-attachments-faq-001.json",
+        "answer-docs-question-negative-cross-sample-real-record-docs-faq-forum-conflict-faq-mixed-001.json",
+        "answer-docs-question-negative-cross-sample-real-record-docs-faq-mixed-faq-forum-conflict-001.json",
+        "answer-docs-question-negative-cross-sample-real-record-navigation-attachments-faq-001.json"
+      ],
+      "summary_line": "radish docs qa negative regression passed.",
+      "warning_line": "",
+      "command": {
+        "python": [
+          "python3",
+          "./scripts/run-eval-regression.py",
+          "radish-docs-qa-negative",
+          "--batch-artifact-summary",
+          "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json",
+          "--group-id",
+          "group-003",
+          "--replay-mode",
+          "cross_sample",
+          "--fail-on-violation"
+        ]
+      }
+    },
+    {
+      "group_id": "group-004",
+      "replay_mode": "cross_sample",
+      "requested_entry_count": 2,
+      "selected_sample_count": 2,
+      "exit_code": 0,
+      "passed_sample_count": 2,
+      "failed_sample_count": 0,
+      "violation_count": 0,
+      "expected_candidate_violations": [
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        "candidate_response_record.input_record.resource_slug must match input_request.context.resource.slug",
+        ".risk_level does not match evaluation.expected_risk_level",
+        "must contain at least 1 issue"
+      ],
+      "sample_files": [
+        "answer-docs-question-negative-cross-sample-real-record-evidence-gap-role-boundary-001.json",
+        "answer-docs-question-negative-cross-sample-real-record-role-boundary-evidence-gap-001.json"
+      ],
+      "summary_line": "radish docs qa negative regression passed.",
+      "warning_line": "",
+      "command": {
+        "python": [
+          "python3",
+          "./scripts/run-eval-regression.py",
+          "radish-docs-qa-negative",
+          "--batch-artifact-summary",
+          "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1/2026-04-05-radish-docs-qa-real-batch-v1.artifacts.json",
+          "--group-id",
+          "group-004",
+          "--replay-mode",
+          "cross_sample",
+          "--fail-on-violation"
+        ]
+      }
+    }
+  ],
+  "capture_origin": "adapter_debug_dump"
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radish-answer-docs-question-docs-faq-mixed-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "sample_id": "radish-answer-docs-question-docs-faq-mixed-001",
+  "request_id": "sample-docs-faq-mixed-001",
+  "captured_at": "2026-04-04T05:16:56Z",
+  "source": "captured_candidate_response",
+  "model": "qwen/qwen3.6-plus:free",
+  "input_record": {
+    "current_app": "document",
+    "route": "/document/guide/publishing",
+    "resource_slug": "guide/publishing",
+    "search_scope": [
+      "docs",
+      "faq"
+    ],
+    "artifact_names": [
+      "docs_page",
+      "faq_excerpt"
+    ]
+  },
+  "response": {
+    "project": "radish",
+    "task": "answer_docs_question",
+    "status": "ok",
+    "summary": "文档发布后应优先保持原有 slug 稳定。若确需调整标题，不应直接修改既有访问地址，而应通过添加 alias 保留旧链接，再逐步过渡到新标题。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "根据官方文档规范，公开文档发布后默认应保持原有 slug 稳定，调整标题时应优先避免直接改动既有访问地址。若确需调整，可参考补充建议：为文档配置 alias 以保留旧链接，随后再逐步切换至新标题。",
+        "citation_ids": [
+          "doc-1",
+          "faq-1"
+        ]
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "proposed_actions": [],
+    "confidence": 0.95,
+    "issues": [],
+    "citations": [
+      {
+        "id": "doc-1",
+        "kind": "artifact",
+        "label": "guide/publishing",
+        "locator": "artifact:docs_page",
+        "excerpt": "# 文档发布说明 公开文档发布后，默认应保持原有 slug 稳定；如需调整标题，应优先避免直接改动既有访问地址。"
+      },
+      {
+        "id": "faq-1",
+        "kind": "artifact",
+        "label": "faq/publishing",
+        "locator": "artifact:faq_excerpt",
+        "excerpt": "FAQ：若确需调整发布后的标题，可补一个 alias 保留旧链接，再逐步切到新标题。"
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radish_docs_qa",
+      "openai-compatible",
+      "real_capture",
+      "w14_seed"
+    ],
+    "collection_batch": "2026-04-04-radish-docs-qa-real-batch-v1"
+  }
+}

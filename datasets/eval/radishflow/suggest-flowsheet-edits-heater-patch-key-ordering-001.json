@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-heater-patch-key-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-113",
+          "streams": [
+            {
+              "id": "heater-feed-2",
+              "name": "Preheat Feed",
+              "target_unit_id": "heater-2",
+              "specs": {
+                "temperature_c": 48,
+                "pressure_kpa": 205,
+                "flow_rate_kg_per_h": 1200
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-2",
+              "kind": "Heater",
+              "name": "Preheater",
+              "config": {
+                "control_mode": "outlet_temperature"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 58,
+      "selected_unit_ids": [
+        "heater-2"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Preheater is configured for outlet temperature control but outlet temperature target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "heater-2"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T12:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"UNIT_PARAMETER_INCOMPLETE\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"unit\"",
+      "$.proposed_actions[0].target.id=\"heater-2\"",
+      "$.proposed_actions[0].patch.parameter_placeholders[0]=\"outlet_temperature_c\"",
+      "$.proposed_actions[0].patch.patch_scope=\"unit_parameters\"",
+      "$.proposed_actions[0].patch.preserve_existing_connections=true",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false"
+    ],
+    "ordered_patch_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "parameter_placeholders",
+          "patch_scope",
+          "preserve_existing_connections"
+        ]
+      }
+    ],
+    "ordered_parameter_placeholder_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "outlet_temperature_c"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "复合 patch 应先输出真正的参数占位块，再输出 patch_scope 与 preserve_existing_connections 等保护性元字段，避免 patch 对象键顺序漂移。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前建议围绕 Preheater 补出出口温度目标占位，并保持 patch 键顺序稳定：先给参数占位，再给范围与保护字段。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "诊断只指向 heater-2 缺少控制目标，因此更合适的输出是局部参数占位 patch；同时 patch 键顺序也应稳定，先表达真正待补内容，再给作用范围与保护约束。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "heater-2 已启用 outlet_temperature 控制模式，但缺少 outlet_temperature_c 目标参数。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 heater-2 补充出口温度目标占位",
+        "target": {
+          "type": "unit",
+          "id": "heater-2"
+        },
+        "rationale": "当前问题集中在加热器控制目标缺失，因此 patch 应保持为局部参数占位，并显式声明仅限单元参数范围且保留现有连接关系。",
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Preheater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-2",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-2 当前处于 outlet_temperature 控制模式，但未见目标参数。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "confidence": 0.92,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}
