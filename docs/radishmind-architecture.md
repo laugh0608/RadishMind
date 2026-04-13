@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-12
+更新时间：2026-04-13
 
 ## 架构目标
 
@@ -66,7 +66,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
   - 当前还已补 exporter preflight 入口：`scripts/validate-radishflow-export-snapshot.py` 可在真实接线前先做 schema、任务级语义与敏感透传 smoke 校验，再进入 export -> adapter -> request 正式链路
   - 当前还已补 exporter batch smoke 入口：`scripts/run-radishflow-export-smoke.py` 可对一组 committed export snapshot 批量执行 `validate -> adapter -> request`，并用结构化 summary 固定“真实 exporter 接线最小入口”是否仍保持稳定
   - 当前 exporter fixture 已继续补到更贴近真实接线的边界：联合选择态下 `primary_selected_unit` 与完整 selection 并存、`multi-unit + multi-stream + 单 primary focus` 组合仍稳定映射成 `selected_unit + 完整 selection` 且不重排 selection 顺序、更复杂 selection chronology 下主焦点与 chronology 解耦但仍只保留单 actionable target、同风险多动作并列时仍稳定优先补输入完整性、`support_artifacts` 既覆盖纯 `uri + metadata.summary` 的最小脱敏摘要，也覆盖 `attachment_ref + json summary + text note` 与 `sanitized_summary + summary/redaction_summary + 最小 json rollup + text note` 两档 mixed summary 组合，以及多对象 selection 下三动作优先级顺序不漂移
-  - 对 `RadishFlow suggest_flowsheet_edits`，当前除 response-level regression 外，也已补任务 prompt、最小 runtime 与一条最小 `candidate_response_record -> manifest -> audit` 批次入口：`scripts/run-radishflow-suggest-edits-poc-batch.py` 先以 3 条代表样本固定高风险重连、局部规格占位与三步优先级链，并允许沿同一入口继续接真实 provider capture，让本任务不再只停留在离线 fixture 层
+  - 对 `RadishFlow suggest_flowsheet_edits`，当前除 response-level regression 外，也已补任务 prompt、最小 runtime 与正式 `candidate_response_record -> manifest -> audit` 批次入口：`scripts/run-radishflow-suggest-edits-poc-batch.py` 当前除默认 3 条代表样本外，还已导入 `2026-04-13-radishflow-suggest-edits-poc-real-v3/` 与 `2026-04-13-radishflow-suggest-edits-poc-real-v4/` 两批真实 capture，使本任务不再只停留在离线 fixture 或 mock 批次
   - 优先走状态优先打包：`FlowsheetDocument`、`document_revision`、`SelectionState`、`DiagnosticSummary`、`SolveSessionState`、`SolveSnapshot`
   - 对编辑器辅助场景，额外打包 `selected_unit`、`unconnected_ports`、`nearby_nodes`、`cursor_context` 与本地规则筛出的 `legal_candidate_completions`
   - `cursor_context.recent_actions` 当前不仅承接“最近 accept 了哪条 ghost”，也承接“最近 reject / dismiss / skip 了哪条 ghost”；其第一版正式语义已收口为三条链式模板共享的同一套规则：只压制同一 `candidate_ref` 的下一帧默认 `Tab`，隔一帧且候选仍是高置信合法默认项时允许恢复，而不同 `candidate_ref` 不共享 suppress 信号
@@ -202,7 +202,8 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、latest-action precedence 下的 reject / dismiss / skip 恢复态、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
 - 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，并已将八批真实 capture 正式导入 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/`，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获并治理候选输出”；其中当前新增观察项已分成五层：批处理编排下的 provider 卡顿稳定性、`manual_only` 多动作输出的结构坏法、供应商级限流或路由不可用时通过备用 profile 继续保持真实 capture 连续性、同 provider 备选模型虽可调用但仍可能出现不可正式导入的任务质量漂移，以及不同 provider 输出风格漂移下的字段文本归一化
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
-- 对 `RadishFlow suggest_flowsheet_edits`，除顺序回归外，当前也已允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先用 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 固定一批 3 样本 mock PoC，下一步应沿同一入口继续接真实 provider capture，而不是再回头扩离线兜底 fixture
+- 对 `RadishFlow suggest_flowsheet_edits`，除顺序回归外，当前也已允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内除 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 这批 3 样本 mock PoC 外，还已正式收口 `2026-04-13-radishflow-suggest-edits-poc-real-v3/` 与 `2026-04-13-radishflow-suggest-edits-poc-real-v4/` 两批真实 teacher 批次，并将其接入 `check-repo`，后续应优先继续扩大真实样本面，而不是再回头扩离线兜底 fixture
+- 对 `RadishFlow suggest_flowsheet_edits`，task-level canonicalization 当前也已正式承接几类只在真实 teacher 输出中暴露出来的任务漂移：`flowdoc-*` 引用按 `flowsheet_document` 对象顺序稳定编号，`flow_rate` / `outlet_temperature_target_c` 等近义占位会统一归一，参数修正类局部 patch 会优先回收到稳定的 `parameter_updates`、`preserve_topology`、`review_scope` 与 `patch_scope` 结构，而不是把 provider 自由发挥的字符串化 placeholder 或局部对象形态直接入仓
 
 ## 当前文件与脚本组织约定
 
