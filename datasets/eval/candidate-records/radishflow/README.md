@@ -1,6 +1,6 @@
 # `RadishFlow` 真实候选记录说明
 
-更新时间：2026-04-12
+更新时间：2026-04-13
 
 当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` 与 `audit` 治理产物。
 
@@ -19,6 +19,10 @@
 
 - `datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/`
 
+当前还新增了一批 `suggest_flowsheet_edits` 的首批真实 provider capture：
+
+- `datasets/eval/candidate-records/radishflow/2026-04-13-radishflow-suggest-edits-poc-real-v3/`
+
 这批当前不是“真实 provider capture”，而是为了先把 `suggest_flowsheet_edits` 的 `candidate_response_record -> manifest -> audit` 正式治理入口补齐。它固定 3 条代表样本：
 
 - 高风险重连占位：`suggest-flowsheet-edits-reconnect-outlet-001`
@@ -33,6 +37,24 @@
 - `capture_origin=manual_fixture`
 - 目录内暂保留 `responses/`、`dumps/` 与 `records/` 子目录，方便当前阶段直接复核 mock PoC 的导出物；若后续升级为真实 provider 正式批次，再按 ghost 批次口径收口治理资产
 - 它当前的定位是“把治理链打通”，不是“替代真实 capture”；后续主线应继续用同一入口补首批真实 provider 批次，而不是长期停留在 mock 资产
+
+`2026-04-13-radishflow-suggest-edits-poc-real-v3/` 则是当前第一批正式通过 audit 的真实 `suggest_flowsheet_edits` 批次。它沿用同一组 3 条代表样本：
+
+- 高风险重连占位：`suggest-flowsheet-edits-reconnect-outlet-001`
+- 局部规格占位：`suggest-flowsheet-edits-stream-spec-placeholder-001`
+- 三步优先级链：`suggest-flowsheet-edits-three-step-priority-chain-001`
+
+这批当前收口到：
+
+- `manifest` / `audit` 已正式入仓
+- `audit=3/3 pass`
+- 当前实际命中的真实 provider profile 为 `apiyi_cx`
+- `capture_origin=adapter_debug_dump`
+- 目录内当前保留 `responses/`、`dumps/` 与 `records/` 子目录，便于复核真实 provider 输出、runtime canonicalization 结果与最终入仓记录之间的对应关系
+- 这批同时验证了三条关键收口规则已经足以把真实输出导回正式契约：
+  - `read_only_check -> candidate_edit` 与 `requires_confirmation=true`
+  - `flowdoc-*` 引用按 `flowsheet_document` 对象顺序稳定编号
+  - `flow_rate -> flow_rate_kg_per_h`、`outlet_temperature_target_c -> outlet_temperature_c` 等近义 patch 键名统一归一
 
 这八批当前都只收口同一组 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
 
@@ -76,6 +98,7 @@ python3 ./scripts/import-candidate-response-dump.py \
 - 正式入仓资产以 `candidate_response_record`、`manifest`、`audit` 为主
 - 对 `suggest_ghost_completion` 这类已完成正式收口的真实批次，目录应尽量只保留上述治理资产，不混入执行态 `dumps/`、`responses/` 或中间 `records/` 子目录
 - 对仍处于最小 mock PoC 阶段的批次，可暂时保留 `responses/`、`dumps/` 与 `records/` 子目录，但后续若升级为正式真实批次，应再收口为以治理资产为主
+- 对像 `2026-04-13-radishflow-suggest-edits-poc-real-v3/` 这样刚形成的首批真实批次，当前仍可暂时保留 `responses/`、`dumps/` 与 `records/` 子目录，待后续批次口径稳定后再评估是否像 ghost 批次一样进一步收口目录形态
 - 只有通过当前回归 / audit 的记录，才应进入首批正式正向批次
 - 若后续真实 capture 暴露出新的失败面，应优先新增下一批真实 batch，而不是回头篡改已入仓批次
 - 若后续继续遇到类似 `v4` 的单样本 provider 卡顿，应优先视为 capture orchestration 稳定性观察项，先复跑或拆样本确认，再决定是否需要继续加强脚本级超时/重试治理

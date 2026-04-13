@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "task": "radishflow-suggest-edits",
+  "manifest_path": "datasets/eval/candidate-records/radishflow/2026-04-13-radishflow-suggest-edits-poc-real-v3/2026-04-13-radishflow-suggest-edits-poc-real-v3.manifest.json",
+  "sample_dir": "datasets/eval/radishflow",
+  "matched_sample_count": 3,
+  "expected_source": "captured_candidate_response",
+  "required_capture_origin": "adapter_debug_dump",
+  "required_collection_batch": "2026-04-13-radishflow-suggest-edits-poc-real-v3",
+  "required_tags": [],
+  "exit_code": 0,
+  "passed_count": 3,
+  "failed_count": 0,
+  "violation_count": 0,
+  "warning_line": "",
+  "summary_line": "radishflow suggest edits regression passed.",
+  "stderr": "",
+  "samples": [
+    {
+      "sample_file": "suggest-flowsheet-edits-reconnect-outlet-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "suggest-flowsheet-edits-three-step-priority-chain-001.json",
+      "status": "pass",
+      "violations": []
+    }
+  ]
+}

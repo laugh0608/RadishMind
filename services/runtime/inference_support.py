@@ -445,30 +445,32 @@ def build_suggest_edits_context_citations(copilot_request: dict[str, Any]) -> li
             if normalized_unit_id and ("unit", normalized_unit_id) not in ordered_targets:
                 ordered_targets.append(("unit", normalized_unit_id))
 
+        ordered_target_set = set(ordered_targets)
         stream_counter = 0
         unit_counter = 0
-        for target_type, target_id in ordered_targets:
-            if target_type == "stream":
-                entry = stream_id_to_entry.get(target_id)
-                if entry is None:
-                    continue
-                stream_counter += 1
-                stream_index, stream_document = entry
-                citations.append(
-                    {
-                        "id": f"flowdoc-stream-{stream_counter}",
-                        "kind": "artifact",
-                        "label": f"FlowsheetDocument / {target_id}",
-                        "locator": f"artifact:flowsheet_document.streams[{stream_index}]",
-                        "excerpt": summarize_flowdoc_object("stream", stream_document),
-                    }
-                )
+        for stream_index, stream_document in enumerate(streams):
+            if not isinstance(stream_document, dict):
                 continue
-            entry = unit_id_to_entry.get(target_id)
-            if entry is None:
+            target_id = str(stream_document.get("id") or "").strip()
+            if not target_id or ("stream", target_id) not in ordered_target_set:
+                continue
+            stream_counter += 1
+            citations.append(
+                {
+                    "id": f"flowdoc-stream-{stream_counter}",
+                    "kind": "artifact",
+                    "label": f"FlowsheetDocument / {target_id}",
+                    "locator": f"artifact:flowsheet_document.streams[{stream_index}]",
+                    "excerpt": summarize_flowdoc_object("stream", stream_document),
+                }
+            )
+        for unit_index, unit_document in enumerate(units):
+            if not isinstance(unit_document, dict):
+                continue
+            target_id = str(unit_document.get("id") or "").strip()
+            if not target_id or ("unit", target_id) not in ordered_target_set:
                 continue
             unit_counter += 1
-            unit_index, unit_document = entry
             citations.append(
                 {
                     "id": f"flowdoc-unit-{unit_counter}",

@@ -360,6 +360,40 @@ def build_suggest_edits_target_citation_lookup(citations: list[dict[str, Any]]) 
     return target_citation_lookup
 
 
+def normalize_spec_placeholders(values: list[Any]) -> list[str]:
+    alias_map = {
+        "flow_rate": "flow_rate_kg_per_h",
+        "mass_flow": "flow_rate_kg_per_h",
+        "mass_flow_rate": "flow_rate_kg_per_h",
+    }
+    normalized: list[str] = []
+    for value in values:
+        placeholder = str(value).strip()
+        if not placeholder:
+            continue
+        placeholder = alias_map.get(placeholder, placeholder)
+        if placeholder not in normalized:
+            normalized.append(placeholder)
+    return normalized
+
+
+def normalize_parameter_placeholders(values: list[Any]) -> list[str]:
+    alias_map = {
+        "outlet_temperature_target_c": "outlet_temperature_c",
+        "outlet_temp_target_c": "outlet_temperature_c",
+        "temperature_target_c": "outlet_temperature_c",
+    }
+    normalized: list[str] = []
+    for value in values:
+        placeholder = str(value).strip()
+        if not placeholder:
+            continue
+        placeholder = alias_map.get(placeholder, placeholder)
+        if placeholder not in normalized:
+            normalized.append(placeholder)
+    return normalized
+
+
 def build_suggest_edits_response_citation_ids(
     *,
     diagnostic_index: int,
@@ -493,6 +527,7 @@ def canonicalize_suggest_edits_response(
             existing_actions_by_target[(target_type, target_id)] = dict(action)
 
     normalized_actions: list[dict[str, Any]] = []
+    actionable_diagnostic_codes = {"STREAM_DISCONNECTED", "STREAM_SPEC_MISSING", "UNIT_PARAMETER_INCOMPLETE"}
     for diagnostic_index, diagnostic in enumerate(diagnostics, start=1):
         synthesized_action = synthesize_suggest_edits_action(
             diagnostic,
@@ -528,27 +563,22 @@ def canonicalize_suggest_edits_response(
                 ),
             }
         elif str(diagnostic.get("code") or "").strip() == "STREAM_SPEC_MISSING":
-            spec_placeholders = [
-                str(item).strip()
-                for item in (merged_patch.get("spec_placeholders") or [])
-                if str(item).strip()
-            ]
+            spec_placeholders = normalize_spec_placeholders(list(merged_patch.get("spec_placeholders") or []))
             merged_patch = {
-                "spec_placeholders": spec_placeholders or list(synthesized_patch.get("spec_placeholders") or []),
+                "spec_placeholders": spec_placeholders
+                or normalize_spec_placeholders(list(synthesized_patch.get("spec_placeholders") or [])),
                 "retain_existing_specs": bool(merged_patch.get("retain_existing_specs", True)),
             }
         else:
-            parameter_placeholders = [
-                str(item).strip()
-                for item in (merged_patch.get("parameter_placeholders") or [])
-                if str(item).strip()
-            ]
+            parameter_placeholders = normalize_parameter_placeholders(list(merged_patch.get("parameter_placeholders") or []))
             merged_patch = {
-                "parameter_placeholders": parameter_placeholders or list(synthesized_patch.get("parameter_placeholders") or []),
+                "parameter_placeholders": parameter_placeholders
+                or normalize_parameter_placeholders(list(synthesized_patch.get("parameter_placeholders") or [])),
                 "patch_scope": str(
                     merged_patch.get("patch_scope") or synthesized_patch.get("patch_scope") or ""
                 ).strip()
                 or str(synthesized_patch.get("patch_scope") or ""),
+                "preserve_existing_connections": bool(merged_patch.get("preserve_existing_connections", True)),
             }
         merged_action["patch"] = merged_patch
         merged_action["risk_level"] = max_risk_level(
@@ -650,7 +680,14 @@ def canonicalize_suggest_edits_response(
         if str(citation.get("id") or "").strip() in referenced_citation_ids
     ]
     coerced["requires_confirmation"] = bool(normalized_actions)
-    coerced["status"] = "partial" if normalized_actions else "failed"
+    if not normalized_actions:
+        coerced["status"] = "failed"
+    elif any(str(action.get("risk_level") or "").strip().lower() == "high" for action in normalized_actions):
+        coerced["status"] = "partial"
+    elif any(str((diagnostic or {}).get("code") or "").strip() not in actionable_diagnostic_codes for diagnostic in diagnostics):
+        coerced["status"] = "partial"
+    else:
+        coerced["status"] = "ok"
     coerced["risk_level"] = max_risk_level(
         [str(action.get("risk_level") or "") for action in normalized_actions]
         or [str(coerced.get("risk_level") or "")]
