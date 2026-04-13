@@ -368,7 +368,13 @@ def normalize_spec_placeholders(values: list[Any]) -> list[str]:
     }
     normalized: list[str] = []
     for value in values:
-        placeholder = str(value).strip()
+        if isinstance(value, dict):
+            placeholder = str(value.get("path") or value.get("name") or "").strip()
+        else:
+            placeholder = str(value).strip()
+            path_match = re.search(r"specs\.([A-Za-z0-9_]+)", placeholder)
+            if path_match:
+                placeholder = path_match.group(1)
         if not placeholder:
             continue
         placeholder = alias_map.get(placeholder, placeholder)
@@ -392,6 +398,217 @@ def normalize_parameter_placeholders(values: list[Any]) -> list[str]:
         if placeholder not in normalized:
             normalized.append(placeholder)
     return normalized
+
+
+def build_suggest_edits_action_target_order(
+    diagnostics: list[dict[str, Any]],
+    existing_actions_by_target: dict[tuple[str, str], dict[str, Any]],
+    auto_synthesize_codes: set[str],
+) -> list[tuple[str, str]]:
+    ordered_targets: list[tuple[str, str]] = []
+    for diagnostic in diagnostics:
+        diagnostic_code = str(diagnostic.get("code") or "").strip()
+        target_type = str(diagnostic.get("target_type") or "").strip().lower()
+        target_id = str(diagnostic.get("target_id") or "").strip()
+        if target_type not in {"stream", "unit"} or not target_id:
+            continue
+        target_key = (target_type, target_id)
+        if target_key in ordered_targets:
+            continue
+        if target_key in existing_actions_by_target or diagnostic_code in auto_synthesize_codes:
+            ordered_targets.append(target_key)
+    for target_key in existing_actions_by_target:
+        if target_key not in ordered_targets:
+            ordered_targets.append(target_key)
+    return ordered_targets
+
+
+def build_suggest_edits_group_citation_ids(
+    *,
+    diagnostics: list[dict[str, Any]],
+    diagnostic_indexes: list[int],
+    target_type: str,
+    target_id: str,
+    target_citation_lookup: dict[tuple[str, str], str],
+    snapshot_citation_id: str,
+) -> list[str]:
+    citation_ids = [f"diag-{index}" for index in diagnostic_indexes]
+    target_citation_id = target_citation_lookup.get((target_type, target_id))
+    if target_citation_id:
+        citation_ids.append(target_citation_id)
+    if snapshot_citation_id:
+        has_background_context = any(
+            str((diagnostic or {}).get("target_type") or "").strip().lower() not in {"stream", "unit"}
+            or str((diagnostic or {}).get("target_id") or "").strip() != target_id
+            or str((diagnostic or {}).get("severity") or "").strip().lower() != "error"
+            for diagnostic in diagnostics
+        )
+        if has_background_context or any(
+            str((diagnostic or {}).get("code") or "").strip() == "STREAM_DISCONNECTED"
+            for diagnostic in diagnostics
+        ):
+            citation_ids.append(snapshot_citation_id)
+    return list(dict.fromkeys(citation_ids))
+
+
+def normalize_parameter_updates(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    normalized_updates: dict[str, Any] = {}
+    for key, detail in value.items():
+        normalized_key = str(key).strip()
+        if not normalized_key or not isinstance(detail, dict):
+            continue
+        normalized_updates[normalized_key] = detail
+    return normalized_updates
+
+
+def load_flowsheet_document(copilot_request: dict[str, Any]) -> dict[str, Any]:
+    for artifact in copilot_request.get("artifacts") or []:
+        if not isinstance(artifact, dict):
+            continue
+        if str(artifact.get("name") or "").strip() != "flowsheet_document":
+            continue
+        content = artifact.get("content")
+        if isinstance(content, dict):
+            return content
+    return {}
+
+
+def build_flowsheet_lookup(copilot_request: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], dict[str, str]]:
+    flowsheet_document = load_flowsheet_document(copilot_request)
+    unit_by_id: dict[str, dict[str, Any]] = {}
+    stream_by_id: dict[str, dict[str, Any]] = {}
+    primary_inlet_stream_by_unit_id: dict[str, str] = {}
+    for unit in flowsheet_document.get("units") or []:
+        if not isinstance(unit, dict):
+            continue
+        unit_id = str(unit.get("id") or "").strip()
+        if unit_id:
+            unit_by_id[unit_id] = unit
+    for stream in flowsheet_document.get("streams") or []:
+        if not isinstance(stream, dict):
+            continue
+        stream_id = str(stream.get("id") or "").strip()
+        target_unit_id = str(stream.get("target_unit_id") or "").strip()
+        if stream_id:
+            stream_by_id[stream_id] = stream
+        if target_unit_id and target_unit_id not in primary_inlet_stream_by_unit_id:
+            primary_inlet_stream_by_unit_id[target_unit_id] = stream_id
+    return unit_by_id, stream_by_id, primary_inlet_stream_by_unit_id
+
+
+def synthesize_parameter_updates_from_diagnostics(
+    *,
+    target_type: str,
+    target_id: str,
+    diagnostics: list[dict[str, Any]],
+    copilot_request: dict[str, Any],
+) -> dict[str, Any]:
+    if target_type != "unit" or not target_id:
+        return {}
+
+    unit_by_id, _, primary_inlet_stream_by_unit_id = build_flowsheet_lookup(copilot_request)
+    unit_document = unit_by_id.get(target_id) or {}
+    config = unit_document.get("config") if isinstance(unit_document.get("config"), dict) else {}
+    diagnostic_codes = {str((diagnostic or {}).get("code") or "").strip() for diagnostic in diagnostics}
+    synthesized_patch: dict[str, Any] = {}
+    parameter_updates: dict[str, Any] = {}
+    primary_inlet_stream_id = primary_inlet_stream_by_unit_id.get(target_id, "")
+
+    if "PUMP_OUTLET_PRESSURE_TARGET_INVALID" in diagnostic_codes:
+        pressure_update: dict[str, Any] = {
+            "action": "review_and_raise_above_inlet",
+        }
+        if primary_inlet_stream_id:
+            pressure_update["minimum_reference_stream_id"] = primary_inlet_stream_id
+        parameter_updates["outlet_pressure_target_kpa"] = pressure_update
+
+        efficiency_percent = config.get("efficiency_percent")
+        if (
+            "UNIT_PARAMETER_OUT_OF_RANGE" in diagnostic_codes
+            and isinstance(efficiency_percent, (int, float))
+            and float(efficiency_percent) > 100
+        ):
+            parameter_updates["efficiency_percent"] = {
+                "action": "clamp_to_review_range",
+                "suggested_range": [60, 85],
+            }
+        synthesized_patch["preserve_topology"] = True
+
+    if "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE" in diagnostic_codes:
+        pressure_update = {
+            "action": "review_and_raise_margin",
+            "minimum_delta_kpa": 80,
+        }
+        if primary_inlet_stream_id:
+            pressure_update["reference_stream_id"] = primary_inlet_stream_id
+        parameter_updates["outlet_pressure_target_kpa"] = pressure_update
+        synthesized_patch["preserve_topology"] = True
+        synthesized_patch["review_scope"] = "local_unit_parameters_only"
+
+    if "VALVE_PRESSURE_DROP_INVALID" in diagnostic_codes:
+        parameter_updates["pressure_drop_kpa"] = {
+            "action": "review_and_make_positive",
+            "minimum_value": 10,
+        }
+        if isinstance(config.get("opening_percent"), (int, float)):
+            parameter_updates["opening_percent"] = {
+                "action": "review_with_throttling_margin",
+                "suggested_maximum": 85,
+            }
+        synthesized_patch["patch_scope"] = "local_unit_parameters"
+
+    if parameter_updates:
+        synthesized_patch["parameter_updates"] = parameter_updates
+    return synthesized_patch
+
+
+def merge_parameter_patch(
+    *,
+    existing_patch: dict[str, Any],
+    synthesized_patch: dict[str, Any],
+) -> dict[str, Any]:
+    merged_patch: dict[str, Any] = {}
+    parameter_updates = normalize_parameter_updates(synthesized_patch.get("parameter_updates")) or normalize_parameter_updates(
+        existing_patch.get("parameter_updates")
+    )
+    if parameter_updates:
+        merged_patch["parameter_updates"] = parameter_updates
+
+    parameter_placeholders = []
+    if not parameter_updates:
+        parameter_placeholders = normalize_parameter_placeholders(list(existing_patch.get("parameter_placeholders") or []))
+        if not parameter_placeholders:
+            parameter_placeholders = normalize_parameter_placeholders(list(synthesized_patch.get("parameter_placeholders") or []))
+    if parameter_placeholders and not parameter_updates:
+        merged_patch["parameter_placeholders"] = parameter_placeholders
+
+    patch_scope = str(
+        synthesized_patch.get("patch_scope")
+        or (existing_patch.get("patch_scope") if not parameter_updates else "")
+        or ""
+    ).strip()
+    if patch_scope:
+        merged_patch["patch_scope"] = patch_scope
+
+    if "preserve_topology" in existing_patch or "preserve_topology" in synthesized_patch or parameter_updates:
+        merged_patch["preserve_topology"] = bool(
+            existing_patch.get("preserve_topology", synthesized_patch.get("preserve_topology", True))
+        )
+
+    if "preserve_existing_connections" in existing_patch:
+        merged_patch["preserve_existing_connections"] = bool(existing_patch.get("preserve_existing_connections", True))
+
+    review_scope = normalize_text(existing_patch.get("review_scope") or synthesized_patch.get("review_scope"))
+    if review_scope:
+        merged_patch["review_scope"] = review_scope
+
+    for key in ("retain_existing_specs",):
+        if key in existing_patch:
+            merged_patch[key] = bool(existing_patch.get(key))
+
+    return merged_patch
 
 
 def build_suggest_edits_response_citation_ids(
@@ -528,28 +745,53 @@ def canonicalize_suggest_edits_response(
 
     normalized_actions: list[dict[str, Any]] = []
     actionable_diagnostic_codes = {"STREAM_DISCONNECTED", "STREAM_SPEC_MISSING", "UNIT_PARAMETER_INCOMPLETE"}
-    for diagnostic_index, diagnostic in enumerate(diagnostics, start=1):
+    ordered_action_targets = build_suggest_edits_action_target_order(
+        diagnostics,
+        existing_actions_by_target,
+        actionable_diagnostic_codes,
+    )
+    for target_type, target_id in ordered_action_targets:
+        target_diagnostics_with_indexes = [
+            (diagnostic_index, diagnostic)
+            for diagnostic_index, diagnostic in enumerate(diagnostics, start=1)
+            if str((diagnostic or {}).get("target_type") or "").strip().lower() == target_type
+            and str((diagnostic or {}).get("target_id") or "").strip() == target_id
+        ]
+        action_context_diagnostics_with_indexes = [
+            *target_diagnostics_with_indexes,
+            *[
+                (diagnostic_index, diagnostic)
+                for diagnostic_index, diagnostic in enumerate(diagnostics, start=1)
+                if str((diagnostic or {}).get("target_type") or "").strip().lower() not in {"stream", "unit"}
+            ],
+        ]
+        primary_diagnostic_index = target_diagnostics_with_indexes[0][0] if target_diagnostics_with_indexes else 1
+        primary_diagnostic = target_diagnostics_with_indexes[0][1] if target_diagnostics_with_indexes else {
+            "target_type": target_type,
+            "target_id": target_id,
+        }
         synthesized_action = synthesize_suggest_edits_action(
-            diagnostic,
-            diagnostic_index=diagnostic_index,
+            primary_diagnostic,
+            diagnostic_index=primary_diagnostic_index,
             total_diagnostics=len(diagnostics),
             target_citation_lookup=target_citation_lookup,
             snapshot_citation_id=snapshot_citation_id,
         )
-        target = synthesized_action.get("target") or {}
-        target_type = str(target.get("type") or "").strip().lower()
-        target_id = str(target.get("id") or "").strip()
         existing_action = existing_actions_by_target.get((target_type, target_id), {})
         merged_action = dict(existing_action)
         merged_action["kind"] = "candidate_edit"
-        merged_action["target"] = synthesized_action["target"]
+        merged_action["target"] = {
+            "type": target_type,
+            "id": target_id,
+        }
         merged_action["title"] = normalize_text(merged_action.get("title")) or synthesized_action["title"]
         merged_action["rationale"] = normalize_text(merged_action.get("rationale")) or synthesized_action["rationale"]
         merged_patch = merged_action.get("patch")
         if not isinstance(merged_patch, dict):
             merged_patch = {}
         synthesized_patch = dict(synthesized_action.get("patch") or {})
-        if str(diagnostic.get("code") or "").strip() == "STREAM_DISCONNECTED":
+        primary_diagnostic_code = str(primary_diagnostic.get("code") or "").strip()
+        if primary_diagnostic_code == "STREAM_DISCONNECTED":
             connection_placeholder = merged_patch.get("connection_placeholder")
             if not isinstance(connection_placeholder, dict):
                 connection_placeholder = {}
@@ -562,7 +804,7 @@ def canonicalize_suggest_edits_response(
                     connection_placeholder.get("requires_manual_binding", True)
                 ),
             }
-        elif str(diagnostic.get("code") or "").strip() == "STREAM_SPEC_MISSING":
+        elif primary_diagnostic_code == "STREAM_SPEC_MISSING":
             spec_placeholders = normalize_spec_placeholders(list(merged_patch.get("spec_placeholders") or []))
             merged_patch = {
                 "spec_placeholders": spec_placeholders
@@ -570,24 +812,31 @@ def canonicalize_suggest_edits_response(
                 "retain_existing_specs": bool(merged_patch.get("retain_existing_specs", True)),
             }
         else:
-            parameter_placeholders = normalize_parameter_placeholders(list(merged_patch.get("parameter_placeholders") or []))
-            merged_patch = {
-                "parameter_placeholders": parameter_placeholders
-                or normalize_parameter_placeholders(list(synthesized_patch.get("parameter_placeholders") or [])),
-                "patch_scope": str(
-                    merged_patch.get("patch_scope") or synthesized_patch.get("patch_scope") or ""
-                ).strip()
-                or str(synthesized_patch.get("patch_scope") or ""),
-                "preserve_existing_connections": bool(merged_patch.get("preserve_existing_connections", True)),
-            }
+            structured_parameter_patch = synthesize_parameter_updates_from_diagnostics(
+                target_type=target_type,
+                target_id=target_id,
+                diagnostics=[diagnostic for _, diagnostic in target_diagnostics_with_indexes],
+                copilot_request=copilot_request,
+            )
+            merged_patch = merge_parameter_patch(
+                existing_patch=merged_patch,
+                synthesized_patch=structured_parameter_patch or synthesized_patch,
+            )
         merged_action["patch"] = merged_patch
         merged_action["risk_level"] = max_risk_level(
             [str(existing_action.get("risk_level") or ""), str(synthesized_action.get("risk_level") or "")]
         )
-        if str(diagnostic.get("code") or "").strip() == "STREAM_DISCONNECTED":
+        if primary_diagnostic_code == "STREAM_DISCONNECTED":
             merged_action["risk_level"] = "high"
         merged_action["requires_confirmation"] = True
-        merged_action["citation_ids"] = list(synthesized_action.get("citation_ids") or [])
+        merged_action["citation_ids"] = build_suggest_edits_group_citation_ids(
+            diagnostics=[diagnostic for _, diagnostic in action_context_diagnostics_with_indexes],
+            diagnostic_indexes=[diagnostic_index for diagnostic_index, _ in action_context_diagnostics_with_indexes],
+            target_type=target_type,
+            target_id=target_id,
+            target_citation_lookup=target_citation_lookup,
+            snapshot_citation_id=snapshot_citation_id,
+        )
         normalized_actions.append(merged_action)
 
     synthesized_issues: list[dict[str, Any]] = []
@@ -606,22 +855,27 @@ def canonicalize_suggest_edits_response(
         issue_message = normalize_text(existing_issue.get("message")) or normalize_text(
             diagnostic.get("message") or diagnostic.get("text") or ""
         )
+        issue_citation_ids = list(existing_issue.get("citation_ids") or []) or build_suggest_edits_response_citation_ids(
+            diagnostic_index=diagnostic_index,
+            diagnostic_code=diagnostic_code,
+            target_type=target_type,
+            target_id=target_id,
+            target_citation_lookup=target_citation_lookup,
+            snapshot_citation_id=snapshot_citation_id,
+            total_diagnostics=len(diagnostics),
+            item_kind="issue",
+        )
+        if snapshot_citation_id and snapshot_citation_id not in issue_citation_ids:
+            severity = str(diagnostic.get("severity") or existing_issue.get("severity") or "warning").strip().lower()
+            if severity != "error":
+                issue_citation_ids = [issue_citation_ids[0], snapshot_citation_id, *issue_citation_ids[1:]] if issue_citation_ids else [snapshot_citation_id]
         synthesized_issues.append(
             {
                 "code": diagnostic_code,
                 "message": issue_message or f"{target_id or '当前对象'} 存在需要人工复核的编辑问题。",
                 "severity": str(diagnostic.get("severity") or existing_issue.get("severity") or "warning").strip().lower()
                 or "warning",
-                "citation_ids": build_suggest_edits_response_citation_ids(
-                    diagnostic_index=diagnostic_index,
-                    diagnostic_code=diagnostic_code,
-                    target_type=target_type,
-                    target_id=target_id,
-                    target_citation_lookup=target_citation_lookup,
-                    snapshot_citation_id=snapshot_citation_id,
-                    total_diagnostics=len(diagnostics),
-                    item_kind="issue",
-                ),
+                "citation_ids": list(dict.fromkeys(issue_citation_ids)),
             }
         )
 
@@ -646,15 +900,29 @@ def canonicalize_suggest_edits_response(
         for answer in coerced.get("answers") or []:
             if not isinstance(answer, dict):
                 continue
-            if not (answer.get("citation_ids") or []):
-                answer["citation_ids"] = list(
-                    dict.fromkeys(
-                        citation_id
-                        for action in normalized_actions
-                        for citation_id in (action.get("citation_ids") or [])
-                        if str(citation_id).strip()
+            normalized_answer_citation_ids = list(
+                dict.fromkeys(
+                    citation_id
+                    for citation_id in (answer.get("citation_ids") or [])
+                    if str(citation_id).strip()
+                    and (
+                        citation_id in {
+                            referenced_citation_id
+                            for item in [*normalized_actions, *synthesized_issues]
+                            if isinstance(item, dict)
+                            for referenced_citation_id in (item.get("citation_ids") or [])
+                        }
                     )
                 )
+            )
+            answer["citation_ids"] = normalized_answer_citation_ids or list(
+                dict.fromkeys(
+                    citation_id
+                    for action in normalized_actions
+                    for citation_id in (action.get("citation_ids") or [])
+                    if str(citation_id).strip()
+                )
+            )
     if len(diagnostics) == 1 and str(diagnostics[0].get("code") or "").strip() == "STREAM_DISCONNECTED":
         primary_action_citation_ids = list((normalized_actions[0] or {}).get("citation_ids") or []) if normalized_actions else []
         for answer in coerced.get("answers") or []:

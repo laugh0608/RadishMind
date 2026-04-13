@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的泵单元 pump-1 的参数问题生成候选提案，重点处理出口目标压力低于入口压力以及效率超出建议范围这两项直接诊断。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Booster Pump outlet pressure target is lower than the inlet pressure."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Booster Pump efficiency_percent=105 is outside the recommended operating range."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / pump-1",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "pump-1 Booster Pump kind=Pump"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 pump-1 提供更高的出口压力目标占位值",
+      "rationale": "直接诊断表明当前出口目标压力低于已知入口压力。为避免继续保留无效关系，建议将 outlet_pressure_target_kpa 改为一个明确高于 180 kPa 的待确认占位值，而不是保留当前 150 kPa。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "pump-1"
+      },
+      "patch": {
+        "parameter_updates": {
+          "outlet_pressure_target_kpa": {
+            "action": "review_and_raise_above_inlet",
+            "minimum_reference_stream_id": "feed-2"
+          },
+          "efficiency_percent": {
+            "action": "clamp_to_review_range",
+            "suggested_range": [
+              60,
+              85
+            ]
+          }
+        },
+        "preserve_topology": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+      "message": "Booster Pump outlet pressure target is lower than the inlet pressure.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+      "message": "Booster Pump efficiency_percent=105 is outside the recommended operating range.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "snapshot-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "summary": "当前围绕已选中的泵单元 pump-1 的参数问题生成候选提案，重点处理出口目标压力低于入口压力以及效率超出建议范围这两项直接诊断。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

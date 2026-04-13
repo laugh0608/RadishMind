@@ -14,7 +14,7 @@
 
 - 已补任务 prompt：[radishflow-suggest-flowsheet-edits-system.md](../../prompts/tasks/radishflow-suggest-flowsheet-edits-system.md)
 - 已补最小 runtime：`services/runtime/inference.py` 与 [run-copilot-inference.py](../../scripts/run-copilot-inference.py) 当前已支持 `radishflow / suggest_flowsheet_edits`
-- 已有最小批次入口：[run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py)，当前仍固定 3 个代表样本，覆盖高风险重连、局部规格占位与三步优先级链
+- 已有最小批次入口：[run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py)，当前默认仍固定 3 个代表样本覆盖高风险重连、局部规格占位与三步优先级链；同时仓库内已形成第二批真实扩样本批次 `2026-04-13-radishflow-suggest-edits-poc-real-v4/`，继续覆盖中风险局部参数修正、selection 裁剪与证据不足 partial 场景
 - 上述入口在 `mock` 模式下仍会沿 `candidate_response_record -> manifest -> audit` 固定首批 committed PoC，而切到真实 provider 时也继续沿同一脚本入口收口，不另起第二套导入流程
 - 当前默认输出目录仍收口到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，让后续真实 batch 可以直接落正式目录
 
