@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的流股 product-14 的未连接问题生成候选提案；该流股存在直接诊断表明缺少下游去向，因此仅提出最小的连接占位补丁供审查。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cooler Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / product-14",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "product-14 Cooler Outlet source_unit_id=cooler-4"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 product-14 添加下游连接占位",
+      "rationale": "当前仅有直接证据表明该流股未连接，且未提供明确下游单元或导出端对象。为保持补丁最小且可审查，建议仅添加连接占位，等待用户确认实际下游去向。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "product-14"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true
+        }
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Cooler Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1"
+      ]
+    }
+  ],
+  "summary": "当前围绕已选中的流股 product-14 的未连接问题生成候选提案；该流股存在直接诊断表明缺少下游去向，因此仅提出最小的连接占位补丁供审查。",
+  "risk_level": "high",
+  "confidence": 0.2
+}

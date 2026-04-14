@@ -1,0 +1,90 @@
+{
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "failed",
+  "confidence": 0.95,
+  "requires_confirmation": false,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕被选中的 Booster Compressor (compressor-2) 生成配置修改候选提案。诊断表明排气压力设定值与吸气压力过近、防喘振最小流量旁通设定值过低，且效率参数达到104%超出物理限制。已建议通过占位符提示输入这些关键参数的合理修改值。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "summary": "针对压缩机 (compressor-2) 生成候选提案，主要解决排气压力设定过低、最小旁通流量比例不足以及超出物理量程的效率参数这三项问题。",
+  "issues": [
+    {
+      "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "message": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "message": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+      "message": "Booster Compressor efficiency_percent=104 is outside the recommended operating range.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Booster Compressor efficiency_percent=104 is outside the recommended operating range."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "compressor-2 Booster Compressor kind=Compressor"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "schema_version": 1,
+  "risk_level": "medium"
+}

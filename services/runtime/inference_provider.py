@@ -52,6 +52,16 @@ def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> d
                         document = json.loads(repaired_candidate)
                     except json.JSONDecodeError:
                         document = None
+            elif (
+                str(copilot_request.get("project") or "").strip() == "radishflow"
+                and str(copilot_request.get("task") or "").strip() == "suggest_flowsheet_edits"
+            ):
+                repaired_candidate = repair_malformed_suggest_edits_json(candidate)
+                if repaired_candidate != candidate:
+                    try:
+                        document = json.loads(repaired_candidate)
+                    except json.JSONDecodeError:
+                        document = None
         if isinstance(document, dict):
             return coerce_response_document(document, copilot_request, raw_text=content)
     return make_failed_response(
@@ -77,6 +87,23 @@ def repair_malformed_ghost_json(candidate: str) -> str:
     for _ in range(4):
         previous = repaired
         for pattern, replacement in GHOST_MALFORMED_JSON_REPAIR_PATTERNS:
+            repaired = pattern.sub(replacement, repaired)
+        if repaired == previous:
+            break
+    return repaired
+
+
+def repair_malformed_suggest_edits_json(candidate: str) -> str:
+    repaired = candidate
+    repair_patterns = (
+        (
+            re.compile(r"(\}\}\})\},(\"risk_level\"\s*:)", flags=re.DOTALL),
+            r"\1,\2",
+        ),
+    )
+    for _ in range(2):
+        previous = repaired
+        for pattern, replacement in repair_patterns:
             repaired = pattern.sub(replacement, repaired)
         if repaired == previous:
             break

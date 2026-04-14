@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前选中的 Preheater（heater-2）配置了 outlet_temperature 控制模式，但缺少出口温度目标值，导致求解器报 invalid_parameters。以下候选提案为该加热器补全出口温度目标参数。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Preheater 补全出口温度目标参数",
+      "rationale": "诊断 UNIT_PARAMETER_INCOMPLETE 指出 heater-2 缺少出口温度目标。进料温度为 48 °C，典型预热场景下出口温度应高于进料温度。此处使用占位值 80 °C 作为初始建议，用户应根据工艺需求确认或修改。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "heater-2"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_temperature_c"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Preheater is configured for outlet temperature control but outlet temperature target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Preheater is configured for outlet temperature control but outlet temperature target is missing."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-2 Preheater kind=Heater"
+    }
+  ],
+  "summary": "当前选中的 Preheater（heater-2）配置了 outlet_temperature 控制模式，但缺少出口温度目标值，导致求解器报 invalid_parameters。以下候选提案为该加热器补全出口温度目标参数。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

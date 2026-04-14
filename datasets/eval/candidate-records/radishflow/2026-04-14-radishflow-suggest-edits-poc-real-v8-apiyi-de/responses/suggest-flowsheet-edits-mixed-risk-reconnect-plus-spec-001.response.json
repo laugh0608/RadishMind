@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "confidence": 0.9,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对您选择的 Liquid Product 和 Vapor Product 物流，我已生成相应的候选编辑提案。针对拓扑断连问题，提供了高风险的下游重连占位符；针对规格缺失问题，提供了中风险的温度规格补充建议。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1",
+        "diag-2",
+        "flowdoc-stream-2"
+      ]
+    }
+  ],
+  "summary": "围绕当前选中的 Liquid Product 和 Vapor Product 物流生成候选编辑提案，修复拓扑断连与温度规格缺失问题。",
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Vapor Product is missing temperature specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-2"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "修复 Liquid Product 的拓扑连接",
+      "rationale": "基于 STREAM_DISCONNECTED 诊断和最新快照的拓扑无效状态，需要为该液相物流分配下游目标设备或出口端点。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "liquid-product-5"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true
+        }
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "补充 Vapor Product 温度规格",
+      "rationale": "基于 STREAM_SPEC_MISSING 诊断，该气相物流目前的 specs 仅包含压力，需要添加温度规格补全定义。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-2"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "vapor-product-5"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Vapor Product is missing temperature specification."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / liquid-product-5",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / vapor-product-5",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "vapor-product-5 Vapor Product source_unit_id=separator-3"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "risk_level": "high"
+}

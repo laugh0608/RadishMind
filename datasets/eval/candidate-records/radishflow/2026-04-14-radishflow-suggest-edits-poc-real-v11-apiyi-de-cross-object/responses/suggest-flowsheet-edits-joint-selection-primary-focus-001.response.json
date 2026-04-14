@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "summary": "Generating candidate edits focusing on the selected stream 'Stabilizer Feed' to address missing specifications. The 'Stabilizer Heater' unit is also selected but requires the inlet stream to be fully defined before applying direct edits to its configuration.",
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Stabilizer Feed is missing temperature specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "Based on the diagnostic information and solver state, the primary bottleneck is the undefined temperature of the 'Stabilizer Feed' stream entering the heater. Providing a temperature specification placeholder for 'feed-10' is recommended as the first step. No edits are proposed for 'heater-4' at this stage, as its behavior is dependent on resolving the inlet condition.",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "stream",
+        "id": "feed-10"
+      },
+      "title": "为 feed-10 补充缺失规格占位",
+      "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c"
+        ],
+        "retain_existing_specs": true
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "requires_confirmation": true,
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Stabilizer Feed is missing temperature specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-10",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-10 Stabilizer Feed target_unit_id=heater-4"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-4",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-4 Stabilizer Heater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.09"
+    }
+  ],
+  "risk_level": "medium",
+  "confidence": 0.2
+}

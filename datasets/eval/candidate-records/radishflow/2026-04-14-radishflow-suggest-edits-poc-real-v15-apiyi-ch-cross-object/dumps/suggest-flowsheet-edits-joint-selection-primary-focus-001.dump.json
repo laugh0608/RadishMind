@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-joint-selection-primary-focus-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-joint-selection-primary-focus-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-joint-selection-primary-focus-001",
+  "request_id": "rf-suggest-edit-joint-selection-primary-focus-001",
+  "captured_at": "2026-04-14T14:25:02Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object"
+  },
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 52,
+    "selected_unit_ids": [
+      "heater-4"
+    ],
+    "selected_stream_ids": [
+      "feed-10",
+      "outlet-10"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-joint-selection-primary-focus-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-112",
+          "streams": [
+            {
+              "id": "feed-10",
+              "name": "Stabilizer Feed",
+              "target_unit_id": "heater-4",
+              "specs": {
+                "pressure_kpa": 230
+              }
+            },
+            {
+              "id": "outlet-10",
+              "name": "Stabilizer Outlet",
+              "source_unit_id": "heater-4",
+              "specs": {
+                "temperature_c": 160
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-4",
+              "kind": "Heater",
+              "name": "Stabilizer Heater",
+              "config": {
+                "control_mode": "duty"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 52,
+      "selected_unit_ids": [
+        "heater-4"
+      ],
+      "selected_unit": {
+        "id": "heater-4",
+        "kind": "Heater",
+        "name": "Stabilizer Heater",
+        "config": {
+          "control_mode": "duty"
+        }
+      },
+      "selected_stream_ids": [
+        "feed-10",
+        "outlet-10"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Stabilizer Feed is missing temperature specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-10"
+        },
+        {
+          "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "heater-4"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "partial_convergence",
+        "residual_norm": 0.09,
+        "last_updated": "2026-04-10T03:15:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "kimi-k2.5",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-joint-selection-primary-focus-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-112\",\n        \"streams\": [\n          {\n            \"id\": \"feed-10\",\n            \"name\": \"Stabilizer Feed\",\n            \"target_unit_id\": \"heater-4\",\n            \"specs\": {\n              \"pressure_kpa\": 230\n            }\n          },\n          {\n            \"id\": \"outlet-10\",\n            \"name\": \"Stabilizer Outlet\",\n            \"source_unit_id\": \"heater-4\",\n            \"specs\": {\n              \"temperature_c\": 160\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"heater-4\",\n            \"kind\": \"Heater\",\n            \"name\": \"Stabilizer Heater\",\n            \"config\": {\n              \"control_mode\": \"duty\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 52,\n    \"selected_unit_ids\": [\n      \"heater-4\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"heater-4\",\n      \"kind\": \"Heater\",\n      \"name\": \"Stabilizer Heater\",\n      \"config\": {\n        \"control_mode\": \"duty\"\n      }\n    },\n    \"selected_stream_ids\": [\n      \"feed-10\",\n      \"outlet-10\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 1\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Stabilizer Feed is missing temperature specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-10\"\n      },\n      {\n        \"code\": \"HEATER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"heater-4\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"partial_convergence\",\n      \"residual_norm\": 0.09,\n      \"last_updated\": \"2026-04-10T03:15:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_ch",
+    "provider_profile_env": "APIYI_CH",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "choices": [
+      {
+        "message": {
+          "content": "{\"schema_version\":1,\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"request_id\":\"rf-suggest-edit-joint-selection-primary-focus-001\",\"locale\":\"zh-CN\",\"status\":\"partial\",\"confidence\":0.75,\"summary\":\"针对选中的 Stabilizer Feed 流股（feed-10）缺少温度规格的错误诊断，生成局部参数补全的候选编辑提案；heater-4 的警告因证据不足暂不生成 patch。\",\"answers\":[{\"text\":\"检测到 Stabilizer Feed（feed-10）缺少温度规格，这是当前阻止求解收敛的关键错误。建议为 feed-10 补充温度参数占位符，待后续确认具体数值。\",\"citations\":[\"diag-1\",\"flowdoc-stream-1\",\"snapshot-1\"]}],\"issues\":[{\"code\":\"STREAM_SPEC_MISSING\",\"message\":\"Stabilizer Feed is missing temperature specification.\",\"severity\":\"error\",\"target_type\":\"stream\",\"target_id\":\"feed-10\",\"citations\":[\"diag-1\",\"flowdoc-stream-1\"]}],\"proposed_actions\":[{\"type\":\"candidate_edit\",\"title\":\"为 Stabilizer Feed 补充温度规格占位符\",\"target\":{\"kind\":\"stream\",\"id\":\"feed-10\",\"name\":\"Stabilizer Feed\"},\"rationale\":\"STREAM_SPEC_MISSING 诊断明确指出 feed-10 缺少温度规格，这是求解器无法完成收敛的直接原因。添加 temperature_c 参数占位符（null）可标记待填状态，同时保留现有 pressure_kpa 规格，属于最小侵入式修复。\",\"patch\":{\"parameter_updates\":{\"temperature_c\":null}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-1\",\"flowdoc-stream-1\",\"snapshot-1\"]}],\"citations\":{\"diag-1\":{\"type\":\"diagnostic\",\"code\":\"STREAM_SPEC_MISSING\",\"target\":\"feed-10\"},\"flowdoc-stream-1\":{\"type\":\"artifact\",\"kind\":\"stream\",\"id\":\"feed-10\",\"path\":\"artifacts.0.content.streams.0\"},\"snapshot-1\":{\"type\":\"snapshot\",\"solver_status\":\"partial_convergence\",\"residual_norm\":0.09}}}",
+          "reasoning_content": "",
+          "role": "assistant"
+        },
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null
+      }
+    ],
+    "object": "chat.completion",
+    "usage": {
+      "prompt_tokens": 1255,
+      "completion_tokens": 432,
+      "total_tokens": 1687,
+      "completion_tokens_details": {
+        "text_tokens": 432
+      },
+      "prompt_tokens_details": {
+        "text_tokens": 1255,
+        "cached_tokens": 0
+      }
+    },
+    "created": 1776176702,
+    "system_fingerprint": null,
+    "model": "kimi-k2.5",
+    "id": "chatcmpl-3625f9b7-0017-9c5d-800c-ae42ed82c438"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.75,
+    "summary": "针对选中的 Stabilizer Feed 流股（feed-10）缺少温度规格的错误诊断，生成局部参数补全的候选编辑提案；heater-4 的警告因证据不足暂不生成 patch。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "检测到 Stabilizer Feed（feed-10）缺少温度规格，这是当前阻止求解收敛的关键错误。建议为 feed-10 补充温度参数占位符，待后续确认具体数值。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Stabilizer Feed is missing temperature specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "feed-10"
+        },
+        "title": "为 feed-10 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Stabilizer Feed is missing temperature specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-10",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-10 Stabilizer Feed target_unit_id=heater-4"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-4",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-4 Stabilizer Heater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.09"
+      }
+    ],
+    "requires_confirmation": true,
+    "risk_level": "medium"
+  }
+}

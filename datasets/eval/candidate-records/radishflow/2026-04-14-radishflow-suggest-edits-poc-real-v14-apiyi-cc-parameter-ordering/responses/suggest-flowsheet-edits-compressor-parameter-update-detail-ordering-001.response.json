@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对当前选中的 compressor-4（Detail Review Compressor），存在两条 error 级诊断：出口压力目标与吸入压力过于接近（275 kPa vs 250 kPa，压比仅 1.10）以及最小旁通流量百分比低于防喘振审查阈值（当前 3%）。以下提案分别对这两个参数给出候选修正值。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-4",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "compressor-4 Detail Review Compressor kind=Compressor"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "提高出口压力目标至 500 kPa（压比 ≈2.0）",
+      "rationale": "当前出口压力目标 275 kPa 与吸入压力 250 kPa 之间的压比仅约 1.10，远低于典型单级离心压缩机的有效工作范围。将出口压力提升至 500 kPa（压比 2.0）可为压缩负荷提供合理裕度，同时仍处于常见单级压缩机的可达范围内。具体数值需用户根据下游工艺要求确认。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "compressor-4"
+      },
+      "patch": {
+        "parameter_updates": {
+          "outlet_pressure_target_kpa": {
+            "action": "review_and_raise_margin",
+            "minimum_delta_kpa": 95,
+            "reference_stream_id": "feed-11"
+          },
+          "minimum_flow_bypass_percent": {
+            "action": "raise_to_anti_surge_review_floor",
+            "suggested_minimum": 8
+          }
+        },
+        "preserve_topology": true,
+        "review_scope": "local_unit_parameters_only"
+      }
+    }
+  ],
+  "status": "partial",
+  "issues": [
+    {
+      "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "message": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "message": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "summary": "针对当前选中的 compressor-4（Detail Review Compressor），存在两条 error 级诊断：出口压力目标与吸入压力过于接近（275 kPa vs 250 kPa，压比仅 1.10）以及最小旁通流量百分比低于防喘振审查阈值（当前 3%）。以下提案分别对这两个参数给出候选修正值。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

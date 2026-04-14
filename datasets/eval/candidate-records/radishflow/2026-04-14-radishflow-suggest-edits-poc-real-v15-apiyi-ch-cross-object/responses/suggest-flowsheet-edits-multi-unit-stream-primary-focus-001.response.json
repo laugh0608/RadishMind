@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.75,
+  "summary": "针对 Cooler Feed (feed-21) 缺少压力规格这一直接诊断，生成局部候选补丁以补全该流股的压力参数；cooler-3 和 separator-2 的警告均源于此上游缺口，当前不提议对这两个单元做结构性修改。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "已识别 1 个错误和 2 个警告。核心问题是 feed-21 缺少压力规格，导致下游 cooler-3 和 separator-2 的状态依赖未决。建议为 feed-21 添加压力占位符以解除阻塞。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Cooler Feed is missing pressure specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Overhead Cooler outlet response may still be driven by the incomplete feed pressure state, so the cooler itself is not yet a confirmed root cause.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "message": "Overhead Separator behavior still depends on the unresolved upstream feed pressure gap.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Cooler Feed 补全压力规格占位符",
+      "rationale": "STREAM_SPEC_MISSING 明确指出 feed-21 缺少压力规格。当前 solver_status 为 partial_convergence，补全此参数是解除下游单元状态依赖的首要步骤。采用占位符形式保留用户后续填入具体值的空间。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-21"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "pressure_kpa"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cooler Feed is missing pressure specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Overhead Cooler outlet response may still be driven by the incomplete feed pressure state, so the cooler itself is not yet a confirmed root cause."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Overhead Separator behavior still depends on the unresolved upstream feed pressure gap."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-21",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-21 Cooler Feed target_unit_id=cooler-3"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-3",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "cooler-3 Overhead Cooler kind=Cooler"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-2",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-2 Overhead Separator kind=FlashDrum"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.14"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "medium"
+}

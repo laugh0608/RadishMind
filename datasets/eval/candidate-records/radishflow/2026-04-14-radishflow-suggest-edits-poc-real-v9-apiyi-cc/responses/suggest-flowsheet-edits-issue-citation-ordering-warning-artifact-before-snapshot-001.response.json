@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕选中的 Warning Heater (heater-6) 及其入口流股 Cold Feed (feed-16) 和出口流股 Heater Outlet (product-16) 生成候选编辑提案。诊断表明 feed-16 缺少流量规格（error），同时 product-16 的出口温度效果因入口条件缺失而未被确认（warning）。求解器当前处于 invalid_parameters 状态。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "stream",
+        "id": "feed-16"
+      },
+      "title": "为 feed-16 补充缺失规格占位",
+      "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kg_per_h"
+        ],
+        "retain_existing_specs": true
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Cold Feed is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "snapshot-1",
+        "flowdoc-stream-2"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cold Feed is missing flow rate specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-16",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-16 Cold Feed target_unit_id=heater-6"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / product-16",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "product-16 Heater Outlet source_unit_id=heater-6"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "summary": "当前围绕选中的 Warning Heater (heater-6) 及其入口流股 Cold Feed (feed-16) 和出口流股 Heater Outlet (product-16) 生成候选编辑提案。诊断表明 feed-16 缺少流量规格（error），同时 product-16 的出口温度效果因入口条件缺失而未被确认（warning）。求解器当前处于 invalid_parameters 状态。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

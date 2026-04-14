@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕 Cooler Feed（feed-21）缺少压力规格这一根因诊断，生成候选编辑提案。诊断链表明：feed-21 缺失 pressure_kpa 导致 Overhead Cooler（cooler-3）出口状态无法确认，进而使下游 Overhead Separator（separator-2）行为不确定。因此最小且最直接的修复点是为 feed-21 补全压力占位规格。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Cooler Feed 补全压力规格占位（pressure_kpa placeholder）",
+      "rationale": "feed-21 是诊断链的唯一根因：STREAM_SPEC_MISSING 指出该流股缺少压力规格。补全 pressure_kpa 后，cooler-3 的出口状态即可被求解器重新评估，separator-2 的依赖警告也将随之消除。此处使用占位值 null 而非猜测具体数值，以确保用户审查后填入正确工艺压力。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-21"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "pressure_kpa"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Cooler Feed is missing pressure specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Overhead Cooler outlet response may still be driven by the incomplete feed pressure state, so the cooler itself is not yet a confirmed root cause.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "message": "Overhead Separator behavior still depends on the unresolved upstream feed pressure gap.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cooler Feed is missing pressure specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Overhead Cooler outlet response may still be driven by the incomplete feed pressure state, so the cooler itself is not yet a confirmed root cause."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Overhead Separator behavior still depends on the unresolved upstream feed pressure gap."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-21",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-21 Cooler Feed target_unit_id=cooler-3"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-3",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "cooler-3 Overhead Cooler kind=Cooler"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-2",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-2 Overhead Separator kind=FlashDrum"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.14"
+    }
+  ],
+  "summary": "当前围绕 Cooler Feed（feed-21）缺少压力规格这一根因诊断，生成候选编辑提案。诊断链表明：feed-21 缺失 pressure_kpa 导致 Overhead Cooler（cooler-3）出口状态无法确认，进而使下游 Overhead Separator（separator-2）行为不确定。因此最小且最直接的修复点是为 feed-21 补全压力占位规格。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

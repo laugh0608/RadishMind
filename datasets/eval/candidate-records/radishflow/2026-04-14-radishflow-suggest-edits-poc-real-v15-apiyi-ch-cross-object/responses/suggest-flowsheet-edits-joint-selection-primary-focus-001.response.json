@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.75,
+  "summary": "针对选中的 Stabilizer Feed 流股（feed-10）缺少温度规格的错误诊断，生成局部参数补全的候选编辑提案；heater-4 的警告因证据不足暂不生成 patch。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到 Stabilizer Feed（feed-10）缺少温度规格，这是当前阻止求解收敛的关键错误。建议为 feed-10 补充温度参数占位符，待后续确认具体数值。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Stabilizer Feed is missing temperature specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "stream",
+        "id": "feed-10"
+      },
+      "title": "为 feed-10 补充缺失规格占位",
+      "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c"
+        ],
+        "retain_existing_specs": true
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Stabilizer Feed is missing temperature specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-10",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-10 Stabilizer Feed target_unit_id=heater-4"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-4",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-4 Stabilizer Heater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.09"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "medium"
+}

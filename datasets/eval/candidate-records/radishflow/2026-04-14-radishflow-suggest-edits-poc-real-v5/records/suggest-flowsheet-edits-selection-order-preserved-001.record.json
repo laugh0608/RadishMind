@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-selection-order-preserved-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-selection-order-preserved-001",
+  "request_id": "rf-suggest-edit-selection-order-preserved-001",
+  "captured_at": "2026-04-14T11:35:07Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 63,
+    "selected_unit_ids": [
+      "separator-4",
+      "cooler-5"
+    ],
+    "selected_stream_ids": [
+      "product-31",
+      "feed-31",
+      "intermediate-31"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "SEPARATOR_STATE_DEPENDENT",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕选中的进料流股 feed-31 的缺失压力规格问题生成候选提案，并仅附带说明其对 cooler-5 与 separator-4 的上游状态依赖影响。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "diag-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Polisher Feed 补充入口压力占位规格",
+        "rationale": "直接诊断指出 feed-31 缺失压力规格；该缺口已传播为 cooler-5 与 separator-4 的状态依赖警告。在现有证据下，最小且可审查的提案是仅为该选中流股添加压力规格占位，而不推断具体数值或改动拓扑。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-31"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Polisher Feed is missing pressure specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "SEPARATOR_STATE_DEPENDENT",
+        "message": "Polisher Separator behavior still depends on unresolved upstream feed pressure.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "snapshot-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Polisher Cooler outlet response may still be influenced by the incomplete feed pressure state.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "snapshot-1",
+          "flowdoc-unit-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Polisher Feed is missing pressure specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Polisher Separator behavior still depends on unresolved upstream feed pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Polisher Cooler outlet response may still be influenced by the incomplete feed pressure state."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-31",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-31 Polisher Feed target_unit_id=cooler-5"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-4",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "separator-4 Polisher Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-5",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "cooler-5 Polisher Cooler kind=Cooler"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.12"
+      }
+    ],
+    "summary": "当前围绕选中的进料流股 feed-31 的缺失压力规格问题生成候选提案，并仅附带说明其对 cooler-5 与 separator-4 的上游状态依赖影响。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v5"
+  }
+}

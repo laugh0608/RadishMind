@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+  "request_id": "rf-suggest-edit-reconnect-connection-placeholder-ordering-001",
+  "captured_at": "2026-04-14T12:49:38Z",
+  "source": "captured_candidate_response",
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 64,
+    "selected_stream_ids": [
+      "liquid-out-2"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕流股 Liquid Product（liquid-out-2）生成候选编辑提案：该流股从 Export Separator 输出，但未连接到任何下游消费单元或导出汇，导致拓扑无效（solver_status=invalid_topology）。建议为其添加一个下游连接占位，待用户确认后再指定具体目标单元。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Liquid Product 添加下游连接占位",
+        "rationale": "诊断 STREAM_DISCONNECTED 表明 liquid-out-2 没有任何 destination_unit_id。添加 connection_placeholder 可以标记该流股需要一个下游消费单元（如储罐、混合器或导出边界），从而修复拓扑断裂。用户需在确认时选择具体的目标单元或新建一个导出汇。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "liquid-out-2"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / liquid-out-2",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "liquid-out-2 Liquid Product source_unit_id=separator-2"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕流股 Liquid Product（liquid-out-2）生成候选编辑提案：该流股从 Export Separator 输出，但未连接到任何下游消费单元或导出汇，导致拓扑无效（solver_status=invalid_topology）。建议为其添加一个下游连接占位，待用户确认后再指定具体目标单元。",
+    "requires_confirmation": true,
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "profile-compare",
+      "apiyi_cc"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v9-apiyi-cc",
+    "notes": "apiyi_cc mixed-risk and citation ordering batch"
+  }
+}

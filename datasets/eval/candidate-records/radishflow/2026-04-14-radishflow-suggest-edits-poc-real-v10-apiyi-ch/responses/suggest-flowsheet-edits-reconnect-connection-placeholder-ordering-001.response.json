@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.75,
+  "summary": "针对流股 liquid-out-2（Liquid Product）当前未连接至任何下游消费端或出口汇点的拓扑断连问题，生成候选编辑提案，通过添加 connection_placeholder 建立占位连接以待后续指定具体目标。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到流股 \"Liquid Product\"（liquid-out-2）存在未连接错误。已生成候选编辑，建议为其添加下游连接占位符，以便后续指定具体的消费单元或出口汇点。该提案需用户确认后方可应用。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Liquid Product 流股添加下游连接占位符",
+      "rationale": "诊断显示该流股当前无下游连接，导致求解器报告 invalid_topology。通过添加 connection_placeholder 可保留拓扑完整性，同时为后续人工指定具体目标单元或出口汇点提供可审查的占位结构。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "liquid-out-2"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / liquid-out-2",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "liquid-out-2 Liquid Product source_unit_id=separator-2"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "high"
+}

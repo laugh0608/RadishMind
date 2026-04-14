@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.95,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对选中的 Preheater (heater-2)，系统诊断表明其控制模式已设定为出口温度控制（outlet_temperature），但缺少对应的出口温度目标参数。由于当前求解器状态为 invalid_parameters，建议在单元配置中添加该参数的占位符，由您确认并输入具体的数值，以恢复正确的求解计算。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "summary": "围绕 heater-2 (Preheater) 缺失关键参数的问题生成了候选编辑提案。",
+  "issues": [
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Preheater is configured for outlet temperature control but outlet temperature target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "unit",
+        "id": "heater-2"
+      },
+      "title": "为 heater-2 补充局部参数占位",
+      "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_temperature_c"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Preheater is configured for outlet temperature control but outlet temperature target is missing."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-2 Preheater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "medium"
+}

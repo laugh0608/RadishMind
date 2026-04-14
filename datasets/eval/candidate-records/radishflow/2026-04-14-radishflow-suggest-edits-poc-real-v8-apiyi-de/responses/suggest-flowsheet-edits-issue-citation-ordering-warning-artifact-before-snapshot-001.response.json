@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "Generated candidate proposals for the selected Cold Feed and Heater Outlet streams to address missing flow rate specifications and unconfirmed local outlet effects.",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "Add flow rate specification placeholder to Cold Feed",
+      "rationale": "Resolves the STREAM_SPEC_MISSING error by introducing a placeholder for the required flow rate specification on the feed stream.",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-16"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kg_h"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Cold Feed is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cold Feed is missing flow rate specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-16",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-16 Cold Feed target_unit_id=heater-6"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / product-16",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "product-16 Heater Outlet source_unit_id=heater-6"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "summary": "Generated candidate proposals for the selected Cold Feed and Heater Outlet streams to address missing flow rate specifications and unconfirmed local outlet effects.",
+  "requires_confirmation": true,
+  "risk_level": "medium",
+  "confidence": 0.2
+}
