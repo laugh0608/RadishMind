@@ -539,6 +539,8 @@
   "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object/2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object.audit.json",
   "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering.manifest.json",
   "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering.audit.json",
+  "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v17-apiyi-de-cross-object-citation/2026-04-15-radishflow-suggest-edits-poc-real-v17-apiyi-de-cross-object-citation.manifest.json",
+  "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v17-apiyi-de-cross-object-citation/2026-04-15-radishflow-suggest-edits-poc-real-v17-apiyi-de-cross-object-citation.audit.json",
   "scripts/README.md",
   "scripts/__init__.py",
   "scripts/checks/__init__.py",

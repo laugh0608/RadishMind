@@ -367,6 +367,8 @@ def normalize_spec_placeholders(values: list[Any]) -> list[str]:
         "flow_rate_kg_h": "flow_rate_kg_per_h",
         "mass_flow": "flow_rate_kg_per_h",
         "mass_flow_rate": "flow_rate_kg_per_h",
+        "mass_flow_rate_kg_h": "flow_rate_kg_per_h",
+        "mass_flow_rate_kg_per_h": "flow_rate_kg_per_h",
         "mass_flow_kg_h": "flow_rate_kg_per_h",
         "mass_flow_kg_per_h": "flow_rate_kg_per_h",
     }
@@ -484,6 +486,7 @@ def build_suggest_edits_action_target_order(
 
 def build_suggest_edits_group_citation_ids(
     *,
+    copilot_request: dict[str, Any],
     diagnostics: list[dict[str, Any]],
     diagnostic_indexes: list[int],
     target_type: str,
@@ -492,21 +495,19 @@ def build_suggest_edits_group_citation_ids(
     snapshot_citation_id: str,
 ) -> list[str]:
     citation_ids = [f"diag-{index}" for index in diagnostic_indexes]
-    target_citation_id = target_citation_lookup.get((target_type, target_id))
-    if target_citation_id:
-        citation_ids.append(target_citation_id)
-    if snapshot_citation_id:
-        has_background_context = any(
-            str((diagnostic or {}).get("target_type") or "").strip().lower() not in {"stream", "unit"}
-            or str((diagnostic or {}).get("target_id") or "").strip() != target_id
-            or str((diagnostic or {}).get("severity") or "").strip().lower() != "error"
-            for diagnostic in diagnostics
+    primary_diagnostic = diagnostics[0] if diagnostics else {}
+    citation_ids.extend(
+        build_suggest_edits_context_support_citation_ids(
+            copilot_request=copilot_request,
+            diagnostic_code=str((primary_diagnostic or {}).get("code") or "").strip(),
+            severity=str((primary_diagnostic or {}).get("severity") or "").strip().lower(),
+            target_type=target_type,
+            target_id=target_id,
+            item_kind="action",
+            target_citation_lookup=target_citation_lookup,
+            snapshot_citation_id=snapshot_citation_id,
         )
-        if has_background_context or any(
-            str((diagnostic or {}).get("code") or "").strip() == "STREAM_DISCONNECTED"
-            for diagnostic in diagnostics
-        ):
-            citation_ids.append(snapshot_citation_id)
+    )
     return list(dict.fromkeys(citation_ids))
 
 
@@ -555,6 +556,134 @@ def build_flowsheet_lookup(copilot_request: dict[str, Any]) -> tuple[dict[str, d
         if target_unit_id and target_unit_id not in primary_inlet_stream_by_unit_id:
             primary_inlet_stream_by_unit_id[target_unit_id] = stream_id
     return unit_by_id, stream_by_id, primary_inlet_stream_by_unit_id
+
+
+def append_unique_citation_id(citation_ids: list[str], citation_id: str) -> None:
+    normalized = str(citation_id or "").strip()
+    if normalized and normalized not in citation_ids:
+        citation_ids.append(normalized)
+
+
+def build_selected_connection_maps(copilot_request: dict[str, Any]) -> tuple[set[str], list[str], dict[str, list[str]], dict[str, list[str]]]:
+    context = copilot_request.get("context") or {}
+    selected_unit_ids = {
+        str(unit_id).strip()
+        for unit_id in (context.get("selected_unit_ids") or [])
+        if str(unit_id).strip()
+    }
+    selected_stream_ids = [
+        str(stream_id).strip()
+        for stream_id in (context.get("selected_stream_ids") or [])
+        if str(stream_id).strip()
+    ]
+    _, stream_by_id, _ = build_flowsheet_lookup(copilot_request)
+    input_stream_ids_by_unit_id: dict[str, list[str]] = {}
+    output_stream_ids_by_unit_id: dict[str, list[str]] = {}
+    for stream_id in selected_stream_ids:
+        stream_document = stream_by_id.get(stream_id) or {}
+        source_unit_id = str(stream_document.get("source_unit_id") or "").strip()
+        target_unit_id = str(stream_document.get("target_unit_id") or "").strip()
+        if target_unit_id:
+            input_stream_ids_by_unit_id.setdefault(target_unit_id, []).append(stream_id)
+        if source_unit_id:
+            output_stream_ids_by_unit_id.setdefault(source_unit_id, []).append(stream_id)
+    return selected_unit_ids, selected_stream_ids, input_stream_ids_by_unit_id, output_stream_ids_by_unit_id
+
+
+def build_suggest_edits_context_support_citation_ids(
+    *,
+    copilot_request: dict[str, Any],
+    diagnostic_code: str,
+    severity: str,
+    target_type: str,
+    target_id: str,
+    item_kind: str,
+    target_citation_lookup: dict[tuple[str, str], str],
+    snapshot_citation_id: str,
+) -> list[str]:
+    selected_unit_ids, _, input_stream_ids_by_unit_id, output_stream_ids_by_unit_id = build_selected_connection_maps(
+        copilot_request
+    )
+    unit_by_id, stream_by_id, _ = build_flowsheet_lookup(copilot_request)
+    citation_ids: list[str] = []
+    target_citation_id = target_citation_lookup.get((target_type, target_id))
+    if target_citation_id:
+        append_unique_citation_id(citation_ids, target_citation_id)
+
+    complex_cross_object_context = len(selected_unit_ids) > 1
+    if target_type == "stream":
+        stream_document = stream_by_id.get(target_id) or {}
+        source_unit_id = str(stream_document.get("source_unit_id") or "").strip()
+        target_unit_id = str(stream_document.get("target_unit_id") or "").strip()
+        primary_unit_id = ""
+        if diagnostic_code == "STREAM_SPEC_MISSING":
+            primary_unit_id = target_unit_id or source_unit_id
+        else:
+            primary_unit_id = source_unit_id or target_unit_id
+        direct_unit_ids = [primary_unit_id] if primary_unit_id else []
+        for unit_id in direct_unit_ids:
+            if unit_id and unit_id in selected_unit_ids:
+                append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", unit_id), ""))
+
+        if complex_cross_object_context and (
+            diagnostic_code == "DOWNSTREAM_STATE_DEPENDENT"
+            or (diagnostic_code == "STREAM_DISCONNECTED" and item_kind == "action")
+        ):
+            for unit_id in direct_unit_ids:
+                if not unit_id:
+                    continue
+                connected_stream_ids = [
+                    *output_stream_ids_by_unit_id.get(unit_id, []),
+                    *input_stream_ids_by_unit_id.get(unit_id, []),
+                ]
+                for stream_id in connected_stream_ids:
+                    if stream_id == target_id:
+                        continue
+                    peer_stream_document = stream_by_id.get(stream_id) or {}
+                    if diagnostic_code == "STREAM_DISCONNECTED" and item_kind == "action":
+                        append_unique_citation_id(citation_ids, target_citation_lookup.get(("stream", stream_id), ""))
+                    peer_source_unit_id = str(peer_stream_document.get("source_unit_id") or "").strip()
+                    peer_target_unit_id = str(peer_stream_document.get("target_unit_id") or "").strip()
+                    opposite_unit_id = ""
+                    if peer_source_unit_id and peer_source_unit_id != unit_id:
+                        opposite_unit_id = peer_source_unit_id
+                    elif peer_target_unit_id and peer_target_unit_id != unit_id:
+                        opposite_unit_id = peer_target_unit_id
+                    if opposite_unit_id and opposite_unit_id in selected_unit_ids:
+                        append_unique_citation_id(
+                            citation_ids,
+                            target_citation_lookup.get(("unit", opposite_unit_id), ""),
+                        )
+
+    elif target_type == "unit":
+        output_stream_ids = list(output_stream_ids_by_unit_id.get(target_id, []))
+        input_stream_ids = list(input_stream_ids_by_unit_id.get(target_id, []))
+        if diagnostic_code == "UNIT_PARAMETER_INCOMPLETE":
+            for stream_id in output_stream_ids:
+                append_unique_citation_id(citation_ids, target_citation_lookup.get(("stream", stream_id), ""))
+            if item_kind == "action":
+                for stream_id in input_stream_ids:
+                    input_stream_document = stream_by_id.get(stream_id) or {}
+                    source_unit_id = str(input_stream_document.get("source_unit_id") or "").strip()
+                    if source_unit_id and source_unit_id in selected_unit_ids:
+                        append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", source_unit_id), ""))
+            if snapshot_citation_id:
+                append_unique_citation_id(citation_ids, snapshot_citation_id)
+        elif diagnostic_code.startswith("DOWNSTREAM_"):
+            for stream_id in input_stream_ids:
+                append_unique_citation_id(citation_ids, target_citation_lookup.get(("stream", stream_id), ""))
+            if severity != "error" and snapshot_citation_id:
+                append_unique_citation_id(citation_ids, snapshot_citation_id)
+        elif severity != "error" and snapshot_citation_id:
+            append_unique_citation_id(citation_ids, snapshot_citation_id)
+
+    if target_type == "stream" and severity != "error" and snapshot_citation_id:
+        append_unique_citation_id(citation_ids, snapshot_citation_id)
+    if diagnostic_code == "STREAM_DISCONNECTED" and snapshot_citation_id:
+        append_unique_citation_id(citation_ids, snapshot_citation_id)
+    if target_type == "unit" and target_id not in unit_by_id and snapshot_citation_id:
+        append_unique_citation_id(citation_ids, snapshot_citation_id)
+    return citation_ids
 
 
 def synthesize_parameter_updates_from_diagnostics(
@@ -721,8 +850,10 @@ def merge_parameter_patch(
 
 def build_suggest_edits_response_citation_ids(
     *,
+    copilot_request: dict[str, Any],
     diagnostic_index: int,
     diagnostic_code: str,
+    severity: str,
     target_type: str,
     target_id: str,
     target_citation_lookup: dict[tuple[str, str], str],
@@ -731,17 +862,25 @@ def build_suggest_edits_response_citation_ids(
     item_kind: str,
 ) -> list[str]:
     citation_ids: list[str] = [f"diag-{diagnostic_index}"]
-    target_citation_id = target_citation_lookup.get((target_type, target_id))
-    if target_citation_id:
-        citation_ids.append(target_citation_id)
-    if diagnostic_code == "STREAM_DISCONNECTED" and snapshot_citation_id:
-        citation_ids.append(snapshot_citation_id)
+    citation_ids.extend(
+        build_suggest_edits_context_support_citation_ids(
+            copilot_request=copilot_request,
+            diagnostic_code=diagnostic_code,
+            severity=severity,
+            target_type=target_type,
+            target_id=target_id,
+            item_kind=item_kind,
+            target_citation_lookup=target_citation_lookup,
+            snapshot_citation_id=snapshot_citation_id,
+        )
+    )
     return list(dict.fromkeys(citation_ids))
 
 
 def synthesize_suggest_edits_action(
     diagnostic: dict[str, Any],
     *,
+    copilot_request: dict[str, Any],
     diagnostic_index: int,
     total_diagnostics: int,
     target_citation_lookup: dict[tuple[str, str], str],
@@ -754,8 +893,10 @@ def synthesize_suggest_edits_action(
     if target_type not in {"stream", "unit"}:
         target_type = "stream" if "stream" in diagnostic_code.lower() else "unit"
     citation_ids = build_suggest_edits_response_citation_ids(
+        copilot_request=copilot_request,
         diagnostic_index=diagnostic_index,
         diagnostic_code=diagnostic_code,
+        severity=str(diagnostic.get("severity") or "").strip().lower(),
         target_type=target_type,
         target_id=target_id,
         target_citation_lookup=target_citation_lookup,
@@ -889,6 +1030,7 @@ def canonicalize_suggest_edits_response(
         }
         synthesized_action = synthesize_suggest_edits_action(
             primary_diagnostic,
+            copilot_request=copilot_request,
             diagnostic_index=primary_diagnostic_index,
             total_diagnostics=len(diagnostics),
             target_citation_lookup=target_citation_lookup,
@@ -952,6 +1094,7 @@ def canonicalize_suggest_edits_response(
             merged_action["risk_level"] = "medium"
         merged_action["requires_confirmation"] = True
         merged_action["citation_ids"] = build_suggest_edits_group_citation_ids(
+            copilot_request=copilot_request,
             diagnostics=[diagnostic for _, diagnostic in action_context_diagnostics_with_indexes],
             diagnostic_indexes=[diagnostic_index for diagnostic_index, _ in action_context_diagnostics_with_indexes],
             target_type=target_type,
@@ -979,8 +1122,10 @@ def canonicalize_suggest_edits_response(
             diagnostic.get("message") or diagnostic.get("text") or ""
         )
         canonical_issue_citation_ids = build_suggest_edits_response_citation_ids(
+            copilot_request=copilot_request,
             diagnostic_index=diagnostic_index,
             diagnostic_code=diagnostic_code,
+            severity=severity,
             target_type=target_type,
             target_id=target_id,
             target_citation_lookup=target_citation_lookup,
@@ -1003,8 +1148,6 @@ def canonicalize_suggest_edits_response(
             issue_citation_ids = canonical_issue_citation_ids + extras
         if severity != "error":
             ordered_warning_citation_ids = list(canonical_issue_citation_ids)
-            if snapshot_citation_id and snapshot_citation_id not in ordered_warning_citation_ids:
-                ordered_warning_citation_ids.append(snapshot_citation_id)
             extras = [
                 citation_id
                 for citation_id in issue_citation_ids
@@ -1102,10 +1245,52 @@ def canonicalize_suggest_edits_response(
     )
     if status == "partial" and snapshot_citation_id and snapshot_citation_id not in referenced_citation_ids:
         referenced_citation_ids.append(snapshot_citation_id)
-    coerced["citations"] = [
-        citation
+    citation_by_id = {
+        str(citation.get("id") or "").strip(): citation
         for citation in fallback_citations
-        if str(citation.get("id") or "").strip() in referenced_citation_ids
+        if str(citation.get("id") or "").strip()
+    }
+    ordered_citation_ids: list[str] = []
+    for diagnostic_index, _diagnostic in enumerate(diagnostics, start=1):
+        append_unique_citation_id(ordered_citation_ids, f"diag-{diagnostic_index}")
+    action_target_citation_ids: list[str] = []
+    for action in normalized_actions:
+        target = action.get("target") or {}
+        target_type = str((target or {}).get("type") or "").strip().lower()
+        target_id = str((target or {}).get("id") or "").strip()
+        target_citation_id = target_citation_lookup.get((target_type, target_id), "")
+        if target_citation_id:
+            action_target_citation_ids.append(target_citation_id)
+            append_unique_citation_id(ordered_citation_ids, target_citation_id)
+    for action in reversed(normalized_actions):
+        target = action.get("target") or {}
+        target_type = str((target or {}).get("type") or "").strip().lower()
+        target_id = str((target or {}).get("id") or "").strip()
+        target_citation_id = target_citation_lookup.get((target_type, target_id), "")
+        for citation_id in (action.get("citation_ids") or []):
+            if citation_id.startswith("diag-") or citation_id == snapshot_citation_id or citation_id == target_citation_id:
+                continue
+            append_unique_citation_id(ordered_citation_ids, str(citation_id))
+    for issue in synthesized_issues:
+        for citation_id in (issue.get("citation_ids") or []):
+            if str(citation_id).startswith("diag-") or citation_id == snapshot_citation_id:
+                continue
+            append_unique_citation_id(ordered_citation_ids, str(citation_id))
+    for answer in coerced.get("answers") or []:
+        if not isinstance(answer, dict):
+            continue
+        for citation_id in (answer.get("citation_ids") or []):
+            if str(citation_id).startswith("diag-") or citation_id == snapshot_citation_id:
+                continue
+            append_unique_citation_id(ordered_citation_ids, str(citation_id))
+    if snapshot_citation_id and snapshot_citation_id in referenced_citation_ids:
+        append_unique_citation_id(ordered_citation_ids, snapshot_citation_id)
+    for citation_id in referenced_citation_ids:
+        append_unique_citation_id(ordered_citation_ids, citation_id)
+    coerced["citations"] = [
+        citation_by_id[citation_id]
+        for citation_id in ordered_citation_ids
+        if citation_id in referenced_citation_ids and citation_id in citation_by_id
     ]
     coerced["status"] = status
     coerced["risk_level"] = max_risk_level(
