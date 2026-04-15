@@ -1,0 +1,462 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+  "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+  "captured_at": "2026-04-15T14:28:57Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object"
+  },
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 87,
+    "selected_unit_ids": [
+      "compressor-21",
+      "cooler-21"
+    ],
+    "selected_stream_ids": [
+      "feed-91",
+      "compressor-outlet-91",
+      "cooler-outlet-91"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+      "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-155",
+          "streams": [
+            {
+              "id": "feed-91",
+              "name": "Recycle Compressor Feed",
+              "target_unit_id": "compressor-21",
+              "specs": {
+                "pressure_kpa": 225,
+                "temperature_c": 34
+              }
+            },
+            {
+              "id": "compressor-outlet-91",
+              "name": "Compressor Outlet 91",
+              "source_unit_id": "compressor-21",
+              "target_unit_id": "cooler-21",
+              "specs": {
+                "pressure_kpa": 430,
+                "temperature_c": 96
+              }
+            },
+            {
+              "id": "cooler-outlet-91",
+              "name": "Product Cooler Outlet 91",
+              "source_unit_id": "cooler-21",
+              "specs": {
+                "temperature_c": 28
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "compressor-21",
+              "kind": "Compressor",
+              "name": "Recycle Compressor",
+              "config": {
+                "control_mode": "outlet_pressure",
+                "anti_surge_review_required": true
+              }
+            },
+            {
+              "id": "cooler-21",
+              "kind": "Cooler",
+              "name": "Product Cooler",
+              "config": {
+                "control_mode": "duty"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 87,
+      "selected_unit_ids": [
+        "compressor-21",
+        "cooler-21"
+      ],
+      "selected_unit": {
+        "id": "cooler-21",
+        "kind": "Cooler",
+        "name": "Product Cooler",
+        "config": {
+          "control_mode": "duty"
+        }
+      },
+      "selected_stream_ids": [
+        "feed-91",
+        "compressor-outlet-91",
+        "cooler-outlet-91"
+      ],
+      "diagnostic_summary": {
+        "error_count": 4,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Product Cooler Outlet 91 is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "cooler-outlet-91"
+        },
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Recycle Compressor Feed is missing flow rate specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-91"
+        },
+        {
+          "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+          "message": "Recycle Compressor is configured for outlet pressure control but outlet pressure target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-21"
+        },
+        {
+          "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+          "message": "Recycle Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-21"
+        },
+        {
+          "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Product Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "cooler-21"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-15T05:05:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/messages",
+    "payload": {
+      "model": "claude-opus-4-6",
+      "max_tokens": 4096,
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-155\",\n        \"streams\": [\n          {\n            \"id\": \"feed-91\",\n            \"name\": \"Recycle Compressor Feed\",\n            \"target_unit_id\": \"compressor-21\",\n            \"specs\": {\n              \"pressure_kpa\": 225,\n              \"temperature_c\": 34\n            }\n          },\n          {\n            \"id\": \"compressor-outlet-91\",\n            \"name\": \"Compressor Outlet 91\",\n            \"source_unit_id\": \"compressor-21\",\n            \"target_unit_id\": \"cooler-21\",\n            \"specs\": {\n              \"pressure_kpa\": 430,\n              \"temperature_c\": 96\n            }\n          },\n          {\n            \"id\": \"cooler-outlet-91\",\n            \"name\": \"Product Cooler Outlet 91\",\n            \"source_unit_id\": \"cooler-21\",\n            \"specs\": {\n              \"temperature_c\": 28\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"compressor-21\",\n            \"kind\": \"Compressor\",\n            \"name\": \"Recycle Compressor\",\n            \"config\": {\n              \"control_mode\": \"outlet_pressure\",\n              \"anti_surge_review_required\": true\n            }\n          },\n          {\n            \"id\": \"cooler-21\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Product Cooler\",\n            \"config\": {\n              \"control_mode\": \"duty\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 87,\n    \"selected_unit_ids\": [\n      \"compressor-21\",\n      \"cooler-21\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-21\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Product Cooler\",\n      \"config\": {\n        \"control_mode\": \"duty\"\n      }\n    },\n    \"selected_stream_ids\": [\n      \"feed-91\",\n      \"compressor-outlet-91\",\n      \"cooler-outlet-91\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 4,\n      \"warning_count\": 1\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_DISCONNECTED\",\n        \"message\": \"Product Cooler Outlet 91 is not connected to any downstream consumer or export sink.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"cooler-outlet-91\"\n      },\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Recycle Compressor Feed is missing flow rate specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-91\"\n      },\n      {\n        \"code\": \"COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING\",\n        \"message\": \"Recycle Compressor is configured for outlet pressure control but outlet pressure target is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-21\"\n      },\n      {\n        \"code\": \"COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING\",\n        \"message\": \"Recycle Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-21\"\n      },\n      {\n        \"code\": \"COOLER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Product Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"cooler-21\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_topology\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-15T05:05:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ],
+      "system": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+    },
+    "transport": "anthropic-messages",
+    "provider_profile": "apiyi_cc",
+    "provider_profile_env": "APIYI_CC",
+    "api_style": "anthropic-messages"
+  },
+  "raw_response": {
+    "content": [
+      {
+        "text": "{\"schema_version\":1,\"request_id\":\"rf-suggest-edit-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001\",\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"locale\":\"zh-CN\",\"answers\":[{\"status\":\"partial\",\"summary\":\"围绕 Recycle Compressor (compressor-21) 及其上下游流股 (feed-91, compressor-outlet-91, cooler-outlet-91) 和 Product Cooler (cooler-21) 的 4 条错误诊断生成候选编辑提案。其中包括：1) cooler-outlet-91 下游断连的拓扑重连占位；2) feed-91 缺少流量规格的占位补全；3) compressor-21 缺少出口压力目标参数；4) compressor-21 缺少防喘振最小流量旁通参数。cooler-21 的 warning 仅作为上下文保留，不单独生成 patch，因为诊断明确指出其出口条件在下游恢复后仍可能变化。\",\"confidence\":0.72,\"issues\":[{\"id\":\"issue-1\",\"description\":\"cooler-outlet-91 未连接任何下游消费者或出口汇，导致拓扑无效。\",\"severity\":\"error\",\"citations\":[\"diag-1\",\"flowdoc-stream-cooler-outlet-91\",\"snapshot-1\"]},{\"id\":\"issue-2\",\"description\":\"feed-91 缺少流量规格（如质量流量或体积流量），求解器无法确定进料量。\",\"severity\":\"error\",\"citations\":[\"diag-2\",\"flowdoc-stream-feed-91\"]},{\"id\":\"issue-3\",\"description\":\"compressor-21 配置为出口压力控制模式，但缺少出口压力目标参数。\",\"severity\":\"error\",\"citations\":[\"diag-3\",\"flowdoc-unit-compressor-21\"]},{\"id\":\"issue-4\",\"description\":\"compressor-21 标记需要防喘振审查，但缺少最小流量旁通百分比参数。\",\"severity\":\"error\",\"citations\":[\"diag-4\",\"flowdoc-unit-compressor-21\"]}],\"proposed_actions\":[{\"action\":\"candidate_edit\",\"title\":\"为 cooler-outlet-91 添加下游连接占位\",\"target\":{\"type\":\"stream\",\"id\":\"cooler-outlet-91\"},\"rationale\":\"诊断 STREAM_DISCONNECTED 指出该流股无下游去向，拓扑不完整导致求解器报 invalid_topology。此 patch 添加一个 connection_placeholder，提示用户指定下游单元或出口汇。由于涉及拓扑重连，风险标记为 high。\",\"patch\":{\"connection_placeholder\":{\"direction\":\"downstream\",\"placeholder_label\":\"[待指定] 下游消费单元或出口汇\",\"suggested_target_unit_id\":null,\"note\":\"请确认 cooler-outlet-91 应连接到哪个下游单元（如分离器、储罐或系统出口），并填写 target_unit_id。\"}},\"risk_level\":\"high\",\"requires_confirmation\":true,\"citations\":[\"diag-1\",\"flowdoc-stream-cooler-outlet-91\",\"snapshot-1\"]},{\"action\":\"candidate_edit\",\"title\":\"为 feed-91 补全流量规格占位\",\"target\":{\"type\":\"stream\",\"id\":\"feed-91\"},\"rationale\":\"诊断 STREAM_SPEC_MISSING 指出 feed-91 缺少流量规格。此 patch 添加 spec_placeholders 提示用户填写质量流量或摩尔流量。\",\"patch\":{\"spec_placeholders\":{\"mass_flow_kg_per_h\":{\"value\":null,\"placeholder_label\":\"[待填写] 质量流量 (kg/h)\",\"note\":\"请根据工艺设计提供 Recycle Compressor Feed 的质量流量值。若使用摩尔流量，可替换为 molar_flow_kmol_per_h。\"}}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-2\",\"flowdoc-stream-feed-91\"]},{\"action\":\"candidate_edit\",\"title\":\"为 compressor-21 补全出口压力目标参数\",\"target\":{\"type\":\"unit\",\"id\":\"compressor-21\"},\"rationale\":\"诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING 指出压缩机配置为 outlet_pressure 控制模式但缺少目标值。当前 compressor-outlet-91 的 pressure_kpa 为 430，可作为参考，但最终值需用户确认。此 patch 添加 parameter_placeholders。\",\"patch\":{\"parameter_placeholders\":{\"outlet_pressure_target_kpa\":{\"value\":430,\"placeholder_label\":\"[待确认] 出口压力目标 (kPa)\",\"note\":\"初始值参考 compressor-outlet-91 流股规格 (430 kPa)。请根据实际工艺需求确认或修改此目标值。\"}}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-3\",\"flowdoc-unit-compressor-21\",\"flowdoc-stream-compressor-outlet-91\"]},{\"action\":\"candidate_edit\",\"title\":\"为 compressor-21 补全防喘振最小流量旁通参数\",\"target\":{\"type\":\"unit\",\"id\":\"compressor-21\"},\"rationale\":\"诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING 指出 anti_surge_review_required 为 true 但缺少 minimum_flow_bypass_percent 参数。此 patch 添加 parameter_placeholders，提示用户填写旁通百分比。\",\"patch\":{\"parameter_placeholders\":{\"minimum_flow_bypass_percent\":{\"value\":null,\"placeholder_label\":\"[待填写] 最小流量旁通百分比 (%)\",\"note\":\"请根据压缩机性能曲线和防喘振控制策略提供最小流量旁通百分比。典型范围通常在 10%–30%，但须以厂商数据为准。\"}}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-4\",\"flowdoc-unit-compressor-21\"]}],\"citations\":[{\"id\":\"diag-1\",\"label\":\"诊断: STREAM_DISCONNECTED on cooler-outlet-91\",\"source\":\"diagnostics[0]\"},{\"id\":\"diag-2\",\"label\":\"诊断: STREAM_SPEC_MISSING on feed-91\",\"source\":\"diagnostics[1]\"},{\"id\":\"diag-3\",\"label\":\"诊断: COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING on compressor-21\",\"source\":\"diagnostics[2]\"},{\"id\":\"diag-4\",\"label\":\"诊断: COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING on compressor-21\",\"source\":\"diagnostics[3]\"},{\"id\":\"flowdoc-stream-cooler-outlet-91\",\"label\":\"FlowsheetDocument stream: cooler-outlet-91\",\"source\":\"flowsheet_document.streams[2]\"},{\"id\":\"flowdoc-stream-feed-91\",\"label\":\"FlowsheetDocument stream: feed-91\",\"source\":\"flowsheet_document.streams[0]\"},{\"id\":\"flowdoc-stream-compressor-outlet-91\",\"label\":\"FlowsheetDocument stream: compressor-outlet-91\",\"source\":\"flowsheet_document.streams[1]\"},{\"id\":\"flowdoc-unit-compressor-21\",\"label\":\"FlowsheetDocument unit: compressor-21\",\"source\":\"flowsheet_document.units[0]\"},{\"id\":\"snapshot-1\",\"label\":\"求解器快照: invalid_topology @ 2026-04-15T05:05:00Z\",\"source\":\"latest_snapshot\"}],\"requires_confirmation\":true}]}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_01A3pHJvqhakHPRgYNpjRE9R",
+    "model": "claude-opus-4-6",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 2192,
+      "output_tokens": 2014,
+      "service_tier": "standard"
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "围绕 Recycle Compressor (compressor-21) 及其上下游流股 (feed-91, compressor-outlet-91, cooler-outlet-91) 和 Product Cooler (cooler-21) 的 4 条错误诊断生成候选编辑提案。其中包括：1) cooler-outlet-91 下游断连的拓扑重连占位；2) feed-91 缺少流量规格的占位补全；3) compressor-21 缺少出口压力目标参数；4) compressor-21 缺少防喘振最小流量旁通参数。cooler-21 的 warning 仅作为上下文保留，不单独生成 patch，因为诊断明确指出其出口条件在下游恢复后仍可能变化。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "diag-3",
+          "diag-4"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 cooler-outlet-91 添加下游连接占位",
+        "rationale": "诊断 STREAM_DISCONNECTED 指出该流股无下游去向，拓扑不完整导致求解器报 invalid_topology。此 patch 添加一个 connection_placeholder，提示用户指定下游单元或出口汇。由于涉及拓扑重连，风险标记为 high。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "cooler-outlet-91"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-91 补全流量规格占位",
+        "rationale": "诊断 STREAM_SPEC_MISSING 指出 feed-91 缺少流量规格。此 patch 添加 spec_placeholders 提示用户填写质量流量或摩尔流量。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-91"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 compressor-21 补全出口压力目标参数",
+        "rationale": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING 指出压缩机配置为 outlet_pressure 控制模式但缺少目标值。当前 compressor-outlet-91 的 pressure_kpa 为 430，可作为参考，但最终值需用户确认。此 patch 添加 parameter_placeholders。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "diag-4",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "compressor-21"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_pressure_target_kpa",
+            "minimum_flow_bypass_percent"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Product Cooler Outlet 91 is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Recycle Compressor Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+        "message": "Recycle Compressor is configured for outlet pressure control but outlet pressure target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "message": "Recycle Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Product Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-5",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Product Cooler Outlet 91 is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Recycle Compressor Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Recycle Compressor is configured for outlet pressure control but outlet pressure target is missing."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Recycle Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing."
+      },
+      {
+        "id": "diag-5",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[4]",
+        "excerpt": "Product Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-outlet-91",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "cooler-outlet-91 Product Cooler Outlet 91 source_unit_id=cooler-21"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-91",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-91 Recycle Compressor Feed target_unit_id=compressor-21"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-21",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-21 Recycle Compressor kind=Compressor"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-21",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "cooler-21 Product Cooler kind=Cooler"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-outlet-91",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "compressor-outlet-91 Compressor Outlet 91 source_unit_id=compressor-21 target_unit_id=cooler-21"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "围绕 Recycle Compressor (compressor-21) 及其上下游流股 (feed-91, compressor-outlet-91, cooler-outlet-91) 和 Product Cooler (cooler-21) 的 4 条错误诊断生成候选编辑提案。其中包括：1) cooler-outlet-91 下游断连的拓扑重连占位；2) feed-91 缺少流量规格的占位补全；3) compressor-21 缺少出口压力目标参数；4) compressor-21 缺少防喘振最小流量旁通参数。cooler-21 的 warning 仅作为上下文保留，不单独生成 patch，因为诊断明确指出其出口条件在下游恢复后仍可能变化。",
+    "requires_confirmation": true,
+    "risk_level": "high",
+    "confidence": 0.2
+  }
+}

@@ -136,5 +136,23 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v24-apiyi-de-mixed-risk-cross-object/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v24-apiyi-de-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v24-apiyi-de-mixed-risk-cross-object.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v24-apiyi-de-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v24-apiyi-de-mixed-risk-cross-object.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v25-apiyi-cx-triad-mixed-risk-cross-object/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v25-apiyi-cx-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v25-apiyi-cx-triad-mixed-risk-cross-object.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v25-apiyi-cx-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v25-apiyi-cx-triad-mixed-risk-cross-object.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object.audit.json"
   }
 ]

@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "围绕 Recycle Compressor (compressor-21) 及其上下游流股 (feed-91, compressor-outlet-91, cooler-outlet-91) 和 Product Cooler (cooler-21) 的 4 条错误诊断生成候选编辑提案。其中包括：1) cooler-outlet-91 下游断连的拓扑重连占位；2) feed-91 缺少流量规格的占位补全；3) compressor-21 缺少出口压力目标参数；4) compressor-21 缺少防喘振最小流量旁通参数。cooler-21 的 warning 仅作为上下文保留，不单独生成 patch，因为诊断明确指出其出口条件在下游恢复后仍可能变化。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1",
+        "diag-2",
+        "flowdoc-stream-1",
+        "diag-3",
+        "diag-4"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 cooler-outlet-91 添加下游连接占位",
+      "rationale": "诊断 STREAM_DISCONNECTED 指出该流股无下游去向，拓扑不完整导致求解器报 invalid_topology。此 patch 添加一个 connection_placeholder，提示用户指定下游单元或出口汇。由于涉及拓扑重连，风险标记为 high。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "cooler-outlet-91"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 feed-91 补全流量规格占位",
+      "rationale": "诊断 STREAM_SPEC_MISSING 指出 feed-91 缺少流量规格。此 patch 添加 spec_placeholders 提示用户填写质量流量或摩尔流量。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-1",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-91"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kg_per_h"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 compressor-21 补全出口压力目标参数",
+      "rationale": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING 指出压缩机配置为 outlet_pressure 控制模式但缺少目标值。当前 compressor-outlet-91 的 pressure_kpa 为 430，可作为参考，但最终值需用户确认。此 patch 添加 parameter_placeholders。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-3",
+        "diag-4",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "compressor-21"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_pressure_target_kpa",
+          "minimum_flow_bypass_percent"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "status": "partial",
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Product Cooler Outlet 91 is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Recycle Compressor Feed is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+      "message": "Recycle Compressor is configured for outlet pressure control but outlet pressure target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "message": "Recycle Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-4",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Product Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-5",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Product Cooler Outlet 91 is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Recycle Compressor Feed is missing flow rate specification."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Recycle Compressor is configured for outlet pressure control but outlet pressure target is missing."
+    },
+    {
+      "id": "diag-4",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "locator": "context:diagnostics[3]",
+      "excerpt": "Recycle Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing."
+    },
+    {
+      "id": "diag-5",
+      "kind": "context",
+      "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[4]",
+      "excerpt": "Product Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only."
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-outlet-91",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "cooler-outlet-91 Product Cooler Outlet 91 source_unit_id=cooler-21"
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-91",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-91 Recycle Compressor Feed target_unit_id=compressor-21"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-21",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "compressor-21 Recycle Compressor kind=Compressor"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-21",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "cooler-21 Product Cooler kind=Cooler"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-outlet-91",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "compressor-outlet-91 Compressor Outlet 91 source_unit_id=compressor-21 target_unit_id=cooler-21"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "summary": "围绕 Recycle Compressor (compressor-21) 及其上下游流股 (feed-91, compressor-outlet-91, cooler-outlet-91) 和 Product Cooler (cooler-21) 的 4 条错误诊断生成候选编辑提案。其中包括：1) cooler-outlet-91 下游断连的拓扑重连占位；2) feed-91 缺少流量规格的占位补全；3) compressor-21 缺少出口压力目标参数；4) compressor-21 缺少防喘振最小流量旁通参数。cooler-21 的 warning 仅作为上下文保留，不单独生成 patch，因为诊断明确指出其出口条件在下游恢复后仍可能变化。",
+  "requires_confirmation": true,
+  "risk_level": "high",
+  "confidence": 0.2
+}

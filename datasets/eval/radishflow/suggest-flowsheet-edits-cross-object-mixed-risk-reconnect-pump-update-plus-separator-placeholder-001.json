@@ -262,7 +262,6 @@
           "diag-5",
           "flowdoc-stream-3",
           "flowdoc-unit-2",
-          "flowdoc-stream-2",
           "flowdoc-unit-1",
           "snapshot-1"
         ]
@@ -295,6 +294,7 @@
           "diag-3",
           "flowdoc-unit-2",
           "flowdoc-stream-3",
+          "flowdoc-unit-1",
           "snapshot-1"
         ]
       }
@@ -455,7 +455,6 @@
           "diag-5",
           "flowdoc-stream-3",
           "flowdoc-unit-2",
-          "flowdoc-stream-2",
           "flowdoc-unit-1",
           "snapshot-1"
         ]
@@ -542,6 +541,7 @@
           "diag-3",
           "flowdoc-unit-2",
           "flowdoc-stream-3",
+          "flowdoc-unit-1",
           "snapshot-1"
         ]
       }
