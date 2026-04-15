@@ -1,6 +1,6 @@
 # RadishMind 文档总览
 
-更新时间：2026-04-11
+更新时间：2026-04-15
 
 ## 文档目的
 
@@ -8,6 +8,7 @@
 
 当前版本已经基于对 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 的只读审查完成了一轮收口；当前已冻结 `Python` 主实现栈，并将首轮模型路线收口为 `minimind-v` 主线、`Qwen2.5-VL` 强基线和 `SmolVLM` 轻量对照组。
 当前 `RadishFlow export -> adapter -> request` 主线也已从“只有扁平 adapter fixture”推进到“存在上游导出边界、bootstrap 模板、preflight smoke validator 与 committed exporter edge fixtures”的状态。
+当前 `RadishFlow suggest_flowsheet_edits` 主线也已从“只有 mock / fixture 回归”推进到“已具备 `candidate_response_record -> manifest -> audit` 的正式真实批次治理链”，并已把 cross-object citation、mixed-risk + cross-object、triad patch-shape mixed-risk 三组样本接进正式批次；其中 `apiyi_cx / apiyi_cc / apiyi_de` 已在最新 triad 组合样本上正式收口，`apiyi_ch` 则在同组样本上暂记为 provider 读超时阻塞观察项。
 
 ## 当前优先文档
 
@@ -45,8 +46,8 @@
 
 ## 下一步优先推进
 
-1. 继续沿 `RadishFlow export -> adapter -> request` 主线补更贴近真实 exporter 的边界样本和 validator 规则，优先观察更复杂的联合选择、同风险多动作并列优先级，以及 `support_artifacts` 在更高阶 mixed summary 变体之后是否还需要升级成正式契约。
-2. 继续把 `RadishFlow` 的 `suggest_ghost_completion` 从“链式三模板主干基线已闭环”推进到“多动作 recent-actions 恢复窗口更细化”的阶段；当前已补齐三模板上的 `Tab / manual_only / empty`、`reject / dismiss / skip no-retab`、same-candidate cooldown 恢复、latest-action precedence 与 cross-candidate suppress 作用域，下一步优先扩充更复杂交错历史。
-3. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已具备真实/模拟 batch 编排、`manifest / audit / replay index / same-sample negatives / artifacts.json / recommended replay summary` 这条最小闭环，下一步优先扩大真实 captured negative 批次并沉淀更多高频违规类型。
-4. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
-5. 在 `datasets/eval/` 与最小回归 runner 基础上，再进入模型对照与 PoC。
+1. 继续沿 `RadishFlow suggest_flowsheet_edits` 主线推进更复杂真实样本面；当前 cross-object citation、mixed-risk + cross-object 与 triad patch-shape 样本都已接进正式治理链，下一步优先决定 `apiyi_ch` 在 triad 样本上的超时阻塞是继续拉长超时，还是先转入下一组更复杂 mixed-risk patch 组合样本设计。
+2. 继续沿 `RadishFlow export -> adapter -> request` 主线补更贴近真实 exporter 的边界样本和 validator 规则，优先观察更复杂的联合选择、同风险多动作并列优先级，以及 `support_artifacts` 在更高阶 mixed summary 变体之后是否还需要升级成正式契约。
+3. 继续把 `RadishFlow` 的 `suggest_ghost_completion` 从“链式三模板主干基线已闭环”推进到“多动作 recent-actions 恢复窗口更细化”的阶段；当前已补齐三模板上的 `Tab / manual_only / empty`、`reject / dismiss / skip no-retab`、same-candidate cooldown 恢复、latest-action precedence 与 cross-candidate suppress 作用域，下一步优先扩充更复杂交错历史。
+4. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已具备真实/模拟 batch 编排、`manifest / audit / replay index / same-sample negatives / artifacts.json / recommended replay summary` 这条最小闭环，下一步优先扩大真实 captured negative 批次并沉淀更多高频违规类型。
+5. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
