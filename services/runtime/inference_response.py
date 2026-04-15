@@ -801,13 +801,19 @@ def merge_parameter_patch(
 
     parameter_placeholders = []
     if not parameter_updates:
-        parameter_placeholders = normalize_parameter_placeholders(list(existing_patch.get("parameter_placeholders") or []))
         synthesized_parameter_placeholders = normalize_parameter_placeholders(
             list(synthesized_patch.get("parameter_placeholders") or [])
         )
-        for placeholder in synthesized_parameter_placeholders:
-            if placeholder not in parameter_placeholders:
-                parameter_placeholders.append(placeholder)
+        existing_parameter_placeholders = normalize_parameter_placeholders(
+            list(existing_patch.get("parameter_placeholders") or [])
+        )
+        if synthesized_parameter_placeholders:
+            parameter_placeholders = list(synthesized_parameter_placeholders)
+            for placeholder in existing_parameter_placeholders:
+                if placeholder not in parameter_placeholders:
+                    parameter_placeholders.append(placeholder)
+        else:
+            parameter_placeholders = list(existing_parameter_placeholders)
     if parameter_placeholders and not parameter_updates:
         merged_patch["parameter_placeholders"] = parameter_placeholders
 
@@ -1137,15 +1143,12 @@ def canonicalize_suggest_edits_response(
         normalized_existing_issue_citation_ids = [
             citation_id for citation_id in raw_issue_citation_ids if citation_id in known_citation_ids
         ]
-        if normalized_existing_issue_citation_ids and len(normalized_existing_issue_citation_ids) == len(raw_issue_citation_ids):
-            issue_citation_ids = normalized_existing_issue_citation_ids
-        else:
-            extras = [
-                citation_id
-                for citation_id in normalized_existing_issue_citation_ids
-                if citation_id not in canonical_issue_citation_ids
-            ]
-            issue_citation_ids = canonical_issue_citation_ids + extras
+        extras = [
+            citation_id
+            for citation_id in normalized_existing_issue_citation_ids
+            if citation_id not in canonical_issue_citation_ids
+        ]
+        issue_citation_ids = canonical_issue_citation_ids + extras
         if severity != "error":
             ordered_warning_citation_ids = list(canonical_issue_citation_ids)
             extras = [

@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "summary": "针对 Trim Separator (separator-4) 的 vapor 出口流 separator-vapor-41 未连接下游消费端的问题，生成局部占位修复提案，同时保留 Cooler 与 Separator 之间的关联约束作为上下文提示。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到 separator-vapor-41 存在未连接下游的严重拓扑错误，已为其生成占位连接提案；同时识别到 cooler-outlet-41 与 separator-4 存在跨对象状态依赖警告，建议在修复拓扑后复核 Cooler 出口条件。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Separator Vapor Outlet 未连接任何下游消费端或出口汇点",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3"
+      ]
+    },
+    {
+      "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Trim Cooler 出口条件可能在下游恢复后发生变化",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "message": "Trim Separator 在 vapor 出口未连接时无法视为独立稳定",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Separator Vapor Outlet 添加下游占位连接",
+      "rationale": "separator-vapor-41 当前为悬空流，导致求解器拓扑无效。添加 connection_placeholder 标记待连接下游单元，保留现有压力规格 (146 kPa) 作为边界条件占位，待后续指定具体消费单元或汇点后完成拓扑闭合。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "separator-vapor-41"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Separator Vapor Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected."
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-vapor-41",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "separator-vapor-41 Separator Vapor Outlet source_unit_id=separator-4"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-4",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-4 Trim Separator kind=FlashDrum"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-outlet-41",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "cooler-outlet-41 Cooler Outlet source_unit_id=cooler-8 target_unit_id=separator-4"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-8",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "cooler-8 Trim Cooler kind=Cooler"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "high",
+  "confidence": 0.2
+}

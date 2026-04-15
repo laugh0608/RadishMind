@@ -695,6 +695,8 @@ def infer_parameter_placeholders(message: str) -> list[str]:
     lowered = message.lower()
     placeholders: list[str] = []
     mapping = [
+        ("operating pressure", "operating_pressure_kpa"),
+        ("pressure target", "operating_pressure_kpa"),
         ("outlet temperature", "outlet_temperature_c"),
         ("temperature target", "outlet_temperature_c"),
         ("efficiency", "efficiency"),

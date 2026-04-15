@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-cross-object-warning-citation-ordering-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+  "request_id": "rf-suggest-edit-cross-object-warning-citation-ordering-001",
+  "captured_at": "2026-04-15T12:14:15Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-15-radishflow-suggest-edits-poc-real-v19-apiyi-ch-cross-object-citation",
+    "notes": "apiyi_ch cross-object citation interleaving and warning citation ordering batch"
+  },
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 84,
+    "selected_unit_ids": [
+      "cooler-8",
+      "separator-4"
+    ],
+    "selected_stream_ids": [
+      "cooler-outlet-41",
+      "separator-vapor-41"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-cross-object-warning-citation-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-153",
+          "streams": [
+            {
+              "id": "feed-41",
+              "name": "Cooler Feed",
+              "target_unit_id": "cooler-8",
+              "specs": {
+                "temperature_c": 112,
+                "pressure_kpa": 210
+              }
+            },
+            {
+              "id": "cooler-outlet-41",
+              "name": "Cooler Outlet",
+              "source_unit_id": "cooler-8",
+              "target_unit_id": "separator-4",
+              "specs": {
+                "temperature_c": 48
+              }
+            },
+            {
+              "id": "separator-vapor-41",
+              "name": "Separator Vapor Outlet",
+              "source_unit_id": "separator-4",
+              "specs": {
+                "pressure_kpa": 146
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "cooler-8",
+              "kind": "Cooler",
+              "name": "Trim Cooler",
+              "config": {
+                "control_mode": "duty"
+              }
+            },
+            {
+              "id": "separator-4",
+              "kind": "FlashDrum",
+              "name": "Trim Separator",
+              "config": {
+                "pressure_mode": "free"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 84,
+      "selected_unit_ids": [
+        "cooler-8",
+        "separator-4"
+      ],
+      "selected_unit": {
+        "id": "separator-4",
+        "kind": "FlashDrum",
+        "name": "Trim Separator",
+        "config": {
+          "pressure_mode": "free"
+        }
+      },
+      "selected_stream_ids": [
+        "cooler-outlet-41",
+        "separator-vapor-41"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Separator Vapor Outlet is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "separator-vapor-41"
+        },
+        {
+          "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "cooler-outlet-41"
+        },
+        {
+          "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+          "message": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "separator-4"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-15T01:52:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "kimi-k2.5",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-cross-object-warning-citation-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-153\",\n        \"streams\": [\n          {\n            \"id\": \"feed-41\",\n            \"name\": \"Cooler Feed\",\n            \"target_unit_id\": \"cooler-8\",\n            \"specs\": {\n              \"temperature_c\": 112,\n              \"pressure_kpa\": 210\n            }\n          },\n          {\n            \"id\": \"cooler-outlet-41\",\n            \"name\": \"Cooler Outlet\",\n            \"source_unit_id\": \"cooler-8\",\n            \"target_unit_id\": \"separator-4\",\n            \"specs\": {\n              \"temperature_c\": 48\n            }\n          },\n          {\n            \"id\": \"separator-vapor-41\",\n            \"name\": \"Separator Vapor Outlet\",\n            \"source_unit_id\": \"separator-4\",\n            \"specs\": {\n              \"pressure_kpa\": 146\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"cooler-8\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Trim Cooler\",\n            \"config\": {\n              \"control_mode\": \"duty\"\n            }\n          },\n          {\n            \"id\": \"separator-4\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Trim Separator\",\n            \"config\": {\n              \"pressure_mode\": \"free\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 84,\n    \"selected_unit_ids\": [\n      \"cooler-8\",\n      \"separator-4\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"separator-4\",\n      \"kind\": \"FlashDrum\",\n      \"name\": \"Trim Separator\",\n      \"config\": {\n        \"pressure_mode\": \"free\"\n      }\n    },\n    \"selected_stream_ids\": [\n      \"cooler-outlet-41\",\n      \"separator-vapor-41\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 2\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_DISCONNECTED\",\n        \"message\": \"Separator Vapor Outlet is not connected to any downstream consumer or export sink.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"separator-vapor-41\"\n      },\n      {\n        \"code\": \"COOLER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"cooler-outlet-41\"\n      },\n      {\n        \"code\": \"DOWNSTREAM_SEPARATOR_STATE_DEPENDENT\",\n        \"message\": \"Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"separator-4\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_topology\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-15T01:52:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_ch",
+    "provider_profile_env": "APIYI_CH",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "choices": [
+      {
+        "message": {
+          "content": "{\"schema_version\":1,\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"request_id\":\"rf-suggest-edit-cross-object-warning-citation-ordering-001\",\"locale\":\"zh-CN\",\"status\":\"partial\",\"summary\":\"针对 Trim Separator (separator-4) 的 vapor 出口流 separator-vapor-41 未连接下游消费端的问题，生成局部占位修复提案，同时保留 Cooler 与 Separator 之间的关联约束作为上下文提示。\",\"answers\":[{\"text\":\"检测到 separator-vapor-41 存在未连接下游的严重拓扑错误，已为其生成占位连接提案；同时识别到 cooler-outlet-41 与 separator-4 存在跨对象状态依赖警告，建议在修复拓扑后复核 Cooler 出口条件。\",\"citations\":[\"diag-1\",\"diag-2\",\"diag-3\",\"flowdoc-stream-3\",\"flowdoc-unit-2\",\"snapshot-1\"]}],\"issues\":[{\"code\":\"STREAM_DISCONNECTED\",\"message\":\"Separator Vapor Outlet 未连接任何下游消费端或出口汇点\",\"severity\":\"error\",\"citations\":[\"diag-1\",\"flowdoc-stream-3\"]},{\"code\":\"DOWNSTREAM_SEPARATOR_STATE_DEPENDENT\",\"message\":\"Trim Separator 在 vapor 出口未连接时无法视为独立稳定\",\"severity\":\"warning\",\"citations\":[\"diag-3\",\"flowdoc-unit-2\"]},{\"code\":\"COOLER_OUTLET_EFFECT_UNCONFIRMED\",\"message\":\"Trim Cooler 出口条件可能在下游恢复后发生变化\",\"severity\":\"warning\",\"citations\":[\"diag-2\",\"flowdoc-stream-2\"]}],\"proposed_actions\":[{\"kind\":\"candidate_edit\",\"title\":\"为 Separator Vapor Outlet 添加下游占位连接\",\"target\":{\"type\":\"stream\",\"id\":\"separator-vapor-41\",\"name\":\"Separator Vapor Outlet\"},\"rationale\":\"separator-vapor-41 当前为悬空流，导致求解器拓扑无效。添加 connection_placeholder 标记待连接下游单元，保留现有压力规格 (146 kPa) 作为边界条件占位，待后续指定具体消费单元或汇点后完成拓扑闭合。\",\"patch\":{\"connection_placeholder\":{\"target_unit_id\":null,\"connection_type\":\"to_be_specified\",\"note\":\"placeholder for downstream consumer or export sink\"}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"confidence\":0.75,\"citations\":[\"diag-1\",\"flowdoc-stream-3\",\"snapshot-1\"]},{\"kind\":\"candidate_edit\",\"title\":\"标记 Trim Separator 压力模式为受约束状态\",\"target\":{\"type\":\"unit\",\"id\":\"separator-4\",\"name\":\"Trim Separator\"},\"rationale\":\"由于 vapor 出口悬空，separator-4 的 pressure_mode=free 在当前拓扑下无法正确求解。添加 parameter_updates 将 pressure_mode 临时标记为 constrained_pending_topology，提示求解器在拓扑修复前采用替代策略或跳过该单元平衡计算。\",\"patch\":{\"parameter_updates\":{\"pressure_mode\":\"constrained_pending_topology\"}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"confidence\":0.7,\"citations\":[\"diag-3\",\"flowdoc-unit-2\",\"snapshot-1\"]}],\"citations\":[{\"id\":\"diag-1\",\"type\":\"diagnostic\",\"ref\":\"STREAM_DISCONNECTED\"},{\"id\":\"diag-2\",\"type\":\"diagnostic\",\"ref\":\"COOLER_OUTLET_EFFECT_UNCONFIRMED\"},{\"id\":\"diag-3\",\"type\":\"diagnostic\",\"ref\":\"DOWNSTREAM_SEPARATOR_STATE_DEPENDENT\"},{\"id\":\"flowdoc-stream-2\",\"type\":\"artifact\",\"ref\":\"cooler-outlet-41\"},{\"id\":\"flowdoc-stream-3\",\"type\":\"artifact\",\"ref\":\"separator-vapor-41\"},{\"id\":\"flowdoc-unit-2\",\"type\":\"artifact\",\"ref\":\"separator-4\"},{\"id\":\"snapshot-1\",\"type\":\"snapshot\",\"ref\":\"latest_snapshot\"}],\"requires_confirmation\":true}",
+          "reasoning_content": "",
+          "role": "assistant"
+        },
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null
+      }
+    ],
+    "object": "chat.completion",
+    "usage": {
+      "prompt_tokens": 1443,
+      "completion_tokens": 776,
+      "total_tokens": 2219,
+      "completion_tokens_details": {
+        "text_tokens": 776
+      },
+      "prompt_tokens_details": {
+        "text_tokens": 1443,
+        "cached_tokens": 0
+      }
+    },
+    "created": 1776255255,
+    "system_fingerprint": null,
+    "model": "kimi-k2.5",
+    "id": "chatcmpl-a285d7c1-33ca-907a-a9d9-cffdc77202a0"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "summary": "针对 Trim Separator (separator-4) 的 vapor 出口流 separator-vapor-41 未连接下游消费端的问题，生成局部占位修复提案，同时保留 Cooler 与 Separator 之间的关联约束作为上下文提示。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "检测到 separator-vapor-41 存在未连接下游的严重拓扑错误，已为其生成占位连接提案；同时识别到 cooler-outlet-41 与 separator-4 存在跨对象状态依赖警告，建议在修复拓扑后复核 Cooler 出口条件。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Separator Vapor Outlet 未连接任何下游消费端或出口汇点",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Trim Cooler 出口条件可能在下游恢复后发生变化",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+        "message": "Trim Separator 在 vapor 出口未连接时无法视为独立稳定",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Separator Vapor Outlet 添加下游占位连接",
+        "rationale": "separator-vapor-41 当前为悬空流，导致求解器拓扑无效。添加 connection_placeholder 标记待连接下游单元，保留现有压力规格 (146 kPa) 作为边界条件占位，待后续指定具体消费单元或汇点后完成拓扑闭合。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "separator-vapor-41"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Separator Vapor Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-vapor-41",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "separator-vapor-41 Separator Vapor Outlet source_unit_id=separator-4"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-4",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-4 Trim Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-outlet-41",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "cooler-outlet-41 Cooler Outlet source_unit_id=cooler-8 target_unit_id=separator-4"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-8",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "cooler-8 Trim Cooler kind=Cooler"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "requires_confirmation": true,
+    "risk_level": "high",
+    "confidence": 0.2
+  }
+}

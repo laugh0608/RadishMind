@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.75,
+  "summary": "针对选中的加热器(heater-7)和分离器(separator-3)及其关联流股，基于诊断信息生成候选编辑提案：为入口流股补全流量规格，为分离器补全操作压力参数。下游蒸汽流股因依赖上游未收敛状态，仅作警告记录而不生成直接修改。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "已为 Feed To Heater 流股生成流量规格占位符编辑，为 Hot Separator 生成操作压力参数补全编辑。Separator Vapor 流股存在下游状态依赖警告，建议先解决上游规格缺失后再评估。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "flowdoc-stream-1",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Feed To Heater 流股缺少流量规格，导致求解器无法确定物料平衡。",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Hot Separator 设置为固定压力模式但缺少操作压力目标值。",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-2"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_STATE_DEPENDENT",
+      "message": "Separator Vapor 流股状态依赖于未收敛的上游条件，当前不建议直接修改。",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "stream",
+        "id": "feed-31"
+      },
+      "title": "为 feed-31 补充缺失规格占位",
+      "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kg_per_h"
+        ],
+        "retain_existing_specs": true
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "unit",
+        "id": "separator-3"
+      },
+      "title": "为 separator-3 补充局部参数占位",
+      "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+      "patch": {
+        "parameter_placeholders": [
+          "review_required_parameter"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-2",
+        "flowdoc-stream-3",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Feed To Heater is missing flow rate specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Hot Separator is configured for fixed pressure mode but the operating pressure target is missing."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Separator Vapor behavior still depends on the unresolved upstream feed state and heater outlet condition."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-31",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-31 Feed To Heater target_unit_id=heater-7"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-3",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-3 Hot Separator kind=FlashDrum"
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / vapor-31",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "vapor-31 Separator Vapor source_unit_id=separator-3"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-7",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-7 Feed Heater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.11"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "medium"
+}
