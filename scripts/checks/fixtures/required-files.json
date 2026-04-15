@@ -388,6 +388,8 @@
   "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-warning-citation-ordering-001.json",
   "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001.json",
   "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.json",
+  "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001.json",
+  "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001.json",
   "datasets/eval/radishflow/suggest-flowsheet-edits-joint-selection-primary-focus-001.json",
   "datasets/eval/radishflow/suggest-flowsheet-edits-multi-unit-stream-primary-focus-001.json",
   "datasets/eval/radishflow/suggest-flowsheet-edits-selection-order-preserved-001.json",
