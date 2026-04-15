@@ -16,5 +16,77 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-13-radishflow-suggest-edits-poc-real-v4/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-13-radishflow-suggest-edits-poc-real-v4/2026-04-13-radishflow-suggest-edits-poc-real-v4.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-13-radishflow-suggest-edits-poc-real-v4/2026-04-13-radishflow-suggest-edits-poc-real-v4.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v5/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v5/2026-04-14-radishflow-suggest-edits-poc-real-v5.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v5/2026-04-14-radishflow-suggest-edits-poc-real-v5.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v6/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v6/2026-04-14-radishflow-suggest-edits-poc-real-v6.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v6/2026-04-14-radishflow-suggest-edits-poc-real-v6.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v7-apiyi-de/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v7-apiyi-de/2026-04-14-radishflow-suggest-edits-poc-real-v7-apiyi-de.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v7-apiyi-de/2026-04-14-radishflow-suggest-edits-poc-real-v7-apiyi-de.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v8-apiyi-de/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v8-apiyi-de/2026-04-14-radishflow-suggest-edits-poc-real-v8-apiyi-de.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v8-apiyi-de/2026-04-14-radishflow-suggest-edits-poc-real-v8-apiyi-de.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v9-apiyi-cc/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v9-apiyi-cc/2026-04-14-radishflow-suggest-edits-poc-real-v9-apiyi-cc.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v9-apiyi-cc/2026-04-14-radishflow-suggest-edits-poc-real-v9-apiyi-cc.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v10-apiyi-ch/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v10-apiyi-ch/2026-04-14-radishflow-suggest-edits-poc-real-v10-apiyi-ch.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v10-apiyi-ch/2026-04-14-radishflow-suggest-edits-poc-real-v10-apiyi-ch.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v11-apiyi-de-cross-object/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v11-apiyi-de-cross-object/2026-04-14-radishflow-suggest-edits-poc-real-v11-apiyi-de-cross-object.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v11-apiyi-de-cross-object/2026-04-14-radishflow-suggest-edits-poc-real-v11-apiyi-de-cross-object.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v12-apiyi-de-parameter-ordering/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v12-apiyi-de-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v12-apiyi-de-parameter-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v12-apiyi-de-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v12-apiyi-de-parameter-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v13-apiyi-cc-cross-object/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v13-apiyi-cc-cross-object/2026-04-14-radishflow-suggest-edits-poc-real-v13-apiyi-cc-cross-object.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v13-apiyi-cc-cross-object/2026-04-14-radishflow-suggest-edits-poc-real-v13-apiyi-cc-cross-object.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v14-apiyi-cc-parameter-ordering/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v14-apiyi-cc-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v14-apiyi-cc-parameter-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v14-apiyi-cc-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v14-apiyi-cc-parameter-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object/2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object/2026-04-14-radishflow-suggest-edits-poc-real-v15-apiyi-ch-cross-object.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering/2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering.audit.json"
   }
 ]
