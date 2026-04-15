@@ -760,7 +760,11 @@ def synthesize_parameter_updates_from_diagnostics(
 
     if "UNIT_PARAMETER_OUT_OF_RANGE" in diagnostic_codes:
         efficiency_percent = config.get("efficiency_percent")
-        if isinstance(efficiency_percent, (int, float)) and float(efficiency_percent) > 100:
+        if (
+            "efficiency_percent" not in parameter_updates
+            and isinstance(efficiency_percent, (int, float))
+            and float(efficiency_percent) > 100
+        ):
             parameter_updates["efficiency_percent"] = {
                 "action": "clamp_to_review_range",
                 "suggested_range": [65, 85],

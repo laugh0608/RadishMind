@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的进料流量缺失、分离器定压参数缺失，以及分离器气相出口未连接问题生成候选编辑提案；这些提案均为非执行式 patch，需要确认后才可应用。",
+      "citation_ids": [
+        "diag-1",
+        "diag-4",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1",
+        "diag-2",
+        "flowdoc-stream-1",
+        "diag-3"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Separator Vapor 71 添加下游连接占位",
+      "rationale": "诊断指出该气相出口没有任何下游消费者或导出汇，且快照状态为 invalid_topology。由于当前输入没有给出明确的目标单元或导出节点，不能直接重连到具体对象；只能建议添加待确认的连接占位。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "diag-4",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "separator-vapor-71"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 Charge Heater Feed 添加流量规格占位",
+      "rationale": "诊断直接指出该进料流缺少流量规格。当前文档中该流已有压力和温度规格，但没有流量边界条件；添加占位可让用户补入设计基准，而不擅自假定数值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-1",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-71"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kg_per_h"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 Hot Flash Separator 补充定压目标占位",
+      "rationale": "诊断显示该 FlashDrum 使用 fixed pressure 模式但缺少 operating pressure target。文档中其上游入口流 heater-outlet-71 的 pressure_kpa 为 196，下游 vapor 流现有 pressure_kpa 为 176，但二者不能自动替代设备操作压力；因此仅建议添加待确认的参数占位。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-3",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "separator-7"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "operating_pressure_kpa"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Separator Vapor 71 is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Charge Heater Feed is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Hot Flash Separator is configured for fixed pressure mode but the operating pressure target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-3",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_STATE_DEPENDENT",
+      "message": "Hot Flash Separator vapor interpretation still depends on the upstream feed gap and heater outlet condition.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-4",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Separator Vapor 71 is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Charge Heater Feed is missing flow rate specification."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Hot Flash Separator is configured for fixed pressure mode but the operating pressure target is missing."
+    },
+    {
+      "id": "diag-4",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+      "locator": "context:diagnostics[3]",
+      "excerpt": "Hot Flash Separator vapor interpretation still depends on the upstream feed gap and heater outlet condition."
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-vapor-71",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "separator-vapor-71 Separator Vapor 71 source_unit_id=separator-7"
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-71",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-71 Charge Heater Feed target_unit_id=heater-11"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-7",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-7 Hot Flash Separator kind=FlashDrum"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-11",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-11 Charge Heater kind=Heater"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-outlet-71",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "heater-outlet-71 Heater Outlet 71 source_unit_id=heater-11 target_unit_id=separator-7"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "summary": "当前围绕已选中的进料流量缺失、分离器定压参数缺失，以及分离器气相出口未连接问题生成候选编辑提案；这些提案均为非执行式 patch，需要确认后才可应用。",
+  "risk_level": "high",
+  "confidence": 0.2
+}
