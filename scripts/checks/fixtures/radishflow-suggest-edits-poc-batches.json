@@ -106,5 +106,11 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v19-apiyi-ch-cross-object-citation/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v19-apiyi-ch-cross-object-citation/2026-04-15-radishflow-suggest-edits-poc-real-v19-apiyi-ch-cross-object-citation.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v19-apiyi-ch-cross-object-citation/2026-04-15-radishflow-suggest-edits-poc-real-v19-apiyi-ch-cross-object-citation.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v20-apiyi-cx-cross-object-citation/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v20-apiyi-cx-cross-object-citation/2026-04-15-radishflow-suggest-edits-poc-real-v20-apiyi-cx-cross-object-citation.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v20-apiyi-cx-cross-object-citation/2026-04-15-radishflow-suggest-edits-poc-real-v20-apiyi-cx-cross-object-citation.audit.json"
   }
 ]
