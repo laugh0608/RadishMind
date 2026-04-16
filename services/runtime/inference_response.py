@@ -164,7 +164,7 @@ def normalize_actions(
             )
         if not title or not rationale:
             continue
-        kind = str(source_action.get("kind") or "read_only_check").strip()
+        kind = str(source_action.get("kind") or source_action.get("action") or "read_only_check").strip()
         allowed_kinds = {"candidate_edit", "candidate_operation", "read_only_check"}
         if project == "radishflow" and task == "suggest_ghost_completion":
             allowed_kinds = {"ghost_completion"}
@@ -363,6 +363,13 @@ def build_suggest_edits_target_citation_lookup(citations: list[dict[str, Any]]) 
 
 def normalize_spec_placeholders(values: Any) -> list[str]:
     alias_map = {
+        "temperature": "temperature_c",
+        "temperature_k": "temperature_c",
+        "temperature_deg_c": "temperature_c",
+        "temp": "temperature_c",
+        "pressure": "pressure_kpa",
+        "pressure_bar": "pressure_kpa",
+        "pressure_pa": "pressure_kpa",
         "flow_rate": "flow_rate_kg_per_h",
         "flow_rate_kg_h": "flow_rate_kg_per_h",
         "mass_flow": "flow_rate_kg_per_h",
@@ -487,7 +494,7 @@ def build_suggest_edits_action_target_order(
             continue
         severity = str(diagnostic.get("severity") or "").strip().lower()
         has_existing_action = target_key in existing_actions_by_target
-        if diagnostic_code in auto_synthesize_codes or (has_existing_action and severity == "error"):
+        if diagnostic_code in auto_synthesize_codes or has_existing_action:
             ordered_targets.append(target_key)
     for target_key in existing_actions_by_target:
         if target_key not in ordered_targets and target_key not in diagnostic_targets:
@@ -733,6 +740,7 @@ def synthesize_parameter_updates_from_diagnostics(
 
     unit_by_id, _, primary_inlet_stream_by_unit_id = build_flowsheet_lookup(copilot_request)
     unit_document = unit_by_id.get(target_id) or {}
+    unit_kind = str(unit_document.get("kind") or "").strip().lower()
     config = unit_document.get("config") if isinstance(unit_document.get("config"), dict) else {}
     diagnostic_codes = {str((diagnostic or {}).get("code") or "").strip() for diagnostic in diagnostics}
     synthesized_patch: dict[str, Any] = {}
@@ -746,6 +754,15 @@ def synthesize_parameter_updates_from_diagnostics(
             return False
         numeric = float(value)
         return numeric < 60 or numeric > 85
+
+    def suggested_efficiency_review_range() -> list[int]:
+        if "PUMP_OUTLET_PRESSURE_TARGET_INVALID" in diagnostic_codes:
+            return [60, 85]
+        if unit_kind == "pump":
+            return [65, 82]
+        if unit_kind == "compressor":
+            return [65, 85]
+        return [60, 85]
 
     for diagnostic in diagnostics:
         diagnostic_code = str((diagnostic or {}).get("code") or "").strip()
@@ -784,7 +801,7 @@ def synthesize_parameter_updates_from_diagnostics(
         ):
             parameter_updates["efficiency_percent"] = {
                 "action": "clamp_to_review_range",
-                "suggested_range": [60, 85],
+                "suggested_range": suggested_efficiency_review_range(),
             }
         synthesized_patch["preserve_topology"] = True
 
@@ -813,8 +830,10 @@ def synthesize_parameter_updates_from_diagnostics(
         ):
             parameter_updates["efficiency_percent"] = {
                 "action": "clamp_to_review_range",
-                "suggested_range": [60, 85],
+                "suggested_range": suggested_efficiency_review_range(),
             }
+        if "efficiency_percent" in parameter_updates:
+            synthesized_patch["preserve_topology"] = True
 
     if "VALVE_PRESSURE_DROP_INVALID" in diagnostic_codes:
         parameter_updates["pressure_drop_kpa"] = {

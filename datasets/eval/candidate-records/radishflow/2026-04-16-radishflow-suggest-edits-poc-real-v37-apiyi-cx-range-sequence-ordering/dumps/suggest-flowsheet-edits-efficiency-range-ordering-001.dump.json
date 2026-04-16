@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-efficiency-range-ordering-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+  "request_id": "rf-suggest-edit-efficiency-range-ordering-001",
+  "captured_at": "2026-04-16T11:32:20Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "range-sequence-ordering",
+      "v37"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v37-apiyi-cx-range-sequence-ordering"
+  },
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 69,
+    "selected_unit_ids": [
+      "pump-3"
+    ],
+    "diagnostic_codes": [
+      "UNIT_PARAMETER_OUT_OF_RANGE"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-efficiency-range-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-117",
+          "streams": [
+            {
+              "id": "feed-12",
+              "name": "Pump Feed",
+              "target_unit_id": "pump-3",
+              "specs": {
+                "pressure_kpa": 195,
+                "temperature_c": 30,
+                "flow_rate_kg_per_h": 880
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "pump-3",
+              "kind": "Pump",
+              "name": "Range Review Pump",
+              "config": {
+                "efficiency_percent": 109
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 69,
+      "selected_unit_ids": [
+        "pump-3"
+      ],
+      "diagnostic_summary": {
+        "error_count": 0,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+          "message": "Range Review Pump efficiency_percent=109 is outside the recommended operating range.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "pump-3"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T22:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gpt-5.4",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-efficiency-range-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-117\",\n        \"streams\": [\n          {\n            \"id\": \"feed-12\",\n            \"name\": \"Pump Feed\",\n            \"target_unit_id\": \"pump-3\",\n            \"specs\": {\n              \"pressure_kpa\": 195,\n              \"temperature_c\": 30,\n              \"flow_rate_kg_per_h\": 880\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"pump-3\",\n            \"kind\": \"Pump\",\n            \"name\": \"Range Review Pump\",\n            \"config\": {\n              \"efficiency_percent\": 109\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 69,\n    \"selected_unit_ids\": [\n      \"pump-3\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 0,\n      \"warning_count\": 1\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"UNIT_PARAMETER_OUT_OF_RANGE\",\n        \"message\": \"Range Review Pump efficiency_percent=109 is outside the recommended operating range.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"pump-3\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_parameters\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-07T22:10:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_cx",
+    "provider_profile_env": "APIYI_CX",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-397dfdc0-88f4-4d3e-839f-e941b08bdd62",
+    "object": "chat.completion",
+    "created": 1776339129,
+    "model": "gpt-5.4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-efficiency-range-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"success\",\n  \"requires_confirmation\": true,\n  \"answers\": [\n    {\n      \"summary\": \"当前围绕已选中的泵单元 pump-3 的效率参数越界警告生成一个最小候选修正提案。\",\n      \"issues\": [\n        {\n          \"title\": \"泵效率参数超出推荐范围\",\n          \"description\": \"Range Review Pump 的 efficiency_percent 当前为 109，诊断指出该值超出推荐运行范围，并且最新快照显示求解状态为 invalid_parameters。\",\n          \"severity\": \"warning\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"pump-3\"\n          },\n          \"citations\": [\n            \"diag-1\",\n            \"flowdoc-unit-1\",\n            \"snapshot-1\"\n          ]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"action\": \"candidate_edit\",\n          \"title\": \"为 pump-3 的效率参数提供回到有效区间的候选占位修正\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"pump-3\"\n          },\n          \"rationale\": \"诊断直接指出 pump-3 的 efficiency_percent=109 超出推荐运行范围；为避免直接替用户决定最终设计值，建议仅在该单元上提供一个局部参数候选更新，占位为需确认的有效效率百分比。\",\n          \"patch\": {\n            \"parameter_updates\": {\n              \"config.efficiency_percent\": {\n                \"from\": 109,\n                \"to_placeholder\": \"确认后的有效效率百分比，建议设置为不超过 100 且符合该泵设计/运行假设的值\"\n              }\n            }\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\n            \"diag-1\",\n            \"flowdoc-unit-1\",\n            \"snapshot-1\"\n          ],\n          \"confidence\": 0.86\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1155,
+      "completion_tokens": 485,
+      "total_tokens": 1640
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "failed",
+    "requires_confirmation": false,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的泵单元 pump-3 的效率参数越界警告生成一个最小候选修正提案。",
+        "citation_ids": []
+      }
+    ],
+    "proposed_actions": [],
+    "issues": [
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Range Review Pump efficiency_percent=109 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Range Review Pump efficiency_percent=109 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-3 Range Review Pump kind=Pump"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "summary": "当前围绕已选中的泵单元 pump-3 的效率参数越界警告生成一个最小候选修正提案。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  }
+}
