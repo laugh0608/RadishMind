@@ -512,6 +512,46 @@ def build_suggest_edits_action_target_order(
     return ordered_targets
 
 
+def should_keep_suggest_edits_existing_action_target(
+    *,
+    target_type: str,
+    target_id: str,
+    diagnostics: list[dict[str, Any]],
+    copilot_request: dict[str, Any],
+) -> bool:
+    if target_type not in {"stream", "unit"} or not target_id:
+        return False
+
+    diagnostic_targets = {
+        (
+            str((diagnostic or {}).get("target_type") or "").strip().lower(),
+            str((diagnostic or {}).get("target_id") or "").strip(),
+        )
+        for diagnostic in diagnostics
+        if isinstance(diagnostic, dict)
+        and str((diagnostic or {}).get("target_type") or "").strip().lower() in {"stream", "unit"}
+        and str((diagnostic or {}).get("target_id") or "").strip()
+    }
+    if (target_type, target_id) in diagnostic_targets:
+        return True
+
+    selected_unit_ids, selected_stream_ids, _, _ = build_selected_connection_maps(copilot_request)
+    if len(selected_unit_ids) != 1 or selected_stream_ids:
+        return True
+
+    selected_unit_id = next(iter(selected_unit_ids))
+    unit_only_diagnostics = [
+        diagnostic
+        for diagnostic in diagnostics
+        if str((diagnostic or {}).get("target_type") or "").strip().lower() == "unit"
+        and str((diagnostic or {}).get("target_id") or "").strip() == selected_unit_id
+    ]
+    if len(unit_only_diagnostics) != len(diagnostics):
+        return True
+
+    return target_type == "unit" and target_id == selected_unit_id
+
+
 def build_suggest_edits_group_citation_ids(
     *,
     copilot_request: dict[str, Any],
@@ -536,6 +576,11 @@ def build_suggest_edits_group_citation_ids(
             snapshot_citation_id=snapshot_citation_id,
         )
     )
+    if any(
+        str((diagnostic or {}).get("code") or "").strip() == "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
+        for diagnostic in diagnostics
+    ) and snapshot_citation_id:
+        append_unique_citation_id(citation_ids, snapshot_citation_id)
     return list(dict.fromkeys(citation_ids))
 
 
@@ -640,7 +685,11 @@ def build_suggest_edits_context_support_citation_ids(
     ]
     citation_ids: list[str] = []
     target_citation_id = target_citation_lookup.get((target_type, target_id))
-    if target_citation_id:
+    skip_target_citation = (
+        diagnostic_code == "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
+        and item_kind == "issue"
+    )
+    if target_citation_id and not skip_target_citation:
         append_unique_citation_id(citation_ids, target_citation_id)
 
     complex_cross_object_context = len(selected_unit_ids) > 1
@@ -818,9 +867,14 @@ def synthesize_parameter_updates_from_diagnostics(
         synthesized_patch["preserve_topology"] = True
 
     if "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE" in diagnostic_codes:
+        minimum_delta_kpa = 95
+        if "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED" in diagnostic_codes:
+            minimum_delta_kpa = 80
+        elif "UNIT_PARAMETER_OUT_OF_RANGE" in diagnostic_codes:
+            minimum_delta_kpa = 90
         pressure_update = {
             "action": "review_and_raise_margin",
-            "minimum_delta_kpa": 90 if "UNIT_PARAMETER_OUT_OF_RANGE" in diagnostic_codes else 95,
+            "minimum_delta_kpa": minimum_delta_kpa,
         }
         if primary_inlet_stream_id:
             pressure_update["reference_stream_id"] = primary_inlet_stream_id
@@ -1080,7 +1134,17 @@ def canonicalize_suggest_edits_response(
         target = action.get("target") or {}
         target_type = str(target.get("type") or "").strip().lower()
         target_id = str(target.get("id") or "").strip()
-        if target_type in {"stream", "unit"} and target_id and (target_type, target_id) not in existing_actions_by_target:
+        if (
+            target_type in {"stream", "unit"}
+            and target_id
+            and should_keep_suggest_edits_existing_action_target(
+                target_type=target_type,
+                target_id=target_id,
+                diagnostics=diagnostics,
+                copilot_request=copilot_request,
+            )
+            and (target_type, target_id) not in existing_actions_by_target
+        ):
             existing_actions_by_target[(target_type, target_id)] = dict(action)
 
     normalized_actions: list[dict[str, Any]] = []

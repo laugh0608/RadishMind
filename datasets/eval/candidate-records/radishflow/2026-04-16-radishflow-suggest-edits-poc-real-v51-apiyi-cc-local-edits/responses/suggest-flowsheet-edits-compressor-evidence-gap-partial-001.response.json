@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "status": "failed",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "summary": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
+  "answers": [
+    {
+      "kind": "raw_text_fallback",
+      "text": "{\"schema_version\":1,\"request_id\":\"rf-suggest-edit-compressor-evidence-gap-partial-001\",\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"locale\":\"zh-CN\",\"status\":\"partial\",\"requires_confirmation\":true,\"answers\":[{\"summary\":\"当前围绕选中的 Recycle Compressor（compressor-1）生成候选编辑提案。诊断指出出口压力目标（235 kPa）与进口压力（220 kPa）之间的压比过小（约 1.07），不足以解释所需的压缩负荷；同时根因尚未确认——可能是压力目标设",
+      "citation_ids": []
+    }
+  ],
+  "issues": [
+    {
+      "code": "MODEL_OUTPUT_NOT_JSON",
+      "message": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
+      "severity": "warning",
+      "citation_ids": []
+    }
+  ],
+  "proposed_actions": [],
+  "citations": [],
+  "confidence": 0.05,
+  "risk_level": "medium",
+  "requires_confirmation": false
+}

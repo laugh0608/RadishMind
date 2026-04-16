@@ -100,6 +100,14 @@ def repair_malformed_suggest_edits_json(candidate: str) -> str:
             re.compile(r"(\}\}\})\},(\"risk_level\"\s*:)", flags=re.DOTALL),
             r"\1,\2",
         ),
+        (
+            re.compile(r'语义为"([^"]+)"', flags=re.DOTALL),
+            r'语义为\\"\1\\"',
+        ),
+        (
+            re.compile(r'所提到的"([^"]+)"', flags=re.DOTALL),
+            r'所提到的\\"\1\\"',
+        ),
     )
     for _ in range(2):
         previous = repaired

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "status": "failed",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "summary": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
+  "answers": [
+    {
+      "kind": "raw_text_fallback",
+      "text": "{\"schema_version\":1,\"request_id\":\"rf-suggest-edit-valve-local-fix-vs-global-balance-001\",\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"locale\":\"zh-CN\",\"requires_confirmation\":true,\"answers\":[{\"status\":\"partial\",\"summary\":\"当前围绕选中的 valve-1（Feed Valve）生成候选编辑提案。诊断表明该阀门的 pressure_drop_kpa 为负值，与节流方向矛盾，属于直接可修正的局部错误。另有一条 flowsheet 级全局质量平衡偏差警告（GLOBAL_BALAN",
+      "citation_ids": []
+    }
+  ],
+  "issues": [
+    {
+      "code": "MODEL_OUTPUT_NOT_JSON",
+      "message": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
+      "severity": "warning",
+      "citation_ids": []
+    }
+  ],
+  "proposed_actions": [],
+  "citations": [],
+  "confidence": 0.05,
+  "risk_level": "medium",
+  "requires_confirmation": false
+}
