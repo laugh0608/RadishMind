@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+  "request_id": "rf-suggest-edit-multi-selection-single-actionable-target-001",
+  "captured_at": "2026-04-16T14:04:09Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 44,
+    "selected_unit_ids": [
+      "heater-2"
+    ],
+    "selected_stream_ids": [
+      "feed-6",
+      "product-6"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "summary": "当前候选提案围绕已选中的进料流股 feed-6 的缺失温度规格生成。对于已选中的 heater-2，现有诊断仅提示其出口响应可能受上游不确定性影响，尚不足以直接提出针对设备本体的局部修改，因此本次仅给出对 feed-6 的最小可审查补丁建议。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Preheater Feed is missing temperature specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "The current outlet response may still be influenced by upstream uncertainty, so the heater effect is not yet confirmed as a separate root cause.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "建议仅在 feed-6 上补充一个待确认的温度规格占位，以消除当前唯一有直接诊断支撑的缺失输入；暂不对 heater-2 或 product-6 提出修改。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Preheater Feed is missing temperature specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "The current outlet response may still be influenced by upstream uncertainty, so the heater effect is not yet confirmed as a separate root cause."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-6",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-6 Preheater Feed target_unit_id=heater-2"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-2",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-2 Preheater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.11"
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "在 feed-6 增加温度规格占位",
+        "rationale": "诊断明确指出 Preheater Feed 缺少温度规格，而该流股又直接进入已选中的 heater-2。当前快照仅显示部分收敛，且关于 heater-2 的告警说明其出口影响尚不能独立确认为根因，因此最小且可审查的做法是先在 feed-6 上补充温度规格占位，等待人工确认具体数值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-6"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v56-apiyi-cx-local-edits"
+  }
+}

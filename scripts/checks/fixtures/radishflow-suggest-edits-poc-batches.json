@@ -244,5 +244,11 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v55-apiyi-de-local-edits/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v55-apiyi-de-local-edits/2026-04-16-radishflow-suggest-edits-poc-real-v55-apiyi-de-local-edits.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v55-apiyi-de-local-edits/2026-04-16-radishflow-suggest-edits-poc-real-v55-apiyi-de-local-edits.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v56-apiyi-cx-local-edits/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v56-apiyi-cx-local-edits/2026-04-16-radishflow-suggest-edits-poc-real-v56-apiyi-cx-local-edits.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v56-apiyi-cx-local-edits/2026-04-16-radishflow-suggest-edits-poc-real-v56-apiyi-cx-local-edits.audit.json"
   }
 ]
