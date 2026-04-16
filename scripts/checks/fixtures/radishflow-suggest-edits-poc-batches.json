@@ -190,5 +190,17 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v41-apiyi-cc-range-sequence-ordering-recanonicalized/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v41-apiyi-cc-range-sequence-ordering-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v40-apiyi-cc-range-sequence-ordering.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v41-apiyi-cc-range-sequence-ordering-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v40-apiyi-cc-range-sequence-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v42-apiyi-ch-range-sequence-ordering/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v42-apiyi-ch-range-sequence-ordering/2026-04-16-radishflow-suggest-edits-poc-real-v42-apiyi-ch-range-sequence-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v42-apiyi-ch-range-sequence-ordering/2026-04-16-radishflow-suggest-edits-poc-real-v42-apiyi-ch-range-sequence-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v44-apiyi-de-range-sequence-ordering-recanonicalized/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v44-apiyi-de-range-sequence-ordering-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v43-apiyi-de-range-sequence-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v44-apiyi-de-range-sequence-ordering-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v43-apiyi-de-range-sequence-ordering.audit.json"
   }
 ]

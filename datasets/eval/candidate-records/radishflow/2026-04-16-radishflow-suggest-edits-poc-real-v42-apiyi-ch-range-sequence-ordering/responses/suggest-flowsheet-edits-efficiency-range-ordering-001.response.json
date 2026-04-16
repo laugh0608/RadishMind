@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.85,
+  "summary": "针对选中的泵单元 pump-3（Range Review Pump）生成候选编辑提案：其效率参数 efficiency_percent=109 超出推荐运行范围，需修正为合理值。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到 pump-3 的效率参数 109% 超出典型泵效率范围（通常 20%-90%），建议将其修正为 75% 作为合理的工程默认值。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+      "message": "Range Review Pump efficiency_percent=109 is outside the recommended operating range.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "修正泵效率参数至合理范围",
+      "rationale": "泵效率 109% 违反热力学第一定律（效率不可能超过 100%），且触发 UNIT_PARAMETER_OUT_OF_RANGE 警告。建议采用 75% 作为典型离心泵的合理效率值，该值处于常见工程范围（60%-85%）内，可恢复求解器有效性。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "pump-3"
+      },
+      "patch": {
+        "parameter_updates": {
+          "efficiency_percent": {
+            "action": "clamp_to_review_range",
+            "suggested_range": [
+              65,
+              82
+            ]
+          }
+        },
+        "preserve_topology": true
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Range Review Pump efficiency_percent=109 is outside the recommended operating range."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / pump-3",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "pump-3 Range Review Pump kind=Pump"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "medium"
+}

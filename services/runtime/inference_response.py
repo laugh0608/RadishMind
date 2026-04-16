@@ -379,6 +379,13 @@ def normalize_spec_placeholders(values: Any) -> list[str]:
         "mass_flow_kg_h": "flow_rate_kg_per_h",
         "mass_flow_kg_per_h": "flow_rate_kg_per_h",
     }
+    canonical_order = {
+        "temperature_c": 0,
+        "pressure_kpa": 1,
+        "flow_rate_kg_per_h": 2,
+        "composition": 3,
+        "vapor_fraction": 4,
+    }
     if values is None:
         return []
     if isinstance(values, dict):
@@ -404,7 +411,10 @@ def normalize_spec_placeholders(values: Any) -> list[str]:
         placeholder = alias_map.get(placeholder, placeholder)
         if placeholder not in normalized:
             normalized.append(placeholder)
-    return normalized
+    return sorted(
+        normalized,
+        key=lambda placeholder: (canonical_order.get(placeholder, len(canonical_order)), normalized.index(placeholder)),
+    )
 
 
 def normalize_parameter_placeholders(values: list[Any]) -> list[str]:
