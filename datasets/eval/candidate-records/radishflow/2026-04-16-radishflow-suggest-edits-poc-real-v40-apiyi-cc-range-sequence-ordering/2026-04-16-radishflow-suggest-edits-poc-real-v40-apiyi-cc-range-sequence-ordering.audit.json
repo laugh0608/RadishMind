@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "task": "radishflow-suggest-edits",
+  "manifest_path": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v40-apiyi-cc-range-sequence-ordering/2026-04-16-radishflow-suggest-edits-poc-real-v40-apiyi-cc-range-sequence-ordering.manifest.json",
+  "sample_dir": "datasets/eval/radishflow",
+  "matched_sample_count": 2,
+  "expected_source": "captured_candidate_response",
+  "required_capture_origin": "adapter_debug_dump",
+  "required_collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v40-apiyi-cc-range-sequence-ordering",
+  "required_tags": [],
+  "exit_code": 1,
+  "passed_count": 1,
+  "failed_count": 1,
+  "violation_count": 16,
+  "warning_line": "",
+  "summary_line": "",
+  "stderr": "",
+  "samples": [
+    {
+      "sample_file": "suggest-flowsheet-edits-efficiency-range-ordering-001.json",
+      "status": "fail",
+      "violations": [
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response.status does not match expected_response_shape.status",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response must contain at least 1 proposed_action",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response is missing required action kind 'candidate_edit'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response must contain at least 1 candidate_edit",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response.requires_confirmation must be true when proposed_actions exist",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response is missing proposed_action[0] required by evaluation.ordered_parameter_update_keys",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response is missing proposed_action[0] required by evaluation.ordered_parameter_update_detail_keys",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json: candidate_response is missing proposed_action[0] required by evaluation.ordered_parameter_update_value_sequences",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: missing required json path '$.proposed_actions[0].kind=\"candidate_edit\"'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: missing required json path '$.proposed_actions[0].target.type=\"unit\"'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: missing required json path '$.proposed_actions[0].target.id=\"pump-3\"'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: missing required json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.action=\"clamp_to_review_range\"'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: missing required json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]=65'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: missing required json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[1]=82'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: missing required json path '$.proposed_actions[0].patch.preserve_topology=true'",
+        "suggest-flowsheet-edits-efficiency-range-ordering-001.json:candidate_response: json path '$.requires_confirmation' expected 'True' but found 'False'"
+      ]
+    },
+    {
+      "sample_file": "suggest-flowsheet-edits-stream-spec-sequence-ordering-001.json",
+      "status": "pass",
+      "violations": []
+    }
+  ]
+}

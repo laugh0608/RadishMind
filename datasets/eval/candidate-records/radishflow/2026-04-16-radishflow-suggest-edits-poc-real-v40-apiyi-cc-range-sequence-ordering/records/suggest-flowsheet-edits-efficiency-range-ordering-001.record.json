@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+  "request_id": "rf-suggest-edit-efficiency-range-ordering-001",
+  "captured_at": "2026-04-16T11:41:29Z",
+  "source": "captured_candidate_response",
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 69,
+    "selected_unit_ids": [
+      "pump-3"
+    ],
+    "diagnostic_codes": [
+      "UNIT_PARAMETER_OUT_OF_RANGE"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "failed",
+    "requires_confirmation": false,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕选中的 pump-3（Range Review Pump）生成候选编辑提案。诊断指出其 efficiency_percent=109 超出推荐运行范围，且求解器因参数无效而无法收敛。建议将效率修正至物理合理区间内的典型值。",
+        "citation_ids": []
+      }
+    ],
+    "proposed_actions": [],
+    "issues": [
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Range Review Pump efficiency_percent=109 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Range Review Pump efficiency_percent=109 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-3 Range Review Pump kind=Pump"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "summary": "当前围绕选中的 pump-3（Range Review Pump）生成候选编辑提案。诊断指出其 efficiency_percent=109 超出推荐运行范围，且求解器因参数无效而无法收敛。建议将效率修正至物理合理区间内的典型值。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "range-sequence-ordering",
+      "v40"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v40-apiyi-cc-range-sequence-ordering"
+  }
+}
