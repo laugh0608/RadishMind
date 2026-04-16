@@ -616,6 +616,11 @@ def build_suggest_edits_context_support_citation_ids(
         copilot_request
     )
     unit_by_id, stream_by_id, _ = build_flowsheet_lookup(copilot_request)
+    diagnostics = [
+        diagnostic
+        for diagnostic in ((copilot_request.get("context") or {}).get("diagnostics") or [])
+        if isinstance(diagnostic, dict)
+    ]
     citation_ids: list[str] = []
     target_citation_id = target_citation_lookup.get((target_type, target_id))
     if target_citation_id:
@@ -672,6 +677,14 @@ def build_suggest_edits_context_support_citation_ids(
         if diagnostic_code == "UNIT_PARAMETER_INCOMPLETE":
             for stream_id in output_stream_ids:
                 append_unique_citation_id(citation_ids, target_citation_lookup.get(("stream", stream_id), ""))
+            if item_kind == "action":
+                for stream_id in input_stream_ids:
+                    input_stream_document = stream_by_id.get(stream_id) or {}
+                    source_unit_id = str(input_stream_document.get("source_unit_id") or "").strip()
+                    source_unit_document = unit_by_id.get(source_unit_id) or {}
+                    source_unit_kind = str(source_unit_document.get("kind") or "").strip().lower()
+                    if source_unit_id and source_unit_id in selected_unit_ids and source_unit_kind == "pump":
+                        append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", source_unit_id), ""))
             if snapshot_citation_id:
                 append_unique_citation_id(citation_ids, snapshot_citation_id)
         elif diagnostic_code.startswith("DOWNSTREAM_") or diagnostic_code.endswith("_STATE_DEPENDENT"):
@@ -681,11 +694,20 @@ def build_suggest_edits_context_support_citation_ids(
             if severity != "error" and snapshot_citation_id:
                 append_unique_citation_id(citation_ids, snapshot_citation_id)
         elif diagnostic_code in {
-            "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
             "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
             "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
         }:
             for stream_id in input_stream_ids:
+                append_unique_citation_id(citation_ids, target_citation_lookup.get(("stream", stream_id), ""))
+        elif diagnostic_code == "PUMP_OUTLET_PRESSURE_TARGET_INVALID":
+            for stream_id in input_stream_ids:
+                has_direct_stream_diagnostic = any(
+                    str((diagnostic or {}).get("target_type") or "").strip().lower() == "stream"
+                    and str((diagnostic or {}).get("target_id") or "").strip() == stream_id
+                    for diagnostic in diagnostics
+                )
+                if not has_direct_stream_diagnostic:
+                    continue
                 append_unique_citation_id(citation_ids, target_citation_lookup.get(("stream", stream_id), ""))
         elif severity != "error" and snapshot_citation_id:
             append_unique_citation_id(citation_ids, snapshot_citation_id)

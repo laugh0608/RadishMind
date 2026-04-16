@@ -172,5 +172,11 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v34-apiyi-de-mixed-risk-patch-combo-recanonicalized/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v34-apiyi-de-mixed-risk-patch-combo-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v31-apiyi-de-mixed-risk-patch-combo.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v34-apiyi-de-mixed-risk-patch-combo-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v31-apiyi-de-mixed-risk-patch-combo.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v36-apiyi-ch-triad-mixed-risk-cross-object-long-timeout-recanonicalized/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v36-apiyi-ch-triad-mixed-risk-cross-object-long-timeout-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v35-apiyi-ch-triad-mixed-risk-cross-object-long-timeout.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v36-apiyi-ch-triad-mixed-risk-cross-object-long-timeout-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v35-apiyi-ch-triad-mixed-risk-cross-object-long-timeout.audit.json"
   }
 ]
