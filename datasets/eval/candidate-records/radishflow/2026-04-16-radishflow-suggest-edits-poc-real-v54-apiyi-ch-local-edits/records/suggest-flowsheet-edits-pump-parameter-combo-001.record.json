@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-pump-parameter-combo-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-pump-parameter-combo-001",
+  "request_id": "rf-suggest-edit-pump-parameter-combo-001",
+  "captured_at": "2026-04-16T13:36:24Z",
+  "source": "captured_candidate_response",
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 31,
+    "selected_unit_ids": [
+      "pump-1"
+    ],
+    "diagnostic_codes": [
+      "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+      "UNIT_PARAMETER_OUT_OF_RANGE"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.85,
+    "summary": "针对选中的 Booster Pump (pump-1) 存在出口压力目标低于入口压力的错误，以及效率参数超出推荐范围的问题，生成局部参数修正的候选提案。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "检测到 Booster Pump 的两个参数问题：出口压力目标值（150 kPa）低于入口压力（180 kPa），导致泵无法正常工作；同时效率设定为 105%，超出合理范围。建议将出口压力目标提升至 200 kPa 以上，并将效率修正为 75% 的典型值。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "Booster Pump outlet pressure target is lower than the inlet pressure.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Booster Pump efficiency_percent=105 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "修正 Booster Pump 出口压力目标值",
+        "rationale": "当前出口压力目标 150 kPa 低于入口压力 180 kPa，违反泵的基本工作原理。建议设置为 200 kPa，确保 20 kPa 的合理增压裕量。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "pump-1"
+        },
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-2"
+            },
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                60,
+                85
+              ]
+            }
+          },
+          "preserve_topology": true
+        }
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Booster Pump outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Booster Pump efficiency_percent=105 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-1 Booster Pump kind=Pump"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "requires_confirmation": true,
+    "risk_level": "medium"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v54-apiyi-ch-local-edits"
+  }
+}
