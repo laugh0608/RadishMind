@@ -220,5 +220,11 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v49-apiyi-cx-cross-object/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v49-apiyi-cx-cross-object/2026-04-16-radishflow-suggest-edits-poc-real-v49-apiyi-cx-cross-object.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v49-apiyi-cx-cross-object/2026-04-16-radishflow-suggest-edits-poc-real-v49-apiyi-cx-cross-object.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v50-apiyi-cx-parameter-ordering/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v50-apiyi-cx-parameter-ordering/2026-04-16-radishflow-suggest-edits-poc-real-v50-apiyi-cx-parameter-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v50-apiyi-cx-parameter-ordering/2026-04-16-radishflow-suggest-edits-poc-real-v50-apiyi-cx-parameter-ordering.audit.json"
   }
 ]

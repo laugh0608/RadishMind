@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕选中的压缩机 compressor-3 的缺失参数问题生成候选提案，重点是补齐出口压力控制目标、防喘振审查所需的最小流量旁路百分比，以及当前审查基线所需的效率百分比占位。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Review Compressor is configured for outlet pressure control but outlet pressure target is missing."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_EFFICIENCY_BASELINE_MISSING",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Review Compressor is missing efficiency percent input required for current review baseline."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-3",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "compressor-3 Review Compressor kind=Compressor"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 compressor-3 增加出口压力目标占位参数",
+      "rationale": "直接对应 outlet pressure 控制目标缺失诊断。使用占位参数而非自动赋值，可在不擅自改变求解设定的前提下，为审查者提供最小可确认补丁入口。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "compressor-3"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_pressure_target_kpa",
+          "minimum_flow_bypass_percent",
+          "efficiency_percent"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+      "message": "Review Compressor is configured for outlet pressure control but outlet pressure target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "message": "Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_EFFICIENCY_BASELINE_MISSING",
+      "message": "Review Compressor is missing efficiency percent input required for current review baseline.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "summary": "当前围绕选中的压缩机 compressor-3 的缺失参数问题生成候选提案，重点是补齐出口压力控制目标、防喘振审查所需的最小流量旁路百分比，以及当前审查基线所需的效率百分比占位。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}
