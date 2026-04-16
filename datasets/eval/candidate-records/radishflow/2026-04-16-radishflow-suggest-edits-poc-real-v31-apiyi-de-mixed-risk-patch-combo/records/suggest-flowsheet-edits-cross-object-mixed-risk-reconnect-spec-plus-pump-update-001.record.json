@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+  "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+  "captured_at": "2026-04-16T10:45:16Z",
+  "source": "captured_candidate_response",
+  "model": "gemini-3.1-pro-preview",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 89,
+    "selected_unit_ids": [
+      "pump-14",
+      "heater-14"
+    ],
+    "selected_stream_ids": [
+      "feed-93",
+      "pump-outlet-93",
+      "heater-outlet-93"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+      "UNIT_PARAMETER_OUT_OF_RANGE",
+      "HEATER_OUTLET_STATE_DEPENDENT"
+    ]
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.85,
+    "requires_confirmation": true,
+    "summary": "Generated candidate edits to address invalid topology and configuration issues across selected flowsheet objects. The proposal focuses on reconnecting the disconnected heater outlet, providing missing flow rate specifications for the feed, and correcting invalid transfer pump parameters.",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "I have prepared a candidate edit to reconnect the 'Trim Heater Outlet 93' to resolve the disconnected stream error.",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "diag-3",
+          "diag-4"
+        ]
+      },
+      {
+        "kind": "direct_answer",
+        "text": "A specification placeholder is proposed for the 'Transfer Pump Feed' to prompt for the missing flow rate.",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "diag-3",
+          "diag-4"
+        ]
+      },
+      {
+        "kind": "direct_answer",
+        "text": "I also generated parameter placeholders for the 'Transfer Pump' to correct the outlet pressure target (which is currently lower than the inlet) and the out-of-range efficiency.",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "diag-3",
+          "diag-4"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Trim Heater Outlet 93 is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Transfer Pump Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "Transfer Pump outlet pressure target is lower than the inlet pressure.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Transfer Pump efficiency_percent=54 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_STATE_DEPENDENT",
+        "message": "Trim Heater outlet condition may still shift after the downstream sink is restored, so the heater should remain explanatory context only.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-5",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "heater-outlet-93"
+        },
+        "title": "为 heater-outlet-93 预留下游重连占位",
+        "rationale": "当前断链问题只能通过人工确认后续去向来处理，因此 patch 仅保留候选连接占位。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "feed-93"
+        },
+        "title": "为 feed-93 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "unit",
+          "id": "pump-14"
+        },
+        "title": "为 pump-14 补充局部参数占位",
+        "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-93"
+            }
+          },
+          "preserve_topology": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "diag-4",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Trim Heater Outlet 93 is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Transfer Pump Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Transfer Pump outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Transfer Pump efficiency_percent=54 is outside the recommended operating range."
+      },
+      {
+        "id": "diag-5",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_STATE_DEPENDENT",
+        "locator": "context:diagnostics[4]",
+        "excerpt": "Trim Heater outlet condition may still shift after the downstream sink is restored, so the heater should remain explanatory context only."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-outlet-93",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "heater-outlet-93 Trim Heater Outlet 93 source_unit_id=heater-14"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-93",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-93 Transfer Pump Feed target_unit_id=pump-14"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-14",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-14 Transfer Pump kind=Pump"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-14",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "heater-14 Trim Heater kind=Heater"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-outlet-93",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "pump-outlet-93 Pump Outlet 93 source_unit_id=pump-14 target_unit_id=heater-14"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "high"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "mixed-risk-patch-combo",
+      "v31"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v31-apiyi-de-mixed-risk-patch-combo"
+  }
+}
