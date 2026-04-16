@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.6,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对 Recycle Compressor (compressor-1) 出口压力设定值异常的问题生成候选提案。由于残差诊断提示根本原因（压比不足或下游背压数据缺失）尚未完全确认，当前仅提供修改排气压力目标的占位符供人工审查确认。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "requires_confirmation": true,
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "unit",
+        "id": "compressor-1"
+      },
+      "title": "为 compressor-1 补充局部参数占位",
+      "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+      "patch": {
+        "parameter_updates": {
+          "outlet_pressure_target_kpa": {
+            "action": "review_and_raise_margin",
+            "minimum_delta_kpa": 80,
+            "reference_stream_id": "feed-3"
+          }
+        },
+        "preserve_topology": true,
+        "review_scope": "local_unit_parameters_only"
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "message": "Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED",
+      "message": "Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_ROOT_CAUSE_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-1",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "compressor-1 Recycle Compressor kind=Compressor"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.18"
+    }
+  ],
+  "summary": "针对 Recycle Compressor (compressor-1) 出口压力设定值异常的问题生成候选提案。由于残差诊断提示根本原因（压比不足或下游背压数据缺失）尚未完全确认，当前仅提供修改排气压力目标的占位符供人工审查确认。",
+  "risk_level": "medium"
+}
