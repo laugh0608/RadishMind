@@ -768,6 +768,8 @@ def synthesize_parameter_updates_from_diagnostics(
     def suggested_efficiency_review_range() -> list[int]:
         if "PUMP_OUTLET_PRESSURE_TARGET_INVALID" in diagnostic_codes:
             return [60, 85]
+        if "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID" in diagnostic_codes:
+            return [60, 85]
         if unit_kind == "pump":
             return [65, 82]
         if unit_kind == "compressor":
