@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v45-apiyi-ch-triad-mixed-risk-cross-object-timeout-override",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v46-apiyi-ch-triad-mixed-risk-cross-object-timeout-override-recanonicalized/records/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v46-apiyi-ch-triad-mixed-risk-cross-object-timeout-override-recanonicalized/records/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits 真实 provider capture 批次，基于 v45 dump 按当前 runtime recanonicalize 后重新导入，验证 apiyi_ch triad 样本的按样本 timeout override 正式收口。"
+}

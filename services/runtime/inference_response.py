@@ -872,16 +872,18 @@ def merge_parameter_patch(
     synthesized_patch: dict[str, Any],
 ) -> dict[str, Any]:
     merged_patch: dict[str, Any] = {}
-    parameter_updates = normalize_parameter_updates(synthesized_patch.get("parameter_updates")) or normalize_parameter_updates(
-        existing_patch.get("parameter_updates")
+    synthesized_parameter_updates = normalize_parameter_updates(synthesized_patch.get("parameter_updates"))
+    existing_parameter_updates = normalize_parameter_updates(existing_patch.get("parameter_updates"))
+    synthesized_parameter_placeholders = normalize_parameter_placeholders(
+        list(synthesized_patch.get("parameter_placeholders") or [])
     )
+    parameter_updates = dict(synthesized_parameter_updates)
+    if not parameter_updates and not synthesized_parameter_placeholders:
+        parameter_updates = existing_parameter_updates
     if parameter_updates:
         merged_patch["parameter_updates"] = parameter_updates
 
     parameter_placeholders: list[str] = []
-    synthesized_parameter_placeholders = normalize_parameter_placeholders(
-        list(synthesized_patch.get("parameter_placeholders") or [])
-    )
     existing_parameter_placeholders = normalize_parameter_placeholders(
         list(existing_patch.get("parameter_placeholders") or [])
     )

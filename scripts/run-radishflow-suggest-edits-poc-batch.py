@@ -29,6 +29,15 @@ DEFAULT_SAMPLE_PATHS = [
     "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
     "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
 ]
+DEFAULT_REQUEST_TIMEOUT_SECONDS = 120.0
+# Keep the apiyi_ch timeout bump scoped to the known triad samples that have
+# repeatedly shown capture-level timeout pressure under the default 120s.
+KNOWN_REQUEST_TIMEOUT_OVERRIDES: dict[str, dict[str, float]] = {
+    "apiyi_ch": {
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001": 210.0,
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001": 210.0,
+    }
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,8 +60,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--request-timeout-seconds",
         type=float,
-        default=120.0,
-        help="Per-request timeout for provider calls. Default: 120",
+        default=None,
+        help=(
+            "Per-request timeout for provider calls. Defaults to env/global 120 unless "
+            "a known sample-specific override applies."
+        ),
     )
     parser.add_argument(
         "--output-root",
@@ -181,16 +193,36 @@ def build_record_id(provider: str, sample_id: str) -> str:
     return f"{prefix}-{sample_id}"
 
 
-def derive_capture_timeout_seconds(args: argparse.Namespace) -> float | None:
-    if args.provider != "openai-compatible":
+def derive_capture_timeout_seconds(
+    *,
+    provider: str,
+    request_timeout_seconds: float | None,
+    max_attempts: int,
+    retry_base_delay_seconds: float,
+) -> float | None:
+    if provider != "openai-compatible" or request_timeout_seconds is None:
         return None
-    request_timeout_seconds = max(1.0, float(args.request_timeout_seconds))
-    max_attempts = max(1, int(args.max_attempts))
+    request_timeout_seconds = max(1.0, float(request_timeout_seconds))
+    max_attempts = max(1, int(max_attempts))
     retry_delay_budget = 0.0
     if max_attempts > 1:
-        base_delay = max(0.0, float(args.retry_base_delay_seconds))
+        base_delay = max(0.0, float(retry_base_delay_seconds))
         retry_delay_budget = base_delay * sum(2 ** retry_index for retry_index in range(max_attempts - 1))
     return math.ceil((request_timeout_seconds * max_attempts) + retry_delay_budget + 30.0)
+
+
+def resolve_effective_request_timeout_seconds(args: argparse.Namespace, sample_id: str) -> float | None:
+    if args.request_timeout_seconds is not None:
+        return float(args.request_timeout_seconds)
+    if args.provider != "openai-compatible":
+        return None
+    profile_name = str(args.provider_profile or "").strip()
+    if not profile_name:
+        return None
+    profile_overrides = KNOWN_REQUEST_TIMEOUT_OVERRIDES.get(profile_name, {})
+    if sample_id in profile_overrides:
+        return float(profile_overrides[sample_id])
+    return None
 
 
 def select_sample_paths(args: argparse.Namespace) -> list[Path]:
@@ -274,6 +306,7 @@ def capture_real_sample(
     args: argparse.Namespace,
     sample_path: Path,
     collection_batch: str,
+    request_timeout_seconds: float | None,
     response_path: Path,
     dump_path: Path,
     record_path: Path,
@@ -289,8 +322,6 @@ def capture_real_sample(
         args.provider,
         "--temperature",
         str(args.temperature),
-        "--request-timeout-seconds",
-        str(args.request_timeout_seconds),
         "--response-output",
         str(response_path),
         "--dump-output",
@@ -306,6 +337,8 @@ def capture_real_sample(
         "--retry-base-delay-seconds",
         str(args.retry_base_delay_seconds),
     ]
+    if request_timeout_seconds is not None:
+        command.extend(["--request-timeout-seconds", str(request_timeout_seconds)])
     if args.provider_profile.strip():
         command.extend(["--provider-profile", args.provider_profile.strip()])
     if args.model.strip():
@@ -385,10 +418,6 @@ def main() -> int:
         f"output_root={make_repo_relative(output_root)} collection_batch={args.collection_batch}"
     )
 
-    sample_timeout_seconds = derive_capture_timeout_seconds(args)
-    if sample_timeout_seconds is not None:
-        print(f"[suggest-edits-poc] per-sample hard timeout={sample_timeout_seconds:.0f}s")
-
     record_paths: list[Path] = []
     failed_samples: list[dict[str, str]] = []
     capture_tags = [
@@ -412,6 +441,23 @@ def main() -> int:
             continue
 
         print(f"[start {index}/{len(sample_paths)}] {sample_id}")
+        effective_request_timeout_seconds = resolve_effective_request_timeout_seconds(args, sample_id)
+        sample_timeout_seconds = derive_capture_timeout_seconds(
+            provider=args.provider,
+            request_timeout_seconds=effective_request_timeout_seconds,
+            max_attempts=args.max_attempts,
+            retry_base_delay_seconds=args.retry_base_delay_seconds,
+        )
+        if effective_request_timeout_seconds is not None:
+            print(
+                f"[timeout {index}/{len(sample_paths)}] {sample_id}: "
+                f"request_timeout={effective_request_timeout_seconds:.0f}s"
+                + (
+                    f" hard_timeout={sample_timeout_seconds:.0f}s"
+                    if sample_timeout_seconds is not None
+                    else ""
+                )
+            )
         if args.provider == "mock":
             capture_mock_sample(
                 sample_path=sample_path,
@@ -428,6 +474,7 @@ def main() -> int:
                 args=args,
                 sample_path=sample_path,
                 collection_batch=args.collection_batch,
+                request_timeout_seconds=effective_request_timeout_seconds,
                 response_path=response_path,
                 dump_path=dump_path,
                 record_path=record_path,
