@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的流股 liquid-out-2（Liquid Product）下游未连接问题生成一个最小候选提案：为该流股补充下游连接占位，提示后续需由用户确认连接到导出汇或消费单元。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Liquid Product 添加下游连接占位",
+      "rationale": "流股 liquid-out-2 当前只有源单元 separator-2，诊断明确指出其没有连接到任何下游消费者或导出汇。由于请求中未提供具体下游单元或导出汇对象，建议仅添加可审查的连接占位，而不直接指定或执行拓扑重连。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "liquid-out-2"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / liquid-out-2",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "liquid-out-2 Liquid Product source_unit_id=separator-2"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "summary": "当前围绕已选中的流股 liquid-out-2（Liquid Product）下游未连接问题生成一个最小候选提案：为该流股补充下游连接占位，提示后续需由用户确认连接到导出汇或消费单元。",
+  "risk_level": "high",
+  "confidence": 0.2
+}

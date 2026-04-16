@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的两个产物流对象生成候选提案：对 liquid-product-5 提出下游连接占位修补建议，对 vapor-product-5 提出温度规格补全占位建议。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1",
+        "diag-2",
+        "flowdoc-stream-3"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Vapor Product is missing temperature specification."
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / liquid-product-5",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / vapor-product-5",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "vapor-product-5 Vapor Product source_unit_id=separator-3"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 liquid-product-5 添加下游连接占位",
+      "rationale": "该物流被直接诊断为未连接。由于当前输入未提供可确定的下游单元或现有导出端对象，最小可审查的建议是添加连接占位而非臆造具体连接目标。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "liquid-product-5"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 vapor-product-5 补充温度规格占位",
+      "rationale": "该物流被直接诊断为缺少温度规格。当前证据不足以推断具体数值，因此建议仅补充待确认的温度规格占位，保持改动最小且可审查。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-3"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "vapor-product-5"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Vapor Product is missing temperature specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-3"
+      ]
+    }
+  ],
+  "summary": "当前围绕已选中的两个产物流对象生成候选提案：对 liquid-product-5 提出下游连接占位修补建议，对 vapor-product-5 提出温度规格补全占位建议。",
+  "risk_level": "high",
+  "confidence": 0.2
+}

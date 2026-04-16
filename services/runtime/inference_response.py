@@ -703,9 +703,10 @@ def build_suggest_edits_context_support_citation_ids(
         else:
             primary_unit_id = source_unit_id or target_unit_id
         direct_unit_ids = [primary_unit_id] if primary_unit_id else []
-        for unit_id in direct_unit_ids:
-            if unit_id and unit_id in selected_unit_ids:
-                append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", unit_id), ""))
+        if complex_cross_object_context:
+            for unit_id in direct_unit_ids:
+                if unit_id and unit_id in selected_unit_ids:
+                    append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", unit_id), ""))
 
         if complex_cross_object_context and (
             diagnostic_code == "DOWNSTREAM_STATE_DEPENDENT"
@@ -1413,6 +1414,8 @@ def canonicalize_suggest_edits_response(
     elif any(str(action.get("risk_level") or "").strip().lower() == "high" for action in normalized_actions):
         status = "partial"
     elif has_structured_parameter_updates:
+        status = "partial"
+    elif snapshot_citation_id and len(normalized_actions) > 1:
         status = "partial"
     elif any(str((diagnostic or {}).get("code") or "").strip() not in actionable_diagnostic_codes for diagnostic in diagnostics):
         status = "partial"
