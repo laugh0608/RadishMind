@@ -347,5 +347,12 @@
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.audit.json",
     "artifact_summary": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering.audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering.artifacts.json"
   }
 ]

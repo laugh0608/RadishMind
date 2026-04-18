@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "pipeline": "radishflow-suggest-edits-poc-batch",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "eval_task": "radishflow-suggest-edits",
+  "provider": "openai-compatible",
+  "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+  "execution": {
+    "capture_exit_code": 0,
+    "audit_exit_code": 0
+  },
+  "artifacts": {
+    "manifest": {
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering.manifest.json",
+      "exists": true,
+      "record_count": 2
+    },
+    "audit_report": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering.audit.json",
+      "exists": true
+    },
+    "output_root": {
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+      "exists": true
+    },
+    "records": {
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+      "exists": true,
+      "file_count": 2,
+      "root_file_count": 0,
+      "nested_file_count": 2
+    },
+    "responses": {
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/responses",
+      "exists": true,
+      "file_count": 2
+    },
+    "dumps": {
+      "path": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/dumps",
+      "exists": true,
+      "file_count": 2
+    }
+  },
+  "summary": {
+    "captured_record_count": 2,
+    "discovered_record_count": 2,
+    "matched_sample_count": 2,
+    "passed_sample_count": 2,
+    "failed_sample_count": 0,
+    "violation_count": 0,
+    "root_record_count": 0,
+    "nested_record_count": 2,
+    "response_file_count": 2,
+    "dump_file_count": 2
+  },
+  "model": "gpt-5.4",
+  "capture_origin": "adapter_debug_dump"
+}
