@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+  "request_id": "rf-suggest-edit-three-step-priority-chain-001",
+  "captured_at": "2026-04-18T11:11:49Z",
+  "source": "captured_candidate_response",
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 47,
+    "selected_unit_ids": [
+      "heater-3"
+    ],
+    "selected_stream_ids": [
+      "feed-7",
+      "product-7"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "针对当前选中的 Trim Heater (heater-3) 及其进出口流股 (feed-7, product-7)，共检测到 3 条错误诊断：进料流股缺少温度与流量规格、加热器缺少出口温度控制目标值、出口流股未连接下游。以下分别给出对应的候选编辑提案。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "requires_confirmation": true,
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Heater Outlet 添加下游连接占位",
+        "rationale": "诊断 STREAM_DISCONNECTED 指出 product-7 没有下游消费者，这是 solver 报 invalid_topology 的直接原因之一。添加 connection_placeholder 提示用户指定下游单元或导出汇。此操作涉及拓扑变更，风险较高。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "product-7"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "补全 Heater Feed 的温度与流量规格占位",
+        "rationale": "诊断 STREAM_SPEC_MISSING 指出 feed-7 缺少 temperature_c 和 mass_flow_kgph。添加占位值使求解器能获得完整的进料边界条件。用户需根据实际工艺确认或修改数值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-7"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "mass_flow_kgph"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "补全 Trim Heater 出口温度控制目标参数",
+        "rationale": "诊断 UNIT_PARAMETER_INCOMPLETE 指出 heater-3 的 outlet_temperature 控制模式缺少目标温度值。建议将出口流股已有的 temperature_c = 155 同步写入单元控制参数，使控制回路闭合。用户需确认此值是否为期望控制目标。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "heater-3"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Heater Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Heater Feed is missing temperature and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Heater Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Heater Feed is missing temperature and flow rate specifications."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-7",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-7 Heater Outlet source_unit_id=heater-3"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-7",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-7 Heater Feed target_unit_id=heater-3"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-3 Trim Heater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "针对当前选中的 Trim Heater (heater-3) 及其进出口流股 (feed-7, product-7)，共检测到 3 条错误诊断：进料流股缺少温度与流量规格、加热器缺少出口温度控制目标值、出口流股未连接下游。以下分别给出对应的候选编辑提案。",
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v60-apiyi-cc-default-early-trio",
+    "notes": "继续补齐 default-early-trio 在 apiyi_cc 上的首轮正式真实 capture。"
+  }
+}

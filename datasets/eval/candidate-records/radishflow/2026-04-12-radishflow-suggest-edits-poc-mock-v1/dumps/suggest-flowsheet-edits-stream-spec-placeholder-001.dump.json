@@ -6,7 +6,7 @@
   "task": "suggest_flowsheet_edits",
   "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
   "request_id": "rf-suggest-edit-stream-spec-001",
-  "captured_at": "2026-04-12T12:44:56Z",
+  "captured_at": "2026-04-18T11:19:14Z",
   "source": "simulated_candidate_response",
   "capture_metadata": {
     "capture_origin": "manual_fixture",
@@ -22,6 +22,13 @@
   "input_record": {
     "artifact_names": [
       "flowsheet_document"
+    ],
+    "document_revision": 14,
+    "selected_stream_ids": [
+      "stream-1"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING"
     ]
   },
   "input_request": {

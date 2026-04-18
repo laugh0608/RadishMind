@@ -29,6 +29,34 @@ DEFAULT_SAMPLE_PATHS = [
     "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
     "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
 ]
+SAMPLE_GROUP_PATHS = {
+    "default-early-trio": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+    ],
+    "default-selection-ordering": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-same-risk-input-first-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-chronology-single-actionable-target-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-order-preserved-001.json",
+    ],
+    "heater-follow-up": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-heater-multi-action-001.json",
+    ],
+    "remaining-horizontal-gaps": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-heater-multi-action-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-same-risk-input-first-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-chronology-single-actionable-target-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-order-preserved-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+    ],
+}
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 120.0
 # Keep the apiyi_ch timeout bump scoped to the known triad samples that have
 # repeatedly shown capture-level timeout pressure under the default 120s.
@@ -96,6 +124,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--skip-audit", action="store_true", help="Only run capture; skip audit.")
     parser.add_argument("--fail-on-audit-violation", action="store_true", help="Fail when audit finds violations.")
+    parser.add_argument(
+        "--sample-group",
+        action="append",
+        default=[],
+        help=(
+            "Named sample group to include. Can be repeated. Supported groups: "
+            + ", ".join(sorted(SAMPLE_GROUP_PATHS))
+            + "."
+        ),
+    )
     parser.add_argument(
         "--sample-path",
         action="append",
@@ -226,12 +264,28 @@ def resolve_effective_request_timeout_seconds(args: argparse.Namespace, sample_i
 
 
 def select_sample_paths(args: argparse.Namespace) -> list[Path]:
-    raw_paths = args.sample_path or DEFAULT_SAMPLE_PATHS
+    raw_paths: list[str] = []
+    for group_name in args.sample_group:
+        normalized_group_name = str(group_name).strip()
+        if not normalized_group_name:
+            continue
+        group_paths = SAMPLE_GROUP_PATHS.get(normalized_group_name)
+        if group_paths is None:
+            supported_groups = ", ".join(sorted(SAMPLE_GROUP_PATHS))
+            raise SystemExit(f"unsupported sample group '{normalized_group_name}'; expected one of: {supported_groups}")
+        raw_paths.extend(group_paths)
+    raw_paths.extend(args.sample_path)
+    if not raw_paths:
+        raw_paths = list(DEFAULT_SAMPLE_PATHS)
     selected: list[Path] = []
+    seen_paths: set[Path] = set()
     for raw_path in raw_paths:
         path = resolve_repo_relative(raw_path)
         if not path.is_file():
             raise SystemExit(f"sample file not found: {raw_path}")
+        if path in seen_paths:
+            continue
+        seen_paths.add(path)
         selected.append(path)
     return selected
 

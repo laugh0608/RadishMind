@@ -6,7 +6,7 @@
   "task": "suggest_flowsheet_edits",
   "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
   "request_id": "rf-suggest-edit-reconnect-outlet-001",
-  "captured_at": "2026-04-12T12:44:56Z",
+  "captured_at": "2026-04-18T11:19:14Z",
   "source": "simulated_candidate_response",
   "capture_metadata": {
     "capture_origin": "manual_fixture",
@@ -22,6 +22,13 @@
   "input_record": {
     "artifact_names": [
       "flowsheet_document"
+    ],
+    "document_revision": 22,
+    "selected_stream_ids": [
+      "stream-out-1"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED"
     ]
   },
   "input_request": {
@@ -96,20 +103,21 @@
   },
   "raw_response": {
     "provider": "mock",
-    "response_preview": "当前建议针对 Product Outlet 的断链问题生成候选重连提案，但该提案属于高风险拓扑修改。"
+    "response_preview": "当前围绕已选中的出口流股 stream-out-1 的未连接下游问题生成候选提案；诊断直接指出该流股缺少下游 consumer 或 export sink，因此仅提出一个局部、待确认的连接占位补丁。"
   },
   "response": {
     "schema_version": 1,
     "status": "partial",
     "project": "radishflow",
     "task": "suggest_flowsheet_edits",
-    "summary": "当前建议针对 Product Outlet 的断链问题生成候选重连提案，但该提案属于高风险拓扑修改。",
+    "summary": "当前围绕已选中的出口流股 stream-out-1 的未连接下游问题生成候选提案；诊断直接指出该流股缺少下游 consumer 或 export sink，因此仅提出一个局部、待确认的连接占位补丁。",
     "answers": [
       {
-        "kind": "edit_rationale",
-        "text": "诊断已明确指出 stream-out-1 没有下游去向，因此如果要给 patch，也只能给出待人工确认的重连占位，而不能直接执行拓扑修改。",
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的出口流股 stream-out-1 的未连接下游问题生成候选提案；诊断直接指出该流股缺少下游 consumer 或 export sink，因此仅提出一个局部、待确认的连接占位补丁。",
         "citation_ids": [
           "diag-1",
+          "flowdoc-stream-1",
           "snapshot-1"
         ]
       }
@@ -117,32 +125,36 @@
     "issues": [
       {
         "code": "STREAM_DISCONNECTED",
-        "message": "stream-out-1 当前没有连接到下游消费端或导出端。",
+        "message": "Product Outlet is not connected to any downstream consumer or export sink.",
         "severity": "error",
         "citation_ids": [
-          "diag-1"
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
         ]
       }
     ],
     "proposed_actions": [
       {
         "kind": "candidate_edit",
-        "title": "为 stream-out-1 预留下游重连占位",
+        "title": "为 Product Outlet 添加下游导出端占位连接",
         "target": {
           "type": "stream",
           "id": "stream-out-1"
         },
-        "rationale": "当前断链问题只能通过拓扑层面的人工确认后再处理，因此 patch 仅保留候选下游连接占位。",
+        "rationale": "诊断明确表明该出口流股缺少下游 consumer 或 export sink。由于当前证据只覆盖被选中的流股，且未提供可连接的现有下游单元，因此最小且可审查的建议是为该流股补充一个 export sink 连接占位，而不推断具体设备或更改其他对象。",
         "patch": {
           "connection_placeholder": {
             "expected_downstream_kind": "consumer_or_export_sink",
-            "requires_manual_binding": true
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
           }
         },
         "risk_level": "high",
         "requires_confirmation": true,
         "citation_ids": [
           "diag-1",
+          "flowdoc-stream-1",
           "snapshot-1"
         ]
       }
@@ -156,6 +168,13 @@
         "excerpt": "Product Outlet is not connected to any downstream consumer or export sink."
       },
       {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-out-1",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-out-1 Product Outlet source_unit_id=separator-1"
+      },
+      {
         "id": "snapshot-1",
         "kind": "context",
         "label": "求解快照 latest_snapshot",
@@ -163,7 +182,7 @@
         "excerpt": "solver_status=invalid_topology"
       }
     ],
-    "confidence": 0.82,
+    "confidence": 0.2,
     "risk_level": "high",
     "requires_confirmation": true
   }

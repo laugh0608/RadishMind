@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_flowsheet_edits`
 
-更新时间：2026-04-16
+更新时间：2026-04-18
 
 ## 任务目标
 
@@ -33,9 +33,34 @@
 - 同一组 local-edits 样本现也已横向扩到 `apiyi_cx`：`2026-04-16-radishflow-suggest-edits-poc-real-v56-apiyi-cx-local-edits/` 已确认 `compressor-evidence-gap-partial`、`multi-selection-single-actionable-target`、`pump-parameter-combo` 与 `valve-local-fix-vs-global-balance` 四条样本都能在首轮真实 capture 下直接收口到正式 `audit=4/4 pass`，没有再暴露新的 runtime 窄缺口；至此 local-edits 这组样本也已补齐 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 四个主 profile 的横向正式对照
 - 同一组 4 条 `mixed-risk / citation / reconnect` 顺序样本现也已补齐 `apiyi_cx`：`2026-04-16-radishflow-suggest-edits-poc-real-v57-apiyi-cx-mixed-risk-citation-reconnect/` 首轮真实 capture 暴露出的剩余问题已进一步收窄为 3 类 runtime 窄缺口，即“带 `latest_snapshot` 的双 action 局部修补样本仍应保持 `status=partial`”、“简单单-unit 语境下 stream 支撑 citation 不应再无条件带上父 unit”，以及“`flowdoc-*` 引用编号需按当前响应实际纳入的目标对象做紧凑稳定编号”
 - 对应正式批次现已落为 `2026-04-16-radishflow-suggest-edits-poc-real-v58-apiyi-cx-mixed-risk-citation-reconnect-recanonicalized/`，并确认 `mixed-risk-reconnect-plus-spec`、`citation-ordering-diagnostics-before-artifacts-before-snapshot`、`issue-citation-ordering-warning-artifact-before-snapshot` 与 `reconnect-connection-placeholder-ordering` 四条样本都已收口到正式 `audit=4/4 pass`；至此这组 `mixed-risk / citation / reconnect` 样本也已补齐 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 四个主 profile 的横向正式对照
-- 在真实 provider 主线上，当前 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 已先在同一条 `heater-multi-action` 样本上完成首轮对照；其中 `apiyi_cx / apiyi_de / apiyi_cc / apiyi_ch` 现也都已在同一组 4 条 mixed-risk / citation / reconnect 顺序样本上完成第二轮扩样本对照，`apiyi_de / apiyi_cc / apiyi_ch` 也都已在 `joint-selection-primary-focus` 与 `multi-unit-stream-primary-focus` 两条跨对象样本上完成第三轮扩样本验证，而 `apiyi_de / apiyi_cc / apiyi_ch` 现在也都已在 4 条 parameter / patch ordering 样本上完成第四轮扩样本验证；当前 `apiyi_cx / apiyi_de / apiyi_cc / apiyi_ch` 也都已在两条更复杂的 `cross-object-citation-interleaving` / `cross-object-warning-citation-ordering` 样本上完成第五轮扩样本验证，并分别收口到正式 `audit=2/2 pass`；同一组 profile 现在也已在两条 `cross-object-mixed-risk-three-action-ordering` / `cross-object-mixed-risk-reconnect-plus-pump-parameter` 样本上完成第六轮 mixed-risk + cross-object 组合验证，并全部收口到正式 `audit=2/2 pass`。其中 `apiyi_ch` 的 `v16` 在重放过程中暴露出的请求级 read-timeout 抖动，在这轮新的 mixed-risk 组合样本上仍未演变成正式质量阻塞；`apiyi_de` 仅出现过单次请求级 read-timeout retry，但最终未影响批次收口，因此当前更应继续把这类现象记为“可用性继续观察”的 provider 观察项，而不是 profile 分组错误。对应 runtime 也已补齐路径式 placeholder、`mass_flow_kg_per_h` / `mass_flow_kg_h`、`mass_flow_rate_kg_h`、`flow_rate_kg_h` 等流量占位别名、`operating pressure` / `pressure target` 到 `operating_pressure_kpa` 的参数占位提示收口、`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 等参数占位别名、`STREAM_DISCONNECTED` 与 `STREAM_SPEC_MISSING` 等 error issue 也按 canonical 前缀补齐 supporting citations 的窄范围收口、跨对象 citation 样本中的 issue/action/top-level citation 交错排序收口、`flowdoc-*` 编号进一步收紧为按当前响应实际纳入的目标对象做紧凑稳定编号、reconnect patch 中 `retain_existing_source_binding` 的稳定保留、warning issue citation 的 `diag -> artifact -> snapshot` 稳定排序收口、`suggest_flowsheet_edits` 任务里 malformed JSON 的多余闭合 brace 修复和错误 `flowdoc-*` 引用回退到 canonical target artifact 的收口，以及对 compressor / pump / valve 局部参数诊断进入 auto-synthesize 集合、空 `proposed_actions` 回收到稳定 `parameter_placeholders` / `parameter_updates`、placeholder-only 样本状态回收到 `ok`、dict/path 形态的 placeholder 回收到稳定字段名、provider 只给首项 placeholder 时与合成占位序列稳定合并，以及局部参数 patch 的 `risk_level` 收口回正式 `medium` 的窄范围修复
+- 在真实 provider 主线上，当前 `mixed-risk / citation / reconnect`、`cross-object primary-focus`、`parameter / patch ordering`、`cross-object citation`、`mixed-risk + cross-object`、`mixed-risk patch combo` 与 `local-edits` 七组样本族都已形成四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的正式收口；其中 `apiyi_ch` 在 `v16` 暴露出的请求级 read-timeout 抖动，在后续 mixed-risk 组合样本上仍未演变成正式质量阻塞，`apiyi_de` 也只出现过单次 read-timeout retry 观察项但未影响批次收口，因此当前更应继续把这类现象记为“可用性继续观察”的 provider 观察项，而不是 profile 分组错误。对应 runtime 也已补齐路径式 placeholder、`mass_flow_kg_per_h` / `mass_flow_kg_h`、`mass_flow_rate_kg_h`、`flow_rate_kg_h` 等流量占位别名、`operating pressure` / `pressure target` 到 `operating_pressure_kpa` 的参数占位提示收口、`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 等参数占位别名、`STREAM_DISCONNECTED` 与 `STREAM_SPEC_MISSING` 等 error issue 也按 canonical 前缀补齐 supporting citations 的窄范围收口、跨对象 citation 样本中的 issue/action/top-level citation 交错排序收口、`flowdoc-*` 编号进一步收紧为按当前响应实际纳入的目标对象做紧凑稳定编号、reconnect patch 中 `retain_existing_source_binding` 的稳定保留、warning issue citation 的 `diag -> artifact -> snapshot` 稳定排序收口、`suggest_flowsheet_edits` 任务里 malformed JSON 的多余闭合 brace 修复和错误 `flowdoc-*` 引用回退到 canonical target artifact 的收口，以及对 compressor / pump / valve 局部参数诊断进入 auto-synthesize 集合、空 `proposed_actions` 回收到稳定 `parameter_placeholders` / `parameter_updates`、placeholder-only 样本状态回收到 `ok`、dict/path 形态的 placeholder 回收到稳定字段名、provider 只给首项 placeholder 时与合成占位序列稳定合并，以及局部参数 patch 的 `risk_level` 收口回正式 `medium` 的窄范围修复
 - 上述入口在 `mock` 模式下仍会沿 `candidate_response_record -> manifest -> audit` 固定首批 committed PoC，而切到真实 provider 时也继续沿同一脚本入口收口，不另起第二套导入流程
 - 当前默认输出目录仍收口到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，让后续真实 batch 可以直接落正式目录
+- 当前已继续把 `default-early-trio` 往剩余缺口上前推两档正式真实批次：`2026-04-18-radishflow-suggest-edits-poc-real-v59-apiyi-cx-default-early-trio/` 已确认 `apiyi_cx` 在 `reconnect-outlet-001`、`stream-spec-placeholder-001` 与 `three-step-priority-chain-001` 三条样本上都能首轮真实 capture，并在更新当前样本基线后收口到 `audit=3/3 pass`
+- 同一组三条样本随后也已横向扩到 `apiyi_cc`：原始真实 capture `2026-04-18-radishflow-suggest-edits-poc-real-v60-apiyi-cc-default-early-trio/` 暴露出的剩余问题被收紧为一条更窄的 alias 缺口，即 `mass_flow_kgph` 还未归一到正式 `flow_rate_kg_per_h`
+- 在为 `services/runtime/inference_response.py` 补上这条 `mass_flow_kgph -> flow_rate_kg_per_h` 窄范围归一后，`v60` 也已通过 `scripts/import-candidate-response-dump-batch.py --recanonicalize-response` 重导为 `2026-04-18-radishflow-suggest-edits-poc-real-v61-apiyi-cc-default-early-trio-recanonicalized/`，并收口到正式 `audit=3/3 pass`
+- 同一组三条样本随后也已横向扩到 `apiyi_ch`：`2026-04-18-radishflow-suggest-edits-poc-real-v62-apiyi-ch-default-early-trio/` 已确认三条样本都能在首轮真实 capture 下直接收口到正式 `audit=3/3 pass`，没有复现 triad mixed-risk 样本族上那种样本级长超时，也没有新增 runtime canonicalization 缺口
+- 同组又继续横向扩到 `apiyi_de`：`2026-04-18-radishflow-suggest-edits-poc-real-v63-apiyi-de-default-early-trio/` 也已确认 `reconnect-outlet-001`、`stream-spec-placeholder-001` 与 `three-step-priority-chain-001` 三条样本都能在首轮真实 capture 下直接收口到正式 `audit=3/3 pass`，没有新增 alias、citation 顺序或 patch 收口问题
+- 至此 `default-early-trio` 这组三条早期样本也已完成 `default + apiyi_cx + apiyi_cc + apiyi_ch + apiyi_de` 的正式覆盖；结合本地 coverage 脚本，当前剩余未补齐四主 `apiyi` profile 的正式缺口已从 `9` 条收紧到 `6` 条，后续主线可正式转向 `default-selection-ordering` 与 `heater-follow-up`
+- 按这一主线继续往前推进后，`default-selection-ordering` 也已完成首条真实横向扩样：原始真实 capture `2026-04-18-radishflow-suggest-edits-poc-real-v64-apiyi-cx-default-selection-ordering/` 在 5 条样本上把差异收紧到两条更窄的 runtime 缺口，即 `HEATER_OUTLET_EFFECT_UNCONFIRMED` 的 stream-target warning issue 不应默认保留目标 stream artifact，以及 pump `UNIT_PARAMETER_INCOMPLETE` 在 `outlet pressure target` 语境下不应把 `operating_pressure_kpa` 一并并回正式 `parameter_placeholders`
+- 为支撑这组样本的正式收口，当前已把 `services/runtime/inference_response.py` 再收紧两格：一是 `stream` 目标的 `HEATER_OUTLET_EFFECT_UNCONFIRMED / COOLER_OUTLET_EFFECT_UNCONFIRMED` warning issue 不再默认带目标 stream citation，二是当 runtime 已把 pump 占位收紧到 `outlet_pressure_target_kpa` 时，不再把 provider 原始 `operating_pressure_kpa` 回流进正式 patch；同时也把 `services/runtime/inference_support.py` 的占位词推断表补上了 `outlet pressure target -> outlet_pressure_target_kpa` 的更窄映射
+- 对应正式批次现已落为 `2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/`，并确认 `action-citation-ordering-diagnostic-artifact-snapshot-001`、`issue-ordering-confirmed-before-unconfirmed-001`、`same-risk-input-first-ordering-001`、`selection-chronology-single-actionable-target-001` 与 `selection-order-preserved-001` 五条样本都已通过现有 dump 重导收口到正式 `audit=5/5 pass`
+
+## 当前剩余缺口
+
+以当前仓库内正式 `record` 目录为准，仍有 `6` 条样本未补齐四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的横向真实覆盖：
+
+- `default-selection-ordering`：`action-citation-ordering-diagnostic-artifact-snapshot-001`、`issue-ordering-confirmed-before-unconfirmed-001`、`same-risk-input-first-ordering-001`、`selection-chronology-single-actionable-target-001`、`selection-order-preserved-001`
+- `heater-follow-up`：`heater-multi-action-001`
+
+当前其中 `heater-multi-action-001` 只看到 `default + apiyi_de` 两档正式 `record`，尚缺 `apiyi_cx / apiyi_cc / apiyi_ch`；`default-selection-ordering` 这 5 条样本当前已推进到 `default + apiyi_cx`，还缺 `apiyi_cc / apiyi_ch / apiyi_de`。
+
+为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
+
+- `default-early-trio`
+- `default-selection-ordering`
+- `heater-follow-up`
+- `remaining-horizontal-gaps`
 
 ## 请求映射
 

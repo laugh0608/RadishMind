@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕被选中的 stream \"Product Outlet\"（stream-out-1）生成候选编辑提案。该流股从 Main Separator 出发，但未连接到任何下游消费单元或导出边界，导致拓扑无效（solver_status = invalid_topology）。由于流程图中目前没有可用的下游单元，提案以占位方式建议补全下游连接。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "requires_confirmation": true,
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Product Outlet 补全下游连接占位（添加导出边界或下游单元）",
+      "rationale": "诊断 STREAM_DISCONNECTED 表明 stream-out-1 没有任何 destination_unit_id 或 export sink。当前流程图仅包含一个 Separator 单元，无可直接复用的下游消费者。建议以 connection_placeholder 方式标记该流股需要一个下游目标：可以是新增的工艺单元（如换热器、储罐等），也可以是流程图的导出边界（Product Export Sink）。用户确认后再决定具体连接对象。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "stream-out-1"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "status": "partial",
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Product Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Product Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / stream-out-1",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "stream-out-1 Product Outlet source_unit_id=separator-1"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "summary": "当前围绕被选中的 stream \"Product Outlet\"（stream-out-1）生成候选编辑提案。该流股从 Main Separator 出发，但未连接到任何下游消费单元或导出边界，导致拓扑无效（solver_status = invalid_topology）。由于流程图中目前没有可用的下游单元，提案以占位方式建议补全下游连接。",
+  "risk_level": "high",
+  "confidence": 0.2
+}

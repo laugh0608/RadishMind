@@ -256,5 +256,35 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v58-apiyi-cx-mixed-risk-citation-reconnect-recanonicalized/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v58-apiyi-cx-mixed-risk-citation-reconnect-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v57-apiyi-cx-mixed-risk-citation-reconnect.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-16-radishflow-suggest-edits-poc-real-v58-apiyi-cx-mixed-risk-citation-reconnect-recanonicalized/records/2026-04-16-radishflow-suggest-edits-poc-real-v57-apiyi-cx-mixed-risk-citation-reconnect.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v59-apiyi-cx-default-early-trio/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v59-apiyi-cx-default-early-trio/2026-04-18-radishflow-suggest-edits-poc-real-v59-apiyi-cx-default-early-trio.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v59-apiyi-cx-default-early-trio/2026-04-18-radishflow-suggest-edits-poc-real-v59-apiyi-cx-default-early-trio.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v61-apiyi-cc-default-early-trio-recanonicalized/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v61-apiyi-cc-default-early-trio-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v60-apiyi-cc-default-early-trio.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v61-apiyi-cc-default-early-trio-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v60-apiyi-cc-default-early-trio.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v62-apiyi-ch-default-early-trio/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v62-apiyi-ch-default-early-trio/2026-04-18-radishflow-suggest-edits-poc-real-v62-apiyi-ch-default-early-trio.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v62-apiyi-ch-default-early-trio/2026-04-18-radishflow-suggest-edits-poc-real-v62-apiyi-ch-default-early-trio.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v63-apiyi-de-default-early-trio/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v63-apiyi-de-default-early-trio/2026-04-18-radishflow-suggest-edits-poc-real-v63-apiyi-de-default-early-trio.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v63-apiyi-de-default-early-trio/2026-04-18-radishflow-suggest-edits-poc-real-v63-apiyi-de-default-early-trio.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v64-apiyi-cx-default-selection-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v64-apiyi-cx-default-selection-ordering.audit.json"
   }
 ]

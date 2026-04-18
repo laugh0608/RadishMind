@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+  "request_id": "rf-suggest-edit-reconnect-outlet-001",
+  "captured_at": "2026-04-18T11:26:01Z",
+  "source": "captured_candidate_response",
+  "model": "gemini-3.1-pro-preview",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 22,
+    "selected_stream_ids": [
+      "stream-out-1"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED"
+    ]
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.95,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "系统检测到当前选中的物流 Product Outlet 处于下游未连接状态，导致求解拓扑无效。已生成为其分配下游出口占位符的候选修改提案，请审查。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "summary": "围绕当前被选中的物流 stream-out-1 缺失下游连接导致拓扑失效的问题生成候选提案。",
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Product Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "添加下游出口节点连接占位",
+        "rationale": "需要为断开的物流指定一个目标节点（如新增出口节点）以修复 invalid_topology 错误并允许求解器继续执行。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "stream-out-1"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      }
+    ],
+    "requires_confirmation": true,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Product Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-out-1",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-out-1 Product Outlet source_unit_id=separator-1"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "high"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v63-apiyi-de-default-early-trio",
+    "notes": "补齐 default-early-trio 在 apiyi_de 上的首轮正式真实 capture。"
+  }
+}

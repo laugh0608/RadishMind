@@ -376,6 +376,7 @@ def normalize_spec_placeholders(values: Any) -> list[str]:
         "mass_flow_rate": "flow_rate_kg_per_h",
         "mass_flow_rate_kg_h": "flow_rate_kg_per_h",
         "mass_flow_rate_kg_per_h": "flow_rate_kg_per_h",
+        "mass_flow_kgph": "flow_rate_kg_per_h",
         "mass_flow_kg_h": "flow_rate_kg_per_h",
         "mass_flow_kg_per_h": "flow_rate_kg_per_h",
     }
@@ -686,7 +687,13 @@ def build_suggest_edits_context_support_citation_ids(
     citation_ids: list[str] = []
     target_citation_id = target_citation_lookup.get((target_type, target_id))
     skip_target_citation = (
-        diagnostic_code == "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
+        (
+            diagnostic_code == "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
+            or (
+                target_type == "stream"
+                and diagnostic_code in {"HEATER_OUTLET_EFFECT_UNCONFIRMED", "COOLER_OUTLET_EFFECT_UNCONFIRMED"}
+            )
+        )
         and item_kind == "issue"
     )
     if target_citation_id and not skip_target_citation:
@@ -847,7 +854,11 @@ def synthesize_parameter_updates_from_diagnostics(
             parameter_placeholders.append("efficiency_percent")
             continue
         if diagnostic_code == "UNIT_PARAMETER_INCOMPLETE":
-            parameter_placeholders.extend(infer_parameter_placeholders(message))
+            inferred_placeholders = infer_parameter_placeholders(message)
+            if unit_kind == "pump" and "outlet_pressure_target_kpa" in inferred_placeholders:
+                parameter_placeholders.append("outlet_pressure_target_kpa")
+                continue
+            parameter_placeholders.extend(inferred_placeholders)
 
     if "PUMP_OUTLET_PRESSURE_TARGET_INVALID" in diagnostic_codes:
         pressure_update: dict[str, Any] = {
@@ -947,6 +958,12 @@ def merge_parameter_patch(
     if synthesized_parameter_placeholders:
         parameter_placeholders = list(synthesized_parameter_placeholders)
         for placeholder in existing_parameter_placeholders:
+            if (
+                placeholder == "operating_pressure_kpa"
+                and "outlet_pressure_target_kpa" in synthesized_parameter_placeholders
+                and placeholder not in synthesized_parameter_placeholders
+            ):
+                continue
             if placeholder not in parameter_placeholders:
                 parameter_placeholders.append(placeholder)
     elif parameter_updates:

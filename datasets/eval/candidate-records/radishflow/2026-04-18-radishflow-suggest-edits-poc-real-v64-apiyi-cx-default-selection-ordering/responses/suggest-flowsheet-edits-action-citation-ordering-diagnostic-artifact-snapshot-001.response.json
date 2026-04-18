@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的流股 product-14（Cooler Outlet）存在未连接下游消费者或导出端点的问题，生成一个仅针对该流股的最小候选提案。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cooler Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / product-14",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "product-14 Cooler Outlet source_unit_id=cooler-4"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 product-14 补充下游连接占位",
+      "rationale": "当前唯一直接诊断是该已选中流股缺少下游消费者或导出端点。由于请求中未提供可安全连接的现有单元或外送对象，最小且可审查的提案是在该流股上添加一个下游连接占位，等待人工确认具体去向。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "product-14"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Cooler Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "summary": "当前围绕已选中的流股 product-14（Cooler Outlet）存在未连接下游消费者或导出端点的问题，生成一个仅针对该流股的最小候选提案。",
+  "risk_level": "high",
+  "confidence": 0.2
+}
