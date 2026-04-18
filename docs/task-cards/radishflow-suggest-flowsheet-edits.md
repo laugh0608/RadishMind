@@ -53,18 +53,30 @@
 - 至此 `default-selection-ordering` 这 5 条 ordering 样本也已正式补齐 `default + apiyi_cx + apiyi_cc + apiyi_ch + apiyi_de` 的横向覆盖；配合 coverage 脚本复核，当前剩余未补齐四主 `apiyi` profile 的正式缺口已从 `6` 条进一步收紧到 `1` 条，主线下一步应集中收尾 `heater-follow-up`
 - 按这条唯一剩余主线继续推进后，`heater-follow-up` 的 `heater-multi-action-001` 也已在 `apiyi_cx / apiyi_cc / apiyi_ch` 三档上完成首轮真实 capture：`2026-04-18-radishflow-suggest-edits-poc-real-v71-apiyi-cx-heater-follow-up/`、`2026-04-18-radishflow-suggest-edits-poc-real-v72-apiyi-cc-heater-follow-up/` 与 `2026-04-18-radishflow-suggest-edits-poc-real-v73-apiyi-ch-heater-follow-up/` 都直接收口到正式 `audit=1/1 pass`，没有再新增 runtime canonicalization 缺口
 - 至此 `heater-follow-up` 也已正式补齐 `default + apiyi_cx + apiyi_cc + apiyi_ch + apiyi_de` 的横向覆盖；结合本地 coverage 脚本，`suggest_flowsheet_edits` 当前 `33` 条离线样本已全部补齐四主 `apiyi` profile 的正式真实覆盖，当前不再存在未补齐的横向正式缺口
+- 在此基础上，当前又把更高价值的 `mixed-risk-patch-combo` 样本族接进了下一轮 teacher profile 对照主线：`2026-04-18-radishflow-suggest-edits-poc-real-v74-default-mixed-risk-patch-combo/` 已用默认 provider fallback 链直接完成 `cross-object-mixed-risk-reconnect-spec-plus-pump-update-001` 与 `cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001` 两条样本的真实 capture，并首轮直接收口到正式 `audit=2/2 pass`；这轮没有暴露新的 runtime canonicalization 根因，说明这组更复杂的 `connection_placeholder + spec_placeholders + parameter_updates` 与同 action 内 `parameter_updates + parameter_placeholders` 混合 patch 形态，当前也已具备 `default + 四主 apiyi profile` 的五路 teacher 对照价值
 
 ## 当前剩余缺口
 
 以当前仓库内正式 `record` 目录为准，当前已不存在未补齐四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的横向真实覆盖缺口。
 
-`default-early-trio`、`default-selection-ordering` 与 `heater-follow-up` 三组当前都已完成 `default + 四主 apiyi profile` 的正式覆盖；下一轮若继续推进，不应再重复补这三组既有样本，而应转向新的 sample pool、teacher profile 对照深度，或重新盘点是否还有新的高价值样本族需要纳入正式横向覆盖。
+`default-early-trio`、`default-selection-ordering`、`heater-follow-up` 与 `mixed-risk-patch-combo` 四组当前都已完成 `default + 四主 apiyi profile` 的正式覆盖；下一轮若继续推进，不应再重复补这四组既有样本，而应继续沿更复杂 sample pool 的 default teacher 对照深度推进。
+
+当前 `scripts/eval/report_suggest_edits_profile_coverage.py` 已在“四主 apiyi coverage 全满”的前提下继续输出 `teacher_comparison_candidates`，用于指出下一组更值得补 `default` 对照的复杂样本族；按当前口径，后续更应优先考虑 `triad-mixed-risk-cross-object` 一类仍缺 default 真实对照、且更容易暴露 patch 结构漂移的样本组。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
 - `default-early-trio`
 - `default-selection-ordering`
 - `heater-follow-up`
+- `cross-object-citation`
+- `mixed-risk-cross-object`
+- `triad-mixed-risk-cross-object`
+- `mixed-risk-patch-combo`
+- `cross-object-primary-focus`
+- `parameter-ordering`
+- `range-sequence-ordering`
+- `local-edits`
+- `mixed-risk-citation-reconnect`
 - `remaining-horizontal-gaps`
 
 ## 请求映射

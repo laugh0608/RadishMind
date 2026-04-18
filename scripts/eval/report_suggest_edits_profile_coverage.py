@@ -37,6 +37,51 @@ RECOMMENDED_GROUPS = {
         "radishflow-suggest-flowsheet-edits-heater-multi-action-001",
     ],
 }
+TEACHER_COMPARISON_GROUPS = {
+    "triad-mixed-risk-cross-object": [
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+    ],
+    "mixed-risk-patch-combo": [
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+    ],
+    "mixed-risk-cross-object": [
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001",
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    ],
+    "cross-object-citation": [
+        "radishflow-suggest-flowsheet-edits-cross-object-citation-interleaving-001",
+        "radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+    ],
+    "range-sequence-ordering": [
+        "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+    ],
+    "cross-object-primary-focus": [
+        "radishflow-suggest-flowsheet-edits-joint-selection-primary-focus-001",
+        "radishflow-suggest-flowsheet-edits-multi-unit-stream-primary-focus-001",
+    ],
+    "parameter-ordering": [
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-detail-ordering-001",
+        "radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+    ],
+    "local-edits": [
+        "radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+        "radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+        "radishflow-suggest-flowsheet-edits-pump-parameter-combo-001",
+        "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+    ],
+    "mixed-risk-citation-reconnect": [
+        "radishflow-suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001",
+        "radishflow-suggest-flowsheet-edits-citation-ordering-diagnostics-before-artifacts-before-snapshot-001",
+        "radishflow-suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001",
+        "radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+    ],
+}
+TEACHER_COMPARISON_TARGET = "default"
 
 
 def parse_args() -> argparse.Namespace:
@@ -124,6 +169,28 @@ def build_report() -> dict[str, Any]:
                 "sample_ids": remaining_sample_ids,
             }
         )
+    teacher_comparison_candidates: list[dict[str, Any]] = []
+    for group_name, sample_ids_for_group in TEACHER_COMPARISON_GROUPS.items():
+        missing_default_sample_ids: list[str] = []
+        ready_profiles: set[str] = set()
+        for sample_id in sample_ids_for_group:
+            covered_profiles = coverage.get(sample_id, set())
+            if not all(profile in covered_profiles for profile in TARGET_PROFILES):
+                missing_default_sample_ids = []
+                break
+            ready_profiles.update(covered_profiles)
+            if TEACHER_COMPARISON_TARGET not in covered_profiles:
+                missing_default_sample_ids.append(sample_id)
+        if not missing_default_sample_ids:
+            continue
+        teacher_comparison_candidates.append(
+            {
+                "group_name": group_name,
+                "sample_ids": missing_default_sample_ids,
+                "ready_profiles": sorted(profile for profile in ready_profiles if profile != TEACHER_COMPARISON_TARGET),
+                "missing_teacher_profile": TEACHER_COMPARISON_TARGET,
+            }
+        )
     return {
         "schema_version": 1,
         "task": "radishflow-suggest-edits-profile-coverage",
@@ -133,6 +200,8 @@ def build_report() -> dict[str, Any]:
         "missing_count": len(missing_samples),
         "missing_samples": missing_samples,
         "recommended_groups": recommended_groups,
+        "teacher_comparison_target": TEACHER_COMPARISON_TARGET,
+        "teacher_comparison_candidates": teacher_comparison_candidates,
     }
 
 
@@ -151,6 +220,16 @@ def print_report(report: dict[str, Any]) -> None:
         print("recommended_groups:")
         for group in report["recommended_groups"]:
             print(f"  {group['group_name']}:")
+            for sample_id in group["sample_ids"]:
+                print(f"    - {sample_id}")
+    if report["teacher_comparison_candidates"]:
+        print("teacher_comparison_candidates:")
+        for group in report["teacher_comparison_candidates"]:
+            ready_profiles = ",".join(group["ready_profiles"]) if group["ready_profiles"] else "(none)"
+            print(
+                f"  {group['group_name']}: missing_teacher_profile={group['missing_teacher_profile']}"
+                f" ready_profiles={ready_profiles}"
+            )
             for sample_id in group["sample_ids"]:
                 print(f"    - {sample_id}")
 
