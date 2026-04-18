@@ -304,5 +304,23 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v71-apiyi-cx-heater-follow-up/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v71-apiyi-cx-heater-follow-up/2026-04-18-radishflow-suggest-edits-poc-real-v71-apiyi-cx-heater-follow-up.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v71-apiyi-cx-heater-follow-up/2026-04-18-radishflow-suggest-edits-poc-real-v71-apiyi-cx-heater-follow-up.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v72-apiyi-cc-heater-follow-up/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v72-apiyi-cc-heater-follow-up/2026-04-18-radishflow-suggest-edits-poc-real-v72-apiyi-cc-heater-follow-up.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v72-apiyi-cc-heater-follow-up/2026-04-18-radishflow-suggest-edits-poc-real-v72-apiyi-cc-heater-follow-up.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v73-apiyi-ch-heater-follow-up/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v73-apiyi-ch-heater-follow-up/2026-04-18-radishflow-suggest-edits-poc-real-v73-apiyi-ch-heater-follow-up.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v73-apiyi-ch-heater-follow-up/2026-04-18-radishflow-suggest-edits-poc-real-v73-apiyi-ch-heater-follow-up.audit.json"
   }
 ]

@@ -51,14 +51,14 @@
 - 在为 `services/runtime/inference_response.py` 补上这条 `flow_rate_kgh -> flow_rate_kg_per_h` 窄范围归一后，`v68` 也已通过 `scripts/import-candidate-response-dump-batch.py --recanonicalize-response` 重导为 `2026-04-18-radishflow-suggest-edits-poc-real-v69-apiyi-ch-default-selection-ordering-recanonicalized/`，并收口到正式 `audit=5/5 pass`
 - 最后一档 `apiyi_de` 也已完成首轮真实 capture：`2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/` 已确认 `default-selection-ordering` 的 5 条样本都能在首轮真实 capture 下直接收口到正式 `audit=5/5 pass`，没有再新增 runtime canonicalization 缺口
 - 至此 `default-selection-ordering` 这 5 条 ordering 样本也已正式补齐 `default + apiyi_cx + apiyi_cc + apiyi_ch + apiyi_de` 的横向覆盖；配合 coverage 脚本复核，当前剩余未补齐四主 `apiyi` profile 的正式缺口已从 `6` 条进一步收紧到 `1` 条，主线下一步应集中收尾 `heater-follow-up`
+- 按这条唯一剩余主线继续推进后，`heater-follow-up` 的 `heater-multi-action-001` 也已在 `apiyi_cx / apiyi_cc / apiyi_ch` 三档上完成首轮真实 capture：`2026-04-18-radishflow-suggest-edits-poc-real-v71-apiyi-cx-heater-follow-up/`、`2026-04-18-radishflow-suggest-edits-poc-real-v72-apiyi-cc-heater-follow-up/` 与 `2026-04-18-radishflow-suggest-edits-poc-real-v73-apiyi-ch-heater-follow-up/` 都直接收口到正式 `audit=1/1 pass`，没有再新增 runtime canonicalization 缺口
+- 至此 `heater-follow-up` 也已正式补齐 `default + apiyi_cx + apiyi_cc + apiyi_ch + apiyi_de` 的横向覆盖；结合本地 coverage 脚本，`suggest_flowsheet_edits` 当前 `33` 条离线样本已全部补齐四主 `apiyi` profile 的正式真实覆盖，当前不再存在未补齐的横向正式缺口
 
 ## 当前剩余缺口
 
-以当前仓库内正式 `record` 目录为准，仍有 `1` 条样本未补齐四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的横向真实覆盖：
+以当前仓库内正式 `record` 目录为准，当前已不存在未补齐四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的横向真实覆盖缺口。
 
-- `heater-follow-up`：`heater-multi-action-001`
-
-当前 `heater-multi-action-001` 只看到 `default + apiyi_de` 两档正式 `record`，尚缺 `apiyi_cx / apiyi_cc / apiyi_ch`；因此下一轮真实 capture 已不再需要继续横向补 `default-selection-ordering`，而应直接转向 `heater-follow-up`。
+`default-early-trio`、`default-selection-ordering` 与 `heater-follow-up` 三组当前都已完成 `default + 四主 apiyi profile` 的正式覆盖；下一轮若继续推进，不应再重复补这三组既有样本，而应转向新的 sample pool、teacher profile 对照深度，或重新盘点是否还有新的高价值样本族需要纳入正式横向覆盖。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
