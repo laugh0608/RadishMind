@@ -45,6 +45,7 @@
     "task": "radishflow-ghost-completion",
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/2026-04-11-radishflow-ghost-poc-real-v9-deepseek.manifest.json",
-    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/2026-04-11-radishflow-ghost-poc-real-v9-deepseek.audit.json"
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/2026-04-11-radishflow-ghost-poc-real-v9-deepseek.audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/2026-04-11-radishflow-ghost-poc-real-v9-deepseek.artifacts.json"
   }
 ]

@@ -100,6 +100,15 @@
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics`、`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 四个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
 
+当前 `RadishFlow` 两条已接线的 real batch 入口也都已补上最小 `artifacts.json`：
+
+- `run-radishflow-suggest-edits-poc-batch.py`
+- `run-radishflow-ghost-real-batch.py`
+
+它们当前会默认输出 `<collection-batch>.artifacts.json`，但口径仍刻意保持最小，只沉淀 `manifest / audit / output_root / records / responses / dumps` 的存在性和计数摘要，不直接复用 `Radish docs QA` 那份带 replay 推荐的编排 schema。
+
+对应 schema 当前单独落在 `datasets/eval/radishflow-batch-artifact-summary.schema.json`，适用于 `RadishFlow` 现阶段仍处于“先统一 formal batch 治理摘要，再补 replay / real-derived”的阶段性口径。
+
 当仓库主线进入 `M3` 后，当前建议优先从统一盘点入口查看三条真实 batch 治理链的状态：
 
 ```bash

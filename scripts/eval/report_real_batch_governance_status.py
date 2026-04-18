@@ -15,6 +15,9 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from report_suggest_edits_profile_coverage import build_report as build_suggest_edits_profile_coverage  # noqa: E402
+from radishflow_batch_artifact_summary import (  # noqa: E402
+    load_radishflow_batch_artifact_summary,
+)
 
 FIXTURE_ROOT = REPO_ROOT / "scripts/checks/fixtures"
 SUGGEST_EDITS_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-poc-batches.json"
@@ -89,6 +92,16 @@ def safe_bool(value: Any) -> bool:
     return bool(value)
 
 
+def load_optional_radishflow_artifact_summary(entry: dict[str, Any]) -> tuple[str, dict[str, Any] | None]:
+    summary_path_value = str(entry.get("artifact_summary") or "").strip()
+    if not summary_path_value:
+        return "", None
+    summary_path = resolve_repo_relative(summary_path_value)
+    if not summary_path.is_file():
+        raise SystemExit(f"artifact summary not found: {make_repo_relative(summary_path)}")
+    return make_repo_relative(summary_path), load_radishflow_batch_artifact_summary(summary_path)
+
+
 def summarize_batch(entry: dict[str, Any]) -> dict[str, Any]:
     record_dir = resolve_repo_relative(str(entry.get("record_dir") or "").strip())
     manifest_path = resolve_repo_relative(str(entry.get("manifest") or "").strip())
@@ -149,8 +162,10 @@ def count_eval_samples(pattern: str) -> int:
 
 
 def build_suggest_edits_chain() -> dict[str, Any]:
+    fixture_entries = load_json_list(SUGGEST_EDITS_BATCH_FIXTURE)
     batches = load_real_batches(SUGGEST_EDITS_BATCH_FIXTURE)
     latest_batch = batches[-1]
+    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
     coverage_report = build_suggest_edits_profile_coverage()
     teacher_candidates = list(coverage_report.get("teacher_comparison_candidates") or [])
     next_group = ""
@@ -175,24 +190,38 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             "next_teacher_comparison_group": next_group,
         },
         "governance": {
-            "level": "manifest_audit_and_profile_coverage",
-            "artifact_summary": False,
+            "level": (
+                "manifest_audit_profile_coverage_and_artifact_summary"
+                if artifact_summary is not None
+                else "manifest_audit_and_profile_coverage"
+            ),
+            "artifact_summary": artifact_summary is not None,
             "negative_replay_index": False,
             "cross_sample_negative_replay_index": False,
             "recommended_negative_replay_summary": False,
             "cross_sample_recommended_negative_replay_summary": False,
             "real_derived_negative_index": False,
         },
+        "artifact_summary": (
+            {
+                "path": artifact_summary_path,
+                "summary": artifact_summary.get("summary"),
+            }
+            if artifact_summary is not None
+            else None
+        ),
         "next_gap": (
             f"继续按 teacher_comparison_candidates 推进 default teacher 对照，当前优先 {next_group or 'range-sequence-ordering'}；"
-            "同时补仓库级 artifact summary / replay / coverage 统一盘点口径。"
+            "随后再补 replay / real-derived 的统一治理口径。"
         ),
     }
 
 
 def build_ghost_chain() -> dict[str, Any]:
+    fixture_entries = load_json_list(GHOST_BATCH_FIXTURE)
     batches = load_real_batches(GHOST_BATCH_FIXTURE)
     latest_batch = batches[-1]
+    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
     all_sample_ids = sorted({sample_id for batch in batches for sample_id in batch["sample_ids"]})
     total_eval_sample_count = count_eval_samples("datasets/eval/radishflow/suggest-ghost-completion-*.json")
     return {
@@ -212,16 +241,24 @@ def build_ghost_chain() -> dict[str, Any]:
             "scope_note": "当前正式真实 capture 仍集中在固定 PoC trio。",
         },
         "governance": {
-            "level": "manifest_audit_only",
-            "artifact_summary": False,
+            "level": "manifest_audit_and_artifact_summary" if artifact_summary is not None else "manifest_audit_only",
+            "artifact_summary": artifact_summary is not None,
             "negative_replay_index": False,
             "cross_sample_negative_replay_index": False,
             "recommended_negative_replay_summary": False,
             "cross_sample_recommended_negative_replay_summary": False,
             "real_derived_negative_index": False,
         },
+        "artifact_summary": (
+            {
+                "path": artifact_summary_path,
+                "summary": artifact_summary.get("summary"),
+            }
+            if artifact_summary is not None
+            else None
+        ),
         "next_gap": (
-            "补统一 coverage / artifact summary 盘点入口，并把真实 capture 从固定 trio 扩到下一批高价值链式样本。"
+            "继续把真实 capture 从固定 trio 扩到下一批高价值链式样本，并补 replay / coverage 的后续治理口径。"
         ),
     }
 

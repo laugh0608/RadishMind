@@ -18,6 +18,10 @@ from services.runtime.candidate_records import (  # noqa: E402
     candidate_response_record_from_dump,
     write_json_document,
 )
+from scripts.eval.radishflow_batch_artifact_summary import (  # noqa: E402
+    build_radishflow_batch_artifact_summary_document,
+    derive_artifact_summary_path,
+)
 from services.runtime.inference import (  # noqa: E402
     build_candidate_response_dump,
     validate_request_document,
@@ -158,6 +162,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest-output", default="", help="Optional manifest output path override.")
     parser.add_argument("--manifest-description", default="", help="Optional manifest description.")
     parser.add_argument("--report-output", default="", help="Optional audit report output path override.")
+    parser.add_argument(
+        "--artifact-summary-output",
+        default="",
+        help="Optional structured batch artifact summary output path override.",
+    )
     parser.add_argument("--resume", action="store_true", help="Skip already captured samples when outputs exist.")
     parser.add_argument(
         "--continue-on-error",
@@ -344,6 +353,12 @@ def derive_report_path(args: argparse.Namespace, output_root: Path) -> Path:
     return output_root / f"{args.collection_batch}.audit.json"
 
 
+def derive_artifact_summary_output_path(args: argparse.Namespace, output_root: Path) -> Path:
+    if args.artifact_summary_output.strip():
+        return resolve_repo_relative(args.artifact_summary_output)
+    return derive_artifact_summary_path(output_root, args.collection_batch)
+
+
 def derive_output_root(args: argparse.Namespace) -> Path:
     if args.output_root.strip():
         return resolve_repo_relative(args.output_root)
@@ -502,6 +517,7 @@ def main() -> int:
     output_root = derive_output_root(args)
     manifest_path = derive_manifest_path(args, output_root)
     report_path = derive_report_path(args, output_root)
+    artifact_summary_path = derive_artifact_summary_output_path(args, output_root)
     sample_paths = select_sample_paths(args)
     responses_dir = output_root / "responses"
     dumps_dir = output_root / "dumps"
@@ -632,6 +648,18 @@ def main() -> int:
         manifest_written=manifest_written,
         failed_samples=failed_samples,
     )
+    if manifest_written:
+        artifact_summary = build_radishflow_batch_artifact_summary_document(
+            output_root=output_root,
+            manifest_path=manifest_path,
+            audit_report_path=report_path,
+            capture_exit_code=1 if failed_samples else 0,
+            audit_requested=not args.skip_audit,
+            provider_override=args.provider,
+            model_override=args.model,
+        )
+        write_json_document(artifact_summary_path, artifact_summary)
+        result_document["artifact_summary_path"] = make_repo_relative(artifact_summary_path)
     print(json.dumps(result_document, ensure_ascii=False, indent=2))
 
     if failed_samples:

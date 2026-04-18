@@ -345,6 +345,7 @@
     "task": "radishflow-suggest-edits",
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.manifest.json",
-    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.audit.json"
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.artifacts.json"
   }
 ]

@@ -16,6 +16,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from services.runtime.real_derived_negative_index import load_real_derived_negative_index  # noqa: E402
+from scripts.eval.radishflow_batch_artifact_summary import (  # noqa: E402
+    build_radishflow_batch_artifact_summary_document,
+    derive_output_root_from_record_dir,
+)
 FIXTURE_DIR = REPO_ROOT / "scripts/checks/fixtures"
 
 
@@ -185,6 +189,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
+        REPO_ROOT / "datasets/eval/radishflow-batch-artifact-summary.schema.json",
         REPO_ROOT / "datasets/eval/radishflow-export-smoke-manifest.schema.json",
         REPO_ROOT / "datasets/eval/radishflow-export-smoke-summary.schema.json",
     ]
@@ -340,6 +345,9 @@ def check_generated_eval_metadata() -> None:
     artifact_summary_schema = json.loads(
         (REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json").read_text(encoding="utf-8")
     )
+    radishflow_artifact_summary_schema = json.loads(
+        (REPO_ROOT / "datasets/eval/radishflow-batch-artifact-summary.schema.json").read_text(encoding="utf-8")
+    )
     recommended_summary_schema = json.loads(
         (REPO_ROOT / "datasets/eval/recommended-negative-replay-summary.schema.json").read_text(encoding="utf-8")
     )
@@ -486,6 +494,30 @@ def check_generated_eval_metadata() -> None:
     run_python_script("check-radish-docs-qa-real-batch-dual-recommended-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-cross-sample-only-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-same-sample-only-summary.py", [])
+
+    for batch in [*RADISHFLOW_GHOST_REAL_BATCHES, *RADISHFLOW_SUGGEST_EDITS_POC_BATCHES]:
+        artifact_summary_path_value = str(batch.get("artifact_summary") or "").strip()
+        if not artifact_summary_path_value:
+            continue
+        artifact_summary_path = REPO_ROOT / artifact_summary_path_value
+        artifact_summary_document = json.loads(artifact_summary_path.read_text(encoding="utf-8"))
+        jsonschema.validate(artifact_summary_document, radishflow_artifact_summary_schema)
+        regenerated_artifact_summary = build_radishflow_batch_artifact_summary_document(
+            output_root=derive_output_root_from_record_dir(REPO_ROOT / batch["record_dir"]),
+            manifest_path=REPO_ROOT / batch["manifest"],
+            audit_report_path=REPO_ROOT / batch["audit_report"],
+            capture_exit_code=int((((artifact_summary_document or {}).get("execution") or {}).get("capture_exit_code")) or 0),
+            audit_requested=bool(
+                ((((artifact_summary_document or {}).get("artifacts") or {}).get("audit_report")) or {}).get("requested")
+            ),
+            provider_override=str(artifact_summary_document.get("provider") or "").strip(),
+            model_override=str(artifact_summary_document.get("model") or "").strip(),
+        )
+        assert_json_equal(
+            artifact_summary_document,
+            regenerated_artifact_summary,
+            label=artifact_summary_path_value,
+        )
 
     run_python_script(
         "build-real-derived-negative-index.py",

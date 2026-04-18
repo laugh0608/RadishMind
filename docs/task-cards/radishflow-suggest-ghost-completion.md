@@ -70,6 +70,7 @@
 - 第六批 `v7` 则继续暴露并收口了两条新的真实失败面：其一是当前 openrouter 默认 free 模型已被上游废弃，三条样本会直接 `404 deprecated`；其二是 `deepseek` 在 `empty` 样本上会把 `summary` 与 `empty_suggestion_reason.text` 写成内嵌 JSON 字符串。前者当前已通过 provider profile 切换与 `.env.example` 口径更新收口，后者则已通过只作用于 `radishflow / suggest_ghost_completion` 的摘要文本窄修复收口，并恢复到 `audit=3/3 pass`
 - 第七批 `v8` 则继续证明：在坚持“先试 openrouter”且先轮换 openrouter 候选模型后，本轮观察到的新增阻塞仍主要是 provider/model 可用性层面的 `HTTP 404` 与 `HTTP 429`，而不是新的任务级输出坏法；当前已按既定策略切到 `deepseek` fallback profile 完成正式 capture，并确认三条样本均可回归通过、且 `v7` 暴露的摘要 JSON 字符串漂移未再次出现
 - 第八批 `v9` 则继续把“先试 openrouter，再按情况切 provider”的边界推进到更细一层：本轮除了继续遇到默认 free 模型废弃、付费额度门槛与短窗口限流外，还观察到 `openrouter` 的 `nemotron-nano` 虽可完成 `Tab`/`empty` 样本，却在 `manual_only` 样本上退化成 project 名错误、空动作和错误 citation 结构的 schema-invalid JSON。当前这条坏法不属于适合通过 runtime 窄修复后正式导入的范围，因此只作为模型质量漂移观察项保留；正式入仓仍改由 `deepseek` fallback profile 完成，并确认当前未新增新的可治理导入/归一化失败面
+- 作为仓库主线转入 `M3` 治理收口后的首个配套动作，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 现也会默认写出 `<collection-batch>.artifacts.json`；对应最新正式批次 `2026-04-11-radishflow-ghost-poc-real-v9/` 已补最小 batch-level artifact summary，用于统一沉淀 `manifest / audit / output_root / records / responses / dumps` 的结构化治理摘要，而不再只有 `manifest + audit`
 
 当前这条 PoC 仍是轻量版：
 
@@ -78,6 +79,7 @@
 - 当前在继续扩批时，还应同时观察两件事：其一是真实 provider 在批处理场景下是否仍会出现单样本卡顿，其二是 `manual_only` 多动作输出是否还会继续暴露新的结构坏法；若前者继续复现，应优先继续收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
 - 若后续某一轮再次出现三条默认样本同时 `HTTP 429` 且零 capture 的情况，当前应先归类为 provider 侧容量/限流阻塞；这类现象最多驱动 capture 脚本健壮性修复或 provider 切换，不应误记成新的 `suggest_ghost_completion` 输出坏法
 - 若后续继续使用多 provider fallback 采集真实 batch，当前还应额外观察 provider 间的输出风格漂移，例如把本应是纯文本的 `summary` / `answer.text` 写成 JSON 字符串；这类现象若稳定复现，应优先在 runtime 做任务级窄修复，而不是把坏输出原样固化进正式批次
+- 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径；下一步更应回到真实 capture 扩批和后续 replay / coverage 治理，而不是继续停留在“只有 formal batch 文件但没有批次级摘要”的阶段
 
 ## 最小必需输入
 

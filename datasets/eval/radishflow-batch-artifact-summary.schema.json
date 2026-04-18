@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/datasets/eval/radishflow-batch-artifact-summary.schema.json",
+  "title": "RadishFlowBatchArtifactSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pipeline",
+    "project",
+    "task",
+    "eval_task",
+    "provider",
+    "collection_batch",
+    "source",
+    "output_root",
+    "execution",
+    "artifacts",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "pipeline": {
+      "type": "string",
+      "enum": [
+        "radishflow-suggest-edits-poc-batch",
+        "radishflow-ghost-completion-poc-batch"
+      ]
+    },
+    "project": {
+      "type": "string",
+      "const": "radishflow"
+    },
+    "task": {
+      "type": "string",
+      "enum": [
+        "suggest_flowsheet_edits",
+        "suggest_ghost_completion"
+      ]
+    },
+    "eval_task": {
+      "type": "string",
+      "enum": [
+        "radishflow-suggest-edits",
+        "radishflow-ghost-completion"
+      ]
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "mock",
+        "openai-compatible"
+      ]
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "collection_batch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "captured_candidate_response",
+        "simulated_candidate_response"
+      ]
+    },
+    "capture_origin": {
+      "type": "string",
+      "enum": [
+        "interactive_session",
+        "adapter_debug_dump",
+        "manual_fixture"
+      ]
+    },
+    "output_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capture_exit_code",
+        "audit_exit_code"
+      ],
+      "properties": {
+        "capture_exit_code": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest",
+        "audit_report",
+        "output_root",
+        "records",
+        "responses",
+        "dumps"
+      ],
+      "properties": {
+        "manifest": {
+          "$ref": "#/$defs/manifest_artifact"
+        },
+        "audit_report": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
+        "output_root": {
+          "$ref": "#/$defs/output_root_artifact"
+        },
+        "records": {
+          "$ref": "#/$defs/record_inventory_artifact"
+        },
+        "responses": {
+          "$ref": "#/$defs/directory_inventory_artifact"
+        },
+        "dumps": {
+          "$ref": "#/$defs/directory_inventory_artifact"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captured_record_count",
+        "discovered_record_count",
+        "matched_sample_count",
+        "passed_sample_count",
+        "failed_sample_count",
+        "violation_count",
+        "root_record_count",
+        "nested_record_count",
+        "response_file_count",
+        "dump_file_count"
+      ],
+      "properties": {
+        "captured_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "discovered_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "matched_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_sample_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violation_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "root_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nested_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "response_file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dump_file_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "staged_file_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "path",
+        "exists"
+      ],
+      "properties": {
+        "requested": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exists": {
+          "type": "boolean"
+        }
+      }
+    },
+    "manifest_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "exists",
+        "record_count"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "output_root_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "exists"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exists": {
+          "type": "boolean"
+        }
+      }
+    },
+    "directory_inventory_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "exists",
+        "file_count"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "record_inventory_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "exists",
+        "file_count",
+        "root_file_count",
+        "nested_file_count"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "root_file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nested_file_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
