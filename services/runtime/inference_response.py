@@ -789,9 +789,7 @@ def build_suggest_edits_context_support_citation_ids(
                 for stream_id in input_stream_ids:
                     input_stream_document = stream_by_id.get(stream_id) or {}
                     source_unit_id = str(input_stream_document.get("source_unit_id") or "").strip()
-                    source_unit_document = unit_by_id.get(source_unit_id) or {}
-                    source_unit_kind = str(source_unit_document.get("kind") or "").strip().lower()
-                    if source_unit_id and source_unit_id in selected_unit_ids and source_unit_kind == "pump":
+                    if source_unit_id and source_unit_id in selected_unit_ids:
                         append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", source_unit_id), ""))
             if snapshot_citation_id:
                 append_unique_citation_id(citation_ids, snapshot_citation_id)
@@ -1501,6 +1499,22 @@ def canonicalize_suggest_edits_response(
         if target_citation_id:
             action_target_citation_ids.append(target_citation_id)
             append_unique_citation_id(ordered_citation_ids, target_citation_id)
+    ordered_supporting_unit_citation_ids: list[str] = []
+    ordered_supporting_stream_citation_ids: list[str] = []
+    ordered_supporting_other_citation_ids: list[str] = []
+
+    def append_supporting_citation_id(citation_id: str) -> None:
+        normalized_citation_id = str(citation_id).strip()
+        if not normalized_citation_id:
+            return
+        if normalized_citation_id.startswith("flowdoc-unit-"):
+            append_unique_citation_id(ordered_supporting_unit_citation_ids, normalized_citation_id)
+            return
+        if normalized_citation_id.startswith("flowdoc-stream-"):
+            append_unique_citation_id(ordered_supporting_stream_citation_ids, normalized_citation_id)
+            return
+        append_unique_citation_id(ordered_supporting_other_citation_ids, normalized_citation_id)
+
     for action in normalized_actions:
         target = action.get("target") or {}
         target_type = str((target or {}).get("type") or "").strip().lower()
@@ -1509,19 +1523,25 @@ def canonicalize_suggest_edits_response(
         for citation_id in (action.get("citation_ids") or []):
             if citation_id.startswith("diag-") or citation_id == snapshot_citation_id or citation_id == target_citation_id:
                 continue
-            append_unique_citation_id(ordered_citation_ids, str(citation_id))
+            append_supporting_citation_id(str(citation_id))
     for issue in synthesized_issues:
         for citation_id in (issue.get("citation_ids") or []):
             if str(citation_id).startswith("diag-") or citation_id == snapshot_citation_id:
                 continue
-            append_unique_citation_id(ordered_citation_ids, str(citation_id))
+            append_supporting_citation_id(str(citation_id))
     for answer in coerced.get("answers") or []:
         if not isinstance(answer, dict):
             continue
         for citation_id in (answer.get("citation_ids") or []):
             if str(citation_id).startswith("diag-") or citation_id == snapshot_citation_id:
                 continue
-            append_unique_citation_id(ordered_citation_ids, str(citation_id))
+            append_supporting_citation_id(str(citation_id))
+    for citation_id in ordered_supporting_unit_citation_ids:
+        append_unique_citation_id(ordered_citation_ids, citation_id)
+    for citation_id in ordered_supporting_stream_citation_ids:
+        append_unique_citation_id(ordered_citation_ids, citation_id)
+    for citation_id in ordered_supporting_other_citation_ids:
+        append_unique_citation_id(ordered_citation_ids, citation_id)
     if snapshot_citation_id and snapshot_citation_id in referenced_citation_ids:
         append_unique_citation_id(ordered_citation_ids, snapshot_citation_id)
     for citation_id in referenced_citation_ids:
