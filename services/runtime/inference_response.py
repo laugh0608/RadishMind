@@ -371,6 +371,8 @@ def normalize_spec_placeholders(values: Any) -> list[str]:
         "pressure_bar": "pressure_kpa",
         "pressure_pa": "pressure_kpa",
         "flow_rate": "flow_rate_kg_per_h",
+        "flow_rate_kgh": "flow_rate_kg_per_h",
+        "flow_rate_kgph": "flow_rate_kg_per_h",
         "flow_rate_kg_h": "flow_rate_kg_per_h",
         "mass_flow": "flow_rate_kg_per_h",
         "mass_flow_rate": "flow_rate_kg_per_h",
@@ -534,6 +536,38 @@ def should_keep_suggest_edits_existing_action_target(
         and str((diagnostic or {}).get("target_id") or "").strip()
     }
     if (target_type, target_id) in diagnostic_targets:
+        target_diagnostics = [
+            diagnostic
+            for diagnostic in diagnostics
+            if str((diagnostic or {}).get("target_type") or "").strip().lower() == target_type
+            and str((diagnostic or {}).get("target_id") or "").strip() == target_id
+        ]
+        dependent_warning_codes = {
+            "SEPARATOR_STATE_DEPENDENT",
+            "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+            "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        }
+        if target_type == "unit" and target_diagnostics:
+            target_codes = {
+                str((diagnostic or {}).get("code") or "").strip()
+                for diagnostic in target_diagnostics
+            }
+            only_warning_diagnostics = all(
+                str((diagnostic or {}).get("severity") or "").strip().lower() == "warning"
+                for diagnostic in target_diagnostics
+            )
+            has_error_stream_diagnostic = any(
+                str((diagnostic or {}).get("target_type") or "").strip().lower() == "stream"
+                and str((diagnostic or {}).get("severity") or "").strip().lower() == "error"
+                for diagnostic in diagnostics
+            )
+            if (
+                only_warning_diagnostics
+                and target_codes
+                and target_codes.issubset(dependent_warning_codes)
+                and has_error_stream_diagnostic
+            ):
+                return False
         return True
 
     selected_unit_ids, selected_stream_ids, _, _ = build_selected_connection_maps(copilot_request)

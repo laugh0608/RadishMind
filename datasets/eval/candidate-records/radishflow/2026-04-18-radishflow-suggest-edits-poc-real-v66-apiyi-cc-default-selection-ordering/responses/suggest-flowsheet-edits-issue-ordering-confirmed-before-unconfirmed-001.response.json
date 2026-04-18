@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕选中的 Balance Heater (heater-4) 及其进出口流股 (feed-13, product-13) 生成候选编辑提案。诊断显示两个 error 级别问题：Cold Feed 缺少流量规格、Balance Heater 缺少出口温度控制目标参数；另有一个 warning 级别问题：Heater Outlet 的出口温度效应尚未确认，但该 warning 依赖于前两个 error 的修复结果，因此优先处理两个 error。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "diag-2",
+        "flowdoc-unit-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Cold Feed 补全流量规格占位符",
+      "rationale": "诊断 STREAM_SPEC_MISSING 指出 feed-13 缺少 flow rate。补充 flow_rate_kgph 占位符，使用户可填入实际值后解除该 error。此为规格补全操作，不改变拓扑。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-13"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kgph"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 Balance Heater 补全出口温度控制目标参数",
+      "rationale": "诊断 UNIT_PARAMETER_INCOMPLETE 指出 heater-4 处于 outlet_temperature 控制模式但缺少目标温度参数。补充 outlet_temperature_target_c 占位符，使用户可填入控制目标值后解除该 error。此为参数补全操作，不改变拓扑或控制模式。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "heater-4"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_temperature_c"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "status": "partial",
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Cold Feed is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Balance Heater is configured for outlet temperature control but outlet temperature target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cold Feed is missing flow rate specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Balance Heater is configured for outlet temperature control but outlet temperature target is missing."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-13",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-13 Cold Feed target_unit_id=heater-4"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-4",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-4 Balance Heater kind=Heater"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / product-13",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "product-13 Heater Outlet source_unit_id=heater-4"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "summary": "当前围绕选中的 Balance Heater (heater-4) 及其进出口流股 (feed-13, product-13) 生成候选编辑提案。诊断显示两个 error 级别问题：Cold Feed 缺少流量规格、Balance Heater 缺少出口温度控制目标参数；另有一个 warning 级别问题：Heater Outlet 的出口温度效应尚未确认，但该 warning 依赖于前两个 error 的修复结果，因此优先处理两个 error。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

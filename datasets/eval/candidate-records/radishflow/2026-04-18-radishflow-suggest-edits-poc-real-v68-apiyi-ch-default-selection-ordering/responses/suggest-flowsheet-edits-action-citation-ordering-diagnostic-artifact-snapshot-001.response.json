@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.75,
+  "summary": "针对选中的流股 product-14（Cooler Outlet）存在未连接下游消费者的拓扑错误，生成候选编辑提案：添加下游连接占位符以保留求解意图，同时避免自动创建具体单元。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到流股 product-14 未连接下游消费者。建议添加 connection_placeholder 标记待连接目标，而非直接创建具体单元，以保持拓扑修改的可审查性。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Cooler Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Cooler Outlet 添加下游连接占位符",
+      "rationale": "当前流股 product-14 处于悬空状态，导致求解器报告 invalid_topology。通过添加 connection_placeholder 明确标记需要下游连接，既保留用户后续指定具体单元类型的灵活性，又使文档拓扑意图清晰可追踪。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "product-14"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cooler Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / product-14",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "product-14 Cooler Outlet source_unit_id=cooler-4"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "high"
+}

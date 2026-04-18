@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+  "request_id": "rf-suggest-edit-action-citation-ordering-diagnostic-artifact-snapshot-001",
+  "captured_at": "2026-04-18T11:51:03Z",
+  "source": "captured_candidate_response",
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 73,
+    "selected_stream_ids": [
+      "product-14"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕流股 product-14（Cooler Outlet）生成候选编辑提案。诊断表明该流股在 Trim Cooler 出口后未连接任何下游消费单元或导出汇，导致求解器报告拓扑无效。提案建议为该流股添加一个下游连接占位，以消除 STREAM_DISCONNECTED 错误并恢复可求解拓扑。由于当前 flowsheet 中未提供具体的下游单元信息，patch 仅生成连接占位符，需用户确认并填入实际目标单元。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "requires_confirmation": true,
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Cooler Outlet 添加下游连接占位",
+        "rationale": "诊断 STREAM_DISCONNECTED 指出 product-14 没有下游消费者。添加 connection_placeholder 可标记该流股需要一个下游目标单元，用户确认后再绑定具体 unit，从而修复拓扑缺口。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "product-14"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Cooler Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cooler Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-14",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "product-14 Cooler Outlet source_unit_id=cooler-4"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕流股 product-14（Cooler Outlet）生成候选编辑提案。诊断表明该流股在 Trim Cooler 出口后未连接任何下游消费单元或导出汇，导致求解器报告拓扑无效。提案建议为该流股添加一个下游连接占位，以消除 STREAM_DISCONNECTED 错误并恢复可求解拓扑。由于当前 flowsheet 中未提供具体的下游单元信息，patch 仅生成连接占位符，需用户确认并填入实际目标单元。",
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v66-apiyi-cc-default-selection-ordering",
+    "notes": "继续补齐 default-selection-ordering 在 apiyi_cc 上的首轮正式真实 capture。"
+  }
+}

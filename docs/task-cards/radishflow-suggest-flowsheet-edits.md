@@ -45,15 +45,20 @@
 - 按这一主线继续往前推进后，`default-selection-ordering` 也已完成首条真实横向扩样：原始真实 capture `2026-04-18-radishflow-suggest-edits-poc-real-v64-apiyi-cx-default-selection-ordering/` 在 5 条样本上把差异收紧到两条更窄的 runtime 缺口，即 `HEATER_OUTLET_EFFECT_UNCONFIRMED` 的 stream-target warning issue 不应默认保留目标 stream artifact，以及 pump `UNIT_PARAMETER_INCOMPLETE` 在 `outlet pressure target` 语境下不应把 `operating_pressure_kpa` 一并并回正式 `parameter_placeholders`
 - 为支撑这组样本的正式收口，当前已把 `services/runtime/inference_response.py` 再收紧两格：一是 `stream` 目标的 `HEATER_OUTLET_EFFECT_UNCONFIRMED / COOLER_OUTLET_EFFECT_UNCONFIRMED` warning issue 不再默认带目标 stream citation，二是当 runtime 已把 pump 占位收紧到 `outlet_pressure_target_kpa` 时，不再把 provider 原始 `operating_pressure_kpa` 回流进正式 patch；同时也把 `services/runtime/inference_support.py` 的占位词推断表补上了 `outlet pressure target -> outlet_pressure_target_kpa` 的更窄映射
 - 对应正式批次现已落为 `2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/`，并确认 `action-citation-ordering-diagnostic-artifact-snapshot-001`、`issue-ordering-confirmed-before-unconfirmed-001`、`same-risk-input-first-ordering-001`、`selection-chronology-single-actionable-target-001` 与 `selection-order-preserved-001` 五条样本都已通过现有 dump 重导收口到正式 `audit=5/5 pass`
+- 同一组 5 条 ordering 样本随后又继续横向扩到 `apiyi_cc`：原始真实 capture `2026-04-18-radishflow-suggest-edits-poc-real-v66-apiyi-cc-default-selection-ordering/` 暴露出的剩余问题也收紧为两条 runtime 缺口，即 `flow_rate_kgph` 尚未归一到正式 `flow_rate_kg_per_h`，以及 warning-only 的依赖型 `separator-4` unit action 不应继续保留为正式 action target
+- 为支撑 `v66` 的正式收口，当前把 `services/runtime/inference_response.py` 再补了一条 `flow_rate_kgph -> flow_rate_kg_per_h` 的 alias 归一，并把 `should_keep_suggest_edits_existing_action_target()` 对 `SEPARATOR_STATE_DEPENDENT / HEATER_OUTLET_EFFECT_UNCONFIRMED / COOLER_OUTLET_EFFECT_UNCONFIRMED` 这组 warning-only 依赖型 unit target 的保留逻辑进一步收紧；随后基于现有 dump 重导为 `2026-04-18-radishflow-suggest-edits-poc-real-v67-apiyi-cc-default-selection-ordering-recanonicalized/`，并正式收口到 `audit=5/5 pass`
+- 同组再继续横向扩到 `apiyi_ch`：原始真实 capture `2026-04-18-radishflow-suggest-edits-poc-real-v68-apiyi-ch-default-selection-ordering/` 把剩余问题继续收紧到一条更窄的 alias 缺口，即 provider 给出的 `flow_rate_kgh` 尚未归一到正式 `flow_rate_kg_per_h`
+- 在为 `services/runtime/inference_response.py` 补上这条 `flow_rate_kgh -> flow_rate_kg_per_h` 窄范围归一后，`v68` 也已通过 `scripts/import-candidate-response-dump-batch.py --recanonicalize-response` 重导为 `2026-04-18-radishflow-suggest-edits-poc-real-v69-apiyi-ch-default-selection-ordering-recanonicalized/`，并收口到正式 `audit=5/5 pass`
+- 最后一档 `apiyi_de` 也已完成首轮真实 capture：`2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/` 已确认 `default-selection-ordering` 的 5 条样本都能在首轮真实 capture 下直接收口到正式 `audit=5/5 pass`，没有再新增 runtime canonicalization 缺口
+- 至此 `default-selection-ordering` 这 5 条 ordering 样本也已正式补齐 `default + apiyi_cx + apiyi_cc + apiyi_ch + apiyi_de` 的横向覆盖；配合 coverage 脚本复核，当前剩余未补齐四主 `apiyi` profile 的正式缺口已从 `6` 条进一步收紧到 `1` 条，主线下一步应集中收尾 `heater-follow-up`
 
 ## 当前剩余缺口
 
-以当前仓库内正式 `record` 目录为准，仍有 `6` 条样本未补齐四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的横向真实覆盖：
+以当前仓库内正式 `record` 目录为准，仍有 `1` 条样本未补齐四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的横向真实覆盖：
 
-- `default-selection-ordering`：`action-citation-ordering-diagnostic-artifact-snapshot-001`、`issue-ordering-confirmed-before-unconfirmed-001`、`same-risk-input-first-ordering-001`、`selection-chronology-single-actionable-target-001`、`selection-order-preserved-001`
 - `heater-follow-up`：`heater-multi-action-001`
 
-当前其中 `heater-multi-action-001` 只看到 `default + apiyi_de` 两档正式 `record`，尚缺 `apiyi_cx / apiyi_cc / apiyi_ch`；`default-selection-ordering` 这 5 条样本当前已推进到 `default + apiyi_cx`，还缺 `apiyi_cc / apiyi_ch / apiyi_de`。
+当前 `heater-multi-action-001` 只看到 `default + apiyi_de` 两档正式 `record`，尚缺 `apiyi_cx / apiyi_cc / apiyi_ch`；因此下一轮真实 capture 已不再需要继续横向补 `default-selection-ordering`，而应直接转向 `heater-follow-up`。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 

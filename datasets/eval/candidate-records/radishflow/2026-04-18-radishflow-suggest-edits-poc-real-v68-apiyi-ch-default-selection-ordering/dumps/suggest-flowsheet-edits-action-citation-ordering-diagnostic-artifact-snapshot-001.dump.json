@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-action-citation-ordering-diagnostic-artifact-snapshot-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+  "request_id": "rf-suggest-edit-action-citation-ordering-diagnostic-artifact-snapshot-001",
+  "captured_at": "2026-04-18T11:56:25Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v68-apiyi-ch-default-selection-ordering",
+    "notes": "继续补齐 default-selection-ordering 在 apiyi_ch 上的首轮正式真实 capture。"
+  },
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 73,
+    "selected_stream_ids": [
+      "product-14"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-action-citation-ordering-diagnostic-artifact-snapshot-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-119",
+          "units": [
+            {
+              "id": "cooler-4",
+              "kind": "Cooler",
+              "name": "Trim Cooler"
+            }
+          ],
+          "streams": [
+            {
+              "id": "product-14",
+              "name": "Cooler Outlet",
+              "source_unit_id": "cooler-4",
+              "specs": {
+                "temperature_c": 37,
+                "pressure_kpa": 182
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 73,
+      "selected_stream_ids": [
+        "product-14"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Cooler Outlet is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "product-14"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T23:05:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "kimi-k2.5",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-action-citation-ordering-diagnostic-artifact-snapshot-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-119\",\n        \"units\": [\n          {\n            \"id\": \"cooler-4\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Trim Cooler\"\n          }\n        ],\n        \"streams\": [\n          {\n            \"id\": \"product-14\",\n            \"name\": \"Cooler Outlet\",\n            \"source_unit_id\": \"cooler-4\",\n            \"specs\": {\n              \"temperature_c\": 37,\n              \"pressure_kpa\": 182\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 73,\n    \"selected_stream_ids\": [\n      \"product-14\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 0\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_DISCONNECTED\",\n        \"message\": \"Cooler Outlet is not connected to any downstream consumer or export sink.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"product-14\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_topology\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-07T23:05:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_ch",
+    "provider_profile_env": "APIYI_CH",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "choices": [
+      {
+        "message": {
+          "content": "{\"schema_version\":1,\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"request_id\":\"rf-suggest-edit-action-citation-ordering-diagnostic-artifact-snapshot-001\",\"status\":\"partial\",\"confidence\":0.75,\"summary\":\"针对选中的流股 product-14（Cooler Outlet）存在未连接下游消费者的拓扑错误，生成候选编辑提案：添加下游连接占位符以保留求解意图，同时避免自动创建具体单元。\",\"answers\":[{\"text\":\"检测到流股 product-14 未连接下游消费者。建议添加 connection_placeholder 标记待连接目标，而非直接创建具体单元，以保持拓扑修改的可审查性。\"}],\"issues\":[{\"code\":\"STREAM_DISCONNECTED\",\"message\":\"Cooler Outlet is not connected to any downstream consumer or export sink.\",\"severity\":\"error\",\"citations\":[\"diag-1\",\"flowdoc-stream-1\",\"snapshot-1\"]}],\"proposed_actions\":[{\"kind\":\"candidate_edit\",\"title\":\"为 Cooler Outlet 添加下游连接占位符\",\"target\":{\"type\":\"stream\",\"id\":\"product-14\"},\"rationale\":\"当前流股 product-14 处于悬空状态，导致求解器报告 invalid_topology。通过添加 connection_placeholder 明确标记需要下游连接，既保留用户后续指定具体单元类型的灵活性，又使文档拓扑意图清晰可追踪。\",\"patch\":{\"connection_placeholder\":{\"direction\":\"downstream\",\"description\":\"待连接至下游处理单元或产品出口\",\"suggested_unit_kinds\":[\"Separator\",\"ProductSink\"]}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-1\",\"flowdoc-stream-1\",\"snapshot-1\"]}],\"citations\":[{\"id\":\"diag-1\",\"type\":\"diagnostic\",\"content\":{\"code\":\"STREAM_DISCONNECTED\",\"message\":\"Cooler Outlet is not connected to any downstream consumer or export sink.\",\"severity\":\"error\",\"target_type\":\"stream\",\"target_id\":\"product-14\"}},{\"id\":\"flowdoc-stream-1\",\"type\":\"artifact\",\"content\":{\"id\":\"product-14\",\"name\":\"Cooler Outlet\",\"source_unit_id\":\"cooler-4\",\"specs\":{\"temperature_c\":37,\"pressure_kpa\":182}}},{\"id\":\"snapshot-1\",\"type\":\"snapshot\",\"content\":{\"solver_status\":\"invalid_topology\",\"residual_norm\":null,\"last_updated\":\"2026-04-07T23:05:00Z\"}}],\"requires_confirmation\":true}",
+          "reasoning_content": "",
+          "role": "assistant"
+        },
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null
+      }
+    ],
+    "object": "chat.completion",
+    "usage": {
+      "prompt_tokens": 1047,
+      "completion_tokens": 491,
+      "total_tokens": 1538,
+      "completion_tokens_details": {
+        "text_tokens": 491
+      },
+      "prompt_tokens_details": {
+        "text_tokens": 1047,
+        "cached_tokens": 0
+      }
+    },
+    "created": 1776513383,
+    "system_fingerprint": null,
+    "model": "kimi-k2.5",
+    "id": "chatcmpl-a91c1978-45a9-98f6-8c37-5e1c2b13b1cb"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.75,
+    "summary": "针对选中的流股 product-14（Cooler Outlet）存在未连接下游消费者的拓扑错误，生成候选编辑提案：添加下游连接占位符以保留求解意图，同时避免自动创建具体单元。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "检测到流股 product-14 未连接下游消费者。建议添加 connection_placeholder 标记待连接目标，而非直接创建具体单元，以保持拓扑修改的可审查性。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Cooler Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Cooler Outlet 添加下游连接占位符",
+        "rationale": "当前流股 product-14 处于悬空状态，导致求解器报告 invalid_topology。通过添加 connection_placeholder 明确标记需要下游连接，既保留用户后续指定具体单元类型的灵活性，又使文档拓扑意图清晰可追踪。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "product-14"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cooler Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-14",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "product-14 Cooler Outlet source_unit_id=cooler-4"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "requires_confirmation": true,
+    "risk_level": "high"
+  }
+}

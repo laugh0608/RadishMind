@@ -286,5 +286,23 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v64-apiyi-cx-default-selection-ordering.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v65-apiyi-cx-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v64-apiyi-cx-default-selection-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v67-apiyi-cc-default-selection-ordering-recanonicalized/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v67-apiyi-cc-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v66-apiyi-cc-default-selection-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v67-apiyi-cc-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v66-apiyi-cc-default-selection-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v69-apiyi-ch-default-selection-ordering-recanonicalized/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v69-apiyi-ch-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v68-apiyi-ch-default-selection-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v69-apiyi-ch-default-selection-ordering-recanonicalized/records/2026-04-18-radishflow-suggest-edits-poc-real-v68-apiyi-ch-default-selection-ordering.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering/2026-04-18-radishflow-suggest-edits-poc-real-v70-apiyi-de-default-selection-ordering.audit.json"
   }
 ]
