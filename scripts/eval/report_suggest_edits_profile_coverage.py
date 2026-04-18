@@ -129,16 +129,19 @@ def infer_profile(collection_batch: str) -> str:
 
 def collect_coverage() -> dict[str, set[str]]:
     coverage: dict[str, set[str]] = defaultdict(set)
-    for record_path in sorted(RECORD_ROOT.glob("*suggest-edits*poc-real*/records/*.record.json")):
-        record = load_json(record_path)
-        sample_id = str(record.get("sample_id") or "").strip()
-        if not sample_id:
+    for batch_dir in sorted(RECORD_ROOT.glob("*suggest-edits*poc-real*")):
+        if not batch_dir.is_dir():
             continue
-        capture_metadata = record.get("capture_metadata")
-        collection_batch = ""
-        if isinstance(capture_metadata, dict):
-            collection_batch = str(capture_metadata.get("collection_batch") or "").strip()
-        coverage[sample_id].add(infer_profile(collection_batch))
+        for record_path in sorted(batch_dir.rglob("*.record.json")):
+            record = load_json(record_path)
+            sample_id = str(record.get("sample_id") or "").strip()
+            if not sample_id:
+                continue
+            capture_metadata = record.get("capture_metadata")
+            collection_batch = ""
+            if isinstance(capture_metadata, dict):
+                collection_batch = str(capture_metadata.get("collection_batch") or "").strip()
+            coverage[sample_id].add(infer_profile(collection_batch))
     return coverage
 
 

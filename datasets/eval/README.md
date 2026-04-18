@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-04-07
+更新时间：2026-04-18
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -61,6 +61,8 @@
 - `scripts/check-radish-docs-qa-real-batch-cross-sample-only-summary.py`
 - `scripts/check-radish-docs-qa-real-batch-dual-recommended-summary.py`
 - `scripts/check-radish-docs-qa-real-batch-same-sample-only-summary.py`
+- `scripts/eval/report_suggest_edits_profile_coverage.py`
+- `scripts/eval/report_real_batch_governance_status.py`
 - `scripts/check-radish-docs-qa-eval.ps1`
 - `scripts/check-radish-docs-qa-eval.sh`
 - `scripts/import-candidate-response-dump.py`
@@ -92,9 +94,26 @@
 - `audit-candidate-record-batch.py` 用于把一批真实 `candidate_response_record` 临时注入现有样本，再复用当前回归规则做批量审计
 - `run-radish-docs-qa-real-batch.py` 当前在生成 `artifacts.json` 后，还可按推荐失败组顺序继续落一份 `recommended-negative-replay-summary.json`，把批量回放结果沉淀为可审计产物
 - `check-repo.py` 当前除了校验 committed 的 replay index / recommended summary，也会额外跑一次临时目录版的 dual-summary 自动生成检查，避免这条行为只依赖人工集成验证
+- `report_suggest_edits_profile_coverage.py` 用于盘点 `suggest_flowsheet_edits` 当前四主 `apiyi` 横向 coverage 与下一组 `teacher_comparison_candidates`
+- `report_real_batch_governance_status.py` 用于把 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条已接线任务的 formal real batch、latest audit、coverage、replay / real-derived 接线状态统一汇总到同一份 M3 盘点入口
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics`、`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 四个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
+
+当仓库主线进入 `M3` 后，当前建议优先从统一盘点入口查看三条真实 batch 治理链的状态：
+
+```bash
+python3 ./scripts/eval/report_real_batch_governance_status.py
+```
+
+这份报告当前会统一给出：
+
+- 三条链各自已提交的 formal real batch 数量与最新正式 batch
+- 最新正式 batch 的 `audit_clean` 状态，以及 `matched / passed / failed / violations`
+- `suggest_flowsheet_edits` 的四主 `apiyi` coverage 与下一组 `teacher_comparison_candidates`
+- `suggest_ghost_completion` 当前真实 capture 仍停留在哪个 real batch scope
+- `Radish docs QA` 当前是否已接上 `artifacts.json`、same-sample / cross-sample replay 和 real-derived negative index
+- 下一步主线缺口应该落在哪条治理动作上，而不是继续靠周志手工追批次
 
 其中 `explain_diagnostics` 当前已覆盖：
 
