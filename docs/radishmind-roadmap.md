@@ -73,7 +73,7 @@
 - 为编辑器辅助场景冻结 `suggest_ghost_completion` 的输入输出口径，并优先围绕 `FlashDrum` / `Mixer` 建立最小样本
 - 在 `suggest_ghost_completion` 上把 pre-model handoff、request assembly 与 response-level regression 推进到链式基线，并已先在三条链式模板上收口 `Tab / manual_only / empty / reject-no-retab / dismiss-no-retab / skip-no-retab`、same-candidate 一帧 cooldown 恢复 `Tab`、恢复窗口只看最近一条同 candidate 动作，以及 other-candidate 不共享 suppress 信号这四类交互边界
 - 将 `suggest_ghost_completion` 从“只有 golden/eval 样本”推进到“已具备正式导入链”的最小 PoC：补齐任务 prompt、最小 runtime、批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链；当前八批真实 batch 已正式收口到 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/`，固定 3 个代表样本覆盖 `Tab / manual_only / empty`，其中 `v3` 验证了 malformed JSON 的重新归一化修复，`v4` 暴露出批处理卡顿观察项，`v5` 则进一步收口了逐样本硬超时编排与 `manual_only` 多动作坏法修复，`v6` 验证了在 `openrouter` 限流时切到 `deepseek` fallback profile 仍可继续完成 3/3 pass 的真实 capture，`v7` 则进一步收口了 openrouter 默认模型废弃与 `summary` / `answer.text` JSON 字符串漂移两条新观察项，`v8` 继续确认了 openrouter 候选模型的 `404`/`429` 可用性阻塞可通过 fallback profile 绕过，而 `v9` 则进一步确认即便同 provider 的备选模型已可调用，也仍可能在 `manual_only` 主路径上暴露不可正式导入的 schema-invalid 质量漂移；当前正式批次因此继续由 `deepseek` fallback profile 完成收口
-- 将 `suggest_flowsheet_edits` 从“只有 fixture/eval 回归”推进到“已形成真实 teacher 批次治理入口”：当前除 `datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/` 这批最小 mock PoC 外，还已把正式真实批次推进到 `v58`，累计四十一批，并让现有 `33/33` 条离线样本至少各有一条真实覆盖；其中 `mixed-risk / citation / reconnect`、ordering 尾样、`mixed-risk patch combo`、cross-object primary-focus、parameter / patch ordering 与 local-edits 六组样本族都已完成 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 四主 profile 的横向正式收口。当前这条主线的重点已不再是反复兜底这些已闭环样本族，而是转向仍停留在 `default-only` 的早期样本池
+- 将 `suggest_flowsheet_edits` 从“只有 fixture/eval 回归”推进到“已形成真实 teacher 批次治理入口”：当前除 `datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/` 这批最小 mock PoC 外，还已把正式真实批次推进到 `v81`、累计五十八批，并让现有 `33/33` 条离线样本至少各有一条真实覆盖；其中 `mixed-risk / citation / reconnect`、ordering 尾样、`mixed-risk patch combo`、cross-object primary-focus、parameter / patch ordering 与 local-edits 六组样本族都已完成 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 四主 profile 的横向正式收口，`default` teacher 对照也已继续补到 `range-sequence-ordering`。当前这条主线的重点已不再是反复兜底这些已闭环样本族，而是转向剩余更高价值的 `default-only` 样本池
 - 在 `suggest_flowsheet_edits` 这条真实 capture 主线上，task-level canonicalization 也已从“只兜底最小结构合法”推进到“可稳定吸收真实 teacher 的窄范围任务漂移”：当前 `flowdoc-*` 编号已正式收紧为按当前响应实际纳入的目标对象做紧凑稳定编号，`flow_rate` / `flow_rate_kg_h` / `mass_flow_kg_per_h` / `mass_flow_kg_h` / `mass_flow_rate_kg_h`、`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 等近义占位会统一归一，路径式 placeholder 与多规格 `spec_placeholders` 顺序会回收到稳定字段名和固定顺序，`STREAM_DISCONNECTED` 等 error issue 的 citation、reconnect patch 中的 `retain_existing_source_binding=true`、warning citation 顺序、未转义中文引号与多余闭合 brace 的 malformed JSON 修补、placeholder-only patch 收口，以及 `efficiency_percent` 评审区间都已进入窄范围 runtime 治理；其中 `apiyi_ch` 在 triad 路径上的超时也已收紧为样本级 `210s` override，而不是 profile 全局默认 timeout 上调
 - 将 Python 工具链基线继续收口到仓库正式入口：当前已补最小 `pyproject.toml` / `uv` 配置声明，使后续脚本、校验与依赖治理不再只依赖隐式环境
 - 在上述正式导入 PoC 上继续接入后续真实教师批次，而不是继续无上限扩张 fallback 样本
@@ -207,8 +207,9 @@
 按现有正式口径判断：
 
 - `suggest_flowsheet_edits` 已完成 `33/33` 离线样本的四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 横向真实覆盖
-- `default` teacher 对照也已从旧 early pool 推进到更高价值 sample pool，并正式补齐 `mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object` 与 `cross-object-citation`
+- `default` teacher 对照也已从旧 early pool 推进到更高价值 sample pool，并正式补齐 `mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object`、`cross-object-citation` 与 `range-sequence-ordering`
 - `suggest_ghost_completion` 已具备真实 batch 入仓、dump 重导和正式 audit 链
+- `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 都已接上最小 `artifact summary`，`RadishFlow` 两条链不再停留在只有 `manifest + audit` 的治理层
 - `Radish docs QA` 已把 same-sample / cross-sample replay、recommended replay summary 与 real-derived negative index 接进仓库级治理链
 
 因此当前更合理的阶段判断是：
@@ -221,8 +222,8 @@
 
 接下来两周建议把仓库主线正式切成“`M2` 收尾 + `M3` 启动”混合态，并按以下顺序推进：
 
-1. 将 `RadishFlow suggest_flowsheet_edits` 的剩余 `default` teacher 对照继续按 `teacher_comparison_candidates` 推进，但每轮只补一组高价值 sample pool，避免再次回到单任务长期驻留；当前优先级依次为 `range-sequence-ordering`、`cross-object-primary-focus`、`parameter-ordering`、`mixed-risk-citation-reconnect`
-2. 将 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条真实 batch 治理链进一步统一到同一类 coverage / replay / artifact-summary / real-derived index 口径，减少靠周志人工跟踪批次进度
+1. 将 `RadishFlow suggest_flowsheet_edits` 的剩余 `default` teacher 对照继续按 `teacher_comparison_candidates` 推进，但每轮只补一组高价值 sample pool，避免再次回到单任务长期驻留；当前优先级依次为 `cross-object-primary-focus`、`parameter-ordering`、`mixed-risk-citation-reconnect`
+2. 将 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条真实 batch 治理链进一步统一到同一类 coverage / replay / artifact-summary / real-derived index 口径；其中 `RadishFlow` 两条链当前已补齐最小 `artifact summary`，下一步重点转向 replay / repeated-pattern / real-derived 的后续治理，减少靠周志人工跟踪批次进度
 3. 把 `M3` 的正式关注点从“单样本新增多少”切到“哪些任务已可稳定比较 teacher、哪些失败面已形成 repeated pattern、哪些仍缺结构化索引”
 4. 在上述治理链稳定后，再启动 `M4 minimind-v` 的 student/base 训练验证；在这之前，不再让训练主线抢跑到评测治理之前
 
