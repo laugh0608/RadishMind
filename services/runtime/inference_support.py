@@ -446,34 +446,30 @@ def build_suggest_edits_context_citations(copilot_request: dict[str, Any]) -> li
                 ordered_targets.append(("unit", normalized_unit_id))
 
         ordered_target_set = set(ordered_targets)
-        stream_citation_index = 0
         for stream_index, stream_document in enumerate(streams):
             if not isinstance(stream_document, dict):
                 continue
             target_id = str(stream_document.get("id") or "").strip()
             if not target_id or ("stream", target_id) not in ordered_target_set:
                 continue
-            stream_citation_index += 1
             citations.append(
                 {
-                    "id": f"flowdoc-stream-{stream_citation_index}",
+                    "id": f"flowdoc-stream-{stream_index + 1}",
                     "kind": "artifact",
                     "label": f"FlowsheetDocument / {target_id}",
                     "locator": f"artifact:flowsheet_document.streams[{stream_index}]",
                     "excerpt": summarize_flowdoc_object("stream", stream_document),
                 }
             )
-        unit_citation_index = 0
         for unit_index, unit_document in enumerate(units):
             if not isinstance(unit_document, dict):
                 continue
             target_id = str(unit_document.get("id") or "").strip()
             if not target_id or ("unit", target_id) not in ordered_target_set:
                 continue
-            unit_citation_index += 1
             citations.append(
                 {
-                    "id": f"flowdoc-unit-{unit_citation_index}",
+                    "id": f"flowdoc-unit-{unit_index + 1}",
                     "kind": "artifact",
                     "label": f"FlowsheetDocument / {target_id}",
                     "locator": f"artifact:flowsheet_document.units[{unit_index}]",

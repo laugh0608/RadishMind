@@ -713,6 +713,7 @@ def build_suggest_edits_context_support_citation_ids(
         copilot_request
     )
     unit_by_id, stream_by_id, _ = build_flowsheet_lookup(copilot_request)
+    complex_cross_object_context = len(selected_unit_ids) > 1
     diagnostics = [
         diagnostic
         for diagnostic in ((copilot_request.get("context") or {}).get("diagnostics") or [])
@@ -726,6 +727,7 @@ def build_suggest_edits_context_support_citation_ids(
             or (
                 target_type == "stream"
                 and diagnostic_code in {"HEATER_OUTLET_EFFECT_UNCONFIRMED", "COOLER_OUTLET_EFFECT_UNCONFIRMED"}
+                and not complex_cross_object_context
             )
         )
         and item_kind == "issue"
@@ -733,7 +735,6 @@ def build_suggest_edits_context_support_citation_ids(
     if target_citation_id and not skip_target_citation:
         append_unique_citation_id(citation_ids, target_citation_id)
 
-    complex_cross_object_context = len(selected_unit_ids) > 1
     if target_type == "stream":
         stream_document = stream_by_id.get(target_id) or {}
         source_unit_id = str(stream_document.get("source_unit_id") or "").strip()
@@ -792,6 +793,12 @@ def build_suggest_edits_context_support_citation_ids(
                     if source_unit_id and source_unit_id in selected_unit_ids:
                         append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", source_unit_id), ""))
             if snapshot_citation_id:
+                append_unique_citation_id(citation_ids, snapshot_citation_id)
+        elif diagnostic_code == "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT":
+            supporting_stream_ids = input_stream_ids or output_stream_ids
+            for stream_id in supporting_stream_ids:
+                append_unique_citation_id(citation_ids, target_citation_lookup.get(("stream", stream_id), ""))
+            if severity != "error" and snapshot_citation_id:
                 append_unique_citation_id(citation_ids, snapshot_citation_id)
         elif diagnostic_code.startswith("DOWNSTREAM_") or diagnostic_code.endswith("_STATE_DEPENDENT"):
             supporting_stream_ids = output_stream_ids or input_stream_ids
@@ -1333,8 +1340,8 @@ def canonicalize_suggest_edits_response(
         merged_action["requires_confirmation"] = True
         merged_action["citation_ids"] = build_suggest_edits_group_citation_ids(
             copilot_request=copilot_request,
-            diagnostics=[diagnostic for _, diagnostic in action_context_diagnostics_with_indexes],
-            diagnostic_indexes=[diagnostic_index for diagnostic_index, _ in action_context_diagnostics_with_indexes],
+            diagnostics=[diagnostic for _, diagnostic in target_diagnostics_with_indexes],
+            diagnostic_indexes=[diagnostic_index for diagnostic_index, _ in target_diagnostics_with_indexes],
             target_type=target_type,
             target_id=target_id,
             target_citation_lookup=target_citation_lookup,
@@ -1499,48 +1506,50 @@ def canonicalize_suggest_edits_response(
         if target_citation_id:
             action_target_citation_ids.append(target_citation_id)
             append_unique_citation_id(ordered_citation_ids, target_citation_id)
-    ordered_supporting_unit_citation_ids: list[str] = []
-    ordered_supporting_stream_citation_ids: list[str] = []
-    ordered_supporting_other_citation_ids: list[str] = []
+    action_target_citation_id_set = set(action_target_citation_ids)
+    ordered_unit_action_supporting_citation_ids: list[str] = []
+    ordered_stream_action_supporting_citation_ids: list[str] = []
+    ordered_residual_supporting_citation_ids: list[str] = []
 
-    def append_supporting_citation_id(citation_id: str) -> None:
+    def append_supporting_citation_id(citation_ids: list[str], citation_id: str) -> None:
         normalized_citation_id = str(citation_id).strip()
         if not normalized_citation_id:
             return
-        if normalized_citation_id.startswith("flowdoc-unit-"):
-            append_unique_citation_id(ordered_supporting_unit_citation_ids, normalized_citation_id)
+        if (
+            normalized_citation_id.startswith("diag-")
+            or normalized_citation_id == snapshot_citation_id
+            or normalized_citation_id in action_target_citation_id_set
+        ):
             return
-        if normalized_citation_id.startswith("flowdoc-stream-"):
-            append_unique_citation_id(ordered_supporting_stream_citation_ids, normalized_citation_id)
-            return
-        append_unique_citation_id(ordered_supporting_other_citation_ids, normalized_citation_id)
+        append_unique_citation_id(citation_ids, normalized_citation_id)
 
     for action in normalized_actions:
         target = action.get("target") or {}
         target_type = str((target or {}).get("type") or "").strip().lower()
-        target_id = str((target or {}).get("id") or "").strip()
-        target_citation_id = target_citation_lookup.get((target_type, target_id), "")
+        if target_type != "unit":
+            continue
         for citation_id in (action.get("citation_ids") or []):
-            if citation_id.startswith("diag-") or citation_id == snapshot_citation_id or citation_id == target_citation_id:
-                continue
-            append_supporting_citation_id(str(citation_id))
+            append_supporting_citation_id(ordered_unit_action_supporting_citation_ids, str(citation_id))
+    for action in normalized_actions:
+        target = action.get("target") or {}
+        target_type = str((target or {}).get("type") or "").strip().lower()
+        if target_type != "stream":
+            continue
+        for citation_id in (action.get("citation_ids") or []):
+            append_supporting_citation_id(ordered_stream_action_supporting_citation_ids, str(citation_id))
     for issue in synthesized_issues:
         for citation_id in (issue.get("citation_ids") or []):
-            if str(citation_id).startswith("diag-") or citation_id == snapshot_citation_id:
-                continue
-            append_supporting_citation_id(str(citation_id))
+            append_supporting_citation_id(ordered_residual_supporting_citation_ids, str(citation_id))
     for answer in coerced.get("answers") or []:
         if not isinstance(answer, dict):
             continue
         for citation_id in (answer.get("citation_ids") or []):
-            if str(citation_id).startswith("diag-") or citation_id == snapshot_citation_id:
-                continue
-            append_supporting_citation_id(str(citation_id))
-    for citation_id in ordered_supporting_unit_citation_ids:
+            append_supporting_citation_id(ordered_residual_supporting_citation_ids, str(citation_id))
+    for citation_id in ordered_unit_action_supporting_citation_ids:
         append_unique_citation_id(ordered_citation_ids, citation_id)
-    for citation_id in ordered_supporting_stream_citation_ids:
+    for citation_id in ordered_stream_action_supporting_citation_ids:
         append_unique_citation_id(ordered_citation_ids, citation_id)
-    for citation_id in ordered_supporting_other_citation_ids:
+    for citation_id in ordered_residual_supporting_citation_ids:
         append_unique_citation_id(ordered_citation_ids, citation_id)
     if snapshot_citation_id and snapshot_citation_id in referenced_citation_ids:
         append_unique_citation_id(ordered_citation_ids, snapshot_citation_id)

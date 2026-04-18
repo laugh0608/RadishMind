@@ -565,6 +565,8 @@
   "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v26-apiyi-cc-triad-mixed-risk-cross-object.audit.json",
   "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object.manifest.json",
   "datasets/eval/candidate-records/radishflow/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object/2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object.audit.json",
+  "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.manifest.json",
+  "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation.audit.json",
   "scripts/README.md",
   "scripts/__init__.py",
   "scripts/checks/__init__.py",
