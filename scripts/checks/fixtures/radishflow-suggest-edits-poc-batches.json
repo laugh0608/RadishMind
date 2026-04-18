@@ -328,5 +328,11 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v74-default-mixed-risk-patch-combo/records",
     "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v74-default-mixed-risk-patch-combo/2026-04-18-radishflow-suggest-edits-poc-real-v74-default-mixed-risk-patch-combo.manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v74-default-mixed-risk-patch-combo/2026-04-18-radishflow-suggest-edits-poc-real-v74-default-mixed-risk-patch-combo.audit.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v75-default-triad-mixed-risk-cross-object/records",
+    "manifest": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v75-default-triad-mixed-risk-cross-object/2026-04-18-radishflow-suggest-edits-poc-real-v75-default-triad-mixed-risk-cross-object.manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/2026-04-18-radishflow-suggest-edits-poc-real-v75-default-triad-mixed-risk-cross-object/2026-04-18-radishflow-suggest-edits-poc-real-v75-default-triad-mixed-risk-cross-object.audit.json"
   }
 ]
