@@ -201,7 +201,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 当前 `Radish docs QA` 的 same-sample / cross-sample replay 与 real-derived negative index 已统一纳入 `check-repo`，且 `2026-04-05` real batch 已无 singleton source；这条治理链的后续重点应转向跨 source 复合 drift、真实 captured 扩充，以及 `pattern` / `violation` 结构化升级时机评估
 - 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、latest-action precedence 下的 reject / dismiss / skip 恢复态、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
-- 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，并已将八批真实 capture 正式导入 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/`，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获并治理候选输出”；其中当前新增观察项已分成五层：批处理编排下的 provider 卡顿稳定性、`manual_only` 多动作输出的结构坏法、供应商级限流或路由不可用时通过备用 profile 继续保持真实 capture 连续性、同 provider 备选模型虽可调用但仍可能出现不可正式导入的任务质量漂移，以及不同 provider 输出风格漂移下的字段文本归一化
+- 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，且真实 batch 已统一迁到 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 短路径布局，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获并治理候选输出”；其中当前新增观察项已分成五层：批处理编排下的 provider 卡顿稳定性、`manual_only` 多动作输出的结构坏法、供应商级限流或路由不可用时通过备用 profile 继续保持真实 capture 连续性、同 provider 备选模型虽可调用但仍可能出现不可正式导入的任务质量漂移，以及不同 provider 输出风格漂移下的字段文本归一化
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
 - 对 `RadishFlow suggest_flowsheet_edits`，除顺序回归外，当前也已允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内除 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 这批 3 样本 mock PoC 外，还已把真实主线推进到 `v81`、累计五十八批正式真实 teacher 批次，并全部接入 `check-repo`。其中现有 `33/33` 条离线样本都至少已有一条真实批次覆盖，且 `mixed-risk / citation / reconnect`、ordering 尾样、`mixed-risk patch combo`、cross-object primary-focus、parameter / patch ordering 与 local-edits 六组样本族都已完成四主 profile 的横向正式收口；下一步则转向仍停留在 `default-only` 的高价值样本池，并以 `cross-object-primary-focus` 作为当前第一优先级，而不是继续在已闭环样本族上做重复扩样
 - 对 `RadishFlow suggest_flowsheet_edits`，task-level canonicalization 当前也已正式承接几类只在真实 teacher 输出中暴露出来的任务漂移：`flowdoc-*` 引用已从“按完整 `flowsheet_document` 原始对象顺序稳定编号”进一步收紧为“按当前响应实际纳入的目标对象做紧凑稳定编号”，`flow_rate` / `flow_rate_kg_h` / `mass_flow_kg_per_h` / `mass_flow_kg_h` / `mass_flow_rate_kg_h` 等近义占位会统一归一，`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 与 `operating pressure` / `pressure target` 这类 message 线索也会回收到稳定参数名，路径式 placeholder 会回收到稳定字段名，多规格 `spec_placeholders` 会稳定收口到 `temperature_c -> pressure_kpa -> flow_rate_kg_per_h`，`STREAM_DISCONNECTED` 与 `STREAM_SPEC_MISSING` 等 error issue 的 `issues[*].citation_ids` 会与 `diag -> artifact -> snapshot` 或 `diag -> artifact -> supporting artifact -> snapshot` 正式口径对齐，reconnect patch 里的 `connection_placeholder` 会稳定补回 `retain_existing_source_binding=true`，跨对象真实样本中的 issue/action/top-level citation 交错顺序也会统一收口到 `diagnostic -> target artifact -> supporting artifact -> snapshot`。同时，若真实输出出现多余闭合 brace、未转义中文引号、错误 `flowdoc-*` 引用编号、warning citation 漂移、同 target warning 遗漏到首条 action citation 组、placeholder-only patch 误保留 `parameter_updates`、或 `efficiency_percent` review range 偏离既有 `[60, 85]` 正式口径，也会优先在 provider/runtime 层做窄范围修复并回收到当前样本的 canonical 输出；`apiyi_ch` 在 triad 路径上的超时治理也已收紧为样本级 `210s` override，而不是 profile 全局默认超时提升
@@ -215,6 +215,10 @@ Adapter 映射回各自 UI / 日志 / 候选提案
   - `scripts/checks/` 承接仓库检查实现和静态 fixture
   - `scripts/eval/` 承接评测 runner 的共享实现与任务级校验
 - 后续若还需按项目拆分脚本，优先继续新增同层级目录，而不是把嵌套层级继续拉深
+- committed 相对路径默认应控制在 `180` 个字符以内；接近预算时，优先缩短目录语义或回收元数据，而不是继续拉长物理路径
+- `datasets/eval/candidate-records/radishflow/` 当前执行更严格的专项预算：committed 文件路径默认不超过 `120` 个字符，且根目录只保留 `README.md`、`batches/` 与 `dry-run-check/`
+- `RadishFlow` candidate-records 的正式物理布局固定为 `batches/YYYY-MM/<batch_key>/`，批次内只保留 `manifest.json`、`audit.json`、`artifacts.json`、`r/`、`o/` 与 `d/` 这些短结构名
+- 评测资产的长语义应优先沉淀到 `manifest`、`record`、fixture 与索引文档中，而不是重复编码进目录层级、文件名前缀或 sample slug
 
 ## 推荐仓库结构
 
@@ -277,7 +281,7 @@ RadishMind/
 - `scripts/run-radishflow-ghost-real-batch.py`
   - 为 `RadishFlow suggest_ghost_completion` 提供 3 样本轻量 PoC 批次入口
   - 串起 `capture -> manifest -> audit` 的最小闭环，默认覆盖 `Tab / manual_only / empty`
-  - 若未显式提供 `--output-root`，默认直接写入 `datasets/eval/candidate-records/radishflow/<collection_batch>/`
+  - 若未显式提供 `--output-root`，默认直接写入 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/`
 - `scripts/import-candidate-response-dump-batch.py`
   - 将一批 raw dump 正式导入为仓库内 `candidate_response_record`
   - 支持对 canonicalization 修复前采集的旧 dump 按当前 runtime 重新归一化后再生成正式 `manifest` 与 `audit`

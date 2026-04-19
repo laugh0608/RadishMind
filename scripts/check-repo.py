@@ -52,6 +52,10 @@ RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES = dict(load_fixture_json("radish-docs-real
 RADISHFLOW_GHOST_REAL_BATCHES = list(load_fixture_json("radishflow-ghost-real-batches.json") or [])
 RADISHFLOW_SUGGEST_EDITS_POC_BATCHES = list(load_fixture_json("radishflow-suggest-edits-poc-batches.json") or [])
 REQUIRED_FILES = list(load_fixture_json("required-files.json") or [])
+MAX_COMMITTED_PATH_LENGTH = 180
+RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH = 120
+RADISHFLOW_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radishflow")
+RADISHFLOW_ALLOWED_ROOT_ENTRIES = {"README.md", "batches", "dry-run-check"}
 
 def run_python_script(script_name: str, args: list[str]) -> None:
     result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / script_name), *args], cwd=REPO_ROOT)
@@ -135,6 +139,89 @@ def check_required_files() -> None:
     for relative_path in REQUIRED_FILES:
         if not (REPO_ROOT / relative_path).is_file():
             raise SystemExit(f"missing required file: {relative_path}")
+
+
+def iter_tracked_files() -> list[Path]:
+    result = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=False,
+        check=True,
+    )
+    tracked_paths: list[Path] = []
+    for raw_path in result.stdout.split(b"\0"):
+        if not raw_path:
+            continue
+        tracked_paths.append(Path(raw_path.decode("utf-8")))
+    return tracked_paths
+
+
+def check_path_budget() -> None:
+    tracked_files = iter_tracked_files()
+
+    too_long_paths = [
+        path.as_posix()
+        for path in tracked_files
+        if len(path.as_posix()) > MAX_COMMITTED_PATH_LENGTH
+    ]
+    if too_long_paths:
+        raise SystemExit(
+            "tracked path exceeds repository path budget "
+            f"({MAX_COMMITTED_PATH_LENGTH}): {too_long_paths[0]}"
+        )
+
+    radishflow_root = REPO_ROOT / RADISHFLOW_CANDIDATE_RECORDS_ROOT
+    unexpected_root_entries = sorted(
+        child.name
+        for child in radishflow_root.iterdir()
+        if child.name not in RADISHFLOW_ALLOWED_ROOT_ENTRIES
+    )
+    if unexpected_root_entries:
+        raise SystemExit(
+            "unexpected radishflow candidate-record root entry: "
+            f"{unexpected_root_entries[0]}"
+        )
+
+    radishflow_files = [
+        path
+        for path in tracked_files
+        if path.parts[: len(RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts)] == RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts
+    ]
+    for path in radishflow_files:
+        relative_path = path.as_posix()
+        if len(relative_path) > RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH:
+            raise SystemExit(
+                "radishflow candidate-record path exceeds strict budget "
+                f"({RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH}): {relative_path}"
+            )
+
+        relative_to_radishflow_root = path.relative_to(RADISHFLOW_CANDIDATE_RECORDS_ROOT)
+        if relative_to_radishflow_root.parts[0] == "batches":
+            if len(relative_to_radishflow_root.parts) < 4:
+                raise SystemExit(f"incomplete radishflow batch path: {relative_path}")
+            month_key = relative_to_radishflow_root.parts[1]
+            batch_key = relative_to_radishflow_root.parts[2]
+            if len(month_key) != 7 or month_key[4] != "-":
+                raise SystemExit(f"invalid radishflow batch month key: {relative_path}")
+            if not batch_key.startswith("rfb-") or len(batch_key) != 16:
+                raise SystemExit(f"invalid radishflow batch key: {relative_path}")
+
+    for batch in [*RADISHFLOW_GHOST_REAL_BATCHES, *RADISHFLOW_SUGGEST_EDITS_POC_BATCHES]:
+        record_dir = Path(batch["record_dir"])
+        if record_dir.parts[: len(RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts)] != RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts:
+            continue
+        relative_record_dir = record_dir.relative_to(RADISHFLOW_CANDIDATE_RECORDS_ROOT)
+        if len(relative_record_dir.parts) < 3 or relative_record_dir.parts[0] != "batches":
+            raise SystemExit(f"invalid radishflow record_dir layout: {record_dir.as_posix()}")
+        batch_key = relative_record_dir.parts[2]
+        if not batch_key.startswith("rfb-") or len(batch_key) != 16:
+            raise SystemExit(f"invalid radishflow record_dir layout: {record_dir.as_posix()}")
+        if len(relative_record_dir.parts) == 3:
+            continue
+        trailing_segment = relative_record_dir.parts[3]
+        if len(relative_record_dir.parts) != 4 or trailing_segment not in {"r", "records"}:
+            raise SystemExit(f"invalid radishflow record_dir layout: {record_dir.as_posix()}")
 
 
 def check_content_baseline() -> None:
@@ -557,6 +644,7 @@ def main() -> int:
     run_python_script("run-eval-regression.py", ["radishflow-ghost-completion", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-suggest-edits", "--fail-on-violation"])
 
+    check_path_budget()
     check_required_files()
     check_content_baseline()
     check_contract_schemas()

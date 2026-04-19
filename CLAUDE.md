@@ -172,6 +172,10 @@
 - 能规则化或工具化的逻辑，不强行压给模型
 - 训练数据优先从自有项目与可合成样本中生成
 - 优先建立评测，再扩大训练规模
+- committed 的物理路径只承载稳定短键与必要结构层级，不重复编码 `collection_batch`、长 sample slug、provider/profile 标签或其它长自然语言语义
+- 需要保留的长语义应回收到 `manifest`、`record`、fixture 或其它结构化元数据中，而不是继续拉长目录名和文件名
+- `RadishFlow` 的 committed `candidate-records` 正式布局固定为 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/`
+- 新增 `RadishFlow` 批次必须复用共享 helper 生成 `batch_key`、`sample_key`、`output_root` 与 `record_relpath`，禁止脚本各自手拼长路径
 - 每次新增/修改功能、修复 bug 或完成其他任务时，不应优先追求“最小修复方案”，而应优先考虑能否做出完善、稳妥的根治性修改
 - 避免连续叠加治标不治本的兜底逻辑；如果问题的根因已可定位，应优先修正根因，而不是无止境地继续包裹一层又一层 fallback
 
@@ -183,6 +187,9 @@
 - `scripts/` 根目录优先只保留稳定入口、跨平台包装脚本和少量高频直达命令；较长实现、内部 helper 与静态 fixture 应优先放入浅层分类子目录
 - 当前 `scripts/` 目录的推荐浅层分组为：`scripts/checks/`、`scripts/eval/`，后续如需继续扩展，可按项目或任务新增同层级分组，但不建议把层级拉深到三层以上
 - 新增脚本时，若只是被其他脚本导入的内部模块，不应再直接堆到 `scripts/` 根目录
+- committed 相对路径默认不得超过 `180` 个字符；若接近该预算，应优先缩短目录语义、提炼短键或把长描述迁回结构化元数据
+- `datasets/eval/candidate-records/radishflow/` 下的 committed 文件路径默认不得超过 `120` 个字符，且根目录只允许保留 `README.md`、`batches/` 与 `dry-run-check/`
+- 设计批次、评测或导出资产目录时，优先固定“短目录 + manifest 元数据”的治理口径，而不是引入更深层级或更长文件名
 
 ## 常见偏航点
 

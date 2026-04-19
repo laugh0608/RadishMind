@@ -239,6 +239,7 @@
 - 建议可执行率：patch 粒度足够小，能被后续命令层映射为候选编辑
 - 风险分级正确率：高风险拓扑或关键配置调整不得降级标注
 - 多动作顺序稳定性：同一输入下，多条 `candidate_edit` 的优先级顺序不应随机变化
+- committed 批次路径预算：正式 `candidate-records` 应复用 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 布局，并把长语义保留在 `manifest` / `record` 元数据内
 
 ## 非目标
 

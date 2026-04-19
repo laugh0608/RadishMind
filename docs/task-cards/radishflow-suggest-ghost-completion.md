@@ -34,23 +34,14 @@
 - 已补任务 prompt：[radishflow-suggest-ghost-completion-system.md](../../prompts/tasks/radishflow-suggest-ghost-completion-system.md)
 - 已补最小 runtime：`services/runtime/inference.py` 与 [run-copilot-inference.py](../../scripts/run-copilot-inference.py) 现已支持 `radishflow / suggest_ghost_completion`
 - 已补轻量批次入口：[run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py)，默认固定 3 个代表样本，覆盖 `Tab / manual_only / empty`
-- 上述批次入口当前若未显式传 `--output-root`，会默认落到 `datasets/eval/candidate-records/radishflow/<collection_batch>/`，减少后续真实 batch 入仓时的人工路径拼接
+- 上述批次入口当前若未显式传 `--output-root`，会默认落到 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/`，减少后续真实 batch 入仓时的人工路径拼接，并把长语义留在 `manifest` 元数据
 - 上述批次入口当前也已从“单进程多请求 capture”收口为“逐样本单进程 capture + openai-compatible provider 单样本硬超时”，避免单条真实 provider 请求失控时把整批卡死
 - `datasets/eval/radishflow-task-sample.schema.json` 当前已支持外部 `candidate_response_record`，因此真实或模拟 capture 可回灌到同一条 `manifest -> audit` 校验链
 - 已补批次导入入口：[import-candidate-response-dump-batch.py](../../scripts/import-candidate-response-dump-batch.py)，可将一批 raw dump 重新归一化后正式导入仓库
 - 单条 dump 导入入口 [import-candidate-response-dump.py](../../scripts/import-candidate-response-dump.py) 当前也已支持 `--recanonicalize-response`，用于处理 canonicalization 修复前采集的旧 dump
 - 已补两条窄范围 malformed JSON 修复：针对 `radishflow / suggest_ghost_completion` 的稳定 provider 坏法，当前会在首次 `json.loads` 失败后尝试修复“多闭合一个 `}`”以及 `manual_only` 多动作输出中提前关掉 `proposed_actions` / `answers` 作用域的坏法，再继续走既有 canonicalizer，避免把接近完整的真实输出直接固化成 `MODEL_OUTPUT_NOT_JSON`
 
-当前已正式入仓的真实 batch 位于：
-
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2)
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3)
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4)
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5)
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6)
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7)
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8)
-- [datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/](../../datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9)
+当前已正式入仓的真实 batch 统一位于 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 短路径目录；批次内固定使用 `manifest.json`、`audit.json`、`artifacts.json`、`r/`、`o/` 与 `d/` 这些短结构名，而不是继续把长 `collection_batch` 和 sample slug 直接编码到物理路径。
 
 八批当前都只收口同一组 3 条 record：
 
