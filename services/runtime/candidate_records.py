@@ -21,6 +21,9 @@ SHORT_LAYOUT_BATCHES_DIR = "batches"
 SHORT_LAYOUT_RECORDS_DIR = "r"
 SHORT_LAYOUT_RESPONSES_DIR = "o"
 SHORT_LAYOUT_DUMPS_DIR = "d"
+LEGACY_LAYOUT_RECORDS_DIR = "records"
+LEGACY_LAYOUT_RESPONSES_DIR = "responses"
+LEGACY_LAYOUT_DUMPS_DIR = "dumps"
 
 TASK_SAMPLE_KEY_PREFIXES = {
     "suggest_flowsheet_edits": "sfe",
@@ -38,6 +41,18 @@ def stable_short_key(value: str, *, prefix: str, length: int = 12) -> str:
 
 def uses_short_candidate_record_layout(project: str) -> bool:
     return str(project or "").strip() in SHORT_LAYOUT_PROJECTS
+
+
+def uses_short_candidate_record_output_root(output_root: Path) -> bool:
+    resolved = output_root.resolve()
+    return resolved.parent.parent.name == SHORT_LAYOUT_BATCHES_DIR
+
+
+def derive_legacy_candidate_sample_stem(sample_id: str) -> str:
+    normalized = str(sample_id or "").strip()
+    if normalized.startswith("radish-"):
+        return normalized[len("radish-") :]
+    return normalized
 
 
 def derive_collection_batch_month(collection_batch: str) -> str:
@@ -94,15 +109,27 @@ def derive_candidate_batch_artifact_summary_path(output_root: Path) -> Path:
 
 
 def derive_candidate_batch_records_dir(output_root: Path) -> Path:
-    return output_root / SHORT_LAYOUT_RECORDS_DIR
+    return output_root / (
+        SHORT_LAYOUT_RECORDS_DIR
+        if uses_short_candidate_record_output_root(output_root)
+        else LEGACY_LAYOUT_RECORDS_DIR
+    )
 
 
 def derive_candidate_batch_responses_dir(output_root: Path) -> Path:
-    return output_root / SHORT_LAYOUT_RESPONSES_DIR
+    return output_root / (
+        SHORT_LAYOUT_RESPONSES_DIR
+        if uses_short_candidate_record_output_root(output_root)
+        else LEGACY_LAYOUT_RESPONSES_DIR
+    )
 
 
 def derive_candidate_batch_dumps_dir(output_root: Path) -> Path:
-    return output_root / SHORT_LAYOUT_DUMPS_DIR
+    return output_root / (
+        SHORT_LAYOUT_DUMPS_DIR
+        if uses_short_candidate_record_output_root(output_root)
+        else LEGACY_LAYOUT_DUMPS_DIR
+    )
 
 
 def derive_candidate_batch_record_path(
@@ -111,8 +138,12 @@ def derive_candidate_batch_record_path(
     task: str,
     sample_id: str,
 ) -> Path:
-    sample_key = derive_candidate_sample_key(task=task, sample_id=sample_id)
-    return derive_candidate_batch_records_dir(output_root) / f"{sample_key}.record.json"
+    file_stem = (
+        derive_candidate_sample_key(task=task, sample_id=sample_id)
+        if uses_short_candidate_record_output_root(output_root)
+        else derive_legacy_candidate_sample_stem(sample_id)
+    )
+    return derive_candidate_batch_records_dir(output_root) / f"{file_stem}.record.json"
 
 
 def derive_candidate_batch_response_path(
@@ -121,8 +152,12 @@ def derive_candidate_batch_response_path(
     task: str,
     sample_id: str,
 ) -> Path:
-    sample_key = derive_candidate_sample_key(task=task, sample_id=sample_id)
-    return derive_candidate_batch_responses_dir(output_root) / f"{sample_key}.response.json"
+    file_stem = (
+        derive_candidate_sample_key(task=task, sample_id=sample_id)
+        if uses_short_candidate_record_output_root(output_root)
+        else derive_legacy_candidate_sample_stem(sample_id)
+    )
+    return derive_candidate_batch_responses_dir(output_root) / f"{file_stem}.response.json"
 
 
 def derive_candidate_batch_dump_path(
@@ -131,8 +166,12 @@ def derive_candidate_batch_dump_path(
     task: str,
     sample_id: str,
 ) -> Path:
-    sample_key = derive_candidate_sample_key(task=task, sample_id=sample_id)
-    return derive_candidate_batch_dumps_dir(output_root) / f"{sample_key}.dump.json"
+    file_stem = (
+        derive_candidate_sample_key(task=task, sample_id=sample_id)
+        if uses_short_candidate_record_output_root(output_root)
+        else derive_legacy_candidate_sample_stem(sample_id)
+    )
+    return derive_candidate_batch_dumps_dir(output_root) / f"{file_stem}.dump.json"
 
 
 def derive_output_root_from_record_path(record_path: Path) -> Path:
@@ -286,8 +325,9 @@ def build_candidate_record_batch_manifest(
     capture_origins: list[str] = []
     seen_record_ids: set[str] = set()
     output_roots: set[Path] = set()
+    ordered_records: list[tuple[str, str, Path, dict[str, Any]]] = []
 
-    for path in sorted(record_paths):
+    for path in record_paths:
         record = load_json_document(path)
         ensure_schema(record, RECORD_SCHEMA_PATH, make_repo_relative(path))
 
@@ -304,6 +344,7 @@ def build_candidate_record_batch_manifest(
         capture_metadata = record.get("capture_metadata") or {}
         collection_batches.append(str(capture_metadata.get("collection_batch") or "").strip())
         capture_origins.append(str(capture_metadata.get("capture_origin") or "").strip())
+        ordered_records.append((sample_id, record_id, path, record))
 
     project = project_override.strip() or collect_unique(projects, "project")
     task = task_override.strip() or collect_unique(tasks, "task")
@@ -349,10 +390,9 @@ def build_candidate_record_batch_manifest(
     if description.strip():
         manifest["description"] = description.strip()
 
-    for path in sorted(record_paths):
-        record = load_json_document(path)
-        record_id = str(record.get("record_id") or "").strip()
-        sample_id = str(record.get("sample_id") or "").strip()
+    ordered_records.sort(key=lambda item: (item[0], item[1], make_repo_relative(item[2])))
+
+    for sample_id, record_id, path, _record in ordered_records:
         entry: dict[str, str] = {
             "record_id": record_id,
             "sample_id": sample_id,

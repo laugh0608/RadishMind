@@ -20,19 +20,12 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from services.runtime.candidate_records import (  # noqa: E402
+    LEGACY_LAYOUT_RECORDS_DIR,
+    SHORT_LAYOUT_RECORDS_DIR,
     build_candidate_record_batch_manifest,
     make_repo_relative,
     resolve_relative_to_repo,
     write_json_document,
-)
-
-IGNORED_JSON_SUFFIXES = (
-    ".manifest.json",
-    ".audit.json",
-    ".artifacts.json",
-    ".negative-replay-index.json",
-    ".real-derived-index.json",
-    ".summary.json",
 )
 
 
@@ -59,21 +52,31 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def resolve_record_file_dir(record_dir: Path) -> Path:
+    for child_dir_name in (SHORT_LAYOUT_RECORDS_DIR, LEGACY_LAYOUT_RECORDS_DIR):
+        child_dir = record_dir / child_dir_name
+        if child_dir.is_dir() and any(child_dir.glob("*.record.json")):
+            return child_dir
+    return record_dir
+
+
 def main() -> int:
     args = parse_args()
     record_dir = resolve_relative_to_repo(args.record_dir)
     output_path = resolve_relative_to_repo(args.output)
 
+    if not record_dir.is_dir() and record_dir.name in {SHORT_LAYOUT_RECORDS_DIR, LEGACY_LAYOUT_RECORDS_DIR}:
+        parent_dir = record_dir.parent
+        if parent_dir.is_dir():
+            record_dir = parent_dir
+
     if not record_dir.is_dir():
         raise SystemExit(f"record directory does not exist: {args.record_dir}")
 
-    record_paths = sorted(
-        path
-        for path in record_dir.glob("*.json")
-        if not any(path.name.endswith(suffix) for suffix in IGNORED_JSON_SUFFIXES)
-    )
+    record_file_dir = resolve_record_file_dir(record_dir)
+    record_paths = sorted(record_file_dir.glob("*.record.json"))
     if len(record_paths) == 0:
-        raise SystemExit(f"no candidate record files found in: {args.record_dir}")
+        raise SystemExit(f"no candidate record files found in: {make_repo_relative(record_file_dir)}")
 
     manifest = build_candidate_record_batch_manifest(
         record_paths,

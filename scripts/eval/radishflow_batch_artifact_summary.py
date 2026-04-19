@@ -59,6 +59,11 @@ def collect_record_paths(output_root: Path) -> list[Path]:
     return sorted(path for path in output_root.rglob("*.record.json") if path.is_file())
 
 
+def uses_short_layout_output_root(output_root: Path) -> bool:
+    resolved = output_root.resolve()
+    return resolved.parent.parent.name == "batches"
+
+
 def infer_provider_from_record(record: dict[str, Any]) -> str:
     provider = str(record.get("provider") or "").strip()
     if provider:
@@ -142,15 +147,16 @@ def build_radishflow_batch_artifact_summary_document(
         ]
     )
 
-    response_dir = resolved_output_root / SHORT_LAYOUT_RESPONSES_DIR
-    if not response_dir.is_dir():
-        response_dir = resolved_output_root / "responses"
-    dump_dir = resolved_output_root / SHORT_LAYOUT_DUMPS_DIR
-    if not dump_dir.is_dir():
-        dump_dir = resolved_output_root / "dumps"
+    uses_short_layout = uses_short_layout_output_root(resolved_output_root)
+    records_dir = resolved_output_root / (SHORT_LAYOUT_RECORDS_DIR if uses_short_layout else "records")
+    if not records_dir.is_dir():
+        records_dir = resolved_output_root
+
+    response_dir = resolved_output_root / (SHORT_LAYOUT_RESPONSES_DIR if uses_short_layout else "responses")
+    dump_dir = resolved_output_root / (SHORT_LAYOUT_DUMPS_DIR if uses_short_layout else "dumps")
     response_count = len(list(response_dir.glob("*.response.json"))) if response_dir.is_dir() else 0
     dump_count = len(list(dump_dir.glob("*.dump.json"))) if dump_dir.is_dir() else 0
-    root_record_count = sum(1 for path in record_paths if path.parent == resolved_output_root)
+    root_record_count = sum(1 for path in record_paths if path.parent == records_dir)
     nested_record_count = len(record_paths) - root_record_count
     manifest_records = manifest.get("records") or []
     if not isinstance(manifest_records, list):
@@ -186,7 +192,7 @@ def build_radishflow_batch_artifact_summary_document(
                 "exists": resolved_output_root.is_dir(),
             },
             "records": {
-                "path": make_repo_relative(resolved_output_root),
+                "path": make_repo_relative(records_dir),
                 "exists": bool(record_paths),
                 "file_count": len(record_paths),
                 "root_file_count": root_record_count,

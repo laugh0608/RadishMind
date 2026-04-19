@@ -31,8 +31,8 @@
       "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/r",
       "exists": true,
       "file_count": 2,
-      "root_file_count": 0,
-      "nested_file_count": 2
+      "root_file_count": 2,
+      "nested_file_count": 0
     },
     "responses": {
       "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/o",
@@ -52,8 +52,8 @@
     "passed_sample_count": 2,
     "failed_sample_count": 0,
     "violation_count": 0,
-    "root_record_count": 0,
-    "nested_record_count": 2,
+    "root_record_count": 2,
+    "nested_record_count": 0,
     "response_file_count": 2,
     "dump_file_count": 2
   },
