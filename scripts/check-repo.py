@@ -53,6 +53,8 @@ RADISHFLOW_GHOST_REAL_BATCHES = list(load_fixture_json("radishflow-ghost-real-ba
 RADISHFLOW_SUGGEST_EDITS_POC_BATCHES = list(load_fixture_json("radishflow-suggest-edits-poc-batches.json") or [])
 REQUIRED_FILES = list(load_fixture_json("required-files.json") or [])
 MAX_COMMITTED_PATH_LENGTH = 180
+RADISH_CANDIDATE_RECORDS_MAX_PATH_LENGTH = 178
+RADISH_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radish")
 RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH = 120
 RADISHFLOW_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radishflow")
 RADISHFLOW_ALLOWED_ROOT_ENTRIES = {"README.md", "batches", "dry-run-check"}
@@ -188,6 +190,19 @@ def check_path_budget() -> None:
         for path in tracked_files
         if path.parts[: len(RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts)] == RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts
     ]
+    radish_files = [
+        path
+        for path in tracked_files
+        if path.parts[: len(RADISH_CANDIDATE_RECORDS_ROOT.parts)] == RADISH_CANDIDATE_RECORDS_ROOT.parts
+    ]
+    for path in radish_files:
+        relative_path = path.as_posix()
+        if len(relative_path) > RADISH_CANDIDATE_RECORDS_MAX_PATH_LENGTH:
+            raise SystemExit(
+                "radish candidate-record path exceeds transition budget "
+                f"({RADISH_CANDIDATE_RECORDS_MAX_PATH_LENGTH}): {relative_path}"
+            )
+
     for path in radishflow_files:
         relative_path = path.as_posix()
         if len(relative_path) > RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH:

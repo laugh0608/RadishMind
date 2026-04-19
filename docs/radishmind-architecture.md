@@ -218,7 +218,8 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - committed 相对路径默认应控制在 `180` 个字符以内；接近预算时，优先缩短目录语义或回收元数据，而不是继续拉长物理路径
 - `datasets/eval/candidate-records/radishflow/` 当前执行更严格的专项预算：committed 文件路径默认不超过 `120` 个字符，且根目录只保留 `README.md`、`batches/` 与 `dry-run-check/`
 - `RadishFlow` candidate-records 的正式物理布局固定为 `batches/YYYY-MM/<batch_key>/`，批次内只保留 `manifest.json`、`audit.json`、`artifacts.json`、`r/`、`o/` 与 `d/` 这些短结构名
-- 评测资产的长语义应优先沉淀到 `manifest`、`record`、fixture 与索引文档中，而不是重复编码进目录层级、文件名前缀或 sample slug
+- `datasets/eval/candidate-records/radish/` 当前仍处于旧布局过渡期，committed 文件路径默认不超过 `178` 个字符；后续新增或迁移 `Radish` 批次也应采用同类短键布局，而不是继续扩张旧长路径
+- `RadishFlow` 与 `Radish` 评测资产的长语义都应优先沉淀到 `manifest`、`record`、fixture 与索引文档中，而不是重复编码进目录层级、文件名前缀或 sample slug
 
 ## 推荐仓库结构
 
