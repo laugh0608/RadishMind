@@ -23,7 +23,7 @@
 - PR 页面里可能显示 workflow 前缀或 `(pull_request)` 后缀，但这些不属于 ruleset 中需要配置的 check context
 - `PR Checks` 当前只响应 `pull_request -> master`；如默认分支切换为 `main`，需先同步调整 workflow 触发分支，再在远端套用该模板
 - tag push 与手动补跑使用独立的 `Release Checks` workflow，并显式使用 `Release Repo Hygiene` 与 `Release Planning Baseline` job 名，避免与 PR required checks 混淆
-- 只允许 `rebase` 合并，保留 `required_linear_history`
+- 允许 `merge` 与 `rebase` 两种合并方式，禁用 `squash`
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push
 
 ## dev 策略说明
@@ -54,7 +54,7 @@ gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/mast
 
 ## 配套仓库设置
 
-- 仓库 Merge options 中仅启用 `Rebase merging`
+- 仓库 Merge options 中启用 `Rebase merging`
+- 仓库 Merge options 中启用 `Merge commits`
 - 关闭 `Squash merging`
-- 关闭 `Merge commits`
 - 如后续增加 `CODEOWNERS`，再决定是否开启 code owner review
