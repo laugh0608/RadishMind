@@ -16,6 +16,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from services.runtime.real_derived_negative_index import load_real_derived_negative_index  # noqa: E402
+from scripts.eval.radishflow_batch_artifact_summary import (  # noqa: E402
+    build_radishflow_batch_artifact_summary_document,
+    derive_output_root_from_record_dir,
+)
 FIXTURE_DIR = REPO_ROOT / "scripts/checks/fixtures"
 
 
@@ -48,6 +52,12 @@ RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES = dict(load_fixture_json("radish-docs-real
 RADISHFLOW_GHOST_REAL_BATCHES = list(load_fixture_json("radishflow-ghost-real-batches.json") or [])
 RADISHFLOW_SUGGEST_EDITS_POC_BATCHES = list(load_fixture_json("radishflow-suggest-edits-poc-batches.json") or [])
 REQUIRED_FILES = list(load_fixture_json("required-files.json") or [])
+MAX_COMMITTED_PATH_LENGTH = 180
+RADISH_CANDIDATE_RECORDS_MAX_PATH_LENGTH = 178
+RADISH_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radish")
+RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH = 120
+RADISHFLOW_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radishflow")
+RADISHFLOW_ALLOWED_ROOT_ENTRIES = {"README.md", "batches", "dry-run-check"}
 
 def run_python_script(script_name: str, args: list[str]) -> None:
     result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / script_name), *args], cwd=REPO_ROOT)
@@ -133,6 +143,102 @@ def check_required_files() -> None:
             raise SystemExit(f"missing required file: {relative_path}")
 
 
+def iter_tracked_files() -> list[Path]:
+    result = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=False,
+        check=True,
+    )
+    tracked_paths: list[Path] = []
+    for raw_path in result.stdout.split(b"\0"):
+        if not raw_path:
+            continue
+        tracked_paths.append(Path(raw_path.decode("utf-8")))
+    return tracked_paths
+
+
+def check_path_budget() -> None:
+    tracked_files = iter_tracked_files()
+
+    too_long_paths = [
+        path.as_posix()
+        for path in tracked_files
+        if len(path.as_posix()) > MAX_COMMITTED_PATH_LENGTH
+    ]
+    if too_long_paths:
+        raise SystemExit(
+            "tracked path exceeds repository path budget "
+            f"({MAX_COMMITTED_PATH_LENGTH}): {too_long_paths[0]}"
+        )
+
+    radishflow_root = REPO_ROOT / RADISHFLOW_CANDIDATE_RECORDS_ROOT
+    unexpected_root_entries = sorted(
+        child.name
+        for child in radishflow_root.iterdir()
+        if child.name not in RADISHFLOW_ALLOWED_ROOT_ENTRIES
+    )
+    if unexpected_root_entries:
+        raise SystemExit(
+            "unexpected radishflow candidate-record root entry: "
+            f"{unexpected_root_entries[0]}"
+        )
+
+    radishflow_files = [
+        path
+        for path in tracked_files
+        if path.parts[: len(RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts)] == RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts
+    ]
+    radish_files = [
+        path
+        for path in tracked_files
+        if path.parts[: len(RADISH_CANDIDATE_RECORDS_ROOT.parts)] == RADISH_CANDIDATE_RECORDS_ROOT.parts
+    ]
+    for path in radish_files:
+        relative_path = path.as_posix()
+        if len(relative_path) > RADISH_CANDIDATE_RECORDS_MAX_PATH_LENGTH:
+            raise SystemExit(
+                "radish candidate-record path exceeds transition budget "
+                f"({RADISH_CANDIDATE_RECORDS_MAX_PATH_LENGTH}): {relative_path}"
+            )
+
+    for path in radishflow_files:
+        relative_path = path.as_posix()
+        if len(relative_path) > RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH:
+            raise SystemExit(
+                "radishflow candidate-record path exceeds strict budget "
+                f"({RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH}): {relative_path}"
+            )
+
+        relative_to_radishflow_root = path.relative_to(RADISHFLOW_CANDIDATE_RECORDS_ROOT)
+        if relative_to_radishflow_root.parts[0] == "batches":
+            if len(relative_to_radishflow_root.parts) < 4:
+                raise SystemExit(f"incomplete radishflow batch path: {relative_path}")
+            month_key = relative_to_radishflow_root.parts[1]
+            batch_key = relative_to_radishflow_root.parts[2]
+            if len(month_key) != 7 or month_key[4] != "-":
+                raise SystemExit(f"invalid radishflow batch month key: {relative_path}")
+            if not batch_key.startswith("rfb-") or len(batch_key) != 16:
+                raise SystemExit(f"invalid radishflow batch key: {relative_path}")
+
+    for batch in [*RADISHFLOW_GHOST_REAL_BATCHES, *RADISHFLOW_SUGGEST_EDITS_POC_BATCHES]:
+        record_dir = Path(batch["record_dir"])
+        if record_dir.parts[: len(RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts)] != RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts:
+            continue
+        relative_record_dir = record_dir.relative_to(RADISHFLOW_CANDIDATE_RECORDS_ROOT)
+        if len(relative_record_dir.parts) < 3 or relative_record_dir.parts[0] != "batches":
+            raise SystemExit(f"invalid radishflow record_dir layout: {record_dir.as_posix()}")
+        batch_key = relative_record_dir.parts[2]
+        if not batch_key.startswith("rfb-") or len(batch_key) != 16:
+            raise SystemExit(f"invalid radishflow record_dir layout: {record_dir.as_posix()}")
+        if len(relative_record_dir.parts) == 3:
+            continue
+        trailing_segment = relative_record_dir.parts[3]
+        if len(relative_record_dir.parts) != 4 or trailing_segment not in {"r", "records"}:
+            raise SystemExit(f"invalid radishflow record_dir layout: {record_dir.as_posix()}")
+
+
 def check_content_baseline() -> None:
     agents_content = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
     if "当前常态开发分支为 `dev`" not in agents_content:
@@ -185,6 +291,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
+        REPO_ROOT / "datasets/eval/radishflow-batch-artifact-summary.schema.json",
         REPO_ROOT / "datasets/eval/radishflow-export-smoke-manifest.schema.json",
         REPO_ROOT / "datasets/eval/radishflow-export-smoke-summary.schema.json",
     ]
@@ -340,6 +447,9 @@ def check_generated_eval_metadata() -> None:
     artifact_summary_schema = json.loads(
         (REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json").read_text(encoding="utf-8")
     )
+    radishflow_artifact_summary_schema = json.loads(
+        (REPO_ROOT / "datasets/eval/radishflow-batch-artifact-summary.schema.json").read_text(encoding="utf-8")
+    )
     recommended_summary_schema = json.loads(
         (REPO_ROOT / "datasets/eval/recommended-negative-replay-summary.schema.json").read_text(encoding="utf-8")
     )
@@ -487,6 +597,30 @@ def check_generated_eval_metadata() -> None:
     run_python_script("check-radish-docs-qa-real-batch-cross-sample-only-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-same-sample-only-summary.py", [])
 
+    for batch in [*RADISHFLOW_GHOST_REAL_BATCHES, *RADISHFLOW_SUGGEST_EDITS_POC_BATCHES]:
+        artifact_summary_path_value = str(batch.get("artifact_summary") or "").strip()
+        if not artifact_summary_path_value:
+            continue
+        artifact_summary_path = REPO_ROOT / artifact_summary_path_value
+        artifact_summary_document = json.loads(artifact_summary_path.read_text(encoding="utf-8"))
+        jsonschema.validate(artifact_summary_document, radishflow_artifact_summary_schema)
+        regenerated_artifact_summary = build_radishflow_batch_artifact_summary_document(
+            output_root=derive_output_root_from_record_dir(REPO_ROOT / batch["record_dir"]),
+            manifest_path=REPO_ROOT / batch["manifest"],
+            audit_report_path=REPO_ROOT / batch["audit_report"],
+            capture_exit_code=int((((artifact_summary_document or {}).get("execution") or {}).get("capture_exit_code")) or 0),
+            audit_requested=bool(
+                ((((artifact_summary_document or {}).get("artifacts") or {}).get("audit_report")) or {}).get("requested")
+            ),
+            provider_override=str(artifact_summary_document.get("provider") or "").strip(),
+            model_override=str(artifact_summary_document.get("model") or "").strip(),
+        )
+        assert_json_equal(
+            artifact_summary_document,
+            regenerated_artifact_summary,
+            label=artifact_summary_path_value,
+        )
+
     run_python_script(
         "build-real-derived-negative-index.py",
         [
@@ -525,6 +659,7 @@ def main() -> int:
     run_python_script("run-eval-regression.py", ["radishflow-ghost-completion", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-suggest-edits", "--fail-on-violation"])
 
+    check_path_budget()
     check_required_files()
     check_content_baseline()
     check_contract_schemas()

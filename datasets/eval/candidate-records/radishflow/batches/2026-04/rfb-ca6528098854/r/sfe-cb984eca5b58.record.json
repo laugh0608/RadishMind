@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+  "request_id": "rf-suggest-edit-heater-patch-key-ordering-001",
+  "captured_at": "2026-04-15T11:16:19Z",
+  "source": "captured_candidate_response",
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 58,
+    "selected_unit_ids": [
+      "heater-2"
+    ],
+    "diagnostic_codes": [
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "confidence": 0.85,
+    "summary": "针对选中的 Preheater (heater-2) 单元，诊断指出其配置为出口温度控制模式但缺少目标温度参数，现生成候选补丁补全该缺失参数。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "检测到 Preheater 单元缺少 outlet_temperature_target_c 参数，已生成候选补丁添加该参数占位符，需您确认具体数值。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Preheater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "unit",
+          "id": "heater-2"
+        },
+        "title": "为 heater-2 补充局部参数占位",
+        "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Preheater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-2",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-2 Preheater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "requires_confirmation": true,
+    "risk_level": "medium"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v16-apiyi-ch-parameter-ordering"
+  }
+}

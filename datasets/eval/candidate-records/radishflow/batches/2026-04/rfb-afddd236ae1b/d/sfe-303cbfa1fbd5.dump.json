@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-compressor-parameter-update-ordering-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+  "request_id": "rf-suggest-edit-compressor-parameter-update-ordering-001",
+  "captured_at": "2026-04-14T13:43:23Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v12-apiyi-de-parameter-ordering"
+  },
+  "model": "gemini-3.1-pro-preview",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 52,
+    "selected_unit_ids": [
+      "compressor-2"
+    ],
+    "diagnostic_codes": [
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "UNIT_PARAMETER_OUT_OF_RANGE"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-compressor-parameter-update-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-111",
+          "streams": [
+            {
+              "id": "feed-9",
+              "name": "Compressor Suction",
+              "target_unit_id": "compressor-2",
+              "specs": {
+                "pressure_kpa": 260,
+                "temperature_c": 41,
+                "flow_rate_kg_per_h": 1100
+              }
+            },
+            {
+              "id": "product-9",
+              "name": "Compressor Discharge",
+              "source_unit_id": "compressor-2"
+            }
+          ],
+          "units": [
+            {
+              "id": "compressor-2",
+              "kind": "Compressor",
+              "name": "Booster Compressor",
+              "config": {
+                "outlet_pressure_target_kpa": 270,
+                "minimum_flow_bypass_percent": 2,
+                "efficiency_percent": 104
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 52,
+      "selected_unit_ids": [
+        "compressor-2"
+      ],
+      "diagnostic_summary": {
+        "error_count": 2,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+          "message": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-2"
+        },
+        {
+          "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+          "message": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-2"
+        },
+        {
+          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+          "message": "Booster Compressor efficiency_percent=104 is outside the recommended operating range.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "compressor-2"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T18:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gemini-3.1-pro-preview",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-compressor-parameter-update-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-111\",\n        \"streams\": [\n          {\n            \"id\": \"feed-9\",\n            \"name\": \"Compressor Suction\",\n            \"target_unit_id\": \"compressor-2\",\n            \"specs\": {\n              \"pressure_kpa\": 260,\n              \"temperature_c\": 41,\n              \"flow_rate_kg_per_h\": 1100\n            }\n          },\n          {\n            \"id\": \"product-9\",\n            \"name\": \"Compressor Discharge\",\n            \"source_unit_id\": \"compressor-2\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"compressor-2\",\n            \"kind\": \"Compressor\",\n            \"name\": \"Booster Compressor\",\n            \"config\": {\n              \"outlet_pressure_target_kpa\": 270,\n              \"minimum_flow_bypass_percent\": 2,\n              \"efficiency_percent\": 104\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 52,\n    \"selected_unit_ids\": [\n      \"compressor-2\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 2,\n      \"warning_count\": 1\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE\",\n        \"message\": \"Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-2\"\n      },\n      {\n        \"code\": \"COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW\",\n        \"message\": \"Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-2\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_OUT_OF_RANGE\",\n        \"message\": \"Booster Compressor efficiency_percent=104 is outside the recommended operating range.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-2\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_parameters\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-07T18:10:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_de",
+    "provider_profile_env": "APIYI_DE",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-be33cbc6e67c4afc9d38e7f4a388bc91",
+    "model": "gemini-3.1-pro-preview",
+    "object": "chat.completion",
+    "created": 1776174202,
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"success\",\n  \"confidence\": 0.95,\n  \"requires_confirmation\": true,\n  \"answers\": [\n    {\n      \"text\": \"当前围绕被选中的 Booster Compressor (compressor-2) 生成配置修改候选提案。诊断表明排气压力设定值与吸气压力过近、防喘振最小流量旁通设定值过低，且效率参数达到104%超出物理限制。已建议通过占位符提示输入这些关键参数的合理修改值。\",\n      \"citations\": [\n        \"diag-1\",\n        \"diag-2\",\n        \"diag-3\",\n        \"flowdoc-unit-compressor-2\",\n        \"snapshot-1\"\n      ]\n    }\n  ],\n  \"summary\": \"针对压缩机 (compressor-2) 生成候选提案，主要解决排气压力设定过低、最小旁通流量比例不足以及超出物理量程的效率参数这三项问题。\",\n  \"issues\": [\n    {\n      \"description\": \"Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty.\",\n      \"citations\": [\n        \"diag-1\",\n        \"flowdoc-unit-compressor-2\"\n      ]\n    },\n    {\n      \"description\": \"Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold.\",\n      \"citations\": [\n        \"diag-2\",\n        \"flowdoc-unit-compressor-2\"\n      ]\n    },\n    {\n      \"description\": \"Booster Compressor efficiency_percent=104 is outside the recommended operating range.\",\n      \"citations\": [\n        \"diag-3\",\n        \"flowdoc-unit-compressor-2\"\n      ]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"action\": \"candidate_edit\",\n      \"title\": \"修正压缩机运行配置参数 (compressor-2)\",\n      \"target\": \"compressor-2\",\n      \"rationale\": \"压缩机当前吸气压力为 260 kPa，排气设定 270 kPa 导致压差过小无法正常运作；最小旁通阀开度低于防喘振阈值；效率设定 104% 不符合物理规律导致求解器报出参数无效状态。需要通过占位符提示输入安全且物理上合理的配置数值。\",\n      \"patch\": {\n        \"parameter_placeholders\": {\n          \"outlet_pressure_target_kpa\": \"需输入合理的排气压力设定值（应显著大于吸气压力 260 kPa）\",\n          \"minimum_flow_bypass_percent\": \"需输入满足当前防喘振检查阈值的旁通百分比\",\n          \"efficiency_percent\": \"需输入合理的压缩效率百分比\"\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\n        \"diag-1\",\n        \"diag-2\",\n        \"diag-3\",\n        \"flowdoc-unit-compressor-2\",\n        \"snapshot-1\"\n      ]\n    }\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1492,
+      "completion_tokens": 3073,
+      "total_tokens": 4565,
+      "prompt_tokens_details": {
+        "text_tokens": 1492
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2333
+      }
+    }
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "failed",
+    "confidence": 0.95,
+    "requires_confirmation": false,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕被选中的 Booster Compressor (compressor-2) 生成配置修改候选提案。诊断表明排气压力设定值与吸气压力过近、防喘振最小流量旁通设定值过低，且效率参数达到104%超出物理限制。已建议通过占位符提示输入这些关键参数的合理修改值。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "summary": "针对压缩机 (compressor-2) 生成候选提案，主要解决排气压力设定过低、最小旁通流量比例不足以及超出物理量程的效率参数这三项问题。",
+    "issues": [
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "message": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+        "message": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Booster Compressor efficiency_percent=104 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Booster Compressor efficiency_percent=104 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-2",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-2 Booster Compressor kind=Compressor"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "medium"
+  }
+}

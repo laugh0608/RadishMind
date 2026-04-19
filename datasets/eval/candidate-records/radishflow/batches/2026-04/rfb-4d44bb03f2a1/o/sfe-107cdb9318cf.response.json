@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "summary": "当前围绕已选中的进料流股 feed-6 的缺失规格问题生成候选提案。诊断直接指出该流股缺少温度规格；对于 heater-2 的出口影响，仅有未确认警告，当前不建议扩展到加热器或出口流股的更改。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "建议仅在 feed-6 上补充温度规格占位，以便先消除直接报错并将修改范围限制在有明确诊断支撑的对象上。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Preheater Feed is missing temperature specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "The current outlet response may still be influenced by upstream uncertainty, so the heater effect is not yet confirmed as a separate root cause."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-6",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-6 Preheater Feed target_unit_id=heater-2"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-2 Preheater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.11"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 feed-6 添加温度规格占位",
+      "rationale": "当前唯一具备直接可操作支撑的是 feed-6 缺少温度规格。先为该流股补充待确认的温度占位，可在不扩大改动范围的前提下响应错误诊断；heater-2 相关警告尚未确认，不宜据此改动单元设置或出口条件。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-6"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Preheater Feed is missing temperature specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "The current outlet response may still be influenced by upstream uncertainty, so the heater effect is not yet confirmed as a separate root cause.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "snapshot-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "risk_level": "medium",
+  "confidence": 0.2
+}

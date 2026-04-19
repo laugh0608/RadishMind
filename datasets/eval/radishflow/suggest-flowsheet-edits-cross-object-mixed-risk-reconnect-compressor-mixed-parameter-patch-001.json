@@ -1,0 +1,691 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-158",
+          "streams": [
+            {
+              "id": "feed-94",
+              "name": "Recycle Compressor Feed 94",
+              "target_unit_id": "compressor-22",
+              "specs": {
+                "pressure_kpa": 190,
+                "temperature_c": 30
+              }
+            },
+            {
+              "id": "compressor-outlet-94",
+              "name": "Compressor Outlet 94",
+              "source_unit_id": "compressor-22",
+              "target_unit_id": "separator-22",
+              "specs": {
+                "pressure_kpa": 172,
+                "temperature_c": 88
+              }
+            },
+            {
+              "id": "separator-gas-94",
+              "name": "Separator Gas 94",
+              "source_unit_id": "separator-22",
+              "specs": {
+                "pressure_kpa": 164,
+                "temperature_c": 46
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "compressor-22",
+              "kind": "Compressor",
+              "name": "Recycle Compressor 22",
+              "config": {
+                "control_mode": "outlet_pressure",
+                "outlet_pressure_target_kpa": 165,
+                "anti_surge_review_required": true,
+                "efficiency_percent": 58
+              }
+            },
+            {
+              "id": "separator-22",
+              "kind": "FlashDrum",
+              "name": "Intermediate Separator 22",
+              "config": {
+                "pressure_mode": "fixed"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 90,
+      "selected_unit_ids": [
+        "compressor-22",
+        "separator-22"
+      ],
+      "selected_unit": {
+        "id": "separator-22",
+        "kind": "FlashDrum",
+        "name": "Intermediate Separator 22",
+        "config": {
+          "pressure_mode": "fixed"
+        }
+      },
+      "selected_stream_ids": [
+        "feed-94",
+        "compressor-outlet-94",
+        "separator-gas-94"
+      ],
+      "diagnostic_summary": {
+        "error_count": 4,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Separator Gas 94 is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "separator-gas-94"
+        },
+        {
+          "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+          "message": "Recycle Compressor 22 outlet pressure target is lower than the inlet pressure.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-22"
+        },
+        {
+          "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+          "message": "Recycle Compressor 22 anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-22"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Intermediate Separator 22 is configured for fixed pressure mode but the operating pressure target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "separator-22"
+        },
+        {
+          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+          "message": "Recycle Compressor 22 efficiency_percent=58 is outside the recommended operating range.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "compressor-22"
+        },
+        {
+          "code": "DOWNSTREAM_STATE_DEPENDENT",
+          "message": "Separator Gas 94 routing still depends on the current compressor discharge and separator pressure context.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "separator-gas-94"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-16T02:25:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "high",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_DISCONNECTED\"",
+      "$.issues[1].code=\"COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID\"",
+      "$.issues[2].code=\"COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING\"",
+      "$.issues[3].code=\"UNIT_PARAMETER_INCOMPLETE\"",
+      "$.issues[4].code=\"UNIT_PARAMETER_OUT_OF_RANGE\"",
+      "$.issues[5].code=\"DOWNSTREAM_STATE_DEPENDENT\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"separator-gas-94\"",
+      "$.proposed_actions[0].patch.connection_placeholder.expected_downstream_kind=\"consumer_or_export_sink\"",
+      "$.proposed_actions[1].kind=\"candidate_edit\"",
+      "$.proposed_actions[1].target.type=\"unit\"",
+      "$.proposed_actions[1].target.id=\"compressor-22\"",
+      "$.proposed_actions[1].patch.parameter_updates.outlet_pressure_target_kpa.action=\"review_and_raise_above_inlet\"",
+      "$.proposed_actions[1].patch.parameter_updates.outlet_pressure_target_kpa.minimum_reference_stream_id=\"feed-94\"",
+      "$.proposed_actions[1].patch.parameter_updates.efficiency_percent.action=\"clamp_to_review_range\"",
+      "$.proposed_actions[1].patch.parameter_updates.efficiency_percent.suggested_range[0]=60",
+      "$.proposed_actions[1].patch.parameter_updates.efficiency_percent.suggested_range[1]=85",
+      "$.proposed_actions[1].patch.parameter_placeholders[0]=\"minimum_flow_bypass_percent\"",
+      "$.proposed_actions[1].patch.patch_scope=\"unit_parameters\"",
+      "$.proposed_actions[1].patch.preserve_existing_connections=true",
+      "$.proposed_actions[2].kind=\"candidate_edit\"",
+      "$.proposed_actions[2].target.type=\"unit\"",
+      "$.proposed_actions[2].target.id=\"separator-22\"",
+      "$.proposed_actions[2].patch.parameter_placeholders[0]=\"operating_pressure_kpa\"",
+      "$.proposed_actions[2].patch.patch_scope=\"unit_parameters\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"high\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.proposed_actions[1].requires_confirmation=false",
+      "$.proposed_actions[2].requires_confirmation=false",
+      "$.proposed_actions[3]"
+    ],
+    "ordered_issue_codes": [
+      "STREAM_DISCONNECTED",
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+      "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE",
+      "UNIT_PARAMETER_OUT_OF_RANGE",
+      "DOWNSTREAM_STATE_DEPENDENT"
+    ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "diag-2",
+      "diag-3",
+      "diag-4",
+      "diag-5",
+      "diag-6",
+      "flowdoc-stream-3",
+      "flowdoc-unit-1",
+      "flowdoc-unit-2",
+      "flowdoc-stream-2",
+      "flowdoc-stream-1",
+      "snapshot-1"
+    ],
+    "ordered_action_targets": [
+      {
+        "type": "stream",
+        "id": "separator-gas-94"
+      },
+      {
+        "type": "unit",
+        "id": "compressor-22"
+      },
+      {
+        "type": "unit",
+        "id": "separator-22"
+      }
+    ],
+    "ordered_issue_citation_sequences": [
+      {
+        "issue_index": 0,
+        "values": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "issue_index": 1,
+        "values": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "issue_index": 2,
+        "values": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "issue_index": 3,
+        "values": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "issue_index": 4,
+        "values": [
+          "diag-5",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "issue_index": 5,
+        "values": [
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "ordered_action_citation_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "diag-1",
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "action_index": 1,
+        "values": [
+          "diag-2",
+          "diag-3",
+          "diag-5",
+          "flowdoc-unit-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "action_index": 2,
+        "values": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "ordered_patch_keys": [
+      {
+        "action_index": 1,
+        "keys": [
+          "parameter_updates",
+          "parameter_placeholders",
+          "patch_scope",
+          "preserve_existing_connections"
+        ]
+      },
+      {
+        "action_index": 2,
+        "keys": [
+          "parameter_placeholders",
+          "patch_scope",
+          "preserve_existing_connections"
+        ]
+      }
+    ],
+    "ordered_parameter_update_keys": [
+      {
+        "action_index": 1,
+        "keys": [
+          "outlet_pressure_target_kpa",
+          "efficiency_percent"
+        ]
+      }
+    ],
+    "ordered_parameter_update_detail_keys": [
+      {
+        "action_index": 1,
+        "parameter_key": "outlet_pressure_target_kpa",
+        "keys": [
+          "action",
+          "minimum_reference_stream_id"
+        ]
+      },
+      {
+        "action_index": 1,
+        "parameter_key": "efficiency_percent",
+        "keys": [
+          "action",
+          "suggested_range"
+        ]
+      }
+    ],
+    "ordered_parameter_update_value_sequences": [
+      {
+        "action_index": 1,
+        "parameter_key": "efficiency_percent",
+        "detail_key": "suggested_range",
+        "values": [
+          60,
+          85
+        ]
+      }
+    ],
+    "ordered_parameter_placeholder_sequences": [
+      {
+        "action_index": 1,
+        "values": [
+          "minimum_flow_bypass_percent"
+        ]
+      },
+      {
+        "action_index": 2,
+        "values": [
+          "operating_pressure_kpa"
+        ]
+      }
+    ],
+    "ordered_connection_placeholder_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "expected_downstream_kind",
+          "requires_manual_binding",
+          "retain_existing_source_binding"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "这条样本把 connection_placeholder、单 action 内的 parameter_updates + parameter_placeholders 混合 patch，以及独立的 downstream parameter_placeholders 一起放进同一条跨对象 mixed-risk 响应，用来冻结更复杂的 patch 组合顺序。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前跨对象 selection 同时覆盖了 Recycle Compressor 22、Intermediate Separator 22 与三条关联流股；可直接落 patch 的是 separator-gas-94 的下游重连、compressor-22 的局部混合参数修正，以及 separator-22 的固定压力参数占位。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "这组提案同时混合了高风险断链修复、中风险 compressor 混合参数 patch 和中风险 separator 参数占位，因此顶层证据需要先列直接诊断，再列三个可行动对象的 target artifact，随后才追加 compressor-outlet-94 与 feed-94 作为 supporting context，最后保留 snapshot。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "diag-4",
+          "diag-5",
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "separator-gas-94 当前没有任何 downstream consumer 或 export sink 绑定，需要先停留在待确认的重连占位层。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "compressor-22 的 outlet_pressure_target_kpa 低于入口压力，当前参数设置与压缩机升压方向不一致。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "message": "compressor-22 的 anti-surge review 仍缺少 minimum_flow_bypass_percent。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "separator-22 当前启用了 fixed pressure 模式，但 operating_pressure_kpa 仍未补齐。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "compressor-22 的 efficiency_percent=58 低于当前建议运行区间。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-5",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_STATE_DEPENDENT",
+        "message": "separator-gas-94 的解释仍同时依赖 compressor-outlet-94 和 separator-22 当前状态，暂不应把 warning 误扩成第四条 patch。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 separator-gas-94 预留下游重连占位",
+        "target": {
+          "type": "stream",
+          "id": "separator-gas-94"
+        },
+        "rationale": "当前最直接且高风险的修改面仍是为 separator-gas-94 生成待人工确认的 downstream binding 占位，并明确带上 separator-22、compressor-outlet-94 与 compressor-22 作为跨对象 supporting context。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 compressor-22 收口混合参数 patch",
+        "target": {
+          "type": "unit",
+          "id": "compressor-22"
+        },
+        "rationale": "compressor-22 当前同时存在错误压力目标、缺 bypass 参数和偏低效率三类局部问题，因此更合适的是把已知可修正值与仍待补齐值收口到同一条混合参数 patch 中。",
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-94"
+            },
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                60,
+                85
+              ]
+            }
+          },
+          "parameter_placeholders": [
+            "minimum_flow_bypass_percent"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "diag-3",
+          "diag-5",
+          "flowdoc-unit-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 separator-22 补充固定压力参数占位",
+        "target": {
+          "type": "unit",
+          "id": "separator-22"
+        },
+        "rationale": "separator-22 当前最小且证据充分的 patch 是补齐 operating_pressure_kpa，占位式修复比扩成额外拓扑调整更稳妥。",
+        "patch": {
+          "parameter_placeholders": [
+            "operating_pressure_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Separator Gas 94 is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Recycle Compressor 22 outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Recycle Compressor 22 anti-surge review requires minimum flow bypass percent, but the parameter is missing."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Intermediate Separator 22 is configured for fixed pressure mode but the operating pressure target is missing."
+      },
+      {
+        "id": "diag-5",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[4]",
+        "excerpt": "Recycle Compressor 22 efficiency_percent=58 is outside the recommended operating range."
+      },
+      {
+        "id": "diag-6",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+        "locator": "context:diagnostics[5]",
+        "excerpt": "Separator Gas 94 routing still depends on the current compressor discharge and separator pressure context."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-gas-94",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "separator-gas-94 当前没有任何 downstream consumer 或 export sink 绑定。"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-22",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-22 当前同时存在 outlet_pressure_target_kpa 偏低、minimum_flow_bypass_percent 缺失和 efficiency_percent 偏低三类局部参数问题。"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-22",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-22 当前启用了 fixed pressure 模式，但缺少 operating_pressure_kpa。"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-outlet-94",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "compressor-outlet-94 当前把 compressor-22 与 separator-22 串接起来，是这组跨对象解释链中的 supporting stream。"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-94",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-94 当前提供 compressor-22 的入口压力参考，用于约束 outlet_pressure_target_kpa 的最低复核方向。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "confidence": 0.83,
+    "risk_level": "high",
+    "requires_confirmation": true
+  }
+}

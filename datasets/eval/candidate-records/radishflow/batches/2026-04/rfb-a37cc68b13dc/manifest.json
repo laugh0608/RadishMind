@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v7-apiyi-de",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-a37cc68b13dc/r/sfe-290019393cff.record.json",
+      "sample_key": "sfe-290019393cff",
+      "record_relpath": "r/sfe-290019393cff.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-a37cc68b13dc",
+  "batch_key": "rfb-a37cc68b13dc"
+}

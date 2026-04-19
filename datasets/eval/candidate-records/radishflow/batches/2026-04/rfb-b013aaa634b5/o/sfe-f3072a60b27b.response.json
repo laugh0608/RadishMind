@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "status": "failed",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "summary": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
+  "answers": [
+    {
+      "kind": "raw_text_fallback",
+      "text": "{\"schema_version\":1,\"request_id\":\"rf-suggest-edit-mixed-risk-reconnect-plus-spec-001\",\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"locale\":\"zh-CN\",\"status\":\"partial\",\"confidence\":0.75,\"summary\":\"针对选中的两条产品流（liquid-product-5 和 vapor-product-5）分别生成候选编辑：为液相产品流添加下游连接占位符以解决拓扑断开问题，为气相产品流补全温度规格以解决缺失参数问题。\",\"answers\":[{\"text\":\"检测到两条选中流存在不同性质的问题：液相产品流未连接下游（",
+      "citation_ids": []
+    }
+  ],
+  "issues": [
+    {
+      "code": "MODEL_OUTPUT_NOT_JSON",
+      "message": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
+      "severity": "warning",
+      "citation_ids": []
+    }
+  ],
+  "proposed_actions": [],
+  "citations": [],
+  "confidence": 0.05,
+  "risk_level": "medium",
+  "requires_confirmation": false
+}

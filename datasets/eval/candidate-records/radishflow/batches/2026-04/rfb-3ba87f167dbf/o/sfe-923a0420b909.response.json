@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "confidence": 0.85,
+  "summary": "针对选中的 Feed Stream (stream-1) 生成候选编辑提案，以补全缺失的温度规格参数。当前诊断指出该流股缺少温度规格，需添加占位符供后续确认。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到 Feed Stream (stream-1) 缺少温度规格。已生成候选编辑提案，添加 temperature_celsius 参数占位符，需您确认具体数值。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Feed Stream is missing temperature specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "补全 Feed Stream 温度规格占位符",
+      "rationale": "诊断明确指出 stream-1 缺少温度规格。当前流股仅定义了 pressure_kpa，需补充 temperature_celsius 以构成完整的热力学状态。使用占位符模式保留用户确认环节，避免猜测具体数值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "stream-1"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Feed Stream is missing temperature specification."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / stream-1",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "stream-1 Feed Stream target_unit_id=heater-1"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "medium"
+}

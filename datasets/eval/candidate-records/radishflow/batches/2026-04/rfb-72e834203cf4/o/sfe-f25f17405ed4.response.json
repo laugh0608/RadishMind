@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的泵入口/出口流股与泵本体的缺失规格问题生成候选提案，重点是补齐 feed-8、product-8 和 pump-2 上被诊断直接指出的缺失参数占位。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "flowdoc-stream-1",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Pump Suction is missing temperature and flow rate specifications."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Pump Discharge is missing pressure specification."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Transfer Pump is missing outlet pressure target for the current transfer scenario."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-8",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-8 Pump Suction target_unit_id=pump-2"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / product-8",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "product-8 Pump Discharge source_unit_id=pump-2"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / pump-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "pump-2 Transfer Pump kind=Pump"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为入口流股 feed-8 补充缺失规格占位",
+      "rationale": "诊断直接指出 Pump Suction 缺少温度和流量规格；当前仅见到 pressure_kpa=190。先添加待确认占位可将修订限制在被选中的局部对象，避免臆造具体数值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-8"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c",
+          "flow_rate_kg_per_h"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为出口流股 product-8 补充压力规格占位",
+      "rationale": "诊断直接指出 Pump Discharge 缺少压力规格；当前仅见到 temperature_c=34。添加压力占位比推断具体出口值更可审查且更符合当前证据边界。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-2"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "product-8"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "pressure_kpa"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 pump-2 补充出口压力目标参数占位",
+      "rationale": "诊断直接指出 Transfer Pump 在当前输送场景下缺少 outlet pressure target。由于现有配置只有 efficiency_percent=88，建议仅增加目标参数占位，不预设实际目标值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "pump-2"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_pressure_target_kpa"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Pump Suction is missing temperature and flow rate specifications.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Pump Discharge is missing pressure specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-2"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Transfer Pump is missing outlet pressure target for the current transfer scenario.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "summary": "当前围绕已选中的泵入口/出口流股与泵本体的缺失规格问题生成候选提案，重点是补齐 feed-8、product-8 和 pump-2 上被诊断直接指出的缺失参数占位。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

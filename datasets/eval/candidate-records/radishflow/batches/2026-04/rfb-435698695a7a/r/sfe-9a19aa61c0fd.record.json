@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+  "request_id": "rf-suggest-edit-compressor-parameter-placeholder-ordering-001",
+  "captured_at": "2026-04-14T14:10:58Z",
+  "source": "captured_candidate_response",
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 61,
+    "selected_unit_ids": [
+      "compressor-3"
+    ],
+    "diagnostic_codes": [
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+      "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "COMPRESSOR_EFFICIENCY_BASELINE_MISSING"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕选中的 Review Compressor（compressor-3）生成候选编辑提案。该压缩机配置为出口压力控制模式且标记需要防喘振审查，但缺少三项关键参数：出口压力目标值、最小流量旁通百分比以及效率基线百分比，导致求解器报告 invalid_parameters 无法收敛。以下提案为这三项缺失参数分别插入占位符，供用户审查后填入实际工艺值。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "补充出口压力目标占位符 outlet_pressure_target_kpa",
+        "rationale": "压缩机处于 outlet_pressure 控制模式，必须提供出口压力目标值才能建立控制回路设定点。出口物流 product-10 已标注 pressure_kpa=510，此处以 510 作为建议默认值供审查；用户应根据实际工艺需求确认或修改。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "compressor-3"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_pressure_target_kpa",
+            "minimum_flow_bypass_percent",
+            "efficiency_percent"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+        "message": "Review Compressor is configured for outlet pressure control but outlet pressure target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "message": "Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_EFFICIENCY_BASELINE_MISSING",
+        "message": "Review Compressor is missing efficiency percent input required for current review baseline.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Review Compressor is configured for outlet pressure control but outlet pressure target is missing."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_EFFICIENCY_BASELINE_MISSING",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Review Compressor is missing efficiency percent input required for current review baseline."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-3 Review Compressor kind=Compressor"
+      }
+    ],
+    "summary": "当前围绕选中的 Review Compressor（compressor-3）生成候选编辑提案。该压缩机配置为出口压力控制模式且标记需要防喘振审查，但缺少三项关键参数：出口压力目标值、最小流量旁通百分比以及效率基线百分比，导致求解器报告 invalid_parameters 无法收敛。以下提案为这三项缺失参数分别插入占位符，供用户审查后填入实际工艺值。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v14-apiyi-cc-parameter-ordering"
+  }
+}

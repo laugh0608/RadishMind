@@ -16,7 +16,21 @@ if str(REPO_ROOT) not in sys.path:
 from services.runtime.candidate_records import (  # noqa: E402
     build_candidate_record_batch_manifest,
     candidate_response_record_from_dump,
+    derive_candidate_batch_artifact_summary_path,
+    derive_candidate_batch_audit_path,
+    derive_candidate_batch_dump_path,
+    derive_candidate_batch_manifest_path,
+    derive_candidate_batch_output_root,
+    derive_candidate_batch_record_path,
+    derive_candidate_batch_records_dir,
+    derive_candidate_batch_response_path,
+    derive_candidate_batch_responses_dir,
+    derive_candidate_batch_dumps_dir,
     write_json_document,
+)
+from scripts.eval.radishflow_batch_artifact_summary import (  # noqa: E402
+    build_radishflow_batch_artifact_summary_document,
+    derive_artifact_summary_path,
 )
 from services.runtime.inference import (  # noqa: E402
     build_candidate_response_dump,
@@ -29,6 +43,85 @@ DEFAULT_SAMPLE_PATHS = [
     "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
     "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
 ]
+SAMPLE_GROUP_PATHS = {
+    "default-early-trio": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+    ],
+    "default-selection-ordering": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-same-risk-input-first-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-chronology-single-actionable-target-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-order-preserved-001.json",
+    ],
+    "heater-follow-up": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-heater-multi-action-001.json",
+    ],
+    "cross-object-citation": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-citation-interleaving-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-warning-citation-ordering-001.json",
+    ],
+    "mixed-risk-cross-object": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.json",
+    ],
+    "triad-mixed-risk-cross-object": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001.json",
+    ],
+    "mixed-risk-patch-combo": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001.json",
+    ],
+    "cross-object-primary-focus": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-joint-selection-primary-focus-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-multi-unit-stream-primary-focus-001.json",
+    ],
+    "parameter-ordering": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-detail-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-heater-patch-key-ordering-001.json",
+    ],
+    "range-sequence-ordering": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-efficiency-range-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-sequence-ordering-001.json",
+    ],
+    "local-edits": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-evidence-gap-partial-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-pump-parameter-combo-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001.json",
+    ],
+    "mixed-risk-citation-reconnect": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-citation-ordering-diagnostics-before-artifacts-before-snapshot-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001.json",
+    ],
+    "remaining-horizontal-gaps": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-heater-multi-action-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-same-risk-input-first-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-chronology-single-actionable-target-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-selection-order-preserved-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+    ],
+}
+DEFAULT_REQUEST_TIMEOUT_SECONDS = 120.0
+# Keep the apiyi_ch timeout bump scoped to the known triad samples that have
+# repeatedly shown capture-level timeout pressure under the default 120s.
+KNOWN_REQUEST_TIMEOUT_OVERRIDES: dict[str, dict[str, float]] = {
+    "apiyi_ch": {
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001": 210.0,
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001": 210.0,
+    }
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,8 +144,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--request-timeout-seconds",
         type=float,
-        default=120.0,
-        help="Per-request timeout for provider calls. Default: 120",
+        default=None,
+        help=(
+            "Per-request timeout for provider calls. Defaults to env/global 120 unless "
+            "a known sample-specific override applies."
+        ),
     )
     parser.add_argument(
         "--output-root",
@@ -76,6 +172,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest-output", default="", help="Optional manifest output path override.")
     parser.add_argument("--manifest-description", default="", help="Optional manifest description.")
     parser.add_argument("--report-output", default="", help="Optional audit report output path override.")
+    parser.add_argument(
+        "--artifact-summary-output",
+        default="",
+        help="Optional structured batch artifact summary output path override.",
+    )
     parser.add_argument("--resume", action="store_true", help="Skip already captured samples when outputs exist.")
     parser.add_argument(
         "--continue-on-error",
@@ -84,6 +185,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--skip-audit", action="store_true", help="Only run capture; skip audit.")
     parser.add_argument("--fail-on-audit-violation", action="store_true", help="Fail when audit finds violations.")
+    parser.add_argument(
+        "--sample-group",
+        action="append",
+        default=[],
+        help=(
+            "Named sample group to include. Can be repeated. Supported groups: "
+            + ", ".join(sorted(SAMPLE_GROUP_PATHS))
+            + "."
+        ),
+    )
     parser.add_argument(
         "--sample-path",
         action="append",
@@ -181,25 +292,61 @@ def build_record_id(provider: str, sample_id: str) -> str:
     return f"{prefix}-{sample_id}"
 
 
-def derive_capture_timeout_seconds(args: argparse.Namespace) -> float | None:
-    if args.provider != "openai-compatible":
+def derive_capture_timeout_seconds(
+    *,
+    provider: str,
+    request_timeout_seconds: float | None,
+    max_attempts: int,
+    retry_base_delay_seconds: float,
+) -> float | None:
+    if provider != "openai-compatible" or request_timeout_seconds is None:
         return None
-    request_timeout_seconds = max(1.0, float(args.request_timeout_seconds))
-    max_attempts = max(1, int(args.max_attempts))
+    request_timeout_seconds = max(1.0, float(request_timeout_seconds))
+    max_attempts = max(1, int(max_attempts))
     retry_delay_budget = 0.0
     if max_attempts > 1:
-        base_delay = max(0.0, float(args.retry_base_delay_seconds))
+        base_delay = max(0.0, float(retry_base_delay_seconds))
         retry_delay_budget = base_delay * sum(2 ** retry_index for retry_index in range(max_attempts - 1))
     return math.ceil((request_timeout_seconds * max_attempts) + retry_delay_budget + 30.0)
 
 
+def resolve_effective_request_timeout_seconds(args: argparse.Namespace, sample_id: str) -> float | None:
+    if args.request_timeout_seconds is not None:
+        return float(args.request_timeout_seconds)
+    if args.provider != "openai-compatible":
+        return None
+    profile_name = str(args.provider_profile or "").strip()
+    if not profile_name:
+        return None
+    profile_overrides = KNOWN_REQUEST_TIMEOUT_OVERRIDES.get(profile_name, {})
+    if sample_id in profile_overrides:
+        return float(profile_overrides[sample_id])
+    return None
+
+
 def select_sample_paths(args: argparse.Namespace) -> list[Path]:
-    raw_paths = args.sample_path or DEFAULT_SAMPLE_PATHS
+    raw_paths: list[str] = []
+    for group_name in args.sample_group:
+        normalized_group_name = str(group_name).strip()
+        if not normalized_group_name:
+            continue
+        group_paths = SAMPLE_GROUP_PATHS.get(normalized_group_name)
+        if group_paths is None:
+            supported_groups = ", ".join(sorted(SAMPLE_GROUP_PATHS))
+            raise SystemExit(f"unsupported sample group '{normalized_group_name}'; expected one of: {supported_groups}")
+        raw_paths.extend(group_paths)
+    raw_paths.extend(args.sample_path)
+    if not raw_paths:
+        raw_paths = list(DEFAULT_SAMPLE_PATHS)
     selected: list[Path] = []
+    seen_paths: set[Path] = set()
     for raw_path in raw_paths:
         path = resolve_repo_relative(raw_path)
         if not path.is_file():
             raise SystemExit(f"sample file not found: {raw_path}")
+        if path in seen_paths:
+            continue
+        seen_paths.add(path)
         selected.append(path)
     return selected
 
@@ -207,19 +354,28 @@ def select_sample_paths(args: argparse.Namespace) -> list[Path]:
 def derive_manifest_path(args: argparse.Namespace, output_root: Path) -> Path:
     if args.manifest_output.strip():
         return resolve_repo_relative(args.manifest_output)
-    return output_root / f"{args.collection_batch}.manifest.json"
+    return derive_candidate_batch_manifest_path(output_root)
 
 
 def derive_report_path(args: argparse.Namespace, output_root: Path) -> Path:
     if args.report_output.strip():
         return resolve_repo_relative(args.report_output)
-    return output_root / f"{args.collection_batch}.audit.json"
+    return derive_candidate_batch_audit_path(output_root)
+
+
+def derive_artifact_summary_output_path(args: argparse.Namespace, output_root: Path) -> Path:
+    if args.artifact_summary_output.strip():
+        return resolve_repo_relative(args.artifact_summary_output)
+    return derive_candidate_batch_artifact_summary_path(output_root)
 
 
 def derive_output_root(args: argparse.Namespace) -> Path:
     if args.output_root.strip():
         return resolve_repo_relative(args.output_root)
-    return REPO_ROOT / "datasets/eval/candidate-records/radishflow" / args.collection_batch
+    return derive_candidate_batch_output_root(
+        project="radishflow",
+        collection_batch=args.collection_batch,
+    )
 
 
 def capture_mock_sample(
@@ -274,6 +430,7 @@ def capture_real_sample(
     args: argparse.Namespace,
     sample_path: Path,
     collection_batch: str,
+    request_timeout_seconds: float | None,
     response_path: Path,
     dump_path: Path,
     record_path: Path,
@@ -289,8 +446,6 @@ def capture_real_sample(
         args.provider,
         "--temperature",
         str(args.temperature),
-        "--request-timeout-seconds",
-        str(args.request_timeout_seconds),
         "--response-output",
         str(response_path),
         "--dump-output",
@@ -306,6 +461,8 @@ def capture_real_sample(
         "--retry-base-delay-seconds",
         str(args.retry_base_delay_seconds),
     ]
+    if request_timeout_seconds is not None:
+        command.extend(["--request-timeout-seconds", str(request_timeout_seconds)])
     if args.provider_profile.strip():
         command.extend(["--provider-profile", args.provider_profile.strip()])
     if args.model.strip():
@@ -338,9 +495,21 @@ def build_result_document(
     failed_by_sample_id = {item["sample_id"]: item for item in failed_samples}
     for sample_path in sample_paths:
         sample_id, _, _ = load_sample_bundle(sample_path)
-        response_path = output_root / "responses" / f"{sample_path.stem}.response.json"
-        dump_path = output_root / "dumps" / f"{sample_path.stem}.dump.json"
-        record_path = output_root / "records" / f"{sample_path.stem}.record.json"
+        response_path = derive_candidate_batch_response_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        dump_path = derive_candidate_batch_dump_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        record_path = derive_candidate_batch_record_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
         status = "failed" if sample_id in failed_by_sample_id else "captured"
         if status == "captured" and not (response_path.is_file() and dump_path.is_file() and record_path.is_file()):
             continue
@@ -354,6 +523,8 @@ def build_result_document(
             }
         )
     return {
+        "schema_version": 1,
+        "pipeline": "radishflow-suggest-edits-poc-batch",
         "mode": "batch",
         "provider": provider,
         "sample_count": len(sample_paths),
@@ -371,10 +542,11 @@ def main() -> int:
     output_root = derive_output_root(args)
     manifest_path = derive_manifest_path(args, output_root)
     report_path = derive_report_path(args, output_root)
+    artifact_summary_path = derive_artifact_summary_output_path(args, output_root)
     sample_paths = select_sample_paths(args)
-    responses_dir = output_root / "responses"
-    dumps_dir = output_root / "dumps"
-    records_dir = output_root / "records"
+    responses_dir = derive_candidate_batch_responses_dir(output_root)
+    dumps_dir = derive_candidate_batch_dumps_dir(output_root)
+    records_dir = derive_candidate_batch_records_dir(output_root)
     responses_dir.mkdir(parents=True, exist_ok=True)
     dumps_dir.mkdir(parents=True, exist_ok=True)
     records_dir.mkdir(parents=True, exist_ok=True)
@@ -382,10 +554,6 @@ def main() -> int:
         f"[suggest-edits-poc] provider={args.provider} sample_count={len(sample_paths)} "
         f"output_root={make_repo_relative(output_root)} collection_batch={args.collection_batch}"
     )
-
-    sample_timeout_seconds = derive_capture_timeout_seconds(args)
-    if sample_timeout_seconds is not None:
-        print(f"[suggest-edits-poc] per-sample hard timeout={sample_timeout_seconds:.0f}s")
 
     record_paths: list[Path] = []
     failed_samples: list[dict[str, str]] = []
@@ -401,15 +569,44 @@ def main() -> int:
 
     for index, sample_path in enumerate(sample_paths, start=1):
         sample_id, _, _ = load_sample_bundle(sample_path)
-        response_path = responses_dir / f"{sample_path.stem}.response.json"
-        dump_path = dumps_dir / f"{sample_path.stem}.dump.json"
-        record_path = records_dir / f"{sample_path.stem}.record.json"
+        response_path = derive_candidate_batch_response_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        dump_path = derive_candidate_batch_dump_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        record_path = derive_candidate_batch_record_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
         if args.resume and response_path.is_file() and dump_path.is_file() and record_path.is_file():
             print(f"[skip {index}/{len(sample_paths)}] {sample_id}: existing outputs found")
             record_paths.append(record_path)
             continue
 
         print(f"[start {index}/{len(sample_paths)}] {sample_id}")
+        effective_request_timeout_seconds = resolve_effective_request_timeout_seconds(args, sample_id)
+        sample_timeout_seconds = derive_capture_timeout_seconds(
+            provider=args.provider,
+            request_timeout_seconds=effective_request_timeout_seconds,
+            max_attempts=args.max_attempts,
+            retry_base_delay_seconds=args.retry_base_delay_seconds,
+        )
+        if effective_request_timeout_seconds is not None:
+            print(
+                f"[timeout {index}/{len(sample_paths)}] {sample_id}: "
+                f"request_timeout={effective_request_timeout_seconds:.0f}s"
+                + (
+                    f" hard_timeout={sample_timeout_seconds:.0f}s"
+                    if sample_timeout_seconds is not None
+                    else ""
+                )
+            )
         if args.provider == "mock":
             capture_mock_sample(
                 sample_path=sample_path,
@@ -426,6 +623,7 @@ def main() -> int:
                 args=args,
                 sample_path=sample_path,
                 collection_batch=args.collection_batch,
+                request_timeout_seconds=effective_request_timeout_seconds,
                 response_path=response_path,
                 dump_path=dump_path,
                 record_path=record_path,
@@ -452,7 +650,11 @@ def main() -> int:
             record_paths,
             description=(
                 args.manifest_description.strip()
-                or "RadishFlow suggest_flowsheet_edits 首批 mock PoC 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+                or (
+                    "RadishFlow suggest_flowsheet_edits 首批真实 provider capture 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+                    if args.provider != "mock"
+                    else "RadishFlow suggest_flowsheet_edits 首批 mock PoC 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+                )
             ),
             collection_batch_override=args.collection_batch,
             capture_origin_override=args.capture_origin.strip(),
@@ -483,6 +685,18 @@ def main() -> int:
         manifest_written=manifest_written,
         failed_samples=failed_samples,
     )
+    if manifest_written:
+        artifact_summary = build_radishflow_batch_artifact_summary_document(
+            output_root=output_root,
+            manifest_path=manifest_path,
+            audit_report_path=report_path,
+            capture_exit_code=1 if failed_samples else 0,
+            audit_requested=not args.skip_audit,
+            provider_override=args.provider,
+            model_override=args.model,
+        )
+        write_json_document(artifact_summary_path, artifact_summary)
+        result_document["artifact_summary_path"] = make_repo_relative(artifact_summary_path)
     print(json.dumps(result_document, ensure_ascii=False, indent=2))
 
     if failed_samples:

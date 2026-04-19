@@ -35,6 +35,7 @@ from services.runtime.inference import recanonicalize_response_dump  # noqa: E40
 TASK_SAMPLE_DIRS = {
     "radish-docs-qa": REPO_ROOT / "datasets/eval/radish",
     "radishflow-ghost-completion": REPO_ROOT / "datasets/eval/radishflow",
+    "radishflow-suggest-edits": REPO_ROOT / "datasets/eval/radishflow",
 }
 
 

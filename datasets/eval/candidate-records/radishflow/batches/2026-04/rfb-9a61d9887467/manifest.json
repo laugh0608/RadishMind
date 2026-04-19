@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-15-radishflow-suggest-edits-poc-real-v25-apiyi-cx-triad-mixed-risk-cross-object",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-9a61d9887467/r/sfe-f446bbc4c0af.record.json",
+      "sample_key": "sfe-f446bbc4c0af",
+      "record_relpath": "r/sfe-f446bbc4c0af.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-9a61d9887467/r/sfe-65ec70069343.record.json",
+      "sample_key": "sfe-65ec70069343",
+      "record_relpath": "r/sfe-65ec70069343.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-9a61d9887467",
+  "batch_key": "rfb-9a61d9887467"
+}

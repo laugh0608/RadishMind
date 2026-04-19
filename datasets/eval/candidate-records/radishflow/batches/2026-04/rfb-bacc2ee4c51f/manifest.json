@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v51-apiyi-cc-local-edits",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-bacc2ee4c51f/r/sfe-20b584ec036f.record.json",
+      "sample_key": "sfe-20b584ec036f",
+      "record_relpath": "r/sfe-20b584ec036f.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-bacc2ee4c51f/r/sfe-107cdb9318cf.record.json",
+      "sample_key": "sfe-107cdb9318cf",
+      "record_relpath": "r/sfe-107cdb9318cf.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-pump-parameter-combo-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-pump-parameter-combo-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-bacc2ee4c51f/r/sfe-ad5105192cf3.record.json",
+      "sample_key": "sfe-ad5105192cf3",
+      "record_relpath": "r/sfe-ad5105192cf3.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-bacc2ee4c51f/r/sfe-95bf303f7249.record.json",
+      "sample_key": "sfe-95bf303f7249",
+      "record_relpath": "r/sfe-95bf303f7249.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-bacc2ee4c51f",
+  "batch_key": "rfb-bacc2ee4c51f"
+}

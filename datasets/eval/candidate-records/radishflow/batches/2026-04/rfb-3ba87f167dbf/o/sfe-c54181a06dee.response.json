@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.75,
+  "summary": "针对选中的流股 stream-out-1（Product Outlet）存在未连接下游消费者的拓扑错误，生成候选编辑提案：添加下游占位单元以完成出口连接，但保留最终拓扑决策待用户确认。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到流股 'Product Outlet' (stream-out-1) 未连接任何下游单元或出口汇点。建议添加一个下游占位单元（如 Product Tank 或 Export Sink）以修复拓扑完整性，但具体单元类型和命名需您确认。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Product Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Product Outlet 添加下游占位单元",
+      "rationale": "当前流股 source_unit_id 指向 separator-1，但缺少 destination_unit_id，导致求解器报告 invalid_topology。添加一个下游占位单元可恢复拓扑有效性，但单元类型（储罐/汇点/其他处理单元）涉及工艺设计决策，需用户确认。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "stream-out-1"
+      },
+      "patch": {
+        "spec_placeholders": [
+          {
+            "kind": "Unit",
+            "placeholder_id": "placeholder-unit-dest-1",
+            "suggested_kind": "ProductTank",
+            "suggested_name": "Product Tank (placeholder)",
+            "rationale": "为未连接出口提供下游接收单元，具体类型待确认"
+          }
+        ],
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Product Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / stream-out-1",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "stream-out-1 Product Outlet source_unit_id=separator-1"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "high"
+}

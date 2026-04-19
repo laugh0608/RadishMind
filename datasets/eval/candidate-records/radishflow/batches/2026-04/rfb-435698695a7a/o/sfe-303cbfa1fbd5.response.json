@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对当前选中的 Booster Compressor (compressor-2)，基于 3 条诊断（2 error + 1 warning）生成 3 条候选编辑提案：① 提高出口压力目标以满足压缩比要求；② 提高最小旁通流量百分比以满足防喘振审查阈值；③ 将效率修正至合理范围内。所有提案均需人工确认后方可应用。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "提高出口压力目标至合理压缩比",
+      "rationale": "当前出口压力目标 270 kPa 与吸入压力 260 kPa 仅差 10 kPa，压缩比约 1.04，远低于典型增压压缩机的最低有效压缩比。建议将出口压力目标提高至 520 kPa（压缩比 ≈2.0），以满足增压压缩工况需求。具体数值需用户根据下游工艺要求确认。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "diag-3",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "compressor-2"
+      },
+      "patch": {
+        "parameter_updates": {
+          "outlet_pressure_target_kpa": {
+            "action": "review_and_raise_margin",
+            "minimum_delta_kpa": 90,
+            "reference_stream_id": "feed-9"
+          },
+          "minimum_flow_bypass_percent": {
+            "action": "raise_to_anti_surge_review_floor",
+            "suggested_minimum": 8
+          },
+          "efficiency_percent": {
+            "action": "clamp_to_review_range",
+            "suggested_range": [
+              65,
+              85
+            ]
+          }
+        },
+        "preserve_topology": true,
+        "review_scope": "local_unit_parameters_only"
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "message": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "message": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+      "message": "Booster Compressor efficiency_percent=104 is outside the recommended operating range.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Booster Compressor outlet pressure target is too close to suction pressure for the required compression duty."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Booster Compressor minimum flow bypass percent is below the current anti-surge review threshold."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Booster Compressor efficiency_percent=104 is outside the recommended operating range."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "compressor-2 Booster Compressor kind=Compressor"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "summary": "针对当前选中的 Booster Compressor (compressor-2)，基于 3 条诊断（2 error + 1 warning）生成 3 条候选编辑提案：① 提高出口压力目标以满足压缩比要求；② 提高最小旁通流量百分比以满足防喘振审查阈值；③ 将效率修正至合理范围内。所有提案均需人工确认后方可应用。",
+  "risk_level": "high",
+  "confidence": 0.2
+}

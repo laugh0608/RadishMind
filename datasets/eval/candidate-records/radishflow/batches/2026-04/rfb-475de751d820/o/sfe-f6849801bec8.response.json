@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "confidence": 0.85,
+  "summary": "针对所选对象 Separator Vapor Outlet (separator-vapor-41) 缺乏下游连接导致的拓扑无效问题，生成了针对该流股的候选连接提案。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "检测到流股 Separator Vapor Outlet 当前未连接到任何下游消费者或导出节点，导致拓扑状态无效。同时，该连接缺失使得 Trim Separator 和上游 Trim Cooler 的计算状态无法独立收敛。建议通过设定目标单元连接占位符以提示用户补全拓扑连接。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Separator Vapor Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "message": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Separator Vapor Outlet 添加目标连接占位符",
+      "rationale": "修复流股连接缺失的错误，恢复有效的拓扑图结构，从而使求解器能够计算分离器与冷却器的级联影响。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "separator-vapor-41"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Separator Vapor Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-outlet-41",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "cooler-outlet-41 Cooler Outlet source_unit_id=cooler-8 target_unit_id=separator-4"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-vapor-41",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "separator-vapor-41 Separator Vapor Outlet source_unit_id=separator-4"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-4",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-4 Trim Separator kind=FlashDrum"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "risk_level": "high"
+}

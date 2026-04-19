@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+  "request_id": "rf-suggest-edit-compressor-evidence-gap-partial-001",
+  "captured_at": "2026-04-16T13:34:23Z",
+  "source": "captured_candidate_response",
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 34,
+    "selected_unit_ids": [
+      "compressor-1"
+    ],
+    "diagnostic_codes": [
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "针对 Recycle Compressor (compressor-1) 的压力目标设置问题生成候选编辑提案。当前出口压力目标 (235 kPa) 与进口压力 (220 kPa) 过于接近，无法解释请求的压缩负荷，但根因尚未确认（可能为压力比不足或缺少下游背压数据）。由于证据不完整，仅提供局部参数修正作为候选方案，需用户确认后再执行。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "summary": "围绕 Recycle Compressor (compressor-1) 的出口压力目标设置问题生成候选编辑提案。当前诊断显示压力目标与进口压力差值过小，但根因未确认，因此仅针对已选单元提供参数调整占位，不涉及拓扑变更。",
+    "issues": [
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "message": "Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED",
+        "message": "Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "提高压缩机出口压力目标以建立合理压比",
+        "rationale": "当前出口压力目标 235 kPa 仅比进口压力 220 kPa 高 15 kPa，压比约 1.07，难以解释 1200 kg/h 的压缩负荷。建议将出口压力目标提高至 400-600 kPa 范围（典型循环压缩机压比 1.8-2.7），以消除 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE 错误。由于根因未完全确认，此调整为候选方案，需用户根据实际工艺需求确认最终数值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "compressor-1"
+        },
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_margin",
+              "minimum_delta_kpa": 80,
+              "reference_stream_id": "feed-3"
+            }
+          },
+          "preserve_topology": true,
+          "review_scope": "local_unit_parameters_only"
+        }
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_ROOT_CAUSE_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-1 Recycle Compressor kind=Compressor"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.18"
+      }
+    ],
+    "confidence": 0.65,
+    "requires_confirmation": true,
+    "risk_level": "medium"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v54-apiyi-ch-local-edits"
+  }
+}

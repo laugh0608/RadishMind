@@ -20,6 +20,7 @@ from services.runtime.candidate_records import (  # noqa: E402
     load_json_document,
     make_repo_relative,
     resolve_relative_to_repo,
+    resolve_manifest_record_path,
     write_json_document,
 )
 
@@ -124,14 +125,13 @@ def derive_expected_candidate_violations(audit_violations: list[str]) -> list[st
     return filtered
 
 
-def build_record_map(manifest: dict[str, Any]) -> dict[str, Path]:
+def build_record_map(manifest: dict[str, Any], manifest_path: Path) -> dict[str, Path]:
     record_map: dict[str, Path] = {}
     for entry in manifest.get("records") or []:
         if not isinstance(entry, dict):
             raise SystemExit("manifest records entries must be json objects")
         record_id = expect_string(entry.get("record_id"), "manifest record_id")
-        path_value = expect_string(entry.get("path"), f"manifest path for {record_id}")
-        record_map[record_id] = resolve_relative_to_repo(path_value)
+        record_map[record_id] = resolve_manifest_record_path(manifest_path, manifest, entry)
     return record_map
 
 
@@ -385,7 +385,7 @@ def main() -> int:
 
     manifest_path = resolve_relative_to_repo(expect_string(index_document.get("source_manifest_path"), "source_manifest_path"))
     manifest = load_manifest(manifest_path)
-    record_map = build_record_map(manifest)
+    record_map = build_record_map(manifest, manifest_path)
     audit_sample_dir = resolve_relative_to_repo(expect_string(index_document.get("audit_sample_dir"), "audit_sample_dir"))
     entries = filter_entries(build_index_entries(index_document), args.group_id, args.record_id, args.replay_mode)
 

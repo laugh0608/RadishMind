@@ -1,0 +1,101 @@
+{
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.9,
+  "summary": "围绕当前选中的进料阀门 (valve-1) 生成参数修正提案。虽然流程图存在全局质量守恒偏差，但受限于当前选择集及明确的诊断证据，本提案仅针对局部的阀门压降错误进行修复。",
+  "issues": [
+    {
+      "code": "VALVE_PRESSURE_DROP_INVALID",
+      "message": "Feed Valve pressure_drop_kpa is negative and conflicts with the intended throttling direction.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "GLOBAL_BALANCE_GAP",
+      "message": "The current flowsheet still shows a global mass balance gap after the last solve attempt.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2"
+      ]
+    }
+  ],
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对选中的 valve-1，已生成候选参数修复方案，建议将其负压降纠正为正值以消除 VALVE_PRESSURE_DROP_INVALID 错误。关于全局质量平衡偏差，建议在应用局部修复并重新运行求解器后，再基于新的残差结果做进一步排查。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "unit",
+        "id": "valve-1"
+      },
+      "title": "为 valve-1 补充局部参数占位",
+      "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+      "patch": {
+        "parameter_updates": {
+          "pressure_drop_kpa": {
+            "action": "review_and_make_positive",
+            "minimum_value": 10
+          },
+          "opening_percent": {
+            "action": "review_with_throttling_margin",
+            "suggested_maximum": 85
+          }
+        },
+        "patch_scope": "local_unit_parameters"
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "requires_confirmation": true,
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 VALVE_PRESSURE_DROP_INVALID",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Feed Valve pressure_drop_kpa is negative and conflicts with the intended throttling direction."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 GLOBAL_BALANCE_GAP",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "The current flowsheet still shows a global mass balance gap after the last solve attempt."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / valve-1",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "valve-1 Feed Valve kind=Valve"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=residual_above_threshold residual_norm=0.24"
+    }
+  ],
+  "schema_version": 1,
+  "risk_level": "medium"
+}

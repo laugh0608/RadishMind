@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+  "request_id": "rf-suggest-edit-valve-local-fix-vs-global-balance-001",
+  "captured_at": "2026-04-16T13:37:27Z",
+  "source": "captured_candidate_response",
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 36,
+    "selected_unit_ids": [
+      "valve-1"
+    ],
+    "diagnostic_codes": [
+      "VALVE_PRESSURE_DROP_INVALID",
+      "GLOBAL_BALANCE_GAP"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.75,
+    "summary": "针对选中的 Feed Valve (valve-1) 生成局部修复提案：修正负值压力降参数以解决 VALVE_PRESSURE_DROP_INVALID 错误。全局质量平衡警告 (GLOBAL_BALANCE_GAP) 因证据不足（未选中关联流股、无具体残差分布信息）暂不生成拓扑修改提案。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "检测到 Feed Valve 的压力降参数为负值 (-15 kPa)，与阀门节流方向冲突。建议将 pressure_drop_kpa 修正为正值，以消除求解错误。全局质量平衡存在 0.24 的残差，但当前选择集仅包含阀门单元，缺乏足够信息判断是阀门参数问题还是下游分离器配置问题，建议先应用局部修复后重新求解观察。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "VALVE_PRESSURE_DROP_INVALID",
+        "message": "Feed Valve pressure_drop_kpa is negative and conflicts with the intended throttling direction.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "GLOBAL_BALANCE_GAP",
+        "message": "The current flowsheet still shows a global mass balance gap after the last solve attempt.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "修正 Feed Valve 压力降参数符号",
+        "rationale": "阀门压力降应为正值表示节流损失。当前配置 -15 kPa 违反物理约束，直接导致求解器报错。修正为 +15 kPa 可消除 VALVE_PRESSURE_DROP_INVALID 错误，使阀门模型符合预期压降方向。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "valve-1"
+        },
+        "patch": {
+          "parameter_updates": {
+            "pressure_drop_kpa": {
+              "action": "review_and_make_positive",
+              "minimum_value": 10
+            },
+            "opening_percent": {
+              "action": "review_with_throttling_margin",
+              "suggested_maximum": 85
+            }
+          },
+          "patch_scope": "local_unit_parameters"
+        }
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 VALVE_PRESSURE_DROP_INVALID",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed Valve pressure_drop_kpa is negative and conflicts with the intended throttling direction."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 GLOBAL_BALANCE_GAP",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "The current flowsheet still shows a global mass balance gap after the last solve attempt."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / valve-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "valve-1 Feed Valve kind=Valve"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=residual_above_threshold residual_norm=0.24"
+      }
+    ],
+    "requires_confirmation": true,
+    "risk_level": "medium"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v54-apiyi-ch-local-edits"
+  }
+}

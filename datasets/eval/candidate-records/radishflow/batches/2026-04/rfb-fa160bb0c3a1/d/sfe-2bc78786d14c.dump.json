@@ -1,0 +1,410 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+  "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+  "captured_at": "2026-04-15T13:03:04Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-15-radishflow-suggest-edits-poc-real-v21-apiyi-cx-mixed-risk-cross-object",
+    "notes": "apiyi_cx mixed-risk plus cross-object citation batch"
+  },
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 86,
+    "selected_unit_ids": [
+      "pump-12",
+      "cooler-12"
+    ],
+    "selected_stream_ids": [
+      "feed-81",
+      "pump-outlet-81",
+      "cooler-outlet-81"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+      "UNIT_PARAMETER_OUT_OF_RANGE",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-154",
+          "streams": [
+            {
+              "id": "feed-81",
+              "name": "Recycle Pump Feed",
+              "target_unit_id": "pump-12",
+              "specs": {
+                "pressure_kpa": 190,
+                "temperature_c": 30
+              }
+            },
+            {
+              "id": "pump-outlet-81",
+              "name": "Pump Outlet 81",
+              "source_unit_id": "pump-12",
+              "target_unit_id": "cooler-12",
+              "specs": {
+                "pressure_kpa": 155,
+                "temperature_c": 48
+              }
+            },
+            {
+              "id": "cooler-outlet-81",
+              "name": "Trim Cooler Outlet",
+              "source_unit_id": "cooler-12",
+              "specs": {
+                "temperature_c": 21
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "pump-12",
+              "kind": "Pump",
+              "name": "Recycle Pump",
+              "config": {
+                "outlet_pressure_target_kpa": 150,
+                "efficiency_percent": 108
+              }
+            },
+            {
+              "id": "cooler-12",
+              "kind": "Cooler",
+              "name": "Trim Cooler",
+              "config": {
+                "control_mode": "duty"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 86,
+      "selected_unit_ids": [
+        "pump-12",
+        "cooler-12"
+      ],
+      "selected_unit": {
+        "id": "cooler-12",
+        "kind": "Cooler",
+        "name": "Trim Cooler",
+        "config": {
+          "control_mode": "duty"
+        }
+      },
+      "selected_stream_ids": [
+        "feed-81",
+        "pump-outlet-81",
+        "cooler-outlet-81"
+      ],
+      "diagnostic_summary": {
+        "error_count": 2,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Trim Cooler Outlet is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "cooler-outlet-81"
+        },
+        {
+          "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+          "message": "Recycle Pump outlet pressure target is lower than the inlet pressure.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "pump-12"
+        },
+        {
+          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+          "message": "Recycle Pump efficiency_percent=108 is outside the recommended operating range.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "pump-12"
+        },
+        {
+          "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "cooler-12"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-15T03:25:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gpt-5.4",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-cross-object-mixed-risk-reconnect-plus-pump-parameter-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-154\",\n        \"streams\": [\n          {\n            \"id\": \"feed-81\",\n            \"name\": \"Recycle Pump Feed\",\n            \"target_unit_id\": \"pump-12\",\n            \"specs\": {\n              \"pressure_kpa\": 190,\n              \"temperature_c\": 30\n            }\n          },\n          {\n            \"id\": \"pump-outlet-81\",\n            \"name\": \"Pump Outlet 81\",\n            \"source_unit_id\": \"pump-12\",\n            \"target_unit_id\": \"cooler-12\",\n            \"specs\": {\n              \"pressure_kpa\": 155,\n              \"temperature_c\": 48\n            }\n          },\n          {\n            \"id\": \"cooler-outlet-81\",\n            \"name\": \"Trim Cooler Outlet\",\n            \"source_unit_id\": \"cooler-12\",\n            \"specs\": {\n              \"temperature_c\": 21\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"pump-12\",\n            \"kind\": \"Pump\",\n            \"name\": \"Recycle Pump\",\n            \"config\": {\n              \"outlet_pressure_target_kpa\": 150,\n              \"efficiency_percent\": 108\n            }\n          },\n          {\n            \"id\": \"cooler-12\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Trim Cooler\",\n            \"config\": {\n              \"control_mode\": \"duty\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 86,\n    \"selected_unit_ids\": [\n      \"pump-12\",\n      \"cooler-12\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-12\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Trim Cooler\",\n      \"config\": {\n        \"control_mode\": \"duty\"\n      }\n    },\n    \"selected_stream_ids\": [\n      \"feed-81\",\n      \"pump-outlet-81\",\n      \"cooler-outlet-81\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 2,\n      \"warning_count\": 2\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_DISCONNECTED\",\n        \"message\": \"Trim Cooler Outlet is not connected to any downstream consumer or export sink.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"cooler-outlet-81\"\n      },\n      {\n        \"code\": \"PUMP_OUTLET_PRESSURE_TARGET_INVALID\",\n        \"message\": \"Recycle Pump outlet pressure target is lower than the inlet pressure.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"pump-12\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_OUT_OF_RANGE\",\n        \"message\": \"Recycle Pump efficiency_percent=108 is outside the recommended operating range.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"pump-12\"\n      },\n      {\n        \"code\": \"COOLER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"cooler-12\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_topology\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-15T03:25:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_cx",
+    "provider_profile_env": "APIYI_CX",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-3102184b-168e-4e6c-bd42-df84a298f4cf",
+    "object": "chat.completion",
+    "created": 1776258163,
+    "model": "gpt-5.4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-cross-object-mixed-risk-reconnect-plus-pump-parameter-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"requires_confirmation\": true,\n  \"answers\": [\n    {\n      \"summary\": \"当前围绕未连接的出口流股 cooler-outlet-81 与泵 pump-12 的直接诊断生成候选提案：一项为 cooler-outlet-81 增加下游连接占位，另一项为 pump-12 修正无效出口压力目标并补充效率参数占位。\",\n      \"issues\": [\n        {\n          \"title\": \"cooler-outlet-81 缺少下游去向\",\n          \"detail\": \"出口流股被直接诊断为未连接，且当前快照为 invalid_topology，因此仅适合提出局部连接占位而不臆造具体下游对象。\",\n          \"citations\": [\n            \"diag-1\",\n            \"flowdoc-stream-3\",\n            \"snapshot-1\"\n          ]\n        },\n        {\n          \"title\": \"pump-12 的出口压力目标低于入口压力，且效率参数超出推荐范围\",\n          \"detail\": \"泵的 outlet_pressure_target_kpa=150 低于入口流股 feed-81 的 pressure_kpa=190；同时 efficiency_percent=108 被诊断为超出推荐范围，适合提出局部参数修正/占位。\",\n          \"citations\": [\n            \"diag-2\",\n            \"diag-3\",\n            \"flowdoc-unit-1\",\n            \"flowdoc-stream-1\"\n          ]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"action\": \"candidate_edit\",\n          \"title\": \"为 cooler-outlet-81 添加下游连接占位\",\n          \"target\": {\n            \"type\": \"stream\",\n            \"id\": \"cooler-outlet-81\"\n          },\n          \"rationale\": \"直接诊断指出该流股没有下游 consumer 或 export sink。为避免凭空指定具体设备，建议仅添加待确认的连接占位，以恢复最基本的拓扑完整性讨论基础。由于涉及拓扑去向，风险较高。\",\n          \"patch\": {\n            \"connection_placeholder\": {\n              \"stream_id\": \"cooler-outlet-81\",\n              \"missing_end\": \"target\",\n              \"allowed_target_kinds\": [\n                \"unit\",\n                \"export_sink\"\n              ],\n              \"note\": \"需要用户确认 Trim Cooler Outlet 的下游接收对象或导出端。\"\n            }\n          },\n          \"risk_level\": \"high\",\n          \"requires_confirmation\": true,\n          \"citations\": [\n            \"diag-1\",\n            \"flowdoc-stream-3\",\n            \"snapshot-1\"\n          ]\n        },\n        {\n          \"action\": \"candidate_edit\",\n          \"title\": \"为 pump-12 提出出口压力目标修正并补充效率占位\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"pump-12\"\n          },\n          \"rationale\": \"泵出口压力目标目前低于已知入口压力，直接触发无效诊断；同时效率参数超出推荐范围。基于现有证据，仅建议把出口压力目标提高到高于入口压力的待确认值，并将效率改为推荐范围内的待确认值，而不替用户决定最终工艺设计点。\",\n          \"patch\": {\n            \"parameter_updates\": {\n              \"outlet_pressure_target_kpa\": {\n                \"operator\": \">\",\n                \"reference\": {\n                  \"stream_id\": \"feed-81\",\n                  \"parameter\": \"pressure_kpa\",\n                  \"value\": 190\n                }\n              }\n            },\n            \"parameter_placeholders\": {\n              \"outlet_pressure_target_kpa\": {\n                \"kind\": \"numeric_min_exclusive\",\n                \"min_exclusive\": 190,\n                \"unit\": \"kPa\",\n                \"reason\": \"必须高于入口压力以消除当前直接诊断。\"\n              },\n              \"efficiency_percent\": {\n                \"kind\": \"recommended_range_value\",\n                \"reason\": \"当前 108 超出推荐 operating range，需要用户确认一个推荐范围内的值。\"\n              }\n            }\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\n            \"diag-2\",\n            \"diag-3\",\n            \"flowdoc-unit-1\",\n            \"flowdoc-stream-1\"\n          ]\n        }\n      ],\n      \"confidence\": 0.89,\n      \"citations\": [\n        \"diag-1\",\n        \"diag-2\",\n        \"diag-3\",\n        \"flowdoc-stream-3\",\n        \"flowdoc-unit-1\",\n        \"flowdoc-stream-1\",\n        \"snapshot-1\"\n      ]\n    }\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1618,
+      "completion_tokens": 1058,
+      "total_tokens": 2676
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕未连接的出口流股 cooler-outlet-81 与泵 pump-12 的直接诊断生成候选提案：一项为 cooler-outlet-81 增加下游连接占位，另一项为 pump-12 修正无效出口压力目标并补充效率参数占位。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 cooler-outlet-81 添加下游连接占位",
+        "rationale": "直接诊断指出该流股没有下游 consumer 或 export sink。为避免凭空指定具体设备，建议仅添加待确认的连接占位，以恢复最基本的拓扑完整性讨论基础。由于涉及拓扑去向，风险较高。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "cooler-outlet-81"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 pump-12 提出出口压力目标修正并补充效率占位",
+        "rationale": "泵出口压力目标目前低于已知入口压力，直接触发无效诊断；同时效率参数超出推荐范围。基于现有证据，仅建议把出口压力目标提高到高于入口压力的待确认值，并将效率改为推荐范围内的待确认值，而不替用户决定最终工艺设计点。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "diag-3",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "pump-12"
+        },
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-81"
+            },
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                65,
+                85
+              ]
+            }
+          },
+          "preserve_topology": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Trim Cooler Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "Recycle Pump outlet pressure target is lower than the inlet pressure.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Recycle Pump efficiency_percent=108 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Trim Cooler Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Recycle Pump outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Recycle Pump efficiency_percent=108 is outside the recommended operating range."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler itself should remain explanatory context only."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-outlet-81",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "cooler-outlet-81 Trim Cooler Outlet source_unit_id=cooler-12"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-12",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-12 Recycle Pump kind=Pump"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-12",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "cooler-12 Trim Cooler kind=Cooler"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-outlet-81",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "pump-outlet-81 Pump Outlet 81 source_unit_id=pump-12 target_unit_id=cooler-12"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕未连接的出口流股 cooler-outlet-81 与泵 pump-12 的直接诊断生成候选提案：一项为 cooler-outlet-81 增加下游连接占位，另一项为 pump-12 修正无效出口压力目标并补充效率参数占位。",
+    "risk_level": "high",
+    "confidence": 0.2
+  }
+}

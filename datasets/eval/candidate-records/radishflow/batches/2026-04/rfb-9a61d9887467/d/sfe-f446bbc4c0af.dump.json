@@ -1,0 +1,468 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+  "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+  "captured_at": "2026-04-15T14:10:46Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-15-radishflow-suggest-edits-poc-real-v25-apiyi-cx-triad-mixed-risk-cross-object"
+  },
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 88,
+    "selected_unit_ids": [
+      "pump-13",
+      "separator-10"
+    ],
+    "selected_stream_ids": [
+      "feed-92",
+      "pump-outlet-92",
+      "separator-liquid-92"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+      "UNIT_PARAMETER_INCOMPLETE",
+      "UNIT_PARAMETER_OUT_OF_RANGE",
+      "DOWNSTREAM_STATE_DEPENDENT"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-156",
+          "streams": [
+            {
+              "id": "feed-92",
+              "name": "Booster Pump Feed",
+              "target_unit_id": "pump-13",
+              "specs": {
+                "pressure_kpa": 200,
+                "temperature_c": 31
+              }
+            },
+            {
+              "id": "pump-outlet-92",
+              "name": "Pump Outlet 92",
+              "source_unit_id": "pump-13",
+              "target_unit_id": "separator-10",
+              "specs": {
+                "pressure_kpa": 158,
+                "temperature_c": 44
+              }
+            },
+            {
+              "id": "separator-liquid-92",
+              "name": "Separator Liquid 92",
+              "source_unit_id": "separator-10",
+              "specs": {
+                "pressure_kpa": 146
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "pump-13",
+              "kind": "Pump",
+              "name": "Booster Pump",
+              "config": {
+                "outlet_pressure_target_kpa": 150,
+                "efficiency_percent": 109
+              }
+            },
+            {
+              "id": "separator-10",
+              "kind": "FlashDrum",
+              "name": "Product Separator",
+              "config": {
+                "pressure_mode": "fixed"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 88,
+      "selected_unit_ids": [
+        "pump-13",
+        "separator-10"
+      ],
+      "selected_unit": {
+        "id": "separator-10",
+        "kind": "FlashDrum",
+        "name": "Product Separator",
+        "config": {
+          "pressure_mode": "fixed"
+        }
+      },
+      "selected_stream_ids": [
+        "feed-92",
+        "pump-outlet-92",
+        "separator-liquid-92"
+      ],
+      "diagnostic_summary": {
+        "error_count": 3,
+        "warning_count": 2
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Separator Liquid 92 is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "separator-liquid-92"
+        },
+        {
+          "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+          "message": "Booster Pump outlet pressure target is lower than the inlet pressure.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "pump-13"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Product Separator is configured for fixed pressure mode but the operating pressure target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "separator-10"
+        },
+        {
+          "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+          "message": "Booster Pump efficiency_percent=109 is outside the recommended operating range.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "pump-13"
+        },
+        {
+          "code": "DOWNSTREAM_STATE_DEPENDENT",
+          "message": "Separator Liquid 92 routing still depends on the current pump discharge condition and separator pressure context.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "separator-liquid-92"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-15T05:18:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gpt-5.4",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-156\",\n        \"streams\": [\n          {\n            \"id\": \"feed-92\",\n            \"name\": \"Booster Pump Feed\",\n            \"target_unit_id\": \"pump-13\",\n            \"specs\": {\n              \"pressure_kpa\": 200,\n              \"temperature_c\": 31\n            }\n          },\n          {\n            \"id\": \"pump-outlet-92\",\n            \"name\": \"Pump Outlet 92\",\n            \"source_unit_id\": \"pump-13\",\n            \"target_unit_id\": \"separator-10\",\n            \"specs\": {\n              \"pressure_kpa\": 158,\n              \"temperature_c\": 44\n            }\n          },\n          {\n            \"id\": \"separator-liquid-92\",\n            \"name\": \"Separator Liquid 92\",\n            \"source_unit_id\": \"separator-10\",\n            \"specs\": {\n              \"pressure_kpa\": 146\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"pump-13\",\n            \"kind\": \"Pump\",\n            \"name\": \"Booster Pump\",\n            \"config\": {\n              \"outlet_pressure_target_kpa\": 150,\n              \"efficiency_percent\": 109\n            }\n          },\n          {\n            \"id\": \"separator-10\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Product Separator\",\n            \"config\": {\n              \"pressure_mode\": \"fixed\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 88,\n    \"selected_unit_ids\": [\n      \"pump-13\",\n      \"separator-10\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"separator-10\",\n      \"kind\": \"FlashDrum\",\n      \"name\": \"Product Separator\",\n      \"config\": {\n        \"pressure_mode\": \"fixed\"\n      }\n    },\n    \"selected_stream_ids\": [\n      \"feed-92\",\n      \"pump-outlet-92\",\n      \"separator-liquid-92\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 3,\n      \"warning_count\": 2\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_DISCONNECTED\",\n        \"message\": \"Separator Liquid 92 is not connected to any downstream consumer or export sink.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"separator-liquid-92\"\n      },\n      {\n        \"code\": \"PUMP_OUTLET_PRESSURE_TARGET_INVALID\",\n        \"message\": \"Booster Pump outlet pressure target is lower than the inlet pressure.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"pump-13\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_INCOMPLETE\",\n        \"message\": \"Product Separator is configured for fixed pressure mode but the operating pressure target is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"separator-10\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_OUT_OF_RANGE\",\n        \"message\": \"Booster Pump efficiency_percent=109 is outside the recommended operating range.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"pump-13\"\n      },\n      {\n        \"code\": \"DOWNSTREAM_STATE_DEPENDENT\",\n        \"message\": \"Separator Liquid 92 routing still depends on the current pump discharge condition and separator pressure context.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"separator-liquid-92\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_topology\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-15T05:18:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_cx",
+    "provider_profile_env": "APIYI_CX",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-606ab1dc-be24-49a2-b9ef-0b7c0491f426",
+    "object": "chat.completion",
+    "created": 1776262208,
+    "model": "gpt-5.4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"requires_confirmation\": true,\n  \"summary\": \"当前围绕已选中的泵、闪蒸罐及其关联物流生成候选提案，重点处理泵出口压力设定无效、分离器固定压力模式缺少目标压力，以及未连接液相出口的局部问题。\",\n  \"answers\": [\n    {\n      \"summary\": \"针对 pump-13、separator-10 和 separator-liquid-92 提出最小候选补丁，包含一个泵参数修正、一个分离器压力占位补全，以及一个下游连接占位。\",\n      \"issues\": [\n        {\n          \"title\": \"泵出口压力目标低于入口压力\",\n          \"detail\": \"pump-13 的 outlet_pressure_target_kpa=150，小于入口物流 feed-92 的 pressure_kpa=200，直接触发无效设定。\",\n          \"citations\": [\n            \"diag-2\",\n            \"flowdoc-unit-1\",\n            \"flowdoc-stream-1\"\n          ]\n        },\n        {\n          \"title\": \"分离器固定压力模式缺少操作压力目标\",\n          \"detail\": \"separator-10 处于 fixed 压力模式，但缺少 operating pressure target。\",\n          \"citations\": [\n            \"diag-3\",\n            \"flowdoc-unit-2\"\n          ]\n        },\n        {\n          \"title\": \"液相出口未连接且路由依赖当前工况\",\n          \"detail\": \"separator-liquid-92 当前没有下游消费者或导出端，且其路由仍依赖当前泵出口与分离器压力上下文。\",\n          \"citations\": [\n            \"diag-1\",\n            \"diag-5\",\n            \"flowdoc-stream-3\",\n            \"snapshot-1\"\n          ]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"action\": \"candidate_edit\",\n          \"title\": \"将泵出口压力目标改为高于入口压力的待确认值，并补充效率占位修正\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"pump-13\"\n          },\n          \"rationale\": \"当前诊断直接指出出口压力目标低于入口压力；同时效率 109 超出推荐范围。为保持补丁最小且可审查，仅提出将出口目标改为高于 200 kPa 的待确认值，并把效率调整为待确认的有效范围内值，而不推断具体工艺设计值。\",\n          \"patch\": {\n            \"parameter_updates\": {\n              \"outlet_pressure_target_kpa\": {\n                \"mode\": \"replace_with_placeholder\",\n                \"spec_placeholder\": {\n                  \"key\": \"pump_13_outlet_pressure_target_kpa\",\n                  \"expected_type\": \"number\",\n                  \"constraints\": {\n                    \"greater_than\": 200\n                  }\n                }\n              }\n            },\n            \"parameter_placeholders\": [\n              {\n                \"path\": \"config.efficiency_percent\",\n                \"key\": \"pump_13_efficiency_percent\",\n                \"expected_type\": \"number\",\n                \"constraints\": {\n                  \"min\": 0,\n                  \"max\": 100\n                }\n              }\n            ]\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"confidence\": 0.94,\n          \"citations\": [\n            \"diag-2\",\n            \"diag-4\",\n            \"flowdoc-unit-1\",\n            \"flowdoc-stream-1\"\n          ]\n        },\n        {\n          \"action\": \"candidate_edit\",\n          \"title\": \"为固定压力模式分离器补充操作压力目标占位\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"separator-10\"\n          },\n          \"rationale\": \"诊断明确表明 separator-10 在 fixed 模式下缺少 operating pressure target。现有入料 pump-outlet-92 为 158 kPa、液相出口为 146 kPa，但不足以唯一确定应采用的设备操作压力，因此仅补充待确认占位。\",\n          \"patch\": {\n            \"parameter_placeholders\": [\n              {\n                \"path\": \"config.operating_pressure_target_kpa\",\n                \"key\": \"separator_10_operating_pressure_target_kpa\",\n                \"expected_type\": \"number\",\n                \"constraints\": {\n                  \"greater_than\": 0\n                }\n              }\n            ]\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"confidence\": 0.96,\n          \"citations\": [\n            \"diag-3\",\n            \"flowdoc-unit-2\",\n            \"flowdoc-stream-2\",\n            \"flowdoc-stream-3\"\n          ]\n        },\n        {\n          \"action\": \"candidate_edit\",\n          \"title\": \"为未连接液相出口添加下游连接占位\",\n          \"target\": {\n            \"type\": \"stream\",\n            \"id\": \"separator-liquid-92\"\n          },\n          \"rationale\": \"separator-liquid-92 直接存在未连接错误，但诊断同时指出其最终路由依赖当前泵出口与分离器压力上下文。在证据不足下，不指定具体去向，只建议添加待确认的下游消费者或导出端连接占位。\",\n          \"patch\": {\n            \"connection_placeholder\": {\n              \"stream_id\": \"separator-liquid-92\",\n              \"endpoint\": \"target\",\n              \"allowed_target_types\": [\n                \"unit\",\n                \"export_sink\"\n              ],\n              \"key\": \"separator_liquid_92_downstream_target\"\n            }\n          },\n          \"risk_level\": \"high\",\n          \"requires_confirmation\": true,\n          \"confidence\": 0.87,\n          \"citations\": [\n            \"diag-1\",\n            \"diag-5\",\n            \"flowdoc-stream-3\",\n            \"snapshot-1\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"citations\": [\n    {\n      \"id\": \"diag-1\",\n      \"kind\": \"diagnostic\",\n      \"code\": \"STREAM_DISCONNECTED\",\n      \"target_type\": \"stream\",\n      \"target_id\": \"separator-liquid-92\"\n    },\n    {\n      \"id\": \"diag-2\",\n      \"kind\": \"diagnostic\",\n      \"code\": \"PUMP_OUTLET_PRESSURE_TARGET_INVALID\",\n      \"target_type\": \"unit\",\n      \"target_id\": \"pump-13\"\n    },\n    {\n      \"id\": \"diag-3\",\n      \"kind\": \"diagnostic\",\n      \"code\": \"UNIT_PARAMETER_INCOMPLETE\",\n      \"target_type\": \"unit\",\n      \"target_id\": \"separator-10\"\n    },\n    {\n      \"id\": \"diag-4\",\n      \"kind\": \"diagnostic\",\n      \"code\": \"UNIT_PARAMETER_OUT_OF_RANGE\",\n      \"target_type\": \"unit\",\n      \"target_id\": \"pump-13\"\n    },\n    {\n      \"id\": \"diag-5\",\n      \"kind\": \"diagnostic\",\n      \"code\": \"DOWNSTREAM_STATE_DEPENDENT\",\n      \"target_type\": \"stream\",\n      \"target_id\": \"separator-liquid-92\"\n    },\n    {\n      \"id\": \"flowdoc-stream-1\",\n      \"kind\": \"artifact\",\n      \"artifact_name\": \"flowsheet_document\",\n      \"entity_type\": \"stream\",\n      \"entity_id\": \"feed-92\"\n    },\n    {\n      \"id\": \"flowdoc-stream-2\",\n      \"kind\": \"artifact\",\n      \"artifact_name\": \"flowsheet_document\",\n      \"entity_type\": \"stream\",\n      \"entity_id\": \"pump-outlet-92\"\n    },\n    {\n      \"id\": \"flowdoc-stream-3\",\n      \"kind\": \"artifact\",\n      \"artifact_name\": \"flowsheet_document\",\n      \"entity_type\": \"stream\",\n      \"entity_id\": \"separator-liquid-92\"\n    },\n    {\n      \"id\": \"flowdoc-unit-1\",\n      \"kind\": \"artifact\",\n      \"artifact_name\": \"flowsheet_document\",\n      \"entity_type\": \"unit\",\n      \"entity_id\": \"pump-13\"\n    },\n    {\n      \"id\": \"flowdoc-unit-2\",\n      \"kind\": \"artifact\",\n      \"artifact_name\": \"flowsheet_document\",\n      \"entity_type\": \"unit\",\n      \"entity_id\": \"separator-10\"\n    },\n    {\n      \"id\": \"snapshot-1\",\n      \"kind\": \"snapshot\",\n      \"solver_status\": \"invalid_topology\",\n      \"last_updated\": \"2026-04-15T05:18:00Z\"\n    }\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1667,
+      "completion_tokens": 1876,
+      "total_tokens": 3543
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "summary": "当前围绕已选中的泵、闪蒸罐及其关联物流生成候选提案，重点处理泵出口压力设定无效、分离器固定压力模式缺少目标压力，以及未连接液相出口的局部问题。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "针对 pump-13、separator-10 和 separator-liquid-92 提出最小候选补丁，包含一个泵参数修正、一个分离器压力占位补全，以及一个下游连接占位。",
+        "citation_ids": [
+          "diag-1",
+          "diag-5",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1",
+          "diag-2",
+          "diag-4",
+          "diag-3"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Separator Liquid 92 is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Booster Pump outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Product Separator is configured for fixed pressure mode but the operating pressure target is missing."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Booster Pump efficiency_percent=109 is outside the recommended operating range."
+      },
+      {
+        "id": "diag-5",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+        "locator": "context:diagnostics[4]",
+        "excerpt": "Separator Liquid 92 routing still depends on the current pump discharge condition and separator pressure context."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-liquid-92",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "separator-liquid-92 Separator Liquid 92 source_unit_id=separator-10"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-13",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-13 Booster Pump kind=Pump"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-10",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-10 Product Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-outlet-92",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "pump-outlet-92 Pump Outlet 92 source_unit_id=pump-13 target_unit_id=separator-10"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为未连接液相出口添加下游连接占位",
+        "rationale": "separator-liquid-92 直接存在未连接错误，但诊断同时指出其最终路由依赖当前泵出口与分离器压力上下文。在证据不足下，不指定具体去向，只建议添加待确认的下游消费者或导出端连接占位。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-5",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "separator-liquid-92"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "将泵出口压力目标改为高于入口压力的待确认值，并补充效率占位修正",
+        "rationale": "当前诊断直接指出出口压力目标低于入口压力；同时效率 109 超出推荐范围。为保持补丁最小且可审查，仅提出将出口目标改为高于 200 kPa 的待确认值，并把效率调整为待确认的有效范围内值，而不推断具体工艺设计值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "diag-4",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "pump-13"
+        },
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-92"
+            },
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                60,
+                85
+              ]
+            }
+          },
+          "preserve_topology": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为固定压力模式分离器补充操作压力目标占位",
+        "rationale": "诊断明确表明 separator-10 在 fixed 模式下缺少 operating pressure target。现有入料 pump-outlet-92 为 158 kPa、液相出口为 146 kPa，但不足以唯一确定应采用的设备操作压力，因此仅补充待确认占位。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "separator-10"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "operating_pressure_kpa",
+            "operating_pressure_target_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Separator Liquid 92 is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "PUMP_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "Booster Pump outlet pressure target is lower than the inlet pressure.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Product Separator is configured for fixed pressure mode but the operating pressure target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Booster Pump efficiency_percent=109 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_STATE_DEPENDENT",
+        "message": "Separator Liquid 92 routing still depends on the current pump discharge condition and separator pressure context.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-5",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "risk_level": "high",
+    "confidence": 0.2
+  }
+}

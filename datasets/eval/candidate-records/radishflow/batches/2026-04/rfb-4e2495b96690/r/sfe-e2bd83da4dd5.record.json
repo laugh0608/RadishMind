@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+  "request_id": "rf-suggest-edit-efficiency-range-ordering-001",
+  "captured_at": "2026-04-16T11:56:47Z",
+  "source": "captured_candidate_response",
+  "model": "gemini-3.1-pro-preview",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 69,
+    "selected_unit_ids": [
+      "pump-3"
+    ],
+    "diagnostic_codes": [
+      "UNIT_PARAMETER_OUT_OF_RANGE"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "检测到所选单元 Range Review Pump (pump-3) 的效率参数 (efficiency_percent) 当前设定为 109，超出了物理意义与推荐的常规操作区间（通常不应超过 100%）。这导致了求解器处于参数无效状态。已为您生成将该参数调整至合理默认值（如 75%）的候选修正提案，请审查后确认。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "summary": "围绕 Range Review Pump (pump-3) 的效率参数 (efficiency_percent) 超出推荐运行范围的问题生成候选修正提案。",
+    "issues": [
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Range Review Pump efficiency_percent=109 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "unit",
+          "id": "pump-3"
+        },
+        "title": "为 pump-3 补充局部参数占位",
+        "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+        "patch": {
+          "parameter_updates": {
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                65,
+                82
+              ]
+            }
+          },
+          "preserve_topology": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "confidence": 0.95,
+    "requires_confirmation": true,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Range Review Pump efficiency_percent=109 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-3 Range Review Pump kind=Pump"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "risk_level": "medium"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v43-apiyi-de-range-sequence-ordering"
+  }
+}

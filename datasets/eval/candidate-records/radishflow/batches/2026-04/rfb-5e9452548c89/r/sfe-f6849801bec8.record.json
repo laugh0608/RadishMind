@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+  "request_id": "rf-suggest-edit-cross-object-warning-citation-ordering-001",
+  "captured_at": "2026-04-18T13:04:36Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 84,
+    "selected_unit_ids": [
+      "cooler-8",
+      "separator-4"
+    ],
+    "selected_stream_ids": [
+      "cooler-outlet-41",
+      "separator-vapor-41"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕未连接的蒸汽出口流 separator-vapor-41 及其对 separator-4 稳定性的直接影响，生成一个最小候选提案；对 cooler-outlet-41 仅保留上下文，不扩展为独立修改。",
+        "citation_ids": [
+          "diag-1",
+          "diag-3",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Separator Vapor Outlet 补充下游连接占位",
+        "rationale": "直接诊断表明 separator-vapor-41 处于断开状态，这是当前 invalid_topology 的明确来源。最小且可审查的修补方式是仅为该已选中流添加下游连接占位，不对 cooler-8 或 separator-4 的工况参数作推断式修改。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "separator-vapor-41"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Separator Vapor Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+        "message": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Separator Vapor Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-vapor-41",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "separator-vapor-41 Separator Vapor Outlet source_unit_id=separator-4"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-4",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-4 Trim Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-outlet-41",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "cooler-outlet-41 Cooler Outlet source_unit_id=cooler-8 target_unit_id=separator-4"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-8",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "cooler-8 Trim Cooler kind=Cooler"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕未连接的蒸汽出口流 separator-vapor-41 及其对 separator-4 稳定性的直接影响，生成一个最小候选提案；对 cooler-outlet-41 仅保留上下文，不扩展为独立修改。",
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation"
+  }
+}

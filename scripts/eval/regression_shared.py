@@ -22,6 +22,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from services.runtime.candidate_records import resolve_manifest_record_path  # noqa: E402
 from services.runtime.inference import build_artifact_citation_fields  # noqa: E402
 
 ALLOWED_PRIMARY_KINDS = {"markdown", "text"}
@@ -789,19 +790,25 @@ def load_candidate_response_from_record(
         manifest_entry = matching_entries[0]
 
         entry_path_value = str((manifest_entry or {}).get("path") or "").strip()
-        if not entry_path_value:
+        entry_record_relpath_value = str((manifest_entry or {}).get("record_relpath") or "").strip()
+        if not entry_path_value and not entry_record_relpath_value:
             add_violation(
                 record_violations,
-                f"{sample_name}: candidate_response_record manifest entry '{manifest_record_id}' is missing path",
+                f"{sample_name}: candidate_response_record manifest entry '{manifest_record_id}' is missing path/record_relpath",
             )
             return None, record_violations
 
-        record_path = resolve_repo_relative_path(entry_path_value)
+        try:
+            record_path = resolve_manifest_record_path(manifest_path, manifest, manifest_entry)
+        except SystemExit as exc:
+            add_violation(record_violations, f"{sample_name}: {exc}")
+            return None, record_violations
         resolved_record_label = f"{manifest_path_value}#{manifest_record_id}"
         if not record_path.is_file():
             add_violation(
                 record_violations,
-                f"{sample_name}: candidate_response_record file referenced by manifest was not found: {entry_path_value}",
+                f"{sample_name}: candidate_response_record file referenced by manifest was not found: "
+                f"{entry_record_relpath_value or entry_path_value}",
             )
             return None, record_violations
 
@@ -969,4 +976,3 @@ def load_candidate_response_from_record(
         return None, record_violations
 
     return response, record_violations
-

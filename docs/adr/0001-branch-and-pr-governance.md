@@ -41,6 +41,7 @@ Accepted
 - 禁止直接 push
 - 必须通过 PR 合并
 - 必须通过仓库检查
+- 当前允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`
 - 管理员仅可通过 PR 方式绕过规则
 - 允许在单人开发阶段保留管理员 PR 直过能力
 
@@ -60,7 +61,8 @@ Accepted
 4. 要求 `master` 通过 `Repo Hygiene` 与 `Planning Baseline` 状态检查
 5. 对 `master` 开启 “Require a pull request before merging”
 6. 配置管理员仅通过 PR 绕过，不开放直接 push
-7. `dev` 当前不配置 branch protection
+7. 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`，关闭 `Squash merging`
+8. `dev` 当前不配置 branch protection
 
 ## 仓库内已落地的支撑项
 

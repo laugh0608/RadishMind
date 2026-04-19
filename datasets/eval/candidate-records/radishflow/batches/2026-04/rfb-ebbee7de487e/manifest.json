@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-15-radishflow-suggest-edits-poc-real-v28-apiyi-de-triad-mixed-risk-cross-object",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ebbee7de487e/r/sfe-f446bbc4c0af.record.json",
+      "sample_key": "sfe-f446bbc4c0af",
+      "record_relpath": "r/sfe-f446bbc4c0af.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ebbee7de487e/r/sfe-65ec70069343.record.json",
+      "sample_key": "sfe-65ec70069343",
+      "record_relpath": "r/sfe-65ec70069343.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits 首批真实 provider capture 批次，覆盖高风险重连、局部规格占位与三步优先级链。",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ebbee7de487e",
+  "batch_key": "rfb-ebbee7de487e"
+}

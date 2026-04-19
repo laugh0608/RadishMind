@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对当前选中的冷进料流（Cold Feed）和保护加热器（Guard Heater），基于求解器无效参数状态生成了对应的局部候选提案，以补全缺失的规格与参数。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "补充冷进料流流量占位符",
+      "rationale": "根据 STREAM_SPEC_MISSING 诊断，Cold Feed 缺少必要的流量规格参数，添加占位符以便用户输入有效值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-15"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kg_h"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "补充保护加热器出口温度参数占位符",
+      "rationale": "根据 UNIT_PARAMETER_INCOMPLETE 诊断，Guard Heater 当前处于出口温度控制模式，必须显式指定出口温度目标。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "heater-5"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "target_outlet_temperature_c"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Cold Feed is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Guard Heater is configured for outlet temperature control but outlet temperature target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cold Feed is missing flow rate specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Guard Heater is configured for outlet temperature control but outlet temperature target is missing."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-15",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-15 Cold Feed target_unit_id=heater-5"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-5",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-5 Guard Heater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "summary": "针对当前选中的冷进料流（Cold Feed）和保护加热器（Guard Heater），基于求解器无效参数状态生成了对应的局部候选提案，以补全缺失的规格与参数。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

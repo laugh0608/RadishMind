@@ -1,0 +1,179 @@
+{
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "confidence": 0.9,
+  "requires_confirmation": true,
+  "summary": "针对 feed-31 流股和 separator-3 单元的规格和参数缺失问题，生成了提供属性占位符的候选编辑提案。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "基于当前选中的流股和单元及相关的求解器诊断信息，主要发现了两个直接影响收敛的规格问题并提供了候选编辑提案：",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "diag-2",
+        "flowdoc-unit-2"
+      ]
+    },
+    {
+      "kind": "direct_answer",
+      "text": "1. Feed To Heater (feed-31) 缺少必要的流量规格。提议为其增加流量规格占位符供补充。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "diag-2",
+        "flowdoc-unit-2"
+      ]
+    },
+    {
+      "kind": "direct_answer",
+      "text": "2. Hot Separator (separator-3) 设置为固定压力模式，但配置中缺失操作压力目标参数。提议在配置中增加操作压力占位符。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "diag-2",
+        "flowdoc-unit-2"
+      ]
+    },
+    {
+      "kind": "direct_answer",
+      "text": "另外，Separator Vapor (vapor-31) 的状态依赖警告（DOWNSTREAM_STATE_DEPENDENT）在上述上游规格补全并重新求解后通常会自动消除，因此未针对其提供独立编辑项。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "diag-2",
+        "flowdoc-unit-2"
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Feed To Heater is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Hot Separator is configured for fixed pressure mode but the operating pressure target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-2"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_STATE_DEPENDENT",
+      "message": "Separator Vapor behavior still depends on the unresolved upstream feed state and heater outlet condition.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-stream-3",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "补充 feed-31 流量规格占位符",
+      "rationale": "根据诊断反馈，该进料流股缺失决定系统基准物料平衡的流量规格，需由用户补充。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-31"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "mass_flow_rate_kg_h"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "补充 separator-3 操作压力参数占位符",
+      "rationale": "由于分离器被指定为固定压力模式 (fixed)，其必须显式配置目标操作压力参数才能完成闪蒸计算。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-2"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "separator-3"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "operating_pressure_kpa",
+          "review_required_parameter"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Feed To Heater is missing flow rate specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Hot Separator is configured for fixed pressure mode but the operating pressure target is missing."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Separator Vapor behavior still depends on the unresolved upstream feed state and heater outlet condition."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-31",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-31 Feed To Heater target_unit_id=heater-7"
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / vapor-31",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "vapor-31 Separator Vapor source_unit_id=separator-3"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-3",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-3 Hot Separator kind=FlashDrum"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=partial_convergence residual_norm=0.11"
+    }
+  ],
+  "schema_version": 1,
+  "risk_level": "medium"
+}

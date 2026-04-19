@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v43-apiyi-de-range-sequence-ordering",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4e2495b96690/r/sfe-e2bd83da4dd5.record.json",
+      "sample_key": "sfe-e2bd83da4dd5",
+      "record_relpath": "r/sfe-e2bd83da4dd5.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4e2495b96690/r/sfe-5d57fad2d342.record.json",
+      "sample_key": "sfe-5d57fad2d342",
+      "record_relpath": "r/sfe-5d57fad2d342.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits 真实 provider capture 批次，基于 v43 dump 按当前 runtime recanonicalize 后重新导入，横向对照 apiyi_de 在 efficiency-range-ordering 与 stream-spec-sequence-ordering 两条尾部样本上的表现。",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4e2495b96690",
+  "batch_key": "rfb-4e2495b96690"
+}

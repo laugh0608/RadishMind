@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-selection-order-preserved-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-selection-order-preserved-001",
+  "request_id": "rf-suggest-edit-selection-order-preserved-001",
+  "captured_at": "2026-04-18T11:52:30Z",
+  "source": "captured_candidate_response",
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 63,
+    "selected_unit_ids": [
+      "separator-4",
+      "cooler-5"
+    ],
+    "selected_stream_ids": [
+      "product-31",
+      "feed-31",
+      "intermediate-31"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "SEPARATOR_STATE_DEPENDENT",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕 Polisher Feed（feed-31）缺少压力规格这一核心诊断，生成候选编辑提案。该缺失直接导致下游 Polisher Cooler（cooler-5）和 Polisher Separator（separator-4）的求解状态不确定（两条 warning 均由此引发）。提案在 feed-31 上补全压力占位规格，并为 separator-4 建议将 pressure_mode 从 free 切换为 specified 以锁定操作压力，从而消除上游不确定性对闪蒸行为的传播。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-stream-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Polisher Feed 补全压力规格占位",
+        "rationale": "诊断 STREAM_SPEC_MISSING 明确指出 feed-31 缺少 pressure 规格。补全该规格是消除唯一 error 并解除两条下游 warning 的最直接手段。此处使用占位值 200 kPa（介于下游 intermediate-31 的 172 kPa 与 product-31 的 165 kPa 之上，符合沿程压降的物理预期），用户应根据实际工艺条件确认或修改该值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-2"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-31"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Polisher Feed is missing pressure specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-2"
+        ]
+      },
+      {
+        "code": "SEPARATOR_STATE_DEPENDENT",
+        "message": "Polisher Separator behavior still depends on unresolved upstream feed pressure.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Polisher Cooler outlet response may still be influenced by the incomplete feed pressure state.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Polisher Feed is missing pressure specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Polisher Separator behavior still depends on unresolved upstream feed pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Polisher Cooler outlet response may still be influenced by the incomplete feed pressure state."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-31",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-31 Polisher Feed target_unit_id=cooler-5"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-5",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "cooler-5 Polisher Cooler kind=Cooler"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-4",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "separator-4 Polisher Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-31",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "product-31 Polisher Vapor source_unit_id=separator-4"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.12"
+      }
+    ],
+    "summary": "当前围绕 Polisher Feed（feed-31）缺少压力规格这一核心诊断，生成候选编辑提案。该缺失直接导致下游 Polisher Cooler（cooler-5）和 Polisher Separator（separator-4）的求解状态不确定（两条 warning 均由此引发）。提案在 feed-31 上补全压力占位规格，并为 separator-4 建议将 pressure_mode 从 free 切换为 specified 以锁定操作压力，从而消除上游不确定性对闪蒸行为的传播。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v66-apiyi-cc-default-selection-ordering",
+    "notes": "继续补齐 default-selection-ordering 在 apiyi_cc 上的首轮正式真实 capture。"
+  }
+}

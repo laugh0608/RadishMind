@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的进料流 Reactor Feed（stream-9）缺少基础入口规格这一问题生成候选提案，建议仅补充温度、压力和流量的占位规格，保持修改局部且可审查。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Reactor Feed 添加基础入口规格占位",
+      "rationale": "该流被直接诊断为缺少温度、压力和流量规格。由于当前输入未提供可确定的数值，最小可审查的做法是添加对应占位而不假设具体工艺条件。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "stream-9"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c",
+          "pressure_kpa",
+          "flow_rate_kg_per_h"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Reactor Feed is missing temperature, pressure, and flow rate specifications.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Reactor Feed is missing temperature, pressure, and flow rate specifications."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / stream-9",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "stream-9 Reactor Feed target_unit_id=reactor-1"
+    }
+  ],
+  "summary": "当前围绕已选中的进料流 Reactor Feed（stream-9）缺少基础入口规格这一问题生成候选提案，建议仅补充温度、压力和流量的占位规格，保持修改局部且可审查。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

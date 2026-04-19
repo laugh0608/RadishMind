@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+  "request_id": "rf-suggest-edit-reconnect-connection-placeholder-ordering-001",
+  "captured_at": "2026-04-14T12:42:17Z",
+  "source": "captured_candidate_response",
+  "model": "gemini-3.1-pro-preview",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 64,
+    "selected_stream_ids": [
+      "liquid-out-2"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.85,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "针对当前选中的物流 Liquid Product (liquid-out-2) 生成了拓扑补全候选提案。由于该物流目前未连接到任何下游节点且未提供具体的可用汇节点信息，提案生成了一个连接占位符，待用户确认并指定具体的目标单元。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "liquid-out-2"
+        },
+        "title": "为 liquid-out-2 预留下游重连占位",
+        "rationale": "当前断链问题只能通过人工确认后续去向来处理，因此 patch 仅保留候选连接占位。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "requires_confirmation": true,
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / liquid-out-2",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "liquid-out-2 Liquid Product source_unit_id=separator-2"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "针对当前选中的物流 Liquid Product (liquid-out-2) 生成了拓扑补全候选提案。由于该物流目前未连接到任何下游节点且未提供具体的可用汇节点信息，提案生成了一个连接占位符，待用户确认并指定具体的目标单元。",
+    "risk_level": "high"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "profile-compare",
+      "apiyi_de"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v8-apiyi-de",
+    "notes": "apiyi_de mixed-risk and citation ordering batch"
+  }
+}

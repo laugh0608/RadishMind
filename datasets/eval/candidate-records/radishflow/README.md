@@ -1,8 +1,43 @@
 # `RadishFlow` 真实候选记录说明
 
-更新时间：2026-04-12
+更新时间：2026-04-19
 
-当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` 与 `audit` 治理产物。
+当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` / `audit` / `artifacts` 治理产物。
+
+## 当前目录布局
+
+为根治 Windows 下 `Filename too long` / 路径过长问题，`RadishFlow` 的候选记录批次目录已统一收口到短路径布局：
+
+```text
+datasets/eval/candidate-records/radishflow/
+  batches/YYYY-MM/<batch_key>/
+    manifest.json
+    audit.json
+    artifacts.json
+    r/<sample_key>.record.json
+    o/<sample_key>.response.json
+    d/<sample_key>.dump.json
+```
+
+约定：
+
+- `collection_batch`、原始长批次语义继续保留在 `manifest.json` 顶层元数据中
+- 物理目录名改用稳定短键 `batch_key`
+- 样本文件名改用稳定短键 `sample_key`
+- 工具链统一通过 `manifest.output_root + records[*].record_relpath` 解析正式 record，而不再依赖超长 repo 相对路径
+- `path` 字段当前仍保留，用于兼容旧工具与历史负例引用；新布局下它只作为兼容镜像，不再是主解析键
+
+这样做的目的不是“缩写文档语义”，而是把“长语义”从文件系统路径迁回结构化元数据，避免再把自然语言说明塞进目录树。
+
+## Windows 路径治理口径
+
+当前正式口径是：
+
+- 不把“要求同事开启 Windows long paths”当成主方案
+- 不把“要求仓库必须克隆到极短盘符路径”当成主方案
+- 直接控制 committed 物理路径长度，避免后续批次继续回到 `collection-batch + task-slug + sample-slug + recanonicalized` 的重复编码模式
+
+当前 `RadishFlow` 候选记录文件的最长路径已收口到约 `108` 个字符级别，避免继续触发 Windows 常见路径上限。
 
 当前已正式入仓的 `suggest_ghost_completion` 真实 provider 批次有八批：
 
@@ -19,6 +54,11 @@
 
 - `datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/`
 
+当前还新增了两批 `suggest_flowsheet_edits` 的真实 provider capture：
+
+- `datasets/eval/candidate-records/radishflow/2026-04-13-radishflow-suggest-edits-poc-real-v3/`
+- `datasets/eval/candidate-records/radishflow/2026-04-13-radishflow-suggest-edits-poc-real-v4/`
+
 这批当前不是“真实 provider capture”，而是为了先把 `suggest_flowsheet_edits` 的 `candidate_response_record -> manifest -> audit` 正式治理入口补齐。它固定 3 条代表样本：
 
 - 高风险重连占位：`suggest-flowsheet-edits-reconnect-outlet-001`
@@ -33,6 +73,43 @@
 - `capture_origin=manual_fixture`
 - 目录内暂保留 `responses/`、`dumps/` 与 `records/` 子目录，方便当前阶段直接复核 mock PoC 的导出物；若后续升级为真实 provider 正式批次，再按 ghost 批次口径收口治理资产
 - 它当前的定位是“把治理链打通”，不是“替代真实 capture”；后续主线应继续用同一入口补首批真实 provider 批次，而不是长期停留在 mock 资产
+
+`2026-04-13-radishflow-suggest-edits-poc-real-v3/` 则是当前第一批正式通过 audit 的真实 `suggest_flowsheet_edits` 批次。它沿用同一组 3 条代表样本：
+
+- 高风险重连占位：`suggest-flowsheet-edits-reconnect-outlet-001`
+- 局部规格占位：`suggest-flowsheet-edits-stream-spec-placeholder-001`
+- 三步优先级链：`suggest-flowsheet-edits-three-step-priority-chain-001`
+
+这批当前收口到：
+
+- `manifest` / `audit` 已正式入仓
+- `audit=3/3 pass`
+- 当前实际命中的真实 provider profile 为 `apiyi_cx`
+- `capture_origin=adapter_debug_dump`
+- 目录内当前保留 `responses/`、`dumps/` 与 `records/` 子目录，便于复核真实 provider 输出、runtime canonicalization 结果与最终入仓记录之间的对应关系
+- 这批同时验证了三条关键收口规则已经足以把真实输出导回正式契约：
+  - `read_only_check -> candidate_edit` 与 `requires_confirmation=true`
+  - `flowdoc-*` 引用按 `flowsheet_document` 对象顺序稳定编号
+  - `flow_rate -> flow_rate_kg_per_h`、`outlet_temperature_target_c -> outlet_temperature_c` 等近义 patch 键名统一归一
+
+`2026-04-13-radishflow-suggest-edits-poc-real-v4/` 则是第二批正式真实批次，重点不再是首批代表样本，而是继续扩大中风险局部编辑样本面。它当前覆盖 4 条新增样本：
+
+- 证据不足 partial：`suggest-flowsheet-edits-compressor-evidence-gap-partial-001`
+- 多对象 selection 但单一可编辑目标：`suggest-flowsheet-edits-multi-selection-single-actionable-target-001`
+- 泵参数组合修正：`suggest-flowsheet-edits-pump-parameter-combo-001`
+- 阀门局部修正优先于全局 gap：`suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001`
+
+这批当前收口到：
+
+- `manifest` / `audit` 已正式入仓
+- `audit=4/4 pass`
+- 当前实际命中的真实 provider profile 仍为 `apiyi_cx`
+- `capture_origin=adapter_debug_dump`
+- 目录内当前继续保留 `responses/`、`dumps/` 与 `records/` 子目录，便于复核真实 provider 输出与 task-level canonicalization 的对应关系
+- 这批同时验证了三条新的收口规则已经足以把中风险局部参数修正类真实输出导回正式契约：
+  - 参数修正类 `candidate_edit.patch` 会优先回收到稳定的 `parameter_updates`，而不是保留 provider 自由发挥的字符串化 `parameter_placeholders`
+  - 当 provider 混入背景 warning 或 global gap 时，`issues`、`candidate_edit` 与顶层 `citations` 仍会收口到稳定的 `diag -> artifact -> snapshot` 顺序
+  - 对像 `pump / valve / compressor` 这类局部参数修正场景，runtime 会按诊断与 `flowsheet_document` 窄范围补齐 `preserve_topology`、`review_scope`、`patch_scope` 与参数细节键序，而不是把 teacher 的自由文本形态直接入仓
 
 这八批当前都只收口同一组 3 条记录，原因不是“样本越少越好”，而是这 3 条已经同时满足：
 
@@ -76,6 +153,7 @@ python3 ./scripts/import-candidate-response-dump.py \
 - 正式入仓资产以 `candidate_response_record`、`manifest`、`audit` 为主
 - 对 `suggest_ghost_completion` 这类已完成正式收口的真实批次，目录应尽量只保留上述治理资产，不混入执行态 `dumps/`、`responses/` 或中间 `records/` 子目录
 - 对仍处于最小 mock PoC 阶段的批次，可暂时保留 `responses/`、`dumps/` 与 `records/` 子目录，但后续若升级为正式真实批次，应再收口为以治理资产为主
+- 对像 `2026-04-13-radishflow-suggest-edits-poc-real-v3/` 与 `2026-04-13-radishflow-suggest-edits-poc-real-v4/` 这样仍在扩样本面的真实批次，当前仍可暂时保留 `responses/`、`dumps/` 与 `records/` 子目录，待后续批次口径稳定后再评估是否像 ghost 批次一样进一步收口目录形态
 - 只有通过当前回归 / audit 的记录，才应进入首批正式正向批次
 - 若后续真实 capture 暴露出新的失败面，应优先新增下一批真实 batch，而不是回头篡改已入仓批次
 - 若后续继续遇到类似 `v4` 的单样本 provider 卡顿，应优先视为 capture orchestration 稳定性观察项，先复跑或拆样本确认，再决定是否需要继续加强脚本级超时/重试治理

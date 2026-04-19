@@ -38,6 +38,10 @@
         "simulated_candidate_response"
       ]
     },
+    "batch_key": {
+      "type": "string",
+      "minLength": 1
+    },
     "capture_origin": {
       "type": "string",
       "enum": [
@@ -45,6 +49,10 @@
         "adapter_debug_dump",
         "manual_fixture"
       ]
+    },
+    "output_root": {
+      "type": "string",
+      "minLength": 1
     },
     "description": {
       "type": "string"
@@ -70,6 +78,14 @@
             "minLength": 1
           },
           "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sample_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "record_relpath": {
             "type": "string",
             "minLength": 1
           },

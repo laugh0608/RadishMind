@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-three-step-priority-chain-001",
+  "record_id": "simulated-radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+  "request_id": "rf-suggest-edit-three-step-priority-chain-001",
+  "captured_at": "2026-04-18T11:19:14Z",
+  "source": "simulated_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "mock",
+      "teacher-poc",
+      "radishflow-suggest-edits"
+    ],
+    "collection_batch": "2026-04-12-radishflow-suggest-edits-poc-mock-v1"
+  },
+  "model": "radishmind-mock-radishflow-suggest_flowsheet_edits-golden-v1",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 47,
+    "selected_unit_ids": [
+      "heater-3"
+    ],
+    "selected_stream_ids": [
+      "feed-7",
+      "product-7"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-three-step-priority-chain-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-109",
+          "streams": [
+            {
+              "id": "feed-7",
+              "name": "Heater Feed",
+              "target_unit_id": "heater-3",
+              "specs": {
+                "pressure_kpa": 215
+              }
+            },
+            {
+              "id": "product-7",
+              "name": "Heater Outlet",
+              "source_unit_id": "heater-3",
+              "specs": {
+                "temperature_c": 155
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-3",
+              "kind": "Heater",
+              "name": "Trim Heater",
+              "config": {
+                "control_mode": "outlet_temperature"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 47,
+      "selected_unit_ids": [
+        "heater-3"
+      ],
+      "selected_stream_ids": [
+        "feed-7",
+        "product-7"
+      ],
+      "diagnostic_summary": {
+        "error_count": 3,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Heater Outlet is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "product-7"
+        },
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Heater Feed is missing temperature and flow rate specifications.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-7"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "heater-3"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T14:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "provider": "mock",
+    "mode": "golden_response_fixture",
+    "sample_path": "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json"
+  },
+  "raw_response": {
+    "provider": "mock",
+    "response_preview": "当前围绕已选中的 Trim Heater 及其进出口物流生成候选编辑提案，优先处理出口物流断开、进料规格缺失和加热器出口温度目标缺失这三类直接诊断问题。"
+  },
+  "response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前围绕已选中的 Trim Heater 及其进出口物流生成候选编辑提案，优先处理出口物流断开、进料规格缺失和加热器出口温度目标缺失这三类直接诊断问题。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的 Trim Heater 及其进出口物流生成候选编辑提案，优先处理出口物流断开、进料规格缺失和加热器出口温度目标缺失这三类直接诊断问题。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Heater Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Heater Feed is missing temperature and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Heater Outlet 添加下游连接占位",
+        "target": {
+          "type": "stream",
+          "id": "product-7"
+        },
+        "rationale": "product-7 被诊断为未连接到任何下游消费者或导出汇。由于当前请求未提供可连接的具体下游单元或导出对象，建议仅添加一个待确认的连接占位，避免凭空创建拓扑对象或执行高风险重连。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Heater Feed 补充温度和流量规格占位",
+        "target": {
+          "type": "stream",
+          "id": "feed-7"
+        },
+        "rationale": "feed-7 当前仅包含 pressure_kpa: 215，而诊断明确指出缺少 temperature 和 flow rate。建议添加待用户填写的规格占位，不推断具体数值。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Trim Heater 添加出口温度目标占位",
+        "target": {
+          "type": "unit",
+          "id": "heater-3"
+        },
+        "rationale": "heater-3 的 control_mode 为 outlet_temperature，但诊断指出缺少出口温度控制目标。由于出口物流 product-7 已存在 temperature_c: 155，可作为候选参考值；仍需用户确认是否应作为加热器目标温度写入单元参数。",
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Heater Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Heater Feed is missing temperature and flow rate specifications."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-7",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-7 Heater Outlet source_unit_id=heater-3"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-7",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-7 Heater Feed target_unit_id=heater-3"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-3 Trim Heater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "confidence": 0.2,
+    "risk_level": "high",
+    "requires_confirmation": true
+  }
+}

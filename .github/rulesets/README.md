@@ -1,29 +1,29 @@
 # GitHub Rulesets
 
 本目录存放 RadishMind 的仓库规则模板。  
-当前只维护 `master` 分支保护规则，`dev` 作为常态开发分支，不启用强制保护。
+当前维护默认分支 `master` / `main` 的保护规则模板，`dev` 作为常态开发分支，不启用强制保护。
 
 ## 建议流程
 
 1. 日常开发提交到 `dev` 或功能分支
 2. 功能、文档、规范类变更默认先合并到 `dev`
-3. 阶段性稳定后，再从 `dev` 发起到 `master` 的 Pull Request
-4. `master` PR 必须通过仓库检查
+3. 阶段性稳定后，再从 `dev` 发起到默认分支（当前为 `master`，如切换可适配 `main`）的 Pull Request
+4. 默认分支 PR 必须通过仓库检查
 5. 管理员如需绕过规则，也只能通过 Pull Request，不开放直接 push
 
-## master 规则说明
+## 默认分支规则说明
 
-- 禁止直接推送到 `master`
+- 禁止直接推送到默认分支（`master` / `main`）
 - 禁止 force push
 - 禁止删除分支
 - 仅允许通过 Pull Request 合并
 - 要求 `Repo Hygiene` 与 `Planning Baseline` 检查通过
 - `PR Checks` 当前拆分为 `Repo Hygiene` 与 `Planning Baseline` 两个 job，保留拆分式门禁
-- `master` required checks 应按 job 名配置为 `Repo Hygiene` 与 `Planning Baseline`
+- 默认分支 ruleset required checks 应按 job 名配置为 `Repo Hygiene` 与 `Planning Baseline`
 - PR 页面里可能显示 workflow 前缀或 `(pull_request)` 后缀，但这些不属于 ruleset 中需要配置的 check context
-- `PR Checks` 只响应 `pull_request -> master`
+- `PR Checks` 当前只响应 `pull_request -> master`；如默认分支切换为 `main`，需先同步调整 workflow 触发分支，再在远端套用该模板
 - tag push 与手动补跑使用独立的 `Release Checks` workflow，并显式使用 `Release Repo Hygiene` 与 `Release Planning Baseline` job 名，避免与 PR required checks 混淆
-- 限制合并方式为 `squash` / `rebase`
+- 允许 `merge` 与 `rebase` 两种合并方式，禁用 `squash`
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push
 
 ## dev 策略说明
@@ -54,6 +54,7 @@ gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/mast
 
 ## 配套仓库设置
 
-- 仓库 Merge options 中启用 `Squash merging` 与 `Rebase merging`
-- 关闭 `Merge commits`
+- 仓库 Merge options 中启用 `Rebase merging`
+- 仓库 Merge options 中启用 `Merge commits`
+- 关闭 `Squash merging`
 - 如后续增加 `CODEOWNERS`，再决定是否开启 code owner review

@@ -16,6 +16,7 @@ from services.runtime.candidate_records import (  # noqa: E402
     ensure_schema,
     load_json_document,
     make_repo_relative,
+    resolve_manifest_record_path,
     resolve_relative_to_repo,
 )
 from services.runtime.real_derived_negative_index import (  # noqa: E402
@@ -113,12 +114,11 @@ def build_manifest_record_map(manifest: dict[str, Any], manifest_label: str) -> 
         entry_object = expect_object(entry, f"{manifest_label} record entry")
         record_id = expect_non_empty_string(entry_object.get("record_id"), f"{manifest_label} record_id")
         sample_id = expect_non_empty_string(entry_object.get("sample_id"), f"{manifest_label} sample_id")
-        path_value = expect_non_empty_string(entry_object.get("path"), f"{manifest_label} path")
         if record_id in record_map:
             raise SystemExit(f"{manifest_label}: duplicate record_id found: {record_id}")
         record_map[record_id] = {
             "sample_id": sample_id,
-            "path": path_value,
+            "path": "",
         }
     if not record_map:
         raise SystemExit(f"{manifest_label}: manifest does not contain any records")
@@ -179,7 +179,17 @@ def build_source_record_info(source_manifest_path: Path, source_record_id: str) 
     if source_entry is None:
         raise SystemExit(f"{source_manifest_label}: missing source record_id '{source_record_id}'")
 
-    source_record_path = resolve_relative_to_repo(source_entry["path"])
+    source_record_entry = next(
+        (
+            entry
+            for entry in source_manifest.get("records") or []
+            if isinstance(entry, dict) and str(entry.get("record_id") or "").strip() == source_record_id
+        ),
+        None,
+    )
+    if source_record_entry is None:
+        raise SystemExit(f"{source_manifest_label}: missing source record entry '{source_record_id}'")
+    source_record_path = resolve_manifest_record_path(source_manifest_path, source_manifest, source_record_entry)
     source_record = load_record(source_record_path)
 
     result = {
@@ -226,7 +236,17 @@ def build_index_document(
     source_record_keys: set[tuple[str, str]] = set()
 
     for record_id, manifest_entry in sorted(manifest_record_map.items()):
-        record_path = resolve_relative_to_repo(manifest_entry["path"])
+        manifest_record_entry = next(
+            (
+                entry
+                for entry in manifest.get("records") or []
+                if isinstance(entry, dict) and str(entry.get("record_id") or "").strip() == record_id
+            ),
+            None,
+        )
+        if manifest_record_entry is None:
+            raise SystemExit(f"{manifest_label}: missing record entry '{record_id}'")
+        record_path = resolve_manifest_record_path(manifest_path, manifest, manifest_record_entry)
         record = load_record(record_path)
 
         capture_metadata = record.get("capture_metadata") or {}

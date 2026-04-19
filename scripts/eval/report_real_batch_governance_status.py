@@ -1,0 +1,440 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from report_suggest_edits_profile_coverage import build_report as build_suggest_edits_profile_coverage  # noqa: E402
+from radishflow_batch_artifact_summary import (  # noqa: E402
+    load_radishflow_batch_artifact_summary,
+)
+
+FIXTURE_ROOT = REPO_ROOT / "scripts/checks/fixtures"
+SUGGEST_EDITS_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-poc-batches.json"
+GHOST_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-batches.json"
+RADISH_DOCS_BATCH_FIXTURE = FIXTURE_ROOT / "radish-docs-real-batches.json"
+RADISH_DOCS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radish-docs-real-derived-negatives.json"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Summarize the current real-batch governance status across "
+            "suggest_flowsheet_edits, suggest_ghost_completion, and Radish docs QA."
+        ),
+    )
+    parser.add_argument(
+        "--json-output",
+        default="",
+        help="Optional path to write the structured governance report JSON.",
+    )
+    return parser.parse_args()
+
+
+def resolve_repo_relative(path_value: str) -> Path:
+    path = Path(path_value)
+    if not path.is_absolute():
+        path = (REPO_ROOT / path).resolve()
+    return path
+
+
+def make_repo_relative(path: Path) -> str:
+    resolved = path.resolve()
+    if resolved.is_relative_to(REPO_ROOT):
+        return str(resolved.relative_to(REPO_ROOT)).replace("\\", "/")
+    return str(resolved)
+
+
+def load_json_document(path: Path) -> dict[str, Any]:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise SystemExit(f"failed to parse json '{make_repo_relative(path)}': {exc}") from exc
+    if not isinstance(document, dict):
+        raise SystemExit(f"expected json object: {make_repo_relative(path)}")
+    return document
+
+
+def load_json_list(path: Path) -> list[dict[str, Any]]:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise SystemExit(f"failed to parse json '{make_repo_relative(path)}': {exc}") from exc
+    if not isinstance(document, list):
+        raise SystemExit(f"expected json array: {make_repo_relative(path)}")
+    normalized: list[dict[str, Any]] = []
+    for index, item in enumerate(document):
+        if not isinstance(item, dict):
+            raise SystemExit(f"expected object at index {index}: {make_repo_relative(path)}")
+        normalized.append(item)
+    return normalized
+
+
+def load_sample_id(path: Path) -> str:
+    document = load_json_document(path)
+    sample_id = str(document.get("sample_id") or "").strip()
+    if not sample_id:
+        raise SystemExit(f"sample is missing sample_id: {make_repo_relative(path)}")
+    return sample_id
+
+
+def safe_bool(value: Any) -> bool:
+    return bool(value)
+
+
+def load_optional_radishflow_artifact_summary(entry: dict[str, Any]) -> tuple[str, dict[str, Any] | None]:
+    summary_path_value = str(entry.get("artifact_summary") or "").strip()
+    if not summary_path_value:
+        return "", None
+    summary_path = resolve_repo_relative(summary_path_value)
+    if not summary_path.is_file():
+        raise SystemExit(f"artifact summary not found: {make_repo_relative(summary_path)}")
+    return make_repo_relative(summary_path), load_radishflow_batch_artifact_summary(summary_path)
+
+
+def summarize_batch(entry: dict[str, Any]) -> dict[str, Any]:
+    record_dir = resolve_repo_relative(str(entry.get("record_dir") or "").strip())
+    manifest_path = resolve_repo_relative(str(entry.get("manifest") or "").strip())
+    audit_path = resolve_repo_relative(str(entry.get("audit_report") or "").strip())
+    if not manifest_path.is_file():
+        raise SystemExit(f"manifest not found: {make_repo_relative(manifest_path)}")
+    if not audit_path.is_file():
+        raise SystemExit(f"audit report not found: {make_repo_relative(audit_path)}")
+    manifest = load_json_document(manifest_path)
+    audit = load_json_document(audit_path)
+    records = manifest.get("records") or []
+    if not isinstance(records, list):
+        raise SystemExit(f"manifest records must be an array: {make_repo_relative(manifest_path)}")
+    sample_ids: list[str] = []
+    for record in records:
+        if not isinstance(record, dict):
+            raise SystemExit(f"manifest record entries must be objects: {make_repo_relative(manifest_path)}")
+        sample_id = str(record.get("sample_id") or "").strip()
+        if sample_id:
+            sample_ids.append(sample_id)
+    matched_sample_count = int(audit.get("matched_sample_count") or 0)
+    passed_count = int(audit.get("passed_count") or 0)
+    failed_count = int(audit.get("failed_count") or 0)
+    violation_count = int(audit.get("violation_count") or 0)
+    exit_code = int(audit.get("exit_code") or 0)
+    audit_clean = exit_code == 0 and failed_count == 0 and violation_count == 0
+    return {
+        "record_dir": make_repo_relative(record_dir),
+        "manifest_path": make_repo_relative(manifest_path),
+        "audit_report_path": make_repo_relative(audit_path),
+        "collection_batch": str(manifest.get("collection_batch") or "").strip(),
+        "source": str(manifest.get("source") or "").strip(),
+        "record_count": len(records),
+        "sample_ids": sample_ids,
+        "matched_sample_count": matched_sample_count,
+        "passed_count": passed_count,
+        "failed_count": failed_count,
+        "violation_count": violation_count,
+        "audit_exit_code": exit_code,
+        "audit_clean": audit_clean,
+    }
+
+
+def load_real_batches(fixture_path: Path) -> list[dict[str, Any]]:
+    batches: list[dict[str, Any]] = []
+    for entry in load_json_list(fixture_path):
+        summary = summarize_batch(entry)
+        if summary["source"] != "captured_candidate_response":
+            continue
+        batches.append(summary)
+    if not batches:
+        raise SystemExit(f"no real batches found in fixture: {make_repo_relative(fixture_path)}")
+    return batches
+
+
+def count_eval_samples(pattern: str) -> int:
+    return len(list(REPO_ROOT.glob(pattern)))
+
+
+def build_suggest_edits_chain() -> dict[str, Any]:
+    fixture_entries = load_json_list(SUGGEST_EDITS_BATCH_FIXTURE)
+    batches = load_real_batches(SUGGEST_EDITS_BATCH_FIXTURE)
+    latest_batch = batches[-1]
+    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
+    coverage_report = build_suggest_edits_profile_coverage()
+    teacher_candidates = list(coverage_report.get("teacher_comparison_candidates") or [])
+    next_group = ""
+    if teacher_candidates:
+        next_group = str(teacher_candidates[0].get("group_name") or "").strip()
+    return {
+        "chain_id": "radishflow-suggest-flowsheet-edits",
+        "project": "radishflow",
+        "task": "suggest_flowsheet_edits",
+        "eval_task": "radishflow-suggest-edits",
+        "formal_real_batch_count": len(batches),
+        "formal_batches": batches,
+        "latest_formal_batch": latest_batch,
+        "coverage": {
+            "kind": "profile_coverage",
+            "sample_count": int(coverage_report.get("sample_count") or 0),
+            "fully_covered_count": int(coverage_report.get("fully_covered_count") or 0),
+            "missing_count": int(coverage_report.get("missing_count") or 0),
+            "teacher_comparison_target": str(coverage_report.get("teacher_comparison_target") or "").strip(),
+            "teacher_comparison_candidate_count": len(teacher_candidates),
+            "teacher_comparison_candidates": teacher_candidates,
+            "next_teacher_comparison_group": next_group,
+        },
+        "governance": {
+            "level": (
+                "manifest_audit_profile_coverage_and_artifact_summary"
+                if artifact_summary is not None
+                else "manifest_audit_and_profile_coverage"
+            ),
+            "artifact_summary": artifact_summary is not None,
+            "negative_replay_index": False,
+            "cross_sample_negative_replay_index": False,
+            "recommended_negative_replay_summary": False,
+            "cross_sample_recommended_negative_replay_summary": False,
+            "real_derived_negative_index": False,
+        },
+        "artifact_summary": (
+            {
+                "path": artifact_summary_path,
+                "summary": artifact_summary.get("summary"),
+            }
+            if artifact_summary is not None
+            else None
+        ),
+        "next_gap": (
+            f"继续按 teacher_comparison_candidates 推进 default teacher 对照，当前优先 {next_group or 'range-sequence-ordering'}；"
+            "随后再补 replay / real-derived 的统一治理口径。"
+        ),
+    }
+
+
+def build_ghost_chain() -> dict[str, Any]:
+    fixture_entries = load_json_list(GHOST_BATCH_FIXTURE)
+    batches = load_real_batches(GHOST_BATCH_FIXTURE)
+    latest_batch = batches[-1]
+    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
+    all_sample_ids = sorted({sample_id for batch in batches for sample_id in batch["sample_ids"]})
+    total_eval_sample_count = count_eval_samples("datasets/eval/radishflow/suggest-ghost-completion-*.json")
+    return {
+        "chain_id": "radishflow-suggest-ghost-completion",
+        "project": "radishflow",
+        "task": "suggest_ghost_completion",
+        "eval_task": "radishflow-ghost-completion",
+        "formal_real_batch_count": len(batches),
+        "formal_batches": batches,
+        "latest_formal_batch": latest_batch,
+        "coverage": {
+            "kind": "current_real_capture_scope",
+            "total_eval_sample_count": total_eval_sample_count,
+            "real_captured_sample_count": len(all_sample_ids),
+            "real_captured_sample_ids": all_sample_ids,
+            "latest_batch_record_count": latest_batch["record_count"],
+            "scope_note": "当前正式真实 capture 仍集中在固定 PoC trio。",
+        },
+        "governance": {
+            "level": "manifest_audit_and_artifact_summary" if artifact_summary is not None else "manifest_audit_only",
+            "artifact_summary": artifact_summary is not None,
+            "negative_replay_index": False,
+            "cross_sample_negative_replay_index": False,
+            "recommended_negative_replay_summary": False,
+            "cross_sample_recommended_negative_replay_summary": False,
+            "real_derived_negative_index": False,
+        },
+        "artifact_summary": (
+            {
+                "path": artifact_summary_path,
+                "summary": artifact_summary.get("summary"),
+            }
+            if artifact_summary is not None
+            else None
+        ),
+        "next_gap": (
+            "继续把真实 capture 从固定 trio 扩到下一批高价值链式样本，并补 replay / coverage 的后续治理口径。"
+        ),
+    }
+
+
+def build_radish_docs_chain() -> dict[str, Any]:
+    batches = load_real_batches(RADISH_DOCS_BATCH_FIXTURE)
+    latest_batch = batches[-1]
+    fixture_entries = load_json_list(RADISH_DOCS_BATCH_FIXTURE)
+    latest_fixture = fixture_entries[-1]
+    artifact_summary_path = resolve_repo_relative(str(latest_fixture.get("artifact_summary") or "").strip())
+    if not artifact_summary_path.is_file():
+        raise SystemExit(f"artifact summary not found: {make_repo_relative(artifact_summary_path)}")
+    artifact_summary = load_json_document(artifact_summary_path)
+    real_derived_fixture = load_json_document(RADISH_DOCS_REAL_DERIVED_FIXTURE)
+    real_derived_index_path = resolve_repo_relative(str(real_derived_fixture.get("index") or "").strip())
+    if not real_derived_index_path.is_file():
+        raise SystemExit(f"real-derived index not found: {make_repo_relative(real_derived_index_path)}")
+    real_derived_index = load_json_document(real_derived_index_path)
+    artifacts = artifact_summary.get("artifacts") or {}
+    if not isinstance(artifacts, dict):
+        raise SystemExit(f"artifacts must be an object: {make_repo_relative(artifact_summary_path)}")
+    summary = artifact_summary.get("summary") or {}
+    if not isinstance(summary, dict):
+        raise SystemExit(f"summary must be an object: {make_repo_relative(artifact_summary_path)}")
+
+    def artifact_exists(key: str) -> bool:
+        value = artifacts.get(key)
+        return isinstance(value, dict) and safe_bool(value.get("exists"))
+
+    total_eval_sample_count = count_eval_samples("datasets/eval/radish/*.json")
+    real_derived_summary = real_derived_index.get("summary") or {}
+    if not isinstance(real_derived_summary, dict):
+        raise SystemExit(f"real-derived summary must be an object: {make_repo_relative(real_derived_index_path)}")
+    return {
+        "chain_id": "radish-answer-docs-question",
+        "project": "radish",
+        "task": "answer_docs_question",
+        "eval_task": "radish-docs-qa",
+        "formal_real_batch_count": len(batches),
+        "formal_batches": batches,
+        "latest_formal_batch": {
+            **latest_batch,
+            "artifact_summary_path": make_repo_relative(artifact_summary_path),
+        },
+        "coverage": {
+            "kind": "latest_real_batch_eval_coverage",
+            "total_eval_sample_count": total_eval_sample_count,
+            "latest_batch_matched_sample_count": latest_batch["matched_sample_count"],
+            "latest_batch_full_coverage": latest_batch["matched_sample_count"] == total_eval_sample_count,
+            "latest_batch_failed_sample_count": latest_batch["failed_count"],
+            "latest_batch_violation_count": latest_batch["violation_count"],
+            "audit_interpretation": "最新 real batch 允许保留 fail，用于驱动 negative replay 与 repeated pattern 治理。",
+        },
+        "governance": {
+            "level": "artifact_summary_replay_and_real_derived",
+            "artifact_summary": artifact_summary_path.is_file(),
+            "negative_replay_index": artifact_exists("negative_replay_index"),
+            "cross_sample_negative_replay_index": artifact_exists("cross_sample_negative_replay_index"),
+            "recommended_negative_replay_summary": artifact_exists("recommended_negative_replay_summary"),
+            "cross_sample_recommended_negative_replay_summary": artifact_exists(
+                "cross_sample_recommended_negative_replay_summary"
+            ),
+            "real_derived_negative_index": real_derived_index_path.is_file(),
+            "same_sample_violation_group_count": int(summary.get("violation_group_count") or 0),
+            "cross_sample_violation_group_count": int(summary.get("cross_sample_violation_group_count") or 0),
+            "real_derived_pattern_group_count": int(real_derived_summary.get("pattern_group_count") or 0),
+            "real_derived_violation_group_count": int(real_derived_summary.get("violation_group_count") or 0),
+        },
+        "next_gap": "把 docs QA 已完成的 artifact summary / replay / real-derived 能力上提为仓库级统一盘点基线。",
+    }
+
+
+def build_report() -> dict[str, Any]:
+    chains = [
+        build_suggest_edits_chain(),
+        build_ghost_chain(),
+        build_radish_docs_chain(),
+    ]
+    latest_clean_chain_count = sum(1 for chain in chains if chain["latest_formal_batch"]["audit_clean"])
+    artifact_summary_connected_chain_count = sum(1 for chain in chains if chain["governance"]["artifact_summary"])
+    replay_connected_chain_count = sum(1 for chain in chains if chain["governance"]["negative_replay_index"])
+    real_derived_connected_chain_count = sum(1 for chain in chains if chain["governance"]["real_derived_negative_index"])
+    total_formal_batches = sum(int(chain["formal_real_batch_count"]) for chain in chains)
+    next_group = str(chains[0]["coverage"].get("next_teacher_comparison_group") or "").strip()
+    return {
+        "schema_version": 1,
+        "report": "real_batch_governance_status",
+        "generated_on": date.today().isoformat(),
+        "mainline_stage": "M3",
+        "summary": {
+            "chain_count": len(chains),
+            "total_formal_real_batch_count": total_formal_batches,
+            "latest_clean_chain_count": latest_clean_chain_count,
+            "artifact_summary_connected_chain_count": artifact_summary_connected_chain_count,
+            "replay_connected_chain_count": replay_connected_chain_count,
+            "real_derived_connected_chain_count": real_derived_connected_chain_count,
+        },
+        "next_mainline_focus": (
+            "先统一三条已接线任务的 coverage / replay / artifact summary / real-derived 盘点口径，"
+            f"再回到 suggest_flowsheet_edits 的 {next_group or 'range-sequence-ordering'} default teacher capture。"
+        ),
+        "chains": chains,
+    }
+
+
+def print_report(report: dict[str, Any]) -> None:
+    summary = report["summary"]
+    print(
+        "M3 real-batch governance overview:"
+        f" chains={summary['chain_count']}"
+        f" formal_batches={summary['total_formal_real_batch_count']}"
+        f" latest_clean={summary['latest_clean_chain_count']}"
+        f" artifact_summary_connected={summary['artifact_summary_connected_chain_count']}"
+        f" replay_connected={summary['replay_connected_chain_count']}"
+        f" real_derived_connected={summary['real_derived_connected_chain_count']}"
+    )
+    for chain in report["chains"]:
+        latest_batch = chain["latest_formal_batch"]
+        coverage = chain["coverage"]
+        governance = chain["governance"]
+        print(f"{chain['chain_id']}:")
+        print(
+            f"  latest_batch={latest_batch['collection_batch']} "
+            f"records={latest_batch['record_count']} "
+            f"audit_clean={'yes' if latest_batch['audit_clean'] else 'no'} "
+            f"(matched={latest_batch['matched_sample_count']} "
+            f"passed={latest_batch['passed_count']} "
+            f"failed={latest_batch['failed_count']} "
+            f"violations={latest_batch['violation_count']})"
+        )
+        if coverage["kind"] == "profile_coverage":
+            print(
+                "  coverage="
+                f"{coverage['fully_covered_count']}/{coverage['sample_count']} four-main-apiyi "
+                f"teacher_candidates={coverage['teacher_comparison_candidate_count']} "
+                f"next={coverage['next_teacher_comparison_group'] or '(none)'}"
+            )
+        elif coverage["kind"] == "current_real_capture_scope":
+            print(
+                "  coverage="
+                f"real_captured={coverage['real_captured_sample_count']}/{coverage['total_eval_sample_count']} "
+                f"scope={coverage['scope_note']}"
+            )
+        else:
+            print(
+                "  coverage="
+                f"latest_batch_matched={coverage['latest_batch_matched_sample_count']}/"
+                f"{coverage['total_eval_sample_count']} "
+                f"full={'yes' if coverage['latest_batch_full_coverage'] else 'no'}"
+            )
+        print(
+            "  governance="
+            f"level={governance['level']} "
+            f"artifact_summary={'yes' if governance['artifact_summary'] else 'no'} "
+            f"replay={'yes' if governance['negative_replay_index'] else 'no'} "
+            f"real_derived={'yes' if governance['real_derived_negative_index'] else 'no'}"
+        )
+        print(f"  next_gap={chain['next_gap']}")
+    print(f"next_mainline_focus: {report['next_mainline_focus']}")
+
+
+def write_report(path_value: str, report: dict[str, Any]) -> None:
+    path = resolve_repo_relative(path_value)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"wrote governance report to {make_repo_relative(path)}")
+
+
+def main() -> int:
+    args = parse_args()
+    report = build_report()
+    print_report(report)
+    if args.json_output.strip():
+        write_report(args.json_output.strip(), report)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

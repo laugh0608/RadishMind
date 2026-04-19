@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-12
+更新时间：2026-04-19
 
 ## 路线图目标
 
@@ -10,6 +10,7 @@
 
 - `RadishFlow` 第一批能力优先走结构化状态与诊断解释，而不是截图先行
 - `Radish` 第一批能力优先走文档问答、Console/运营辅助与内容结构化建议
+- 长期目标从“做一个模型”收口为“受控 Copilot / Agent 系统 + 可替换模型能力”，模型训练、推理 provider、工具调用和规则校验都应服务于任务级 agent 编排
 - `minimind-v` 当前作为默认 `student/base` 主线，围绕评测闭环进入适配与训练阶段
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 强基线，优先承担多模态对照评测与蒸馏参考
 - `SmolVLM` 当前作为轻量本地对照组，优先承担小模型回归与部署下限比较
@@ -72,8 +73,11 @@
 - 基于 `FlowsheetDocument`、选择集、诊断摘要和求解状态建立首批样本
 - 为编辑器辅助场景冻结 `suggest_ghost_completion` 的输入输出口径，并优先围绕 `FlashDrum` / `Mixer` 建立最小样本
 - 在 `suggest_ghost_completion` 上把 pre-model handoff、request assembly 与 response-level regression 推进到链式基线，并已先在三条链式模板上收口 `Tab / manual_only / empty / reject-no-retab / dismiss-no-retab / skip-no-retab`、same-candidate 一帧 cooldown 恢复 `Tab`、恢复窗口只看最近一条同 candidate 动作，以及 other-candidate 不共享 suppress 信号这四类交互边界
-- 将 `suggest_ghost_completion` 从“只有 golden/eval 样本”推进到“已具备正式导入链”的最小 PoC：补齐任务 prompt、最小 runtime、批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链；当前八批真实 batch 已正式收口到 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v2/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v3/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v4/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v5/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v6/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v7/`、`datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v8/` 与 `datasets/eval/candidate-records/radishflow/2026-04-11-radishflow-ghost-poc-real-v9/`，固定 3 个代表样本覆盖 `Tab / manual_only / empty`，其中 `v3` 验证了 malformed JSON 的重新归一化修复，`v4` 暴露出批处理卡顿观察项，`v5` 则进一步收口了逐样本硬超时编排与 `manual_only` 多动作坏法修复，`v6` 验证了在 `openrouter` 限流时切到 `deepseek` fallback profile 仍可继续完成 3/3 pass 的真实 capture，`v7` 则进一步收口了 openrouter 默认模型废弃与 `summary` / `answer.text` JSON 字符串漂移两条新观察项，`v8` 继续确认了 openrouter 候选模型的 `404`/`429` 可用性阻塞可通过 fallback profile 绕过，而 `v9` 则进一步确认即便同 provider 的备选模型已可调用，也仍可能在 `manual_only` 主路径上暴露不可正式导入的 schema-invalid 质量漂移；当前正式批次因此继续由 `deepseek` fallback profile 完成收口
-- 将 `suggest_flowsheet_edits` 从“只有 fixture/eval 回归”推进到“已具备最小 candidate record 治理入口”：当前已新增 `scripts/run-radishflow-suggest-edits-poc-batch.py`，并用 `datasets/eval/candidate-records/radishflow/2026-04-12-radishflow-suggest-edits-poc-mock-v1/` 固定首批 committed mock PoC，覆盖高风险重连、局部规格占位与三步优先级链 3 条主路径，正式打通 `candidate_response_record -> manifest -> audit`
+- 将 `suggest_ghost_completion` 从“只有 golden/eval 样本”推进到“已具备正式导入链”的最小 PoC：补齐任务 prompt、最小 runtime、批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链；当前真实 batch 已统一收口到 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 短路径布局，固定 3 个代表样本覆盖 `Tab / manual_only / empty`，其中 `v3` 验证了 malformed JSON 的重新归一化修复，`v4` 暴露出批处理卡顿观察项，`v5` 则进一步收口了逐样本硬超时编排与 `manual_only` 多动作坏法修复，`v6` 验证了在 `openrouter` 限流时切到 `deepseek` fallback profile 仍可继续完成 3/3 pass 的真实 capture，`v7` 则进一步收口了 openrouter 默认模型废弃与 `summary` / `answer.text` JSON 字符串漂移两条新观察项，`v8` 继续确认了 openrouter 候选模型的 `404`/`429` 可用性阻塞可通过 fallback profile 绕过，而 `v9` 则进一步确认即便同 provider 的备选模型已可调用，也仍可能在 `manual_only` 主路径上暴露不可正式导入的 schema-invalid 质量漂移；当前正式批次因此继续由 `deepseek` fallback profile 完成收口
+- 将 `suggest_flowsheet_edits` 从“只有 fixture/eval 回归”推进到“已形成真实 teacher 批次治理入口”：当前除 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 下的一批最小 mock PoC 外，还已把正式真实批次推进到 `v81`、累计五十八批，并让现有 `33/33` 条离线样本至少各有一条真实覆盖；其中 `mixed-risk / citation / reconnect`、ordering 尾样、`mixed-risk patch combo`、cross-object primary-focus、parameter / patch ordering 与 local-edits 六组样本族都已完成 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 四主 profile 的横向正式收口，`default` teacher 对照也已继续补到 `range-sequence-ordering`。当前这条主线的重点已不再是反复兜底这些已闭环样本族，而是转向剩余更高价值的 `default-only` 样本池
+- `RadishFlow` 的真实批次目录当前已进入路径治理阶段：后续在 `M2/M3` 推进中，新增 committed 批次必须继续复用 `batches/YYYY-MM/<batch_key>/` 短路径布局，而不是重新把长 `collection_batch` 和 sample 语义编码回物理路径
+- 在 `suggest_flowsheet_edits` 这条真实 capture 主线上，task-level canonicalization 也已从“只兜底最小结构合法”推进到“可稳定吸收真实 teacher 的窄范围任务漂移”：当前 `flowdoc-*` 编号已正式收紧为按当前响应实际纳入的目标对象做紧凑稳定编号，`flow_rate` / `flow_rate_kg_h` / `mass_flow_kg_per_h` / `mass_flow_kg_h` / `mass_flow_rate_kg_h`、`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 等近义占位会统一归一，路径式 placeholder 与多规格 `spec_placeholders` 顺序会回收到稳定字段名和固定顺序，`STREAM_DISCONNECTED` 等 error issue 的 citation、reconnect patch 中的 `retain_existing_source_binding=true`、warning citation 顺序、未转义中文引号与多余闭合 brace 的 malformed JSON 修补、placeholder-only patch 收口，以及 `efficiency_percent` 评审区间都已进入窄范围 runtime 治理；其中 `apiyi_ch` 在 triad 路径上的超时也已收紧为样本级 `210s` override，而不是 profile 全局默认 timeout 上调
+- 将 Python 工具链基线继续收口到仓库正式入口：当前已补最小 `pyproject.toml` / `uv` 配置声明，使后续脚本、校验与依赖治理不再只依赖隐式环境
 - 在上述正式导入 PoC 上继续接入后续真实教师批次，而不是继续无上限扩张 fallback 样本
 - 设计结构化输出与 UI 侧回显方式
 - 保留 `canvas screenshot` 作为补充输入，而不是强依赖入口
@@ -182,6 +186,45 @@
 - 两个项目都能复用统一网关与协议
 - 工程化策略清晰，不因支持第二个项目而出现边界漂移
 
+## M7：Agent / Model 边界拆分评估
+
+### 目标
+
+当 `RadishMind` 已经同时具备稳定 agent runtime、真实多项目接入和可比较的 student/model 路线后，评估是否需要把 agent / copilot runtime 与模型训练、模型服务、权重资产拆成独立仓库或独立发布单元。
+
+这个节点不是为了提前拆仓库，而是为了避免两类风险：
+
+- agent runtime、协议、adapter、工具和评测仍在快速共振时过早拆分，导致边界漂移
+- 模型权重、训练产物、推理镜像和服务部署变重后仍强行塞在同一仓库，导致协作、CI、权限和发布节奏失控
+
+### 触发条件
+
+满足以下多数条件时，应正式进入拆分评估：
+
+- `RadishFlow` 与 `Radish` 至少各有一个生产前稳定任务接入同一 agent runtime
+- `CopilotRequest` / `CopilotResponse`、artifact、risk、confirmation、citation 等核心协议连续多个迭代保持兼容
+- 至少有一条任务完成 teacher / student / mock 或多 provider 的可重复对照，证明模型已是可替换组件，而不是写死在任务逻辑里
+- `minimind-v` 或其它 student 路线进入持续训练、蒸馏、量化、评测发布节奏，且产生不适合直接入仓的大体积权重或训练产物
+- agent runtime 的发布节奏开始与模型训练 / 推理服务发布节奏明显不同
+- 模型服务需要独立 GPU / 推理基础设施、安全凭据、镜像发布或部署权限
+- 仓库 CI 因模型资产、训练脚本、推理镜像或大数据集显著拖慢，影响协议、adapter 和评测的日常协作
+
+### 拆分候选形态
+
+优先考虑“先拆发布单元，再拆仓库”。如果同仓库仍能保持清晰边界，可以先只拆目录、包和 CI job。
+
+若确实需要拆仓库，建议目标形态为：
+
+- `RadishMind`：保留 agent runtime、contracts、adapters、prompts、eval、candidate records、工具编排和规则校验
+- `RadishMind-Models`：承接训练配置、模型适配、蒸馏脚本、量化脚本、模型评测报告和权重发布元数据
+- 外部模型 / 对象存储：承接大体积权重、训练产物、推理镜像和不可直接 committed 的数据资产
+
+### 退出标准
+
+- 能明确判断继续单仓库、拆包不拆仓库、或拆成多个仓库的收益与成本
+- 如果拆分，协议真相源、评测入口、模型版本引用和发布节奏都有明确归属
+- 拆分后不破坏 `RadishFlow` / `Radish` 的统一协议和任务级回归
+
 ## 当前推荐顺序
 
 建议严格按以下顺序推进：
@@ -193,21 +236,61 @@
 5. `M4`
 6. `M5`
 7. `M6`
+8. `M7`
 
 不要在 `M1` 之前就直接开大规模训练，也不要在没有评测基线前频繁切换底座模型。
+不要在 `M6` 之前急于把 agent / model 拆成多仓库；在协议、adapter、评测和至少两个项目的任务接入稳定前，保持单仓库更利于收口。
 
 ## 当前优先推进
+
+### 阶段判断
+
+当前仓库已经可以开始推进下一个大节点，不宜继续把 `RadishFlow / suggest_flowsheet_edits` 当作唯一主战场深挖。
+
+按现有正式口径判断：
+
+- `suggest_flowsheet_edits` 已完成 `33/33` 离线样本的四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 横向真实覆盖
+- `default` teacher 对照也已从旧 early pool 推进到更高价值 sample pool，并正式补齐 `mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object`、`cross-object-citation` 与 `range-sequence-ordering`
+- `suggest_ghost_completion` 已具备真实 batch 入仓、dump 重导和正式 audit 链
+- `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 都已接上最小 `artifact summary`，`RadishFlow` 两条链不再停留在只有 `manifest + audit` 的治理层
+- `Radish docs QA` 已把 same-sample / cross-sample replay、recommended replay summary 与 real-derived negative index 接进仓库级治理链
+
+因此当前更合理的阶段判断是：
+
+- `M2` 对 `RadishFlow` 的核心 PoC 能力已达到“可真实 capture、可正式回归、可沿 dump 重导治理”的退出门槛
+- 仓库主线应从“单任务持续扩样”切到 `M3：数据集与评测体系`
+- `suggest_flowsheet_edits` 后续仍继续推进，但应降为 `teacher_comparison_candidates` 驱动的样本池补齐支线，而不是继续占据整个项目节奏
+
+### 接下来两周主线
+
+接下来两周建议把仓库主线正式切成“`M2` 收尾 + `M3` 启动”混合态，并按以下顺序推进：
+
+1. 将 `RadishFlow suggest_flowsheet_edits` 的剩余 `default` teacher 对照继续按 `teacher_comparison_candidates` 推进，但每轮只补一组高价值 sample pool，避免再次回到单任务长期驻留；当前优先级依次为 `cross-object-primary-focus`、`parameter-ordering`、`mixed-risk-citation-reconnect`
+2. 将 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条真实 batch 治理链进一步统一到同一类 coverage / replay / artifact-summary / real-derived index 口径；其中 `RadishFlow` 两条链当前已补齐最小 `artifact summary`，下一步重点转向 replay / repeated-pattern / real-derived 的后续治理，减少靠周志人工跟踪批次进度
+3. 把 `M3` 的正式关注点从“单样本新增多少”切到“哪些任务已可稳定比较 teacher、哪些失败面已形成 repeated pattern、哪些仍缺结构化索引”
+4. 在上述治理链稳定后，再启动 `M4 minimind-v` 的 student/base 训练验证；在这之前，不再让训练主线抢跑到评测治理之前
+
+### 大节点切换条件
+
+当前已经满足“开始推进下一个大节点”的判断条件：
+
+- 至少两条 `RadishFlow` 核心任务已完成真实 provider capture 与正式 audit 链接线
+- `suggest_flowsheet_edits` 不再只有单边 profile 或少量早期样本，而已形成可复用的 teacher 批次治理方式
+- 仓库现阶段的主要风险，已从“PoC 能否站住”转成“评测、negative、replay 和 profile coverage 能否统一治理”
+
+因此从当前提交点开始，项目主线应正式按 `M3` 来组织，而不是继续把阶段判断停留在 `M2` 的单任务推进视角。
 
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 将 `RadishFlow suggest_flowsheet_edits` 从“已具备 mock candidate-record PoC”继续推进到首批真实 provider capture；当前 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 已把高风险重连、局部规格占位与三步优先级链 3 条主路径接进 `candidate_response_record -> manifest -> audit`，下一步应沿同一入口补真实 teacher 批次，而不是继续停留在离线 fixture 或 mock 批次
-3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“真实 capture 已正式入仓的 editor assist PoC”；当前仓库已补齐任务 prompt、最小 runtime、轻量批次 capture 入口，以及 dump 重新归一化后的正式导入链，`v2 / v3 / v4 / v5 / v6 / v7 / v8 / v9` 八批 `Tab / manual_only / empty` 三样本真实 batch 都已完成入仓与 `audit=3/3 pass`，其中 `v3` 已把真实 provider 的稳定 malformed JSON 失败面收口进 runtime，`v4` 暴露出批处理中的单样本 provider 卡顿观察项，`v5` 则继续把这条执行层问题收口为逐样本单进程 + 硬超时治理，并新增吸收了 `manual_only` 多动作 JSON 提前关掉 `proposed_actions` / `answers` 作用域的坏法，`v6` 验证了当前 provider 链路已可通过 `openrouter / deepseek` fallback 继续完成真实 capture，`v7` 则继续把 openrouter 默认模型废弃与 `summary` / `answer.text` JSON 字符串漂移收口进配置口径和 runtime，`v8` 进一步确认当前新增阻塞主要仍集中在 openrouter 模型可用性与短窗口限流，而 `v9` 则继续确认即便某些 openrouter 备选模型已可调用，也仍可能在 `manual_only` 主路径上暴露不可正式导入的 schema-invalid 质量漂移，因此正式批次仍需按既定口径切回 `deepseek` fallback 收口。下一步应继续跑下一批真实 teacher provider capture，并同时观察这些结构失败面、模型质量漂移与供应商可用性阻塞是否还会复现，再根据新增真实 batch 暴露的失败面决定是否补 recent-actions 样本或扩展导入治理
+2. 将 `RadishFlow suggest_flowsheet_edits` 从“真实主线已阶段性收口”继续推进到“剩余 default teacher sample pool 按统一 coverage 策略补齐”；当前不再围绕已闭环样本族深挖，而应只按 `teacher_comparison_candidates` 补高价值组
+3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“真实 batch 治理链与其它任务统一”；重点不再只是继续补样本，而是让 capture / manifest / audit / replay / summary 口径与其它任务对齐
 4. 继续沿 `RadishFlow export -> adapter -> request` 主线补更真实的 exporter 边界，但从“补单个 fixture”转到“优先补批量 smoke 或正式契约”；当前已具备 selection 契约、priority 契约与 batch smoke 入口，后续除非上游 exporter 继续暴露新边界，否则不再优先深挖这一层
 5. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
 6. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估
-7. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
-8. 再进入模型对照、PoC 与训练路线验证
+7. 把仓库主线正式切到 `M3`：统一 coverage、negative、replay、artifact summary 与 real-derived index 的治理口径
+8. 在 `contracts/` 基础上补 schema 校验示例与后续类型生成策略
+9. 再进入模型对照、PoC 与训练路线验证
 
 ## 当前仍缺的关键决策
 
@@ -216,6 +299,7 @@
 - `SmolVLM` 的回归任务边界与保留条件
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
+- `M7` 到来时，agent runtime 与 model / training / inference service 是继续同仓库分包，还是拆成独立仓库与独立发布单元
 - `Radish` docs QA 的真实 captured negative 批次采用目录清单、导入脚本还是两者并行维护
 - `Radish` docs QA 的 real-derived negative pattern 是否继续只靠 `capture_metadata.tags` 约定，还是需要升级成更正式的结构化字段
 - `Radish` docs QA 的 `violation_groups` 是否要长期保持“按完整违规文案分组”，还是后续补一层更轻量的 violation pattern 归一化

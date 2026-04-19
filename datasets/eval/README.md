@@ -1,6 +1,6 @@
 # RadishMind 最小评测样本说明
 
-更新时间：2026-04-07
+更新时间：2026-04-18
 
 当前目录用于存放第一阶段的最小离线评测样本。
 
@@ -61,6 +61,8 @@
 - `scripts/check-radish-docs-qa-real-batch-cross-sample-only-summary.py`
 - `scripts/check-radish-docs-qa-real-batch-dual-recommended-summary.py`
 - `scripts/check-radish-docs-qa-real-batch-same-sample-only-summary.py`
+- `scripts/eval/report_suggest_edits_profile_coverage.py`
+- `scripts/eval/report_real_batch_governance_status.py`
 - `scripts/check-radish-docs-qa-eval.ps1`
 - `scripts/check-radish-docs-qa-eval.sh`
 - `scripts/import-candidate-response-dump.py`
@@ -92,9 +94,35 @@
 - `audit-candidate-record-batch.py` 用于把一批真实 `candidate_response_record` 临时注入现有样本，再复用当前回归规则做批量审计
 - `run-radish-docs-qa-real-batch.py` 当前在生成 `artifacts.json` 后，还可按推荐失败组顺序继续落一份 `recommended-negative-replay-summary.json`，把批量回放结果沉淀为可审计产物
 - `check-repo.py` 当前除了校验 committed 的 replay index / recommended summary，也会额外跑一次临时目录版的 dual-summary 自动生成检查，避免这条行为只依赖人工集成验证
+- `report_suggest_edits_profile_coverage.py` 用于盘点 `suggest_flowsheet_edits` 当前四主 `apiyi` 横向 coverage 与下一组 `teacher_comparison_candidates`
+- `report_real_batch_governance_status.py` 用于把 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条已接线任务的 formal real batch、latest audit、coverage、replay / real-derived 接线状态统一汇总到同一份 M3 盘点入口
 - 因此执行这些回归脚本时，当前环境需要具备可用的 Python 启动器与 `jsonschema`
 
 `RadishFlow` 的回归 runner 当前已覆盖 `explain_control_plane_state`、`explain_diagnostics`、`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 四个任务，并支持样本内可选 `candidate_response` 校验，用于为后续真实模型输出接入预留稳定输入口。
+
+当前 `RadishFlow` 两条已接线的 real batch 入口也都已补上最小 `artifacts.json`：
+
+- `run-radishflow-suggest-edits-poc-batch.py`
+- `run-radishflow-ghost-real-batch.py`
+
+它们当前会默认输出 `<collection-batch>.artifacts.json`，但口径仍刻意保持最小，只沉淀 `manifest / audit / output_root / records / responses / dumps` 的存在性和计数摘要，不直接复用 `Radish docs QA` 那份带 replay 推荐的编排 schema。
+
+对应 schema 当前单独落在 `datasets/eval/radishflow-batch-artifact-summary.schema.json`，适用于 `RadishFlow` 现阶段仍处于“先统一 formal batch 治理摘要，再补 replay / real-derived”的阶段性口径。
+
+当仓库主线进入 `M3` 后，当前建议优先从统一盘点入口查看三条真实 batch 治理链的状态：
+
+```bash
+python3 ./scripts/eval/report_real_batch_governance_status.py
+```
+
+这份报告当前会统一给出：
+
+- 三条链各自已提交的 formal real batch 数量与最新正式 batch
+- 最新正式 batch 的 `audit_clean` 状态，以及 `matched / passed / failed / violations`
+- `suggest_flowsheet_edits` 的四主 `apiyi` coverage 与下一组 `teacher_comparison_candidates`
+- `suggest_ghost_completion` 当前真实 capture 仍停留在哪个 real batch scope
+- `Radish docs QA` 当前是否已接上 `artifacts.json`、same-sample / cross-sample replay 和 real-derived negative index
+- 下一步主线缺口应该落在哪条治理动作上，而不是继续靠周志手工追批次
 
 其中 `explain_diagnostics` 当前已覆盖：
 
@@ -278,10 +306,20 @@ python3 ./scripts/run-copilot-inference.py \
 
 批量模式当前会在 `--output-root` 下生成：
 
-- `responses/*.response.json`：归一化后的 `CopilotResponse`
-- `dumps/*.dump.json`：保留 `input_request`、`raw_request`、`raw_response` 的 raw dump
-- `records/*.record.json`：可直接被回归与 replay 使用的正式 `candidate_response_record`
-- `<collection_batch>.manifest.json`：按同批次自动收口的 manifest
+- `o/*.response.json`：归一化后的 `CopilotResponse`
+- `d/*.dump.json`：保留 `input_request`、`raw_request`、`raw_response` 的 raw dump
+- `r/*.record.json`：可直接被回归与 replay 使用的正式 `candidate_response_record`
+- `manifest.json`：按同批次自动收口的 manifest
+- `audit.json`：批次审计结果
+- `artifacts.json`：最小批次资产摘要
+
+对 `RadishFlow` 而言，当前正式推荐的 `--output-root` 不再直接使用长 `collection_batch` 目录，而是收口到：
+
+```text
+datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/
+```
+
+其中长 `collection_batch` 语义继续保留在 `manifest.json` 元数据中，不再直接写进物理目录和文件名。
 
 补充说明：
 

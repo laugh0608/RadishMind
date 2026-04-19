@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-joint-selection-primary-focus-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-joint-selection-primary-focus-001",
+  "request_id": "rf-suggest-edit-joint-selection-primary-focus-001",
+  "captured_at": "2026-04-14T14:02:54Z",
+  "source": "captured_candidate_response",
+  "model": "claude-opus-4-6",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 52,
+    "selected_unit_ids": [
+      "heater-4"
+    ],
+    "selected_stream_ids": [
+      "feed-10",
+      "outlet-10"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前选中对象为 Stabilizer Heater（heater-4）及其进出口流股 feed-10、outlet-10。诊断显示 feed-10 缺少温度规格（STREAM_SPEC_MISSING / error），同时 heater-4 因进口状态不完整导致出口行为未确认（HEATER_OUTLET_EFFECT_UNCONFIRMED / warning）。本次候选提案聚焦于为 feed-10 补全温度占位规格，以消除根本错误并使 heater-4 的出口诊断有机会在下一轮求解中自行消退。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Stabilizer Feed 补全温度占位规格",
+        "rationale": "诊断 STREAM_SPEC_MISSING 明确指出 feed-10 缺少温度规格。补全该规格后，heater-4 的进口热力学状态将完整，求解器可正常执行能量平衡计算。此处使用占位值 25 ℃（常见环境温度假设），用户应根据实际工况确认或修改。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-10"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Stabilizer Feed is missing temperature specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Stabilizer Feed is missing temperature specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Stabilizer Heater outlet behavior may still be influenced by incomplete inlet state, so the heater itself is not yet a confirmed root cause."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-10",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-10 Stabilizer Feed target_unit_id=heater-4"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-4",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-4 Stabilizer Heater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.09"
+      }
+    ],
+    "summary": "当前选中对象为 Stabilizer Heater（heater-4）及其进出口流股 feed-10、outlet-10。诊断显示 feed-10 缺少温度规格（STREAM_SPEC_MISSING / error），同时 heater-4 因进口状态不完整导致出口行为未确认（HEATER_OUTLET_EFFECT_UNCONFIRMED / warning）。本次候选提案聚焦于为 feed-10 补全温度占位规格，以消除根本错误并使 heater-4 的出口诊断有机会在下一轮求解中自行消退。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-14-radishflow-suggest-edits-poc-real-v13-apiyi-cc-cross-object"
+  }
+}

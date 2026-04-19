@@ -1,0 +1,61 @@
+{
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "failed",
+  "confidence": 0.95,
+  "requires_confirmation": false,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前主要围绕 Detail Review Compressor (compressor-4) 生成候选提案，以解决出口压力目标设定不合理以及防喘振旁通比例过低的问题。",
+      "citation_ids": []
+    }
+  ],
+  "proposed_actions": [],
+  "issues": [
+    {
+      "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "message": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1"
+      ]
+    },
+    {
+      "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "message": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Detail Review Compressor outlet pressure target is too close to suction pressure for the requested compression duty."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Detail Review Compressor minimum flow bypass percent is below the current anti-surge review threshold."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / compressor-4",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "compressor-4 Detail Review Compressor kind=Compressor"
+    }
+  ],
+  "schema_version": 1,
+  "summary": "当前主要围绕 Detail Review Compressor (compressor-4) 生成候选提案，以解决出口压力目标设定不合理以及防喘振旁通比例过低的问题。",
+  "risk_level": "medium"
+}

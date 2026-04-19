@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-same-risk-input-first-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-same-risk-input-first-ordering-001",
+  "request_id": "rf-suggest-edit-same-risk-input-first-ordering-001",
+  "captured_at": "2026-04-18T11:57:10Z",
+  "source": "captured_candidate_response",
+  "model": "kimi-k2.5",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 49,
+    "selected_unit_ids": [
+      "pump-2"
+    ],
+    "selected_stream_ids": [
+      "feed-8",
+      "product-8"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "confidence": 0.75,
+    "summary": "针对选中的泵单元（pump-2）及其进出口流股（feed-8、product-8），基于诊断信息生成局部规格补全提案，优先处理入口流股缺失的温度和流量规格，同时补充出口流股压力规格及泵单元出口压力目标参数。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "已为 Transfer Pump 及其关联流股生成 3 条候选编辑提案：补充 Pump Suction 的温度与流量规格、补充 Pump Discharge 的压力规格、以及设定泵的出口压力目标。所有提案均为局部参数补全，风险等级中，需用户确认后执行。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "diag-2",
+          "flowdoc-stream-2",
+          "diag-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Pump Suction is missing temperature and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Pump Suction is missing temperature and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2",
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Transfer Pump is missing outlet pressure target for the current transfer scenario.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "补充 Pump Suction 的温度与流量规格",
+        "rationale": "诊断指出入口流股 feed-8 缺少温度（temperature_c）和流量（flow_rate_kgh）规格，导致求解器无法建立完整的热力学与物料平衡。建议添加保护性占位参数，待用户填入实际设计值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-8"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "补充 Pump Discharge 的压力规格",
+        "rationale": "诊断指出出口流股 product-8 缺少压力规格。作为泵出口，其压力通常由泵的扬程决定，建议添加压力占位参数，与泵单元出口压力目标联动。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "product-8"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "设定 Transfer Pump 出口压力目标",
+        "rationale": "诊断指出泵单元缺少 outlet_pressure_kpa 参数，无法确定扬程与出口状态。建议添加该关键控制参数，其数值将直接决定出口流股 product-8 的压力水平。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "pump-2"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_pressure_target_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Pump Suction is missing temperature and flow rate specifications."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Pump Discharge is missing pressure specification."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Transfer Pump is missing outlet pressure target for the current transfer scenario."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-8",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-8 Pump Suction target_unit_id=pump-2"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-8",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-8 Pump Discharge source_unit_id=pump-2"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-2",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-2 Transfer Pump kind=Pump"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "requires_confirmation": true,
+    "risk_level": "medium"
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v68-apiyi-ch-default-selection-ordering",
+    "notes": "继续补齐 default-selection-ordering 在 apiyi_ch 上的首轮正式真实 capture。"
+  }
+}

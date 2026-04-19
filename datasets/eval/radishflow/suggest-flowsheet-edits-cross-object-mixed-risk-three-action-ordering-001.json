@@ -1,0 +1,547 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-cross-object-mixed-risk-three-action-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-153",
+          "streams": [
+            {
+              "id": "feed-71",
+              "name": "Charge Heater Feed",
+              "target_unit_id": "heater-11",
+              "specs": {
+                "pressure_kpa": 205,
+                "temperature_c": 32
+              }
+            },
+            {
+              "id": "heater-outlet-71",
+              "name": "Heater Outlet 71",
+              "source_unit_id": "heater-11",
+              "target_unit_id": "separator-7",
+              "specs": {
+                "temperature_c": 158,
+                "pressure_kpa": 196
+              }
+            },
+            {
+              "id": "separator-vapor-71",
+              "name": "Separator Vapor 71",
+              "source_unit_id": "separator-7",
+              "specs": {
+                "pressure_kpa": 176
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-11",
+              "kind": "Heater",
+              "name": "Charge Heater",
+              "config": {
+                "control_mode": "outlet_temperature"
+              }
+            },
+            {
+              "id": "separator-7",
+              "kind": "FlashDrum",
+              "name": "Hot Flash Separator",
+              "config": {
+                "pressure_mode": "fixed"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 85,
+      "selected_unit_ids": [
+        "heater-11",
+        "separator-7"
+      ],
+      "selected_unit": {
+        "id": "separator-7",
+        "kind": "FlashDrum",
+        "name": "Hot Flash Separator",
+        "config": {
+          "pressure_mode": "fixed"
+        }
+      },
+      "selected_stream_ids": [
+        "feed-71",
+        "heater-outlet-71",
+        "separator-vapor-71"
+      ],
+      "diagnostic_summary": {
+        "error_count": 3,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Separator Vapor 71 is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "separator-vapor-71"
+        },
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Charge Heater Feed is missing flow rate specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-71"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Hot Flash Separator is configured for fixed pressure mode but the operating pressure target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "separator-7"
+        },
+        {
+          "code": "DOWNSTREAM_STATE_DEPENDENT",
+          "message": "Hot Flash Separator vapor interpretation still depends on the upstream feed gap and heater outlet condition.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "separator-vapor-71"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-15T03:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "high",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_DISCONNECTED\"",
+      "$.issues[1].code=\"STREAM_SPEC_MISSING\"",
+      "$.issues[2].code=\"UNIT_PARAMETER_INCOMPLETE\"",
+      "$.issues[3].code=\"DOWNSTREAM_STATE_DEPENDENT\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"separator-vapor-71\"",
+      "$.proposed_actions[0].patch.connection_placeholder.expected_downstream_kind=\"consumer_or_export_sink\"",
+      "$.proposed_actions[1].kind=\"candidate_edit\"",
+      "$.proposed_actions[1].target.type=\"stream\"",
+      "$.proposed_actions[1].target.id=\"feed-71\"",
+      "$.proposed_actions[1].patch.spec_placeholders[0]=\"flow_rate_kg_per_h\"",
+      "$.proposed_actions[2].kind=\"candidate_edit\"",
+      "$.proposed_actions[2].target.type=\"unit\"",
+      "$.proposed_actions[2].target.id=\"separator-7\"",
+      "$.proposed_actions[2].patch.parameter_placeholders[0]=\"operating_pressure_kpa\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"high\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false",
+      "$.proposed_actions[1].requires_confirmation=false",
+      "$.proposed_actions[2].requires_confirmation=false",
+      "$.proposed_actions[3]"
+    ],
+    "ordered_issue_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE",
+      "DOWNSTREAM_STATE_DEPENDENT"
+    ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "diag-2",
+      "diag-3",
+      "diag-4",
+      "flowdoc-stream-3",
+      "flowdoc-stream-1",
+      "flowdoc-unit-2",
+      "flowdoc-unit-1",
+      "flowdoc-stream-2",
+      "snapshot-1"
+    ],
+    "ordered_action_targets": [
+      {
+        "type": "stream",
+        "id": "separator-vapor-71"
+      },
+      {
+        "type": "stream",
+        "id": "feed-71"
+      },
+      {
+        "type": "unit",
+        "id": "separator-7"
+      }
+    ],
+    "ordered_issue_citation_sequences": [
+      {
+        "issue_index": 0,
+        "values": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "issue_index": 1,
+        "values": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "issue_index": 2,
+        "values": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "issue_index": 3,
+        "values": [
+          "diag-4",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "ordered_action_citation_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "diag-1",
+          "diag-4",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "action_index": 1,
+        "values": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "action_index": 2,
+        "values": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "ordered_patch_keys": [
+      {
+        "action_index": 1,
+        "keys": [
+          "spec_placeholders",
+          "retain_existing_specs"
+        ]
+      },
+      {
+        "action_index": 2,
+        "keys": [
+          "parameter_placeholders",
+          "patch_scope",
+          "preserve_existing_connections"
+        ]
+      }
+    ],
+    "ordered_parameter_placeholder_sequences": [
+      {
+        "action_index": 2,
+        "values": [
+          "operating_pressure_kpa"
+        ]
+      }
+    ],
+    "ordered_connection_placeholder_keys": [
+      {
+        "action_index": 0,
+        "keys": [
+          "expected_downstream_kind",
+          "requires_manual_binding",
+          "retain_existing_source_binding"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "同一条跨对象响应里同时包含高风险断链修复、中风险规格补位和中风险 unit 参数补位时，动作顺序、issue 顺序和顶层 citations 仍应稳定保持为 diagnostics first、action targets second、supporting artifact next、snapshot last。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前跨对象 selection 同时覆盖了 Charge Heater、Hot Flash Separator 与三条关联流股；可直接落 patch 的是 separator-vapor-71 的下游重连、feed-71 的缺流量规格，以及 separator-7 的固定压力参数占位，而 downstream warning 继续只保留为解释证据。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "这组提案同时混合了高风险断链修复与两个中风险局部 patch，因此顶层证据需要先列直接诊断，再列三个可行动对象的 target artifact，随后才追加 heater-11 与 heater-outlet-71 作为跨对象 supporting evidence，最后保留 snapshot。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "diag-4",
+          "flowdoc-stream-3",
+          "flowdoc-stream-1",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "separator-vapor-71 当前没有任何下游 consumer 或 export sink 绑定，必须先停留在待确认的重连占位层。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "feed-71 当前缺少 flow_rate_kg_per_h，heater-11 的入口状态仍不完整。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "separator-7 当前启用了 fixed pressure 模式，但 operating_pressure_kpa 仍未补齐。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_STATE_DEPENDENT",
+        "message": "separator-vapor-71 的解释仍同时依赖上游 feed-71 缺口与 heater-outlet-71 当前状态，暂不应把 warning 误扩成第四条 patch。",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 separator-vapor-71 预留下游重连占位",
+        "target": {
+          "type": "stream",
+          "id": "separator-vapor-71"
+        },
+        "rationale": "当前高风险且最直接的修改面仍是为 separator-vapor-71 生成待人工确认的 downstream binding 占位，并明确引用 separator-7、heater-outlet-71 与 heater-11 作为跨对象 supporting context。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-4",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-71 补充流量规格占位",
+        "target": {
+          "type": "stream",
+          "id": "feed-71"
+        },
+        "rationale": "当前最小且证据最充分的第二个 patch 是补齐 feed-71 的 flow_rate_kg_per_h，占位式修复比扩成 heater 参数改写更稳妥。",
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 separator-7 补充固定压力参数占位",
+        "target": {
+          "type": "unit",
+          "id": "separator-7"
+        },
+        "rationale": "separator-7 的 fixed pressure 缺口具备直接诊断支撑，但解释时仍需要带上 vapor stream 与上游 heater-11 的上下文，避免把这条 patch 误写成孤立局部修正。",
+        "patch": {
+          "parameter_placeholders": [
+            "operating_pressure_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Separator Vapor 71 is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Charge Heater Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Hot Flash Separator is configured for fixed pressure mode but the operating pressure target is missing."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Hot Flash Separator vapor interpretation still depends on the upstream feed gap and heater outlet condition."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-vapor-71",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "separator-vapor-71 当前没有任何 downstream consumer 或 export sink 绑定。"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-71",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-71 当前只有 pressure_kpa 和 temperature_c，缺少 flow_rate_kg_per_h。"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-7",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-7 当前处于 fixed pressure 模式，但尚未提供 operating_pressure_kpa。"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-11",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-11 当前是上游选中单元，但更适合作为 supporting context，而不是独立 patch 目标。"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-outlet-71",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "heater-outlet-71 当前把上游 heater-11 与下游 separator-7 串接起来，是跨对象解释链中的 supporting stream。"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "confidence": 0.88,
+    "risk_level": "high",
+    "requires_confirmation": true
+  }
+}

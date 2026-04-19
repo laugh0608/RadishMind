@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v60-apiyi-cc-default-early-trio",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0258634d1dc9/r/sfe-c54181a06dee.record.json",
+      "sample_key": "sfe-c54181a06dee",
+      "record_relpath": "r/sfe-c54181a06dee.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0258634d1dc9/r/sfe-923a0420b909.record.json",
+      "sample_key": "sfe-923a0420b909",
+      "record_relpath": "r/sfe-923a0420b909.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0258634d1dc9/r/sfe-880c0207a49a.record.json",
+      "sample_key": "sfe-880c0207a49a",
+      "record_relpath": "r/sfe-880c0207a49a.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits 真实 provider capture 批次，基于 v60 dump 按当前 runtime recanonicalize 后重新导入，覆盖 apiyi_cc 上的 default-early-trio。",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0258634d1dc9",
+  "batch_key": "rfb-0258634d1dc9"
+}
