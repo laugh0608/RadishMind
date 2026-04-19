@@ -16,6 +16,16 @@ if str(REPO_ROOT) not in sys.path:
 from services.runtime.candidate_records import (  # noqa: E402
     build_candidate_record_batch_manifest,
     candidate_response_record_from_dump,
+    derive_candidate_batch_artifact_summary_path,
+    derive_candidate_batch_audit_path,
+    derive_candidate_batch_dump_path,
+    derive_candidate_batch_manifest_path,
+    derive_candidate_batch_output_root,
+    derive_candidate_batch_record_path,
+    derive_candidate_batch_records_dir,
+    derive_candidate_batch_response_path,
+    derive_candidate_batch_responses_dir,
+    derive_candidate_batch_dumps_dir,
     write_json_document,
 )
 from scripts.eval.radishflow_batch_artifact_summary import (  # noqa: E402
@@ -344,25 +354,28 @@ def select_sample_paths(args: argparse.Namespace) -> list[Path]:
 def derive_manifest_path(args: argparse.Namespace, output_root: Path) -> Path:
     if args.manifest_output.strip():
         return resolve_repo_relative(args.manifest_output)
-    return output_root / f"{args.collection_batch}.manifest.json"
+    return derive_candidate_batch_manifest_path(output_root)
 
 
 def derive_report_path(args: argparse.Namespace, output_root: Path) -> Path:
     if args.report_output.strip():
         return resolve_repo_relative(args.report_output)
-    return output_root / f"{args.collection_batch}.audit.json"
+    return derive_candidate_batch_audit_path(output_root)
 
 
 def derive_artifact_summary_output_path(args: argparse.Namespace, output_root: Path) -> Path:
     if args.artifact_summary_output.strip():
         return resolve_repo_relative(args.artifact_summary_output)
-    return derive_artifact_summary_path(output_root, args.collection_batch)
+    return derive_candidate_batch_artifact_summary_path(output_root)
 
 
 def derive_output_root(args: argparse.Namespace) -> Path:
     if args.output_root.strip():
         return resolve_repo_relative(args.output_root)
-    return REPO_ROOT / "datasets/eval/candidate-records/radishflow" / args.collection_batch
+    return derive_candidate_batch_output_root(
+        project="radishflow",
+        collection_batch=args.collection_batch,
+    )
 
 
 def capture_mock_sample(
@@ -482,9 +495,21 @@ def build_result_document(
     failed_by_sample_id = {item["sample_id"]: item for item in failed_samples}
     for sample_path in sample_paths:
         sample_id, _, _ = load_sample_bundle(sample_path)
-        response_path = output_root / "responses" / f"{sample_path.stem}.response.json"
-        dump_path = output_root / "dumps" / f"{sample_path.stem}.dump.json"
-        record_path = output_root / "records" / f"{sample_path.stem}.record.json"
+        response_path = derive_candidate_batch_response_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        dump_path = derive_candidate_batch_dump_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        record_path = derive_candidate_batch_record_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
         status = "failed" if sample_id in failed_by_sample_id else "captured"
         if status == "captured" and not (response_path.is_file() and dump_path.is_file() and record_path.is_file()):
             continue
@@ -519,9 +544,9 @@ def main() -> int:
     report_path = derive_report_path(args, output_root)
     artifact_summary_path = derive_artifact_summary_output_path(args, output_root)
     sample_paths = select_sample_paths(args)
-    responses_dir = output_root / "responses"
-    dumps_dir = output_root / "dumps"
-    records_dir = output_root / "records"
+    responses_dir = derive_candidate_batch_responses_dir(output_root)
+    dumps_dir = derive_candidate_batch_dumps_dir(output_root)
+    records_dir = derive_candidate_batch_records_dir(output_root)
     responses_dir.mkdir(parents=True, exist_ok=True)
     dumps_dir.mkdir(parents=True, exist_ok=True)
     records_dir.mkdir(parents=True, exist_ok=True)
@@ -544,9 +569,21 @@ def main() -> int:
 
     for index, sample_path in enumerate(sample_paths, start=1):
         sample_id, _, _ = load_sample_bundle(sample_path)
-        response_path = responses_dir / f"{sample_path.stem}.response.json"
-        dump_path = dumps_dir / f"{sample_path.stem}.dump.json"
-        record_path = records_dir / f"{sample_path.stem}.record.json"
+        response_path = derive_candidate_batch_response_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        dump_path = derive_candidate_batch_dump_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
+        record_path = derive_candidate_batch_record_path(
+            output_root=output_root,
+            task="suggest_flowsheet_edits",
+            sample_id=sample_id,
+        )
         if args.resume and response_path.is_file() and dump_path.is_file() and record_path.is_file():
             print(f"[skip {index}/{len(sample_paths)}] {sample_id}: existing outputs found")
             record_paths.append(record_path)

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-11-radishflow-ghost-poc-real-v7",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3547c617368f/r/sgc-b009b886e8a5.record.json",
+      "sample_key": "sgc-b009b886e8a5",
+      "record_relpath": "r/sgc-b009b886e8a5.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3547c617368f/r/sgc-5c7ef3b09181.record.json",
+      "sample_key": "sgc-5c7ef3b09181",
+      "record_relpath": "r/sgc-5c7ef3b09181.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3547c617368f/r/sgc-6b747825c8c5.record.json",
+      "sample_key": "sgc-6b747825c8c5",
+      "record_relpath": "r/sgc-6b747825c8c5.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第六批真实 provider 候选响应快照，openrouter 默认 free 模型已废弃时改用 DeepSeek fallback profile 覆盖 Tab/manual_only/empty 三条正式导入主路径，并收口 empty 样本 summary/answer.text 的 JSON 字符串漂移。",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3547c617368f",
+  "batch_key": "rfb-3547c617368f"
+}

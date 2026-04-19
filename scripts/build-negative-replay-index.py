@@ -106,12 +106,11 @@ def build_manifest_record_map(manifest: dict[str, Any], manifest_label: str) -> 
             raise SystemExit(f"{manifest_label}: each record entry must be a json object")
         record_id = expect_non_empty_string(entry.get("record_id"), f"{manifest_label} record_id")
         sample_id = expect_non_empty_string(entry.get("sample_id"), f"{manifest_label} sample_id")
-        path_value = expect_non_empty_string(entry.get("path"), f"{manifest_label} path")
         if record_id in record_map:
             raise SystemExit(f"{manifest_label}: duplicate record_id found: {record_id}")
         record_map[record_id] = {
             "sample_id": sample_id,
-            "path": path_value,
+            "path": "",
         }
     if not record_map:
         raise SystemExit(f"{manifest_label}: manifest does not contain any records")

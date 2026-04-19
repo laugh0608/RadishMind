@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-15-radishflow-suggest-edits-poc-real-v21-apiyi-cx-mixed-risk-cross-object",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-fa160bb0c3a1/r/sfe-2bc78786d14c.record.json",
+      "sample_key": "sfe-2bc78786d14c",
+      "record_relpath": "r/sfe-2bc78786d14c.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-fa160bb0c3a1/r/sfe-9358150b236f.record.json",
+      "sample_key": "sfe-9358150b236f",
+      "record_relpath": "r/sfe-9358150b236f.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-fa160bb0c3a1",
+  "batch_key": "rfb-fa160bb0c3a1"
+}

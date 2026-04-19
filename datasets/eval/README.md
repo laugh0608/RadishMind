@@ -306,10 +306,20 @@ python3 ./scripts/run-copilot-inference.py \
 
 批量模式当前会在 `--output-root` 下生成：
 
-- `responses/*.response.json`：归一化后的 `CopilotResponse`
-- `dumps/*.dump.json`：保留 `input_request`、`raw_request`、`raw_response` 的 raw dump
-- `records/*.record.json`：可直接被回归与 replay 使用的正式 `candidate_response_record`
-- `<collection_batch>.manifest.json`：按同批次自动收口的 manifest
+- `o/*.response.json`：归一化后的 `CopilotResponse`
+- `d/*.dump.json`：保留 `input_request`、`raw_request`、`raw_response` 的 raw dump
+- `r/*.record.json`：可直接被回归与 replay 使用的正式 `candidate_response_record`
+- `manifest.json`：按同批次自动收口的 manifest
+- `audit.json`：批次审计结果
+- `artifacts.json`：最小批次资产摘要
+
+对 `RadishFlow` 而言，当前正式推荐的 `--output-root` 不再直接使用长 `collection_batch` 目录，而是收口到：
+
+```text
+datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/
+```
+
+其中长 `collection_batch` 语义继续保留在 `manifest.json` 元数据中，不再直接写进物理目录和文件名。
 
 补充说明：
 

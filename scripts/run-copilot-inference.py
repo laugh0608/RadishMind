@@ -26,6 +26,13 @@ from services.runtime.inference_support import (  # noqa: E402
 from services.runtime.candidate_records import (  # noqa: E402
     build_candidate_record_batch_manifest,
     candidate_response_record_from_dump,
+    derive_candidate_batch_dump_path,
+    derive_candidate_batch_manifest_path,
+    derive_candidate_batch_record_path,
+    derive_candidate_batch_records_dir,
+    derive_candidate_batch_response_path,
+    derive_candidate_batch_responses_dir,
+    derive_candidate_batch_dumps_dir,
     resolve_relative_to_repo,
     write_json_document,
 )
@@ -310,16 +317,16 @@ def run_batch(args: argparse.Namespace) -> int:
     if not sample_paths:
         raise SystemExit(f"no sample json files matched in {args.sample_dir} with pattern {args.sample_pattern}")
 
-    responses_dir = output_root / "responses"
-    dumps_dir = output_root / "dumps"
-    records_dir = output_root / "records"
+    responses_dir = derive_candidate_batch_responses_dir(output_root)
+    dumps_dir = derive_candidate_batch_dumps_dir(output_root)
+    records_dir = derive_candidate_batch_records_dir(output_root)
     responses_dir.mkdir(parents=True, exist_ok=True)
     dumps_dir.mkdir(parents=True, exist_ok=True)
     records_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = (
         resolve_relative_to_repo(args.manifest_output)
         if args.manifest_output
-        else output_root / f"{collection_batch}.manifest.json"
+        else derive_candidate_batch_manifest_path(output_root)
     )
 
     capture_tags = normalize_capture_tags(args.capture_tag)
@@ -334,10 +341,25 @@ def run_batch(args: argparse.Namespace) -> int:
     for index, sample_path in enumerate(sample_paths, start=1):
         sample_id, copilot_request = load_sample_request(sample_path)
         validate_request_document(copilot_request)
+        task_name = str(copilot_request.get("task") or "").strip()
+        if not task_name:
+            raise SystemExit(f"sample is missing task in input_request: {sample_path}")
 
-        response_path = responses_dir / f"{sample_path.stem}.response.json"
-        dump_path = dumps_dir / f"{sample_path.stem}.dump.json"
-        record_path = records_dir / f"{sample_path.stem}.record.json"
+        response_path = derive_candidate_batch_response_path(
+            output_root=output_root,
+            task=task_name,
+            sample_id=sample_id,
+        )
+        dump_path = derive_candidate_batch_dump_path(
+            output_root=output_root,
+            task=task_name,
+            sample_id=sample_id,
+        )
+        record_path = derive_candidate_batch_record_path(
+            output_root=output_root,
+            task=task_name,
+            sample_id=sample_id,
+        )
         if args.resume and response_path.is_file() and dump_path.is_file() and record_path.is_file():
             print(f"[skip {index}/{len(sample_paths)}] {sample_id}: existing outputs found")
             record_paths.append(record_path)

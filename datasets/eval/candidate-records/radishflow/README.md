@@ -1,8 +1,43 @@
 # `RadishFlow` 真实候选记录说明
 
-更新时间：2026-04-13
+更新时间：2026-04-19
 
-当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` 与 `audit` 治理产物。
+当前目录用于存放 `RadishFlow` 任务的正式 `candidate_response_record`、批次 `manifest` / `audit` / `artifacts` 治理产物。
+
+## 当前目录布局
+
+为根治 Windows 下 `Filename too long` / 路径过长问题，`RadishFlow` 的候选记录批次目录已统一收口到短路径布局：
+
+```text
+datasets/eval/candidate-records/radishflow/
+  batches/YYYY-MM/<batch_key>/
+    manifest.json
+    audit.json
+    artifacts.json
+    r/<sample_key>.record.json
+    o/<sample_key>.response.json
+    d/<sample_key>.dump.json
+```
+
+约定：
+
+- `collection_batch`、原始长批次语义继续保留在 `manifest.json` 顶层元数据中
+- 物理目录名改用稳定短键 `batch_key`
+- 样本文件名改用稳定短键 `sample_key`
+- 工具链统一通过 `manifest.output_root + records[*].record_relpath` 解析正式 record，而不再依赖超长 repo 相对路径
+- `path` 字段当前仍保留，用于兼容旧工具与历史负例引用；新布局下它只作为兼容镜像，不再是主解析键
+
+这样做的目的不是“缩写文档语义”，而是把“长语义”从文件系统路径迁回结构化元数据，避免再把自然语言说明塞进目录树。
+
+## Windows 路径治理口径
+
+当前正式口径是：
+
+- 不把“要求同事开启 Windows long paths”当成主方案
+- 不把“要求仓库必须克隆到极短盘符路径”当成主方案
+- 直接控制 committed 物理路径长度，避免后续批次继续回到 `collection-batch + task-slug + sample-slug + recanonicalized` 的重复编码模式
+
+当前 `RadishFlow` 候选记录文件的最长路径已收口到约 `108` 个字符级别，避免继续触发 Windows 常见路径上限。
 
 当前已正式入仓的 `suggest_ghost_completion` 真实 provider 批次有八批：
 

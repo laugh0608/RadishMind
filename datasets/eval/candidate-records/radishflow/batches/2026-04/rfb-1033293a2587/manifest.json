@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-11-radishflow-ghost-poc-real-v4",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-1033293a2587/r/sgc-b009b886e8a5.record.json",
+      "sample_key": "sgc-b009b886e8a5",
+      "record_relpath": "r/sgc-b009b886e8a5.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-1033293a2587/r/sgc-5c7ef3b09181.record.json",
+      "sample_key": "sgc-5c7ef3b09181",
+      "record_relpath": "r/sgc-5c7ef3b09181.record.json"
+    },
+    {
+      "record_id": "dump-rf-suggest-ghost-valve-ambiguous-no-tab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-1033293a2587/r/sgc-6b747825c8c5.record.json",
+      "sample_key": "sgc-6b747825c8c5",
+      "record_relpath": "r/sgc-6b747825c8c5.record.json"
+    }
+  ],
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第三批真实 provider 候选响应快照，继续覆盖 Tab/manual_only/empty 三条正式导入主路径。",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-1033293a2587",
+  "batch_key": "rfb-1033293a2587"
+}

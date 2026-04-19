@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -8,11 +10,173 @@ import jsonschema
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DSET_CANDIDATE_RECORDS_ROOT = REPO_ROOT / "datasets/eval/candidate-records"
 DUMP_SCHEMA_PATH = REPO_ROOT / "datasets/eval/candidate-response-dump.schema.json"
 RECORD_SCHEMA_PATH = REPO_ROOT / "datasets/eval/candidate-response-record.schema.json"
 RECORD_BATCH_SCHEMA_PATH = REPO_ROOT / "datasets/eval/candidate-record-batch.schema.json"
 RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 SCHEMA_CACHE: dict[Path, Any] = {}
+SHORT_LAYOUT_PROJECTS = {"radishflow"}
+SHORT_LAYOUT_BATCHES_DIR = "batches"
+SHORT_LAYOUT_RECORDS_DIR = "r"
+SHORT_LAYOUT_RESPONSES_DIR = "o"
+SHORT_LAYOUT_DUMPS_DIR = "d"
+
+TASK_SAMPLE_KEY_PREFIXES = {
+    "suggest_flowsheet_edits": "sfe",
+    "suggest_ghost_completion": "sgc",
+}
+
+
+def stable_short_key(value: str, *, prefix: str, length: int = 12) -> str:
+    normalized = str(value or "").strip()
+    if not normalized:
+        raise SystemExit(f"cannot derive short key for empty value: prefix={prefix}")
+    digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:length]
+    return f"{prefix}-{digest}"
+
+
+def uses_short_candidate_record_layout(project: str) -> bool:
+    return str(project or "").strip() in SHORT_LAYOUT_PROJECTS
+
+
+def derive_collection_batch_month(collection_batch: str) -> str:
+    match = re.match(r"(?P<month>\d{4}-\d{2})-\d{2}(?:-|$)", str(collection_batch or "").strip())
+    if match is not None:
+        return match.group("month")
+    return "unknown"
+
+
+def derive_candidate_batch_key(*, project: str, collection_batch: str) -> str:
+    prefix = "rfb" if str(project or "").strip() == "radishflow" else "bat"
+    return stable_short_key(collection_batch, prefix=prefix)
+
+
+def derive_candidate_sample_key(*, task: str, sample_id: str) -> str:
+    prefix = TASK_SAMPLE_KEY_PREFIXES.get(str(task or "").strip(), "rec")
+    return stable_short_key(sample_id, prefix=prefix)
+
+
+def derive_candidate_batch_output_root(
+    *,
+    project: str,
+    collection_batch: str,
+    batch_key: str = "",
+) -> Path:
+    normalized_project = str(project or "").strip()
+    if not normalized_project:
+        raise SystemExit("project is required to derive candidate record output root")
+    if uses_short_candidate_record_layout(normalized_project):
+        normalized_batch_key = batch_key.strip() or derive_candidate_batch_key(
+            project=normalized_project,
+            collection_batch=collection_batch,
+        )
+        return (
+            DSET_CANDIDATE_RECORDS_ROOT
+            / normalized_project
+            / SHORT_LAYOUT_BATCHES_DIR
+            / derive_collection_batch_month(collection_batch)
+            / normalized_batch_key
+        )
+    return DSET_CANDIDATE_RECORDS_ROOT / normalized_project / collection_batch
+
+
+def derive_candidate_batch_manifest_path(output_root: Path) -> Path:
+    return output_root / "manifest.json"
+
+
+def derive_candidate_batch_audit_path(output_root: Path) -> Path:
+    return output_root / "audit.json"
+
+
+def derive_candidate_batch_artifact_summary_path(output_root: Path) -> Path:
+    return output_root / "artifacts.json"
+
+
+def derive_candidate_batch_records_dir(output_root: Path) -> Path:
+    return output_root / SHORT_LAYOUT_RECORDS_DIR
+
+
+def derive_candidate_batch_responses_dir(output_root: Path) -> Path:
+    return output_root / SHORT_LAYOUT_RESPONSES_DIR
+
+
+def derive_candidate_batch_dumps_dir(output_root: Path) -> Path:
+    return output_root / SHORT_LAYOUT_DUMPS_DIR
+
+
+def derive_candidate_batch_record_path(
+    *,
+    output_root: Path,
+    task: str,
+    sample_id: str,
+) -> Path:
+    sample_key = derive_candidate_sample_key(task=task, sample_id=sample_id)
+    return derive_candidate_batch_records_dir(output_root) / f"{sample_key}.record.json"
+
+
+def derive_candidate_batch_response_path(
+    *,
+    output_root: Path,
+    task: str,
+    sample_id: str,
+) -> Path:
+    sample_key = derive_candidate_sample_key(task=task, sample_id=sample_id)
+    return derive_candidate_batch_responses_dir(output_root) / f"{sample_key}.response.json"
+
+
+def derive_candidate_batch_dump_path(
+    *,
+    output_root: Path,
+    task: str,
+    sample_id: str,
+) -> Path:
+    sample_key = derive_candidate_sample_key(task=task, sample_id=sample_id)
+    return derive_candidate_batch_dumps_dir(output_root) / f"{sample_key}.dump.json"
+
+
+def derive_output_root_from_record_path(record_path: Path) -> Path:
+    resolved = record_path.resolve()
+    if resolved.parent.name in {"records", SHORT_LAYOUT_RECORDS_DIR}:
+        return resolved.parent.parent
+    return resolved.parent
+
+
+def infer_batch_key_from_output_root(output_root: Path) -> str:
+    resolved = output_root.resolve()
+    if resolved.parent.parent.name == SHORT_LAYOUT_BATCHES_DIR:
+        return resolved.name
+    return ""
+
+
+def make_manifest_entry_record_relpath(record_path: Path, output_root: Path) -> str:
+    return str(record_path.resolve().relative_to(output_root.resolve())).replace("\\", "/")
+
+
+def extract_sample_key_from_record_path(record_path: Path) -> str:
+    name = record_path.name
+    if name.endswith(".record.json"):
+        return name[: -len(".record.json")]
+    if name.endswith(".json"):
+        return name[: -len(".json")]
+    return record_path.stem
+
+
+def resolve_manifest_output_root(manifest_path: Path, manifest: dict[str, Any]) -> Path:
+    output_root_value = str(manifest.get("output_root") or "").strip()
+    if output_root_value:
+        return resolve_relative_to_repo(output_root_value)
+    return manifest_path.resolve().parent
+
+
+def resolve_manifest_record_path(manifest_path: Path, manifest: dict[str, Any], entry: dict[str, Any]) -> Path:
+    record_relpath = str(entry.get("record_relpath") or "").strip()
+    if record_relpath:
+        return resolve_manifest_output_root(manifest_path, manifest) / record_relpath
+    path_value = str(entry.get("path") or "").strip()
+    if path_value:
+        return resolve_relative_to_repo(path_value)
+    raise SystemExit(f"{make_repo_relative(manifest_path)} record entry is missing both path and record_relpath")
 
 
 def resolve_relative_to_repo(path_value: str) -> Path:
@@ -121,6 +285,7 @@ def build_candidate_record_batch_manifest(
     collection_batches: list[str] = []
     capture_origins: list[str] = []
     seen_record_ids: set[str] = set()
+    output_roots: set[Path] = set()
 
     for path in sorted(record_paths):
         record = load_json_document(path)
@@ -131,17 +296,10 @@ def build_candidate_record_batch_manifest(
         if record_id in seen_record_ids:
             raise SystemExit(f"duplicate record_id detected while building manifest: {record_id}")
         seen_record_ids.add(record_id)
-
-        manifests.append(
-            {
-                "record_id": record_id,
-                "sample_id": sample_id,
-                "path": make_repo_relative(path),
-            }
-        )
         projects.append(str(record.get("project") or "").strip())
         tasks.append(str(record.get("task") or "").strip())
         sources.append(str(record.get("source") or "").strip())
+        output_roots.add(derive_output_root_from_record_path(path))
 
         capture_metadata = record.get("capture_metadata") or {}
         collection_batches.append(str(capture_metadata.get("collection_batch") or "").strip())
@@ -152,6 +310,17 @@ def build_candidate_record_batch_manifest(
     source = source_override.strip() or collect_unique(sources, "source")
     collection_batch = collection_batch_override.strip() or collect_unique(collection_batches, "collection_batch")
     capture_origin = capture_origin_override.strip() or collect_unique(capture_origins, "capture_origin", allow_empty=True)
+    if len(output_roots) != 1:
+        raise SystemExit(
+            "unable to infer output_root for candidate record batch: "
+            + ", ".join(sorted(make_repo_relative(path) for path in output_roots))
+        )
+    output_root = next(iter(output_roots))
+    batch_key = ""
+    if uses_short_candidate_record_layout(project):
+        batch_key = infer_batch_key_from_output_root(output_root)
+        if not batch_key:
+            batch_key = derive_candidate_batch_key(project=project, collection_batch=collection_batch)
 
     if project_override.strip() and any(value != project for value in projects):
         raise SystemExit("provided --project does not match all record.project values")
@@ -170,12 +339,29 @@ def build_candidate_record_batch_manifest(
         "project": project,
         "task": task,
         "source": source,
+        "output_root": make_repo_relative(output_root),
         "records": manifests,
     }
+    if batch_key:
+        manifest["batch_key"] = batch_key
     if capture_origin:
         manifest["capture_origin"] = capture_origin
     if description.strip():
         manifest["description"] = description.strip()
+
+    for path in sorted(record_paths):
+        record = load_json_document(path)
+        record_id = str(record.get("record_id") or "").strip()
+        sample_id = str(record.get("sample_id") or "").strip()
+        entry: dict[str, str] = {
+            "record_id": record_id,
+            "sample_id": sample_id,
+            "path": make_repo_relative(path),
+        }
+        if uses_short_candidate_record_layout(project):
+            entry["sample_key"] = extract_sample_key_from_record_path(path)
+            entry["record_relpath"] = make_manifest_entry_record_relpath(path, output_root)
+        manifests.append(entry)
 
     ensure_schema(manifest, RECORD_BATCH_SCHEMA_PATH, "candidate record batch manifest")
     return manifest

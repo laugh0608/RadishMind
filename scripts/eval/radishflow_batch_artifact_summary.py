@@ -10,9 +10,13 @@ if str(REPO_ROOT) not in sys.path:
 
 from services.runtime.candidate_records import (
     RECORD_BATCH_SCHEMA_PATH,
+    SHORT_LAYOUT_DUMPS_DIR,
+    SHORT_LAYOUT_RECORDS_DIR,
+    SHORT_LAYOUT_RESPONSES_DIR,
     ensure_schema,
     load_json_document,
     make_repo_relative,
+    resolve_manifest_output_root,
 )
 
 RADISHFLOW_BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = (
@@ -33,13 +37,13 @@ TASK_SUMMARY_CONFIG: dict[str, dict[str, str]] = {
 
 def derive_output_root_from_record_dir(record_dir: Path) -> Path:
     resolved = record_dir.resolve()
-    if resolved.name == "records":
+    if resolved.name in {"records", SHORT_LAYOUT_RECORDS_DIR}:
         return resolved.parent
     return resolved
 
 
 def derive_artifact_summary_path(output_root: Path, collection_batch: str) -> Path:
-    return output_root / f"{collection_batch}.artifacts.json"
+    return output_root / "artifacts.json"
 
 
 def load_object_if_exists(path: Path) -> dict[str, Any] | None:
@@ -108,6 +112,7 @@ def build_radishflow_batch_artifact_summary_document(
     ensure_schema(manifest, RECORD_BATCH_SCHEMA_PATH, make_repo_relative(manifest_path))
     if not isinstance(manifest, dict):
         raise SystemExit(f"{make_repo_relative(manifest_path)} must be a json object")
+    resolved_output_root = resolve_manifest_output_root(manifest_path, manifest)
 
     task = str(manifest.get("task") or "").strip()
     task_config = TASK_SUMMARY_CONFIG.get(task)
@@ -115,7 +120,7 @@ def build_radishflow_batch_artifact_summary_document(
         raise SystemExit(f"unsupported RadishFlow batch manifest task: {task or '<empty>'}")
 
     audit_report = load_object_if_exists(audit_report_path)
-    record_paths = collect_record_paths(output_root)
+    record_paths = collect_record_paths(resolved_output_root)
     records = [load_json_document(path) for path in record_paths]
     for path, record in zip(record_paths, records):
         if not isinstance(record, dict):
@@ -137,11 +142,15 @@ def build_radishflow_batch_artifact_summary_document(
         ]
     )
 
-    response_dir = output_root / "responses"
-    dump_dir = output_root / "dumps"
+    response_dir = resolved_output_root / SHORT_LAYOUT_RESPONSES_DIR
+    if not response_dir.is_dir():
+        response_dir = resolved_output_root / "responses"
+    dump_dir = resolved_output_root / SHORT_LAYOUT_DUMPS_DIR
+    if not dump_dir.is_dir():
+        dump_dir = resolved_output_root / "dumps"
     response_count = len(list(response_dir.glob("*.response.json"))) if response_dir.is_dir() else 0
     dump_count = len(list(dump_dir.glob("*.dump.json"))) if dump_dir.is_dir() else 0
-    root_record_count = sum(1 for path in record_paths if path.parent == output_root)
+    root_record_count = sum(1 for path in record_paths if path.parent == resolved_output_root)
     nested_record_count = len(record_paths) - root_record_count
     manifest_records = manifest.get("records") or []
     if not isinstance(manifest_records, list):
@@ -156,7 +165,7 @@ def build_radishflow_batch_artifact_summary_document(
         "provider": provider,
         "collection_batch": str(manifest.get("collection_batch") or "").strip(),
         "source": str(manifest.get("source") or "").strip(),
-        "output_root": make_repo_relative(output_root),
+        "output_root": make_repo_relative(resolved_output_root),
         "execution": {
             "capture_exit_code": max(0, int(capture_exit_code)),
             "audit_exit_code": None if audit_report is None else int(audit_report.get("exit_code") or 0),
@@ -173,11 +182,11 @@ def build_radishflow_batch_artifact_summary_document(
                 "exists": audit_report_path.is_file(),
             },
             "output_root": {
-                "path": make_repo_relative(output_root),
-                "exists": output_root.is_dir(),
+                "path": make_repo_relative(resolved_output_root),
+                "exists": resolved_output_root.is_dir(),
             },
             "records": {
-                "path": make_repo_relative(output_root),
+                "path": make_repo_relative(resolved_output_root),
                 "exists": bool(record_paths),
                 "file_count": len(record_paths),
                 "root_file_count": root_record_count,
