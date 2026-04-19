@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-18
+更新时间：2026-04-19
 
 ## 路线图目标
 
@@ -10,6 +10,7 @@
 
 - `RadishFlow` 第一批能力优先走结构化状态与诊断解释，而不是截图先行
 - `Radish` 第一批能力优先走文档问答、Console/运营辅助与内容结构化建议
+- 长期目标从“做一个模型”收口为“受控 Copilot / Agent 系统 + 可替换模型能力”，模型训练、推理 provider、工具调用和规则校验都应服务于任务级 agent 编排
 - `minimind-v` 当前作为默认 `student/base` 主线，围绕评测闭环进入适配与训练阶段
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 强基线，优先承担多模态对照评测与蒸馏参考
 - `SmolVLM` 当前作为轻量本地对照组，优先承担小模型回归与部署下限比较
@@ -185,6 +186,45 @@
 - 两个项目都能复用统一网关与协议
 - 工程化策略清晰，不因支持第二个项目而出现边界漂移
 
+## M7：Agent / Model 边界拆分评估
+
+### 目标
+
+当 `RadishMind` 已经同时具备稳定 agent runtime、真实多项目接入和可比较的 student/model 路线后，评估是否需要把 agent / copilot runtime 与模型训练、模型服务、权重资产拆成独立仓库或独立发布单元。
+
+这个节点不是为了提前拆仓库，而是为了避免两类风险：
+
+- agent runtime、协议、adapter、工具和评测仍在快速共振时过早拆分，导致边界漂移
+- 模型权重、训练产物、推理镜像和服务部署变重后仍强行塞在同一仓库，导致协作、CI、权限和发布节奏失控
+
+### 触发条件
+
+满足以下多数条件时，应正式进入拆分评估：
+
+- `RadishFlow` 与 `Radish` 至少各有一个生产前稳定任务接入同一 agent runtime
+- `CopilotRequest` / `CopilotResponse`、artifact、risk、confirmation、citation 等核心协议连续多个迭代保持兼容
+- 至少有一条任务完成 teacher / student / mock 或多 provider 的可重复对照，证明模型已是可替换组件，而不是写死在任务逻辑里
+- `minimind-v` 或其它 student 路线进入持续训练、蒸馏、量化、评测发布节奏，且产生不适合直接入仓的大体积权重或训练产物
+- agent runtime 的发布节奏开始与模型训练 / 推理服务发布节奏明显不同
+- 模型服务需要独立 GPU / 推理基础设施、安全凭据、镜像发布或部署权限
+- 仓库 CI 因模型资产、训练脚本、推理镜像或大数据集显著拖慢，影响协议、adapter 和评测的日常协作
+
+### 拆分候选形态
+
+优先考虑“先拆发布单元，再拆仓库”。如果同仓库仍能保持清晰边界，可以先只拆目录、包和 CI job。
+
+若确实需要拆仓库，建议目标形态为：
+
+- `RadishMind`：保留 agent runtime、contracts、adapters、prompts、eval、candidate records、工具编排和规则校验
+- `RadishMind-Models`：承接训练配置、模型适配、蒸馏脚本、量化脚本、模型评测报告和权重发布元数据
+- 外部模型 / 对象存储：承接大体积权重、训练产物、推理镜像和不可直接 committed 的数据资产
+
+### 退出标准
+
+- 能明确判断继续单仓库、拆包不拆仓库、或拆成多个仓库的收益与成本
+- 如果拆分，协议真相源、评测入口、模型版本引用和发布节奏都有明确归属
+- 拆分后不破坏 `RadishFlow` / `Radish` 的统一协议和任务级回归
+
 ## 当前推荐顺序
 
 建议严格按以下顺序推进：
@@ -196,8 +236,10 @@
 5. `M4`
 6. `M5`
 7. `M6`
+8. `M7`
 
 不要在 `M1` 之前就直接开大规模训练，也不要在没有评测基线前频繁切换底座模型。
+不要在 `M6` 之前急于把 agent / model 拆成多仓库；在协议、adapter、评测和至少两个项目的任务接入稳定前，保持单仓库更利于收口。
 
 ## 当前优先推进
 
@@ -257,6 +299,7 @@
 - `SmolVLM` 的回归任务边界与保留条件
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
+- `M7` 到来时，agent runtime 与 model / training / inference service 是继续同仓库分包，还是拆成独立仓库与独立发布单元
 - `Radish` docs QA 的真实 captured negative 批次采用目录清单、导入脚本还是两者并行维护
 - `Radish` docs QA 的 real-derived negative pattern 是否继续只靠 `capture_metadata.tags` 约定，还是需要升级成更正式的结构化字段
 - `Radish` docs QA 的 `violation_groups` 是否要长期保持“按完整违规文案分组”，还是后续补一层更轻量的 violation pattern 归一化
