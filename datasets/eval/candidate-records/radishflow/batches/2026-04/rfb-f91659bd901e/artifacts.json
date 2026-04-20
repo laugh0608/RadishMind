@@ -61,7 +61,7 @@
     },
     "cross_sample_recommended_negative_replay_summary": {
       "requested": false,
-      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-sample-recommended-negative-replay.summary.json",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-recommended.summary.json",
       "exists": false
     }
   },

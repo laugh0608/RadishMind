@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "record_id": "simulated-radishflow-suggest-ghost-completion-negative-real-derived-flash-vapor-accept-key-drift-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-negative-real-derived-flash-vapor-accept-key-drift-001",
+  "request_id": "rf-suggest-ghost-negative-real-derived-flash-vapor-accept-key-drift-001",
+  "captured_at": "2026-04-20T09:30:00Z",
+  "source": "simulated_candidate_response",
+  "model": "radishmind-mock-radishflow-suggest_ghost_completion-real-derived-v1",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 42,
+    "selected_unit_ids": [
+      "flash-2"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-2-vapor-stub",
+      "cand-flash-2-liquid-stub"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "负例回放：高置信 vapor_outlet 候选仍合法，但错误地没有保留默认 Tab 接受权。",
+        "citation_ids": [
+          "ctx-unit"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-2 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-2",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-2-vapor-stub",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "V-102"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-2-vapor-stub"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-2",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-2 kind=FlashDrum name=V-102 Drum"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-2-vapor-stub",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-2-vapor-stub target_port_key=vapor_outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-candidate-2",
+        "kind": "context",
+        "label": "候选 cand-flash-2-liquid-stub",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-flash-2-liquid-stub target_port_key=liquid_outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"preferred_prefix_by_port\": {\"vapor_outlet\": \"V\", \"liquid_outlet\": \"L\"}}"
+      }
+    ],
+    "summary": "负例回放：高置信 vapor_outlet 候选仍合法，但错误地没有保留默认 Tab 接受权。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-20-radishflow-ghost-simulated-negatives-v1",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:ghost_accept_key_policy_drift",
+      "w17_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/manifest.json",
+      "record_id": "captured-radishflow-suggest-ghost-completion-flash-vapor-outlet-001"
+    },
+    "notes": "基于 latest clean formal batch `rfb-22d033e634d2` 的 flash vapor real record 派生，专门模拟默认 Tab 被错误降级为 manual_only 的 ghost accept-key 漂移。"
+  }
+}

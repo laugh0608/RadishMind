@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "record_id": "simulated-radishflow-suggest-ghost-completion-negative-real-derived-valve-ambiguous-accept-key-drift-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-negative-real-derived-valve-ambiguous-accept-key-drift-001",
+  "request_id": "rf-suggest-ghost-negative-real-derived-valve-ambiguous-accept-key-drift-001",
+  "captured_at": "2026-04-20T09:31:00Z",
+  "source": "simulated_candidate_response",
+  "model": "radishmind-mock-radishflow-suggest_ghost_completion-real-derived-v1",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 48,
+    "selected_unit_ids": [
+      "valve-1"
+    ],
+    "legal_candidate_refs": [
+      "cand-valve-1-outlet-cooler",
+      "cand-valve-1-outlet-flash"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "负例回放：两个 ambiguous 候选差距过小，但第一条候选被错误升级成默认 Tab。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-candidate-2",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 valve-1 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "valve-1",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-valve-1-outlet-cooler",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "V-401A"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-valve-1-outlet-cooler"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-pattern"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "保留 valve-1 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "valve-1",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-valve-1-outlet-flash",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "V-401B"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-valve-1-outlet-flash"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-2",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 valve-1",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=valve-1 kind=Valve name=Throttle Valve 401"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-valve-1-outlet-cooler",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-valve-1-outlet-cooler target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-candidate-2",
+        "kind": "context",
+        "label": "候选 cand-valve-1-outlet-flash",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-valve-1-outlet-flash target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "valve_to_cooler_or_flash_both_seen_in_templates"
+      }
+    ],
+    "summary": "负例回放：两个 ambiguous 候选差距过小，但第一条候选被错误升级成默认 Tab。",
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  },
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-20-radishflow-ghost-simulated-negatives-v1",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:ghost_accept_key_policy_drift",
+      "w17_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/manifest.json",
+      "record_id": "captured-radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001"
+    },
+    "notes": "基于 latest clean formal batch `rfb-22d033e634d2` 的 ambiguous valve real record 派生，专门模拟 ambiguous 候选被错误升级成默认 Tab 的 accept-key 策略漂移。"
+  }
+}

@@ -24,6 +24,7 @@ SUGGEST_EDITS_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-poc-batch
 GHOST_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-batches.json"
 RADISH_DOCS_BATCH_FIXTURE = FIXTURE_ROOT / "radish-docs-real-batches.json"
 RADISH_DOCS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radish-docs-real-derived-negatives.json"
+RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-derived-negatives.json"
 MISSING_NEGATIVE_SAMPLES = "missing_negative_samples"
 MISSING_REAL_DERIVED_NEGATIVE_SAMPLES = "missing_real_derived_negative_samples"
 
@@ -281,22 +282,40 @@ def build_ghost_chain() -> dict[str, Any]:
     batches = load_real_batches(GHOST_BATCH_FIXTURE)
     latest_batch = batches[-1]
     artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
+    real_derived_fixture = load_json_document(RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE)
+    real_derived_index_path = resolve_repo_relative(str(real_derived_fixture.get("index") or "").strip())
+    real_derived_index = load_json_document(real_derived_index_path) if real_derived_index_path.is_file() else None
+    real_derived_summary: dict[str, Any] = {}
+    if real_derived_index is not None:
+        real_derived_summary = real_derived_index.get("summary") or {}
+        if not isinstance(real_derived_summary, dict):
+            raise SystemExit(f"real-derived summary must be an object: {make_repo_relative(real_derived_index_path)}")
     all_sample_ids = sorted({sample_id for batch in batches for sample_id in batch["sample_ids"]})
     total_eval_sample_count = count_eval_samples("datasets/eval/radishflow/suggest-ghost-completion-*.json")
     governance: dict[str, Any] = {
-        "level": "manifest_audit_and_artifact_summary" if artifact_summary is not None else "manifest_audit_only",
+        "level": (
+            "artifact_summary_replay_and_real_derived"
+            if real_derived_index is not None
+            else "manifest_audit_and_artifact_summary"
+            if artifact_summary is not None
+            else "manifest_audit_only"
+        ),
         "artifact_summary": artifact_summary is not None,
         "negative_replay_index": False,
         "cross_sample_negative_replay_index": False,
         "recommended_negative_replay_summary": False,
         "cross_sample_recommended_negative_replay_summary": False,
-        "real_derived_negative_index": False,
+        "real_derived_negative_index": real_derived_index is not None,
+        "real_derived_pattern_group_count": int(real_derived_summary.get("pattern_group_count") or 0),
+        "real_derived_violation_group_count": int(real_derived_summary.get("violation_group_count") or 0),
         **make_governance_blockers(
             negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
             cross_sample_negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
             recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
             cross_sample_recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
-            real_derived_negative_index_blocker=MISSING_REAL_DERIVED_NEGATIVE_SAMPLES,
+            real_derived_negative_index_blocker=(
+                "" if real_derived_index is not None else MISSING_REAL_DERIVED_NEGATIVE_SAMPLES
+            ),
         ),
     }
     if artifact_summary is not None:
@@ -350,9 +369,8 @@ def build_ghost_chain() -> dict[str, Any]:
             else None
         ),
         "next_gap": (
-            "same-sample 与 cross-sample negative replay 已接通；下一步补 real-derived 负例资产，"
-            "并把 real-derived replay 纳入同批次 recommended summary；"
-            "真实 capture 仍应在固定 trio 之外扩到下一批高价值链式样本。"
+            "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
+            "下一步应扩真实 capture 样本池，或回到 suggest_flowsheet_edits 收口 cross-sample / real-derived 缺口。"
         ),
     }
 
@@ -455,13 +473,13 @@ def build_report() -> dict[str, Any]:
     next_group = str(chains[0]["coverage"].get("next_teacher_comparison_group") or "").strip()
     if next_group:
         next_mainline_focus = (
-            "先把两条 RadishFlow 链的 cross-sample replay / real-derived 缺口收口到 committed 负例资产，"
+            "先把 suggest_flowsheet_edits 的 cross-sample replay / real-derived 缺口收口到 committed 负例资产，"
             f"再回到 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
         )
     else:
         next_mainline_focus = (
-            "先把两条 RadishFlow 链的 replay / real-derived 缺口收口到 committed 负例资产；"
-            "suggest_flowsheet_edits 当前暂无待补 default teacher capture，应优先补 replay / real-derived。"
+            "先把 suggest_flowsheet_edits 的 cross-sample replay / real-derived 缺口收口到 committed 负例资产；"
+            "ghost 链当前可转向扩真实 capture 样本池。"
         )
     return {
         "schema_version": 1,

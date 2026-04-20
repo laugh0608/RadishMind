@@ -243,9 +243,7 @@ def build_radishflow_batch_artifact_summary_document(
     negative_replay_index_path = resolved_output_root / "negative-replay-index.json"
     cross_sample_negative_replay_index_path = resolved_output_root / "cross-sample-replay-index.json"
     recommended_negative_replay_summary_path = resolved_output_root / "recommended-negative-replay.summary.json"
-    cross_sample_recommended_negative_replay_summary_path = (
-        resolved_output_root / "cross-sample-recommended-negative-replay.summary.json"
-    )
+    cross_sample_recommended_negative_replay_summary_path = resolved_output_root / "cross-recommended.summary.json"
     response_count = len(list(response_dir.glob("*.response.json"))) if response_dir.is_dir() else 0
     dump_count = len(list(dump_dir.glob("*.dump.json"))) if dump_dir.is_dir() else 0
     root_record_count = sum(1 for path in record_paths if path.parent == records_dir)

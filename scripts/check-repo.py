@@ -54,6 +54,7 @@ RADISHFLOW_EXPORT_SNAPSHOT_ASSEMBLY_FIXTURES = list(
 RADISH_DOCS_QA_REAL_BATCHES = list(load_fixture_json("radish-docs-real-batches.json") or [])
 RADISH_DOCS_QA_REAL_DERIVED_NEGATIVES = dict(load_fixture_json("radish-docs-real-derived-negatives.json") or {})
 RADISHFLOW_GHOST_REAL_BATCHES = list(load_fixture_json("radishflow-ghost-real-batches.json") or [])
+RADISHFLOW_GHOST_REAL_DERIVED_NEGATIVES = dict(load_fixture_json("radishflow-ghost-real-derived-negatives.json") or {})
 RADISHFLOW_SUGGEST_EDITS_POC_BATCHES = list(load_fixture_json("radishflow-suggest-edits-poc-batches.json") or [])
 REQUIRED_FILES = list(load_fixture_json("required-files.json") or [])
 MAX_COMMITTED_PATH_LENGTH = 180
@@ -622,13 +623,13 @@ def check_generated_eval_metadata() -> None:
         raise SystemExit("unexpected artifact summary connected chain count in governance status report")
     if int(governance_summary.get("replay_connected_chain_count") or 0) != 3:
         raise SystemExit("unexpected replay connected chain count in governance status report")
-    if int(governance_summary.get("real_derived_connected_chain_count") or 0) != 1:
+    if int(governance_summary.get("real_derived_connected_chain_count") or 0) != 2:
         raise SystemExit("unexpected real-derived connected chain count in governance status report")
     if int(governance_summary.get("replay_asset_gap_chain_count") or 0) != 0:
         raise SystemExit("unexpected replay asset gap chain count in governance status report")
     if int(governance_summary.get("recommended_replay_asset_gap_chain_count") or 0) != 0:
         raise SystemExit("unexpected recommended replay asset gap chain count in governance status report")
-    if int(governance_summary.get("real_derived_asset_gap_chain_count") or 0) != 2:
+    if int(governance_summary.get("real_derived_asset_gap_chain_count") or 0) != 1:
         raise SystemExit("unexpected real-derived asset gap chain count in governance status report")
 
     governance_chains = list(governance_report.get("chains") or [])
@@ -672,7 +673,7 @@ def check_generated_eval_metadata() -> None:
     ):
         if str(ghost_governance.get(blocker_key) or "").strip():
             raise SystemExit(f"radishflow ghost completion governance chain should not report blocker '{blocker_key}'")
-    if ghost_governance.get("real_derived_negative_index_blocker") != "missing_real_derived_negative_samples":
+    if str(ghost_governance.get("real_derived_negative_index_blocker") or "").strip():
         raise SystemExit("radishflow ghost completion: unexpected real-derived blocker in governance status report")
 
     docs_governance = docs_chain.get("governance") or {}
@@ -849,6 +850,23 @@ def check_generated_eval_metadata() -> None:
     )
     jsonschema.validate(real_derived_index_document, real_derived_index_schema)
     run_python_script("check-radish-docs-qa-real-derived-negative-index.py", [])
+    run_python_script(
+        "build-real-derived-negative-index.py",
+        [
+            "--manifest",
+            RADISHFLOW_GHOST_REAL_DERIVED_NEGATIVES["manifest"],
+            "--negative-sample-dir",
+            RADISHFLOW_GHOST_REAL_DERIVED_NEGATIVES["negative_sample_dir"],
+            "--output",
+            RADISHFLOW_GHOST_REAL_DERIVED_NEGATIVES["index"],
+            "--check",
+        ],
+    )
+    ghost_real_derived_index_document = load_real_derived_negative_index(
+        REPO_ROOT / RADISHFLOW_GHOST_REAL_DERIVED_NEGATIVES["index"]
+    )
+    jsonschema.validate(ghost_real_derived_index_document, real_derived_index_schema)
+    run_python_script("check-radishflow-ghost-real-derived-negative-index.py", [])
     check_committed_candidate_record_batches()
 
 

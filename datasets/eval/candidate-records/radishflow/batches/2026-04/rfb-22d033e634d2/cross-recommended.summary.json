@@ -8,7 +8,7 @@
   "collection_batch": "2026-04-11-radishflow-ghost-poc-real-v9-deepseek",
   "batch_artifact_summary_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json",
   "negative_replay_index_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-replay-index.json",
-  "output_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-recommended-negative-replay.summary.json",
+  "output_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-recommended.summary.json",
   "selection": {
     "requested_top": 2,
     "selected_group_ids": [

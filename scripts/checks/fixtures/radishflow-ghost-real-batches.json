@@ -50,7 +50,7 @@
     "recommended_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/recommended-negative-replay.summary.json",
     "recommended_top": "3",
     "cross_sample_replay_index": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-replay-index.json",
-    "cross_sample_recommended_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-recommended-negative-replay.summary.json",
+    "cross_sample_recommended_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-recommended.summary.json",
     "cross_sample_recommended_top": "2"
   }
 ]
