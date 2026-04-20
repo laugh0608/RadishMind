@@ -63,7 +63,7 @@
 - 第八批 `v9` 则继续把“先试 openrouter，再按情况切 provider”的边界推进到更细一层：本轮除了继续遇到默认 free 模型废弃、付费额度门槛与短窗口限流外，还观察到 `openrouter` 的 `nemotron-nano` 虽可完成 `Tab`/`empty` 样本，却在 `manual_only` 样本上退化成 project 名错误、空动作和错误 citation 结构的 schema-invalid JSON。当前这条坏法不属于适合通过 runtime 窄修复后正式导入的范围，因此只作为模型质量漂移观察项保留；正式入仓仍改由 `deepseek` fallback profile 完成，并确认当前未新增新的可治理导入/归一化失败面
 - 作为仓库主线转入 `M3` 治理收口后的首个配套动作，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 现也会默认写出 `<collection-batch>.artifacts.json`；对应最新正式批次 `2026-04-11-radishflow-ghost-poc-real-v9/` 已补最小 batch-level artifact summary，用于统一沉淀 `manifest / audit / output_root / records / responses / dumps` 的结构化治理摘要，而不再只有 `manifest + audit`
 - 当前又为最新 clean formal batch `rfb-22d033e634d2` 补齐首批 3 条 committed same-sample negative 样本，并生成 `negative-replay-index.json` 与 `recommended-negative-replay.summary.json`；这批负例分别覆盖默认 `Tab` 被错误降级、ambiguous 候选被错误升级为 `Tab`、空 `legal_candidate_completions` 下主观补出 ghost action 三类稳定边界
-- 在此基础上，本链又补齐首批 3 条 committed cross-sample negative 样本，并生成 `cross-sample-replay-index.json` 与 `cross-sample-recommended-negative-replay.summary.json`；当前先把 cross-sample replay 收口为两类稳定错配组：一类是把 empty record 回放到需要默认 `ghost_completion` 的样本，另一类是把 ambiguous manual-only record 回放到必须保持空建议的样本
+- 在此基础上，本链又补齐首批 3 条 committed cross-sample negative 样本，并生成 `cross-sample-replay-index.json` 与 `cross-recommended.summary.json`；当前先把 cross-sample replay 收口为两类稳定错配组：一类是把 empty record 回放到需要默认 `ghost_completion` 的样本，另一类是把 ambiguous manual-only record 回放到必须保持空建议的样本
 
 当前这条 PoC 仍是轻量版：
 
@@ -72,9 +72,9 @@
 - 当前在继续扩批时，还应同时观察两件事：其一是真实 provider 在批处理场景下是否仍会出现单样本卡顿，其二是 `manual_only` 多动作输出是否还会继续暴露新的结构坏法；若前者继续复现，应优先继续收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
 - 若后续某一轮再次出现三条默认样本同时 `HTTP 429` 且零 capture 的情况，当前应先归类为 provider 侧容量/限流阻塞；这类现象最多驱动 capture 脚本健壮性修复或 provider 切换，不应误记成新的 `suggest_ghost_completion` 输出坏法
 - 若后续继续使用多 provider fallback 采集真实 batch，当前还应额外观察 provider 间的输出风格漂移，例如把本应是纯文本的 `summary` / `answer.text` 写成 JSON 字符串；这类现象若稳定复现，应优先在 runtime 做任务级窄修复，而不是把坏输出原样固化进正式批次
-- 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay 与两路 recommended replay summary
-- 下一步仓库级缺口已进一步收口为单类明确阻塞：还没有 `RadishFlow suggest_ghost_completion` 的 real-derived negative pattern
-- 因此下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应优先按“先补 real-derived negative pattern，再决定是否扩真实 capture 样本池”这条路线收口
+- 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay、两路 recommended replay summary，以及首批 real-derived negative pattern
+- 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
+- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应优先在固定 trio 之外扩下一批高价值真实 capture 样本；若要继续补治理缺口，也应优先转回 `suggest_flowsheet_edits` 的 cross-sample / real-derived 收口
 
 ## 最小必需输入
 

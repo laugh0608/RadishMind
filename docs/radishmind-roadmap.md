@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-19
+更新时间：2026-04-20
 
 ## 路线图目标
 
@@ -252,7 +252,8 @@
 - `suggest_flowsheet_edits` 已完成 `33/33` 离线样本的四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 横向真实覆盖
 - `default` teacher 对照也已从旧 early pool 推进到更高价值 sample pool，并正式补齐 `mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object`、`cross-object-citation` 与 `range-sequence-ordering`
 - `suggest_ghost_completion` 已具备真实 batch 入仓、dump 重导和正式 audit 链
-- `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 都已接上最小 `artifact summary`，`RadishFlow` 两条链不再停留在只有 `manifest + audit` 的治理层
+- `suggest_flowsheet_edits` 已接上最小 `artifact summary`、same-sample replay 与 recommended replay summary，但仍缺 cross-sample replay 与 real-derived
+- `suggest_ghost_completion` 已进一步接上 same-sample / cross-sample replay、两路 recommended replay summary 与首批 real-derived negative，当前已不再阻塞于 `missing_real_derived_negative_samples`
 - `Radish docs QA` 已把 same-sample / cross-sample replay、recommended replay summary 与 real-derived negative index 接进仓库级治理链
 
 因此当前更合理的阶段判断是：
@@ -266,7 +267,7 @@
 接下来两周建议把仓库主线正式切成“`M2` 收尾 + `M3` 启动”混合态，并按以下顺序推进：
 
 1. 将 `RadishFlow suggest_flowsheet_edits` 的剩余 `default` teacher 对照继续按 `teacher_comparison_candidates` 推进，但每轮只补一组高价值 sample pool，避免再次回到单任务长期驻留；当前优先级依次为 `cross-object-primary-focus`、`parameter-ordering`、`mixed-risk-citation-reconnect`
-2. 将 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条真实 batch 治理链进一步统一到同一类 coverage / replay / artifact-summary / real-derived index 口径；其中 `RadishFlow` 两条链当前已补齐最小 `artifact summary`，下一步重点转向 replay / repeated-pattern / real-derived 的后续治理，减少靠周志人工跟踪批次进度
+2. 将 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条真实 batch 治理链进一步统一到同一类 coverage / replay / artifact-summary / real-derived index 口径；其中下一步主治理缺口应明确收口到 `suggest_flowsheet_edits` 的 cross-sample replay / real-derived，而 `suggest_ghost_completion` 则转向扩真实 capture 样本池，减少靠周志人工跟踪批次进度
 3. 把 `M3` 的正式关注点从“单样本新增多少”切到“哪些任务已可稳定比较 teacher、哪些失败面已形成 repeated pattern、哪些仍缺结构化索引”
 4. 在上述治理链稳定后，再启动 `M4 minimind-v` 的 student/base 训练验证；在这之前，不再让训练主线抢跑到评测治理之前
 
@@ -284,7 +285,7 @@
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
 2. 将 `RadishFlow suggest_flowsheet_edits` 从“真实主线已阶段性收口”继续推进到“剩余 default teacher sample pool 按统一 coverage 策略补齐”；当前不再围绕已闭环样本族深挖，而应只按 `teacher_comparison_candidates` 补高价值组
-3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“真实 batch 治理链与其它任务统一”；重点不再只是继续补样本，而是让 capture / manifest / audit / replay / summary 口径与其它任务对齐
+3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“在 replay / real-derived 已接通后扩真实 capture 样本池”；重点不再只是继续补治理资产，而是把固定 trio 扩到下一批高价值链式样本
 4. 继续沿 `RadishFlow export -> adapter -> request` 主线补更真实的 exporter 边界，但从“补单个 fixture”转到“优先补批量 smoke 或正式契约”；当前已具备 selection 契约、priority 契约与 batch smoke 入口，后续除非上游 exporter 继续暴露新边界，否则不再优先深挖这一层
 5. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
 6. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估

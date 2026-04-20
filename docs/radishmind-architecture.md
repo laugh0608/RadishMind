@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-19
+更新时间：2026-04-20
 
 ## 架构目标
 
@@ -196,7 +196,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 与正例共用同一套规则的负例回放
 - 通过 `capture_metadata` 标记来源批次的真实 captured replay
 - 对真实/模拟 batch 同时沉淀 same-sample / cross-sample replay index、recommended replay summary 与 artifact summary，避免 batch 审计、推荐回放和 committed fixture 漂成三套口径
-- 对 `RadishFlow` 当前这两条已接线任务，也应先承认治理成熟度分层：`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 现已接上最小 `artifact summary`，但仍未接上 `replay / repeated-pattern / real-derived`；后续统一治理时不应再把它们与 `Radish docs QA` 误判成同一成熟度
+- 对 `RadishFlow` 当前这两条已接线任务，也应先承认治理成熟度分层：`suggest_flowsheet_edits` 当前已接上最小 `artifact summary`、same-sample replay 与 recommended replay summary，但仍缺 cross-sample replay 与 real-derived；`suggest_ghost_completion` 则已接上最小 `artifact summary`、same-sample / cross-sample replay、两路 recommended replay summary 与首批 real-derived negative。后续统一治理时不应再把两条链与 `Radish docs QA` 误判成同一成熟度，也不应继续把它们笼统归类成“只到 artifact summary”
 - 对基于真实 bad record 派生的本地负例，生成独立 real-derived negative index，并按 `source_record_groups`、`violation_groups`、`pattern_groups` 做结构化审计
 - 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 当前 `Radish docs QA` 的 same-sample / cross-sample replay 与 real-derived negative index 已统一纳入 `check-repo`，且 `2026-04-05` real batch 已无 singleton source；这条治理链的后续重点应转向跨 source 复合 drift、真实 captured 扩充，以及 `pattern` / `violation` 结构化升级时机评估
