@@ -132,6 +132,18 @@
         },
         "dumps": {
           "$ref": "#/$defs/directory_inventory_artifact"
+        },
+        "negative_replay_index": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
+        "cross_sample_negative_replay_index": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
+        "recommended_negative_replay_summary": {
+          "$ref": "#/$defs/staged_file_artifact"
+        },
+        "cross_sample_recommended_negative_replay_summary": {
+          "$ref": "#/$defs/staged_file_artifact"
         }
       }
     },
@@ -190,6 +202,76 @@
         "dump_file_count": {
           "type": "integer",
           "minimum": 0
+        },
+        "violation_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_violation_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_same_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linked_cross_sample_negative_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recommended_replay_group_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_recommended_replay_group_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "recommended_negative_replays": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_replay_mode",
+        "recommended_group_ids",
+        "groups"
+      ],
+      "properties": {
+        "default_replay_mode": {
+          "type": "string",
+          "enum": [
+            "same_sample",
+            "cross_sample"
+          ]
+        },
+        "recommended_group_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^group-[0-9]{3}$"
+          },
+          "uniqueItems": true
+        },
+        "cross_sample_recommended_group_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^group-[0-9]{3}$"
+          },
+          "uniqueItems": true
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recommended_group"
+          }
+        },
+        "cross_sample_groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recommended_group"
+          }
         }
       }
     }
@@ -306,6 +388,55 @@
         "nested_file_count": {
           "type": "integer",
           "minimum": 0
+        }
+      }
+    },
+    "recommended_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "replay_mode",
+        "entry_count",
+        "expected_candidate_violations",
+        "python_command"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string",
+          "pattern": "^group-[0-9]{3}$"
+        },
+        "replay_mode": {
+          "type": "string",
+          "enum": [
+            "same_sample",
+            "cross_sample"
+          ]
+        },
+        "entry_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "same_sample_entry_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cross_sample_entry_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_candidate_violations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "python_command": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

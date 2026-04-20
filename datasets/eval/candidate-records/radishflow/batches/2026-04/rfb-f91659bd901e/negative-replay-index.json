@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "eval_task": "radishflow-suggest-edits",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source_manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
+  "audit_report_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/audit.json",
+  "audit_sample_dir": "datasets/eval/radishflow",
+  "negative_sample_dir": "datasets/eval/radishflow-negative",
+  "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+  "source": "captured_candidate_response",
+  "summary": {
+    "audited_sample_count": 2,
+    "failed_sample_count": 0,
+    "linked_negative_sample_count": 2,
+    "linked_failed_sample_count": 0,
+    "linked_non_failed_sample_count": 2,
+    "unlinked_failed_sample_count": 0,
+    "violation_group_count": 2
+  },
+  "violation_groups": [
+    {
+      "group_id": "group-001",
+      "expected_candidate_violations": [
+        "json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]' expected '65' but found '82'",
+        "proposed_action[0].patch.parameter_updates.efficiency_percent.suggested_range must remain ordered as [65, 82]"
+      ],
+      "source_statuses": [
+        "pass"
+      ],
+      "audit_violation_fragments": [],
+      "entry_count": 1,
+      "entries": [
+        {
+          "negative_sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+          "negative_sample_path": "datasets/eval/radishflow-negative/radishflow-suggest-edits-negative-real-record-efficiency-range-ordering-reversed-001.json",
+          "source_sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+          "source_sample_file": "suggest-flowsheet-edits-efficiency-range-ordering-001.json",
+          "record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+          "source_status": "pass",
+          "replay_mode": "same_sample",
+          "audit_violations": [],
+          "expected_candidate_violations": [
+            "json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]' expected '65' but found '82'",
+            "proposed_action[0].patch.parameter_updates.efficiency_percent.suggested_range must remain ordered as [65, 82]"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "group-002",
+      "expected_candidate_violations": [
+        "json path '$.proposed_actions[0].patch.spec_placeholders[0]' expected 'temperature_c' but found 'pressure_kpa'",
+        "proposed_action[0].patch.spec_placeholders must remain ordered as ['temperature_c', 'pressure_kpa', 'flow_rate_kg_per_h']"
+      ],
+      "source_statuses": [
+        "pass"
+      ],
+      "audit_violation_fragments": [],
+      "entry_count": 1,
+      "entries": [
+        {
+          "negative_sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+          "negative_sample_path": "datasets/eval/radishflow-negative/radishflow-suggest-edits-negative-real-record-stream-spec-sequence-ordering-shuffled-001.json",
+          "source_sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+          "source_sample_file": "suggest-flowsheet-edits-stream-spec-sequence-ordering-001.json",
+          "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+          "source_status": "pass",
+          "replay_mode": "same_sample",
+          "audit_violations": [],
+          "expected_candidate_violations": [
+            "json path '$.proposed_actions[0].patch.spec_placeholders[0]' expected 'temperature_c' but found 'pressure_kpa'",
+            "proposed_action[0].patch.spec_placeholders must remain ordered as ['temperature_c', 'pressure_kpa', 'flow_rate_kg_per_h']"
+          ]
+        }
+      ]
+    }
+  ],
+  "linked_non_failed_samples": [
+    {
+      "negative_sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "negative_sample_path": "datasets/eval/radishflow-negative/radishflow-suggest-edits-negative-real-record-efficiency-range-ordering-reversed-001.json",
+      "source_sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "source_sample_file": "suggest-flowsheet-edits-efficiency-range-ordering-001.json",
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "source_status": "pass",
+      "replay_mode": "same_sample",
+      "audit_violations": [],
+      "expected_candidate_violations": [
+        "json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]' expected '65' but found '82'",
+        "proposed_action[0].patch.parameter_updates.efficiency_percent.suggested_range must remain ordered as [65, 82]"
+      ]
+    },
+    {
+      "negative_sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+      "negative_sample_path": "datasets/eval/radishflow-negative/radishflow-suggest-edits-negative-real-record-stream-spec-sequence-ordering-shuffled-001.json",
+      "source_sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+      "source_sample_file": "suggest-flowsheet-edits-stream-spec-sequence-ordering-001.json",
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+      "source_status": "pass",
+      "replay_mode": "same_sample",
+      "audit_violations": [],
+      "expected_candidate_violations": [
+        "json path '$.proposed_actions[0].patch.spec_placeholders[0]' expected 'temperature_c' but found 'pressure_kpa'",
+        "proposed_action[0].patch.spec_placeholders must remain ordered as ['temperature_c', 'pressure_kpa', 'flow_rate_kg_per_h']"
+      ]
+    }
+  ],
+  "unlinked_failed_samples": [],
+  "capture_origin": "adapter_debug_dump"
+}

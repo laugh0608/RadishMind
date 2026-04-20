@@ -138,14 +138,23 @@
     }
   },
   "$defs": {
-    "non_empty_string_array": {
+    "string_array": {
       "type": "array",
       "items": {
         "type": "string",
         "minLength": 1
       },
-      "minItems": 1,
       "uniqueItems": true
+    },
+    "non_empty_string_array": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/string_array"
+        },
+        {
+          "minItems": 1
+        }
+      ]
     },
     "replay_entry": {
       "type": "object",
@@ -181,6 +190,13 @@
           "type": "string",
           "minLength": 1
         },
+        "source_status": {
+          "type": "string",
+          "enum": [
+            "fail",
+            "pass"
+          ]
+        },
         "replay_mode": {
           "type": "string",
           "enum": [
@@ -189,7 +205,7 @@
           ]
         },
         "audit_violations": {
-          "$ref": "#/$defs/non_empty_string_array"
+          "$ref": "#/$defs/string_array"
         },
         "expected_candidate_violations": {
           "$ref": "#/$defs/non_empty_string_array"
@@ -218,6 +234,10 @@
           "type": "string",
           "minLength": 1
         },
+        "source_status": {
+          "type": "string",
+          "const": "fail"
+        },
         "audit_violations": {
           "$ref": "#/$defs/non_empty_string_array"
         }
@@ -241,8 +261,16 @@
         "expected_candidate_violations": {
           "$ref": "#/$defs/non_empty_string_array"
         },
-        "audit_violation_fragments": {
+        "source_statuses": {
           "$ref": "#/$defs/non_empty_string_array"
+        },
+        "audit_violation_fragments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
         },
         "entry_count": {
           "type": "integer",

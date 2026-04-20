@@ -42,6 +42,7 @@ SUPPRESSIVE_RECENT_GHOST_ACTION_KINDS = {
 }
 NEGATIVE_REPLAY_INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/negative-replay-index.schema.json"
 BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json"
+RADISHFLOW_BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/radishflow-batch-artifact-summary.schema.json"
 DISALLOWED_SUGGEST_PATCH_KEYS = {
     "command",
     "commands",
@@ -528,12 +529,18 @@ def load_batch_artifact_summary(summary_path: Path) -> dict[str, Any]:
         raise SystemExit(f"failed to parse batch artifact summary '{summary_path}': {exc}") from exc
     if not isinstance(document, dict):
         raise SystemExit(f"batch artifact summary must be a json object: {summary_path}")
+    eval_task = str(document.get("eval_task") or "").strip()
+    schema_path = (
+        RADISHFLOW_BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH
+        if eval_task in {"radishflow-suggest-edits", "radishflow-ghost-completion"}
+        else BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH
+    )
     try:
-        jsonschema.validate(document, load_schema(BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH))
+        jsonschema.validate(document, load_schema(schema_path))
     except jsonschema.ValidationError as exc:
         raise SystemExit(
             f"batch artifact summary '{summary_path}': schema validation failed against "
-            f"'{BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH.name}': {exc.message}"
+            f"'{schema_path.name}': {exc.message}"
         ) from exc
     return document
 
@@ -541,9 +548,9 @@ def load_batch_artifact_summary(summary_path: Path) -> dict[str, Any]:
 def resolve_negative_replay_index_from_batch_artifact_summary(summary_path: Path, replay_mode: str = "") -> Path:
     summary_document = load_batch_artifact_summary(summary_path)
     eval_task = str(summary_document.get("eval_task") or "").strip()
-    if eval_task != "radish-docs-qa":
+    if eval_task not in {"radish-docs-qa", "radishflow-suggest-edits", "radishflow-ghost-completion"}:
         raise SystemExit(
-            f"batch artifact summary '{summary_path}': unsupported eval_task '{eval_task}', expected 'radish-docs-qa'"
+            f"batch artifact summary '{summary_path}': unsupported eval_task '{eval_task}' for negative replay"
         )
 
     artifacts = summary_document.get("artifacts")
@@ -721,9 +728,10 @@ def load_candidate_response_from_record(
     sample_name: str,
 ) -> tuple[Any, list[str]]:
     record_violations: list[str] = []
+    inline_candidate_response = sample.get("candidate_response")
     record_ref = sample.get("candidate_response_record")
     if record_ref is None:
-        return sample.get("candidate_response"), record_violations
+        return inline_candidate_response, record_violations
 
     record_path_value = str((record_ref or {}).get("path") or "").strip()
     manifest_path_value = str((record_ref or {}).get("manifest_path") or "").strip()
@@ -1000,5 +1008,8 @@ def load_candidate_response_from_record(
     if response is None:
         add_violation(record_violations, f"{sample_name}: candidate_response_record.response is required")
         return None, record_violations
+
+    if inline_candidate_response is not None:
+        return inline_candidate_response, record_violations
 
     return response, record_violations

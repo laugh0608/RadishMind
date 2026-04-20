@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -52,6 +53,91 @@ def load_object_if_exists(path: Path) -> dict[str, Any] | None:
     document = load_json_document(path)
     if not isinstance(document, dict):
         raise SystemExit(f"{make_repo_relative(path)} must be a json object")
+    return document
+
+
+def count_replay_entries(index_document: dict[str, Any] | None, replay_mode: str) -> tuple[int, int]:
+    if index_document is None:
+        return 0, 0
+    linked_count = 0
+    for group in index_document.get("violation_groups") or []:
+        if not isinstance(group, dict):
+            raise SystemExit("negative replay index violation_groups entries must be json objects")
+        for entry in group.get("entries") or []:
+            if not isinstance(entry, dict):
+                raise SystemExit("negative replay index group entries must be json objects")
+            if str(entry.get("replay_mode") or "").strip() == replay_mode:
+                linked_count += 1
+    return linked_count, 0
+
+
+def build_recommended_negative_replays(
+    *,
+    artifact_summary_path: Path,
+    eval_task: str,
+    replay_index: dict[str, Any] | None,
+    cross_sample_replay_index: dict[str, Any] | None,
+) -> dict[str, Any]:
+    summary_path_value = make_repo_relative(artifact_summary_path)
+
+    def build_groups(index_document: dict[str, Any] | None, replay_mode: str) -> list[dict[str, Any]]:
+        if index_document is None:
+            return []
+        groups: list[dict[str, Any]] = []
+        for group in index_document.get("violation_groups") or []:
+            if not isinstance(group, dict):
+                raise SystemExit("negative replay index violation_groups entries must be json objects")
+            group_id = str(group.get("group_id") or "").strip()
+            if not group_id:
+                raise SystemExit("negative replay index violation_groups entries must include group_id")
+            entries = group.get("entries") or []
+            entry_count = 0
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    raise SystemExit(f"negative replay index group '{group_id}' entries must be json objects")
+                if str(entry.get("replay_mode") or "").strip() == replay_mode:
+                    entry_count += 1
+            if entry_count == 0:
+                continue
+
+            python_command = " ".join(
+                [
+                    "python3",
+                    shlex.quote("./scripts/run-eval-regression.py"),
+                    eval_task,
+                    "--batch-artifact-summary",
+                    shlex.quote(summary_path_value),
+                    "--group-id",
+                    shlex.quote(group_id),
+                    "--replay-mode",
+                    replay_mode,
+                    "--fail-on-violation",
+                ]
+            )
+            group_document = {
+                "group_id": group_id,
+                "replay_mode": replay_mode,
+                "entry_count": entry_count,
+                "expected_candidate_violations": list(group.get("expected_candidate_violations") or []),
+                "python_command": python_command,
+            }
+            if replay_mode == "same_sample":
+                group_document["same_sample_entry_count"] = entry_count
+            else:
+                group_document["cross_sample_entry_count"] = entry_count
+            groups.append(group_document)
+        return sorted(groups, key=lambda item: (-int(item["entry_count"]), item["group_id"]))
+
+    same_sample_groups = build_groups(replay_index, "same_sample")
+    cross_sample_groups = build_groups(cross_sample_replay_index, "cross_sample")
+    document: dict[str, Any] = {
+        "default_replay_mode": "same_sample",
+        "recommended_group_ids": [group["group_id"] for group in same_sample_groups],
+        "groups": same_sample_groups,
+    }
+    if cross_sample_groups:
+        document["cross_sample_recommended_group_ids"] = [group["group_id"] for group in cross_sample_groups]
+        document["cross_sample_groups"] = cross_sample_groups
     return document
 
 
@@ -154,6 +240,12 @@ def build_radishflow_batch_artifact_summary_document(
 
     response_dir = resolved_output_root / (SHORT_LAYOUT_RESPONSES_DIR if uses_short_layout else "responses")
     dump_dir = resolved_output_root / (SHORT_LAYOUT_DUMPS_DIR if uses_short_layout else "dumps")
+    negative_replay_index_path = resolved_output_root / "negative-replay-index.json"
+    cross_sample_negative_replay_index_path = resolved_output_root / "cross-sample-replay-index.json"
+    recommended_negative_replay_summary_path = resolved_output_root / "recommended-negative-replay.summary.json"
+    cross_sample_recommended_negative_replay_summary_path = (
+        resolved_output_root / "cross-sample-recommended-negative-replay.summary.json"
+    )
     response_count = len(list(response_dir.glob("*.response.json"))) if response_dir.is_dir() else 0
     dump_count = len(list(dump_dir.glob("*.dump.json"))) if dump_dir.is_dir() else 0
     root_record_count = sum(1 for path in record_paths if path.parent == records_dir)
@@ -161,6 +253,18 @@ def build_radishflow_batch_artifact_summary_document(
     manifest_records = manifest.get("records") or []
     if not isinstance(manifest_records, list):
         raise SystemExit(f"{make_repo_relative(manifest_path)} records must be an array")
+    replay_index = load_object_if_exists(negative_replay_index_path)
+    cross_sample_replay_index = load_object_if_exists(cross_sample_negative_replay_index_path)
+    linked_same_sample_count, _ = count_replay_entries(replay_index, "same_sample")
+    linked_cross_sample_count, _ = count_replay_entries(cross_sample_replay_index, "cross_sample")
+    violation_group_count = len(list((replay_index or {}).get("violation_groups") or []))
+    cross_sample_violation_group_count = len(list((cross_sample_replay_index or {}).get("violation_groups") or []))
+    recommended_negative_replays = build_recommended_negative_replays(
+        artifact_summary_path=derive_artifact_summary_path(resolved_output_root, str(manifest.get("collection_batch") or "")),
+        eval_task=task_config["eval_task"] + "-negative",
+        replay_index=replay_index,
+        cross_sample_replay_index=cross_sample_replay_index,
+    )
 
     summary_document: dict[str, Any] = {
         "schema_version": 1,
@@ -208,6 +312,26 @@ def build_radishflow_batch_artifact_summary_document(
                 "exists": dump_dir.is_dir(),
                 "file_count": dump_count,
             },
+            "negative_replay_index": {
+                "requested": negative_replay_index_path.is_file(),
+                "path": make_repo_relative(negative_replay_index_path),
+                "exists": negative_replay_index_path.is_file(),
+            },
+            "cross_sample_negative_replay_index": {
+                "requested": cross_sample_negative_replay_index_path.is_file(),
+                "path": make_repo_relative(cross_sample_negative_replay_index_path),
+                "exists": cross_sample_negative_replay_index_path.is_file(),
+            },
+            "recommended_negative_replay_summary": {
+                "requested": recommended_negative_replay_summary_path.is_file(),
+                "path": make_repo_relative(recommended_negative_replay_summary_path),
+                "exists": recommended_negative_replay_summary_path.is_file(),
+            },
+            "cross_sample_recommended_negative_replay_summary": {
+                "requested": cross_sample_recommended_negative_replay_summary_path.is_file(),
+                "path": make_repo_relative(cross_sample_recommended_negative_replay_summary_path),
+                "exists": cross_sample_recommended_negative_replay_summary_path.is_file(),
+            },
         },
         "summary": {
             "captured_record_count": len(manifest_records),
@@ -220,7 +344,16 @@ def build_radishflow_batch_artifact_summary_document(
             "nested_record_count": nested_record_count,
             "response_file_count": response_count,
             "dump_file_count": dump_count,
+            "violation_group_count": violation_group_count,
+            "cross_sample_violation_group_count": cross_sample_violation_group_count,
+            "linked_same_sample_negative_count": linked_same_sample_count,
+            "linked_cross_sample_negative_count": linked_cross_sample_count,
+            "recommended_replay_group_count": len(list(recommended_negative_replays.get("recommended_group_ids") or [])),
+            "cross_sample_recommended_replay_group_count": len(
+                list(recommended_negative_replays.get("cross_sample_recommended_group_ids") or [])
+            ),
         },
+        "recommended_negative_replays": recommended_negative_replays,
     }
     if model:
         summary_document["model"] = model

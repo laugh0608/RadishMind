@@ -200,6 +200,51 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             "当前四主 apiyi coverage 已补齐；下一步应先补 same/cross-sample negative 与 real-derived 负例资产，"
             "再接入 recommended replay summary。"
         )
+    governance: dict[str, Any] = {
+        "level": (
+            "manifest_audit_profile_coverage_and_artifact_summary"
+            if artifact_summary is not None
+            else "manifest_audit_and_profile_coverage"
+        ),
+        "artifact_summary": artifact_summary is not None,
+        "negative_replay_index": False,
+        "cross_sample_negative_replay_index": False,
+        "recommended_negative_replay_summary": False,
+        "cross_sample_recommended_negative_replay_summary": False,
+        "real_derived_negative_index": False,
+        **make_governance_blockers(
+            negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+            cross_sample_negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+            recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+            cross_sample_recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+            real_derived_negative_index_blocker=MISSING_REAL_DERIVED_NEGATIVE_SAMPLES,
+        ),
+    }
+    if artifact_summary is not None:
+        artifacts = artifact_summary.get("artifacts") or {}
+        if not isinstance(artifacts, dict):
+            raise SystemExit(f"artifacts must be an object: {artifact_summary_path}")
+
+        def artifact_exists(key: str) -> bool:
+            value = artifacts.get(key)
+            return isinstance(value, dict) and safe_bool(value.get("exists"))
+
+        governance["negative_replay_index"] = artifact_exists("negative_replay_index")
+        governance["cross_sample_negative_replay_index"] = artifact_exists("cross_sample_negative_replay_index")
+        governance["recommended_negative_replay_summary"] = artifact_exists("recommended_negative_replay_summary")
+        governance["cross_sample_recommended_negative_replay_summary"] = artifact_exists(
+            "cross_sample_recommended_negative_replay_summary"
+        )
+        if governance["negative_replay_index"]:
+            governance["negative_replay_index_blocker"] = ""
+        if governance["cross_sample_negative_replay_index"]:
+            governance["cross_sample_negative_replay_index_blocker"] = ""
+        if governance["recommended_negative_replay_summary"] or artifact_exists("negative_replay_index"):
+            governance["recommended_negative_replay_summary_blocker"] = ""
+        if governance["cross_sample_recommended_negative_replay_summary"] or artifact_exists(
+            "cross_sample_negative_replay_index"
+        ):
+            governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
     return {
         "chain_id": "radishflow-suggest-flowsheet-edits",
         "project": "radishflow",
@@ -218,26 +263,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             "teacher_comparison_candidates": teacher_candidates,
             "next_teacher_comparison_group": next_group,
         },
-        "governance": {
-            "level": (
-                "manifest_audit_profile_coverage_and_artifact_summary"
-                if artifact_summary is not None
-                else "manifest_audit_and_profile_coverage"
-            ),
-            "artifact_summary": artifact_summary is not None,
-            "negative_replay_index": False,
-            "cross_sample_negative_replay_index": False,
-            "recommended_negative_replay_summary": False,
-            "cross_sample_recommended_negative_replay_summary": False,
-            "real_derived_negative_index": False,
-            **make_governance_blockers(
-                negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
-                cross_sample_negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
-                recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
-                cross_sample_recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
-                real_derived_negative_index_blocker=MISSING_REAL_DERIVED_NEGATIVE_SAMPLES,
-            ),
-        },
+        "governance": governance,
         "artifact_summary": (
             {
                 "path": artifact_summary_path,
@@ -257,6 +283,47 @@ def build_ghost_chain() -> dict[str, Any]:
     artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
     all_sample_ids = sorted({sample_id for batch in batches for sample_id in batch["sample_ids"]})
     total_eval_sample_count = count_eval_samples("datasets/eval/radishflow/suggest-ghost-completion-*.json")
+    governance: dict[str, Any] = {
+        "level": "manifest_audit_and_artifact_summary" if artifact_summary is not None else "manifest_audit_only",
+        "artifact_summary": artifact_summary is not None,
+        "negative_replay_index": False,
+        "cross_sample_negative_replay_index": False,
+        "recommended_negative_replay_summary": False,
+        "cross_sample_recommended_negative_replay_summary": False,
+        "real_derived_negative_index": False,
+        **make_governance_blockers(
+            negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+            cross_sample_negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+            recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+            cross_sample_recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+            real_derived_negative_index_blocker=MISSING_REAL_DERIVED_NEGATIVE_SAMPLES,
+        ),
+    }
+    if artifact_summary is not None:
+        artifacts = artifact_summary.get("artifacts") or {}
+        if not isinstance(artifacts, dict):
+            raise SystemExit(f"artifacts must be an object: {artifact_summary_path}")
+
+        def artifact_exists(key: str) -> bool:
+            value = artifacts.get(key)
+            return isinstance(value, dict) and safe_bool(value.get("exists"))
+
+        governance["negative_replay_index"] = artifact_exists("negative_replay_index")
+        governance["cross_sample_negative_replay_index"] = artifact_exists("cross_sample_negative_replay_index")
+        governance["recommended_negative_replay_summary"] = artifact_exists("recommended_negative_replay_summary")
+        governance["cross_sample_recommended_negative_replay_summary"] = artifact_exists(
+            "cross_sample_recommended_negative_replay_summary"
+        )
+        if governance["negative_replay_index"]:
+            governance["negative_replay_index_blocker"] = ""
+        if governance["cross_sample_negative_replay_index"]:
+            governance["cross_sample_negative_replay_index_blocker"] = ""
+        if governance["recommended_negative_replay_summary"] or artifact_exists("negative_replay_index"):
+            governance["recommended_negative_replay_summary_blocker"] = ""
+        if governance["cross_sample_recommended_negative_replay_summary"] or artifact_exists(
+            "cross_sample_negative_replay_index"
+        ):
+            governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
     return {
         "chain_id": "radishflow-suggest-ghost-completion",
         "project": "radishflow",
@@ -273,22 +340,7 @@ def build_ghost_chain() -> dict[str, Any]:
             "latest_batch_record_count": latest_batch["record_count"],
             "scope_note": "当前正式真实 capture 仍集中在固定 PoC trio。",
         },
-        "governance": {
-            "level": "manifest_audit_and_artifact_summary" if artifact_summary is not None else "manifest_audit_only",
-            "artifact_summary": artifact_summary is not None,
-            "negative_replay_index": False,
-            "cross_sample_negative_replay_index": False,
-            "recommended_negative_replay_summary": False,
-            "cross_sample_recommended_negative_replay_summary": False,
-            "real_derived_negative_index": False,
-            **make_governance_blockers(
-                negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
-                cross_sample_negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
-                recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
-                cross_sample_recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
-                real_derived_negative_index_blocker=MISSING_REAL_DERIVED_NEGATIVE_SAMPLES,
-            ),
-        },
+        "governance": governance,
         "artifact_summary": (
             {
                 "path": artifact_summary_path,

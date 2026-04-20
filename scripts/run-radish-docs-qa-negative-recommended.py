@@ -23,6 +23,7 @@ from services.runtime.eval_regression import parse_regression_output  # noqa: E4
 
 
 BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json"
+RADISHFLOW_BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/radishflow-batch-artifact-summary.schema.json"
 NEGATIVE_REPLAY_INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/negative-replay-index.schema.json"
 RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_SCHEMA_PATH = (
     REPO_ROOT / "datasets/eval/recommended-negative-replay-summary.schema.json"
@@ -96,7 +97,13 @@ def unique_strings(values: list[str]) -> list[str]:
 
 def load_batch_artifact_summary(summary_path: Path) -> dict[str, Any]:
     document = expect_object(load_json_document(summary_path), make_repo_relative(summary_path))
-    ensure_schema(document, BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH, make_repo_relative(summary_path))
+    eval_task = str(document.get("eval_task") or "").strip()
+    schema_path = (
+        RADISHFLOW_BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH
+        if eval_task in {"radishflow-suggest-edits", "radishflow-ghost-completion"}
+        else BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH
+    )
+    ensure_schema(document, schema_path, make_repo_relative(summary_path))
     return document
 
 

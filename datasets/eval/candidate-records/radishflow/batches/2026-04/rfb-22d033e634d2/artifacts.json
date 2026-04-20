@@ -43,6 +43,26 @@
       "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/d",
       "exists": false,
       "file_count": 0
+    },
+    "negative_replay_index": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/negative-replay-index.json",
+      "exists": false
+    },
+    "cross_sample_negative_replay_index": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-replay-index.json",
+      "exists": false
+    },
+    "recommended_negative_replay_summary": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/recommended-negative-replay.summary.json",
+      "exists": false
+    },
+    "cross_sample_recommended_negative_replay_summary": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-recommended-negative-replay.summary.json",
+      "exists": false
     }
   },
   "summary": {
@@ -55,7 +75,18 @@
     "root_record_count": 3,
     "nested_record_count": 0,
     "response_file_count": 0,
-    "dump_file_count": 0
+    "dump_file_count": 0,
+    "violation_group_count": 0,
+    "cross_sample_violation_group_count": 0,
+    "linked_same_sample_negative_count": 0,
+    "linked_cross_sample_negative_count": 0,
+    "recommended_replay_group_count": 0,
+    "cross_sample_recommended_replay_group_count": 0
+  },
+  "recommended_negative_replays": {
+    "default_replay_mode": "same_sample",
+    "recommended_group_ids": [],
+    "groups": []
   },
   "model": "deepseek-chat",
   "capture_origin": "adapter_debug_dump"

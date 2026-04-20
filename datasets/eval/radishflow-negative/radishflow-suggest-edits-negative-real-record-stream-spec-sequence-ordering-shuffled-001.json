@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-stream-spec-sequence-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "units": [
+            {
+              "id": "reactor-1",
+              "kind": "Reactor",
+              "name": "Main Reactor"
+            }
+          ],
+          "streams": [
+            {
+              "id": "stream-9",
+              "name": "Reactor Feed",
+              "target_unit_id": "reactor-1"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 55,
+      "selected_stream_ids": [
+        "stream-9"
+      ],
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "target_id": "stream-9",
+          "severity": "error",
+          "message": "Reactor Feed is missing temperature, pressure, and flow rate specifications."
+        }
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "candidate_edit"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.issues[0].code=\"STREAM_SPEC_MISSING\"",
+      "$.proposed_actions[0].kind=\"candidate_edit\"",
+      "$.proposed_actions[0].target.type=\"stream\"",
+      "$.proposed_actions[0].target.id=\"stream-9\"",
+      "$.proposed_actions[0].patch.spec_placeholders[0]=\"temperature_c\"",
+      "$.proposed_actions[0].patch.spec_placeholders[1]=\"pressure_kpa\"",
+      "$.proposed_actions[0].patch.spec_placeholders[2]=\"flow_rate_kg_per_h\"",
+      "$.requires_confirmation=true",
+      "$.risk_level=\"medium\""
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0].requires_confirmation=false"
+    ],
+    "ordered_spec_placeholder_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "temperature_c",
+          "pressure_kpa",
+          "flow_rate_kg_per_h"
+        ]
+      }
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "citation_hit",
+      "actionability",
+      "risk_level"
+    ],
+    "notes": "使用 formal real batch `2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering` 中同样本的真实候选快照做 same-sample negative replay，验证 `spec_placeholders` 顺序漂移时会命中顺序类违规。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "json path '$.proposed_actions[0].patch.spec_placeholders[0]' expected 'temperature_c' but found 'pressure_kpa'",
+      "proposed_action[0].patch.spec_placeholders must remain ordered as ['temperature_c', 'pressure_kpa', 'flow_rate_kg_per_h']"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
+    "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+    "expected_source": "captured_candidate_response",
+    "required_collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+    "required_capture_origin": "adapter_debug_dump",
+    "required_tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "real_capture"
+    ]
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的进料流 Reactor Feed（stream-9）缺少基础入口规格这一问题生成候选提案，建议仅补充温度、压力和流量的占位规格，保持修改局部且可审查。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Reactor Feed 添加基础入口规格占位",
+        "rationale": "该流被直接诊断为缺少温度、压力和流量规格。由于当前输入未提供可确定的数值，最小可审查的做法是添加对应占位而不假设具体工艺条件。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "stream-9"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa",
+            "temperature_c",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Reactor Feed is missing temperature, pressure, and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Reactor Feed is missing temperature, pressure, and flow rate specifications."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-9",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-9 Reactor Feed target_unit_id=reactor-1"
+      }
+    ],
+    "summary": "当前围绕已选中的进料流 Reactor Feed（stream-9）缺少基础入口规格这一问题生成候选提案，建议仅补充温度、压力和流量的占位规格，保持修改局部且可审查。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "summary": "当前建议围绕 Reactor Feed 一次性补齐缺失的入口规格，并按稳定顺序先补温度、再补压力、最后补流量。",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前流股没有任何关键入口规格，因此候选编辑应把缺失项收成一个局部 spec placeholder patch；其中字段顺序也应稳定，先补热力状态，再补流量。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "stream-9 当前缺少 temperature_c、pressure_kpa 和 flow_rate_kg_per_h，输入状态为空。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "按稳定顺序补齐 stream-9 的入口规格占位",
+        "target": {
+          "type": "stream",
+          "id": "stream-9"
+        },
+        "rationale": "当前缺的是一组基础入口规格，因此 patch 应保持局部占位语义，并按温度、压力、流量的稳定顺序输出，避免后续命令层或 UI 展示顺序漂移。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "pressure_kpa",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Reactor Feed is missing temperature, pressure, and flow rate specifications."
+      },
+      {
+        "id": "flowdoc-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-9",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-9 当前没有任何规格字段。"
+      }
+    ],
+    "confidence": 0.93,
+    "risk_level": "medium",
+    "requires_confirmation": true
+  }
+}

@@ -620,13 +620,13 @@ def check_generated_eval_metadata() -> None:
     governance_summary = governance_report.get("summary") or {}
     if int(governance_summary.get("artifact_summary_connected_chain_count") or 0) != 3:
         raise SystemExit("unexpected artifact summary connected chain count in governance status report")
-    if int(governance_summary.get("replay_connected_chain_count") or 0) != 1:
+    if int(governance_summary.get("replay_connected_chain_count") or 0) != 2:
         raise SystemExit("unexpected replay connected chain count in governance status report")
     if int(governance_summary.get("real_derived_connected_chain_count") or 0) != 1:
         raise SystemExit("unexpected real-derived connected chain count in governance status report")
-    if int(governance_summary.get("replay_asset_gap_chain_count") or 0) != 2:
+    if int(governance_summary.get("replay_asset_gap_chain_count") or 0) != 1:
         raise SystemExit("unexpected replay asset gap chain count in governance status report")
-    if int(governance_summary.get("recommended_replay_asset_gap_chain_count") or 0) != 2:
+    if int(governance_summary.get("recommended_replay_asset_gap_chain_count") or 0) != 1:
         raise SystemExit("unexpected recommended replay asset gap chain count in governance status report")
     if int(governance_summary.get("real_derived_asset_gap_chain_count") or 0) != 2:
         raise SystemExit("unexpected real-derived asset gap chain count in governance status report")
@@ -643,14 +643,33 @@ def check_generated_eval_metadata() -> None:
     if suggest_chain is None or ghost_chain is None or docs_chain is None:
         raise SystemExit("governance status report is missing one or more expected chains")
 
-    for chain in (suggest_chain, ghost_chain):
-        governance = chain.get("governance") or {}
-        if governance.get("negative_replay_index_blocker") != "missing_negative_samples":
-            raise SystemExit(f"{chain.get('chain_id')}: unexpected replay blocker in governance status report")
-        if governance.get("recommended_negative_replay_summary_blocker") != "missing_negative_samples":
-            raise SystemExit(f"{chain.get('chain_id')}: unexpected recommended replay blocker in governance status report")
-        if governance.get("real_derived_negative_index_blocker") != "missing_real_derived_negative_samples":
-            raise SystemExit(f"{chain.get('chain_id')}: unexpected real-derived blocker in governance status report")
+    suggest_governance = suggest_chain.get("governance") or {}
+    for blocker_key in (
+        "negative_replay_index_blocker",
+        "recommended_negative_replay_summary_blocker",
+    ):
+        if str(suggest_governance.get(blocker_key) or "").strip():
+            raise SystemExit(f"radishflow suggest edits governance chain should not report blocker '{blocker_key}'")
+    for blocker_key in (
+        "cross_sample_negative_replay_index_blocker",
+        "cross_sample_recommended_negative_replay_summary_blocker",
+    ):
+        if suggest_governance.get(blocker_key) != "missing_negative_samples":
+            raise SystemExit(f"radishflow suggest edits: unexpected {blocker_key} in governance status report")
+    if suggest_governance.get("real_derived_negative_index_blocker") != "missing_real_derived_negative_samples":
+        raise SystemExit("radishflow suggest edits: unexpected real-derived blocker in governance status report")
+
+    ghost_governance = ghost_chain.get("governance") or {}
+    for blocker_key in (
+        "negative_replay_index_blocker",
+        "cross_sample_negative_replay_index_blocker",
+        "recommended_negative_replay_summary_blocker",
+        "cross_sample_recommended_negative_replay_summary_blocker",
+    ):
+        if ghost_governance.get(blocker_key) != "missing_negative_samples":
+            raise SystemExit(f"radishflow ghost completion: unexpected {blocker_key} in governance status report")
+    if ghost_governance.get("real_derived_negative_index_blocker") != "missing_real_derived_negative_samples":
+        raise SystemExit("radishflow ghost completion: unexpected real-derived blocker in governance status report")
 
     docs_governance = docs_chain.get("governance") or {}
     for blocker_key in (

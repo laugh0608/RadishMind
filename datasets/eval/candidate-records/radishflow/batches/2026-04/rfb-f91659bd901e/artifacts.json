@@ -43,6 +43,26 @@
       "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/d",
       "exists": true,
       "file_count": 2
+    },
+    "negative_replay_index": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/negative-replay-index.json",
+      "exists": true
+    },
+    "cross_sample_negative_replay_index": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-sample-replay-index.json",
+      "exists": false
+    },
+    "recommended_negative_replay_summary": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/recommended-negative-replay.summary.json",
+      "exists": true
+    },
+    "cross_sample_recommended_negative_replay_summary": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-sample-recommended-negative-replay.summary.json",
+      "exists": false
     }
   },
   "summary": {
@@ -55,7 +75,44 @@
     "root_record_count": 2,
     "nested_record_count": 0,
     "response_file_count": 2,
-    "dump_file_count": 2
+    "dump_file_count": 2,
+    "violation_group_count": 2,
+    "cross_sample_violation_group_count": 0,
+    "linked_same_sample_negative_count": 2,
+    "linked_cross_sample_negative_count": 0,
+    "recommended_replay_group_count": 2,
+    "cross_sample_recommended_replay_group_count": 0
+  },
+  "recommended_negative_replays": {
+    "default_replay_mode": "same_sample",
+    "recommended_group_ids": [
+      "group-001",
+      "group-002"
+    ],
+    "groups": [
+      {
+        "group_id": "group-001",
+        "replay_mode": "same_sample",
+        "entry_count": 1,
+        "expected_candidate_violations": [
+          "json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]' expected '65' but found '82'",
+          "proposed_action[0].patch.parameter_updates.efficiency_percent.suggested_range must remain ordered as [65, 82]"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-suggest-edits-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json --group-id group-001 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
+      },
+      {
+        "group_id": "group-002",
+        "replay_mode": "same_sample",
+        "entry_count": 1,
+        "expected_candidate_violations": [
+          "json path '$.proposed_actions[0].patch.spec_placeholders[0]' expected 'temperature_c' but found 'pressure_kpa'",
+          "proposed_action[0].patch.spec_placeholders must remain ordered as ['temperature_c', 'pressure_kpa', 'flow_rate_kg_per_h']"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-suggest-edits-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json --group-id group-002 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
+      }
+    ]
   },
   "model": "gpt-5.4",
   "capture_origin": "adapter_debug_dump"
