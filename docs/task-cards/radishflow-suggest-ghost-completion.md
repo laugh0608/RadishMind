@@ -70,7 +70,10 @@
 - 当前在继续扩批时，还应同时观察两件事：其一是真实 provider 在批处理场景下是否仍会出现单样本卡顿，其二是 `manual_only` 多动作输出是否还会继续暴露新的结构坏法；若前者继续复现，应优先继续收口批次编排或重试/超时治理，而不是误判成新的 response malformed 模式
 - 若后续某一轮再次出现三条默认样本同时 `HTTP 429` 且零 capture 的情况，当前应先归类为 provider 侧容量/限流阻塞；这类现象最多驱动 capture 脚本健壮性修复或 provider 切换，不应误记成新的 `suggest_ghost_completion` 输出坏法
 - 若后续继续使用多 provider fallback 采集真实 batch，当前还应额外观察 provider 间的输出风格漂移，例如把本应是纯文本的 `summary` / `answer.text` 写成 JSON 字符串；这类现象若稳定复现，应优先在 runtime 做任务级窄修复，而不是把坏输出原样固化进正式批次
-- 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径；下一步更应回到真实 capture 扩批和后续 replay / coverage 治理，而不是继续停留在“只有 formal batch 文件但没有批次级摘要”的阶段
+- 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径；下一步仓库级缺口也已进一步收口为两类明确阻塞：
+- 还没有与当前 formal real batch 反链的 committed same-sample / cross-sample negative 样本，因此 negative replay index 当前缺的首先是负例资产，而不是 index builder 本身
+- `run-eval-regression.py` 与 recommended replay summary 的 task-agnostic runner 已具备最小 `RadishFlow` 通道；当前缺口已收口为还没有 committed negative 样本可供 index / recommended summary 消费
+- 因此下一轮 `M3` 推进不应只笼统写成“补 replay / coverage 治理”，而应优先按“先补 committed 负例资产，再生成 replay index / recommended summary，最后再决定是否同步补 real-derived 与扩真实 capture”这条顺序收口
 
 ## 最小必需输入
 

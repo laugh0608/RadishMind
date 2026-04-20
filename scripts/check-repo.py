@@ -20,6 +20,10 @@ from scripts.eval.radishflow_batch_artifact_summary import (  # noqa: E402
     build_radishflow_batch_artifact_summary_document,
     derive_output_root_from_record_dir,
 )
+from scripts.eval.report_real_batch_governance_status import build_report as build_real_batch_governance_status_report  # noqa: E402
+from scripts.eval.report_suggest_edits_profile_coverage import (  # noqa: E402
+    build_report as build_suggest_edits_profile_coverage,
+)
 FIXTURE_DIR = REPO_ROOT / "scripts/checks/fixtures"
 
 
@@ -596,6 +600,68 @@ def check_generated_eval_metadata() -> None:
     run_python_script("check-radish-docs-qa-real-batch-dual-recommended-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-cross-sample-only-summary.py", [])
     run_python_script("check-radish-docs-qa-real-batch-same-sample-only-summary.py", [])
+
+    suggest_edits_coverage = build_suggest_edits_profile_coverage()
+    if int(suggest_edits_coverage.get("sample_count") or 0) != 33:
+        raise SystemExit("unexpected suggest_flowsheet_edits sample count in profile coverage report")
+    if int(suggest_edits_coverage.get("fully_covered_count") or 0) != 33:
+        raise SystemExit("suggest_flowsheet_edits four-main-apiyi profile coverage is incomplete")
+    teacher_candidates = list(suggest_edits_coverage.get("teacher_comparison_candidates") or [])
+    first_teacher_group = ""
+    if teacher_candidates:
+        first_teacher_group = str(teacher_candidates[0].get("group_name") or "").strip()
+    if first_teacher_group != "cross-object-primary-focus":
+        raise SystemExit(
+            "unexpected next suggest_flowsheet_edits teacher comparison group: "
+            f"{first_teacher_group or '(none)'}"
+        )
+
+    governance_report = build_real_batch_governance_status_report()
+    governance_summary = governance_report.get("summary") or {}
+    if int(governance_summary.get("artifact_summary_connected_chain_count") or 0) != 3:
+        raise SystemExit("unexpected artifact summary connected chain count in governance status report")
+    if int(governance_summary.get("replay_connected_chain_count") or 0) != 1:
+        raise SystemExit("unexpected replay connected chain count in governance status report")
+    if int(governance_summary.get("real_derived_connected_chain_count") or 0) != 1:
+        raise SystemExit("unexpected real-derived connected chain count in governance status report")
+    if int(governance_summary.get("replay_asset_gap_chain_count") or 0) != 2:
+        raise SystemExit("unexpected replay asset gap chain count in governance status report")
+    if int(governance_summary.get("recommended_replay_asset_gap_chain_count") or 0) != 2:
+        raise SystemExit("unexpected recommended replay asset gap chain count in governance status report")
+    if int(governance_summary.get("real_derived_asset_gap_chain_count") or 0) != 2:
+        raise SystemExit("unexpected real-derived asset gap chain count in governance status report")
+
+    governance_chains = list(governance_report.get("chains") or [])
+    if len(governance_chains) != 3:
+        raise SystemExit("unexpected governance chain count in governance status report")
+    if "committed 负例资产" not in str(governance_report.get("next_mainline_focus") or ""):
+        raise SystemExit("governance status report next_mainline_focus drifted from current M3 baseline")
+
+    suggest_chain = next((chain for chain in governance_chains if chain.get("chain_id") == "radishflow-suggest-flowsheet-edits"), None)
+    ghost_chain = next((chain for chain in governance_chains if chain.get("chain_id") == "radishflow-suggest-ghost-completion"), None)
+    docs_chain = next((chain for chain in governance_chains if chain.get("chain_id") == "radish-answer-docs-question"), None)
+    if suggest_chain is None or ghost_chain is None or docs_chain is None:
+        raise SystemExit("governance status report is missing one or more expected chains")
+
+    for chain in (suggest_chain, ghost_chain):
+        governance = chain.get("governance") or {}
+        if governance.get("negative_replay_index_blocker") != "missing_negative_samples":
+            raise SystemExit(f"{chain.get('chain_id')}: unexpected replay blocker in governance status report")
+        if governance.get("recommended_negative_replay_summary_blocker") != "missing_negative_samples":
+            raise SystemExit(f"{chain.get('chain_id')}: unexpected recommended replay blocker in governance status report")
+        if governance.get("real_derived_negative_index_blocker") != "missing_real_derived_negative_samples":
+            raise SystemExit(f"{chain.get('chain_id')}: unexpected real-derived blocker in governance status report")
+
+    docs_governance = docs_chain.get("governance") or {}
+    for blocker_key in (
+        "negative_replay_index_blocker",
+        "cross_sample_negative_replay_index_blocker",
+        "recommended_negative_replay_summary_blocker",
+        "cross_sample_recommended_negative_replay_summary_blocker",
+        "real_derived_negative_index_blocker",
+    ):
+        if str(docs_governance.get(blocker_key) or "").strip():
+            raise SystemExit(f"radish docs governance chain should not report blocker '{blocker_key}'")
 
     for batch in [*RADISHFLOW_GHOST_REAL_BATCHES, *RADISHFLOW_SUGGEST_EDITS_POC_BATCHES]:
         artifact_summary_path_value = str(batch.get("artifact_summary") or "").strip()

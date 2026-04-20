@@ -4,6 +4,7 @@
   "project": "radish",
   "task": "answer_docs_question",
   "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radish/2026-04-05-radish-docs-qa-real-batch-v1",
   "records": [
     {
       "record_id": "captured-radish-answer-docs-question-attachment-mixed-001",

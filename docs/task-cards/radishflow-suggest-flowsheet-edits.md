@@ -68,7 +68,12 @@
 
 当前 `scripts/eval/report_suggest_edits_profile_coverage.py` 已在“四主 apiyi coverage 全满”的前提下继续输出 `teacher_comparison_candidates`，用于指出下一组更值得补 `default` 对照的复杂样本族；按当前口径，`range-sequence-ordering` 已完成正式收口，后续更应优先考虑 `cross-object-primary-focus`，其后再推进 `parameter-ordering` 与 `mixed-risk-citation-reconnect`。
 
-与此同时，本任务在 formal real batch 治理层已不再缺最小 `artifact summary` 口径；下一步仓库级缺口主要已从“是否有 batch-level 摘要”收口到“是否继续统一 replay / real-derived 和更高价值 default teacher capture”。
+与此同时，本任务在 formal real batch 治理层已不再缺最小 `artifact summary` 口径；下一步仓库级缺口已经进一步收口为两类明确阻塞：
+
+- 还没有与当前 formal real batch 反链的 committed same-sample / cross-sample negative 样本，因此 negative replay index 目前缺的首先是负例资产，而不是 index builder 本身
+- `run-eval-regression.py` 与 recommended replay summary 的 task-agnostic runner 已具备最小 `RadishFlow` 通道；当前缺口已收口为还没有 committed negative 样本可供 index / recommended summary 消费
+
+因此下一轮 `M3` 推进不应只笼统写成“补 replay / real-derived”，而应优先按“先补 committed 负例资产，再生成 replay index / recommended summary，最后再决定是否同步补 real-derived”这条顺序收口。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from .regression_shared import *  # noqa: F401,F403
 from .regression_control_plane import validate_control_plane_request, validate_control_plane_response
 from .regression_diagnostics_suggest import (
+    validate_radishflow_negative_replay,
     validate_diagnostics_request,
     validate_diagnostics_response,
     validate_suggest_request,
@@ -13,7 +14,17 @@ from .regression_docs import (
     validate_radish_docs_response,
     validate_radish_docs_retrieval,
 )
-from .regression_ghost import validate_ghost_completion_request, validate_ghost_completion_response
+from .regression_ghost import (
+    validate_ghost_completion_request,
+    validate_ghost_completion_response,
+    validate_radishflow_ghost_negative_replay,
+)
+
+NEGATIVE_REPLAY_TASKS = {
+    "radish-docs-qa-negative",
+    "radishflow-suggest-edits-negative",
+    "radishflow-ghost-completion-negative",
+}
 
 
 def collect_sample_files(sample_dir: Path, sample_paths: list[Path]) -> list[Path]:
@@ -113,6 +124,112 @@ def run_radish_docs_qa_negative(
             validate_radish_docs_retrieval(sample, sample_name, violations)
             validate_radish_docs_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
             validate_radish_docs_negative_replay(sample, config, sample_name, violations)
+        elif sample is None:
+            pass
+        else:
+            continue
+
+        if violations:
+            print(f"FAIL {sample_name}")
+            for violation in violations:
+                print(f"  - {violation}")
+                all_violations.append(violation)
+            continue
+
+        print(f"PASS {sample_name}")
+
+    if matched_sample_count == 0:
+        raise SystemExit(config["no_sample_message"])
+    if all_violations:
+        if fail_on_violation:
+            return 1
+        print(f"WARNING: {config['warning_prefix']} {len(all_violations)} violation(s).", file=sys.stderr)
+        return 0
+
+    print(config["success_message"])
+    return 0
+
+
+def run_radishflow_suggest_edits_negative(
+    config: dict[str, Any],
+    sample_dir: Path,
+    sample_paths: list[Path],
+    fail_on_violation: bool,
+) -> int:
+    sample_files = collect_sample_files(sample_dir, sample_paths)
+    all_violations: list[str] = []
+    matched_sample_count = 0
+
+    for sample_file in sample_files:
+        sample_name = sample_file.name
+        violations: list[str] = []
+        try:
+            sample = json.loads(sample_file.read_text(encoding="utf-8"))
+        except Exception as exc:
+            add_violation(violations, f"{sample_name}: failed to parse json: {exc}")
+            sample = None
+
+        if sample is not None and str(sample.get("task") or "") == config["sample_task"]:
+            matched_sample_count += 1
+            test_document_against_schema(sample, config["sample_schema"], f"{sample_name} sample", violations)
+            test_document_against_schema(sample.get("input_request"), config["request_schema"], f"{sample_name} input_request", violations)
+            test_document_against_schema(sample.get("golden_response"), config["response_schema"], f"{sample_name} golden_response", violations)
+            validate_suggest_request(sample, sample_name, violations)
+            validate_suggest_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
+            validate_radishflow_negative_replay(sample, config, sample_name, violations)
+        elif sample is None:
+            pass
+        else:
+            continue
+
+        if violations:
+            print(f"FAIL {sample_name}")
+            for violation in violations:
+                print(f"  - {violation}")
+                all_violations.append(violation)
+            continue
+
+        print(f"PASS {sample_name}")
+
+    if matched_sample_count == 0:
+        raise SystemExit(config["no_sample_message"])
+    if all_violations:
+        if fail_on_violation:
+            return 1
+        print(f"WARNING: {config['warning_prefix']} {len(all_violations)} violation(s).", file=sys.stderr)
+        return 0
+
+    print(config["success_message"])
+    return 0
+
+
+def run_radishflow_ghost_completion_negative(
+    config: dict[str, Any],
+    sample_dir: Path,
+    sample_paths: list[Path],
+    fail_on_violation: bool,
+) -> int:
+    sample_files = collect_sample_files(sample_dir, sample_paths)
+    all_violations: list[str] = []
+    matched_sample_count = 0
+
+    for sample_file in sample_files:
+        sample_name = sample_file.name
+        violations: list[str] = []
+        try:
+            sample = json.loads(sample_file.read_text(encoding="utf-8"))
+        except Exception as exc:
+            add_violation(violations, f"{sample_name}: failed to parse json: {exc}")
+            sample = None
+
+        if sample is not None and str(sample.get("task") or "") == config["sample_task"]:
+            matched_sample_count += 1
+            test_document_against_schema(sample, config["sample_schema"], f"{sample_name} sample", violations)
+            test_document_against_schema(sample.get("input_request"), config["request_schema"], f"{sample_name} input_request", violations)
+            test_document_against_schema(sample.get("golden_response"), config["response_schema"], f"{sample_name} golden_response", violations)
+            validate_ghost_completion_request(sample, sample_name, violations)
+            validate_ghost_completion_response(sample, sample["golden_response"], "golden_response", sample_name, violations)
+            validate_radishflow_ghost_negative_replay(sample, config, sample_name, violations)
         elif sample is None:
             pass
         else:
@@ -471,8 +588,8 @@ def main(argv: list[str]) -> int:
     batch_artifact_summary = selection["batch_artifact_summary"]
     recommended_groups_top = selection["recommended_groups_top"]
     if recommended_groups_top is not None:
-        if task_name != "radish-docs-qa-negative":
-            raise SystemExit("--recommended-groups-top is only supported for radish-docs-qa-negative")
+        if task_name not in NEGATIVE_REPLAY_TASKS:
+            raise SystemExit("--recommended-groups-top is only supported for negative replay tasks")
         if batch_artifact_summary is None:
             raise SystemExit("--recommended-groups-top requires --batch-artifact-summary")
         if sample_paths:
@@ -490,8 +607,8 @@ def main(argv: list[str]) -> int:
         if not selection["replay_mode"]:
             selection["replay_mode"] = default_replay_mode
     if batch_artifact_summary is not None:
-        if task_name != "radish-docs-qa-negative":
-            raise SystemExit("--batch-artifact-summary is only supported for radish-docs-qa-negative")
+        if task_name not in NEGATIVE_REPLAY_TASKS:
+            raise SystemExit("--batch-artifact-summary is only supported for negative replay tasks")
         if sample_paths:
             raise SystemExit("--batch-artifact-summary cannot be used together with --sample-paths")
         if negative_replay_index is not None:
@@ -501,8 +618,8 @@ def main(argv: list[str]) -> int:
             selection["replay_mode"],
         )
     if negative_replay_index is not None:
-        if task_name != "radish-docs-qa-negative":
-            raise SystemExit("--negative-replay-index is only supported for radish-docs-qa-negative")
+        if task_name not in NEGATIVE_REPLAY_TASKS:
+            raise SystemExit("--negative-replay-index is only supported for negative replay tasks")
         if sample_paths:
             raise SystemExit("--negative-replay-index cannot be used together with --sample-paths")
         sample_paths = resolve_negative_replay_sample_paths(
@@ -516,6 +633,10 @@ def main(argv: list[str]) -> int:
         return run_radish_docs_qa(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radish-docs-qa-negative":
         return run_radish_docs_qa_negative(config, resolved_sample_dir, sample_paths, fail_on_violation)
+    if task_name == "radishflow-suggest-edits-negative":
+        return run_radishflow_suggest_edits_negative(config, resolved_sample_dir, sample_paths, fail_on_violation)
+    if task_name == "radishflow-ghost-completion-negative":
+        return run_radishflow_ghost_completion_negative(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radishflow-diagnostics":
         return run_radishflow_diagnostics(config, resolved_sample_dir, sample_paths, fail_on_violation)
     if task_name == "radishflow-ghost-completion":

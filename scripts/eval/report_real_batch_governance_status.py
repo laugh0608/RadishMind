@@ -24,6 +24,8 @@ SUGGEST_EDITS_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-poc-batch
 GHOST_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-batches.json"
 RADISH_DOCS_BATCH_FIXTURE = FIXTURE_ROOT / "radish-docs-real-batches.json"
 RADISH_DOCS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radish-docs-real-derived-negatives.json"
+MISSING_NEGATIVE_SAMPLES = "missing_negative_samples"
+MISSING_REAL_DERIVED_NEGATIVE_SAMPLES = "missing_real_derived_negative_samples"
 
 
 def parse_args() -> argparse.Namespace:
@@ -161,6 +163,23 @@ def count_eval_samples(pattern: str) -> int:
     return len(list(REPO_ROOT.glob(pattern)))
 
 
+def make_governance_blockers(
+    *,
+    negative_replay_index_blocker: str = "",
+    cross_sample_negative_replay_index_blocker: str = "",
+    recommended_negative_replay_summary_blocker: str = "",
+    cross_sample_recommended_negative_replay_summary_blocker: str = "",
+    real_derived_negative_index_blocker: str = "",
+) -> dict[str, str]:
+    return {
+        "negative_replay_index_blocker": negative_replay_index_blocker,
+        "cross_sample_negative_replay_index_blocker": cross_sample_negative_replay_index_blocker,
+        "recommended_negative_replay_summary_blocker": recommended_negative_replay_summary_blocker,
+        "cross_sample_recommended_negative_replay_summary_blocker": cross_sample_recommended_negative_replay_summary_blocker,
+        "real_derived_negative_index_blocker": real_derived_negative_index_blocker,
+    }
+
+
 def build_suggest_edits_chain() -> dict[str, Any]:
     fixture_entries = load_json_list(SUGGEST_EDITS_BATCH_FIXTURE)
     batches = load_real_batches(SUGGEST_EDITS_BATCH_FIXTURE)
@@ -171,6 +190,16 @@ def build_suggest_edits_chain() -> dict[str, Any]:
     next_group = ""
     if teacher_candidates:
         next_group = str(teacher_candidates[0].get("group_name") or "").strip()
+    if next_group:
+        next_gap = (
+            "先为本链补 same/cross-sample negative 与 real-derived 负例资产，"
+            f"再接入 recommended replay summary；default teacher 当前优先 {next_group}。"
+        )
+    else:
+        next_gap = (
+            "当前四主 apiyi coverage 已补齐；下一步应先补 same/cross-sample negative 与 real-derived 负例资产，"
+            "再接入 recommended replay summary。"
+        )
     return {
         "chain_id": "radishflow-suggest-flowsheet-edits",
         "project": "radishflow",
@@ -201,6 +230,13 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             "recommended_negative_replay_summary": False,
             "cross_sample_recommended_negative_replay_summary": False,
             "real_derived_negative_index": False,
+            **make_governance_blockers(
+                negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+                cross_sample_negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+                recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+                cross_sample_recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+                real_derived_negative_index_blocker=MISSING_REAL_DERIVED_NEGATIVE_SAMPLES,
+            ),
         },
         "artifact_summary": (
             {
@@ -210,10 +246,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             if artifact_summary is not None
             else None
         ),
-        "next_gap": (
-            f"继续按 teacher_comparison_candidates 推进 default teacher 对照，当前优先 {next_group or 'range-sequence-ordering'}；"
-            "随后再补 replay / real-derived 的统一治理口径。"
-        ),
+        "next_gap": next_gap,
     }
 
 
@@ -248,6 +281,13 @@ def build_ghost_chain() -> dict[str, Any]:
             "recommended_negative_replay_summary": False,
             "cross_sample_recommended_negative_replay_summary": False,
             "real_derived_negative_index": False,
+            **make_governance_blockers(
+                negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+                cross_sample_negative_replay_index_blocker=MISSING_NEGATIVE_SAMPLES,
+                recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+                cross_sample_recommended_negative_replay_summary_blocker=MISSING_NEGATIVE_SAMPLES,
+                real_derived_negative_index_blocker=MISSING_REAL_DERIVED_NEGATIVE_SAMPLES,
+            ),
         },
         "artifact_summary": (
             {
@@ -258,7 +298,8 @@ def build_ghost_chain() -> dict[str, Any]:
             else None
         ),
         "next_gap": (
-            "继续把真实 capture 从固定 trio 扩到下一批高价值链式样本，并补 replay / coverage 的后续治理口径。"
+            "先为本链补 same/cross-sample negative 与 real-derived 负例资产，再接入 recommended replay summary；"
+            "真实 capture 仍应在固定 trio 之外扩到下一批高价值链式样本。"
         ),
     }
 
@@ -326,6 +367,7 @@ def build_radish_docs_chain() -> dict[str, Any]:
             "cross_sample_violation_group_count": int(summary.get("cross_sample_violation_group_count") or 0),
             "real_derived_pattern_group_count": int(real_derived_summary.get("pattern_group_count") or 0),
             "real_derived_violation_group_count": int(real_derived_summary.get("violation_group_count") or 0),
+            **make_governance_blockers(),
         },
         "next_gap": "把 docs QA 已完成的 artifact summary / replay / real-derived 能力上提为仓库级统一盘点基线。",
     }
@@ -341,8 +383,33 @@ def build_report() -> dict[str, Any]:
     artifact_summary_connected_chain_count = sum(1 for chain in chains if chain["governance"]["artifact_summary"])
     replay_connected_chain_count = sum(1 for chain in chains if chain["governance"]["negative_replay_index"])
     real_derived_connected_chain_count = sum(1 for chain in chains if chain["governance"]["real_derived_negative_index"])
+    replay_asset_gap_chain_count = sum(
+        1
+        for chain in chains
+        if chain["governance"].get("negative_replay_index_blocker") == MISSING_NEGATIVE_SAMPLES
+    )
+    recommended_replay_asset_gap_chain_count = sum(
+        1
+        for chain in chains
+        if chain["governance"].get("recommended_negative_replay_summary_blocker") == MISSING_NEGATIVE_SAMPLES
+    )
+    real_derived_asset_gap_chain_count = sum(
+        1
+        for chain in chains
+        if chain["governance"].get("real_derived_negative_index_blocker") == MISSING_REAL_DERIVED_NEGATIVE_SAMPLES
+    )
     total_formal_batches = sum(int(chain["formal_real_batch_count"]) for chain in chains)
     next_group = str(chains[0]["coverage"].get("next_teacher_comparison_group") or "").strip()
+    if next_group:
+        next_mainline_focus = (
+            "先把两条 RadishFlow 链的 replay / real-derived 缺口收口到 committed 负例资产，"
+            f"再回到 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
+        )
+    else:
+        next_mainline_focus = (
+            "先把两条 RadishFlow 链的 replay / real-derived 缺口收口到 committed 负例资产；"
+            "suggest_flowsheet_edits 当前暂无待补 default teacher capture，应优先补 replay / real-derived。"
+        )
     return {
         "schema_version": 1,
         "report": "real_batch_governance_status",
@@ -355,11 +422,11 @@ def build_report() -> dict[str, Any]:
             "artifact_summary_connected_chain_count": artifact_summary_connected_chain_count,
             "replay_connected_chain_count": replay_connected_chain_count,
             "real_derived_connected_chain_count": real_derived_connected_chain_count,
+            "replay_asset_gap_chain_count": replay_asset_gap_chain_count,
+            "recommended_replay_asset_gap_chain_count": recommended_replay_asset_gap_chain_count,
+            "real_derived_asset_gap_chain_count": real_derived_asset_gap_chain_count,
         },
-        "next_mainline_focus": (
-            "先统一三条已接线任务的 coverage / replay / artifact summary / real-derived 盘点口径，"
-            f"再回到 suggest_flowsheet_edits 的 {next_group or 'range-sequence-ordering'} default teacher capture。"
-        ),
+        "next_mainline_focus": next_mainline_focus,
         "chains": chains,
     }
 
@@ -374,6 +441,9 @@ def print_report(report: dict[str, Any]) -> None:
         f" artifact_summary_connected={summary['artifact_summary_connected_chain_count']}"
         f" replay_connected={summary['replay_connected_chain_count']}"
         f" real_derived_connected={summary['real_derived_connected_chain_count']}"
+        f" replay_asset_gap={summary['replay_asset_gap_chain_count']}"
+        f" recommended_replay_asset_gap={summary['recommended_replay_asset_gap_chain_count']}"
+        f" real_derived_asset_gap={summary['real_derived_asset_gap_chain_count']}"
     )
     for chain in report["chains"]:
         latest_batch = chain["latest_formal_batch"]
@@ -416,6 +486,26 @@ def print_report(report: dict[str, Any]) -> None:
             f"replay={'yes' if governance['negative_replay_index'] else 'no'} "
             f"real_derived={'yes' if governance['real_derived_negative_index'] else 'no'}"
         )
+        governance_blockers: list[str] = []
+        if str(governance.get("negative_replay_index_blocker") or "").strip():
+            governance_blockers.append(f"replay_index={governance['negative_replay_index_blocker']}")
+        if str(governance.get("cross_sample_negative_replay_index_blocker") or "").strip():
+            governance_blockers.append(
+                f"cross_replay_index={governance['cross_sample_negative_replay_index_blocker']}"
+            )
+        if str(governance.get("recommended_negative_replay_summary_blocker") or "").strip():
+            governance_blockers.append(
+                f"recommended_summary={governance['recommended_negative_replay_summary_blocker']}"
+            )
+        if str(governance.get("cross_sample_recommended_negative_replay_summary_blocker") or "").strip():
+            governance_blockers.append(
+                "cross_recommended_summary="
+                f"{governance['cross_sample_recommended_negative_replay_summary_blocker']}"
+            )
+        if str(governance.get("real_derived_negative_index_blocker") or "").strip():
+            governance_blockers.append(f"real_derived={governance['real_derived_negative_index_blocker']}")
+        if governance_blockers:
+            print("  governance_blockers=" + " ".join(governance_blockers))
         print(f"  next_gap={chain['next_gap']}")
     print(f"next_mainline_focus: {report['next_mainline_focus']}")
 
