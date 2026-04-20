@@ -350,7 +350,8 @@ def build_ghost_chain() -> dict[str, Any]:
             else None
         ),
         "next_gap": (
-            "先为本链补 same/cross-sample negative 与 real-derived 负例资产，再接入 recommended replay summary；"
+            "same-sample 与 cross-sample negative replay 已接通；下一步补 real-derived 负例资产，"
+            "并把 real-derived replay 纳入同批次 recommended summary；"
             "真实 capture 仍应在固定 trio 之外扩到下一批高价值链式样本。"
         ),
     }
@@ -454,7 +455,7 @@ def build_report() -> dict[str, Any]:
     next_group = str(chains[0]["coverage"].get("next_teacher_comparison_group") or "").strip()
     if next_group:
         next_mainline_focus = (
-            "先把两条 RadishFlow 链的 replay / real-derived 缺口收口到 committed 负例资产，"
+            "先把两条 RadishFlow 链的 cross-sample replay / real-derived 缺口收口到 committed 负例资产，"
             f"再回到 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
         )
     else:

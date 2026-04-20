@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-negative-cross-real-record-flash-liquid-uses-empty-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-flash-liquid-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-203",
+          "streams": [
+            {
+              "id": "feed-103",
+              "name": "F-103",
+              "target_unit_id": "flash-3"
+            },
+            {
+              "id": "vapor-103",
+              "name": "V-103",
+              "source_unit_id": "flash-3"
+            }
+          ],
+          "units": [
+            {
+              "id": "flash-3",
+              "kind": "FlashDrum",
+              "name": "V-103 Drum"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 43,
+      "selected_unit_ids": [
+        "flash-3"
+      ],
+      "selected_unit": {
+        "id": "flash-3",
+        "kind": "FlashDrum",
+        "name": "V-103 Drum"
+      },
+      "unconnected_ports": [
+        "liquid_outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-3-liquid-stub",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-3",
+          "target_port_key": "liquid_outlet",
+          "suggested_stream_name": "L-103",
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "topology_pattern_hints": [
+        "flash_standard_vapor_liquid_split"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].target.unit_id=\"flash-3\"",
+      "$.proposed_actions[0].target.port_key=\"liquid_outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-3-liquid-stub\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"L-103\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.proposed_actions[0].apply.payload.candidate_ref=\"cand-flash-3-liquid-stub\"",
+      "$.risk_level=\"low\""
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[1]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "pending_ghost_semantics",
+      "candidate_record_alignment"
+    ],
+    "notes": "复用 empty 样本真实记录回放到唯一 liquid_outlet 候选样本，验证这类 cross-sample 错配会落入同一组 ghost_completion 缺失类违规。"
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "candidate_response_record.sample_id must match sample_id",
+      "candidate_response_record.request_id must match input_request.request_id",
+      ".status does not match expected_response_shape.status",
+      "is missing required action kind 'ghost_completion'"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/manifest.json",
+    "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+    "expected_source": "captured_candidate_response",
+    "required_collection_batch": "2026-04-11-radishflow-ghost-poc-real-v9-deepseek",
+    "required_capture_origin": "adapter_debug_dump",
+    "required_tags": [
+      "radishflow_suggest_ghost_completion",
+      "real_capture"
+    ]
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "flash-3 当前只剩 liquid_outlet 未补全，因此建议直接渲染 L-103 的液相出口 ghost。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前标准 flash split 中 vapor_outlet 已存在，剩余合法候选只指向 liquid_outlet，因此可以稳定给出单一 ghost 建议。",
+        "citation_ids": [
+          "art-vapor-103",
+          "ctx-candidate-liquid"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-3 的 liquid_outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-3",
+          "port_key": "liquid_outlet"
+        },
+        "rationale": "液相出口是当前唯一未连接的 canonical port，适合用单一灰态占位直接提示用户接受。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-3-liquid-stub",
+          "target_port_key": "liquid_outlet",
+          "ghost_stream_name": "L-103"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-3-liquid-stub"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-liquid",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "art-vapor-103",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / vapor-103",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "vapor-103 已从 flash-3 导出，说明 vapor_outlet 已补齐。"
+      },
+      {
+        "id": "ctx-candidate-liquid",
+        "kind": "context",
+        "label": "liquid_outlet 合法候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-3-liquid-stub target_port_key=liquid_outlet"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "标准 flash split 模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "flash_standard_vapor_liquid_split"
+      }
+    ],
+    "confidence": 0.96,
+    "risk_level": "low",
+    "requires_confirmation": false
+  }
+}

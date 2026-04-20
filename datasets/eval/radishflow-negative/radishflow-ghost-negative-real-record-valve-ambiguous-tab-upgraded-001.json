@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-valve-ambiguous-no-tab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-208",
+          "streams": [
+            {
+              "id": "feed-401",
+              "name": "P-401",
+              "target_unit_id": "valve-1"
+            }
+          ],
+          "units": [
+            {
+              "id": "valve-1",
+              "kind": "Valve",
+              "name": "Throttle Valve 401"
+            },
+            {
+              "id": "cooler-401",
+              "kind": "Cooler",
+              "name": "Trim Cooler"
+            },
+            {
+              "id": "flash-401",
+              "kind": "FlashDrum",
+              "name": "Downstream Flash"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 48,
+      "selected_unit_ids": [
+        "valve-1"
+      ],
+      "selected_unit": {
+        "id": "valve-1",
+        "kind": "Valve",
+        "name": "Throttle Valve 401"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "cooler-401.inlet",
+          "distance_px": 96,
+          "alignment_score": 0.84,
+          "direction": "downstream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-401.inlet",
+          "distance_px": 104,
+          "alignment_score": 0.81,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-valve-1-outlet-cooler",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "valve-1",
+          "target_port_key": "outlet",
+          "target_node_id": "cooler-401.inlet",
+          "suggested_stream_name": "V-401A",
+          "ranking_signals": {
+            "distance_px": 96,
+            "alignment_score": 0.84,
+            "topology_score": 0.79,
+            "score_gap_to_next": 0.03,
+            "template_frequency": 0.51
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        },
+        {
+          "candidate_ref": "cand-valve-1-outlet-flash",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "valve-1",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-401.inlet",
+          "suggested_stream_name": "V-401B",
+          "ranking_signals": {
+            "distance_px": 104,
+            "alignment_score": 0.81,
+            "topology_score": 0.77,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.48
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "topology_pattern_hints": [
+        "valve_to_cooler_or_flash_both_seen_in_templates"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "medium",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-valve-1-outlet-cooler\"",
+      "$.proposed_actions[1].kind=\"ghost_completion\"",
+      "$.proposed_actions[1].patch.candidate_ref=\"cand-valve-1-outlet-flash\"",
+      "$.risk_level=\"medium\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.proposed_actions[1].preview.accept_key=\"Tab\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "risk_level",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics"
+    ],
+    "notes": "使用 formal real batch `2026-04-11-radishflow-ghost-poc-real-v9-deepseek` 中同样本的真实候选快照做 same-sample negative replay，验证 ambiguous 候选被错误升级为默认 Tab 时会命中 no-tab 与合法候选置信度违规。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "valve-1 的 outlet 当前存在两个接近的合法候选，因此可以显示两个 ghost 备选，但不应默认把其中任何一个绑定到 Tab。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "cooler-401 和 flash-401 都是合法下游，但距离与对齐评分非常接近，当前证据不足以让某一条候选显著领先，因此只返回可见 ghost 而不默认接受。",
+        "citation_ids": [
+          "ctx-nearby-cooler",
+          "ctx-nearby-flash",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "将 cooler-401 作为 valve-1 outlet 的可见 ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "valve-1",
+          "port_key": "outlet"
+        },
+        "rationale": "通往 cooler-401 的路径略微更接近，但领先幅度不足以成为默认 Tab 建议，因此只保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-valve-1-outlet-cooler",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "V-401A"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-valve-1-outlet-cooler"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-cooler",
+          "ctx-nearby-cooler"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "将 flash-401 作为 valve-1 outlet 的可见 ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "valve-1",
+          "port_key": "outlet"
+        },
+        "rationale": "通往 flash-401 的候选同样合法，且与 cooler-401 差距不足以被直接排除，因此作为第二条可见 ghost 保留。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-valve-1-outlet-flash",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "V-401B"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-valve-1-outlet-flash"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-flash",
+          "ctx-nearby-flash"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-nearby-cooler",
+        "kind": "context",
+        "label": "cooler 下游邻近证据",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "cooler-401.inlet distance_px=96 alignment_score=0.84"
+      },
+      {
+        "id": "ctx-nearby-flash",
+        "kind": "context",
+        "label": "flash 下游邻近证据",
+        "locator": "context:nearby_nodes[1]",
+        "excerpt": "flash-401.inlet distance_px=104 alignment_score=0.81"
+      },
+      {
+        "id": "ctx-candidate-cooler",
+        "kind": "context",
+        "label": "冷却器候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-valve-1-outlet-cooler is_tab_default=false conflict_flags=[score_gap_too_small]"
+      },
+      {
+        "id": "ctx-candidate-flash",
+        "kind": "context",
+        "label": "闪蒸罐候选",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-valve-1-outlet-flash is_tab_default=false conflict_flags=[score_gap_too_small]"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "阀后下游模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "valve_to_cooler_or_flash_both_seen_in_templates"
+      }
+    ],
+    "confidence": 0.84,
+    "risk_level": "medium",
+    "requires_confirmation": false
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "Tab accept key must map to a legal candidate marked is_tab_default=true",
+      "Tab accept key must map to a high-confidence legal candidate",
+      "Tab accept key must not map to a legal candidate with conflict_flags",
+      "json path '$.proposed_actions[0].preview.accept_key' should not equal 'Tab'"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/manifest.json",
+    "expected_source": "captured_candidate_response",
+    "required_collection_batch": "2026-04-11-radishflow-ghost-poc-real-v9-deepseek",
+    "required_capture_origin": "adapter_debug_dump",
+    "required_tags": [
+      "radishflow_suggest_ghost_completion",
+      "real_capture"
+    ],
+    "record_id": "captured-radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001"
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "负例回放：两个 ambiguous 候选差距过小，但第一条候选被错误升级成默认 Tab。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-candidate-2",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 valve-1 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "valve-1",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-valve-1-outlet-cooler",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "V-401A"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-valve-1-outlet-cooler"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-pattern"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "保留 valve-1 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "valve-1",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-valve-1-outlet-flash",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "V-401B"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-valve-1-outlet-flash"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-2",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 valve-1",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=valve-1 kind=Valve name=Throttle Valve 401"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-valve-1-outlet-cooler",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-valve-1-outlet-cooler target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-candidate-2",
+        "kind": "context",
+        "label": "候选 cand-valve-1-outlet-flash",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-valve-1-outlet-flash target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "valve_to_cooler_or_flash_both_seen_in_templates"
+      }
+    ],
+    "summary": "负例回放：两个 ambiguous 候选差距过小，但第一条候选被错误升级成默认 Tab。",
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  }
+}

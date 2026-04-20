@@ -620,13 +620,13 @@ def check_generated_eval_metadata() -> None:
     governance_summary = governance_report.get("summary") or {}
     if int(governance_summary.get("artifact_summary_connected_chain_count") or 0) != 3:
         raise SystemExit("unexpected artifact summary connected chain count in governance status report")
-    if int(governance_summary.get("replay_connected_chain_count") or 0) != 2:
+    if int(governance_summary.get("replay_connected_chain_count") or 0) != 3:
         raise SystemExit("unexpected replay connected chain count in governance status report")
     if int(governance_summary.get("real_derived_connected_chain_count") or 0) != 1:
         raise SystemExit("unexpected real-derived connected chain count in governance status report")
-    if int(governance_summary.get("replay_asset_gap_chain_count") or 0) != 1:
+    if int(governance_summary.get("replay_asset_gap_chain_count") or 0) != 0:
         raise SystemExit("unexpected replay asset gap chain count in governance status report")
-    if int(governance_summary.get("recommended_replay_asset_gap_chain_count") or 0) != 1:
+    if int(governance_summary.get("recommended_replay_asset_gap_chain_count") or 0) != 0:
         raise SystemExit("unexpected recommended replay asset gap chain count in governance status report")
     if int(governance_summary.get("real_derived_asset_gap_chain_count") or 0) != 2:
         raise SystemExit("unexpected real-derived asset gap chain count in governance status report")
@@ -662,12 +662,16 @@ def check_generated_eval_metadata() -> None:
     ghost_governance = ghost_chain.get("governance") or {}
     for blocker_key in (
         "negative_replay_index_blocker",
-        "cross_sample_negative_replay_index_blocker",
         "recommended_negative_replay_summary_blocker",
+    ):
+        if str(ghost_governance.get(blocker_key) or "").strip():
+            raise SystemExit(f"radishflow ghost completion governance chain should not report blocker '{blocker_key}'")
+    for blocker_key in (
+        "cross_sample_negative_replay_index_blocker",
         "cross_sample_recommended_negative_replay_summary_blocker",
     ):
-        if ghost_governance.get(blocker_key) != "missing_negative_samples":
-            raise SystemExit(f"radishflow ghost completion: unexpected {blocker_key} in governance status report")
+        if str(ghost_governance.get(blocker_key) or "").strip():
+            raise SystemExit(f"radishflow ghost completion governance chain should not report blocker '{blocker_key}'")
     if ghost_governance.get("real_derived_negative_index_blocker") != "missing_real_derived_negative_samples":
         raise SystemExit("radishflow ghost completion: unexpected real-derived blocker in governance status report")
 
@@ -705,6 +709,128 @@ def check_generated_eval_metadata() -> None:
             regenerated_artifact_summary,
             label=artifact_summary_path_value,
         )
+        artifacts = artifact_summary_document.get("artifacts") or {}
+        negative_replay_index = (artifacts.get("negative_replay_index") or {}) if isinstance(artifacts, dict) else {}
+        recommended_summary = (
+            (artifacts.get("recommended_negative_replay_summary") or {}) if isinstance(artifacts, dict) else {}
+        )
+        if negative_replay_index.get("exists") is True:
+            negative_replay_index_path = str(negative_replay_index.get("path") or "").strip()
+            run_python_script(
+                "build-negative-replay-index.py",
+                [
+                    "--audit-report",
+                    batch["audit_report"],
+                    "--negative-sample-dir",
+                    "datasets/eval/radishflow-negative",
+                    "--output",
+                    negative_replay_index_path,
+                    "--check",
+                ],
+            )
+            negative_replay_index_document = json.loads((REPO_ROOT / negative_replay_index_path).read_text(encoding="utf-8"))
+            jsonschema.validate(negative_replay_index_document, schema)
+        if recommended_summary.get("exists") is True:
+            recommended_summary_path = str(recommended_summary.get("path") or "").strip()
+            recommended_summary_document = json.loads((REPO_ROOT / recommended_summary_path).read_text(encoding="utf-8"))
+            jsonschema.validate(recommended_summary_document, recommended_summary_schema)
+            recommended_top = str(batch.get("recommended_top") or "").strip()
+            if not recommended_top:
+                raise SystemExit(
+                    f"{artifact_summary_path_value} has recommended summary but fixture is missing recommended_top"
+                )
+            run_python_script(
+                "run-radish-docs-qa-negative-recommended.py",
+                [
+                    "--batch-artifact-summary",
+                    artifact_summary_path_value,
+                    "--top",
+                    recommended_top,
+                    "--replay-mode",
+                    "same_sample",
+                    "--fail-on-violation",
+                    "--summary-output",
+                    recommended_summary_path,
+                    "--check",
+                ],
+            )
+
+        cross_sample_negative_replay_index = (
+            (artifacts.get("cross_sample_negative_replay_index") or {}) if isinstance(artifacts, dict) else {}
+        )
+        cross_sample_recommended_summary = (
+            (artifacts.get("cross_sample_recommended_negative_replay_summary") or {})
+            if isinstance(artifacts, dict)
+            else {}
+        )
+        if cross_sample_negative_replay_index.get("exists") is True:
+            cross_sample_negative_replay_index_path = str(cross_sample_negative_replay_index.get("path") or "").strip()
+            run_python_script(
+                "build-negative-replay-index.py",
+                [
+                    "--audit-report",
+                    batch["audit_report"],
+                    "--negative-sample-dir",
+                    "datasets/eval/radishflow-negative",
+                    "--output",
+                    cross_sample_negative_replay_index_path,
+                    "--check",
+                ],
+            )
+            cross_sample_negative_replay_index_document = json.loads(
+                (REPO_ROOT / cross_sample_negative_replay_index_path).read_text(encoding="utf-8")
+            )
+            jsonschema.validate(cross_sample_negative_replay_index_document, schema)
+            run_python_script(
+                "run-eval-regression.py",
+                [
+                    "radishflow-ghost-completion-negative",
+                    "--negative-replay-index",
+                    cross_sample_negative_replay_index_path,
+                    "--replay-mode",
+                    "cross_sample",
+                    "--fail-on-violation",
+                ],
+            )
+        if cross_sample_recommended_summary.get("exists") is True:
+            cross_sample_recommended_summary_path = str(cross_sample_recommended_summary.get("path") or "").strip()
+            cross_sample_recommended_summary_document = json.loads(
+                (REPO_ROOT / cross_sample_recommended_summary_path).read_text(encoding="utf-8")
+            )
+            jsonschema.validate(cross_sample_recommended_summary_document, recommended_summary_schema)
+            cross_sample_recommended_top = str(batch.get("cross_sample_recommended_top") or "").strip()
+            if not cross_sample_recommended_top:
+                raise SystemExit(
+                    f"{artifact_summary_path_value} has cross-sample recommended summary but fixture is missing cross_sample_recommended_top"
+                )
+            run_python_script(
+                "run-eval-regression.py",
+                [
+                    "radishflow-ghost-completion-negative",
+                    "--batch-artifact-summary",
+                    artifact_summary_path_value,
+                    "--recommended-groups-top",
+                    "1",
+                    "--replay-mode",
+                    "cross_sample",
+                    "--fail-on-violation",
+                ],
+            )
+            run_python_script(
+                "run-radish-docs-qa-negative-recommended.py",
+                [
+                    "--batch-artifact-summary",
+                    artifact_summary_path_value,
+                    "--top",
+                    cross_sample_recommended_top,
+                    "--replay-mode",
+                    "cross_sample",
+                    "--fail-on-violation",
+                    "--summary-output",
+                    cross_sample_recommended_summary_path,
+                    "--check",
+                ],
+            )
 
     run_python_script(
         "build-real-derived-negative-index.py",

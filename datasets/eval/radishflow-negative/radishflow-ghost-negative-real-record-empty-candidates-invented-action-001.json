@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-valve-flash-stop-no-legal-outlet-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-211",
+          "streams": [
+            {
+              "id": "feed-504",
+              "name": "F-504",
+              "target_unit_id": "valve-5"
+            },
+            {
+              "id": "v-504",
+              "name": "V-504",
+              "source_unit_id": "valve-5",
+              "target_unit_id": "flash-12"
+            },
+            {
+              "id": "existing-vg-504",
+              "name": "VG-504",
+              "source_unit_id": "flash-legacy"
+            }
+          ],
+          "units": [
+            {
+              "id": "valve-5",
+              "kind": "Valve",
+              "name": "Throttle Valve 504"
+            },
+            {
+              "id": "flash-12",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 504"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 61,
+      "selected_unit_ids": [
+        "flash-12"
+      ],
+      "selected_unit": {
+        "id": "flash-12",
+        "kind": "FlashDrum",
+        "name": "Flash Drum 504"
+      },
+      "unconnected_ports": [
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "legal_candidate_completions": [],
+      "nearby_nodes": [
+        {
+          "type": "stream_stub",
+          "id": "flash-12-vapor-lane",
+          "distance_px": 71,
+          "alignment_score": 0.91,
+          "direction": "downstream",
+          "blocked_reason": "occupied_by_existing_stream"
+        },
+        {
+          "type": "stream_stub",
+          "id": "flash-12-liquid-lane",
+          "distance_px": 79,
+          "alignment_score": 0.87,
+          "direction": "downstream",
+          "blocked_reason": "suggested_name_collision"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-504-to-valve-5-inlet",
+            "accepted_at_revision": 59
+          },
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-valve-5-outlet-flash-12",
+            "accepted_at_revision": 60
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "V-504"
+        ],
+        "existing_stream_names": [
+          "F-504",
+          "V-504",
+          "VG-504"
+        ],
+        "preferred_prefix_by_port": {
+          "vapor_outlet": "VG",
+          "liquid_outlet": "VL"
+        },
+        "numeric_suffix_from_unit": "504"
+      },
+      "topology_pattern_hints": [
+        "feed_valve_flash_chain",
+        "flash_split_after_valve_outlet_connection",
+        "stop_when_no_legal_outlet_candidates"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "partial",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": true,
+    "requires_citations": true,
+    "allow_proposed_actions": true
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.answers[0].kind=\"empty_suggestion_reason\"",
+      "$.issues[0].code=\"INSUFFICIENT_GHOST_CONTEXT\"",
+      "$.issues[0].severity=\"info\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.proposed_actions[0]"
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "empty_suggestion_boundary",
+      "pending_ghost_semantics"
+    ],
+    "notes": "使用 formal real batch `2026-04-11-radishflow-ghost-poc-real-v9-deepseek` 中同样本的真实候选快照做 same-sample negative replay，验证空 `legal_candidate_completions` 下凭 recent_actions 主观补出 ghost action 时会命中空建议边界违规。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "partial",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "flash-12 虽已承接上一步阀后入口，但当前没有任何合法的 outlet ghost 候选，因此不返回默认补全建议。",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "recent_actions 已表明连续搭建链刚进入 FlashDrum 出口阶段，但本地规则层没有给出任何合法 outlet 候选，因此这里必须停住并保持空建议。",
+        "citation_ids": [
+          "ctx-recent-chain-action",
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前链式上下文虽完整，但本地规则尚未提供任何合法 FlashDrum outlet 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "ctx-recent-chain-action",
+        "kind": "context",
+        "label": "最近接受的阀后连线",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "accept_ghost_completion candidate_ref=cand-valve-5-outlet-flash-12 accepted_at_revision=60"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 FlashDrum outlet 候选集",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "链式停住模式提示",
+        "locator": "context:topology_pattern_hints[2]",
+        "excerpt": "stop_when_no_legal_outlet_candidates"
+      },
+      {
+        "id": "ctx-nearby-blocked",
+        "kind": "context",
+        "label": "下游 lane 仍被阻塞",
+        "locator": "context:nearby_nodes[0]",
+        "excerpt": "flash-12-vapor-lane blocked_reason=occupied_by_existing_stream"
+      }
+    ],
+    "confidence": 0.9,
+    "risk_level": "low",
+    "requires_confirmation": false
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "ghost_completion patch.candidate_ref must come from context.legal_candidate_completions",
+      "json path '$.proposed_actions[0]' should not exist"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/manifest.json",
+    "expected_source": "captured_candidate_response",
+    "required_collection_batch": "2026-04-11-radishflow-ghost-poc-real-v9-deepseek",
+    "required_capture_origin": "adapter_debug_dump",
+    "required_tags": [
+      "radishflow_suggest_ghost_completion",
+      "real_capture"
+    ],
+    "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001"
+  },
+  "candidate_response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "负例回放：recent_actions 不能替代本地合法候选集，但这里错误地补出了一个不存在的 outlet ghost。",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern",
+          "ctx-recent-action"
+        ]
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "错误补全 flash-12 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-12",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该负例故意忽略空 legal_candidate_completions，凭链式 recent_actions 主观补出下一跳。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-12-vapor-invented",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-504A"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-12-vapor-invented"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-12",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-12 kind=FlashDrum name=Flash Drum 504"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 legal_candidate_completions",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"V-504\"], \"existing_stream_names\": [\"F-504\", \"V-504\", \"VG-504\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\", \"liquid_outlet\": \"VL\"}, \"numeric_suff"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-valve-5-outlet-flash-12\", \"accepted_at_revision\": 60}"
+      }
+    ],
+    "summary": "负例回放：即使本地规则没有给出合法候选，也错误补出了一个 FlashDrum outlet ghost。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9
+  }
+}
