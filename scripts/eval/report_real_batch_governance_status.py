@@ -106,6 +106,23 @@ def load_optional_radishflow_artifact_summary(entry: dict[str, Any]) -> tuple[st
     return make_repo_relative(summary_path), load_radishflow_batch_artifact_summary(summary_path)
 
 
+def find_latest_governance_entry(
+    entries: list[dict[str, Any]],
+    *,
+    preferred_keys: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    for entry in reversed(entries):
+        if not str(entry.get("artifact_summary") or "").strip():
+            continue
+        if preferred_keys and not any(str(entry.get(key) or "").strip() for key in preferred_keys):
+            continue
+        return entry
+    for entry in reversed(entries):
+        if str(entry.get("artifact_summary") or "").strip():
+            return entry
+    return entries[-1]
+
+
 def summarize_batch(entry: dict[str, Any]) -> dict[str, Any]:
     record_dir = resolve_repo_relative(str(entry.get("record_dir") or "").strip())
     manifest_path = resolve_repo_relative(str(entry.get("manifest") or "").strip())
@@ -186,7 +203,16 @@ def build_suggest_edits_chain() -> dict[str, Any]:
     fixture_entries = load_json_list(SUGGEST_EDITS_BATCH_FIXTURE)
     batches = load_real_batches(SUGGEST_EDITS_BATCH_FIXTURE)
     latest_batch = batches[-1]
-    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
+    governance_entry = find_latest_governance_entry(
+        fixture_entries,
+        preferred_keys=(
+            "negative_replay_index",
+            "cross_sample_replay_index",
+            "recommended_summary",
+            "cross_sample_recommended_summary",
+        ),
+    )
+    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(governance_entry)
     real_derived_fixture = load_json_document(RADISHFLOW_SUGGEST_EDITS_REAL_DERIVED_FIXTURE)
     real_derived_index_path = resolve_repo_relative(str(real_derived_fixture.get("index") or "").strip())
     real_derived_index = load_json_document(real_derived_index_path) if real_derived_index_path.is_file() else None
@@ -297,7 +323,16 @@ def build_ghost_chain() -> dict[str, Any]:
     fixture_entries = load_json_list(GHOST_BATCH_FIXTURE)
     batches = load_real_batches(GHOST_BATCH_FIXTURE)
     latest_batch = batches[-1]
-    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(fixture_entries[-1])
+    governance_entry = find_latest_governance_entry(
+        fixture_entries,
+        preferred_keys=(
+            "negative_replay_index",
+            "cross_sample_replay_index",
+            "recommended_summary",
+            "cross_sample_recommended_summary",
+        ),
+    )
+    artifact_summary_path, artifact_summary = load_optional_radishflow_artifact_summary(governance_entry)
     real_derived_fixture = load_json_document(RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE)
     real_derived_index_path = resolve_repo_relative(str(real_derived_fixture.get("index") or "").strip())
     real_derived_index = load_json_document(real_derived_index_path) if real_derived_index_path.is_file() else None

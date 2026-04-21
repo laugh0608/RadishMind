@@ -58,6 +58,7 @@
 - 再继续沿同一条主线推进后，`mixed-risk-cross-object` 的 default teacher 对照也已正式补齐：原始真实 capture `2026-04-18-radishflow-suggest-edits-poc-real-v76-default-mixed-risk-cross-object/` 在 `cross-object-mixed-risk-three-action-ordering-001` 与 `cross-object-mixed-risk-reconnect-plus-pump-parameter-001` 两条样本上把剩余问题收紧到两条 runtime 窄缺口，即顶层 `citations` 的 supporting artifact 顺序仍应稳定为 `non-target unit -> non-target stream`，以及 `UNIT_PARAMETER_INCOMPLETE` 的 cross-object unit action 仍需显式保留上游 selected unit citation；随后已基于现有 dump 重导为 `2026-04-18-radishflow-suggest-edits-poc-real-v77-default-mixed-risk-cross-object-recanonicalized/`，并正式收口到 `audit=2/2 pass`
 - 再继续沿 `teacher_comparison_candidates` 的下一组高价值池推进后，`cross-object-citation` 的 default teacher 对照也已正式补齐：原始真实 capture `2026-04-18-radishflow-suggest-edits-poc-real-v78-default-cross-object-citation/` 在 `cross-object-citation-interleaving-001` 与 `cross-object-warning-citation-ordering-001` 两条样本上把剩余问题收紧到几条 citation canonicalization 窄缺口，即 `flowdoc-*` 编号仍需回到 `FlowsheetDocument` 原始对象索引、`STREAM_DISCONNECTED` action 不应再把仅属 contextual unit warning 的 `diag-*` 并入 action citation、stream-target `_UNCONFIRMED` warning issue 只应在非 cross-object 语境下跳过目标 stream artifact，以及 `DOWNSTREAM_SEPARATOR_STATE_DEPENDENT` 的 unit warning 需优先引用 upstream inlet stream；随后已基于现有 dump 重导为 `2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/`，并正式收口到 `audit=2/2 pass`
 - 当前又继续沿同一条 default teacher 主线把 `range-sequence-ordering` 正式补齐：`2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/` 已覆盖 `efficiency-range-ordering` 与 `stream-spec-sequence-ordering` 两条样本，并在首轮真实 capture 下直接收口到正式 `audit=2/2 pass`；这轮没有再暴露新的 runtime canonicalization 根因，说明当前对 `suggested_range` 顺序与 `spec_placeholders` 顺序的正式口径，已能在 default teacher 路径上稳定成立
+- 当前又继续沿同一条 default teacher 主线把 `cross-object-primary-focus` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v82-default-cross-object-primary-focus/` 已覆盖 `joint-selection-primary-focus` 与 `multi-unit-stream-primary-focus` 两条样本，并在首轮真实 capture 下直接收口到正式 `audit=2/2 pass`；这轮没有再暴露新的 primary focus selection / cross-object citation 根因，说明当前对“多对象 selection + 单 primary focus”这类复杂导出态的正式口径，已能在 default teacher 路径上稳定成立
 - 作为当前阶段切向 `M3` 治理收口的首个配套动作，批次入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 现也会默认写出 `<collection-batch>.artifacts.json`；对应最新正式批次 `2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/` 已补最小 batch-level artifact summary，用于统一沉淀 `manifest / audit / output_root / records / responses / dumps` 的结构化治理摘要，而不再只停留在 `manifest + audit`
 
 ## 当前剩余缺口
@@ -66,14 +67,11 @@
 
 `default-early-trio`、`default-selection-ordering`、`heater-follow-up`、`mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object` 与 `cross-object-citation` 七组当前都已完成 `default + 四主 apiyi profile` 的正式覆盖；下一轮若继续推进，不应再重复补这七组既有样本，而应继续沿更复杂 sample pool 的 default teacher 对照深度推进。
 
-当前 `scripts/eval/report_suggest_edits_profile_coverage.py` 已在“四主 apiyi coverage 全满”的前提下继续输出 `teacher_comparison_candidates`，用于指出下一组更值得补 `default` 对照的复杂样本族；按当前口径，`range-sequence-ordering` 已完成正式收口，后续更应优先考虑 `cross-object-primary-focus`，其后再推进 `parameter-ordering` 与 `mixed-risk-citation-reconnect`。
+当前 `scripts/eval/report_suggest_edits_profile_coverage.py` 已在“四主 apiyi coverage 全满”的前提下继续输出 `teacher_comparison_candidates`，用于指出下一组更值得补 `default` 对照的复杂样本族；按当前口径，`cross-object-primary-focus` 已完成正式收口，后续更应优先考虑 `parameter-ordering`，其后再推进 `mixed-risk-citation-reconnect`。
 
-与此同时，本任务在 formal real batch 治理层已不再缺最小 `artifact summary` 口径；下一步仓库级缺口已经进一步收口为两类明确阻塞：
+与此同时，本任务在 formal real batch 治理层也已不再缺 replay / real-derived 基线：当前 same-sample replay、cross-sample replay、recommended replay summary 与首批 real-derived negative 都已接入仓库级 `check-repo`，后续不应再回到“重复补治理资产”的旧主线。
 
-- 还没有与当前 formal real batch 反链的 committed same-sample / cross-sample negative 样本，因此 negative replay index 目前缺的首先是负例资产，而不是 index builder 本身
-- `run-eval-regression.py` 与 recommended replay summary 的 task-agnostic runner 已具备最小 `RadishFlow` 通道；当前缺口已收口为还没有 committed negative 样本可供 index / recommended summary 消费
-
-因此下一轮 `M3` 推进不应只笼统写成“补 replay / real-derived”，而应优先按“先补 committed 负例资产，再生成 replay index / recommended summary，最后再决定是否同步补 real-derived”这条顺序收口。
+因此下一轮 `M3` 推进应继续沿 `teacher_comparison_candidates` 推进剩余 `default` teacher sample pool，优先收口 `parameter-ordering`，再考虑 `mixed-risk-citation-reconnect`，而不是重新回到低价值 replay 扩样。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 

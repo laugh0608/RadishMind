@@ -359,5 +359,12 @@
     "recommended_top": "2",
     "cross_sample_recommended_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-recommended.summary.json",
     "cross_sample_recommended_top": "2"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/artifacts.json"
   }
 ]

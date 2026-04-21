@@ -614,7 +614,7 @@ def check_generated_eval_metadata() -> None:
     first_teacher_group = ""
     if teacher_candidates:
         first_teacher_group = str(teacher_candidates[0].get("group_name") or "").strip()
-    if first_teacher_group != "cross-object-primary-focus":
+    if first_teacher_group != "parameter-ordering":
         raise SystemExit(
             "unexpected next suggest_flowsheet_edits teacher comparison group: "
             f"{first_teacher_group or '(none)'}"
@@ -638,7 +638,7 @@ def check_generated_eval_metadata() -> None:
     governance_chains = list(governance_report.get("chains") or [])
     if len(governance_chains) != 3:
         raise SystemExit("unexpected governance chain count in governance status report")
-    if "cross-object-primary-focus" not in str(governance_report.get("next_mainline_focus") or ""):
+    if "parameter-ordering" not in str(governance_report.get("next_mainline_focus") or ""):
         raise SystemExit("governance status report next_mainline_focus drifted from current M3 baseline")
 
     suggest_chain = next((chain for chain in governance_chains if chain.get("chain_id") == "radishflow-suggest-flowsheet-edits"), None)
