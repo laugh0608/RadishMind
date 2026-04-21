@@ -409,7 +409,9 @@ def build_ghost_chain() -> dict[str, Any]:
             "real_captured_sample_ids": all_sample_ids,
             "latest_batch_record_count": latest_batch["record_count"],
             "scope_note": (
-                "当前正式真实 capture 已从固定 PoC trio 扩到五批高价值链式样本。"
+                "当前正式真实 capture 已从固定 PoC trio 扩到六批高价值链式样本。"
+                if len(all_sample_ids) > 18
+                else "当前正式真实 capture 已从固定 PoC trio 扩到五批高价值链式样本。"
                 if len(all_sample_ids) > 15
                 else "当前正式真实 capture 已从固定 PoC trio 扩到四批高价值链式样本。"
                 if len(all_sample_ids) > 12
