@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "record_id": "simulated-radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+  "request_id": "rf-suggest-edit-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+  "captured_at": "2026-04-21T08:46:00Z",
+  "source": "simulated_candidate_response",
+  "model": "radishmind-mock-radishflow-suggest_edits-real-derived-v1",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 55,
+    "selected_stream_ids": [
+      "stream-9"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的进料流 Reactor Feed（stream-9）缺少基础入口规格这一问题生成候选提案，建议仅补充温度、压力和流量的占位规格，保持修改局部且可审查。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Reactor Feed 添加基础入口规格占位",
+        "rationale": "该流被直接诊断为缺少温度、压力和流量规格。由于当前输入未提供可确定的数值，最小可审查的做法是添加对应占位而不假设具体工艺条件。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "stream-9"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa",
+            "temperature_c",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Reactor Feed is missing temperature, pressure, and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Reactor Feed is missing temperature, pressure, and flow rate specifications."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-9",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-9 Reactor Feed target_unit_id=reactor-1"
+      }
+    ],
+    "summary": "当前围绕已选中的进料流 Reactor Feed（stream-9）缺少基础入口规格这一问题生成候选提案，建议仅补充温度、压力和流量的占位规格，保持修改局部且可审查。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-21-radishflow-suggest-edits-simulated-negatives-v1",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:suggest_edits_spec_placeholder_sequence_drift",
+      "w17_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001"
+    },
+    "notes": "基于 latest clean formal batch `rfb-f91659bd901e` 的 stream spec real record 派生，专门模拟 spec_placeholders 顺序被打乱的稳定漂移。"
+  }
+}

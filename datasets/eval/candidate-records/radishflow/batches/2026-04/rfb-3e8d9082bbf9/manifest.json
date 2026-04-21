@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-21-radishflow-suggest-edits-simulated-negatives-v1",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "simulated_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3e8d9082bbf9",
+  "records": [
+    {
+      "record_id": "simulated-radishflow-suggest-edits-negative-real-derived-efficiency-range-ordering-drift-001",
+      "sample_id": "radishflow-suggest-edits-negative-real-derived-efficiency-range-ordering-drift-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3e8d9082bbf9/r/sfe-c9628bd3049a.record.json",
+      "sample_key": "sfe-c9628bd3049a",
+      "record_relpath": "r/sfe-c9628bd3049a.record.json"
+    },
+    {
+      "record_id": "simulated-radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+      "sample_id": "radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3e8d9082bbf9/r/sfe-4fff32a92ba5.record.json",
+      "sample_key": "sfe-4fff32a92ba5",
+      "record_relpath": "r/sfe-4fff32a92ba5.record.json"
+    }
+  ],
+  "batch_key": "rfb-3e8d9082bbf9",
+  "capture_origin": "manual_fixture",
+  "description": "RadishFlow suggest_flowsheet_edits 首批 real-derived simulated negative 批次，基于 latest clean formal batch rfb-f91659bd901e 派生 review range 与 spec placeholder 顺序漂移。"
+}

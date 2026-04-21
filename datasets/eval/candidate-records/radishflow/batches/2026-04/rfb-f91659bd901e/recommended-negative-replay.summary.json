@@ -12,8 +12,8 @@
   "selection": {
     "requested_top": 2,
     "selected_group_ids": [
-      "group-001",
-      "group-002"
+      "group-002",
+      "group-003"
     ],
     "replay_mode": "same_sample",
     "sample_dir_override": "",
@@ -33,7 +33,7 @@
   },
   "groups": [
     {
-      "group_id": "group-001",
+      "group_id": "group-002",
       "replay_mode": "same_sample",
       "requested_entry_count": 1,
       "selected_sample_count": 1,
@@ -58,7 +58,7 @@
           "--batch-artifact-summary",
           "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json",
           "--group-id",
-          "group-001",
+          "group-002",
           "--replay-mode",
           "same_sample",
           "--fail-on-violation"
@@ -66,7 +66,7 @@
       }
     },
     {
-      "group_id": "group-002",
+      "group_id": "group-003",
       "replay_mode": "same_sample",
       "requested_entry_count": 1,
       "selected_sample_count": 1,
@@ -91,7 +91,7 @@
           "--batch-artifact-summary",
           "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json",
           "--group-id",
-          "group-002",
+          "group-003",
           "--replay-mode",
           "same_sample",
           "--fail-on-violation"

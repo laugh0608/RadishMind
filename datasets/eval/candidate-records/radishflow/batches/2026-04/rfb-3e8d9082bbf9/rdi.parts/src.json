@@ -1,0 +1,70 @@
+[
+  {
+    "group_id": "source-001",
+    "source_manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
+    "source_collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+    "source_record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+    "source_sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+    "source_record_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/r/sfe-e2bd83da4dd5.record.json",
+    "source_source": "captured_candidate_response",
+    "entry_count": 1,
+    "entries": [
+      {
+        "derived_record_id": "simulated-radishflow-suggest-edits-negative-real-derived-efficiency-range-ordering-drift-001",
+        "derived_sample_id": "radishflow-suggest-edits-negative-real-derived-efficiency-range-ordering-drift-001",
+        "derived_record_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3e8d9082bbf9/r/sfe-c9628bd3049a.record.json",
+        "derived_patterns": [
+          "suggest_edits_review_range_ordering_drift"
+        ],
+        "source_manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
+        "source_collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+        "source_record_id": "captured-radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "source_sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "source_record_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/r/sfe-e2bd83da4dd5.record.json",
+        "source_source": "captured_candidate_response",
+        "source_capture_origin": "adapter_debug_dump",
+        "negative_sample_id": "radishflow-suggest-edits-negative-real-derived-efficiency-range-ordering-drift-001",
+        "negative_sample_path": "datasets/eval/radishflow-negative/radishflow-suggest-edits-negative-real-derived-efficiency-range-ordering-drift-001.json",
+        "expected_candidate_violations": [
+          "json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]' expected '65' but found '82'",
+          "proposed_action[0].patch.parameter_updates.efficiency_percent.suggested_range must remain ordered as [65, 82]"
+        ]
+      }
+    ],
+    "source_capture_origin": "adapter_debug_dump"
+  },
+  {
+    "group_id": "source-002",
+    "source_manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
+    "source_collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+    "source_record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+    "source_sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+    "source_record_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/r/sfe-5d57fad2d342.record.json",
+    "source_source": "captured_candidate_response",
+    "entry_count": 1,
+    "entries": [
+      {
+        "derived_record_id": "simulated-radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+        "derived_sample_id": "radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+        "derived_record_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3e8d9082bbf9/r/sfe-4fff32a92ba5.record.json",
+        "derived_patterns": [
+          "suggest_edits_spec_placeholder_sequence_drift"
+        ],
+        "source_manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
+        "source_collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+        "source_record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+        "source_sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+        "source_record_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/r/sfe-5d57fad2d342.record.json",
+        "source_source": "captured_candidate_response",
+        "source_capture_origin": "adapter_debug_dump",
+        "negative_sample_id": "radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001",
+        "negative_sample_path": "datasets/eval/radishflow-negative/radishflow-suggest-edits-negative-real-derived-stream-spec-sequence-ordering-drift-001.json",
+        "expected_candidate_violations": [
+          "json path '$.proposed_actions[0].patch.spec_placeholders[0]' expected 'temperature_c' but found 'pressure_kpa'",
+          "proposed_action[0].patch.spec_placeholders must remain ordered as ['temperature_c', 'pressure_kpa', 'flow_rate_kg_per_h']"
+        ]
+      }
+    ],
+    "source_capture_origin": "adapter_debug_dump"
+  }
+]

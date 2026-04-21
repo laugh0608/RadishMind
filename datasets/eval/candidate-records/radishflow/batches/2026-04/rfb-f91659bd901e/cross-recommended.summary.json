@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "pipeline": "radishflow-suggest-edits-recommended-negative-replay",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "eval_task": "radishflow-suggest-edits-negative",
+  "provider": "openai-compatible",
+  "collection_batch": "2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering",
+  "batch_artifact_summary_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json",
+  "negative_replay_index_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-sample-replay-index.json",
+  "output_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-recommended.summary.json",
+  "selection": {
+    "requested_top": 2,
+    "selected_group_ids": [
+      "group-001"
+    ],
+    "replay_mode": "cross_sample",
+    "sample_dir_override": "",
+    "fail_on_violation": true
+  },
+  "execution": {
+    "overall_exit_code": 0
+  },
+  "summary": {
+    "selected_group_count": 1,
+    "passed_group_count": 1,
+    "failed_group_count": 0,
+    "selected_sample_count": 2,
+    "passed_sample_count": 2,
+    "failed_sample_count": 0,
+    "violation_count": 0
+  },
+  "groups": [
+    {
+      "group_id": "group-001",
+      "replay_mode": "cross_sample",
+      "requested_entry_count": 2,
+      "selected_sample_count": 2,
+      "exit_code": 0,
+      "passed_sample_count": 2,
+      "failed_sample_count": 0,
+      "violation_count": 0,
+      "expected_candidate_violations": [
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        ".status does not match expected_response_shape.status"
+      ],
+      "sample_files": [
+        "radishflow-suggest-edits-negative-cross-real-record-efficiency-uses-stream-spec-001.json",
+        "radishflow-suggest-edits-negative-cross-real-record-stream-spec-uses-efficiency-001.json"
+      ],
+      "summary_line": "radishflow suggest edits negative regression passed.",
+      "warning_line": "",
+      "command": {
+        "python": [
+          "python3",
+          "./scripts/run-eval-regression.py",
+          "radishflow-suggest-edits-negative",
+          "--batch-artifact-summary",
+          "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json",
+          "--group-id",
+          "group-001",
+          "--replay-mode",
+          "cross_sample",
+          "--fail-on-violation"
+        ]
+      }
+    }
+  ],
+  "model": "gpt-5.4",
+  "capture_origin": "adapter_debug_dump"
+}

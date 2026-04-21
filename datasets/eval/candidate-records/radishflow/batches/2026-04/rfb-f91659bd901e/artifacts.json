@@ -50,9 +50,9 @@
       "exists": true
     },
     "cross_sample_negative_replay_index": {
-      "requested": false,
+      "requested": true,
       "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-sample-replay-index.json",
-      "exists": false
+      "exists": true
     },
     "recommended_negative_replay_summary": {
       "requested": true,
@@ -60,9 +60,9 @@
       "exists": true
     },
     "cross_sample_recommended_negative_replay_summary": {
-      "requested": false,
+      "requested": true,
       "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-recommended.summary.json",
-      "exists": false
+      "exists": true
     }
   },
   "summary": {
@@ -76,41 +76,58 @@
     "nested_record_count": 0,
     "response_file_count": 2,
     "dump_file_count": 2,
-    "violation_group_count": 2,
-    "cross_sample_violation_group_count": 0,
+    "violation_group_count": 3,
+    "cross_sample_violation_group_count": 3,
     "linked_same_sample_negative_count": 2,
-    "linked_cross_sample_negative_count": 0,
+    "linked_cross_sample_negative_count": 2,
     "recommended_replay_group_count": 2,
-    "cross_sample_recommended_replay_group_count": 0
+    "cross_sample_recommended_replay_group_count": 1
   },
   "recommended_negative_replays": {
     "default_replay_mode": "same_sample",
     "recommended_group_ids": [
-      "group-001",
-      "group-002"
+      "group-002",
+      "group-003"
     ],
     "groups": [
       {
-        "group_id": "group-001",
+        "group_id": "group-002",
         "replay_mode": "same_sample",
         "entry_count": 1,
         "expected_candidate_violations": [
           "json path '$.proposed_actions[0].patch.parameter_updates.efficiency_percent.suggested_range[0]' expected '65' but found '82'",
           "proposed_action[0].patch.parameter_updates.efficiency_percent.suggested_range must remain ordered as [65, 82]"
         ],
-        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-suggest-edits-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json --group-id group-001 --replay-mode same_sample --fail-on-violation",
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-suggest-edits-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json --group-id group-002 --replay-mode same_sample --fail-on-violation",
         "same_sample_entry_count": 1
       },
       {
-        "group_id": "group-002",
+        "group_id": "group-003",
         "replay_mode": "same_sample",
         "entry_count": 1,
         "expected_candidate_violations": [
           "json path '$.proposed_actions[0].patch.spec_placeholders[0]' expected 'temperature_c' but found 'pressure_kpa'",
           "proposed_action[0].patch.spec_placeholders must remain ordered as ['temperature_c', 'pressure_kpa', 'flow_rate_kg_per_h']"
         ],
-        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-suggest-edits-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json --group-id group-002 --replay-mode same_sample --fail-on-violation",
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-suggest-edits-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json --group-id group-003 --replay-mode same_sample --fail-on-violation",
         "same_sample_entry_count": 1
+      }
+    ],
+    "cross_sample_recommended_group_ids": [
+      "group-001"
+    ],
+    "cross_sample_groups": [
+      {
+        "group_id": "group-001",
+        "replay_mode": "cross_sample",
+        "entry_count": 2,
+        "expected_candidate_violations": [
+          "candidate_response_record.sample_id must match sample_id",
+          "candidate_response_record.request_id must match input_request.request_id",
+          ".status does not match expected_response_shape.status"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-suggest-edits-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json --group-id group-001 --replay-mode cross_sample --fail-on-violation",
+        "cross_sample_entry_count": 2
       }
     ]
   },
