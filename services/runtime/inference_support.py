@@ -195,6 +195,19 @@ def normalize_text(value: Any) -> str:
     return re.sub(r"\s+", " ", json.dumps(value, ensure_ascii=False)).strip()
 
 
+def extract_embedded_summary_text(value: Any) -> str:
+    normalized_value = normalize_text(value)
+    if not normalized_value or not normalized_value.startswith("{") or not normalized_value.endswith("}"):
+        return ""
+    try:
+        parsed = json.loads(normalized_value)
+    except json.JSONDecodeError:
+        return ""
+    if not isinstance(parsed, dict):
+        return ""
+    return normalize_text(parsed.get("summary"))
+
+
 def artifact_content_text(artifact: dict[str, Any]) -> str:
     if "content" not in artifact:
         return ""

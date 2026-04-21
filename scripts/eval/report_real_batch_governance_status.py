@@ -408,7 +408,11 @@ def build_ghost_chain() -> dict[str, Any]:
             "real_captured_sample_count": len(all_sample_ids),
             "real_captured_sample_ids": all_sample_ids,
             "latest_batch_record_count": latest_batch["record_count"],
-            "scope_note": "当前正式真实 capture 仍集中在固定 PoC trio。",
+            "scope_note": (
+                "当前正式真实 capture 已从固定 PoC trio 扩到首批高价值链式样本。"
+                if len(all_sample_ids) > 3
+                else "当前正式真实 capture 仍集中在固定 PoC trio。"
+            ),
         },
         "governance": governance,
         "artifact_summary": (

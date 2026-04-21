@@ -14,11 +14,14 @@ from .inference_support import (
     RESPONSE_SCHEMA_PATH,
     build_artifact_citation_fields,
     build_citation_maps,
+    build_ghost_completion_action,
+    extract_embedded_summary_text,
     infer_parameter_placeholders,
     infer_stream_spec_placeholders,
     load_schema,
     make_failed_response,
     normalize_text,
+    pick_primary_ghost_candidate,
     validate_response_document,
 )
 

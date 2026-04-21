@@ -37,6 +37,7 @@ DEFAULT_SAMPLE_PATHS = [
     "datasets/eval/radishflow/suggest-ghost-completion-valve-ambiguous-no-tab-001.json",
     "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.json",
 ]
+DEFAULT_AUDIT_SAMPLE_DIR = "datasets/eval/radishflow"
 
 
 def parse_args() -> argparse.Namespace:
@@ -367,7 +368,7 @@ def main() -> int:
                 "--manifest",
                 str(manifest_path),
                 "--sample-dir",
-                str(temp_path),
+                DEFAULT_AUDIT_SAMPLE_DIR,
                 "--report-output",
                 str(report_path),
             ]

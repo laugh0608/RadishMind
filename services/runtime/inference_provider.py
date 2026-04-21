@@ -13,6 +13,7 @@ from .inference_support import (
     GHOST_MANUAL_MULTI_ACTION_REPAIR_PATTERNS,
     build_messages,
     derive_input_record,
+    extract_embedded_summary_text,
     infer_profile_api_style,
     load_env_file,
     make_failed_response,
@@ -116,19 +117,6 @@ def repair_malformed_suggest_edits_json(candidate: str) -> str:
         if repaired == previous:
             break
     return repaired
-
-
-def extract_embedded_summary_text(value: Any) -> str:
-    normalized_value = normalize_text(value)
-    if not normalized_value or not normalized_value.startswith("{") or not normalized_value.endswith("}"):
-        return ""
-    try:
-        parsed = json.loads(normalized_value)
-    except json.JSONDecodeError:
-        return ""
-    if not isinstance(parsed, dict):
-        return ""
-    return normalize_text(parsed.get("summary"))
 
 
 def resolve_chat_endpoint(base_url: str) -> str:
