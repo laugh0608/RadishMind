@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v12-dismiss-and-empty-template-spread",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c230e09fde5a",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-latest-dismiss-after-reject-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-latest-dismiss-after-reject-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c230e09fde5a/r/sgc-90d2f327f31b.record.json",
+      "sample_key": "sgc-90d2f327f31b",
+      "record_relpath": "r/sgc-90d2f327f31b.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c230e09fde5a/r/sgc-ffa59f2cd5c4.record.json",
+      "sample_key": "sgc-ffa59f2cd5c4",
+      "record_relpath": "r/sgc-ffa59f2cd5c4.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-after-mixed-history-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-after-mixed-history-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c230e09fde5a/r/sgc-4cc1d51a16a1.record.json",
+      "sample_key": "sgc-4cc1d51a16a1",
+      "record_relpath": "r/sgc-4cc1d51a16a1.record.json"
+    }
+  ],
+  "batch_key": "rfb-c230e09fde5a",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第十二批真实 provider 候选响应快照，继续扩固定 trio 之外的高价值链式样本，覆盖 valve mixed-history 空建议、heater alternate candidate 切换不误伤与 cooler latest dismiss 后 manual-only 保持。"
+}
