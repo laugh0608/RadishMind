@@ -611,13 +611,10 @@ def check_generated_eval_metadata() -> None:
     if int(suggest_edits_coverage.get("fully_covered_count") or 0) != 33:
         raise SystemExit("suggest_flowsheet_edits four-main-apiyi profile coverage is incomplete")
     teacher_candidates = list(suggest_edits_coverage.get("teacher_comparison_candidates") or [])
-    first_teacher_group = ""
     if teacher_candidates:
-        first_teacher_group = str(teacher_candidates[0].get("group_name") or "").strip()
-    if first_teacher_group != "mixed-risk-citation-reconnect":
         raise SystemExit(
-            "unexpected next suggest_flowsheet_edits teacher comparison group: "
-            f"{first_teacher_group or '(none)'}"
+            "suggest_flowsheet_edits teacher comparison candidates should be fully closed, "
+            f"but found: {teacher_candidates}"
         )
 
     governance_report = build_real_batch_governance_status_report()
@@ -638,7 +635,7 @@ def check_generated_eval_metadata() -> None:
     governance_chains = list(governance_report.get("chains") or [])
     if len(governance_chains) != 3:
         raise SystemExit("unexpected governance chain count in governance status report")
-    if "mixed-risk-citation-reconnect" not in str(governance_report.get("next_mainline_focus") or ""):
+    if "高价值真实样本池" not in str(governance_report.get("next_mainline_focus") or ""):
         raise SystemExit("governance status report next_mainline_focus drifted from current M3 baseline")
 
     suggest_chain = next((chain for chain in governance_chains if chain.get("chain_id") == "radishflow-suggest-flowsheet-edits"), None)

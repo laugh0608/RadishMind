@@ -234,7 +234,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
     else:
         next_gap = (
             "当前四主 apiyi coverage 与 replay / real-derived 治理资产均已接通；"
-            "下一步应回到剩余 default teacher comparison sample pool。"
+            "下一步应转回 suggest_flowsheet_edits 与 ghost 链的高价值真实样本池。"
         )
     governance: dict[str, Any] = {
         "level": (

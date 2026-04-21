@@ -709,7 +709,7 @@ def build_suggest_edits_context_support_citation_ids(
     target_citation_lookup: dict[tuple[str, str], str],
     snapshot_citation_id: str,
 ) -> list[str]:
-    selected_unit_ids, _, input_stream_ids_by_unit_id, output_stream_ids_by_unit_id = build_selected_connection_maps(
+    selected_unit_ids, selected_stream_ids, input_stream_ids_by_unit_id, output_stream_ids_by_unit_id = build_selected_connection_maps(
         copilot_request
     )
     unit_by_id, stream_by_id, _ = build_flowsheet_lookup(copilot_request)
@@ -728,6 +728,7 @@ def build_suggest_edits_context_support_citation_ids(
                 target_type == "stream"
                 and diagnostic_code in {"HEATER_OUTLET_EFFECT_UNCONFIRMED", "COOLER_OUTLET_EFFECT_UNCONFIRMED"}
                 and not complex_cross_object_context
+                and target_id not in selected_stream_ids
             )
         )
         and item_kind == "issue"

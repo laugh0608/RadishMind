@@ -416,16 +416,6 @@ def build_suggest_edits_context_citations(copilot_request: dict[str, Any]) -> li
         flowdoc_content = primary_flowdoc.get("content") or {}
         units = list(flowdoc_content.get("units") or [])
         streams = list(flowdoc_content.get("streams") or [])
-        stream_id_to_entry = {
-            str((stream or {}).get("id") or "").strip(): (stream_index, stream)
-            for stream_index, stream in enumerate(streams)
-            if isinstance(stream, dict) and str((stream or {}).get("id") or "").strip()
-        }
-        unit_id_to_entry = {
-            str((unit or {}).get("id") or "").strip(): (unit_index, unit)
-            for unit_index, unit in enumerate(units)
-            if isinstance(unit, dict) and str((unit or {}).get("id") or "").strip()
-        }
         ordered_targets: list[tuple[str, str]] = []
         for diagnostic in context.get("diagnostics") or []:
             if not isinstance(diagnostic, dict):
@@ -446,15 +436,18 @@ def build_suggest_edits_context_citations(copilot_request: dict[str, Any]) -> li
                 ordered_targets.append(("unit", normalized_unit_id))
 
         ordered_target_set = set(ordered_targets)
+        compact_stream_index = 0
+        compact_unit_index = 0
         for stream_index, stream_document in enumerate(streams):
             if not isinstance(stream_document, dict):
                 continue
             target_id = str(stream_document.get("id") or "").strip()
             if not target_id or ("stream", target_id) not in ordered_target_set:
                 continue
+            compact_stream_index += 1
             citations.append(
                 {
-                    "id": f"flowdoc-stream-{stream_index + 1}",
+                    "id": f"flowdoc-stream-{compact_stream_index}",
                     "kind": "artifact",
                     "label": f"FlowsheetDocument / {target_id}",
                     "locator": f"artifact:flowsheet_document.streams[{stream_index}]",
@@ -467,9 +460,10 @@ def build_suggest_edits_context_citations(copilot_request: dict[str, Any]) -> li
             target_id = str(unit_document.get("id") or "").strip()
             if not target_id or ("unit", target_id) not in ordered_target_set:
                 continue
+            compact_unit_index += 1
             citations.append(
                 {
-                    "id": f"flowdoc-unit-{unit_index + 1}",
+                    "id": f"flowdoc-unit-{compact_unit_index}",
                     "kind": "artifact",
                     "label": f"FlowsheetDocument / {target_id}",
                     "locator": f"artifact:flowsheet_document.units[{unit_index}]",

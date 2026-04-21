@@ -60,19 +60,21 @@
 - 当前又继续沿同一条 default teacher 主线把 `range-sequence-ordering` 正式补齐：`2026-04-18-radishflow-suggest-edits-poc-real-v81-default-range-sequence-ordering/` 已覆盖 `efficiency-range-ordering` 与 `stream-spec-sequence-ordering` 两条样本，并在首轮真实 capture 下直接收口到正式 `audit=2/2 pass`；这轮没有再暴露新的 runtime canonicalization 根因，说明当前对 `suggested_range` 顺序与 `spec_placeholders` 顺序的正式口径，已能在 default teacher 路径上稳定成立
 - 当前又继续沿同一条 default teacher 主线把 `cross-object-primary-focus` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v82-default-cross-object-primary-focus/` 已覆盖 `joint-selection-primary-focus` 与 `multi-unit-stream-primary-focus` 两条样本，并在首轮真实 capture 下直接收口到正式 `audit=2/2 pass`；这轮没有再暴露新的 primary focus selection / cross-object citation 根因，说明当前对“多对象 selection + 单 primary focus”这类复杂导出态的正式口径，已能在 default teacher 路径上稳定成立
 - 当前又继续沿同一条 default teacher 主线把 `parameter-ordering` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v83-default-parameter-ordering/` 已覆盖 `compressor-parameter-placeholder-ordering`、`compressor-parameter-update-ordering`、`compressor-parameter-update-detail-ordering` 与 `heater-patch-key-ordering` 四条样本，并在首轮真实 capture 下直接收口到正式 `audit=4/4 pass`；这轮没有再暴露新的 parameter update / placeholder / patch-key ordering 根因，说明当前对 compressor/heater 局部 patch 细节顺序的正式口径，已能在 default teacher 路径上稳定成立
+- 当前又继续沿同一条 default teacher 主线把 `mixed-risk-citation-reconnect` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v84-default-mixed-risk-citation-reconnect/` 已覆盖 `mixed-risk-reconnect-plus-spec`、`citation-ordering-diagnostics-before-artifacts-before-snapshot`、`issue-citation-ordering-warning-artifact-before-snapshot` 与 `reconnect-connection-placeholder-ordering` 四条样本，并在修正 runtime citation canonicalization 后原地重跑收口到正式 `audit=4/4 pass`
+- 这轮也顺手收紧了两条已定位的 runtime 根因：当前 `flowdoc-stream-*` / `flowdoc-unit-*` 会只对响应实际纳入对象做紧凑稳定编号，而 `HEATER_OUTLET_EFFECT_UNCONFIRMED` / `COOLER_OUTLET_EFFECT_UNCONFIRMED` 在目标 stream 已显式选中时，也会稳定保留 `diagnostic -> artifact -> snapshot` 的 warning issue citation 顺序
 - 作为当前阶段切向 `M3` 治理收口的首个配套动作，批次入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 现也会默认写出 `<collection-batch>.artifacts.json`；对应最新正式批次 `2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/` 已补最小 batch-level artifact summary，用于统一沉淀 `manifest / audit / output_root / records / responses / dumps` 的结构化治理摘要，而不再只停留在 `manifest + audit`
 
 ## 当前剩余缺口
 
 以当前仓库内正式 `record` 目录为准，当前已不存在未补齐四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 的横向真实覆盖缺口。
 
-`default-early-trio`、`default-selection-ordering`、`heater-follow-up`、`mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object`、`cross-object-citation`、`cross-object-primary-focus` 与 `parameter-ordering` 九组当前都已完成 `default + 四主 apiyi profile` 的正式覆盖；下一轮若继续推进，不应再重复补这些既有样本，而应继续沿剩余更复杂 sample pool 的 default teacher 对照深度推进。
+`default-early-trio`、`default-selection-ordering`、`heater-follow-up`、`mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object`、`cross-object-citation`、`cross-object-primary-focus`、`parameter-ordering` 与 `mixed-risk-citation-reconnect` 十组当前都已完成 `default + 四主 apiyi profile` 的正式覆盖；这意味着当前 `teacher_comparison_candidates` 已阶段性清空，不应再重复回补这些既有样本族。
 
-当前 `scripts/eval/report_suggest_edits_profile_coverage.py` 已在“四主 apiyi coverage 全满”的前提下继续输出 `teacher_comparison_candidates`，用于指出下一组更值得补 `default` 对照的复杂样本族；按当前口径，`parameter-ordering` 已完成正式收口，后续更应优先考虑 `mixed-risk-citation-reconnect`。
+当前 `scripts/eval/report_suggest_edits_profile_coverage.py` 在“四主 apiyi coverage 全满”的前提下继续输出的 `teacher_comparison_candidates` 已阶段性清空，说明这条 `default teacher` 对照主线当前已无剩余高价值 sample pool 待补。
 
 与此同时，本任务在 formal real batch 治理层也已不再缺 replay / real-derived 基线：当前 same-sample replay、cross-sample replay、recommended replay summary 与首批 real-derived negative 都已接入仓库级 `check-repo`，后续不应再回到“重复补治理资产”的旧主线。
 
-因此下一轮 `M3` 推进应继续沿 `teacher_comparison_candidates` 推进剩余 `default` teacher sample pool，优先收口 `mixed-risk-citation-reconnect`，而不是重新回到低价值 replay 扩样。
+因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 

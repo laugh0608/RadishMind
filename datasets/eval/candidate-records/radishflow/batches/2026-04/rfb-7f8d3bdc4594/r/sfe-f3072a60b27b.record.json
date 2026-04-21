@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001",
+  "request_id": "rf-suggest-edit-mixed-risk-reconnect-plus-spec-001",
+  "captured_at": "2026-04-21T12:09:19Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 41,
+    "selected_stream_ids": [
+      "liquid-product-5",
+      "vapor-product-5"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的产物流股问题生成候选提案：一是 liquid-product-5 的下游未连接拓扑错误，二是 vapor-product-5 缺少温度规格。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 liquid-product-5 补充下游连接占位",
+        "rationale": "诊断直接指出该物流未连接到任何下游消费者或导出端；当前证据不足以确定具体目标对象，因此仅建议添加可审查的连接占位，而不假定实际去向。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "liquid-product-5"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 vapor-product-5 补充温度规格占位",
+        "rationale": "诊断直接指出该物流缺少温度规格；现有文档仅提供压力，未提供足够证据推断温度数值，因此建议添加温度规格占位供人工确认。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "vapor-product-5"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Vapor Product is missing temperature specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Vapor Product is missing temperature specification."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / liquid-product-5",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / vapor-product-5",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "vapor-product-5 Vapor Product source_unit_id=separator-3"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕已选中的产物流股问题生成候选提案：一是 liquid-product-5 的下游未连接拓扑错误，二是 vapor-product-5 缺少温度规格。",
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-21-radishflow-suggest-edits-poc-real-v84-default-mixed-risk-citation-reconnect"
+  }
+}
