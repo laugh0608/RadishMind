@@ -409,7 +409,9 @@ def build_ghost_chain() -> dict[str, Any]:
             "real_captured_sample_ids": all_sample_ids,
             "latest_batch_record_count": latest_batch["record_count"],
             "scope_note": (
-                "当前正式真实 capture 已从固定 PoC trio 扩到首批高价值链式样本。"
+                "当前正式真实 capture 已从固定 PoC trio 扩到两批高价值链式样本。"
+                if len(all_sample_ids) > 6
+                else "当前正式真实 capture 已从固定 PoC trio 扩到首批高价值链式样本。"
                 if len(all_sample_ids) > 3
                 else "当前正式真实 capture 仍集中在固定 PoC trio。"
             ),
@@ -425,7 +427,7 @@ def build_ghost_chain() -> dict[str, Any]:
         ),
         "next_gap": (
             "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
-            "下一步应扩真实 capture 样本池，或回到 suggest_flowsheet_edits 收口 cross-sample / real-derived 缺口。"
+            "下一步应继续扩非重复高价值真实 capture 样本池。"
         ),
     }
 

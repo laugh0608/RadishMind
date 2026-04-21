@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v11-alternate-and-latest-action",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3a35f67997de",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3a35f67997de/r/sgc-08ad8a7c506d.record.json",
+      "sample_key": "sgc-08ad8a7c506d",
+      "record_relpath": "r/sgc-08ad8a7c506d.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-reject-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-reject-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3a35f67997de/r/sgc-cf81f53f7d66.record.json",
+      "sample_key": "sgc-cf81f53f7d66",
+      "record_relpath": "r/sgc-cf81f53f7d66.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-latest-reject-after-skip-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-latest-reject-after-skip-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3a35f67997de/r/sgc-bc6e6c7adf3d.record.json",
+      "sample_key": "sgc-bc6e6c7adf3d",
+      "record_relpath": "r/sgc-bc6e6c7adf3d.record.json"
+    }
+  ],
+  "batch_key": "rfb-3a35f67997de",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第十一批真实 provider 候选响应快照，继续扩固定 trio 之外的高价值链式样本，覆盖 alternate candidate 切换、latest same-candidate action 优先与 cooler mixed-history 空建议边界。"
+}

@@ -65,6 +65,7 @@
 - 当前又为最新 clean formal batch `rfb-22d033e634d2` 补齐首批 3 条 committed same-sample negative 样本，并生成 `negative-replay-index.json` 与 `recommended-negative-replay.summary.json`；这批负例分别覆盖默认 `Tab` 被错误降级、ambiguous 候选被错误升级为 `Tab`、空 `legal_candidate_completions` 下主观补出 ghost action 三类稳定边界
 - 在此基础上，本链又补齐首批 3 条 committed cross-sample negative 样本，并生成 `cross-sample-replay-index.json` 与 `cross-recommended.summary.json`；当前先把 cross-sample replay 收口为两类稳定错配组：一类是把 empty record 回放到需要默认 `ghost_completion` 的样本，另一类是把 ambiguous manual-only record 回放到必须保持空建议的样本
 - 第十批 `v10` 则正式把真实 capture 从固定 trio 往外扩到首批高价值链式样本：当前 `rfb-0e8e36644e3a` 已覆盖 same-candidate cooldown 恢复、mixed-history 空建议边界与 other-candidate 不外溢恢复三类真实链式场景，并首轮直接收口到 `audit=3/3 pass`
+- 第十一批 `v11` 继续沿这条主线扩下一组非重复边界：当前 `rfb-3a35f67997de` 已覆盖 alternate candidate 切换不误伤新的高置信默认候选、latest same-candidate reject 后保持 `manual_only` 而不误回 `Tab`、以及 cooler 模板上的 mixed-history 空建议边界，并首轮直接收口到 `audit=3/3 pass`
 
 当前这条 PoC 仍是轻量版：
 
@@ -75,7 +76,7 @@
 - 若后续继续使用多 provider fallback 采集真实 batch，当前还应额外观察 provider 间的输出风格漂移，例如把本应是纯文本的 `summary` / `answer.text` 写成 JSON 字符串；这类现象若稳定复现，应优先在 runtime 做任务级窄修复，而不是把坏输出原样固化进正式批次
 - 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay、两路 recommended replay summary，以及首批 real-derived negative pattern
 - 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
-- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；若要继续补治理缺口，也应优先转回 `suggest_flowsheet_edits` 的 cross-sample / real-derived 收口
+- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture，优先补齐 alternate / latest-action / mixed-history 在不同模板上的真实覆盖与重复模式
 
 ## 最小必需输入
 
