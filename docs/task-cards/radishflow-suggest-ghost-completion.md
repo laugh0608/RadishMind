@@ -68,6 +68,7 @@
 - 第十一批 `v11` 继续沿这条主线扩下一组非重复边界：当前 `rfb-3a35f67997de` 已覆盖 alternate candidate 切换不误伤新的高置信默认候选、latest same-candidate reject 后保持 `manual_only` 而不误回 `Tab`、以及 cooler 模板上的 mixed-history 空建议边界，并首轮直接收口到 `audit=3/3 pass`
 - 第十二批 `v12` 继续按模板分散扩下一组非重复边界：当前 `rfb-c230e09fde5a` 已覆盖 valve 模板上的 mixed-history 空建议、heater 模板上的 alternate candidate 切换不误伤，以及 cooler 模板上的 latest dismiss 后继续保持 `manual_only`，并首轮直接收口到 `audit=3/3 pass`
 - 第十三批 `v13` 继续把 recent-action 变体推进到剩余模板：当前 `rfb-88afee19f042` 已覆盖 heater 与 valve 模板上的 latest dismiss 后继续保持 `manual_only`，以及 cooler 模板上的 alternate candidate 在 other dismiss 后继续作为默认候选，并首轮直接收口到 `audit=3/3 pass`
+- 第十四批 `v14` 则把 cooldown 恢复语义正式推进到三模板：当前 `rfb-4bc5dfa547a5` 已覆盖 valve / heater / cooler 三模板上 latest dismiss cooldown 已过且 older reject 不再阻止 `Tab` 恢复的恢复形态，并首轮直接收口到 `audit=3/3 pass`
 
 当前这条 PoC 仍是轻量版：
 
@@ -78,7 +79,7 @@
 - 若后续继续使用多 provider fallback 采集真实 batch，当前还应额外观察 provider 间的输出风格漂移，例如把本应是纯文本的 `summary` / `answer.text` 写成 JSON 字符串；这类现象若稳定复现，应优先在 runtime 做任务级窄修复，而不是把坏输出原样固化进正式批次
 - 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay、两路 recommended replay summary，以及首批 real-derived negative pattern
 - 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
-- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture，优先补齐 alternate / latest-action / mixed-history 在不同模板、不同 recent-action 组合与不同 cooldown 恢复形态上的真实覆盖与重复模式
+- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture，优先补齐 alternate / latest-action / mixed-history 在不同模板、不同 recent-action 组合与不同 cooldown 恢复形态上的真实覆盖，并开始转向下一组尚未真实化的恢复边界
 
 ## 最小必需输入
 
