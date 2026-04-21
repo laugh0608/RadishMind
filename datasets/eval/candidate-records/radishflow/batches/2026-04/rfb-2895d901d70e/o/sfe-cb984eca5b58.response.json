@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中的加热器单元 heater-2 的参数不完整问题生成候选提案：该单元已配置为出口温度控制，但缺少出口温度目标，因此建议仅补充一个可审查的参数占位。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Preheater is configured for outlet temperature control but outlet temperature target is missing."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-2 Preheater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 heater-2 补充出口温度目标占位",
+      "rationale": "诊断直接指出该加热器在出口温度控制模式下缺少温度目标。基于当前证据，最小且局部的候选修补是为该单元添加出口温度参数占位，等待用户确认具体数值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "heater-2"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_temperature_c"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Preheater is configured for outlet temperature control but outlet temperature target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "summary": "当前围绕已选中的加热器单元 heater-2 的参数不完整问题生成候选提案：该单元已配置为出口温度控制，但缺少出口温度目标，因此建议仅补充一个可审查的参数占位。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

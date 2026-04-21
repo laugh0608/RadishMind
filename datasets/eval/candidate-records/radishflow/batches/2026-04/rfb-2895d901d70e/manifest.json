@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-21-radishflow-suggest-edits-poc-real-v83-default-parameter-ordering",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/r/sfe-9a19aa61c0fd.record.json",
+      "sample_key": "sfe-9a19aa61c0fd",
+      "record_relpath": "r/sfe-9a19aa61c0fd.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-update-detail-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-detail-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/r/sfe-3cf59e66a45b.record.json",
+      "sample_key": "sfe-3cf59e66a45b",
+      "record_relpath": "r/sfe-3cf59e66a45b.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/r/sfe-303cbfa1fbd5.record.json",
+      "sample_key": "sfe-303cbfa1fbd5",
+      "record_relpath": "r/sfe-303cbfa1fbd5.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/r/sfe-cb984eca5b58.record.json",
+      "sample_key": "sfe-cb984eca5b58",
+      "record_relpath": "r/sfe-cb984eca5b58.record.json"
+    }
+  ],
+  "batch_key": "rfb-2895d901d70e",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits 首批真实 provider capture 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+}
