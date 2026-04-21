@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "summary": "当前不提供可直接用 Tab 接受的 ghost 建议；基于唯一合法候选可提供手动触发的 ghost completion 建议。",
+  "answers": [
+    {
+      "kind": "ghost_rationale",
+      "text": "提供 1 条仅限手动触发的 ghost completion 建议。",
+      "citation_ids": [
+        "ctx-unit"
+      ]
+    }
+  ],
+  "issues": [],
+  "proposed_actions": [
+    {
+      "kind": "ghost_completion",
+      "title": "保留 flash-44 的 vapor_outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "flash-44",
+        "port_key": "vapor_outlet"
+      },
+      "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-flash-44-vapor-outlet",
+        "target_port_key": "vapor_outlet",
+        "ghost_stream_name": "VG-513"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "manual_only",
+        "render_priority": 1
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-flash-44-vapor-outlet"
+        }
+      },
+      "risk_level": "medium",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "status": "ok",
+  "citations": [
+    {
+      "id": "ctx-unit",
+      "kind": "context",
+      "label": "当前选中的 flash-44",
+      "locator": "context:selected_unit",
+      "excerpt": "selected_unit=flash-44 kind=FlashDrum name=Flash Drum 513"
+    },
+    {
+      "id": "ctx-candidate-1",
+      "kind": "context",
+      "label": "候选 cand-flash-44-vapor-outlet",
+      "locator": "context:legal_candidate_completions[0]",
+      "excerpt": "candidate_ref=cand-flash-44-vapor-outlet target_port_key=vapor_outlet is_tab_default=False is_high_confidence=False"
+    },
+    {
+      "id": "ctx-naming-hints",
+      "kind": "context",
+      "label": "ghost 命名提示",
+      "locator": "context:naming_hints",
+      "excerpt": "{\"upstream_stream_names\": [\"V-513\"], \"existing_stream_names\": [\"F-513\", \"V-513\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\"}, \"numeric_suffix_from_unit\": \"513\"}"
+    },
+    {
+      "id": "ctx-pattern",
+      "kind": "context",
+      "label": "拓扑模式提示",
+      "locator": "context:topology_pattern_hints[0]",
+      "excerpt": "feed_valve_flash_chain"
+    },
+    {
+      "id": "ctx-recent-action",
+      "kind": "context",
+      "label": "最近 ghost 动作",
+      "locator": "context:cursor_context.recent_actions[3]",
+      "excerpt": "{\"kind\": \"dismiss_ghost_completion\", \"candidate_ref\": \"cand-flash-44-vapor-outlet\", \"dismissed_at_revision\": 84}"
+    }
+  ],
+  "risk_level": "medium",
+  "requires_confirmation": false,
+  "confidence": 0.78
+}

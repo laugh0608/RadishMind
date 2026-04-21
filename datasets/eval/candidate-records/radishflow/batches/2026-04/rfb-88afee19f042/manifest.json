@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v13-latest-dismiss-and-alternate-dismiss",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-88afee19f042",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-88afee19f042/r/sgc-9a18fc82c0ae.record.json",
+      "sample_key": "sgc-9a18fc82c0ae",
+      "record_relpath": "r/sgc-9a18fc82c0ae.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-latest-dismiss-after-reject-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-latest-dismiss-after-reject-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-88afee19f042/r/sgc-ce027f036dfe.record.json",
+      "sample_key": "sgc-ce027f036dfe",
+      "record_relpath": "r/sgc-ce027f036dfe.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-latest-dismiss-after-reject-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-latest-dismiss-after-reject-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-88afee19f042/r/sgc-3b1d0196f9f8.record.json",
+      "sample_key": "sgc-3b1d0196f9f8",
+      "record_relpath": "r/sgc-3b1d0196f9f8.record.json"
+    }
+  ],
+  "batch_key": "rfb-88afee19f042",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第十三批真实 provider 候选响应快照，继续扩固定 trio 之外的高价值链式样本，覆盖 heater 与 valve 的 latest dismiss 后 manual-only 保持，以及 cooler 的 alternate candidate 在 other dismiss 后继续作为默认候选。"
+}

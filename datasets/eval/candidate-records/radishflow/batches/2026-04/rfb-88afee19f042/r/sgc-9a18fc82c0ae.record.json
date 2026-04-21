@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-dismiss-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-dismiss-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-alternate-candidate-tab-after-other-dismiss-001",
+  "captured_at": "2026-04-21T13:22:43Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 64,
+    "selected_unit_ids": [
+      "cooler-14"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-14-outlet-flash-36"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "requires_confirmation": false,
+    "summary": "给出 1 条 ghost 建议：为所选 Cooler 的 outlet 连接到 Flash Drum 708A 的 inlet。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "建议将 cooler-14.outlet 连接至 flash-36.inlet。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 cooler-14 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-14",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-14-outlet-flash-36",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-708"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-14-outlet-flash-36"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-14",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-14 kind=Cooler name=Feed Cooler 708"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-14-outlet-flash-36",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-14-outlet-flash-36 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-708\"], \"existing_stream_names\": [\"F-708\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"708\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"dismiss_ghost_completion\", \"candidate_ref\": \"cand-cooler-14-outlet-flash-37\", \"dismissed_at_revision\": 63}"
+      }
+    ],
+    "risk_level": "low",
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v13-latest-dismiss-and-alternate-dismiss",
+    "notes": "v13 chain expansion focusing on latest-dismiss manual-only retention across heater/valve templates and cooler alternate-candidate recovery after other dismiss."
+  }
+}
