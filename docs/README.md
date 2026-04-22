@@ -46,8 +46,8 @@
 
 ## 下一步优先推进
 
-1. 继续沿 `RadishFlow suggest_flowsheet_edits` 主线推进更复杂真实样本面；当前 cross-object citation、mixed-risk + cross-object 与 triad patch-shape 样本都已接进正式治理链，下一步优先决定 `apiyi_ch` 在 triad 样本上的超时阻塞是继续拉长超时，还是先转入下一组更复杂 mixed-risk patch 组合样本设计。
+1. 继续沿 `RadishFlow suggest_flowsheet_edits` 主线推进新的非重复高价值真实样本池；当前 `high-value-real-expansion-core` 与 `high-value-real-expansion-secondary` 已都完成正式收口，下一步不应回到 teacher comparison 或低价值 replay，而应继续挑选更容易暴露 mixed reconnect / mixed patch citation drift 的真实样本。
 2. 继续沿 `RadishFlow export -> adapter -> request` 主线补更贴近真实 exporter 的边界样本和 validator 规则，优先观察更复杂的联合选择、同风险多动作并列优先级，以及 `support_artifacts` 在更高阶 mixed summary 变体之后是否还需要升级成正式契约。
-3. 继续把 `RadishFlow` 的 `suggest_ghost_completion` 从“链式三模板主干基线已闭环”推进到“多动作 recent-actions 恢复窗口更细化”的阶段；当前已补齐三模板上的 `Tab / manual_only / empty`、`reject / dismiss / skip no-retab`、same-candidate cooldown 恢复、latest-action precedence 与 cross-candidate suppress 作用域，下一步优先扩充更复杂交错历史。
-4. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前已具备真实/模拟 batch 编排、`manifest / audit / replay index / same-sample negatives / artifacts.json / recommended replay summary` 这条最小闭环，下一步优先扩大真实 captured negative 批次并沉淀更多高频违规类型。
+3. 继续把 `RadishFlow` 的 `suggest_ghost_completion` 从“链式三模板主干基线已闭环”推进到“高价值真实 capture 样本池继续扩张”的阶段；当前不再优先重复 cooldown 对称组，而应转向尚未真实化的恢复边界与更复杂交错历史。
+4. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前治理链已经完整接通，下一步优先扩大真实 captured negative 批次并沉淀更多跨 source 复合 drift 的高频违规类型。
 5. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
