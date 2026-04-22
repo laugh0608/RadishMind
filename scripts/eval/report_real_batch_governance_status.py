@@ -318,7 +318,9 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         ):
             governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
     priority_category = "expand_real_capture_pool"
-    priority_recommendation = "继续扩高价值真实样本池，并优先观察更复杂 drift。"
+    priority_recommendation = (
+        "继续扩高价值真实样本池，建议先运行 sample_group=high-value-real-expansion-core。"
+    )
     if next_group:
         priority_category = "teacher_comparison_capture"
         priority_recommendation = f"补齐 suggest_flowsheet_edits 的 {next_group} default teacher capture。"

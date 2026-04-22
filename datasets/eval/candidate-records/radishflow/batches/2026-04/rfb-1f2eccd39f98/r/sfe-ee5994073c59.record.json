@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+  "request_id": "rf-suggest-edit-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+  "captured_at": "2026-04-22T13:42:01Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 90,
+    "selected_unit_ids": [
+      "compressor-22",
+      "separator-22"
+    ],
+    "selected_stream_ids": [
+      "feed-94",
+      "compressor-outlet-94",
+      "separator-gas-94"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+      "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE",
+      "UNIT_PARAMETER_OUT_OF_RANGE",
+      "DOWNSTREAM_STATE_DEPENDENT"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的压缩机 Recycle Compressor 22、分离器 Intermediate Separator 22，以及未连接的出口物流 Separator Gas 94 生成候选编辑提案；提案仅覆盖有直接诊断支撑的局部参数缺失、参数越界/不一致和下游连接占位问题。",
+        "citation_ids": [
+          "diag-1",
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1",
+          "diag-2",
+          "diag-3",
+          "diag-5",
+          "flowdoc-stream-1",
+          "diag-4"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Separator Gas 94 添加下游连接待定占位",
+        "rationale": "Separator Gas 94 当前没有 target_unit_id 或导出汇点，导致 invalid_topology。由于另有诊断说明其路由依赖当前压缩机排出和分离器压力上下文，直接重连到某个具体单元或 sink 会显著改变拓扑和求解行为；因此只建议添加需要人工确认的 connection placeholder。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "separator-gas-94"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Recycle Compressor 22 添加需确认的出口压力目标候选值",
+        "rationale": "当前压缩机 control_mode 为 outlet_pressure，但 outlet_pressure_target_kpa=165 低于入口物流 feed-94 的 190 kPa，并且低于当前出口物流 compressor-outlet-94 的 172 kPa。为解除直接诊断的不一致，建议把出口压力目标作为待确认参数更新到不低于当前入口压力的候选值；该数值仅为局部候选补丁，需工程确认后应用。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "diag-3",
+          "diag-5",
+          "flowdoc-unit-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "compressor-22"
+        },
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_above_inlet",
+              "minimum_reference_stream_id": "feed-94"
+            },
+            "efficiency_percent": {
+              "action": "clamp_to_review_range",
+              "suggested_range": [
+                60,
+                85
+              ]
+            }
+          },
+          "parameter_placeholders": [
+            "minimum_flow_bypass_percent"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Intermediate Separator 22 补充固定压力目标占位参数",
+        "rationale": "Intermediate Separator 22 的 pressure_mode 为 fixed，但缺少 operating pressure target。由于当前相关物流给出 compressor-outlet-94 为 172 kPa、separator-gas-94 为 164 kPa，且没有明确分离器设计压力，建议添加待确认占位而不自动推断具体目标。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "separator-22"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "operating_pressure_kpa",
+            "operating_pressure_target_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Separator Gas 94 is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+        "message": "Recycle Compressor 22 outlet pressure target is lower than the inlet pressure.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "message": "Recycle Compressor 22 anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Intermediate Separator 22 is configured for fixed pressure mode but the operating pressure target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+        "message": "Recycle Compressor 22 efficiency_percent=58 is outside the recommended operating range.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-5",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_STATE_DEPENDENT",
+        "message": "Separator Gas 94 routing still depends on the current compressor discharge and separator pressure context.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-6",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Separator Gas 94 is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Recycle Compressor 22 outlet pressure target is lower than the inlet pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Recycle Compressor 22 anti-surge review requires minimum flow bypass percent, but the parameter is missing."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Intermediate Separator 22 is configured for fixed pressure mode but the operating pressure target is missing."
+      },
+      {
+        "id": "diag-5",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+        "locator": "context:diagnostics[4]",
+        "excerpt": "Recycle Compressor 22 efficiency_percent=58 is outside the recommended operating range."
+      },
+      {
+        "id": "diag-6",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+        "locator": "context:diagnostics[5]",
+        "excerpt": "Separator Gas 94 routing still depends on the current compressor discharge and separator pressure context."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-gas-94",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "separator-gas-94 Separator Gas 94 source_unit_id=separator-22"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-22",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-22 Recycle Compressor 22 kind=Compressor"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-22",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-22 Intermediate Separator 22 kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-outlet-94",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "compressor-outlet-94 Compressor Outlet 94 source_unit_id=compressor-22 target_unit_id=separator-22"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-94",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-94 Recycle Compressor Feed 94 target_unit_id=compressor-22"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕已选中的压缩机 Recycle Compressor 22、分离器 Intermediate Separator 22，以及未连接的出口物流 Separator Gas 94 生成候选编辑提案；提案仅覆盖有直接诊断支撑的局部参数缺失、参数越界/不一致和下游连接占位问题。",
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-22-radishflow-suggest-edits-poc-real-v85-high-value-core"
+  }
+}

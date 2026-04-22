@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_flowsheet_edits`
 
-更新时间：2026-04-18
+更新时间：2026-04-22
 
 ## 任务目标
 
@@ -76,6 +76,15 @@
 
 因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
+当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增两组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选：
+
+- `high-value-real-expansion-core`
+  - 优先覆盖 triad mixed-risk、mixed patch combo、cross-object primary focus、parameter detail ordering、local-edits evidence gap 与 mixed-risk reconnect 六类复杂 drift 面
+  - 建议作为下一批真实 capture 的第一组正式入口
+- `high-value-real-expansion-secondary`
+  - 作为与第一组互补的第二组入口，继续覆盖 triad mixed-risk 的另一支 patch 形态、mixed patch combo 的另一支组合、multi-unit primary focus、heater patch-key ordering、selection 裁剪与 reconnect placeholder 细节
+  - 建议在 `core` 组无新增 runtime 根因后再继续推进
+
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
 - `default-early-trio`
@@ -90,6 +99,8 @@
 - `range-sequence-ordering`
 - `local-edits`
 - `mixed-risk-citation-reconnect`
+- `high-value-real-expansion-core`
+- `high-value-real-expansion-secondary`
 - `remaining-horizontal-gaps`
 
 ## 请求映射

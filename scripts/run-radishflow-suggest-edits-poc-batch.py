@@ -101,6 +101,22 @@ SAMPLE_GROUP_PATHS = {
         "datasets/eval/radishflow/suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001.json",
         "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001.json",
     ],
+    "high-value-real-expansion-core": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-compressor-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-joint-selection-primary-focus-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-detail-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-evidence-gap-partial-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001.json",
+    ],
+    "high-value-real-expansion-secondary": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-multi-unit-stream-primary-focus-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-heater-patch-key-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001.json",
+    ],
     "remaining-horizontal-gaps": [
         "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
         "datasets/eval/radishflow/suggest-flowsheet-edits-heater-multi-action-001.json",

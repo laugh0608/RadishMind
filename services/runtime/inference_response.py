@@ -722,6 +722,39 @@ def build_suggest_edits_context_support_citation_ids(
         for diagnostic in ((copilot_request.get("context") or {}).get("diagnostics") or [])
         if isinstance(diagnostic, dict)
     ]
+
+    def source_unit_has_primary_stream_supported_action(source_unit_id: str) -> bool:
+        normalized_source_unit_id = str(source_unit_id).strip()
+        if not normalized_source_unit_id:
+            return False
+        primary_source_unit_diagnostic = next(
+            (
+                diagnostic
+                for diagnostic in diagnostics
+                if str((diagnostic or {}).get("target_type") or "").strip().lower() == "unit"
+                and str((diagnostic or {}).get("target_id") or "").strip() == normalized_source_unit_id
+            ),
+            None,
+        )
+        if not isinstance(primary_source_unit_diagnostic, dict):
+            return False
+        primary_code = str((primary_source_unit_diagnostic or {}).get("code") or "").strip()
+        if primary_code in {
+            "COMPRESSOR_OUTLET_PRESSURE_TARGET_INVALID",
+            "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        }:
+            return bool(input_stream_ids_by_unit_id.get(normalized_source_unit_id, []))
+        if primary_code == "PUMP_OUTLET_PRESSURE_TARGET_INVALID":
+            return any(
+                any(
+                    str((diagnostic or {}).get("target_type") or "").strip().lower() == "stream"
+                    and str((diagnostic or {}).get("target_id") or "").strip() == stream_id
+                    for diagnostic in diagnostics
+                )
+                for stream_id in input_stream_ids_by_unit_id.get(normalized_source_unit_id, [])
+            )
+        return False
+
     citation_ids: list[str] = []
     target_citation_id = target_citation_lookup.get((target_type, target_id))
     skip_target_citation = (
@@ -794,7 +827,11 @@ def build_suggest_edits_context_support_citation_ids(
                 for stream_id in input_stream_ids:
                     input_stream_document = stream_by_id.get(stream_id) or {}
                     source_unit_id = str(input_stream_document.get("source_unit_id") or "").strip()
-                    if source_unit_id and source_unit_id in selected_unit_ids:
+                    if (
+                        source_unit_id
+                        and source_unit_id in selected_unit_ids
+                        and not source_unit_has_primary_stream_supported_action(source_unit_id)
+                    ):
                         append_unique_citation_id(citation_ids, target_citation_lookup.get(("unit", source_unit_id), ""))
             if snapshot_citation_id:
                 append_unique_citation_id(citation_ids, snapshot_citation_id)
@@ -1515,6 +1552,9 @@ def canonicalize_suggest_edits_response(
     ordered_stream_action_supporting_citation_ids: list[str] = []
     ordered_residual_supporting_citation_ids: list[str] = []
 
+    def is_stream_artifact_citation_id(citation_id: str) -> bool:
+        return str(citation_id).strip().startswith("flowdoc-stream-")
+
     def append_supporting_citation_id(citation_ids: list[str], citation_id: str) -> None:
         normalized_citation_id = str(citation_id).strip()
         if not normalized_citation_id:
@@ -1549,10 +1589,23 @@ def canonicalize_suggest_edits_response(
             continue
         for citation_id in (answer.get("citation_ids") or []):
             append_supporting_citation_id(ordered_residual_supporting_citation_ids, str(citation_id))
-    for citation_id in ordered_unit_action_supporting_citation_ids:
-        append_unique_citation_id(ordered_citation_ids, citation_id)
-    for citation_id in ordered_stream_action_supporting_citation_ids:
-        append_unique_citation_id(ordered_citation_ids, citation_id)
+    supporting_citation_groups = [
+        ordered_unit_action_supporting_citation_ids,
+        ordered_stream_action_supporting_citation_ids,
+    ]
+    if (
+        ordered_unit_action_supporting_citation_ids
+        and ordered_stream_action_supporting_citation_ids
+        and all(is_stream_artifact_citation_id(citation_id) for citation_id in ordered_unit_action_supporting_citation_ids)
+        and all(is_stream_artifact_citation_id(citation_id) for citation_id in ordered_stream_action_supporting_citation_ids)
+    ):
+        supporting_citation_groups = [
+            ordered_stream_action_supporting_citation_ids,
+            ordered_unit_action_supporting_citation_ids,
+        ]
+    for citation_group in supporting_citation_groups:
+        for citation_id in citation_group:
+            append_unique_citation_id(ordered_citation_ids, citation_id)
     for citation_id in ordered_residual_supporting_citation_ids:
         append_unique_citation_id(ordered_citation_ids, citation_id)
     if snapshot_citation_id and snapshot_citation_id in referenced_citation_ids:
