@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-04-12
+更新时间：2026-04-22
 
 ## 目录目标
 
@@ -19,6 +19,7 @@
 - `scripts/eval/`
   - 放评测回归 runner 的内部实现模块
   - 当前 `run-eval-regression.py` 的具体实现已拆到这里
+  - 当前也承载 `report_real_batch_governance_status.py` 这类只读治理报表，用于统一盘点 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 的 formal real batch、coverage、replay / real-derived 连通性，以及当前优先级队列
 
 ## 维护约定
 

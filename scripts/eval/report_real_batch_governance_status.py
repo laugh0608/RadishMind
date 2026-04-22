@@ -96,6 +96,33 @@ def safe_bool(value: Any) -> bool:
     return bool(value)
 
 
+def safe_ratio(numerator: int, denominator: int) -> float:
+    if denominator <= 0:
+        return 0.0
+    return round(numerator / denominator, 4)
+
+
+def collect_unique_sample_ids(batches: list[dict[str, Any]]) -> list[str]:
+    return sorted({sample_id for batch in batches for sample_id in batch.get("sample_ids") or []})
+
+
+def build_coverage_summary(
+    *,
+    total_eval_sample_count: int,
+    real_captured_sample_count: int,
+    latest_batch_matched_sample_count: int,
+    latest_batch_record_count: int,
+) -> dict[str, Any]:
+    return {
+        "total_eval_sample_count": total_eval_sample_count,
+        "real_captured_sample_count": real_captured_sample_count,
+        "real_captured_ratio": safe_ratio(real_captured_sample_count, total_eval_sample_count),
+        "latest_batch_matched_sample_count": latest_batch_matched_sample_count,
+        "latest_batch_matched_ratio": safe_ratio(latest_batch_matched_sample_count, total_eval_sample_count),
+        "latest_batch_record_count": latest_batch_record_count,
+    }
+
+
 def load_optional_radishflow_artifact_summary(entry: dict[str, Any]) -> tuple[str, dict[str, Any] | None]:
     summary_path_value = str(entry.get("artifact_summary") or "").strip()
     if not summary_path_value:
@@ -222,6 +249,8 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         if not isinstance(real_derived_summary, dict):
             raise SystemExit(f"real-derived summary must be an object: {make_repo_relative(real_derived_index_path)}")
     coverage_report = build_suggest_edits_profile_coverage()
+    total_eval_sample_count = int(coverage_report.get("sample_count") or 0)
+    real_captured_sample_ids = collect_unique_sample_ids(batches)
     teacher_candidates = list(coverage_report.get("teacher_comparison_candidates") or [])
     next_group = ""
     if teacher_candidates:
@@ -288,6 +317,14 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             "cross_sample_negative_replay_index"
         ):
             governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
+    priority_category = "expand_real_capture_pool"
+    priority_recommendation = "继续扩高价值真实样本池，并优先观察更复杂 drift。"
+    if next_group:
+        priority_category = "teacher_comparison_capture"
+        priority_recommendation = f"补齐 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
+    elif str(governance.get("real_derived_negative_index_blocker") or "").strip():
+        priority_category = "complete_real_derived_assets"
+        priority_recommendation = "先把 suggest_flowsheet_edits 的 real-derived 负例资产补齐，再回到真实样本池扩样。"
     return {
         "chain_id": "radishflow-suggest-flowsheet-edits",
         "project": "radishflow",
@@ -296,11 +333,18 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         "formal_real_batch_count": len(batches),
         "formal_batches": batches,
         "latest_formal_batch": latest_batch,
+        "coverage_summary": build_coverage_summary(
+            total_eval_sample_count=total_eval_sample_count,
+            real_captured_sample_count=len(real_captured_sample_ids),
+            latest_batch_matched_sample_count=latest_batch["matched_sample_count"],
+            latest_batch_record_count=latest_batch["record_count"],
+        ),
         "coverage": {
             "kind": "profile_coverage",
-            "sample_count": int(coverage_report.get("sample_count") or 0),
+            "sample_count": total_eval_sample_count,
             "fully_covered_count": int(coverage_report.get("fully_covered_count") or 0),
             "missing_count": int(coverage_report.get("missing_count") or 0),
+            "real_captured_sample_ids": real_captured_sample_ids,
             "teacher_comparison_target": str(coverage_report.get("teacher_comparison_target") or "").strip(),
             "teacher_comparison_candidate_count": len(teacher_candidates),
             "teacher_comparison_candidates": teacher_candidates,
@@ -315,6 +359,11 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             if artifact_summary is not None
             else None
         ),
+        "priority": {
+            "rank": 1,
+            "category": priority_category,
+            "recommended_action": priority_recommendation,
+        },
         "next_gap": next_gap,
     }
 
@@ -341,7 +390,7 @@ def build_ghost_chain() -> dict[str, Any]:
         real_derived_summary = real_derived_index.get("summary") or {}
         if not isinstance(real_derived_summary, dict):
             raise SystemExit(f"real-derived summary must be an object: {make_repo_relative(real_derived_index_path)}")
-    all_sample_ids = sorted({sample_id for batch in batches for sample_id in batch["sample_ids"]})
+    all_sample_ids = collect_unique_sample_ids(batches)
     total_eval_sample_count = count_eval_samples("datasets/eval/radishflow/suggest-ghost-completion-*.json")
     governance: dict[str, Any] = {
         "level": (
@@ -402,6 +451,12 @@ def build_ghost_chain() -> dict[str, Any]:
         "formal_real_batch_count": len(batches),
         "formal_batches": batches,
         "latest_formal_batch": latest_batch,
+        "coverage_summary": build_coverage_summary(
+            total_eval_sample_count=total_eval_sample_count,
+            real_captured_sample_count=len(all_sample_ids),
+            latest_batch_matched_sample_count=latest_batch["matched_sample_count"],
+            latest_batch_record_count=latest_batch["record_count"],
+        ),
         "coverage": {
             "kind": "current_real_capture_scope",
             "total_eval_sample_count": total_eval_sample_count,
@@ -433,6 +488,11 @@ def build_ghost_chain() -> dict[str, Any]:
             if artifact_summary is not None
             else None
         ),
+        "priority": {
+            "rank": 2,
+            "category": "expand_real_capture_pool",
+            "recommended_action": "继续扩非重复高价值真实 capture 样本池，避免回到重复 replay 扩样。",
+        },
         "next_gap": (
             "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
             "下一步应继续扩非重复高价值真实 capture 样本池。"
@@ -443,6 +503,7 @@ def build_ghost_chain() -> dict[str, Any]:
 def build_radish_docs_chain() -> dict[str, Any]:
     batches = load_real_batches(RADISH_DOCS_BATCH_FIXTURE)
     latest_batch = batches[-1]
+    all_sample_ids = collect_unique_sample_ids(batches)
     fixture_entries = load_json_list(RADISH_DOCS_BATCH_FIXTURE)
     latest_fixture = fixture_entries[-1]
     artifact_summary_path = resolve_repo_relative(str(latest_fixture.get("artifact_summary") or "").strip())
@@ -480,9 +541,16 @@ def build_radish_docs_chain() -> dict[str, Any]:
             **latest_batch,
             "artifact_summary_path": make_repo_relative(artifact_summary_path),
         },
+        "coverage_summary": build_coverage_summary(
+            total_eval_sample_count=total_eval_sample_count,
+            real_captured_sample_count=len(all_sample_ids),
+            latest_batch_matched_sample_count=latest_batch["matched_sample_count"],
+            latest_batch_record_count=latest_batch["record_count"],
+        ),
         "coverage": {
             "kind": "latest_real_batch_eval_coverage",
             "total_eval_sample_count": total_eval_sample_count,
+            "real_captured_sample_ids": all_sample_ids,
             "latest_batch_matched_sample_count": latest_batch["matched_sample_count"],
             "latest_batch_full_coverage": latest_batch["matched_sample_count"] == total_eval_sample_count,
             "latest_batch_failed_sample_count": latest_batch["failed_count"],
@@ -505,6 +573,11 @@ def build_radish_docs_chain() -> dict[str, Any]:
             "real_derived_violation_group_count": int(real_derived_summary.get("violation_group_count") or 0),
             **make_governance_blockers(),
         },
+        "priority": {
+            "rank": 3,
+            "category": "expand_repeated_patterns",
+            "recommended_action": "继续扩 captured negative 与跨 source 复合 drift，把 docs QA repeated pattern 做得更结构化。",
+        },
         "next_gap": "把 docs QA 已完成的 artifact summary / replay / real-derived 能力上提为仓库级统一盘点基线。",
     }
 
@@ -518,6 +591,12 @@ def build_report() -> dict[str, Any]:
     latest_clean_chain_count = sum(1 for chain in chains if chain["latest_formal_batch"]["audit_clean"])
     artifact_summary_connected_chain_count = sum(1 for chain in chains if chain["governance"]["artifact_summary"])
     replay_connected_chain_count = sum(1 for chain in chains if chain["governance"]["negative_replay_index"])
+    cross_sample_replay_connected_chain_count = sum(
+        1 for chain in chains if chain["governance"]["cross_sample_negative_replay_index"]
+    )
+    cross_sample_recommended_replay_connected_chain_count = sum(
+        1 for chain in chains if chain["governance"]["cross_sample_recommended_negative_replay_summary"]
+    )
     real_derived_connected_chain_count = sum(1 for chain in chains if chain["governance"]["real_derived_negative_index"])
     replay_asset_gap_chain_count = sum(
         1
@@ -535,6 +614,31 @@ def build_report() -> dict[str, Any]:
         if chain["governance"].get("real_derived_negative_index_blocker") == MISSING_REAL_DERIVED_NEGATIVE_SAMPLES
     )
     total_formal_batches = sum(int(chain["formal_real_batch_count"]) for chain in chains)
+    full_governance_connected_chain_count = sum(
+        1
+        for chain in chains
+        if (
+            chain["governance"]["artifact_summary"]
+            and chain["governance"]["negative_replay_index"]
+            and chain["governance"]["cross_sample_negative_replay_index"]
+            and chain["governance"]["recommended_negative_replay_summary"]
+            and chain["governance"]["cross_sample_recommended_negative_replay_summary"]
+            and chain["governance"]["real_derived_negative_index"]
+        )
+    )
+    coverage_visible_chain_count = sum(1 for chain in chains if isinstance(chain.get("coverage_summary"), dict))
+    priority_queue = sorted(
+        [
+            {
+                "rank": int((chain.get("priority") or {}).get("rank") or 0),
+                "chain_id": chain["chain_id"],
+                "category": str(((chain.get("priority") or {}).get("category")) or "").strip(),
+                "recommended_action": str(((chain.get("priority") or {}).get("recommended_action")) or "").strip(),
+            }
+            for chain in chains
+        ],
+        key=lambda item: (item["rank"], item["chain_id"]),
+    )
     next_group = str(chains[0]["coverage"].get("next_teacher_comparison_group") or "").strip()
     if (
         replay_asset_gap_chain_count > 0
@@ -566,12 +670,17 @@ def build_report() -> dict[str, Any]:
             "latest_clean_chain_count": latest_clean_chain_count,
             "artifact_summary_connected_chain_count": artifact_summary_connected_chain_count,
             "replay_connected_chain_count": replay_connected_chain_count,
+            "cross_sample_replay_connected_chain_count": cross_sample_replay_connected_chain_count,
+            "cross_sample_recommended_replay_connected_chain_count": cross_sample_recommended_replay_connected_chain_count,
             "real_derived_connected_chain_count": real_derived_connected_chain_count,
+            "full_governance_connected_chain_count": full_governance_connected_chain_count,
+            "coverage_visible_chain_count": coverage_visible_chain_count,
             "replay_asset_gap_chain_count": replay_asset_gap_chain_count,
             "recommended_replay_asset_gap_chain_count": recommended_replay_asset_gap_chain_count,
             "real_derived_asset_gap_chain_count": real_derived_asset_gap_chain_count,
         },
         "next_mainline_focus": next_mainline_focus,
+        "priority_queue": priority_queue,
         "chains": chains,
     }
 
@@ -585,13 +694,18 @@ def print_report(report: dict[str, Any]) -> None:
         f" latest_clean={summary['latest_clean_chain_count']}"
         f" artifact_summary_connected={summary['artifact_summary_connected_chain_count']}"
         f" replay_connected={summary['replay_connected_chain_count']}"
+        f" cross_sample_replay_connected={summary['cross_sample_replay_connected_chain_count']}"
+        f" cross_sample_recommended_connected={summary['cross_sample_recommended_replay_connected_chain_count']}"
         f" real_derived_connected={summary['real_derived_connected_chain_count']}"
+        f" full_governance_connected={summary['full_governance_connected_chain_count']}"
+        f" coverage_visible={summary['coverage_visible_chain_count']}"
         f" replay_asset_gap={summary['replay_asset_gap_chain_count']}"
         f" recommended_replay_asset_gap={summary['recommended_replay_asset_gap_chain_count']}"
         f" real_derived_asset_gap={summary['real_derived_asset_gap_chain_count']}"
     )
     for chain in report["chains"]:
         latest_batch = chain["latest_formal_batch"]
+        coverage_summary = chain.get("coverage_summary") or {}
         coverage = chain["coverage"]
         governance = chain["governance"]
         print(f"{chain['chain_id']}:")
@@ -604,6 +718,14 @@ def print_report(report: dict[str, Any]) -> None:
             f"failed={latest_batch['failed_count']} "
             f"violations={latest_batch['violation_count']})"
         )
+        if isinstance(coverage_summary, dict):
+            print(
+                "  coverage_summary="
+                f"real_captured={coverage_summary.get('real_captured_sample_count', 0)}/"
+                f"{coverage_summary.get('total_eval_sample_count', 0)} "
+                f"latest_batch_matched={coverage_summary.get('latest_batch_matched_sample_count', 0)}/"
+                f"{coverage_summary.get('total_eval_sample_count', 0)}"
+            )
         if coverage["kind"] == "profile_coverage":
             print(
                 "  coverage="
@@ -651,7 +773,22 @@ def print_report(report: dict[str, Any]) -> None:
             governance_blockers.append(f"real_derived={governance['real_derived_negative_index_blocker']}")
         if governance_blockers:
             print("  governance_blockers=" + " ".join(governance_blockers))
+        priority = chain.get("priority") or {}
+        if isinstance(priority, dict):
+            print(
+                "  priority="
+                f"rank={priority.get('rank', 0)} "
+                f"category={priority.get('category') or '(none)'} "
+                f"action={priority.get('recommended_action') or '(none)'}"
+            )
         print(f"  next_gap={chain['next_gap']}")
+    if report.get("priority_queue"):
+        print("priority_queue:")
+        for item in report["priority_queue"]:
+            print(
+                f"  {item['rank']}. {item['chain_id']} "
+                f"[{item['category'] or 'uncategorized'}] {item['recommended_action']}"
+            )
     print(f"next_mainline_focus: {report['next_mainline_focus']}")
 
 

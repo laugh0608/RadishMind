@@ -623,8 +623,16 @@ def check_generated_eval_metadata() -> None:
         raise SystemExit("unexpected artifact summary connected chain count in governance status report")
     if int(governance_summary.get("replay_connected_chain_count") or 0) != 3:
         raise SystemExit("unexpected replay connected chain count in governance status report")
+    if int(governance_summary.get("cross_sample_replay_connected_chain_count") or 0) != 3:
+        raise SystemExit("unexpected cross-sample replay connected chain count in governance status report")
+    if int(governance_summary.get("cross_sample_recommended_replay_connected_chain_count") or 0) != 3:
+        raise SystemExit("unexpected cross-sample recommended replay connected chain count in governance status report")
     if int(governance_summary.get("real_derived_connected_chain_count") or 0) != 3:
         raise SystemExit("unexpected real-derived connected chain count in governance status report")
+    if int(governance_summary.get("full_governance_connected_chain_count") or 0) != 3:
+        raise SystemExit("unexpected full governance connected chain count in governance status report")
+    if int(governance_summary.get("coverage_visible_chain_count") or 0) != 3:
+        raise SystemExit("unexpected coverage visible chain count in governance status report")
     if int(governance_summary.get("replay_asset_gap_chain_count") or 0) != 0:
         raise SystemExit("unexpected replay asset gap chain count in governance status report")
     if int(governance_summary.get("recommended_replay_asset_gap_chain_count") or 0) != 0:
@@ -635,6 +643,13 @@ def check_generated_eval_metadata() -> None:
     governance_chains = list(governance_report.get("chains") or [])
     if len(governance_chains) != 3:
         raise SystemExit("unexpected governance chain count in governance status report")
+    priority_queue = list(governance_report.get("priority_queue") or [])
+    if [str(item.get("chain_id") or "").strip() for item in priority_queue] != [
+        "radishflow-suggest-flowsheet-edits",
+        "radishflow-suggest-ghost-completion",
+        "radish-answer-docs-question",
+    ]:
+        raise SystemExit("governance status report priority queue drifted from current M3 baseline")
     if "高价值真实样本池" not in str(governance_report.get("next_mainline_focus") or ""):
         raise SystemExit("governance status report next_mainline_focus drifted from current M3 baseline")
 
@@ -645,6 +660,14 @@ def check_generated_eval_metadata() -> None:
         raise SystemExit("governance status report is missing one or more expected chains")
 
     suggest_governance = suggest_chain.get("governance") or {}
+    suggest_coverage_summary = suggest_chain.get("coverage_summary") or {}
+    if int(suggest_coverage_summary.get("real_captured_sample_count") or 0) != 33:
+        raise SystemExit("radishflow suggest edits: unexpected real captured sample count in governance status report")
+    if int(suggest_coverage_summary.get("latest_batch_matched_sample_count") or 0) != 4:
+        raise SystemExit("radishflow suggest edits: unexpected latest batch matched sample count in governance status report")
+    suggest_priority = suggest_chain.get("priority") or {}
+    if int(suggest_priority.get("rank") or 0) != 1:
+        raise SystemExit("radishflow suggest edits: unexpected priority rank in governance status report")
     for blocker_key in (
         "negative_replay_index_blocker",
         "recommended_negative_replay_summary_blocker",
@@ -661,6 +684,14 @@ def check_generated_eval_metadata() -> None:
         raise SystemExit("radishflow suggest edits: unexpected real-derived blocker in governance status report")
 
     ghost_governance = ghost_chain.get("governance") or {}
+    ghost_coverage_summary = ghost_chain.get("coverage_summary") or {}
+    if int(ghost_coverage_summary.get("real_captured_sample_count") or 0) != 21:
+        raise SystemExit("radishflow ghost completion: unexpected real captured sample count in governance status report")
+    if int(ghost_coverage_summary.get("latest_batch_matched_sample_count") or 0) != 3:
+        raise SystemExit("radishflow ghost completion: unexpected latest batch matched sample count in governance status report")
+    ghost_priority = ghost_chain.get("priority") or {}
+    if int(ghost_priority.get("rank") or 0) != 2:
+        raise SystemExit("radishflow ghost completion: unexpected priority rank in governance status report")
     for blocker_key in (
         "negative_replay_index_blocker",
         "recommended_negative_replay_summary_blocker",
@@ -677,6 +708,14 @@ def check_generated_eval_metadata() -> None:
         raise SystemExit("radishflow ghost completion: unexpected real-derived blocker in governance status report")
 
     docs_governance = docs_chain.get("governance") or {}
+    docs_coverage_summary = docs_chain.get("coverage_summary") or {}
+    if int(docs_coverage_summary.get("real_captured_sample_count") or 0) < int(
+        docs_coverage_summary.get("latest_batch_matched_sample_count") or 0
+    ):
+        raise SystemExit("radish docs governance coverage summary should not shrink below latest batch coverage")
+    docs_priority = docs_chain.get("priority") or {}
+    if int(docs_priority.get("rank") or 0) != 3:
+        raise SystemExit("radish docs governance chain: unexpected priority rank in governance status report")
     for blocker_key in (
         "negative_replay_index_blocker",
         "cross_sample_negative_replay_index_blocker",
