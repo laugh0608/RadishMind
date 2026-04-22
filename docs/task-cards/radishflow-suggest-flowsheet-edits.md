@@ -63,6 +63,7 @@
 - 当前又继续沿同一条 default teacher 主线把 `mixed-risk-citation-reconnect` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v84-default-mixed-risk-citation-reconnect/` 已覆盖 `mixed-risk-reconnect-plus-spec`、`citation-ordering-diagnostics-before-artifacts-before-snapshot`、`issue-citation-ordering-warning-artifact-before-snapshot` 与 `reconnect-connection-placeholder-ordering` 四条样本，并在修正 runtime citation canonicalization 后原地重跑收口到正式 `audit=4/4 pass`
 - 这轮也顺手收紧了两条已定位的 runtime 根因：当前 `flowdoc-stream-*` / `flowdoc-unit-*` 会只对响应实际纳入对象做紧凑稳定编号，而 `HEATER_OUTLET_EFFECT_UNCONFIRMED` / `COOLER_OUTLET_EFFECT_UNCONFIRMED` 在目标 stream 已显式选中时，也会稳定保留 `diagnostic -> artifact -> snapshot` 的 warning issue citation 顺序
 - 作为当前阶段切向 `M3` 治理收口的首个配套动作，批次入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 现也会默认写出 `<collection-batch>.artifacts.json`；对应最新正式批次 `2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/` 已补最小 batch-level artifact summary，用于统一沉淀 `manifest / audit / output_root / records / responses / dumps` 的结构化治理摘要，而不再只停留在 `manifest + audit`
+- 顺着同一条“高价值真实样本池扩样”主线继续推进后，第二组正式入口也已完成真实 capture：`2026-04-22-radishflow-suggest-edits-poc-real-v86-high-value-secondary` 已覆盖 `cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001`、`cross-object-mixed-risk-reconnect-spec-plus-pump-update-001`、`multi-unit-stream-primary-focus-001`、`heater-patch-key-ordering-001`、`multi-selection-single-actionable-target-001` 与 `reconnect-connection-placeholder-ordering-001` 六条样本；这轮首个 audit 仅再暴露出一条更窄的 runtime 根因，即 `STREAM_DISCONNECTED` action 虽已收集 connected-unit contextual warning，但在最终 action citation 生成时没有把这组上下文 diagnostic index 一并传入，导致 mixed patch combo 样本漏掉 `HEATER_OUTLET_STATE_DEPENDENT` 的 `diag-5`。当前已在 `services/runtime/inference_response.py` 中把这条 citation merge 漂移收口，并基于现有 dump 通过 `scripts/import-candidate-response-dump-batch.py --recanonicalize-response` 原地重导为正式 `audit=6/6 pass`
 
 ## 当前剩余缺口
 
@@ -76,14 +77,14 @@
 
 因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
-当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增两组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选：
+当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增两组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core` 与 `high-value-real-expansion-secondary` 现都已完成一轮正式真实 capture，并分别收口到 `audit=6/6 pass`：
 
 - `high-value-real-expansion-core`
   - 优先覆盖 triad mixed-risk、mixed patch combo、cross-object primary focus、parameter detail ordering、local-edits evidence gap 与 mixed-risk reconnect 六类复杂 drift 面
-  - 建议作为下一批真实 capture 的第一组正式入口
+  - 已作为当前轮真实扩样的第一组正式入口完成收口
 - `high-value-real-expansion-secondary`
   - 作为与第一组互补的第二组入口，继续覆盖 triad mixed-risk 的另一支 patch 形态、mixed patch combo 的另一支组合、multi-unit primary focus、heater patch-key ordering、selection 裁剪与 reconnect placeholder 细节
-  - 建议在 `core` 组无新增 runtime 根因后再继续推进
+  - 已在 `core` 组收口后完成第二组正式收口
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 

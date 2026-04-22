@@ -1381,8 +1381,8 @@ def canonicalize_suggest_edits_response(
         merged_action["requires_confirmation"] = True
         merged_action["citation_ids"] = build_suggest_edits_group_citation_ids(
             copilot_request=copilot_request,
-            diagnostics=[diagnostic for _, diagnostic in target_diagnostics_with_indexes],
-            diagnostic_indexes=[diagnostic_index for diagnostic_index, _ in target_diagnostics_with_indexes],
+            diagnostics=[diagnostic for _, diagnostic in action_context_diagnostics_with_indexes],
+            diagnostic_indexes=[diagnostic_index for diagnostic_index, _ in action_context_diagnostics_with_indexes],
             target_type=target_type,
             target_id=target_id,
             target_citation_lookup=target_citation_lookup,

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选中物流 liquid-out-2 的下游断开问题生成候选提案：为该出口物流添加一个待确认的下游连接占位，而不是直接重连或创建新对象。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Liquid Product 添加下游连接占位",
+      "rationale": "该物流已有上游 source_unit_id=separator-2，但缺少下游消费者或出口汇。由于当前输入中没有可直接连接的目标单元或出口对象，建议仅添加一个需人工确认的 connection_placeholder，用于标记需要选择或创建下游 export sink/consumer。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "liquid-out-2"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / liquid-out-2",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "liquid-out-2 Liquid Product source_unit_id=separator-2"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "summary": "当前围绕已选中物流 liquid-out-2 的下游断开问题生成候选提案：为该出口物流添加一个待确认的下游连接占位，而不是直接重连或创建新对象。",
+  "risk_level": "high",
+  "confidence": 0.2
+}

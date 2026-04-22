@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-22-radishflow-suggest-edits-poc-real-v86-high-value-secondary",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/r/sfe-f446bbc4c0af.record.json",
+      "sample_key": "sfe-f446bbc4c0af",
+      "record_relpath": "r/sfe-f446bbc4c0af.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/r/sfe-14ee2fecd92e.record.json",
+      "sample_key": "sfe-14ee2fecd92e",
+      "record_relpath": "r/sfe-14ee2fecd92e.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-heater-patch-key-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/r/sfe-cb984eca5b58.record.json",
+      "sample_key": "sfe-cb984eca5b58",
+      "record_relpath": "r/sfe-cb984eca5b58.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/r/sfe-107cdb9318cf.record.json",
+      "sample_key": "sfe-107cdb9318cf",
+      "record_relpath": "r/sfe-107cdb9318cf.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-multi-unit-stream-primary-focus-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-multi-unit-stream-primary-focus-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/r/sfe-dc11f0a51c68.record.json",
+      "sample_key": "sfe-dc11f0a51c68",
+      "record_relpath": "r/sfe-dc11f0a51c68.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/r/sfe-c2f3cd9435e0.record.json",
+      "sample_key": "sfe-c2f3cd9435e0",
+      "record_relpath": "r/sfe-c2f3cd9435e0.record.json"
+    }
+  ],
+  "batch_key": "rfb-c526802bcb11",
+  "capture_origin": "adapter_debug_dump"
+}
