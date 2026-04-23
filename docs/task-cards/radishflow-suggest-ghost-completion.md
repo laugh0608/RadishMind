@@ -71,7 +71,8 @@
 - 第十四批 `v14` 则把 cooldown 恢复语义正式推进到三模板：当前 `rfb-4bc5dfa547a5` 已覆盖 valve / heater / cooler 三模板上 latest dismiss cooldown 已过且 older reject 不再阻止 `Tab` 恢复的恢复形态，并首轮直接收口到 `audit=3/3 pass`
 - 第十五批 `v15` 继续把其余恢复语义正式推进到剩余模板：当前 `rfb-6ed2ed2be612` 已覆盖 valve / heater 模板上的 latest reject cooldown 已过且 older dismiss 不再阻止 `Tab` 恢复，以及 cooler 模板上的 latest skip cooldown 已过恢复 `Tab`，并首轮直接收口到 `audit=3/3 pass`
 - 第十六批 `v16` 则开始沿共享 sample-group 入口推进“尚未真实化”的高价值恢复边界：当前 `rfb-3106a3d75ca8` 已覆盖 cooler / heater / valve 三模板上的 latest-action precedence 变体，即 same-candidate 先 `reject` 后 `skip` 或先 `skip` 后 `reject` 时仍保持 `manual_only`，并首轮直接收口到 `audit=5/5 pass`
-- 截至 `2026-04-23`，本链正式真实样本池已从固定 trio 扩到 7 批高价值链式样本；按当前治理报表口径，`suggest_ghost_completion` 已达到 `real_captured=26/78`，并已完整接通 `manifest / audit / artifact summary / same-sample replay / cross-sample replay / real-derived negative` 正式治理链
+- 第十七批 `v17` 继续沿共享 sample-group 入口补 `remaining-other-candidate-recovery`：当前 `rfb-baabe9013c13` 已覆盖 cooler / heater / valve 三模板上 other-candidate 被 `reject / skip / dismiss` 后主候选仍可 `Tab` 恢复的 6 条样本，并首轮直接收口到 `audit=6/6 pass`
+- 截至 `2026-04-23`，本链正式真实样本池已从固定 trio 扩到 8 批高价值链式样本；按当前治理报表口径，`suggest_ghost_completion` 已达到 `real_captured=32/78`，并已完整接通 `manifest / audit / artifact summary / same-sample replay / cross-sample replay / real-derived negative` 正式治理链
 
 当前这条 PoC 仍是轻量版：
 
@@ -83,8 +84,8 @@
 - 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay、两路 recommended replay summary，以及首批 real-derived negative pattern
 - 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
 - 最近连续六批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
-- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；在 latest-action precedence 首组已真实化后，下一步应继续转向 `other-candidate recovery` 等尚未真实化的高价值恢复边界，而不是继续重复已完成的 cooldown 对称组
-- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前也已补 `--sample-group`；除既有 `default-poc-trio` 与已真实化的 `high-value-*` 组外，还新增了 `remaining-latest-action-precedence`、`remaining-other-candidate-recovery`、`remaining-basic-no-retab-and-cooldown`、`remaining-foundation-and-conflict-basics` 与 `remaining-general-basics` 这些“尚未真实化”的正式入口，供后续继续扩 ghost 链真实样本池时直接复用
+- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；在 latest-action precedence 与 other-candidate recovery 均已真实化后，下一步应继续转向剩余基础 no-retab / cooldown 边界，而不是继续重复已完成的恢复对称组
+- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前也已补 `--sample-group`；除既有 `default-poc-trio` 与已真实化的 `high-value-*`、`remaining-latest-action-precedence`、`remaining-other-candidate-recovery` 组外，还保留 `remaining-basic-no-retab-and-cooldown`、`remaining-foundation-and-conflict-basics` 与 `remaining-general-basics` 这些尚未真实化的正式入口，供后续继续扩 ghost 链真实样本池时直接复用
 
 ## 最小必需输入
 
