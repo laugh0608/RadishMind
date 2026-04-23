@@ -1686,7 +1686,16 @@ def canonicalize_ghost_response(
         and primary_candidate.get("is_high_confidence") is True
         and not [str(flag).strip() for flag in (primary_candidate.get("conflict_flags") or []) if str(flag).strip()]
     )
-    candidate_subset = [primary_candidate] if has_default_tab_candidate and primary_candidate else legal_candidates[:2]
+    candidate_subset: list[dict[str, Any]]
+    if has_default_tab_candidate and primary_candidate:
+        candidate_subset = [primary_candidate]
+        for candidate in legal_candidates:
+            if str(candidate.get("candidate_ref") or "").strip() == str(primary_candidate.get("candidate_ref") or "").strip():
+                continue
+            candidate_subset.append(candidate)
+            break
+    else:
+        candidate_subset = legal_candidates[:2]
     normalized_actions: list[dict[str, Any]] = []
     for index, candidate in enumerate(candidate_subset, start=1):
         candidate_citation_id = f"ctx-candidate-{index}"

@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-flash-outlets-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-flash-outlets-001",
+  "request_id": "rf-suggest-ghost-chain-feed-valve-flash-flash-outlets-001",
+  "captured_at": "2026-04-23T13:29:40Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 50,
+    "selected_unit_ids": [
+      "flash-8"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-8-vapor-outlet",
+      "cand-flash-8-liquid-outlet"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前已选中 Flash Drum 502，检测到 vapor_outlet 和 liquid_outlet 两个未连接端口。基于高置信度评分和拓扑模式，建议优先连接 vapor_outlet 创建 VG-502 流股。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-candidate-2",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-8 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-8",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-8-vapor-outlet",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-502"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-8-vapor-outlet"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "保留 flash-8 的 liquid_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-8",
+          "port_key": "liquid_outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-8-liquid-outlet",
+          "target_port_key": "liquid_outlet",
+          "ghost_stream_name": "VL-502"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-8-liquid-outlet"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-2",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-8",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-8 kind=FlashDrum name=Flash Drum 502"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-8-vapor-outlet",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-8-vapor-outlet target_port_key=vapor_outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-candidate-2",
+        "kind": "context",
+        "label": "候选 cand-flash-8-liquid-outlet",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-flash-8-liquid-outlet target_port_key=liquid_outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\", \"liquid_outlet\": \"VL\"}, \"numeric_suffix_from_unit\": \"502\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-valve-3-outlet-flash-8\", \"accepted_at_revision\": 49}"
+      }
+    ],
+    "summary": "当前已选中 Flash Drum 502，检测到 vapor_outlet 和 liquid_outlet 两个未连接端口。基于高置信度评分和拓扑模式，建议优先连接 vapor_outlet 创建 VG-502 流股。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-foundation-and-conflict-basics"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v19-remaining-foundation-and-conflict-basics",
+    "notes": "v19 remaining foundation and conflict basics expansion."
+  }
+}

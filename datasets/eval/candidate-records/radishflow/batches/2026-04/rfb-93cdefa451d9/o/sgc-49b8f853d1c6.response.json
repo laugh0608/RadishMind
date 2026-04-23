@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "answers": [
+    {
+      "kind": "ghost_rationale",
+      "text": "当前未给出 ghost 建议。两个候选出口（vapor_outlet 和 liquid_outlet）均因名称冲突（VG-505 和 VL-505 已存在）被标记为 manual_name_resolution_required，且 is_high_confidence 为 false，不满足默认高置信条件，因此不提供任何 ghost_completion 动作。",
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-candidate-2",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "ctx-unit",
+      "kind": "context",
+      "label": "当前选中的 flash-13",
+      "locator": "context:selected_unit",
+      "excerpt": "selected_unit=flash-13 kind=FlashDrum name=Flash Drum 505"
+    },
+    {
+      "id": "ctx-candidate-1",
+      "kind": "context",
+      "label": "候选 cand-flash-13-vapor-outlet-name-conflict",
+      "locator": "context:legal_candidate_completions[0]",
+      "excerpt": "candidate_ref=cand-flash-13-vapor-outlet-name-conflict target_port_key=vapor_outlet is_tab_default=False is_high_confidence=False"
+    },
+    {
+      "id": "ctx-candidate-2",
+      "kind": "context",
+      "label": "候选 cand-flash-13-liquid-outlet-name-conflict",
+      "locator": "context:legal_candidate_completions[1]",
+      "excerpt": "candidate_ref=cand-flash-13-liquid-outlet-name-conflict target_port_key=liquid_outlet is_tab_default=False is_high_confidence=False"
+    },
+    {
+      "id": "ctx-naming-hints",
+      "kind": "context",
+      "label": "ghost 命名提示",
+      "locator": "context:naming_hints",
+      "excerpt": "{\"upstream_stream_names\": [\"V-505\"], \"existing_stream_names\": [\"F-505\", \"V-505\", \"VG-505\", \"VL-505\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\", \"liquid_outlet\": \"VL\"}, \"nu"
+    },
+    {
+      "id": "ctx-pattern",
+      "kind": "context",
+      "label": "拓扑模式提示",
+      "locator": "context:topology_pattern_hints[0]",
+      "excerpt": "feed_valve_flash_chain"
+    },
+    {
+      "id": "ctx-recent-action",
+      "kind": "context",
+      "label": "最近 ghost 动作",
+      "locator": "context:cursor_context.recent_actions[1]",
+      "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-valve-6-outlet-flash-13\", \"accepted_at_revision\": 61}"
+    }
+  ],
+  "status": "ok",
+  "issues": [],
+  "proposed_actions": [
+    {
+      "kind": "ghost_completion",
+      "title": "保留 flash-13 的 vapor_outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "flash-13",
+        "port_key": "vapor_outlet"
+      },
+      "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-flash-13-vapor-outlet-name-conflict",
+        "target_port_key": "vapor_outlet",
+        "ghost_stream_name": "VG-505"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "manual_only",
+        "render_priority": 1
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-flash-13-vapor-outlet-name-conflict"
+        }
+      },
+      "risk_level": "medium",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    },
+    {
+      "kind": "ghost_completion",
+      "title": "保留 flash-13 的 liquid_outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "flash-13",
+        "port_key": "liquid_outlet"
+      },
+      "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-flash-13-liquid-outlet-name-conflict",
+        "target_port_key": "liquid_outlet",
+        "ghost_stream_name": "VL-505"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "manual_only",
+        "render_priority": 2
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-flash-13-liquid-outlet-name-conflict"
+        }
+      },
+      "risk_level": "medium",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-2",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "summary": "当前未给出 ghost 建议。两个候选出口（vapor_outlet 和 liquid_outlet）均因名称冲突（VG-505 和 VL-505 已存在）被标记为 manual_name_resolution_required，且 is_high_confidence 为 false，不满足默认高置信条件，因此不提供任何 ghost_completion 动作。",
+  "risk_level": "medium",
+  "requires_confirmation": false,
+  "confidence": 0.78
+}

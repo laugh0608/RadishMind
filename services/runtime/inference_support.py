@@ -1107,6 +1107,28 @@ def make_mock_ghost_completion_response(copilot_request: dict[str, Any]) -> dict
                 "citation_ids": [citation_id for citation_id in citation_ids if citation_id in {"ctx-candidate-1", "ctx-naming-hints", "ctx-unit"}] or citation_ids[:2],
             }
         )
+        secondary_candidates = [
+            candidate
+            for candidate in legal_candidates
+            if str(candidate.get("candidate_ref") or "").strip()
+            and str(candidate.get("candidate_ref") or "").strip()
+            != str(primary_candidate.get("candidate_ref") or "").strip()
+        ]
+        if secondary_candidates:
+            actions.append(
+                build_ghost_completion_action(
+                    secondary_candidates[0],
+                    action_index=2,
+                    accept_key="manual_only",
+                    risk_level="low",
+                    citation_ids=[
+                        citation_id
+                        for citation_id in citation_ids
+                        if citation_id in {"ctx-unit", "ctx-candidate-2", "ctx-naming-hints", "ctx-pattern"}
+                    ]
+                    or citation_ids[:2],
+                )
+            )
         summary = f"{selected_unit_id or '当前单元'} 当前最适合作为默认 ghost 的候选已明确，可优先渲染首条 `Tab` 建议。"
         confidence = 0.93
         risk_level = "low"
