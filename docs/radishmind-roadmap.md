@@ -304,3 +304,19 @@
 - `Radish` docs QA 的真实 captured negative 批次采用目录清单、导入脚本还是两者并行维护
 - `Radish` docs QA 的 real-derived negative pattern 是否继续只靠 `capture_metadata.tags` 约定，还是需要升级成更正式的结构化字段
 - `Radish` docs QA 的 `violation_groups` 是否要长期保持“按完整违规文案分组”，还是后续补一层更轻量的 violation pattern 归一化
+
+## 后续可探索方向
+
+以下内容当前只作为远期备忘，不纳入当前 `M3 / M4 / M5` 主线，也不改变当前阶段顺序、退出标准和资源分配。
+
+### `RadishFlow`
+
+- 在 `suggest_ghost_completion` 已覆盖的 ghost 拓扑补全基础上，后续可探索更完整的流程链补全，使“放入一个模块后继续预测下一步流程结构”成为独立方向
+- 在 `suggest_flowsheet_edits` 已覆盖的局部参数修正基础上，后续可探索面向典型设备的参数优化建议，例如塔、分离器、换热器等对象的经验性优化候选
+- 在现有诊断与候选 patch 之外，后续可探索“参数输入错误提示 / 参数组合不合理预警 / 输入后纠偏辅助”这类更前置的编辑器智能校验能力
+
+### `Radish`
+
+- 在 `answer_docs_question`、`summarize_doc_or_thread` 与 `suggest_forum_metadata` 之外，后续可探索社区小助手方向，包括审贴辅助、回复草稿、互动建议和运营协作
+- 在保持人工确认的前提下，后续可探索自动回复建议、社区互动建议和有限的运营流程辅助，但不把它们提前写成当前阶段承诺
+- 对“代操作账号”这类更强自治方向，仅保留为更远期探索项；若未来进入评估，必须先补强权限边界、审计记录、风险分级与显式确认链路
