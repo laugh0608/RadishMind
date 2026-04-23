@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001",
+  "captured_at": "2026-04-23T12:29:33Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 62,
+    "selected_unit_ids": [
+      "cooler-13"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-13-outlet-flash-35"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前给出 ghost 建议：连接冷却器出口到闪蒸罐入口，流股命名为 C-707。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 cooler-13 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-13",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-13-outlet-flash-35",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-707"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-13-outlet-flash-35"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-13",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-13 kind=Cooler name=Feed Cooler 707"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-13-outlet-flash-35",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-13-outlet-flash-35 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-707\"], \"existing_stream_names\": [\"F-707\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"707\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-cooler-13-outlet-flash-35\", \"skipped_at_revision\": 60}"
+      }
+    ],
+    "summary": "当前给出 ghost 建议：连接冷却器出口到闪蒸罐入口，流股命名为 C-707。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-basic-no-retab-and-cooldown"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v18-remaining-basic-no-retab-and-cooldown",
+    "notes": "v18 remaining basic no-retab and cooldown expansion."
+  }
+}

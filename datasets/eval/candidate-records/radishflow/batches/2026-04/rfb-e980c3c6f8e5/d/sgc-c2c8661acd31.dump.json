@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+  "captured_at": "2026-04-23T12:29:27Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-basic-no-retab-and-cooldown"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v18-remaining-basic-no-retab-and-cooldown",
+    "notes": "v18 remaining basic no-retab and cooldown expansion."
+  },
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 58,
+    "selected_unit_ids": [
+      "cooler-9"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-9-outlet-flash-22"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-224",
+          "streams": [
+            {
+              "id": "feed-703",
+              "name": "F-703",
+              "target_unit_id": "cooler-9"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-703-unit",
+              "kind": "Feed",
+              "name": "Feed 703"
+            },
+            {
+              "id": "cooler-9",
+              "kind": "Cooler",
+              "name": "Feed Cooler 703"
+            },
+            {
+              "id": "flash-22",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 703"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 58,
+      "selected_unit_ids": [
+        "cooler-9"
+      ],
+      "selected_unit": {
+        "id": "cooler-9",
+        "kind": "Cooler",
+        "name": "Feed Cooler 703"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-22.inlet",
+          "distance_px": 61,
+          "alignment_score": 0.94,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-cooler-9-outlet-flash-22",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "cooler-9",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-22.inlet",
+          "suggested_stream_name": "C-703",
+          "ranking_signals": {
+            "distance_px": 61,
+            "alignment_score": 0.94,
+            "topology_score": 0.91,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.8
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "703",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "recent_skip_cooldown_active",
+            "manual_reselection_required"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-703-to-cooler-9-inlet",
+            "accepted_at_revision": 56
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-cooler-9-outlet-flash-22",
+            "skipped_at_revision": 57
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-703"
+        ],
+        "existing_stream_names": [
+          "F-703"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "703"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "recent_skip_same_candidate_requires_manual_reselect"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-outlet-skip-no-retab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-224\",\n        \"streams\": [\n          {\n            \"id\": \"feed-703\",\n            \"name\": \"F-703\",\n            \"target_unit_id\": \"cooler-9\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-703-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 703\"\n          },\n          {\n            \"id\": \"cooler-9\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Feed Cooler 703\"\n          },\n          {\n            \"id\": \"flash-22\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 703\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 58,\n    \"selected_unit_ids\": [\n      \"cooler-9\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-9\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Feed Cooler 703\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-22.inlet\",\n        \"distance_px\": 61,\n        \"alignment_score\": 0.94,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-cooler-9-outlet-flash-22\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_unit_id\": \"cooler-9\",\n        \"target_port_key\": \"outlet\",\n        \"target_node_id\": \"flash-22.inlet\",\n        \"suggested_stream_name\": \"C-703\",\n        \"ranking_signals\": {\n          \"distance_px\": 61,\n          \"alignment_score\": 0.94,\n          \"topology_score\": 0.91,\n          \"score_gap_to_next\": 0.0,\n          \"template_frequency\": 0.8\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"C\",\n          \"numeric_suffix\": \"703\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"recent_skip_cooldown_active\",\n          \"manual_reselection_required\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-703-to-cooler-9-inlet\",\n          \"accepted_at_revision\": 56\n        },\n        {\n          \"kind\": \"skip_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-9-outlet-flash-22\",\n          \"skipped_at_revision\": 57\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-703\"\n      ],\n      \"existing_stream_names\": [\n        \"F-703\"\n      ],\n      \"preferred_outlet_prefix\": \"C\",\n      \"numeric_suffix_from_unit\": \"703\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_cooler_flash_chain\",\n      \"cooler_outlet_to_flash_inlet_after_feed_connection\",\n      \"recent_skip_same_candidate_requires_manual_reselect\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "15a4d514-e486-4168-bd2f-f0f4036d9983",
+    "object": "chat.completion",
+    "created": 1776947361,
+    "model": "deepseek-chat",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-outlet-skip-no-retab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"answers\": [\n    {\n      \"summary\": \"当前未给出 ghost 建议。唯一候选 cand-cooler-9-outlet-flash-22 因近期被跳过且需要手动重新选择，不满足高置信条件，无法自动建议。\",\n      \"issues\": [\n        {\n          \"severity\": \"info\",\n          \"message\": \"候选 cand-cooler-9-outlet-flash-22 在 revision 57 被跳过，且 conflict_flags 包含 recent_skip_cooldown_active 和 manual_reselection_required，无法自动建议。\"\n        }\n      ],\n      \"proposed_actions\": [],\n      \"citations\": [\n        {\n          \"source\": \"flowsheet_document\",\n          \"ref\": \"cooler-9\",\n          \"text\": \"Feed Cooler 703 的 outlet 端口未连接\"\n        },\n        {\n          \"source\": \"flowsheet_document\",\n          \"ref\": \"flash-22.inlet\",\n          \"text\": \"下游节点 Flash Drum 703 的 inlet 端口距离 61px，对齐度 0.94\"\n        },\n        {\n          \"source\": \"context.cursor_context.recent_actions\",\n          \"ref\": \"skip_ghost_completion\",\n          \"text\": \"cand-cooler-9-outlet-flash-22 在 revision 57 被跳过\"\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1416,
+      "completion_tokens": 358,
+      "total_tokens": 1774,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 1416
+    },
+    "system_fingerprint": "fp_058df29938_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前未给出 ghost 建议。唯一候选 cand-cooler-9-outlet-flash-22 因近期被跳过且需要手动重新选择，不满足高置信条件，无法自动建议。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 cooler-9 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-9",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-9-outlet-flash-22",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-703"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-9-outlet-flash-22"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-9",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-9 kind=Cooler name=Feed Cooler 703"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-9-outlet-flash-22",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-9-outlet-flash-22 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-703\"], \"existing_stream_names\": [\"F-703\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"703\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-cooler-9-outlet-flash-22\", \"skipped_at_revision\": 57}"
+      }
+    ],
+    "summary": "当前未给出 ghost 建议。唯一候选 cand-cooler-9-outlet-flash-22 因近期被跳过且需要手动重新选择，不满足高置信条件，无法自动建议。",
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  }
+}

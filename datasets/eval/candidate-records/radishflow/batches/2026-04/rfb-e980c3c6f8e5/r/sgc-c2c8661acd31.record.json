@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+  "captured_at": "2026-04-23T12:29:27Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 58,
+    "selected_unit_ids": [
+      "cooler-9"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-9-outlet-flash-22"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前未给出 ghost 建议。唯一候选 cand-cooler-9-outlet-flash-22 因近期被跳过且需要手动重新选择，不满足高置信条件，无法自动建议。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 cooler-9 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-9",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-9-outlet-flash-22",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-703"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-9-outlet-flash-22"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-9",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-9 kind=Cooler name=Feed Cooler 703"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-9-outlet-flash-22",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-9-outlet-flash-22 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-703\"], \"existing_stream_names\": [\"F-703\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"703\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-cooler-9-outlet-flash-22\", \"skipped_at_revision\": 57}"
+      }
+    ],
+    "summary": "当前未给出 ghost 建议。唯一候选 cand-cooler-9-outlet-flash-22 因近期被跳过且需要手动重新选择，不满足高置信条件，无法自动建议。",
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-basic-no-retab-and-cooldown"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v18-remaining-basic-no-retab-and-cooldown",
+    "notes": "v18 remaining basic no-retab and cooldown expansion."
+  }
+}
