@@ -74,7 +74,8 @@
 - 第十七批 `v17` 继续沿共享 sample-group 入口补 `remaining-other-candidate-recovery`：当前 `rfb-baabe9013c13` 已覆盖 cooler / heater / valve 三模板上 other-candidate 被 `reject / skip / dismiss` 后主候选仍可 `Tab` 恢复的 6 条样本，并首轮直接收口到 `audit=6/6 pass`
 - 第十八批 `v18` 继续补 `remaining-basic-no-retab-and-cooldown`：当前 `rfb-e980c3c6f8e5` 已覆盖 cooler / heater / valve 三模板上的基础 `skip / reject / dismiss` no-retab 与 cooldown 后恢复 `Tab` 的 6 条样本，并首轮直接收口到 `audit=6/6 pass`
 - 第十九批 `v19` 继续补 `remaining-foundation-and-conflict-basics`：当前 `rfb-93cdefa451d9` 已覆盖 cooler/heater 基础 outlet、heater 无合法出口停住、FlashDrum 标准双出口 split，以及双出口命名冲突 no-tab 的 6 条样本；其中首轮暴露的唯一失败已收口为 ghost canonicalization 过窄地丢弃了默认 `Tab` 主候选后的次级 `manual_only` 候选，当前已在 runtime 修正并基于现有 dump 重导收口到 `audit=6/6 pass`
-- 截至 `2026-04-23`，本链正式真实样本池已从固定 trio 扩到 10 批高价值链式样本；按当前治理报表口径，`suggest_ghost_completion` 已达到 `real_captured=44/78`，并已完整接通 `manifest / audit / artifact summary / same-sample replay / cross-sample replay / real-derived negative` 正式治理链
+- 第二十批 `v20` 继续补 `remaining-general-basics`：当前 `rfb-72e953f68142` 已覆盖 context-gap 空建议、FlashDrum inlet / liquid_outlet / nearby-node ranking、heater 命名提示，以及 mixer 标准 outlet 共 6 条通用基础样本，并首轮直接收口到 `audit=6/6 pass`
+- 截至 `2026-04-23`，本链正式真实样本池已从固定 trio 扩到 11 批高价值链式样本；按当前治理报表口径，`suggest_ghost_completion` 已达到 `real_captured=50/78`，并已完整接通 `manifest / audit / artifact summary / same-sample replay / cross-sample replay / real-derived negative` 正式治理链
 
 当前这条 PoC 仍是轻量版：
 
@@ -86,8 +87,8 @@
 - 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay、两路 recommended replay summary，以及首批 real-derived negative pattern
 - 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
 - 最近连续六批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
-- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；在 foundation / conflict basics 已真实化后，下一步应继续转向 `remaining-general-basics`，而不是回头重复已完成的链式恢复组
-- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前也已补 `--sample-group`；除既有 `default-poc-trio` 与已真实化的 `high-value-*`、`remaining-latest-action-precedence`、`remaining-other-candidate-recovery`、`remaining-basic-no-retab-and-cooldown`、`remaining-foundation-and-conflict-basics` 组外，还保留 `remaining-general-basics` 这个尚未真实化的正式入口，供后续继续扩 ghost 链真实样本池时直接复用
+- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；在现有 grouped sample-group 已全部真实化后，下一步应回到“非重复高价值真实样本池”扩样，而不是重新手工围绕旧边界打转
+- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前已支持 `--sample-group` 并跑通现有五组 remaining groups；后续若还要继续扩 ghost 链真实样本池，应在共享真相源里新增下一组正式入口，而不是回到人工临时挑样本
 
 ## 最小必需输入
 

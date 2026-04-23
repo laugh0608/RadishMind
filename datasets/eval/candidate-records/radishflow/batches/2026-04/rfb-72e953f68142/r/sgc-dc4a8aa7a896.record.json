@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-flash-inlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-flash-inlet-001",
+  "request_id": "rf-suggest-ghost-flash-inlet-001",
+  "captured_at": "2026-04-23T13:43:23Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 41,
+    "selected_unit_ids": [
+      "flash-1"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-1-inlet-from-feed-101"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前已给出一个高置信度的 ghost 建议：将上游流股 F-101 连接到闪蒸罐 V-101 Drum 的 inlet 端口。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-1 的 inlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-1",
+          "port_key": "inlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-1-inlet-from-feed-101",
+          "target_port_key": "inlet",
+          "ghost_stream_name": "F-101"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-1-inlet-from-feed-101"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-1",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-1 kind=FlashDrum name=V-101 Drum"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-1-inlet-from-feed-101",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-1-inlet-from-feed-101 target_port_key=inlet is_tab_default=True is_high_confidence=True"
+      }
+    ],
+    "summary": "当前已给出一个高置信度的 ghost 建议：将上游流股 F-101 连接到闪蒸罐 V-101 Drum 的 inlet 端口。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-general-basics"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v20-remaining-general-basics",
+    "notes": "v20 remaining general basics expansion."
+  }
+}

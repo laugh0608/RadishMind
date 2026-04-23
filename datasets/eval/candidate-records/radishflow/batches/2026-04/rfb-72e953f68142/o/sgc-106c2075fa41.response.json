@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "answers": [
+    {
+      "kind": "ghost_rationale",
+      "text": "当前已识别到 heater-1 的 outlet 端口未连接，基于上游流 F-301 的命名模式，建议将出口流命名为 H-301。",
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "ghost_completion",
+      "title": "补全 heater-1 的 outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "heater-1",
+        "port_key": "outlet"
+      },
+      "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+      "patch": {
+        "ghost_kind": "ghost_stream_name",
+        "candidate_ref": "cand-heater-1-outlet-name",
+        "target_port_key": "outlet",
+        "ghost_stream_name": "H-301"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "Tab",
+        "render_priority": 1
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-heater-1-outlet-name"
+        }
+      },
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "status": "ok",
+  "issues": [],
+  "citations": [
+    {
+      "id": "ctx-unit",
+      "kind": "context",
+      "label": "当前选中的 heater-1",
+      "locator": "context:selected_unit",
+      "excerpt": "selected_unit=heater-1 kind=Heater name=Feed Heater 301"
+    },
+    {
+      "id": "ctx-candidate-1",
+      "kind": "context",
+      "label": "候选 cand-heater-1-outlet-name",
+      "locator": "context:legal_candidate_completions[0]",
+      "excerpt": "candidate_ref=cand-heater-1-outlet-name target_port_key=outlet is_tab_default=True is_high_confidence=True"
+    },
+    {
+      "id": "ctx-naming-hints",
+      "kind": "context",
+      "label": "ghost 命名提示",
+      "locator": "context:naming_hints",
+      "excerpt": "{\"upstream_stream_names\": [\"F-301\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"301\"}"
+    },
+    {
+      "id": "ctx-pattern",
+      "kind": "context",
+      "label": "拓扑模式提示",
+      "locator": "context:topology_pattern_hints[0]",
+      "excerpt": "heater_single_in_single_out"
+    }
+  ],
+  "summary": "当前已识别到 heater-1 的 outlet 端口未连接，基于上游流 F-301 的命名模式，建议将出口流命名为 H-301。",
+  "risk_level": "low",
+  "requires_confirmation": false,
+  "confidence": 0.93
+}
