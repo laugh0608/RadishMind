@@ -320,6 +320,7 @@
   "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/artifacts.json",
   "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-7f8d3bdc4594/artifacts.json",
   "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/artifacts.json",
+  "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-292eaf5dbf2f/artifacts.json",
   "datasets/eval/candidate-record-batch.schema.json",
   "datasets/eval/candidate-response-dump.schema.json",
   "datasets/eval/negative-replay-index.schema.json",

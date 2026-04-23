@@ -117,6 +117,14 @@ SAMPLE_GROUP_PATHS = {
         "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
         "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001.json",
     ],
+    "high-value-real-expansion-tertiary": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-citation-interleaving-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-warning-citation-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-pump-parameter-combo-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001.json",
+    ],
     "remaining-horizontal-gaps": [
         "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
         "datasets/eval/radishflow/suggest-flowsheet-edits-heater-multi-action-001.json",

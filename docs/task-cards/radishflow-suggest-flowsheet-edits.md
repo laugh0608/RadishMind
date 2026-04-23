@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_flowsheet_edits`
 
-更新时间：2026-04-22
+更新时间：2026-04-23
 
 ## 任务目标
 
@@ -61,9 +61,10 @@
 - 当前又继续沿同一条 default teacher 主线把 `cross-object-primary-focus` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v82-default-cross-object-primary-focus/` 已覆盖 `joint-selection-primary-focus` 与 `multi-unit-stream-primary-focus` 两条样本，并在首轮真实 capture 下直接收口到正式 `audit=2/2 pass`；这轮没有再暴露新的 primary focus selection / cross-object citation 根因，说明当前对“多对象 selection + 单 primary focus”这类复杂导出态的正式口径，已能在 default teacher 路径上稳定成立
 - 当前又继续沿同一条 default teacher 主线把 `parameter-ordering` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v83-default-parameter-ordering/` 已覆盖 `compressor-parameter-placeholder-ordering`、`compressor-parameter-update-ordering`、`compressor-parameter-update-detail-ordering` 与 `heater-patch-key-ordering` 四条样本，并在首轮真实 capture 下直接收口到正式 `audit=4/4 pass`；这轮没有再暴露新的 parameter update / placeholder / patch-key ordering 根因，说明当前对 compressor/heater 局部 patch 细节顺序的正式口径，已能在 default teacher 路径上稳定成立
 - 当前又继续沿同一条 default teacher 主线把 `mixed-risk-citation-reconnect` 正式补齐：`2026-04-21-radishflow-suggest-edits-poc-real-v84-default-mixed-risk-citation-reconnect/` 已覆盖 `mixed-risk-reconnect-plus-spec`、`citation-ordering-diagnostics-before-artifacts-before-snapshot`、`issue-citation-ordering-warning-artifact-before-snapshot` 与 `reconnect-connection-placeholder-ordering` 四条样本，并在修正 runtime citation canonicalization 后原地重跑收口到正式 `audit=4/4 pass`
-- 这轮也顺手收紧了两条已定位的 runtime 根因：当前 `flowdoc-stream-*` / `flowdoc-unit-*` 会只对响应实际纳入对象做紧凑稳定编号，而 `HEATER_OUTLET_EFFECT_UNCONFIRMED` / `COOLER_OUTLET_EFFECT_UNCONFIRMED` 在目标 stream 已显式选中时，也会稳定保留 `diagnostic -> artifact -> snapshot` 的 warning issue citation 顺序
+- 这轮也顺手收紧了两条已定位的 runtime 根因：当前 `flowdoc-stream-*` / `flowdoc-unit-*` 会沿 `FlowsheetDocument` 原始对象索引保持稳定编号，而 `HEATER_OUTLET_EFFECT_UNCONFIRMED` / `COOLER_OUTLET_EFFECT_UNCONFIRMED` 在目标 stream 已显式选中时，也会稳定保留 `diagnostic -> artifact -> snapshot` 的 warning issue citation 顺序
 - 作为当前阶段切向 `M3` 治理收口的首个配套动作，批次入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 现也会默认写出 `<collection-batch>.artifacts.json`；对应最新正式批次 `2026-04-18-radishflow-suggest-edits-poc-real-v80-default-cross-object-citation-recanonicalized/` 已补最小 batch-level artifact summary，用于统一沉淀 `manifest / audit / output_root / records / responses / dumps` 的结构化治理摘要，而不再只停留在 `manifest + audit`
 - 顺着同一条“高价值真实样本池扩样”主线继续推进后，第二组正式入口也已完成真实 capture：`2026-04-22-radishflow-suggest-edits-poc-real-v86-high-value-secondary` 已覆盖 `cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001`、`cross-object-mixed-risk-reconnect-spec-plus-pump-update-001`、`multi-unit-stream-primary-focus-001`、`heater-patch-key-ordering-001`、`multi-selection-single-actionable-target-001` 与 `reconnect-connection-placeholder-ordering-001` 六条样本；这轮首个 audit 仅再暴露出一条更窄的 runtime 根因，即 `STREAM_DISCONNECTED` action 虽已收集 connected-unit contextual warning，但在最终 action citation 生成时没有把这组上下文 diagnostic index 一并传入，导致 mixed patch combo 样本漏掉 `HEATER_OUTLET_STATE_DEPENDENT` 的 `diag-5`。当前已在 `services/runtime/inference_response.py` 中把这条 citation merge 漂移收口，并基于现有 dump 通过 `scripts/import-candidate-response-dump-batch.py --recanonicalize-response` 原地重导为正式 `audit=6/6 pass`
+- 第三组正式入口现也已完成真实 capture：`2026-04-23-radishflow-suggest-edits-poc-real-v87-high-value-tertiary` 已覆盖 `cross-object-citation-interleaving-001`、`cross-object-warning-citation-ordering-001`、`cross-object-mixed-risk-three-action-ordering-001`、`cross-object-mixed-risk-reconnect-plus-pump-parameter-001`、`pump-parameter-combo-001` 与 `valve-local-fix-vs-global-balance-001` 六条“复杂 cross-object citation + mixed-risk multi-action + local patch balance”样本；这轮首个 audit 继续把根因收紧到两条 citation canonicalization 边界，即 `flowdoc-*` fallback citation id 必须回到 `FlowsheetDocument` 原始对象索引稳定编号，以及 `STREAM_DISCONNECTED` 的 action citation 只应在同一响应里还存在其他 actionable edit 时才并入 connected-unit contextual warning。当前已在 `services/runtime/inference_support.py` 与 `services/runtime/inference_response.py` 收口这两条边界，并基于现有 `rfb-292eaf5dbf2f` dump 原地重导为正式 `audit=6/6 pass`
 
 ## 当前剩余缺口
 
@@ -77,7 +78,7 @@
 
 因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
-当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增两组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core` 与 `high-value-real-expansion-secondary` 现都已完成一轮正式真实 capture，并分别收口到 `audit=6/6 pass`：
+当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增三组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary` 与 `high-value-real-expansion-tertiary` 现都已完成一轮正式真实 capture，并分别收口到 `audit=6/6 pass`：
 
 - `high-value-real-expansion-core`
   - 优先覆盖 triad mixed-risk、mixed patch combo、cross-object primary focus、parameter detail ordering、local-edits evidence gap 与 mixed-risk reconnect 六类复杂 drift 面
@@ -85,6 +86,9 @@
 - `high-value-real-expansion-secondary`
   - 作为与第一组互补的第二组入口，继续覆盖 triad mixed-risk 的另一支 patch 形态、mixed patch combo 的另一支组合、multi-unit primary focus、heater patch-key ordering、selection 裁剪与 reconnect placeholder 细节
   - 已在 `core` 组收口后完成第二组正式收口
+- `high-value-real-expansion-tertiary`
+  - 继续覆盖尚未进入高价值池的复杂 cross-object citation、mixed-risk 三动作排序、mixed reconnect + pump parameter，以及 pump / valve 局部参数平衡六类样本
+  - 已在 `secondary` 组收口后完成第三组正式收口
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
@@ -102,6 +106,7 @@
 - `mixed-risk-citation-reconnect`
 - `high-value-real-expansion-core`
 - `high-value-real-expansion-secondary`
+- `high-value-real-expansion-tertiary`
 - `remaining-horizontal-gaps`
 
 ## 请求映射

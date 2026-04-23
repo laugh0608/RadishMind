@@ -1275,7 +1275,10 @@ def canonicalize_suggest_edits_response(
         contextual_diagnostics_with_indexes: list[tuple[int, dict[str, Any]]] = []
         if target_type == "stream" and target_diagnostics_with_indexes:
             primary_stream_diagnostic = target_diagnostics_with_indexes[0][1]
-            if str((primary_stream_diagnostic or {}).get("code") or "").strip() == "STREAM_DISCONNECTED":
+            if (
+                str((primary_stream_diagnostic or {}).get("code") or "").strip() == "STREAM_DISCONNECTED"
+                and len(ordered_action_targets) > 1
+            ):
                 _, stream_by_id, _ = build_flowsheet_lookup(copilot_request)
                 stream_document = stream_by_id.get(target_id) or {}
                 connected_unit_ids = {
