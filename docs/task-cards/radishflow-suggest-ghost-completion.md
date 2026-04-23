@@ -83,6 +83,7 @@
 - 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
 - 最近连续六批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
 - 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture，优先转向尚未真实化的高价值恢复边界，而不是继续重复已完成的 cooldown 对称组
+- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前也已补 `--sample-group`；除既有 `default-poc-trio` 与已真实化的 `high-value-*` 组外，还新增了 `remaining-latest-action-precedence`、`remaining-other-candidate-recovery`、`remaining-basic-no-retab-and-cooldown`、`remaining-foundation-and-conflict-basics` 与 `remaining-general-basics` 这些“尚未真实化”的正式入口，供后续继续扩 ghost 链真实样本池时直接复用
 
 ## 最小必需输入
 

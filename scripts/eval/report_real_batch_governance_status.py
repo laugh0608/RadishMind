@@ -18,6 +18,10 @@ from report_suggest_edits_profile_coverage import build_report as build_suggest_
 from radishflow_batch_artifact_summary import (  # noqa: E402
     load_radishflow_batch_artifact_summary,
 )
+from radishflow_ghost_sample_groups import (  # noqa: E402
+    HIGH_VALUE_PRIORITY_GROUPS,
+    build_pending_group_summaries,
+)
 
 FIXTURE_ROOT = REPO_ROOT / "scripts/checks/fixtures"
 SUGGEST_EDITS_BATCH_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-poc-batches.json"
@@ -391,7 +395,14 @@ def build_ghost_chain() -> dict[str, Any]:
         if not isinstance(real_derived_summary, dict):
             raise SystemExit(f"real-derived summary must be an object: {make_repo_relative(real_derived_index_path)}")
     all_sample_ids = collect_unique_sample_ids(batches)
+    covered_sample_ids = set(all_sample_ids)
     total_eval_sample_count = count_eval_samples("datasets/eval/radishflow/suggest-ghost-completion-*.json")
+    pending_groups = build_pending_group_summaries(
+        REPO_ROOT,
+        covered_sample_ids=covered_sample_ids,
+        group_names=HIGH_VALUE_PRIORITY_GROUPS,
+    )
+    next_group = pending_groups[0]["group_name"] if pending_groups else ""
     governance: dict[str, Any] = {
         "level": (
             "artifact_summary_replay_and_real_derived"
@@ -443,6 +454,19 @@ def build_ghost_chain() -> dict[str, Any]:
             "cross_sample_negative_replay_index"
         ):
             governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
+    priority_category = "expand_real_capture_pool"
+    priority_recommendation = "继续扩非重复高价值真实 capture 样本池，避免回到重复 replay 扩样。"
+    next_gap = (
+        "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
+        "下一步应继续扩非重复高价值真实 capture 样本池。"
+    )
+    if next_group:
+        priority_category = "grouped_real_capture"
+        priority_recommendation = f"优先补 suggest_ghost_completion 的 {next_group} sample group。"
+        next_gap = (
+            "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
+            f"下一步应先补 {next_group} 这组尚未真实化的高价值 ghost 样本。"
+        )
     return {
         "chain_id": "radishflow-suggest-ghost-completion",
         "project": "radishflow",
@@ -462,7 +486,10 @@ def build_ghost_chain() -> dict[str, Any]:
             "total_eval_sample_count": total_eval_sample_count,
             "real_captured_sample_count": len(all_sample_ids),
             "real_captured_sample_ids": all_sample_ids,
+            "uncovered_eval_sample_count": max(0, total_eval_sample_count - len(all_sample_ids)),
             "latest_batch_record_count": latest_batch["record_count"],
+            "next_real_capture_group": next_group,
+            "pending_sample_groups": pending_groups,
             "scope_note": (
                 "当前正式真实 capture 已从固定 PoC trio 扩到六批高价值链式样本。"
                 if len(all_sample_ids) > 18
@@ -490,13 +517,10 @@ def build_ghost_chain() -> dict[str, Any]:
         ),
         "priority": {
             "rank": 2,
-            "category": "expand_real_capture_pool",
-            "recommended_action": "继续扩非重复高价值真实 capture 样本池，避免回到重复 replay 扩样。",
+            "category": priority_category,
+            "recommended_action": priority_recommendation,
         },
-        "next_gap": (
-            "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
-            "下一步应继续扩非重复高价值真实 capture 样本池。"
-        ),
+        "next_gap": next_gap,
     }
 
 

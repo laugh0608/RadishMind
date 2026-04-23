@@ -31,12 +31,10 @@ from scripts.eval.radishflow_batch_artifact_summary import (  # noqa: E402
     build_radishflow_batch_artifact_summary_document,
     derive_artifact_summary_path,
 )
-
-DEFAULT_SAMPLE_PATHS = [
-    "datasets/eval/radishflow/suggest-ghost-completion-flash-vapor-outlet-001.json",
-    "datasets/eval/radishflow/suggest-ghost-completion-valve-ambiguous-no-tab-001.json",
-    "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001.json",
-]
+from scripts.eval.radishflow_ghost_sample_groups import (  # noqa: E402
+    DEFAULT_SAMPLE_PATHS,
+    SAMPLE_GROUP_PATHS,
+)
 DEFAULT_AUDIT_SAMPLE_DIR = "datasets/eval/radishflow"
 
 
@@ -98,6 +96,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--skip-audit", action="store_true", help="Only run capture; skip audit.")
     parser.add_argument("--fail-on-audit-violation", action="store_true", help="Fail when audit finds violations.")
+    parser.add_argument(
+        "--sample-group",
+        action="append",
+        default=[],
+        help=(
+            "Named sample group to include. Can be repeated. Supported groups: "
+            + ", ".join(sorted(SAMPLE_GROUP_PATHS))
+            + "."
+        ),
+    )
     parser.add_argument(
         "--sample-path",
         action="append",
@@ -193,12 +201,28 @@ def derive_capture_timeout_seconds(args: argparse.Namespace) -> float | None:
 
 
 def select_sample_paths(args: argparse.Namespace) -> list[Path]:
-    raw_paths = args.sample_path or DEFAULT_SAMPLE_PATHS
+    raw_paths: list[str] = []
+    for group_name in args.sample_group:
+        normalized_group_name = str(group_name).strip()
+        if not normalized_group_name:
+            continue
+        group_paths = SAMPLE_GROUP_PATHS.get(normalized_group_name)
+        if group_paths is None:
+            supported_groups = ", ".join(sorted(SAMPLE_GROUP_PATHS))
+            raise SystemExit(f"unsupported sample group '{normalized_group_name}'; expected one of: {supported_groups}")
+        raw_paths.extend(group_paths)
+    raw_paths.extend(args.sample_path)
+    if not raw_paths:
+        raw_paths = list(DEFAULT_SAMPLE_PATHS)
     selected: list[Path] = []
+    seen_paths: set[Path] = set()
     for raw_path in raw_paths:
         path = resolve_repo_relative(raw_path)
         if not path.is_file():
             raise SystemExit(f"sample file not found: {raw_path}")
+        if path in seen_paths:
+            continue
+        seen_paths.add(path)
         selected.append(path)
     return selected
 
@@ -241,6 +265,8 @@ def main() -> int:
         f"[ghost-poc] provider={args.provider} sample_count={len(sample_paths)} "
         f"output_root={make_repo_relative(output_root)} collection_batch={args.collection_batch}"
     )
+    if args.sample_group:
+        print(f"[ghost-poc] sample_groups={', '.join(str(group_name).strip() for group_name in args.sample_group)}")
     sample_timeout_seconds = derive_capture_timeout_seconds(args)
     if sample_timeout_seconds is not None:
         print(f"[ghost-poc] per-sample hard timeout={sample_timeout_seconds:.0f}s")
@@ -401,6 +427,7 @@ def main() -> int:
             "artifact_summary_path": (
                 make_repo_relative(artifact_summary_path) if artifact_summary_path.is_file() else ""
             ),
+            "sample_groups": [str(group_name).strip() for group_name in args.sample_group if str(group_name).strip()],
             "sample_paths": [make_repo_relative(path) for path in sample_paths],
             "captured_count": captured_count,
             "skipped_existing_count": skipped_existing_count,
