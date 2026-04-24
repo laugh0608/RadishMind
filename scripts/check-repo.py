@@ -685,7 +685,7 @@ def check_generated_eval_metadata() -> None:
 
     ghost_governance = ghost_chain.get("governance") or {}
     ghost_coverage_summary = ghost_chain.get("coverage_summary") or {}
-    if int(ghost_coverage_summary.get("real_captured_sample_count") or 0) != 50:
+    if int(ghost_coverage_summary.get("real_captured_sample_count") or 0) != 62:
         raise SystemExit("radishflow ghost completion: unexpected real captured sample count in governance status report")
     if int(ghost_coverage_summary.get("latest_batch_matched_sample_count") or 0) != 6:
         raise SystemExit("radishflow ghost completion: unexpected latest batch matched sample count in governance status report")

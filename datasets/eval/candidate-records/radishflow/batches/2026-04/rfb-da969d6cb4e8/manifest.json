@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v21-high-value-template-asymmetry-backfill",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-da969d6cb4e8",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-reject-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-reject-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-da969d6cb4e8/r/sgc-5c06892d0f98.record.json",
+      "sample_key": "sgc-5c06892d0f98",
+      "record_relpath": "r/sgc-5c06892d0f98.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-reject-cooldown-and-other-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-reject-cooldown-and-other-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-da969d6cb4e8/r/sgc-7c05490006ee.record.json",
+      "sample_key": "sgc-7c05490006ee",
+      "record_relpath": "r/sgc-7c05490006ee.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-da969d6cb4e8/r/sgc-5272fb28e81e.record.json",
+      "sample_key": "sgc-5272fb28e81e",
+      "record_relpath": "r/sgc-5272fb28e81e.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-da969d6cb4e8/r/sgc-b6ee2374f7a6.record.json",
+      "sample_key": "sgc-b6ee2374f7a6",
+      "record_relpath": "r/sgc-b6ee2374f7a6.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-da969d6cb4e8/r/sgc-45c309e2514e.record.json",
+      "sample_key": "sgc-45c309e2514e",
+      "record_relpath": "r/sgc-45c309e2514e.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-valve-outlet-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-valve-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-da969d6cb4e8/r/sgc-604b938cb3dd.record.json",
+      "sample_key": "sgc-604b938cb3dd",
+      "record_relpath": "r/sgc-604b938cb3dd.record.json"
+    }
+  ],
+  "batch_key": "rfb-da969d6cb4e8",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion v21 high-value template asymmetry backfill 真实 capture 批次。"
+}

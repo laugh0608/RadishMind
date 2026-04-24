@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+  "captured_at": "2026-04-24T13:11:33Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 75,
+    "selected_unit_ids": [
+      "heater-12"
+    ],
+    "legal_candidate_refs": [
+      "cand-heater-12-outlet-flash-36"
+    ]
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "已根据当前上下文推荐将加热器出口连接至闪蒸罐入口的虚连接。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 heater-12 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-12",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-12-outlet-flash-36",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-612"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-12-outlet-flash-36"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-12",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-12 kind=Heater name=Feed Heater 612"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-heater-12-outlet-flash-36",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-12-outlet-flash-36 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-612\"], \"existing_stream_names\": [\"F-612\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"612\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-heater-12-outlet-flash-36\", \"skipped_at_revision\": 73}"
+      }
+    ],
+    "schema_version": 1,
+    "summary": "已根据当前上下文推荐将加热器出口连接至闪蒸罐入口的虚连接。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "real-capture",
+      "high-value-template-asymmetry-backfill"
+    ],
+    "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v21-high-value-template-asymmetry-backfill",
+    "notes": "Expand the next post-remaining high-value ghost sample group focused on template asymmetry backfill."
+  }
+}

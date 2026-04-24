@@ -13,6 +13,22 @@ DEFAULT_SAMPLE_PATHS = [
 
 SAMPLE_GROUP_PATHS = {
     "default-poc-trio": list(DEFAULT_SAMPLE_PATHS),
+    "high-value-suppression-cooldown-symmetry-backfill": [
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-dismiss-no-retab-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-reject-no-retab-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-reject-cooldown-001.json",
+    ],
+    "high-value-template-asymmetry-backfill": [
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-reject-no-retab-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-reject-cooldown-and-other-dismiss-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-valve-outlet-001.json",
+    ],
     "high-value-chain-recovery-boundaries": [
         "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001.json",
         "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001.json",
@@ -85,6 +101,8 @@ SAMPLE_GROUP_PATHS = {
 }
 
 HIGH_VALUE_PRIORITY_GROUPS = [
+    "high-value-suppression-cooldown-symmetry-backfill",
+    "high-value-template-asymmetry-backfill",
     "remaining-latest-action-precedence",
     "remaining-other-candidate-recovery",
     "remaining-basic-no-retab-and-cooldown",

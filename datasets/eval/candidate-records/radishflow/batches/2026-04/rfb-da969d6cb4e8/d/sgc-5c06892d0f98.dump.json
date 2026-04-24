@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-cooler-flash-outlet-reject-no-retab-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-reject-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-reject-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-reject-no-retab-001",
+  "captured_at": "2026-04-24T13:09:38Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "real-capture",
+      "high-value-template-asymmetry-backfill"
+    ],
+    "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v21-high-value-template-asymmetry-backfill",
+    "notes": "Expand the next post-remaining high-value ghost sample group focused on template asymmetry backfill."
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 59,
+    "selected_unit_ids": [
+      "cooler-10"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-10-outlet-flash-24"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-reject-no-retab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-226",
+          "streams": [
+            {
+              "id": "feed-704",
+              "name": "F-704",
+              "target_unit_id": "cooler-10"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-704-unit",
+              "kind": "Feed",
+              "name": "Feed 704"
+            },
+            {
+              "id": "cooler-10",
+              "kind": "Cooler",
+              "name": "Feed Cooler 704"
+            },
+            {
+              "id": "flash-24",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 704"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 59,
+      "selected_unit_ids": [
+        "cooler-10"
+      ],
+      "selected_unit": {
+        "id": "cooler-10",
+        "kind": "Cooler",
+        "name": "Feed Cooler 704"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-24.inlet",
+          "distance_px": 60,
+          "alignment_score": 0.95,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-cooler-10-outlet-flash-24",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "cooler-10",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-24.inlet",
+          "suggested_stream_name": "C-704",
+          "ranking_signals": {
+            "distance_px": 60,
+            "alignment_score": 0.95,
+            "topology_score": 0.92,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.81
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "704",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "recent_reject_cooldown_active",
+            "manual_reselection_required"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-704-to-cooler-10-inlet",
+            "accepted_at_revision": 57
+          },
+          {
+            "kind": "reject_ghost_completion",
+            "candidate_ref": "cand-cooler-10-outlet-flash-24",
+            "rejected_at_revision": 58
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-704"
+        ],
+        "existing_stream_names": [
+          "F-704"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "704"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "recent_reject_same_candidate_requires_manual_reselect"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-outlet-reject-no-retab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-226\",\n        \"streams\": [\n          {\n            \"id\": \"feed-704\",\n            \"name\": \"F-704\",\n            \"target_unit_id\": \"cooler-10\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-704-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 704\"\n          },\n          {\n            \"id\": \"cooler-10\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Feed Cooler 704\"\n          },\n          {\n            \"id\": \"flash-24\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 704\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 59,\n    \"selected_unit_ids\": [\n      \"cooler-10\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-10\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Feed Cooler 704\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-24.inlet\",\n        \"distance_px\": 60,\n        \"alignment_score\": 0.95,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-cooler-10-outlet-flash-24\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_unit_id\": \"cooler-10\",\n        \"target_port_key\": \"outlet\",\n        \"target_node_id\": \"flash-24.inlet\",\n        \"suggested_stream_name\": \"C-704\",\n        \"ranking_signals\": {\n          \"distance_px\": 60,\n          \"alignment_score\": 0.95,\n          \"topology_score\": 0.92,\n          \"score_gap_to_next\": 0.0,\n          \"template_frequency\": 0.81\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"C\",\n          \"numeric_suffix\": \"704\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"recent_reject_cooldown_active\",\n          \"manual_reselection_required\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-704-to-cooler-10-inlet\",\n          \"accepted_at_revision\": 57\n        },\n        {\n          \"kind\": \"reject_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-10-outlet-flash-24\",\n          \"rejected_at_revision\": 58\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-704\"\n      ],\n      \"existing_stream_names\": [\n        \"F-704\"\n      ],\n      \"preferred_outlet_prefix\": \"C\",\n      \"numeric_suffix_from_unit\": \"704\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_cooler_flash_chain\",\n      \"cooler_outlet_to_flash_inlet_after_feed_connection\",\n      \"recent_reject_same_candidate_requires_manual_reselect\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "37af7c4c-a5f1-4e7c-a091-c6c80068118e",
+    "object": "chat.completion",
+    "created": 1777036156,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"project\":\"radishflow\",\"task\":\"suggest_ghost_completion\",\"status\":\"partial\",\"answers\":[{\"id\":\"ans-1\",\"text\":\"当前没有可用于自动建议的连接。唯一候选 cooler-10 出口到 flash-24 入口因最近被拒绝而需要手动重新选择。\",\"summary\":\"无 ghost 建议\"}],\"issues\":[{\"severity\":\"info\",\"message\":\"唯一合法候选 cand-cooler-10-outlet-flash-24 在 revision 58 被拒绝，冲突标志要求手动重新选择，因此不提供自动 ghost 建议。\"}],\"proposed_actions\":[]}",
+          "reasoning_content": "我们被要求生成 CopilotResponse，只输出 JSON。任务：suggest_ghost_completion。\n\n先理解上下文：有一个 flowsheet，包含一个 Cooler \"cooler-10\"，它的 outlet 端口未连接。附近有一个 FlashDrum 的 inlet 端口。legal_candidate_completions 只有一个候选：cand-cooler-10-outlet-flash-24，但它的 conflict_flags 包括 \"recent_reject_cooldown_active\" 和 \"manual_reselection_required\"。最近动作中刚刚拒绝了同一个候选（reject at revision 58）。所以这个候选因为最近拒绝而需要手动重新选择，不应自动显示为 ghost 建议。尽管排名信号不错，但 conflict_flags 表示不能自动建议。因此，我们不应该建议这个候选，或者建议空。因为 context 说只有这一个合法候选，且候选由于冲突而不建议，那么我们应该给出空建议或 partial 状态。可能输出一个没有 suggested ghost 的响应。\n\n根据规则：如果本地规则没有给出任何合法候选，应返回空建议，通常用 status=partial。或者 issues 中说明原因。这里合法候选只有一个，但它被标记为 manual_reselection_required 和 reject cooldown，所以不能自动建议。所以我们不提供自动 ghost 完成。我们应该在 summary 中解释，没有提供 ghost 建议，因为唯一候选最近被拒绝，需要手动重新选择。Issues 可以写一下。\n\nproposed_actions 可能为空，或者给出一个提示手动操作的动作？但规则说 proposed_actions 里的动作只能是 ghost_completion，如果没有任何 ghost 建议，可以设置 proposed_actions 为空数组。但规则说 proposed_actions 最多 3 条，可以为空。那我们可以给出一个没有 ghost 的答案。\n\nanswers 至少 1 条，可以是一个“无 ghost 建议”的回答。summary 说明无 ghost 建议。\n\npreview 不需要。patch 应该为空。\n\n结构：\nCopilotResponse:\n{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\", // 因为没有完成建议\n  \"answers\": [\n    {\n      \"id\": \"ans-1\",\n      \"text\": \"当前没有可用于自动建议的连接。唯一候选 cooler-10 出口到 flash-24 入口因最近被拒绝而需要手动重新选择。\",\n      \"summary\": \"无 ghost 建议\"\n    }\n  ],\n  \"issues\": [\n    {\n      \"severity\": \"info\",\n      \"message\": \"唯一合法候选 cand-cooler-10-outlet-flash-24 在 revision 58 被拒绝，冲突标志要求手动重新选择，因此不提供自动 ghost 建议。\"\n    }\n  ],\n  \"proposed_actions\": []  // 无动作\n}\n\n但是否需要预览？没有 ghost completion，所以没有 preview。\n\n注意：requires_confirmation 应设为 false。是 advisory 模式，不需要确认。\n\n我们还需要确保 overall 的 requires_confirmation 为 false，没问题。\n\n所以就这样。\n\n输出 JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1417,
+      "completion_tokens": 777,
+      "total_tokens": 2194,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 648
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 1417
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前没有可用于自动建议的连接。唯一候选 cooler-10 出口到 flash-24 入口因最近被拒绝而需要手动重新选择。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 cooler-10 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-10",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-10-outlet-flash-24",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-704"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-10-outlet-flash-24"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-10",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-10 kind=Cooler name=Feed Cooler 704"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-10-outlet-flash-24",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-10-outlet-flash-24 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-704\"], \"existing_stream_names\": [\"F-704\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"704\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"reject_ghost_completion\", \"candidate_ref\": \"cand-cooler-10-outlet-flash-24\", \"rejected_at_revision\": 58}"
+      }
+    ],
+    "schema_version": 1,
+    "summary": "当前没有可用于自动建议的连接。唯一候选 cooler-10 出口到 flash-24 入口因最近被拒绝而需要手动重新选择。",
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  }
+}

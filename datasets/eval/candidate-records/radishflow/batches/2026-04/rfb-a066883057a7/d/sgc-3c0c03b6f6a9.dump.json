@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-heater-flash-outlet-skip-no-retab-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-skip-no-retab-001",
+  "captured_at": "2026-04-24T14:03:03Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v22-high-value-suppression-cooldown-symmetry-backfill"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 56,
+    "selected_unit_ids": [
+      "heater-4"
+    ],
+    "legal_candidate_refs": [
+      "cand-heater-4-outlet-flash-16"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-skip-no-retab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-222",
+          "streams": [
+            {
+              "id": "feed-603",
+              "name": "F-603",
+              "target_unit_id": "heater-4"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-603-unit",
+              "kind": "Feed",
+              "name": "Feed 603"
+            },
+            {
+              "id": "heater-4",
+              "kind": "Heater",
+              "name": "Feed Heater 603"
+            },
+            {
+              "id": "flash-16",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 603"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 56,
+      "selected_unit_ids": [
+        "heater-4"
+      ],
+      "selected_unit": {
+        "id": "heater-4",
+        "kind": "Heater",
+        "name": "Feed Heater 603"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-16.inlet",
+          "distance_px": 64,
+          "alignment_score": 0.93,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-heater-4-outlet-flash-16",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "heater-4",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-16.inlet",
+          "suggested_stream_name": "H-603",
+          "ranking_signals": {
+            "distance_px": 64,
+            "alignment_score": 0.93,
+            "topology_score": 0.9,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.82
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "603",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "recent_skip_cooldown_active",
+            "manual_reselection_required"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-603-to-heater-4-inlet",
+            "accepted_at_revision": 54
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-heater-4-outlet-flash-16",
+            "skipped_at_revision": 55
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-603"
+        ],
+        "existing_stream_names": [
+          "F-603"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "603"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "recent_skip_same_candidate_requires_manual_reselect"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-heater-flash-outlet-skip-no-retab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-222\",\n        \"streams\": [\n          {\n            \"id\": \"feed-603\",\n            \"name\": \"F-603\",\n            \"target_unit_id\": \"heater-4\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-603-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 603\"\n          },\n          {\n            \"id\": \"heater-4\",\n            \"kind\": \"Heater\",\n            \"name\": \"Feed Heater 603\"\n          },\n          {\n            \"id\": \"flash-16\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 603\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 56,\n    \"selected_unit_ids\": [\n      \"heater-4\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"heater-4\",\n      \"kind\": \"Heater\",\n      \"name\": \"Feed Heater 603\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-16.inlet\",\n        \"distance_px\": 64,\n        \"alignment_score\": 0.93,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-heater-4-outlet-flash-16\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_unit_id\": \"heater-4\",\n        \"target_port_key\": \"outlet\",\n        \"target_node_id\": \"flash-16.inlet\",\n        \"suggested_stream_name\": \"H-603\",\n        \"ranking_signals\": {\n          \"distance_px\": 64,\n          \"alignment_score\": 0.93,\n          \"topology_score\": 0.9,\n          \"score_gap_to_next\": 0.0,\n          \"template_frequency\": 0.82\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"H\",\n          \"numeric_suffix\": \"603\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"recent_skip_cooldown_active\",\n          \"manual_reselection_required\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-603-to-heater-4-inlet\",\n          \"accepted_at_revision\": 54\n        },\n        {\n          \"kind\": \"skip_ghost_completion\",\n          \"candidate_ref\": \"cand-heater-4-outlet-flash-16\",\n          \"skipped_at_revision\": 55\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-603\"\n      ],\n      \"existing_stream_names\": [\n        \"F-603\"\n      ],\n      \"preferred_outlet_prefix\": \"H\",\n      \"numeric_suffix_from_unit\": \"603\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_heater_flash_chain\",\n      \"heater_outlet_to_flash_inlet_after_feed_connection\",\n      \"recent_skip_same_candidate_requires_manual_reselect\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "05ebc3de-7e52-4f55-acc2-0af3c9bc8810",
+    "object": "chat.completion",
+    "created": 1777039341,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"request_id\": \"rf-suggest-ghost-chain-feed-heater-flash-outlet-skip-no-retab-001\",\n  \"schema_version\": 1,\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\",\n  \"requires_confirmation\": false,\n  \"summary\": \"当前没有可自动提供的幽灵完成建议。候选连接“加热器出口到闪蒸罐进口”在最近的修订中被跳过，且正处于冷却期，需要手动重新选择后才能再次建议。\",\n  \"issues\": [\n    {\n      \"severity\": \"info\",\n      \"message\": \"候选幽灵连接曾被用户跳过（修订55），当前仍处于冷却期并标记为需要手动重选，无法自动建议。\",\n      \"source\": \"legal_candidate_completions conflict_flags\"\n    }\n  ],\n  \"proposed_actions\": [],\n  \"answers\": [\n    {\n      \"content\": \"由于之前您跳过了这条加热器出口到闪蒸罐进口的自动连接，并且系统要求手动重新选择，目前无法自动给出幽灵完成建议。您可以在界面中手动完成该连接。\",\n      \"locale\": \"zh-CN\"\n    }\n  ],\n  \"citations\": [\n    {\n      \"source_id\": \"cand-heater-4-outlet-flash-16\",\n      \"description\": \"候选连接详情\",\n      \"field\": \"conflict_flags\"\n    },\n    {\n      \"source_id\": \"cursor_context.recent_actions[1]\",\n      \"description\": \"最近跳过的幽灵完成记录\"\n    }\n  ]\n}",
+          "reasoning_content": "我们被要求生成 CopilotResponse。需要严格遵循规则。输入是一个 CopilotRequest，目标是 suggest_ghost_completion。要查看 legal_candidate_completions，只有一个候选：cand-heater-4-outlet-flash-16，但 conflict_flags 包含 \"recent_skip_cooldown_active\", \"manual_reselection_required\"，且 is_high_confidence 为 false，is_tab_default 为 false。规则要求，如果候选有冲突（recent_skip_cooldown_active 和 manual_reselection_required），我们不能自动建议 ghost completion，因为需要用户手动重新选择。规则里说：若本地规则没有给出任何合法候选，应返回空建议，通常用 status=partial。这里只有一个候选，但有冲突标志，表示此候选被近期跳过且需要手动重选，因此不能自动提供 ghost completion。因此我们需要返回一个空的建议。\n\n但规则还说：`proposed_actions` 里的动作只能是 `ghost_completion`。但是我们可以返回空的 proposed_actions 吗？可能我们需要返回一个空的 actions 列表。在 CopilotResponse 中，proposed_actions 可以为空。规则说 `proposed_actions` 最多 3 条，所以可以没有。\n\n对于 status，当没有可行建议时，应该用 partial。summary 要说明当前没有给出 ghost 建议，因为候选存在跳过的冷却期且需要手动重选。issues 需要记录为什么没有建议。\n\n我们要输出一个 JSON 对象。内容：project 固定 \"radishflow\"，task 固定 \"suggest_ghost_completion\"，status 应为 \"partial\"，summary 说明没有 ghost 建议，理由：candidate 在最近被跳过且需要手动重新选择，暂无法自动提供 ghost 完成。issues 里写一条：说明由于冷却期和需要手动指示，无法生成 ghost 完成。proposed_actions 空数组。answers 至少一条，我们可以写一条类似于“目前没有可用的幽灵完成建议”的回答。同时 citations 可以引用 legal_candidate_completions 和 cursor_context 中的跳过记录。\n\n注意：不需要 preview 或 apply，因为 no proposed_actions。\n\n因此构造 CopilotResponse。字段要完整。必须包含 answers, summary, project, task, status, issues, proposed_actions, citations? 检查 CopilotResponse 定义，可能应有的字段：request_id, project, task, status, summary, issues, proposed_actions, answers, citations, schema_version? 但规则说只输出 CopilotResponse 的 JSON。我们猜测包含：\n\n- request_id: 可以从请求中取 request_id \"rf-suggest-ghost-chain-feed-heater-flash-outlet-skip-no-retab-001\"\n- project: \"radishflow\"\n- task: \"suggest_ghost_completion\"\n- status: \"partial\"\n- summary: 中文描述\n- issues: 列表，包含一个issue对象，说明原因\n- proposed_actions: []\n- answers: 包含一个answer，文本\n- citations: 可以列出相关源\n\n确保 requires_confirmation: false 在整体，且每个 ghost_completion 都要有，但现在没有 ghost_completion，所以不需要。\n\n输出应该没有 markdown。只输出 JSON。\n\n所以回答：\n\n{\n  \"request_id\": \"rf-suggest-ghost-chain-feed-heater-flash-outlet-skip-no-retab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\",\n  \"summary\": \"当前没有可自动提供的幽灵完成建议。候选连接“Heater出料到Flash进口”在最近的修订中被跳过，且正处于冷却期，需要手动重新选择后才能再次建议。\",\n  \"issues\": [\n    {\n      \"severity\": \"info\",\n      \"message\": \"候选的幽灵连接曾被用户跳过（修订55），当前仍处于冷却期并标记为需要手动重选，无法自动建议。\",\n      \"source\": \"legal_candidate_completions conflict_flags\"\n    }\n  ],\n  \"proposed_actions\": [],\n  \"answers\": [\n    {\n      \"content\": \"由于之前跳过了该连接，并且系统要求手动重新选择，目前无法给出自动的幽灵完成建议。您可以在界面中手动将加热器出料口连接到闪蒸罐进口。\",\n      \"locale\": \"zh-CN\"\n    }\n  ],\n  \"citations\": [\n    {\n      \"source_id\": \"cand-heater-4-outlet-flash-16\",\n      \"description\": \"候选连接详情\",\n      \"field\": \"conflict_flags\"\n    },\n    {\n      \"source_id\": \"cursor_context.recent_actions[1]\",\n      \"description\": \"最近跳过的幽灵完成记录\"\n    }\n  ]\n}\n\n这样就可以了。没有额外的动作，requires_confirmation 在整个对象可能需要设为 false，但根据 safety 模式 advisory 和 requires_confirmation_for_actions false，整体不需要确认。可以在根级别加 \"requires_confirmation\": false，规则说整体 requires_confirmation 必须为 false。所以加上。\n\n确保 schema_version? 输入有 schema_version，可能回复也应有 schema_version 1。加一个 \"schema_version\": 1。\n\n所以最终 JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1416,
+      "completion_tokens": 1459,
+      "total_tokens": 2875,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1111
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 1416
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "requires_confirmation": false,
+    "summary": "当前没有可自动提供的幽灵完成建议。候选连接“加热器出口到闪蒸罐进口”在最近的修订中被跳过，且正处于冷却期，需要手动重新选择后才能再次建议。",
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 heater-4 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-4",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-4-outlet-flash-16",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-603"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-4-outlet-flash-16"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "由于之前您跳过了这条加热器出口到闪蒸罐进口的自动连接，并且系统要求手动重新选择，目前无法自动给出幽灵完成建议。您可以在界面中手动完成该连接。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-4",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-4 kind=Heater name=Feed Heater 603"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-heater-4-outlet-flash-16",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-4-outlet-flash-16 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-603\"], \"existing_stream_names\": [\"F-603\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"603\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-heater-4-outlet-flash-16\", \"skipped_at_revision\": 55}"
+      }
+    ],
+    "risk_level": "medium",
+    "confidence": 0.78
+  }
+}
