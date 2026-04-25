@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-issue-ordering-confirmed-before-unconfirmed-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001",
+  "request_id": "rf-suggest-edit-issue-ordering-confirmed-before-unconfirmed-001",
+  "captured_at": "2026-04-25T04:16:12Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion",
+      "foundation-stability"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v89-foundation-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 72,
+    "selected_unit_ids": [
+      "heater-4"
+    ],
+    "selected_stream_ids": [
+      "feed-13",
+      "product-13"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-issue-ordering-confirmed-before-unconfirmed-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-118",
+          "streams": [
+            {
+              "id": "feed-13",
+              "name": "Cold Feed",
+              "target_unit_id": "heater-4",
+              "specs": {
+                "pressure_kpa": 205
+              }
+            },
+            {
+              "id": "product-13",
+              "name": "Heater Outlet",
+              "source_unit_id": "heater-4",
+              "specs": {
+                "temperature_c": 148
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-4",
+              "kind": "Heater",
+              "name": "Balance Heater",
+              "config": {
+                "control_mode": "outlet_temperature"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 72,
+      "selected_unit_ids": [
+        "heater-4"
+      ],
+      "selected_stream_ids": [
+        "feed-13",
+        "product-13"
+      ],
+      "diagnostic_summary": {
+        "error_count": 2,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Cold Feed is missing flow rate specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-13"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Balance Heater is configured for outlet temperature control but outlet temperature target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "heater-4"
+        },
+        {
+          "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "product-13"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T22:40:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-issue-ordering-confirmed-before-unconfirmed-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-118\",\n        \"streams\": [\n          {\n            \"id\": \"feed-13\",\n            \"name\": \"Cold Feed\",\n            \"target_unit_id\": \"heater-4\",\n            \"specs\": {\n              \"pressure_kpa\": 205\n            }\n          },\n          {\n            \"id\": \"product-13\",\n            \"name\": \"Heater Outlet\",\n            \"source_unit_id\": \"heater-4\",\n            \"specs\": {\n              \"temperature_c\": 148\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"heater-4\",\n            \"kind\": \"Heater\",\n            \"name\": \"Balance Heater\",\n            \"config\": {\n              \"control_mode\": \"outlet_temperature\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 72,\n    \"selected_unit_ids\": [\n      \"heater-4\"\n    ],\n    \"selected_stream_ids\": [\n      \"feed-13\",\n      \"product-13\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 2,\n      \"warning_count\": 1\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Cold Feed is missing flow rate specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-13\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_INCOMPLETE\",\n        \"message\": \"Balance Heater is configured for outlet temperature control but outlet temperature target is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"heater-4\"\n      },\n      {\n        \"code\": \"HEATER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"product-13\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_parameters\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-07T22:40:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "78fa075f-1e0d-4eef-89ba-a348d27b18d3",
+    "object": "chat.completion",
+    "created": 1777090483,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"requires_confirmation\": true,\n  \"status\": \"complete\",\n  \"answers\": [\n    {\n      \"summary\": \"围绕 Heater-4 及其进口流 feed-13 的规格补全提案：当前选择集中 feed-13 缺少流量规格，heater-4 缺少出口温度目标值，导致求解器处于 invalid_parameters 状态。\",\n      \"issues\": [\n        {\n          \"title\": \"Cold Feed 缺少流量规格\",\n          \"severity\": \"error\",\n          \"citations\": [\"diag-0\", \"flowdoc-stream-0\"]\n        },\n        {\n          \"title\": \"Balance Heater 缺少出口温度设定值\",\n          \"severity\": \"error\",\n          \"citations\": [\"diag-1\", \"flowdoc-unit-0\"]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"title\": \"为 Cold Feed 指定流量占位\",\n          \"target\": {\"type\": \"stream\", \"id\": \"feed-13\"},\n          \"rationale\": \"STREAM_SPEC_MISSING 诊断指出进口流缺少流量规格，需要补全以支持质量和能量平衡计算。\",\n          \"patch\": {\n            \"spec_placeholders\": {\n              \"flow_rate_kg_h\": null\n            }\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\"diag-0\", \"flowdoc-stream-0\", \"snapshot-1\"]\n        },\n        {\n          \"title\": \"为 Balance Heater 添加出口温度目标占位\",\n          \"target\": {\"type\": \"unit\", \"id\": \"heater-4\"},\n          \"rationale\": \"加热器配置为出口温度控制模式，但未定义目标温度，导致 UNIT_PARAMETER_INCOMPLETE。\",\n          \"patch\": {\n            \"parameter_placeholders\": {\n              \"target_temperature_c\": null\n            }\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\"diag-1\", \"flowdoc-unit-0\", \"snapshot-1\"]\n        }\n      ],\n      \"confidence\": 0.9\n    }\n  ]\n}",
+          "reasoning_content": "我们被要求为 CopilotRequest 生成一个 CopilotResponse JSON，其中 task 是 suggest_flowsheet_edits。我们必须遵循所有规则。\n\n分析请求：\n- 流表文档：有一个流 feed-13（Cold Feed）进入 heater-4，有一个产品流 product-13（Heater Outlet）出自 heater-4。feed-13 有 pressure_kpa: 205，product-13 有 temperature_c: 148。 heater-4 是 Balance Heater，配置了 control_mode: outlet_temperature。\n- 诊断：\n  1. STREAM_SPEC_MISSING: feed-13 缺少流量规格。错误。\n  2. UNIT_PARAMETER_INCOMPLETE: heater-4 配置为出口温度控制，但缺少出口温度目标。错误。\n  3. HEATER_OUTLET_EFFECT_UNCONFIRMED: product-13 温度模式可能受缺少进口条件影响，局部出口效应未确认。警告。\n- 快照：solver_status: invalid_parameters。\n- 选定：heater-4, feed-13, product-13。\n- 需要建议流表编辑。\n\n我们需要提出候选编辑（candidate_edit）。基于诊断，我们可以建议：\n- 为 feed-13 添加流量规格（例如，添加质量流量或体积流量占位符）。\n- 为 heater-4 添加出口温度设定值（因为控制模式是出口温度，需要一个目标温度）。可以添加一个参数占位符，如目标温度。\n- 警告诊断可能不需要立即修补，但我们可以考虑提出一些建议，以确认出口条件？但规则说没有确认就不要使用？诊断是警告，可能会推动确认。但我们需要谨慎。\n\n我们需要提出“最小、可审查、非执行式”的补丁。补丁应该使用 spec_placeholders、parameter_placeholders、parameter_updates、connection_placeholder 等结构。根据现有文档，流 spec 可能包含 flow rate。我们可以建议在 feed-13 的 specs 中添加 flow rate 占位符：\"flow_rate_kg_h\": null，或类似。对于加热器，在 config 中或 unit 中添加参数，如 \"target_temperature_c\": null。\n\n但补丁结构是怎样的？系统可能定义了特定的补丁模式。从之前的系统提示中，我们看到 CopilotResponse 中 proposed_actions 的 patch 可以包含 spec_placeholders 或 parameter_placeholders。在之前的例子中，可能像这样：\n\n{\n  \"spec_placeholders\": {\n    \"flow_rate_kg_h\": null\n  }\n}\n\n对于 unit，可能是 parameter_placeholders。例如：\n{\n  \"parameter_placeholders\": {\n    \"target_temperature_c\": null\n  }\n}\n\n或者 parameter_updates 更新现有值。但这里没有现有值可更新。\n\n我们需要为每个 diagnostic 创建单独的 candidate_edit，或者合并？我们可以创建两个：一个用于 feed-13 流量缺失，另一个用于 heater-4 温度目标缺失。第三个诊断是个警告，可能也会建议添加确认标志，但补丁可能不是必需的。但我们可以选择不修补它，或者添加一些元数据？diagnostic_summary 有 2 错误 1 警告。我们可能只关注错误。警告可能不需要候选编辑，但如果我们提供，需要确保理由合适。警告说出口效应未确认，可能因为进口条件缺失。解决缺失的流量后，警告可能消失。所以我们不需要针对该警告的补丁。因此提出两个 candidate_edits。\n\n每个 candidate_edit 需要 title, target, rationale, patch, risk_level, requires_confirmation。风险级别：添加缺失的流量规格是 common，风险 medium。添加出口温度设定点也是 medium。拓扑或其他没有，所以都是 medium。requires_confirmation 必须为 true。\n\n引用：诊断使用 \"diag-0\", \"diag-1\", \"diag-2\" 因为顺序：第一个诊断是 STREAM_SPEC_MISSING，第二个是 UNIT_PARAMETER_INCOMPLETE，第三个是 HEATER_OUTLET_EFFECT_UNCONFIRMED。但要求“引用通常使用 diag-<n>”，n 可能是索引？可以使用 \"diag-0\", \"diag-1\", \"diag-2\"，或者通过它们的顺序？最好从 0 开始，因为数组索引。诊断列表顺序就是给出的。所以第一个诊断 diag-0，第二个 diag-1，第三个 diag-2。在 issues 中，每个 issue 应该引用它的诊断。所以对于流量缺失，我们引用 diag-0，目标对象 feed-13，artifact flowdoc-stream-0？（flowdoc-stream 命名？提示说 artifact 引用通常使用 flowdoc-stream-<n> 或 flowdoc-unit-<n>。在 flowsheet_document 中，streams 数组：streams[0] 是 feed-13，streams[1] 是 product-13。所以 feed-13 的 artifact 引用可以是 \"flowdoc-stream-0\"。units[0] 是 heater-4，引用 \"flowdoc-unit-0\"。supporting snapshot 是 \"snapshot-1\"，因为有一个 latest_snapshot。我可以使用它来支持整体状况，但不是必需的。对于每个 candidate_edit，citations 应包括相关诊断和目标 artifact，可能 snapshot。\n\n对于第一个编辑：target 是 feed-13，这是流。target 应该指定 \"stream\" 类型和 id \"feed-13\"。在 patch 中，我们应该填充流 specs 中缺失的 flow rate。因为是占位符，值可以为 null，但需要指定单位或键。示例：spec_placeholders: {\"flow_rate_kg_h\": null}。\n\n对于第二个：target 是加热器 heater-4。patch 可以使用 parameter_placeholders 来添加出口温度设定值。在控制模式为 outlet_temperature 时，需要的目标温度参数。可能命名为 \"outlet_temperature_c\" 或 \"target_temperature_c\"。我会使用 \"target_temperature_c\"。\n\nrisk_level: 两个都是 \"medium\"，因为添加规格是常见操作，不影响拓扑。\n\n所以 CopilotResponse 应包含：\n- project: \"radishflow\"\n- task: \"suggest_flowsheet_edits\"\n- requires_confirmation: true (因为有多个 candidate_edit 且需要确认)\n- answers: 至少一个，通常是一个描述编辑的答案。需要提供一个 summary 来解释。可能一个回答就足够，包含整体摘要，然后一系列 proposed_actions。但结构如下：CopilotResponse 可能有 \"answers\" 数组，每个可能有 \"summary\", \"issues\", \"proposed_actions\"。我可以有一个 answer，其中包含与所选单元相关的整体摘要，多个 issues，以及相应的 proposed_actions。issues 是触发补丁的诊断，这里有两个错误诊断。可以在一个 answer 中处理，列出两个 issues，分别对应每个错误。然后 proposed_actions 对应这两个 issues。第三个诊断（警告）可以忽略，或者简单提到它由解决错误而解决。我可以省略它，或者添加一个 issue 但无补丁？最好只处理错误，因为 status 可能是 partial，证据不足时允许 partial。但这里证据充足，可以处理两个错误。我可以将状态设为 \"ready\"，但安全起见，因为是建议编辑，status 可以设为 \"complete\" 或 \"ready\"？没有状态字段的要求，但 CopilotResponse 通常有 \"status\": \"complete\" 或 \"partial\"。提示说“证据不足时允许 status=partial，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上”。证据充分，我们可以设置 status 为 \"complete\"。但需要按照格式。在系统提示中，CopilotResponse 的结构不包括 status 字段？但之前使用过 status。在输出要求中没有明确，但考虑标准的 CopilotResponse 可能包含 status。从之前的交互中，例如之前的 CopilotResponse 有 \"status\": \"complete\"。我将添加 \"status\": \"complete\"。\n\nanswers 数组中的每个 answer 可能有：\n- summary\n- issues\n- proposed_actions\n\n我们可以有一个 answer，其 summary 总结加热器及其流缺少规格，issues 列出两个诊断，actions 提出补丁。这样简洁。\n\nissues 数组：每个 issue 有 title, severity, citation（引用诊断和 artifact）。例如：\n{\n  \"title\": \"Cold Feed flow rate missing\",\n  \"severity\": \"error\",\n  \"citations\": [\"diag-0\", \"flowdoc-stream-0\"]\n},\n{\n  \"title\": \"Balance Heater outlet temperature target missing\",\n  \"severity\": \"error\",\n  \"citations\": [\"diag-1\", \"flowdoc-unit-0\"]\n}\n\n注意：我们不会为警告创建 issue，因为它不是错误，但可以有？可能没必要。\n\n然后 proposed_actions 对应每个 issue。每个 action 包含 title, target, rationale, patch, risk_level, requires_confirmation, citations。target 应该包含类型和 id。例如：\n{\n  \"title\": \"Specify flow rate for Cold Feed\",\n  \"target\": {\"type\": \"stream\", \"id\": \"feed-13\"},\n  \"rationale\": \"STREAM_SPEC_MISSING diagnostic indicates the feed stream requires a flow specification to enable mass and energy balance calculations.\",\n  \"patch\": {\n    \"spec_placeholders\": {\n      \"flow_rate_kg_h\": null\n    }\n  },\n  \"risk_level\": \"medium\",\n  \"requires_confirmation\": true,\n  \"citations\": [\"diag-0\", \"flowdoc-stream-0\", \"snapshot-1\"]\n},\n{\n  \"title\": \"Add outlet temperature target for Balance Heater\",\n  \"target\": {\"type\": \"unit\", \"id\": \"heater-4\"},\n  \"rationale\": \"The heater is in outlet temperature control mode but missing a temperature target, causing UNIT_PARAMETER_INCOMPLETE.\",\n  \"patch\": {\n    \"parameter_placeholders\": {\n      \"target_temperature_c\": null\n    }\n  },\n  \"risk_level\": \"medium\",\n  \"requires_confirmation\": true,\n  \"citations\": [\"diag-1\", \"flowdoc-unit-0\", \"snapshot-1\"]\n}\n\nsnapshot 用于显示求解器状态无效。\n\n整体 requires_confirmation 必须在顶层为 true。\n\n此外，answers 中可能有一个 confidence 分数。我可以设置 confidence 为 0.9。没问题。\n\n我将构建 JSON 如下：\n\n{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"requires_confirmation\": true,\n  \"status\": \"complete\",\n  \"answers\": [\n    {\n      \"summary\": \"围绕 Heater-4 及其进口流 feed-13 的规格补全提案：当前选择集中 feed-13 缺少流量规格，heater-4 缺少出口温度目标值，导致求解器处于 invalid_parameters 状态。\",\n      \"issues\": [\n        {\n          \"title\": \"Cold Feed 缺少流量规格\",\n          \"severity\": \"error\",\n          \"citations\": [\"diag-0\", \"flowdoc-stream-0\"]\n        },\n        {\n          \"title\": \"Balance Heater 缺少出口温度设定值\",\n          \"severity\": \"error\",\n          \"citations\": [\"diag-1\", \"flowdoc-unit-0\"]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"title\": \"为 Cold Feed 指定流量占位\",\n          \"target\": {\"type\": \"stream\", \"id\": \"feed-13\"},\n          \"rationale\": \"STREAM_SPEC_MISSING 诊断指出进口流缺少流量规格，需要补全以支持质量和能量平衡计算。\",\n          \"patch\": {\n            \"spec_placeholders\": {\n              \"flow_rate_kg_h\": null\n            }\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\"diag-0\", \"flowdoc-stream-0\", \"snapshot-1\"]\n        },\n        {\n          \"title\": \"为 Balance Heater 添加出口温度目标占位\",\n          \"target\": {\"type\": \"unit\", \"id\": \"heater-4\"},\n          \"rationale\": \"加热器配置为出口温度控制模式，但未定义目标温度，导致 UNIT_PARAMETER_INCOMPLETE。\",\n          \"patch\": {\n            \"parameter_placeholders\": {\n              \"target_temperature_c\": null\n            }\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\"diag-1\", \"flowdoc-unit-0\", \"snapshot-1\"]\n        }\n      ],\n      \"confidence\": 0.9\n    }\n  ]\n}\n\n这满足所有要求。不输出额外解释。注意 project 和 task 已固定。\n\n检查：用中文 locale，所以回答用中文。没问题。\n\n输出时，纯 JSON，不包含 markdown 代码块。所以最终响应就是那段 JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1348,
+      "completion_tokens": 3238,
+      "total_tokens": 4586,
+      "prompt_tokens_details": {
+        "cached_tokens": 1280
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2742
+      },
+      "prompt_cache_hit_tokens": 1280,
+      "prompt_cache_miss_tokens": 68
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "requires_confirmation": true,
+    "status": "partial",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "围绕 Heater-4 及其进口流 feed-13 的规格补全提案：当前选择集中 feed-13 缺少流量规格，heater-4 缺少出口温度目标值，导致求解器处于 invalid_parameters 状态。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Cold Feed 指定流量占位",
+        "rationale": "STREAM_SPEC_MISSING 诊断指出进口流缺少流量规格，需要补全以支持质量和能量平衡计算。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-13"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Balance Heater 添加出口温度目标占位",
+        "rationale": "加热器配置为出口温度控制模式，但未定义目标温度，导致 UNIT_PARAMETER_INCOMPLETE。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "heater-4"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c",
+            "target_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Cold Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Balance Heater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cold Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Balance Heater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-13",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-13 Cold Feed target_unit_id=heater-4"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-4",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-4 Balance Heater kind=Heater"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-13",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-13 Heater Outlet source_unit_id=heater-4"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "schema_version": 1,
+    "summary": "围绕 Heater-4 及其进口流 feed-13 的规格补全提案：当前选择集中 feed-13 缺少流量规格，heater-4 缺少出口温度目标值，导致求解器处于 invalid_parameters 状态。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  }
+}

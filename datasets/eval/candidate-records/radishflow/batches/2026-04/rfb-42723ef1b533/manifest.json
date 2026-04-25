@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v89-foundation-stability",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-citation-ordering-diagnostics-before-artifacts-before-snapshot-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-citation-ordering-diagnostics-before-artifacts-before-snapshot-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/r/sfe-98bfa8301a90.record.json",
+      "sample_key": "sfe-98bfa8301a90",
+      "record_relpath": "r/sfe-98bfa8301a90.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/r/sfe-9a19aa61c0fd.record.json",
+      "sample_key": "sfe-9a19aa61c0fd",
+      "record_relpath": "r/sfe-9a19aa61c0fd.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/r/sfe-303cbfa1fbd5.record.json",
+      "sample_key": "sfe-303cbfa1fbd5",
+      "record_relpath": "r/sfe-303cbfa1fbd5.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/r/sfe-5b7e4e9a98e9.record.json",
+      "sample_key": "sfe-5b7e4e9a98e9",
+      "record_relpath": "r/sfe-5b7e4e9a98e9.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/r/sfe-c54181a06dee.record.json",
+      "sample_key": "sfe-c54181a06dee",
+      "record_relpath": "r/sfe-c54181a06dee.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-selection-order-preserved-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-selection-order-preserved-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/r/sfe-c18118148d64.record.json",
+      "sample_key": "sfe-c18118148d64",
+      "record_relpath": "r/sfe-c18118148d64.record.json"
+    }
+  ],
+  "batch_key": "rfb-42723ef1b533",
+  "capture_origin": "interactive_session",
+  "description": "RadishFlow suggest_flowsheet_edits v89 foundation stability high-value real capture."
+}

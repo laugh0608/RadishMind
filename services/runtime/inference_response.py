@@ -757,6 +757,25 @@ def build_suggest_edits_context_support_citation_ids(
 
     citation_ids: list[str] = []
     target_citation_id = target_citation_lookup.get((target_type, target_id))
+
+    def has_direct_unit_parameter_gap_for_stream_target() -> bool:
+        if target_type != "stream":
+            return False
+        stream_document = stream_by_id.get(target_id) or {}
+        connected_unit_ids = {
+            str(stream_document.get("source_unit_id") or "").strip(),
+            str(stream_document.get("target_unit_id") or "").strip(),
+        }
+        connected_unit_ids.discard("")
+        if not connected_unit_ids:
+            return False
+        return any(
+            str((diagnostic or {}).get("target_type") or "").strip().lower() == "unit"
+            and str((diagnostic or {}).get("target_id") or "").strip() in connected_unit_ids
+            and str((diagnostic or {}).get("code") or "").strip() == "UNIT_PARAMETER_INCOMPLETE"
+            for diagnostic in diagnostics
+        )
+
     skip_target_citation = (
         (
             diagnostic_code == "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
@@ -764,7 +783,7 @@ def build_suggest_edits_context_support_citation_ids(
                 target_type == "stream"
                 and diagnostic_code in {"HEATER_OUTLET_EFFECT_UNCONFIRMED", "COOLER_OUTLET_EFFECT_UNCONFIRMED"}
                 and not complex_cross_object_context
-                and target_id not in selected_stream_ids
+                and (target_id not in selected_stream_ids or has_direct_unit_parameter_gap_for_stream_target())
             )
         )
         and item_kind == "issue"

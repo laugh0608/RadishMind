@@ -94,7 +94,10 @@
   - 已作为 `v88` 正式真实 capture 完成收口，避免完成 `tertiary` 后重新回到人工临时挑样本
 - `high-value-real-expansion-foundation-stability`
   - 作为下一组正式入口，继续从剩余未进入高价值扩样的样本中挑选 citation ordering、compressor parameter ordering、issue ordering、基础 reconnect 与 selection order 边界
-  - 当前用于承接下一轮 `v89` 真实 capture，继续减少 `remaining-horizontal-gaps` 中的人工散挑空间
+  - 已作为 `v89` 正式真实 capture 完成收口；首轮 audit 暴露的唯一失败被收口为同连接 unit 已有 `UNIT_PARAMETER_INCOMPLETE` 主问题时，派生 stream-target `_UNCONFIRMED` warning issue 不应继续保留出口流 artifact citation，并在基于现有 dump 重导后收口到 `audit=6/6 pass`
+- `high-value-real-expansion-tail-stability`
+  - 作为下一组正式入口，收口当前尚未进入高价值扩样池的同风险输入顺序、基础 stream spec placeholder 与三步优先级链三条尾部稳定性样本
+  - 当前用于承接下一轮 `v90` 真实 capture，避免 `v89` 完成后又回到 `remaining-horizontal-gaps` 人工散挑
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
@@ -115,6 +118,7 @@
 - `high-value-real-expansion-tertiary`
 - `high-value-real-expansion-baseline-stability`
 - `high-value-real-expansion-foundation-stability`
+- `high-value-real-expansion-tail-stability`
 - `remaining-horizontal-gaps`
 
 ## 请求映射

@@ -141,6 +141,11 @@ SAMPLE_GROUP_PATHS = {
         "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
         "datasets/eval/radishflow/suggest-flowsheet-edits-selection-order-preserved-001.json",
     ],
+    "high-value-real-expansion-tail-stability": [
+        "datasets/eval/radishflow/suggest-flowsheet-edits-same-risk-input-first-ordering-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+        "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+    ],
     "remaining-horizontal-gaps": [
         "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
         "datasets/eval/radishflow/suggest-flowsheet-edits-heater-multi-action-001.json",
