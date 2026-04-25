@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-selection-chronology-single-actionable-target-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-selection-chronology-single-actionable-target-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-selection-chronology-single-actionable-target-001",
+  "request_id": "rf-suggest-edit-selection-chronology-single-actionable-target-001",
+  "captured_at": "2026-04-25T03:34:52Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion",
+      "baseline-stability"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v88-baseline-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 68,
+    "selected_unit_ids": [
+      "separator-7",
+      "heater-6",
+      "cooler-7"
+    ],
+    "selected_stream_ids": [
+      "vapor-44",
+      "feed-44",
+      "cooled-44",
+      "heated-44"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "SEPARATOR_STATE_DEPENDENT",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-selection-chronology-single-actionable-target-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-163",
+          "streams": [
+            {
+              "id": "feed-44",
+              "name": "Recycle Feed",
+              "target_unit_id": "heater-6",
+              "specs": {
+                "temperature_c": 88
+              }
+            },
+            {
+              "id": "heated-44",
+              "name": "Trim Heater Outlet",
+              "source_unit_id": "heater-6",
+              "target_unit_id": "cooler-7",
+              "specs": {
+                "temperature_c": 136,
+                "pressure_kpa": 208
+              }
+            },
+            {
+              "id": "cooled-44",
+              "name": "Recycle Cooler Outlet",
+              "source_unit_id": "cooler-7",
+              "target_unit_id": "separator-7",
+              "specs": {
+                "temperature_c": 49,
+                "pressure_kpa": 201
+              }
+            },
+            {
+              "id": "vapor-44",
+              "name": "Recycle Separator Vapor",
+              "source_unit_id": "separator-7",
+              "specs": {
+                "pressure_kpa": 195
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-6",
+              "kind": "Heater",
+              "name": "Feed Trim Heater",
+              "config": {
+                "control_mode": "duty"
+              }
+            },
+            {
+              "id": "cooler-7",
+              "kind": "Cooler",
+              "name": "Recycle Cooler",
+              "config": {
+                "control_mode": "duty"
+              }
+            },
+            {
+              "id": "separator-7",
+              "kind": "FlashDrum",
+              "name": "Recycle Separator",
+              "config": {
+                "pressure_mode": "free"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 68,
+      "selected_unit_ids": [
+        "separator-7",
+        "heater-6",
+        "cooler-7"
+      ],
+      "selected_unit": {
+        "id": "cooler-7",
+        "kind": "Cooler",
+        "name": "Recycle Cooler",
+        "config": {
+          "control_mode": "duty"
+        }
+      },
+      "selected_stream_ids": [
+        "vapor-44",
+        "feed-44",
+        "cooled-44",
+        "heated-44"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 3
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Recycle Feed is missing pressure specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-44"
+        },
+        {
+          "code": "SEPARATOR_STATE_DEPENDENT",
+          "message": "Recycle Separator behavior still depends on the unresolved upstream feed pressure.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "separator-7"
+        },
+        {
+          "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Feed Trim Heater outlet response may still be influenced by the incomplete feed pressure state.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "heater-6"
+        },
+        {
+          "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Recycle Cooler outlet response is still downstream of the unresolved feed pressure gap, so the cooler itself is not yet a confirmed root cause.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "cooler-7"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "partial_convergence",
+        "residual_norm": 0.13,
+        "last_updated": "2026-04-12T06:25:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-selection-chronology-single-actionable-target-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-163\",\n        \"streams\": [\n          {\n            \"id\": \"feed-44\",\n            \"name\": \"Recycle Feed\",\n            \"target_unit_id\": \"heater-6\",\n            \"specs\": {\n              \"temperature_c\": 88\n            }\n          },\n          {\n            \"id\": \"heated-44\",\n            \"name\": \"Trim Heater Outlet\",\n            \"source_unit_id\": \"heater-6\",\n            \"target_unit_id\": \"cooler-7\",\n            \"specs\": {\n              \"temperature_c\": 136,\n              \"pressure_kpa\": 208\n            }\n          },\n          {\n            \"id\": \"cooled-44\",\n            \"name\": \"Recycle Cooler Outlet\",\n            \"source_unit_id\": \"cooler-7\",\n            \"target_unit_id\": \"separator-7\",\n            \"specs\": {\n              \"temperature_c\": 49,\n              \"pressure_kpa\": 201\n            }\n          },\n          {\n            \"id\": \"vapor-44\",\n            \"name\": \"Recycle Separator Vapor\",\n            \"source_unit_id\": \"separator-7\",\n            \"specs\": {\n              \"pressure_kpa\": 195\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"heater-6\",\n            \"kind\": \"Heater\",\n            \"name\": \"Feed Trim Heater\",\n            \"config\": {\n              \"control_mode\": \"duty\"\n            }\n          },\n          {\n            \"id\": \"cooler-7\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Recycle Cooler\",\n            \"config\": {\n              \"control_mode\": \"duty\"\n            }\n          },\n          {\n            \"id\": \"separator-7\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Recycle Separator\",\n            \"config\": {\n              \"pressure_mode\": \"free\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 68,\n    \"selected_unit_ids\": [\n      \"separator-7\",\n      \"heater-6\",\n      \"cooler-7\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-7\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Recycle Cooler\",\n      \"config\": {\n        \"control_mode\": \"duty\"\n      }\n    },\n    \"selected_stream_ids\": [\n      \"vapor-44\",\n      \"feed-44\",\n      \"cooled-44\",\n      \"heated-44\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 3\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Recycle Feed is missing pressure specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-44\"\n      },\n      {\n        \"code\": \"SEPARATOR_STATE_DEPENDENT\",\n        \"message\": \"Recycle Separator behavior still depends on the unresolved upstream feed pressure.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"separator-7\"\n      },\n      {\n        \"code\": \"HEATER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Feed Trim Heater outlet response may still be influenced by the incomplete feed pressure state.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"heater-6\"\n      },\n      {\n        \"code\": \"COOLER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Recycle Cooler outlet response is still downstream of the unresolved feed pressure gap, so the cooler itself is not yet a confirmed root cause.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"cooler-7\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"partial_convergence\",\n      \"residual_norm\": 0.13,\n      \"last_updated\": \"2026-04-12T06:25:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "ce08842a-ce7b-473a-b904-4d9eb570fd0c",
+    "object": "chat.completion",
+    "created": 1777088047,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"ok\",\n  \"summary\": \"当前候选提案围绕 Recycle Feed 流（feed-44）缺失压力规格的问题，提出补全其 pressure_kpa 属性，以解决根本诊断错误并减少下游不确定性。\",\n  \"issues\": [\n    {\n      \"message\": \"STREAM_SPEC_MISSING: Recycle Feed is missing pressure specification.\",\n      \"severity\": \"error\",\n      \"citations\": [\"diag-0\"]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"title\": \"为 Recycle Feed 补充压力规格\",\n      \"target\": \"feed-44\",\n      \"rationale\": \"诊断明确指出流 feed-44 缺少压力规格（pressure_kpa），这是当前流程图中唯一的错误项，且下游加热器、冷却器和分离器均依赖该压力进行状态计算，补全此规格是消除级联警告的根本步骤。\",\n      \"patch\": {\n        \"spec_placeholders\": [\n          {\n            \"key\": \"pressure_kpa\",\n            \"value_type\": \"pressure\",\n            \"suggested_value\": null,\n            \"placeholder_reason\": \"下游加热器出口压力为 208 kPa，建议设定进料压力为相近值或从工艺设计获取，此处留空待用户确认。\"\n          }\n        ]\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-0\", \"flowdoc-stream-0\", \"snapshot-1\"]\n    }\n  ],\n  \"confidence\": 0.85,\n  \"requires_confirmation\": true,\n  \"answers\": [\n    {\n      \"message\": \"建议为 Recycle Feed（feed-44）添加压力规格，以修复 STREAM_SPEC_MISSING 错误并改善下游收敛。\",\n      \"citations\": [\"diag-0\", \"flowdoc-stream-0\"]\n    }\n  ],\n  \"conversation_id\": null,\n  \"inline_results\": [],\n  \"schema_version\": 1\n}",
+          "reasoning_content": "我们被要求只输出JSON对象，并且遵循规则。分析请求：这是一个suggest_flowsheet_edits任务，上下文中有诊断信息、选定的单元和流，以及工艺流程文档。需要生成候选编辑提案。\n\n关键信息：诊断中有error: STREAM_SPEC_MISSING，feed-44缺少压力规格。还有几个warning，例如separator-7、heater-6、cooler-7的行为依赖未解决的上游进料压力。选定单元包括separator-7, heater-6, cooler-7，但selected_unit是cooler-7。选定流包括vapor-44, feed-44, cooled-44, heated-44。\n\n我们需要根据诊断提出最小的、可审查的patch。重点应该是解决feed-44缺失压力规格的问题。诊断明确指出feed-44缺少压力规格。这是一个stream。因此，候选编辑应为在feed-44的specs中添加压力规格。我们可以使用spec_placeholders，因为我们不知道确切值，但可以建议一个占位符或推断值。诊断摘要显示error_count=1，warnings 3，但集中在一个根本原因上。因此，我们的提案应该是针对feed-44添加压力规格。\n\n我们是否也要参考诊断中的其他警告？警告表明，由于feed-44压力未定，下游单元的行为不确定。但是，我们的候选编辑应该只解决直接问题：为feed-44添加压力规格。之后，其他警告可能会自行解决。所以，一个单一的candidate_edit，目标是stream \"feed-44\"，添加specs中的pressure_kpa。我们可以使用一个spec_placeholder，提供合理的默认值或占位符。patch结构应该类似：\n{\n  \"target\": \"feed-44\",\n  \"patch\": {\n    \"spec_placeholders\": [\n      {\n        \"key\": \"pressure_kpa\",\n        \"value_type\": \"pressure\",\n        \"suggested_value\": 200,   // 可能基于上下游推断？这里heated-44 pressure_kpa是208，feed-44是上游，可能接近，但保守一点使用占位符。\n        \"placeholder_reason\": \"required for pressure closure\"\n      }\n    ]\n  },\n  \"rationale\": \"根据诊断STREAM_SPEC_MISSING，Recycle Feed缺少压力规格，且下游单元分离器、加热器和冷却器均依赖于该压力，因此需要补全该规格。\",\n  ...\n}\n\n但注意规则：target只能指向当前请求里有证据支撑的stream或unit。feed-44是一个stream，有诊断。所以没问题。还需要引用。citations应优先稳定顺序：直接诊断在前，目标对象artifact其次，supporting snapshot最后。所以citations可以包含diag-0（第一个诊断），或许还有目标流在flowsheet_document中的artifact，以及snapshot。诊断按顺序：第一个是feed-44的error，所以diag-0。然后目标对象feed-44在flowsheet_document的streams中，可以引用flowdoc-stream-0？在artifacts里提供的flowsheet_document只有一个，没有序号，但我们可以引用其为\"flowdoc-stream-feed-44\"或者按照要求使用\"flowdoc-stream-<n>\"。文档中streams数组，feed-44是第一个？顺序：streams数组：[{id:\"feed-44\"}, {id:\"heated-44\"}, {id:\"cooled-44\"}, {id:\"vapor-44\"}]，所以第一个是索引0，我们可以用\"flowdoc-stream-0\"。snapshot可以用\"snapshot-1\"。因此citations可以是[\"diag-0\", \"flowdoc-stream-0\", \"snapshot-1\"]。\n\n对于risk_level：这只是一个添加规格，不是拓扑重连，不是删除，不是高风险操作，但可能影响压力求解，所以可以标为medium。\n\nsummary: 应说明围绕Recycle Feed流缺少压力规格生成候选提案。\n\nissues: 直接写触发patch的诊断，如“STREAM_SPEC_MISSING: feed-44缺少pressure_kpa规格”。不需要重复。\n\nanswers: 至少1条，我们可以放在answers里说明提议。\n\n现在构建CopilotResponse JSON。结构：\n{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",   // 因为证据不足？但我们可以完成这个编辑，其他警告可能是后续检查。我们只是提出一个补丁，满足最小要求。status可以是\"ok\"或\"partial\"。由于只有一个主要错误，我们提供了补丁，所以可以\"ok\"？或者谨慎一点用\"partial\"，因为还有未确认的警告，可能补丁后还需要验证。根据“证据不足时允许status=partial”，这里我们有足够的证据解决error，所以可以用\"ok\"。但是，\"confidence\"应该适当。我决定用\"ok\"，因为诊断明确。\n  \"summary\": \"当前候选提案围绕Recycle Feed流（feed-44）缺失压力规格的问题，提出补全其pressure_kpa属性，以解决根本诊断错误并减少下游不确定性。\",\n  \"issues\": [\n    {\n      \"message\": \"STREAM_SPEC_MISSING: Recycle Feed is missing pressure specification.\",\n      \"severity\": \"error\",\n      \"citations\": [\"diag-0\"]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"title\": \"为Recycle Feed补充压力规格\",\n      \"target\": \"feed-44\",\n      \"rationale\": \"诊断明确指出流feed-44缺少压力规格（pressure_kpa），这是当前流程图中唯一的错误项。加热器、冷却器和分离器均依赖该压力来计算行为，补全此规格是解决级联警告的根本步骤。\",\n      \"patch\": {\n        \"spec_placeholders\": [\n          {\n            \"key\": \"pressure_kpa\",\n            \"value_type\": \"pressure\",\n            \"suggested_value\": null,\n            \"placeholder_reason\": \"下游加热器出口压力为208 kPa，建议设定进料压力为相近值或从工艺设计获取。此处留空待用户确认。\"\n          }\n        ]\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-0\", \"flowdoc-stream-0\", \"snapshot-1\"]\n    }\n  ],\n  \"confidence\": 0.85,\n  \"requires_confirmation\": true,\n  \"answers\": [\n    {\n      \"message\": \"建议为Recycle Feed（feed-44）添加压力规格，以修复STREAM_SPEC_MISSING错误并改善下游收敛。\",\n      \"citations\": [\"diag-0\", \"flowdoc-stream-0\"]\n    }\n  ],\n  \"conversation_id\": null,\n  \"inline_results\": [],\n  \"schema_version\": 1\n}\n\n需要检查：工具提示不允许检索和工具调用，所以不提。requires_confirmation全局必须为true，每条candidate_edit的requires_confirmation也为true。已满足。\n\ncitations排序：直接诊断diag-0，目标对象flowdoc-stream-0，支持快照snapshot-1。所以没问题。\n\nproposed_actions的patch使用了spec_placeholders，这是局部结构，合理。\n\n总结：就这样输出。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1752,
+      "completion_tokens": 1974,
+      "total_tokens": 3726,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1518
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 1240
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "summary": "当前候选提案围绕 Recycle Feed 流（feed-44）缺失压力规格的问题，提出补全其 pressure_kpa 属性，以解决根本诊断错误并减少下游不确定性。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Recycle Feed is missing pressure specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "SEPARATOR_STATE_DEPENDENT",
+        "message": "Recycle Separator behavior still depends on the unresolved upstream feed pressure.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-3",
+          "flowdoc-stream-4",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Feed Trim Heater outlet response may still be influenced by the incomplete feed pressure state.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Recycle Cooler outlet response is still downstream of the unresolved feed pressure gap, so the cooler itself is not yet a confirmed root cause.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "feed-44"
+        },
+        "title": "为 feed-44 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "confidence": 0.85,
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前候选提案围绕 Recycle Feed 流（feed-44）缺失压力规格的问题，提出补全其 pressure_kpa 属性，以解决根本诊断错误并减少下游不确定性。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "schema_version": 1,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Recycle Feed is missing pressure specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Recycle Separator behavior still depends on the unresolved upstream feed pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Feed Trim Heater outlet response may still be influenced by the incomplete feed pressure state."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Recycle Cooler outlet response is still downstream of the unresolved feed pressure gap, so the cooler itself is not yet a confirmed root cause."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-44",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-44 Recycle Feed target_unit_id=heater-6"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-6",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-6 Feed Trim Heater kind=Heater"
+      },
+      {
+        "id": "flowdoc-unit-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-7",
+        "locator": "artifact:flowsheet_document.units[2]",
+        "excerpt": "separator-7 Recycle Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-4",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / vapor-44",
+        "locator": "artifact:flowsheet_document.streams[3]",
+        "excerpt": "vapor-44 Recycle Separator Vapor source_unit_id=separator-7"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-7",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "cooler-7 Recycle Cooler kind=Cooler"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.13"
+      }
+    ],
+    "risk_level": "medium"
+  }
+}

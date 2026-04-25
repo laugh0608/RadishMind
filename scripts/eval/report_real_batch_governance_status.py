@@ -32,6 +32,7 @@ RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-de
 RADISHFLOW_SUGGEST_EDITS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-real-derived-negatives.json"
 MISSING_NEGATIVE_SAMPLES = "missing_negative_samples"
 MISSING_REAL_DERIVED_NEGATIVE_SAMPLES = "missing_real_derived_negative_samples"
+NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = "high-value-real-expansion-foundation-stability"
 
 
 def parse_args() -> argparse.Namespace:
@@ -322,7 +323,9 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         ):
             governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
     priority_category = "expand_real_capture_pool"
-    priority_recommendation = "继续扩高价值真实样本池，优先补下一组非重复高价值真实样本。"
+    priority_recommendation = (
+        f"继续扩高价值真实样本池，优先补 {NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP} 这组非重复高价值真实样本。"
+    )
     if next_group:
         priority_category = "teacher_comparison_capture"
         priority_recommendation = f"补齐 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
@@ -353,6 +356,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             "teacher_comparison_candidate_count": len(teacher_candidates),
             "teacher_comparison_candidates": teacher_candidates,
             "next_teacher_comparison_group": next_group,
+            "next_high_value_capture_group": "" if next_group else NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP,
         },
         "governance": governance,
         "artifact_summary": (

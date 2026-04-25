@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-stream-spec-sequence-ordering-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+  "request_id": "rf-suggest-edit-stream-spec-sequence-ordering-001",
+  "captured_at": "2026-04-25T03:35:24Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion",
+      "baseline-stability"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v88-baseline-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 55,
+    "selected_stream_ids": [
+      "stream-9"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-stream-spec-sequence-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-112",
+          "streams": [
+            {
+              "id": "stream-9",
+              "name": "Reactor Feed",
+              "target_unit_id": "reactor-1",
+              "specs": {}
+            }
+          ],
+          "units": [
+            {
+              "id": "reactor-1",
+              "kind": "Reactor",
+              "name": "Test Reactor"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 55,
+      "selected_stream_ids": [
+        "stream-9"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Reactor Feed is missing temperature, pressure, and flow rate specifications.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "stream-9"
+        }
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-stream-spec-sequence-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-112\",\n        \"streams\": [\n          {\n            \"id\": \"stream-9\",\n            \"name\": \"Reactor Feed\",\n            \"target_unit_id\": \"reactor-1\",\n            \"specs\": {}\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"reactor-1\",\n            \"kind\": \"Reactor\",\n            \"name\": \"Test Reactor\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 55,\n    \"selected_stream_ids\": [\n      \"stream-9\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 0\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Reactor Feed is missing temperature, pressure, and flow rate specifications.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"stream-9\"\n      }\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "739c1f95-54ac-4863-b254-fb578680da92",
+    "object": "chat.completion",
+    "created": 1777088090,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"answers\": [\n    {\n      \"message\": \"流 Reactor Feed（stream-9）缺少必要的温度、压力和流量规格。以下提案为该流添加占位符，请明确填入操作条件。\"\n    }\n  ],\n  \"summary\": \"围绕选中的流 stream-9（Reactor Feed）生成规格补全候选提案。\",\n  \"issues\": [\n    {\n      \"code\": \"STREAM_SPEC_MISSING\",\n      \"message\": \"Reactor Feed 缺少温度、压力和流率规格。\",\n      \"severity\": \"error\",\n      \"target_id\": \"stream-9\",\n      \"citations\": [\n        \"diag-1\",\n        \"flowdoc-stream-9\"\n      ]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"title\": \"为流 stream-9 添加温度、压力和流量规格占位符\",\n      \"target\": \"stream-9\",\n      \"rationale\": \"诊断表明缺失必要规格，添加占位符可明确提示用户填入数值，而不自动填补假数据。\",\n      \"patch\": {\n        \"stream_id\": \"stream-9\",\n        \"spec_placeholders\": [\n          {\n            \"property\": \"temperature\",\n            \"units\": \"K\",\n            \"reason\": \"指定反应器进料温度\"\n          },\n          {\n            \"property\": \"pressure\",\n            \"units\": \"Pa\",\n            \"reason\": \"指定反应器进料压力\"\n          },\n          {\n            \"property\": \"total_flow\",\n            \"units\": \"mol/s\",\n            \"reason\": \"指定反应器进料总摩尔流率\"\n          }\n        ]\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\n        \"diag-1\",\n        \"flowdoc-stream-9\"\n      ]\n    }\n  ],\n  \"confidence\": 0.75,\n  \"requires_confirmation\": true\n}",
+          "reasoning_content": "我们被要求为这个请求生成 CopilotResponse。请求是 suggest_flowsheet_edits，其中有一个流 stream-9，诊断显示 STREAM_SPEC_MISSING，缺少温度、压力和流率规格。我们需要提出候选编辑（candidate_edit）。目标对象是 stream-9，选中了它。flowsheet_document 中流 stream-9 的 specs 为空。我们需要提出一个补丁，添加规格占位符（spec_placeholders）以提示用户填写这些值。应生成最小可审查的 patch。requires_confirmation 必须为 true。citations 包括诊断和文档。confidence 可以设中等。风险级别中等（medium），因为只是添加占位符，不是拓扑更改。必须按规则输出 JSON。\n\n结构：CopilotResponse 包含 project, task, status (应该是 partial 吧？因为只有一个诊断，但可能最终用户需要补全)，answers 至少一条，summary, issues, proposed_actions。答案中需要解释。\n\n根据要求：summary 说明当前围绕 stream-9 生成提案。issues 列出诊断。proposed_actions 包括候选编辑，带 title, target, rationale, patch, risk_level, requires_confirmation, citations。patch 使用 spec_placeholders 等。需要包含 artifacts 引用：flowdoc-stream-9。诊断引用 diag-1。没有 snapshot。所以 citations 顺序：诊断、artifact。\n\n生成 JSON：\n\n{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"answers\": [\n    {\n      \"message\": \"流 Reactor Feed（stream-9）缺少必要的温度、压力和流量规格。以下提案为该流添加占位符，请明确填入操作条件。\"\n    }\n  ],\n  \"summary\": \"围绕选中的流 stream-9（Reactor Feed）生成规格补全候选提案。\",\n  \"issues\": [\n    {\n      \"code\": \"STREAM_SPEC_MISSING\",\n      \"message\": \"Reactor Feed 缺少温度、压力和流率规格。\",\n      \"severity\": \"error\",\n      \"target_id\": \"stream-9\",\n      \"citations\": [\"diag-1\", \"flowdoc-stream-9\"]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"title\": \"为流 stream-9 添加温度、压力和流量规格占位符\",\n      \"target\": \"stream-9\",\n      \"rationale\": \"诊断表明缺失必要规格，添加占位符可明确提示用户填入数值，而不自动填补假数据。\",\n      \"patch\": {\n        \"stream_id\": \"stream-9\",\n        \"spec_placeholders\": [\n          {\n            \"property\": \"temperature\",\n            \"units\": \"K\",\n            \"reason\": \"指定反应器进料温度\"\n          },\n          {\n            \"property\": \"pressure\",\n            \"units\": \"Pa\",\n            \"reason\": \"指定反应器进料压力\"\n          },\n          {\n            \"property\": \"total_flow\",\n            \"units\": \"mol/s\",\n            \"reason\": \"指定反应器进料总摩尔流率\"\n          }\n        ]\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-1\", \"flowdoc-stream-9\"]\n    }\n  ],\n  \"confidence\": 0.75,\n  \"requires_confirmation\": true\n}\n\n注意：status 为 partial，因为只解决了一个诊断，但可能还有其他。confidence 0.75。没有提供 snapshot，所以 citations 只有 diag-1 和 flowdoc-stream-9。需要确保 target 引用正确。patch 使用了 spec_placeholders 作为推荐结构。每个占位符包含 property, units, reason。\n\n按要求输出 JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1056,
+      "completion_tokens": 1251,
+      "total_tokens": 2307,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 808
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 544
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "围绕选中的流 stream-9（Reactor Feed）生成规格补全候选提案。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "summary": "围绕选中的流 stream-9（Reactor Feed）生成规格补全候选提案。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Reactor Feed 缺少温度、压力和流率规格。",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "stream-9"
+        },
+        "title": "为 stream-9 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "pressure_kpa",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "confidence": 0.75,
+    "requires_confirmation": true,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Reactor Feed is missing temperature, pressure, and flow rate specifications."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-9",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-9 Reactor Feed target_unit_id=reactor-1"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "medium"
+  }
+}

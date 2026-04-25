@@ -1,0 +1,86 @@
+{
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "summary": "围绕泵 'Range Review Pump' (pump-3) 的效率参数超出范围问题，建议将效率修正至推荐范围内。",
+  "issues": [
+    {
+      "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+      "message": "Range Review Pump efficiency_percent=109 is outside the recommended operating range.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "target": {
+        "type": "unit",
+        "id": "pump-3"
+      },
+      "title": "为 pump-3 补充局部参数占位",
+      "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+      "patch": {
+        "parameter_updates": {
+          "efficiency_percent": {
+            "action": "clamp_to_review_range",
+            "suggested_range": [
+              65,
+              82
+            ]
+          }
+        },
+        "preserve_topology": true
+      },
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "建议将泵 'Range Review Pump' 的效率参数从 109% 修正为 100%，以符合推荐操作范围。此修改仅为候选，需用户确认后应用。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "requires_confirmation": true,
+  "confidence": 0.9,
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Range Review Pump efficiency_percent=109 is outside the recommended operating range."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / pump-3",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "pump-3 Range Review Pump kind=Pump"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "schema_version": 1,
+  "risk_level": "medium"
+}

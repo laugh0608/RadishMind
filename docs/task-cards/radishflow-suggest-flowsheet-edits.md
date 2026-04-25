@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_flowsheet_edits`
 
-更新时间：2026-04-23
+更新时间：2026-04-25
 
 ## 任务目标
 
@@ -78,7 +78,7 @@
 
 因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
-当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增三组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary` 与 `high-value-real-expansion-tertiary` 现都已完成一轮正式真实 capture，并分别收口到 `audit=6/6 pass`：
+当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增五组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary`、`high-value-real-expansion-tertiary` 与 `high-value-real-expansion-baseline-stability` 现都已完成一轮正式真实 capture，并分别收口到 `audit=6/6 pass`：
 
 - `high-value-real-expansion-core`
   - 优先覆盖 triad mixed-risk、mixed patch combo、cross-object primary focus、parameter detail ordering、local-edits evidence gap 与 mixed-risk reconnect 六类复杂 drift 面
@@ -89,6 +89,12 @@
 - `high-value-real-expansion-tertiary`
   - 继续覆盖尚未进入高价值池的复杂 cross-object citation、mixed-risk 三动作排序、mixed reconnect + pump parameter，以及 pump / valve 局部参数平衡六类样本
   - 已在 `secondary` 组收口后完成第三组正式收口
+- `high-value-real-expansion-baseline-stability`
+  - 作为下一组正式入口，优先从前三组尚未覆盖的剩余样本中挑选引用顺序、多动作、范围顺序、selection chronology 与 spec 顺序边界
+  - 已作为 `v88` 正式真实 capture 完成收口，避免完成 `tertiary` 后重新回到人工临时挑样本
+- `high-value-real-expansion-foundation-stability`
+  - 作为下一组正式入口，继续从剩余未进入高价值扩样的样本中挑选 citation ordering、compressor parameter ordering、issue ordering、基础 reconnect 与 selection order 边界
+  - 当前用于承接下一轮 `v89` 真实 capture，继续减少 `remaining-horizontal-gaps` 中的人工散挑空间
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
@@ -107,6 +113,8 @@
 - `high-value-real-expansion-core`
 - `high-value-real-expansion-secondary`
 - `high-value-real-expansion-tertiary`
+- `high-value-real-expansion-baseline-stability`
+- `high-value-real-expansion-foundation-stability`
 - `remaining-horizontal-gaps`
 
 ## 请求映射
