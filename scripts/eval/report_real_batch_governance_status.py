@@ -502,7 +502,13 @@ def build_ghost_chain() -> dict[str, Any]:
             "next_real_capture_group": next_group,
             "pending_sample_groups": pending_groups,
             "scope_note": (
-                "当前正式真实 capture 已从固定 PoC trio 扩到十一批高价值链式样本。"
+                "当前正式真实 capture 已从固定 PoC trio 扩到十四批高价值链式样本。"
+                if len(all_sample_ids) > 62
+                else "当前正式真实 capture 已从固定 PoC trio 扩到十三批高价值链式样本。"
+                if len(all_sample_ids) > 56
+                else "当前正式真实 capture 已从固定 PoC trio 扩到十二批高价值链式样本。"
+                if len(all_sample_ids) > 50
+                else "当前正式真实 capture 已从固定 PoC trio 扩到十一批高价值链式样本。"
                 if len(all_sample_ids) > 44
                 else "当前正式真实 capture 已从固定 PoC trio 扩到十批高价值链式样本。"
                 if len(all_sample_ids) > 38

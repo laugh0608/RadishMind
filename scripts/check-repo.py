@@ -685,7 +685,7 @@ def check_generated_eval_metadata() -> None:
 
     ghost_governance = ghost_chain.get("governance") or {}
     ghost_coverage_summary = ghost_chain.get("coverage_summary") or {}
-    if int(ghost_coverage_summary.get("real_captured_sample_count") or 0) != 62:
+    if int(ghost_coverage_summary.get("real_captured_sample_count") or 0) != 68:
         raise SystemExit("radishflow ghost completion: unexpected real captured sample count in governance status report")
     if int(ghost_coverage_summary.get("latest_batch_matched_sample_count") or 0) != 6:
         raise SystemExit("radishflow ghost completion: unexpected latest batch matched sample count in governance status report")
@@ -694,7 +694,7 @@ def check_generated_eval_metadata() -> None:
         raise SystemExit("radishflow ghost completion: unexpected priority rank in governance status report")
     ghost_coverage = ghost_chain.get("coverage") or {}
     if str(ghost_coverage.get("next_real_capture_group") or "").strip() != (
-        "high-value-residual-conflict-recovery-backfill"
+        "high-value-residual-cooldown-tail-backfill"
     ):
         raise SystemExit("radishflow ghost completion: unexpected next real capture group in governance status report")
     for blocker_key in (

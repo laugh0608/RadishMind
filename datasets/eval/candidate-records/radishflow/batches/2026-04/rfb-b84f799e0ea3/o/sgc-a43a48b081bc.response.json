@@ -1,0 +1,97 @@
+{
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "summary": "已检测到加热器出口到下游闪蒸罐入口的幽灵连接候选，但建议的流名称 H-602 与现有流冲突，无法自动采用默认快捷键。将提供手动确认的幽灵完成建议。",
+  "answers": [
+    {
+      "kind": "ghost_rationale",
+      "text": "建议在 Heater-3 的出口与 Flash Drum 602 的入口之间创建一个名为 H-602 的流，但这会与现有流 H-602 发生名称冲突，需要您在确认时手动解决（例如重命名新流或调整现有流）。",
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "issues": [],
+  "proposed_actions": [
+    {
+      "kind": "ghost_completion",
+      "title": "保留 heater-3 的 outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "heater-3",
+        "port_key": "outlet"
+      },
+      "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-heater-3-outlet-flash-15-name-conflict",
+        "target_port_key": "outlet",
+        "ghost_stream_name": "H-602"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "manual_only",
+        "render_priority": 1
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-heater-3-outlet-flash-15-name-conflict"
+        }
+      },
+      "risk_level": "medium",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "ctx-unit",
+      "kind": "context",
+      "label": "当前选中的 heater-3",
+      "locator": "context:selected_unit",
+      "excerpt": "selected_unit=heater-3 kind=Heater name=Feed Heater 602"
+    },
+    {
+      "id": "ctx-candidate-1",
+      "kind": "context",
+      "label": "候选 cand-heater-3-outlet-flash-15-name-conflict",
+      "locator": "context:legal_candidate_completions[0]",
+      "excerpt": "candidate_ref=cand-heater-3-outlet-flash-15-name-conflict target_port_key=outlet is_tab_default=False is_high_confidence=False"
+    },
+    {
+      "id": "ctx-naming-hints",
+      "kind": "context",
+      "label": "ghost 命名提示",
+      "locator": "context:naming_hints",
+      "excerpt": "{\"upstream_stream_names\": [\"F-602\"], \"existing_stream_names\": [\"F-602\", \"H-602\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"602\"}"
+    },
+    {
+      "id": "ctx-pattern",
+      "kind": "context",
+      "label": "拓扑模式提示",
+      "locator": "context:topology_pattern_hints[0]",
+      "excerpt": "feed_heater_flash_chain"
+    },
+    {
+      "id": "ctx-recent-action",
+      "kind": "context",
+      "label": "最近 ghost 动作",
+      "locator": "context:cursor_context.recent_actions[0]",
+      "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-feed-602-to-heater-3-inlet\", \"accepted_at_revision\": 53}"
+    }
+  ],
+  "status": "ok",
+  "schema_version": 1,
+  "risk_level": "medium",
+  "requires_confirmation": false,
+  "confidence": 0.78
+}
