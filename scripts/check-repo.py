@@ -692,6 +692,11 @@ def check_generated_eval_metadata() -> None:
     ghost_priority = ghost_chain.get("priority") or {}
     if int(ghost_priority.get("rank") or 0) != 2:
         raise SystemExit("radishflow ghost completion: unexpected priority rank in governance status report")
+    ghost_coverage = ghost_chain.get("coverage") or {}
+    if str(ghost_coverage.get("next_real_capture_group") or "").strip() != (
+        "high-value-residual-conflict-recovery-backfill"
+    ):
+        raise SystemExit("radishflow ghost completion: unexpected next real capture group in governance status report")
     for blocker_key in (
         "negative_replay_index_blocker",
         "recommended_negative_replay_summary_blocker",

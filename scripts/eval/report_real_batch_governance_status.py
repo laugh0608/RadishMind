@@ -685,6 +685,7 @@ def build_report() -> dict[str, Any]:
         key=lambda item: (item["rank"], item["chain_id"]),
     )
     next_group = str(chains[0]["coverage"].get("next_teacher_comparison_group") or "").strip()
+    ghost_next_group = str(chains[1]["coverage"].get("next_real_capture_group") or "").strip()
     if (
         replay_asset_gap_chain_count > 0
         or recommended_replay_asset_gap_chain_count > 0
@@ -700,10 +701,16 @@ def build_report() -> dict[str, Any]:
             f"下一步回到 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
         )
     else:
-        next_mainline_focus = (
-            "当前三条主治理链的 replay / real-derived 资产均已接通；"
-            "下一步优先扩 suggest_flowsheet_edits 与 ghost 链的高价值真实样本池。"
-        )
+        if ghost_next_group:
+            next_mainline_focus = (
+                "当前三条主治理链的 replay / real-derived 资产均已接通；"
+                f"下一步优先补 suggest_ghost_completion 的 {ghost_next_group} 高价值真实样本池入口。"
+            )
+        else:
+            next_mainline_focus = (
+                "当前三条主治理链的 replay / real-derived 资产均已接通；"
+                "下一步优先扩 suggest_flowsheet_edits 与 ghost 链的高价值真实样本池。"
+            )
     return {
         "schema_version": 1,
         "report": "real_batch_governance_status",

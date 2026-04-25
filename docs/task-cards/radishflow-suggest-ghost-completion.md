@@ -91,6 +91,7 @@
 - 最近连续六批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
 - 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；当前 `high-value-template-asymmetry-backfill` 与 `high-value-suppression-cooldown-symmetry-backfill` 已正式跑通，下一步应继续把剩余 16 条 residual 未覆盖样本再收口成新的 sample-group，而不是重新手工围绕旧边界打转
 - 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前已支持 `--sample-group` 并继续由共享真相源维护下一组正式入口；`high-value-template-asymmetry-backfill` 与 `high-value-suppression-cooldown-symmetry-backfill` 当前已证明这条“remaining groups 之后继续拆 residual sample-group”口径可以稳定落地
+- 当前下一组正式入口已收口为 `high-value-residual-conflict-recovery-backfill`，优先覆盖 cooler / heater 模板上仍未真实化的 name-conflict、no-legal-outlet、ranking-ambiguous 这类 no-tab / empty 基础边界，并补入 cooler 的 reject cooldown 恢复与 valve 的 skip no-retab 两条残余 suppress 边界，用作下一批 `v23` 真实 capture 入口
 
 ## 最小必需输入
 
