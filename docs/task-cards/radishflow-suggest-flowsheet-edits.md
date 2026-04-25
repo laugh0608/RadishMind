@@ -78,7 +78,7 @@
 
 因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
-当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增五组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary`、`high-value-real-expansion-tertiary` 与 `high-value-real-expansion-baseline-stability` 现都已完成一轮正式真实 capture，并分别收口到 `audit=6/6 pass`：
+当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增六组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary`、`high-value-real-expansion-tertiary`、`high-value-real-expansion-baseline-stability`、`high-value-real-expansion-foundation-stability` 与 `high-value-real-expansion-tail-stability` 现都已完成一轮正式真实 capture。
 
 - `high-value-real-expansion-core`
   - 优先覆盖 triad mixed-risk、mixed patch combo、cross-object primary focus、parameter detail ordering、local-edits evidence gap 与 mixed-risk reconnect 六类复杂 drift 面
@@ -97,7 +97,9 @@
   - 已作为 `v89` 正式真实 capture 完成收口；首轮 audit 暴露的唯一失败被收口为同连接 unit 已有 `UNIT_PARAMETER_INCOMPLETE` 主问题时，派生 stream-target `_UNCONFIRMED` warning issue 不应继续保留出口流 artifact citation，并在基于现有 dump 重导后收口到 `audit=6/6 pass`
 - `high-value-real-expansion-tail-stability`
   - 作为下一组正式入口，收口当前尚未进入高价值扩样池的同风险输入顺序、基础 stream spec placeholder 与三步优先级链三条尾部稳定性样本
-  - 当前用于承接下一轮 `v90` 真实 capture，避免 `v89` 完成后又回到 `remaining-horizontal-gaps` 人工散挑
+  - 已作为 `v90` 正式真实 capture 完成收口，并首轮直接达到 `audit=3/3 pass`，避免 `v89` 完成后又回到 `remaining-horizontal-gaps` 人工散挑
+
+至此当前 33 条 `suggest_flowsheet_edits` 离线样本都已进入过一轮高价值真实扩样池；下一步不应复跑 `remaining-horizontal-gaps`，而应先定义新的非重复高价值样本组，或与 `suggest_ghost_completion` 的 residual 高价值扩样并行推进。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 

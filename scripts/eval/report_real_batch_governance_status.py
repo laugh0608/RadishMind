@@ -32,7 +32,7 @@ RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-de
 RADISHFLOW_SUGGEST_EDITS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-real-derived-negatives.json"
 MISSING_NEGATIVE_SAMPLES = "missing_negative_samples"
 MISSING_REAL_DERIVED_NEGATIVE_SAMPLES = "missing_real_derived_negative_samples"
-NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = "high-value-real-expansion-tail-stability"
+NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = ""
 
 
 def parse_args() -> argparse.Namespace:
@@ -268,7 +268,8 @@ def build_suggest_edits_chain() -> dict[str, Any]:
     else:
         next_gap = (
             "当前四主 apiyi coverage 与 replay / real-derived 治理资产均已接通；"
-            "下一步应转回 suggest_flowsheet_edits 与 ghost 链的高价值真实样本池。"
+            "既有 suggest_flowsheet_edits 高价值真实扩样入口也已跑通；"
+            "下一步应优先定义新的非重复高价值样本组，或转向 ghost 链 residual 高价值扩样。"
         )
     governance: dict[str, Any] = {
         "level": (
@@ -323,9 +324,15 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         ):
             governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
     priority_category = "expand_real_capture_pool"
-    priority_recommendation = (
-        f"继续扩高价值真实样本池，优先补 {NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP} 这组非重复高价值真实样本。"
-    )
+    if NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP:
+        priority_recommendation = (
+            f"继续扩高价值真实样本池，优先补 {NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP} 这组非重复高价值真实样本。"
+        )
+    else:
+        priority_recommendation = (
+            "既有 suggest_flowsheet_edits 高价值真实扩样入口已跑通；"
+            "下一步先定义新的非重复高价值样本组，避免回到 remaining-horizontal-gaps 或重复 replay 扩样。"
+        )
     if next_group:
         priority_category = "teacher_comparison_capture"
         priority_recommendation = f"补齐 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
