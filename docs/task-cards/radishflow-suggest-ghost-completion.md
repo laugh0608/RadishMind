@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_ghost_completion`
 
-更新时间：2026-04-24
+更新时间：2026-04-25
 
 ## 任务目标
 
@@ -90,8 +90,8 @@
 - 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay、两路 recommended replay summary，以及首批 real-derived negative pattern
 - 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
 - 最近连续六批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
-- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；当前 `high-value-template-asymmetry-backfill` 与 `high-value-suppression-cooldown-symmetry-backfill` 已正式跑通，下一步应继续把剩余 16 条 residual 未覆盖样本再收口成新的 sample-group，而不是重新手工围绕旧边界打转
-- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前已支持 `--sample-group` 并继续由共享真相源维护下一组正式入口；`high-value-template-asymmetry-backfill` 与 `high-value-suppression-cooldown-symmetry-backfill` 当前已证明这条“remaining groups 之后继续拆 residual sample-group”口径可以稳定落地
+- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；当前 `high-value-template-asymmetry-backfill`、`high-value-suppression-cooldown-symmetry-backfill` 与 `high-value-residual-conflict-recovery-backfill` 已正式跑通，下一步应继续把剩余 10 条 residual 未覆盖样本再收口成新的 sample-group，而不是重新手工围绕旧边界打转
+- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前已支持 `--sample-group` 并继续由共享真相源维护下一组正式入口；`v21` 到 `v23` 已证明这条“remaining groups 之后继续拆 residual sample-group”口径可以稳定落地
 - 当前下一组正式入口已收口为 `high-value-residual-cooldown-tail-backfill`，优先覆盖剩余 10 条 residual 中的 cooldown 恢复尾样，包括 cooler latest reject cooldown、cooler skip cooldown + other reject、heater dismiss / reject cooldown、valve dismiss + other skip 与 valve skip cooldown，用作下一批 `v24` 真实 capture 入口
 
 ## 最小必需输入

@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-23
+更新时间：2026-04-25
 
 ## 路线图目标
 
@@ -73,7 +73,7 @@
 - 基于 `FlowsheetDocument`、选择集、诊断摘要和求解状态建立首批样本
 - 为编辑器辅助场景冻结 `suggest_ghost_completion` 的输入输出口径，并优先围绕 `FlashDrum` / `Mixer` 建立最小样本
 - 在 `suggest_ghost_completion` 上把 pre-model handoff、request assembly 与 response-level regression 推进到链式基线，并已先在三条链式模板上收口 `Tab / manual_only / empty / reject-no-retab / dismiss-no-retab / skip-no-retab`、same-candidate 一帧 cooldown 恢复 `Tab`、恢复窗口只看最近一条同 candidate 动作，以及 other-candidate 不共享 suppress 信号这四类交互边界
-- 将 `suggest_ghost_completion` 从“只有 golden/eval 样本”推进到“已具备正式导入链”的最小 PoC：补齐任务 prompt、最小 runtime、批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链；当前真实 batch 已统一收口到 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 短路径布局，固定 3 个代表样本覆盖 `Tab / manual_only / empty`，其中 `v3` 验证了 malformed JSON 的重新归一化修复，`v4` 暴露出批处理卡顿观察项，`v5` 则进一步收口了逐样本硬超时编排与 `manual_only` 多动作坏法修复，`v6` 验证了在 `openrouter` 限流时切到 `deepseek` fallback profile 仍可继续完成 3/3 pass 的真实 capture，`v7` 则进一步收口了 openrouter 默认模型废弃与 `summary` / `answer.text` JSON 字符串漂移两条新观察项，`v8` 继续确认了 openrouter 候选模型的 `404`/`429` 可用性阻塞可通过 fallback profile 绕过，而 `v9` 则进一步确认即便同 provider 的备选模型已可调用，也仍可能在 `manual_only` 主路径上暴露不可正式导入的 schema-invalid 质量漂移；当前正式批次因此继续由 `deepseek` fallback profile 完成收口。此后 `v10` 到 `v20` 已把真实 capture 从固定 trio 扩到十一批高价值链式样本，正式覆盖 mixed-history 空建议、alternate candidate 切换、latest same-candidate manual_only 保持、latest-action precedence、other-candidate recovery、基础 no-retab/cooldown、foundation/conflict basics、general basics，以及 latest dismiss / reject / skip cooldown 恢复三类 recent-action 恢复语义；当前 replay / recommended replay / real-derived / audit 治理链均已接通，runtime 兜底层可阶段性收口；其中最新几轮还完成了共享 remaining sample-group 的全量真实化，主线可继续转回新的非重复高价值真实样本池扩样
+- 将 `suggest_ghost_completion` 从“只有 golden/eval 样本”推进到“已具备正式导入链”的最小 PoC：补齐任务 prompt、最小 runtime、批次 capture 入口，以及 `candidate_response_record -> manifest -> audit` 的最小回灌链；当前真实 batch 已统一收口到 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 短路径布局，固定 3 个代表样本覆盖 `Tab / manual_only / empty`，其中 `v3` 验证了 malformed JSON 的重新归一化修复，`v4` 暴露出批处理卡顿观察项，`v5` 则进一步收口了逐样本硬超时编排与 `manual_only` 多动作坏法修复，`v6` 验证了在 `openrouter` 限流时切到 `deepseek` fallback profile 仍可继续完成 3/3 pass 的真实 capture，`v7` 则进一步收口了 openrouter 默认模型废弃与 `summary` / `answer.text` JSON 字符串漂移两条新观察项，`v8` 继续确认了 openrouter 候选模型的 `404`/`429` 可用性阻塞可通过 fallback profile 绕过，而 `v9` 则进一步确认即便同 provider 的备选模型已可调用，也仍可能在 `manual_only` 主路径上暴露不可正式导入的 schema-invalid 质量漂移；当前正式批次因此继续由 `deepseek` fallback profile 完成收口。此后 `v10` 到 `v23` 已把真实 capture 从固定 trio 扩到十四批高价值链式样本，正式覆盖 mixed-history 空建议、alternate candidate 切换、latest same-candidate manual_only 保持、latest-action precedence、other-candidate recovery、基础 no-retab/cooldown、foundation/conflict basics、general basics、latest dismiss / reject / skip cooldown 恢复、模板 residual backfill、residual conflict / recovery 等语义；当前 replay / recommended replay / real-derived / audit 治理链均已接通，runtime 兜底层可阶段性收口；最新治理报表显示 `suggest_ghost_completion` 已达到 `real_captured=68/78`，下一步主线应先补 `high-value-residual-cooldown-tail-backfill / v24`
 - 将 `suggest_flowsheet_edits` 从“只有 fixture/eval 回归”推进到“已形成真实 teacher 批次治理入口”：当前除 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 下的一批最小 mock PoC 外，还已把正式真实批次推进到 `v90`，并让现有 `33/33` 条离线样本至少各有一条真实覆盖；其中 `mixed-risk / citation / reconnect`、ordering 尾样、`mixed-risk patch combo`、cross-object primary-focus、parameter / patch ordering 与 local-edits 六组样本族都已完成 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 四主 profile 的横向正式收口，`default` teacher 对照也已阶段性清空。今天又继续把高价值真实样本池的 `high-value-real-expansion-baseline-stability`、`high-value-real-expansion-foundation-stability` 与 `high-value-real-expansion-tail-stability` 三组正式跑通，其中 `v90` 的 tail stability 三条尾部样本首轮直接收口到 `audit=3/3 pass`。当前这条主线的重点已不再是回补旧 teacher pool 或复跑 `remaining-horizontal-gaps`，而是先定义新的非重复高价值样本组，并围绕 mixed reconnect / mixed patch 的窄范围 citation drift 保持“先 dump 重导、再决定是否重打 provider”的治理纪律
 - `RadishFlow` 的真实批次目录当前已进入路径治理阶段：后续在 `M2/M3` 推进中，新增 committed 批次必须继续复用 `batches/YYYY-MM/<batch_key>/` 短路径布局，而不是重新把长 `collection_batch` 和 sample 语义编码回物理路径
 - 在 `suggest_flowsheet_edits` 这条真实 capture 主线上，task-level canonicalization 也已从“只兜底最小结构合法”推进到“可稳定吸收真实 teacher 的窄范围任务漂移”：当前 `flowdoc-*` 编号已正式收口为沿 `FlowsheetDocument` 原始对象索引稳定编号，`flow_rate` / `flow_rate_kg_h` / `mass_flow_kg_per_h` / `mass_flow_kg_h` / `mass_flow_rate_kg_h`、`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 等近义占位会统一归一，路径式 placeholder 与多规格 `spec_placeholders` 顺序会回收到稳定字段名和固定顺序，`STREAM_DISCONNECTED` 等 error issue 的 citation、reconnect patch 中的 `retain_existing_source_binding=true`、warning citation 顺序、未转义中文引号与多余闭合 brace 的 malformed JSON 修补、placeholder-only patch 收口，以及 `efficiency_percent` 评审区间都已进入窄范围 runtime 治理；其中最新一轮还把 `STREAM_DISCONNECTED` action 对 connected-unit contextual warning 的并入边界收紧为“只在同一响应存在其他 actionable edit 时保留”，而 `apiyi_ch` 在 triad 路径上的超时也已收紧为样本级 `210s` override，而不是 profile 全局默认 timeout 上调
@@ -106,6 +106,7 @@
 - 对“基于真实 bad record 派生、但仍以本地 fixture 入仓”的负例，补 `source_candidate_response_record` 结构化反链，并生成独立 real-derived index，至少支持 `source_record_groups`、`violation_groups` 与 `pattern_groups` 三个审计维度
 - 优先把真实风格 bad output 扩样成 repeated pattern，而不是继续泛化堆叠 simulated negative；当前重点围绕 `read_only_check` 缺失、citation/source drift 与 `answers` 缺失三类主失败面推进
 - 当前 `Radish docs QA` 这条治理子线已把 `2026-04-05` real batch 中仍为 singleton 的 source 全部推进到同源双派生，real-derived index 已收口到 `34` 条 linked negatives；下一步重点转向跨 source 复合 drift 扩样，以及 `pattern` / `violation` 是否需要进一步结构化
+- 截至 `2026-04-25`，三条主治理链均已接通 `artifact summary / same-sample replay / cross-sample replay / recommended replay / real-derived negative` 资产；当前仓库级优先级队列显示 `suggest_flowsheet_edits` 需要先设计新的非重复高价值样本组，而最近可直接执行的主线是 `suggest_ghost_completion` 的 `high-value-residual-cooldown-tail-backfill / v24`
 
 ### 推荐指标
 
@@ -251,9 +252,9 @@
 
 - `suggest_flowsheet_edits` 已完成 `33/33` 离线样本的四主 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 横向真实覆盖
 - `default` teacher 对照也已从旧 early pool 推进到更高价值 sample pool，并正式补齐 `mixed-risk-patch-combo`、`triad-mixed-risk-cross-object`、`mixed-risk-cross-object`、`cross-object-citation` 与 `range-sequence-ordering`
-- `suggest_ghost_completion` 已具备真实 batch 入仓、dump 重导和正式 audit 链，并已从固定 trio 扩到十一批高价值链式真实样本
+- `suggest_ghost_completion` 已具备真实 batch 入仓、dump 重导和正式 audit 链，并已从固定 trio 扩到十四批高价值链式真实样本，当前覆盖为 `68/78`
 - `suggest_flowsheet_edits` 已接上 `artifact summary`、same-sample / cross-sample replay、recommended replay summary 与 real-derived negative，治理链已不再缺基础连通性
-- `suggest_ghost_completion` 已进一步接上 same-sample / cross-sample replay、两路 recommended replay summary 与首批 real-derived negative，当前已不再阻塞于 `missing_real_derived_negative_samples`，且最近一轮 `v10` 到 `v15` 的正式真实 capture 未再暴露新的 runtime 根因
+- `suggest_ghost_completion` 已进一步接上 same-sample / cross-sample replay、两路 recommended replay summary 与首批 real-derived negative，当前已不再阻塞于 `missing_real_derived_negative_samples`，且最近的 residual `v21` 到 `v23` 正式真实 capture 未再暴露新的 runtime 根因
 - `Radish docs QA` 已把 same-sample / cross-sample replay、recommended replay summary 与 real-derived negative index 接进仓库级治理链
 
 因此当前更合理的阶段判断是：
@@ -266,7 +267,7 @@
 
 接下来两周建议把仓库主线正式切成“`M2` 收尾 + `M3` 启动”混合态，并按以下顺序推进：
 
-1. 既然 `RadishFlow suggest_flowsheet_edits` 的剩余 `default` teacher 对照已阶段性补齐，且 `high-value-real-expansion-core/secondary/tertiary` 三组也都已完成正式收口，下一步应继续挑选新的非重复高价值真实样本池，而不是回到已收口的 teacher comparison 样本族
+1. 既然 `RadishFlow suggest_flowsheet_edits` 的剩余 `default` teacher 对照已阶段性补齐，且六组 `high-value-real-expansion-*` 入口也都已完成正式收口，下一步应继续设计新的非重复高价值真实样本池，而不是回到已收口的 teacher comparison 样本族
 2. 将 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 三条真实 batch 治理链继续统一在 coverage / replay / artifact-summary / real-derived index 口径下；当前主治理重点不再是“补基础连通性”，而是让优先级、coverage summary 与下一步 focus 长期保持同步
 3. 把 `M3` 的正式关注点从“单样本新增多少”切到“哪些任务已可稳定比较 teacher、哪些失败面已形成 repeated pattern、哪些仍缺结构化索引”
 4. 在上述治理链稳定后，再启动 `M4 minimind-v` 的 student/base 训练验证；在这之前，不再让训练主线抢跑到评测治理之前
@@ -284,8 +285,8 @@
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 将 `RadishFlow suggest_flowsheet_edits` 从“真实主线已阶段性收口”继续推进到“按非重复高价值真实样本池继续扩样”；当前不再围绕已闭环 teacher comparison 样本族深挖，而应优先补今天 `core/secondary/tertiary` 之外仍可能暴露 mixed reconnect / mixed patch citation drift 的真实样本
-3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“在 replay / real-derived 已接通后持续扩真实 capture 样本池”；当前已从固定 trio 扩到十一批高价值链式样本，现有 remaining sample-group 已全部真实化，下一步应转向新的非重复高价值真实样本池，而不是继续重复已收口的链式恢复组
+2. 将 `RadishFlow suggest_flowsheet_edits` 从“真实主线已阶段性收口”继续推进到“按非重复高价值真实样本池继续扩样”；当前不再围绕已闭环 teacher comparison 或六组已跑通的 `high-value-real-expansion-*` 样本族深挖，而应先定义新的非重复高价值样本组
+3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“在 replay / real-derived 已接通后持续扩真实 capture 样本池”；当前已从固定 trio 扩到十四批高价值链式样本，现有 remaining sample-group 与前三组 residual backfill 已正式跑通，下一步应优先执行 `high-value-residual-cooldown-tail-backfill / v24`
 4. 继续沿 `RadishFlow export -> adapter -> request` 主线补更真实的 exporter 边界，但从“补单个 fixture”转到“优先补批量 smoke 或正式契约”；当前已具备 selection 契约、priority 契约与 batch smoke 入口，后续除非上游 exporter 继续暴露新边界，否则不再优先深挖这一层
 5. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本
 6. 将 `Radish` 文档问答从“真实候选响应已接入”继续推进到 captured negative 批次扩充、real-derived repeated pattern 治理与最小导入流程；当前已完成 `2026-04-05` batch singleton source 收口，下一主线转向跨 source 复合 drift 扩样与结构化治理评估
