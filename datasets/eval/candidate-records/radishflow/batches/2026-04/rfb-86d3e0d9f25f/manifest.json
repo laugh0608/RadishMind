@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-26-radishflow-ghost-poc-real-v24-high-value-residual-cooldown-tail-backfill",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-86d3e0d9f25f",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-86d3e0d9f25f/r/sgc-e0131d74be38.record.json",
+      "sample_key": "sgc-e0131d74be38",
+      "record_relpath": "r/sgc-e0131d74be38.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-86d3e0d9f25f/r/sgc-d4e66b2e9045.record.json",
+      "sample_key": "sgc-d4e66b2e9045",
+      "record_relpath": "r/sgc-d4e66b2e9045.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-86d3e0d9f25f/r/sgc-2197a0b9188f.record.json",
+      "sample_key": "sgc-2197a0b9188f",
+      "record_relpath": "r/sgc-2197a0b9188f.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-and-other-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-and-other-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-86d3e0d9f25f/r/sgc-5543f33824a2.record.json",
+      "sample_key": "sgc-5543f33824a2",
+      "record_relpath": "r/sgc-5543f33824a2.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-86d3e0d9f25f/r/sgc-d82e35c4794f.record.json",
+      "sample_key": "sgc-d82e35c4794f",
+      "record_relpath": "r/sgc-d82e35c4794f.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-86d3e0d9f25f/r/sgc-28c52013004f.record.json",
+      "sample_key": "sgc-28c52013004f",
+      "record_relpath": "r/sgc-28c52013004f.record.json"
+    }
+  ],
+  "batch_key": "rfb-86d3e0d9f25f",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion v24 high-value residual cooldown tail backfill 真实 provider 候选响应快照。"
+}
