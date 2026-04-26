@@ -11,10 +11,10 @@
       "text": "针对您选择的 Liquid Product 和 Vapor Product 物流，我已生成相应的候选编辑提案。针对拓扑断连问题，提供了高风险的下游重连占位符；针对规格缺失问题，提供了中风险的温度规格补充建议。",
       "citation_ids": [
         "diag-1",
-        "flowdoc-stream-1",
+        "flowdoc-stream-2",
         "snapshot-1",
         "diag-2",
-        "flowdoc-stream-2"
+        "flowdoc-stream-3"
       ]
     }
   ],
@@ -26,7 +26,7 @@
       "severity": "error",
       "citation_ids": [
         "diag-1",
-        "flowdoc-stream-1",
+        "flowdoc-stream-2",
         "snapshot-1"
       ]
     },
@@ -36,7 +36,7 @@
       "severity": "error",
       "citation_ids": [
         "diag-2",
-        "flowdoc-stream-2"
+        "flowdoc-stream-3"
       ]
     }
   ],
@@ -49,7 +49,7 @@
       "requires_confirmation": true,
       "citation_ids": [
         "diag-1",
-        "flowdoc-stream-1",
+        "flowdoc-stream-2",
         "snapshot-1"
       ],
       "target": {
@@ -59,7 +59,8 @@
       "patch": {
         "connection_placeholder": {
           "expected_downstream_kind": "consumer_or_export_sink",
-          "requires_manual_binding": true
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
         }
       }
     },
@@ -71,7 +72,7 @@
       "requires_confirmation": true,
       "citation_ids": [
         "diag-2",
-        "flowdoc-stream-2"
+        "flowdoc-stream-3"
       ],
       "target": {
         "type": "stream",
@@ -101,14 +102,14 @@
       "excerpt": "Vapor Product is missing temperature specification."
     },
     {
-      "id": "flowdoc-stream-1",
+      "id": "flowdoc-stream-2",
       "kind": "artifact",
       "label": "FlowsheetDocument / liquid-product-5",
       "locator": "artifact:flowsheet_document.streams[1]",
       "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
     },
     {
-      "id": "flowdoc-stream-2",
+      "id": "flowdoc-stream-3",
       "kind": "artifact",
       "label": "FlowsheetDocument / vapor-product-5",
       "locator": "artifact:flowsheet_document.streams[2]",

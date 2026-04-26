@@ -10,10 +10,10 @@
       "text": "当前围绕 Product Separator（separator-3）的两条被选中出口流生成候选编辑提案：liquid-product-5 未连接任何下游消费者（STREAM_DISCONNECTED），vapor-product-5 缺少温度规格（STREAM_SPEC_MISSING）。两条诊断均为 error 级别，求解器因拓扑无效而无法收敛。",
       "citation_ids": [
         "diag-1",
-        "flowdoc-stream-1",
+        "flowdoc-stream-2",
         "snapshot-1",
         "diag-2",
-        "flowdoc-stream-2"
+        "flowdoc-stream-3"
       ]
     }
   ],
@@ -26,7 +26,7 @@
       "requires_confirmation": true,
       "citation_ids": [
         "diag-1",
-        "flowdoc-stream-1",
+        "flowdoc-stream-2",
         "snapshot-1"
       ],
       "target": {
@@ -49,7 +49,7 @@
       "requires_confirmation": true,
       "citation_ids": [
         "diag-2",
-        "flowdoc-stream-2"
+        "flowdoc-stream-3"
       ],
       "target": {
         "type": "stream",
@@ -70,7 +70,7 @@
       "severity": "error",
       "citation_ids": [
         "diag-1",
-        "flowdoc-stream-1",
+        "flowdoc-stream-2",
         "snapshot-1"
       ]
     },
@@ -80,7 +80,7 @@
       "severity": "error",
       "citation_ids": [
         "diag-2",
-        "flowdoc-stream-2"
+        "flowdoc-stream-3"
       ]
     }
   ],
@@ -100,14 +100,14 @@
       "excerpt": "Vapor Product is missing temperature specification."
     },
     {
-      "id": "flowdoc-stream-1",
+      "id": "flowdoc-stream-2",
       "kind": "artifact",
       "label": "FlowsheetDocument / liquid-product-5",
       "locator": "artifact:flowsheet_document.streams[1]",
       "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
     },
     {
-      "id": "flowdoc-stream-2",
+      "id": "flowdoc-stream-3",
       "kind": "artifact",
       "label": "FlowsheetDocument / vapor-product-5",
       "locator": "artifact:flowsheet_document.streams[2]",

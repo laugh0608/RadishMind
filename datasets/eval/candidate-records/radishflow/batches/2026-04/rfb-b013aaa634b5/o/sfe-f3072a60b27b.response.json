@@ -1,27 +1,127 @@
 {
   "schema_version": 1,
-  "status": "failed",
   "project": "radishflow",
   "task": "suggest_flowsheet_edits",
-  "summary": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
+  "status": "partial",
+  "confidence": 0.75,
+  "summary": "针对选中的两条产品流（liquid-product-5 和 vapor-product-5）分别生成候选编辑：为液相产品流添加下游连接占位符以解决拓扑断开问题，为气相产品流补全温度规格以解决缺失参数问题。",
   "answers": [
     {
-      "kind": "raw_text_fallback",
-      "text": "{\"schema_version\":1,\"request_id\":\"rf-suggest-edit-mixed-risk-reconnect-plus-spec-001\",\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"locale\":\"zh-CN\",\"status\":\"partial\",\"confidence\":0.75,\"summary\":\"针对选中的两条产品流（liquid-product-5 和 vapor-product-5）分别生成候选编辑：为液相产品流添加下游连接占位符以解决拓扑断开问题，为气相产品流补全温度规格以解决缺失参数问题。\",\"answers\":[{\"text\":\"检测到两条选中流存在不同性质的问题：液相产品流未连接下游（",
-      "citation_ids": []
+      "kind": "direct_answer",
+      "text": "检测到两条选中流存在不同性质的问题：液相产品流未连接下游（拓扑错误），气相产品流缺少温度规格（参数缺失）。已生成两条候选编辑分别处理，前者涉及拓扑重连标记为高风险，后者为常规规格补全标记为中风险。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-stream-2",
+        "flowdoc-stream-3",
+        "snapshot-1"
+      ]
     }
   ],
   "issues": [
     {
-      "code": "MODEL_OUTPUT_NOT_JSON",
-      "message": "模型未返回可解析的 JSON，当前只保留原始文本供调试。",
-      "severity": "warning",
-      "citation_ids": []
+      "code": "STREAM_DISCONNECTED",
+      "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Vapor Product is missing temperature specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-3"
+      ]
     }
   ],
-  "proposed_actions": [],
-  "citations": [],
-  "confidence": 0.05,
-  "risk_level": "medium",
-  "requires_confirmation": false
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为液相产品流添加下游连接占位符",
+      "rationale": "液相产品流当前无下游连接，导致求解器报告无效拓扑。添加 connection_placeholder 以标记待连接目标，保留用户后续指定具体单元的灵活性。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "liquid-product-5"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为气相产品流补全温度规格",
+      "rationale": "气相产品流已指定压力但缺少温度，导致自由度不足。基于闪蒸罐典型操作假设，建议以进料温度 46°C 作为初始占位值，用户可后续调整。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-3"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "vapor-product-5"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "temperature_c"
+        ],
+        "retain_existing_specs": true
+      }
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Vapor Product is missing temperature specification."
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / liquid-product-5",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / vapor-product-5",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "vapor-product-5 Vapor Product source_unit_id=separator-3"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "requires_confirmation": true,
+  "risk_level": "high"
 }

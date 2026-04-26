@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-26-radishflow-suggest-edits-poc-real-v92-high-value-risk-localization",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/r/sfe-303cbfa1fbd5.record.json",
+      "sample_key": "sfe-303cbfa1fbd5",
+      "record_relpath": "r/sfe-303cbfa1fbd5.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/r/sfe-f6849801bec8.record.json",
+      "sample_key": "sfe-f6849801bec8",
+      "record_relpath": "r/sfe-f6849801bec8.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-issue-ordering-confirmed-before-unconfirmed-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/r/sfe-5b7e4e9a98e9.record.json",
+      "sample_key": "sfe-5b7e4e9a98e9",
+      "record_relpath": "r/sfe-5b7e4e9a98e9.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/r/sfe-f3072a60b27b.record.json",
+      "sample_key": "sfe-f3072a60b27b",
+      "record_relpath": "r/sfe-f3072a60b27b.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/r/sfe-c2f3cd9435e0.record.json",
+      "sample_key": "sfe-c2f3cd9435e0",
+      "record_relpath": "r/sfe-c2f3cd9435e0.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/r/sfe-95bf303f7249.record.json",
+      "sample_key": "sfe-95bf303f7249",
+      "record_relpath": "r/sfe-95bf303f7249.record.json"
+    }
+  ],
+  "batch_key": "rfb-c5b74d9fd718",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits 首批真实 provider capture 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+}

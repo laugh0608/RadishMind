@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "summary": "当前围绕已选中的流股 liquid-out-2 的下游未连接问题生成候选提案。基于诊断可直接支持的是为该流股补充一个下游连接占位，以便后续由用户确认具体的消费单元或导出端。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对流股 liquid-out-2 的断开连接错误，建议添加最小化的下游连接占位。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / liquid-out-2",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "liquid-out-2 Liquid Product source_unit_id=separator-2"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Liquid Product 添加下游连接占位",
+      "rationale": "诊断明确指出该流股未连接到任何下游消费者或导出端。当前证据不足以确定应连接到具体哪个单元，因此仅建议添加一个待确认的下游连接占位，而不指定实际目标对象。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "liquid-out-2"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "risk_level": "high",
+  "confidence": 0.2
+}

@@ -682,5 +682,6 @@
   "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/source-record-groups.json",
   "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/violation-groups.json",
   "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/pattern-groups.json",
-  "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/unlinked-derived-records.json"
+  "datasets/eval/candidate-records/radish-negative/2026-04-04-radish-docs-qa-simulated-negatives-v1.real-derived-index.parts/unlinked-derived-records.json",
+  "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/artifacts.json"
 ]

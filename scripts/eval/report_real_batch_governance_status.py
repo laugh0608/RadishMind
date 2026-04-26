@@ -275,7 +275,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         next_gap = (
             "当前四主 apiyi coverage 与 replay / real-derived 治理资产均已接通；"
             "既有 suggest_flowsheet_edits 高价值真实扩样入口也已跑通；"
-            "下一步应优先定义新的非重复高价值样本组，或转向 ghost 链 residual 高价值扩样。"
+            "下一步应优先定义新的非重复高价值样本组，或转向 ghost 链新增非重复高价值样本设计。"
         )
     governance: dict[str, Any] = {
         "level": (

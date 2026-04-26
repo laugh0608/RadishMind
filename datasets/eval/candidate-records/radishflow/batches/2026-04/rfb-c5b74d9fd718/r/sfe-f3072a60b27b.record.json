@@ -5,7 +5,7 @@
   "task": "suggest_flowsheet_edits",
   "sample_id": "radishflow-suggest-flowsheet-edits-mixed-risk-reconnect-plus-spec-001",
   "request_id": "rf-suggest-edit-mixed-risk-reconnect-plus-spec-001",
-  "captured_at": "2026-04-16T14:14:06Z",
+  "captured_at": "2026-04-26T07:25:51Z",
   "source": "captured_candidate_response",
   "model": "gpt-5.4",
   "input_record": {
@@ -28,15 +28,17 @@
     "task": "suggest_flowsheet_edits",
     "status": "partial",
     "requires_confirmation": true,
+    "summary": "当前围绕所选出口物流 liquid-product-5 与 vapor-product-5 的两类已诊断问题生成候选提案：其一是 liquid-product-5 存在下游未连接问题，其二是 vapor-product-5 缺少温度规格。基于现有证据，仅提出局部、可审查的占位式补丁建议。",
     "answers": [
       {
         "kind": "direct_answer",
-        "text": "当前围绕已选中的两个产物流对象生成候选提案：对 liquid-product-5 提出下游连接占位修补建议，对 vapor-product-5 提出温度规格补全占位建议。",
+        "text": "为已选中的两条出口物流分别提出一个候选编辑：对 liquid-product-5 增加下游连接占位，对 vapor-product-5 增加温度规格占位。",
         "citation_ids": [
           "diag-1",
+          "flowdoc-stream-2",
           "snapshot-1",
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ]
       }
     ],
@@ -81,7 +83,7 @@
       {
         "kind": "candidate_edit",
         "title": "为 liquid-product-5 添加下游连接占位",
-        "rationale": "该物流被直接诊断为未连接。由于当前输入未提供可确定的下游单元或现有导出端对象，最小可审查的建议是添加连接占位而非臆造具体连接目标。",
+        "rationale": "诊断直接指出 liquid-product-5 未连接到任何下游消费者或导出端。当前输入未提供现成目标单元或已定义导出口，因此仅建议补充一个连接占位，供人工确认具体去向，以局部缓解无效拓扑问题。",
         "risk_level": "high",
         "requires_confirmation": true,
         "citation_ids": [
@@ -104,7 +106,7 @@
       {
         "kind": "candidate_edit",
         "title": "为 vapor-product-5 补充温度规格占位",
-        "rationale": "该物流被直接诊断为缺少温度规格。当前证据不足以推断具体数值，因此建议仅补充待确认的温度规格占位，保持改动最小且可审查。",
+        "rationale": "诊断直接指出 vapor-product-5 缺少温度规格。现有文档仅显示该物流已有压力规格 235 kPa，未提供可唯一确定的温度值，因此仅建议加入温度规格占位，由人工填写或确认。",
         "risk_level": "medium",
         "requires_confirmation": true,
         "citation_ids": [
@@ -140,12 +142,10 @@
         "severity": "error",
         "citation_ids": [
           "diag-2",
-          "flowdoc-stream-3",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ]
       }
     ],
-    "summary": "当前围绕已选中的两个产物流对象生成候选提案：对 liquid-product-5 提出下游连接占位修补建议，对 vapor-product-5 提出温度规格补全占位建议。",
     "risk_level": "high",
     "confidence": 0.2
   },
@@ -154,8 +154,11 @@
     "tags": [
       "radishflow_suggest_flowsheet_edits",
       "openai-compatible",
-      "real_capture"
+      "real_capture",
+      "high_value_real_expansion_risk_localization",
+      "v92"
     ],
-    "collection_batch": "2026-04-16-radishflow-suggest-edits-poc-real-v57-apiyi-cx-mixed-risk-citation-reconnect"
+    "collection_batch": "2026-04-26-radishflow-suggest-edits-poc-real-v92-high-value-risk-localization",
+    "notes": "RadishFlow suggest_flowsheet_edits v92 real capture for risk localization high-value samples."
   }
 }

@@ -547,6 +547,7 @@ def should_keep_suggest_edits_existing_action_target(
         ]
         dependent_warning_codes = {
             "SEPARATOR_STATE_DEPENDENT",
+            "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
             "HEATER_OUTLET_EFFECT_UNCONFIRMED",
             "COOLER_OUTLET_EFFECT_UNCONFIRMED",
         }

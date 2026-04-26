@@ -34,10 +34,10 @@
         "text": "当前围绕已选中的两个产品流生成候选提案：liquid-product-5 的下游连接缺失问题，以及 vapor-product-5 的温度规格缺失问题。",
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1",
+          "flowdoc-stream-2",
           "snapshot-1",
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ]
       }
     ],
@@ -50,7 +50,7 @@
         "requires_confirmation": true,
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1",
+          "flowdoc-stream-2",
           "snapshot-1"
         ],
         "target": {
@@ -73,7 +73,7 @@
         "requires_confirmation": true,
         "citation_ids": [
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ],
         "target": {
           "type": "stream",
@@ -94,7 +94,7 @@
         "severity": "error",
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1",
+          "flowdoc-stream-2",
           "snapshot-1"
         ]
       },
@@ -104,7 +104,7 @@
         "severity": "error",
         "citation_ids": [
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ]
       }
     ],
@@ -124,14 +124,14 @@
         "excerpt": "Vapor Product is missing temperature specification."
       },
       {
-        "id": "flowdoc-stream-1",
+        "id": "flowdoc-stream-2",
         "kind": "artifact",
         "label": "FlowsheetDocument / liquid-product-5",
         "locator": "artifact:flowsheet_document.streams[1]",
         "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
       },
       {
-        "id": "flowdoc-stream-2",
+        "id": "flowdoc-stream-3",
         "kind": "artifact",
         "label": "FlowsheetDocument / vapor-product-5",
         "locator": "artifact:flowsheet_document.streams[2]",

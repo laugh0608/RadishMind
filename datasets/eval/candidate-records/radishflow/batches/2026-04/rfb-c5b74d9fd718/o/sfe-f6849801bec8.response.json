@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕未连接的 Separator Vapor Outlet 及其对 Trim Separator 稳定性的影响生成候选提案；同时仅将 Trim Cooler outlet warning 作为说明性上下文，不对 cooler outlet 条件提出执行式改动。",
+      "citation_ids": [
+        "diag-1",
+        "diag-3",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Separator Vapor Outlet 增加下游连接占位",
+      "rationale": "直接诊断表明该蒸汽出口未连接，且当前快照为 invalid_topology。最小可审查补丁是仅为该已选中流股补充一个待确认的下游去向占位，而不是臆造具体设备或执行重连。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "separator-vapor-41"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Separator Vapor Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-3",
+        "flowdoc-unit-2",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "message": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-stream-2",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    },
+    {
+      "code": "DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "message": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected.",
+      "severity": "warning",
+      "citation_ids": [
+        "diag-3",
+        "flowdoc-unit-2",
+        "flowdoc-stream-2",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Separator Vapor Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Trim Cooler outlet condition may still shift after the downstream sink is restored, so the cooler should remain explanatory context only."
+    },
+    {
+      "id": "diag-3",
+      "kind": "context",
+      "label": "诊断 DOWNSTREAM_SEPARATOR_STATE_DEPENDENT",
+      "locator": "context:diagnostics[2]",
+      "excerpt": "Trim Separator behavior cannot be treated as independently settled while the vapor outlet remains disconnected."
+    },
+    {
+      "id": "flowdoc-stream-3",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-vapor-41",
+      "locator": "artifact:flowsheet_document.streams[2]",
+      "excerpt": "separator-vapor-41 Separator Vapor Outlet source_unit_id=separator-4"
+    },
+    {
+      "id": "flowdoc-unit-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / separator-4",
+      "locator": "artifact:flowsheet_document.units[1]",
+      "excerpt": "separator-4 Trim Separator kind=FlashDrum"
+    },
+    {
+      "id": "flowdoc-stream-2",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-outlet-41",
+      "locator": "artifact:flowsheet_document.streams[1]",
+      "excerpt": "cooler-outlet-41 Cooler Outlet source_unit_id=cooler-8 target_unit_id=separator-4"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / cooler-8",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "cooler-8 Trim Cooler kind=Cooler"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "summary": "当前围绕未连接的 Separator Vapor Outlet 及其对 Trim Separator 稳定性的影响生成候选提案；同时仅将 Trim Cooler outlet warning 作为说明性上下文，不对 cooler outlet 条件提出执行式改动。",
+  "risk_level": "high",
+  "confidence": 0.2
+}
