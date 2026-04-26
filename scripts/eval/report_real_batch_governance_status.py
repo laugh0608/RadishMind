@@ -32,7 +32,7 @@ RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-de
 RADISHFLOW_SUGGEST_EDITS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-real-derived-negatives.json"
 MISSING_NEGATIVE_SAMPLES = "missing_negative_samples"
 MISSING_REAL_DERIVED_NEGATIVE_SAMPLES = "missing_real_derived_negative_samples"
-NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = ""
+NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = "high-value-real-expansion-composite-drift"
 
 
 def parse_args() -> argparse.Namespace:
@@ -264,6 +264,12 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         next_gap = (
             "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
             f"下一步应回到 suggest_flowsheet_edits 的 {next_group} default teacher capture。"
+        )
+    elif NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP:
+        next_gap = (
+            "当前四主 apiyi coverage 与 replay / real-derived 治理资产均已接通；"
+            "既有 suggest_flowsheet_edits 高价值真实扩样入口也已跑通；"
+            f"下一步应优先用 {NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP} 启动新的非重复高价值真实 capture。"
         )
     else:
         next_gap = (

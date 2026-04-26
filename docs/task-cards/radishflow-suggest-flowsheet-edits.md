@@ -78,7 +78,7 @@
 
 因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
-当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已新增六组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary`、`high-value-real-expansion-tertiary`、`high-value-real-expansion-baseline-stability`、`high-value-real-expansion-foundation-stability` 与 `high-value-real-expansion-tail-stability` 现都已完成一轮正式真实 capture。
+当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已完成六组“高价值真实扩样”样本组，并继续新增 `high-value-real-expansion-composite-drift` 作为下一轮非重复高价值入口，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary`、`high-value-real-expansion-tertiary`、`high-value-real-expansion-baseline-stability`、`high-value-real-expansion-foundation-stability` 与 `high-value-real-expansion-tail-stability` 现都已完成一轮正式真实 capture。
 
 - `high-value-real-expansion-core`
   - 优先覆盖 triad mixed-risk、mixed patch combo、cross-object primary focus、parameter detail ordering、local-edits evidence gap 与 mixed-risk reconnect 六类复杂 drift 面
@@ -98,8 +98,11 @@
 - `high-value-real-expansion-tail-stability`
   - 作为下一组正式入口，收口当前尚未进入高价值扩样池的同风险输入顺序、基础 stream spec placeholder 与三步优先级链三条尾部稳定性样本
   - 已作为 `v90` 正式真实 capture 完成收口，并首轮直接达到 `audit=3/3 pass`，避免 `v89` 完成后又回到 `remaining-horizontal-gaps` 人工散挑
+- `high-value-real-expansion-composite-drift`
+  - 作为下一组正式入口，将已暴露过窄范围漂移风险的 cross-object citation、mixed reconnect patch、placeholder/update、局部参数、多动作与 spec ordering 样本重新组合到同一批观察面
+  - 当前仅定义为 `v91` 候选入口，暂不打真实 provider；下一步应先用这组入口启动新的真实 capture，再根据 dump / audit 结果决定是否需要 runtime 根因修正
 
-至此当前 33 条 `suggest_flowsheet_edits` 离线样本都已进入过一轮高价值真实扩样池；下一步不应复跑 `remaining-horizontal-gaps`，而应先定义新的非重复高价值样本组，或与 `suggest_ghost_completion` 的 residual 高价值扩样并行推进。
+至此当前 33 条 `suggest_flowsheet_edits` 离线样本都已进入过一轮高价值真实扩样池；下一步不应复跑 `remaining-horizontal-gaps`，而应优先用 `high-value-real-expansion-composite-drift` 启动新的非重复高价值真实 capture，或与 `suggest_ghost_completion` 的 residual 高价值扩样并行推进。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
@@ -121,6 +124,7 @@
 - `high-value-real-expansion-baseline-stability`
 - `high-value-real-expansion-foundation-stability`
 - `high-value-real-expansion-tail-stability`
+- `high-value-real-expansion-composite-drift`
 - `remaining-horizontal-gaps`
 
 ## 请求映射
