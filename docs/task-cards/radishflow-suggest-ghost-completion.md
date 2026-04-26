@@ -79,7 +79,8 @@
 - 第二十二批 `v22` 继续沿 residual sample-group 主线补模板对称 suppress/cooldown 空边界：当前 `rfb-a066883057a7` 已覆盖 `high-value-suppression-cooldown-symmetry-backfill` 这 6 条样本，包括 cooler 的 dismiss-no-retab 与 dismiss-cooldown 恢复、heater 的 skip-no-retab 与 skip-cooldown 恢复，以及 valve 的 reject-no-retab 与 reject-cooldown 恢复，并首轮直接收口到 `audit=6/6 pass`
 - 第二十三批 `v23` 继续把 residual 冲突与恢复边界补进正式真实池：当前 `rfb-b84f799e0ea3` 已覆盖 `high-value-residual-conflict-recovery-backfill` 这 6 条样本，包括 cooler / heater 的 name-conflict、no-legal-outlet、ranking-ambiguous 边界，以及 cooler reject cooldown 恢复与 valve skip no-retab 两条残余 suppress 边界，并首轮直接收口到 `audit=6/6 pass`
 - 第二十四批 `v24` 继续补 residual cooldown 尾样：当前 `rfb-86d3e0d9f25f` 已覆盖 `high-value-residual-cooldown-tail-backfill` 这 6 条样本，包括 cooler latest reject cooldown、cooler skip cooldown + other reject、heater dismiss / reject cooldown、valve dismiss + other skip 与 valve skip cooldown，并首轮直接收口到 `audit=6/6 pass`
-- 截至 `2026-04-26`，本链正式真实样本池已从固定 trio 扩到 15 批高价值链式样本；按当前治理报表口径，`suggest_ghost_completion` 已达到 `real_captured=74/78`，并已完整接通 `manifest / audit / artifact summary / same-sample replay / cross-sample replay / real-derived negative` 正式治理链
+- 第二十五批 `v25` 则把最后 4 条未真实覆盖样本收口成 `high-value-residual-other-candidate-cooldown-tail`：当前 `rfb-56e4a3f16933` 已覆盖 heater dismiss+other skip、heater skip+other reject、valve reject+other dismiss 与 valve skip+other reject 四条 other-candidate cooldown tail 样本，并首轮直接收口到 `audit=4/4 pass`
+- 截至 `2026-04-26`，本链正式真实样本池已从固定 trio 扩到 16 批高价值链式样本；按当前治理报表口径，`suggest_ghost_completion` 已达到 `real_captured=78/78`，并已完整接通 `manifest / audit / artifact summary / same-sample replay / cross-sample replay / real-derived negative` 正式治理链
 
 当前这条 PoC 仍是轻量版：
 
@@ -90,10 +91,10 @@
 - 若后续继续使用多 provider fallback 采集真实 batch，当前还应额外观察 provider 间的输出风格漂移，例如把本应是纯文本的 `summary` / `answer.text` 写成 JSON 字符串；这类现象若稳定复现，应优先在 runtime 做任务级窄修复，而不是把坏输出原样固化进正式批次
 - 当前 formal real batch 治理层已不再缺最小 `artifact summary` 口径，也已接通首批 same-sample / cross-sample negative replay、两路 recommended replay summary，以及首批 real-derived negative pattern
 - 这批 real-derived 当前先收口为 3 条 committed simulated negative，分别覆盖默认高置信 `Tab` 被错误降级、ambiguous no-tab 候选被错误升级成 `Tab`、以及空 `legal_candidate_completions` 下凭 `recent_actions` 主观补出 ghost action 三类稳定漂移
-- 最近连续六批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
-- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应继续沿固定 trio 之外的高价值链式样本扩真实 capture；当前 `high-value-template-asymmetry-backfill`、`high-value-suppression-cooldown-symmetry-backfill`、`high-value-residual-conflict-recovery-backfill` 与 `high-value-residual-cooldown-tail-backfill` 已正式跑通，下一步应继续设计新的非重复高价值样本组，而不是重新手工围绕旧边界打转
-- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前已支持 `--sample-group` 并继续由共享真相源维护下一组正式入口；`v21` 到 `v24` 已证明这条“remaining groups 之后继续拆 residual sample-group”口径可以稳定落地
-- 当前 `high-value-residual-cooldown-tail-backfill / v24` 已正式跑通；治理报表下一步会回到“继续扩非重复高价值真实 capture 样本池”的通用判断，后续应先定义新的样本组，再进入下一批真实 capture
+- 最近连续七批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
+- 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应在 `78/78` 真实覆盖基线上继续观察是否需要新增非重复高价值样本；当前 `high-value-template-asymmetry-backfill`、`high-value-suppression-cooldown-symmetry-backfill`、`high-value-residual-conflict-recovery-backfill`、`high-value-residual-cooldown-tail-backfill` 与 `high-value-residual-other-candidate-cooldown-tail` 已正式跑通
+- 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前已支持 `--sample-group` 并继续由共享真相源维护下一组正式入口；`v21` 到 `v25` 已证明这条“remaining groups 之后继续拆 residual sample-group”口径可以稳定落地
+- 当前 `high-value-residual-other-candidate-cooldown-tail / v25` 已正式跑通；治理报表下一步会回到“继续扩非重复高价值真实 capture 样本池”的通用判断，而不是指向任何旧 remaining 或 residual 入口
 
 ## 最小必需输入
 

@@ -29,6 +29,12 @@ SAMPLE_GROUP_PATHS = {
         "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001.json",
         "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-001.json",
     ],
+    "high-value-residual-other-candidate-cooldown-tail": [
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-and-other-reject-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-reject-cooldown-and-other-dismiss-001.json",
+        "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-and-other-reject-001.json",
+    ],
     "high-value-suppression-cooldown-symmetry-backfill": [
         "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-dismiss-no-retab-001.json",
         "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001.json",
@@ -117,6 +123,7 @@ SAMPLE_GROUP_PATHS = {
 }
 
 HIGH_VALUE_PRIORITY_GROUPS = [
+    "high-value-residual-other-candidate-cooldown-tail",
     "high-value-residual-conflict-recovery-backfill",
     "high-value-residual-cooldown-tail-backfill",
     "high-value-suppression-cooldown-symmetry-backfill",

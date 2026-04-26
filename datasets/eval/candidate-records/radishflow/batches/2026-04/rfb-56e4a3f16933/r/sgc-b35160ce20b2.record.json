@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "request_id": "rf-suggest-ghost-chain-feed-valve-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "captured_at": "2026-04-26T06:12:11Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 90,
+    "selected_unit_ids": [
+      "flash-46"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-46-vapor-outlet-main"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "requires_confirmation": false,
+    "summary": "给出 1 条 ghost 建议：为 flash-46 的 vapor_outlet 接续主蒸汽出口连接，可直接用 Tab 接受。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "检测到 flash-46 的 vapor_outlet 未连接，存在高置信合法候选 cand-flash-46-vapor-outlet-main。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-46 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-46",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-46-vapor-outlet-main",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-514"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-46-vapor-outlet-main"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-46",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-46 kind=FlashDrum name=Flash Drum 514"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-46-vapor-outlet-main",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-46-vapor-outlet-main target_port_key=vapor_outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"V-514\"], \"existing_stream_names\": [\"F-514\", \"V-514\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\"}, \"numeric_suffix_from_unit\": \"514\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[3]",
+        "excerpt": "{\"kind\": \"reject_ghost_completion\", \"candidate_ref\": \"cand-flash-46-vapor-outlet-legacy\", \"rejected_at_revision\": 89}"
+      }
+    ],
+    "issues": [],
+    "risk_level": "low",
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "high_value_residual_other_candidate_cooldown_tail",
+      "v25"
+    ],
+    "collection_batch": "2026-04-26-radishflow-ghost-poc-real-v25-high-value-other-candidate-cooldown-tail",
+    "notes": "RadishFlow suggest_ghost_completion v25 real capture for residual other-candidate cooldown tail samples."
+  }
+}
