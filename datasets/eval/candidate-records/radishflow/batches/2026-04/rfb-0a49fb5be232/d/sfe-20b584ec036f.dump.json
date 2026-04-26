@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-compressor-evidence-gap-partial-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+  "request_id": "rf-suggest-edit-compressor-evidence-gap-partial-001",
+  "captured_at": "2026-04-26T05:06:49Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion-composite-drift",
+      "v91"
+    ],
+    "collection_batch": "2026-04-26-radishflow-suggest-edits-poc-real-v91-high-value-composite-drift",
+    "notes": "v91 composite drift real capture for cross-object citation, mixed reconnect patch, local parameter, multi-action, and spec ordering."
+  },
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 34,
+    "selected_unit_ids": [
+      "compressor-1"
+    ],
+    "diagnostic_codes": [
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+      "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-compressor-evidence-gap-partial-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-105",
+          "streams": [
+            {
+              "id": "feed-3",
+              "name": "Compressor Feed",
+              "target_unit_id": "compressor-1",
+              "specs": {
+                "pressure_kpa": 220,
+                "temperature_c": 40,
+                "flow_rate_kg_per_h": 1200
+              }
+            },
+            {
+              "id": "product-3",
+              "name": "Compressed Product",
+              "source_unit_id": "compressor-1"
+            }
+          ],
+          "units": [
+            {
+              "id": "compressor-1",
+              "kind": "Compressor",
+              "name": "Recycle Compressor",
+              "config": {
+                "outlet_pressure_target_kpa": 235,
+                "efficiency_percent": 72
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 34,
+      "selected_unit_ids": [
+        "compressor-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+          "message": "Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-1"
+        },
+        {
+          "code": "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED",
+          "message": "Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed.",
+          "severity": "warning",
+          "target_type": "unit",
+          "target_id": "compressor-1"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "partial_convergence",
+        "residual_norm": 0.18,
+        "last_updated": "2026-04-06T18:30:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gpt-5.4",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-compressor-evidence-gap-partial-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-105\",\n        \"streams\": [\n          {\n            \"id\": \"feed-3\",\n            \"name\": \"Compressor Feed\",\n            \"target_unit_id\": \"compressor-1\",\n            \"specs\": {\n              \"pressure_kpa\": 220,\n              \"temperature_c\": 40,\n              \"flow_rate_kg_per_h\": 1200\n            }\n          },\n          {\n            \"id\": \"product-3\",\n            \"name\": \"Compressed Product\",\n            \"source_unit_id\": \"compressor-1\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"compressor-1\",\n            \"kind\": \"Compressor\",\n            \"name\": \"Recycle Compressor\",\n            \"config\": {\n              \"outlet_pressure_target_kpa\": 235,\n              \"efficiency_percent\": 72\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 34,\n    \"selected_unit_ids\": [\n      \"compressor-1\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 1\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE\",\n        \"message\": \"Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-1\"\n      },\n      {\n        \"code\": \"COMPRESSOR_ROOT_CAUSE_UNCONFIRMED\",\n        \"message\": \"Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-1\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"partial_convergence\",\n      \"residual_norm\": 0.18,\n      \"last_updated\": \"2026-04-06T18:30:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_cx",
+    "provider_profile_env": "APIYI_CX",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-41c054ce-0f8a-4805-9cae-e21ea5014a13",
+    "object": "chat.completion",
+    "created": 1777179987,
+    "model": "gpt-5.4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-compressor-evidence-gap-partial-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"requires_confirmation\": true,\n  \"summary\": \"当前围绕所选单元 compressor-1（Recycle Compressor）的出口压力目标过近问题生成候选提案。基于现有诊断，证据直接支持先对该压缩机的出口压力目标做局部、可审查的占位式修订；由于诊断同时指出也可能缺少下游背压数据，根因尚未确认，因此不建议超出该单元范围做拓扑或额外对象修改。\",\n  \"answers\": [\n    {\n      \"summary\": \"对 compressor-1 提出一个仅限局部参数的候选编辑，用更明确的出口压力目标占位替代当前 235 kPa 设定，以便与入口 220 kPa 拉开可审查差距。\",\n      \"issues\": [\n        {\n          \"code\": \"COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE\",\n          \"message\": \"Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty.\",\n          \"severity\": \"error\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"compressor-1\"\n          },\n          \"citations\": [\n            \"diag-1\",\n            \"flowdoc-unit-1\"\n          ]\n        },\n        {\n          \"code\": \"COMPRESSOR_ROOT_CAUSE_UNCONFIRMED\",\n          \"message\": \"Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed.\",\n          \"severity\": \"warning\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"compressor-1\"\n          },\n          \"citations\": [\n            \"diag-2\",\n            \"flowdoc-unit-1\",\n            \"snapshot-1\"\n          ]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"action\": \"candidate_edit\",\n          \"title\": \"为 compressor-1 的出口压力目标提供更高设定占位\",\n          \"target\": {\n            \"type\": \"unit\",\n            \"id\": \"compressor-1\"\n          },\n          \"rationale\": \"当前 compressor-1 的入口压力来自 feed-3，为 220 kPa，而现有出口压力目标仅 235 kPa。直接诊断指出该目标与入口压力过近，难以解释所请求的压缩负荷。由于另一条诊断同时说明根因尚未确认，现阶段更适合提出一个局部、非执行式的参数占位建议，而不是进行更大范围的流程改动或假设缺失的下游约束。\",\n          \"patch\": {\n            \"parameter_placeholders\": [\n              {\n                \"path\": \"config.outlet_pressure_target_kpa\",\n                \"current_value\": 235,\n                \"suggested_value_placeholder\": \"> 235 kPa and meaningfully above 220 kPa inlet\",\n                \"reason\": \"Increase pressure ratio margin relative to feed pressure so the compressor target is not nearly equal to inlet pressure.\"\n              }\n            ]\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\n            \"diag-1\",\n            \"diag-2\",\n            \"flowdoc-unit-1\",\n            \"flowdoc-stream-1\",\n            \"snapshot-1\"\n          ]\n        }\n      ],\n      \"confidence\": 0.79,\n      \"citations\": [\n        \"diag-1\",\n        \"diag-2\",\n        \"flowdoc-unit-1\",\n        \"flowdoc-stream-1\",\n        \"snapshot-1\"\n      ]\n    }\n  ],\n  \"citations\": [\n    {\n      \"id\": \"diag-1\",\n      \"kind\": \"diagnostic\",\n      \"code\": \"COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE\",\n      \"message\": \"Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty.\"\n    },\n    {\n      \"id\": \"diag-2\",\n      \"kind\": \"diagnostic\",\n      \"code\": \"COMPRESSOR_ROOT_CAUSE_UNCONFIRMED\",\n      \"message\": \"Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed.\"\n    },\n    {\n      \"id\": \"flowdoc-stream-1\",\n      \"kind\": \"artifact\",\n      \"artifact_name\": \"flowsheet_document\",\n      \"object_type\": \"stream\",\n      \"object_id\": \"feed-3\"\n    },\n    {\n      \"id\": \"flowdoc-unit-1\",\n      \"kind\": \"artifact\",\n      \"artifact_name\": \"flowsheet_document\",\n      \"object_type\": \"unit\",\n      \"object_id\": \"compressor-1\"\n    },\n    {\n      \"id\": \"snapshot-1\",\n      \"kind\": \"snapshot\",\n      \"solver_status\": \"partial_convergence\",\n      \"residual_norm\": 0.18,\n      \"last_updated\": \"2026-04-06T18:30:00Z\"\n    }\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1297,
+      "completion_tokens": 1120,
+      "total_tokens": 2417
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "summary": "当前围绕所选单元 compressor-1（Recycle Compressor）的出口压力目标过近问题生成候选提案。基于现有诊断，证据直接支持先对该压缩机的出口压力目标做局部、可审查的占位式修订；由于诊断同时指出也可能缺少下游背压数据，根因尚未确认，因此不建议超出该单元范围做拓扑或额外对象修改。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "对 compressor-1 提出一个仅限局部参数的候选编辑，用更明确的出口压力目标占位替代当前 235 kPa 设定，以便与入口 220 kPa 拉开可审查差距。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_ROOT_CAUSE_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-1 Recycle Compressor kind=Compressor"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.18"
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 compressor-1 的出口压力目标提供更高设定占位",
+        "rationale": "当前 compressor-1 的入口压力来自 feed-3，为 220 kPa，而现有出口压力目标仅 235 kPa。直接诊断指出该目标与入口压力过近，难以解释所请求的压缩负荷。由于另一条诊断同时说明根因尚未确认，现阶段更适合提出一个局部、非执行式的参数占位建议，而不是进行更大范围的流程改动或假设缺失的下游约束。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "compressor-1"
+        },
+        "patch": {
+          "parameter_updates": {
+            "outlet_pressure_target_kpa": {
+              "action": "review_and_raise_margin",
+              "minimum_delta_kpa": 80,
+              "reference_stream_id": "feed-3"
+            }
+          },
+          "preserve_topology": true,
+          "review_scope": "local_unit_parameters_only"
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_TOO_CLOSE",
+        "message": "Recycle Compressor outlet pressure target is too close to the inlet pressure to explain the requested compression duty.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_ROOT_CAUSE_UNCONFIRMED",
+        "message": "Current residual pattern suggests either insufficient pressure ratio or missing downstream backpressure data, but the root cause is not yet confirmed.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "risk_level": "medium",
+    "confidence": 0.2
+  }
+}

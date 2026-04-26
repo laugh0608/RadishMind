@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-citation-interleaving-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-citation-interleaving-001",
+  "request_id": "rf-suggest-edit-cross-object-citation-interleaving-001",
+  "captured_at": "2026-04-26T05:05:22Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 83,
+    "selected_unit_ids": [
+      "heater-7",
+      "separator-3"
+    ],
+    "selected_stream_ids": [
+      "feed-31",
+      "heater-outlet-31",
+      "vapor-31"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE",
+      "DOWNSTREAM_STATE_DEPENDENT"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "summary": "当前围绕已选中的进料流股 feed-31 缺少必要规格、以及已选中的分离器 separator-3 在固定压力模式下缺少操作压力目标这两类问题生成候选提案；下游 vapor-31 的警告被视为上游未解导致的从属现象，本次仅提出局部、可审查的占位式补全建议。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "建议先在 feed-31 上补充流量规格占位，再在 separator-3 上补充固定压力目标占位，以直接对应当前两条错误诊断。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-31 添加流量规格占位",
+        "rationale": "该流股已存在压力规格，但诊断明确指出缺少流量规格；在不臆造数值的前提下，添加流量占位可将缺项显式化，便于后续人工填写并解除上游求解阻塞。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-31"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 separator-3 添加固定压力目标占位",
+        "rationale": "该单元已配置为 fixed pressure mode，但缺少与该模式配套的操作压力目标；增加参数占位可保持当前控制模式不变，仅补足直接缺失项。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "separator-3"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "operating_pressure_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Feed To Heater is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Hot Separator is configured for fixed pressure mode but the operating pressure target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_STATE_DEPENDENT",
+        "message": "Separator Vapor behavior still depends on the unresolved upstream feed state and heater outlet condition.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed To Heater is missing flow rate specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Hot Separator is configured for fixed pressure mode but the operating pressure target is missing."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Separator Vapor behavior still depends on the unresolved upstream feed state and heater outlet condition."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-31",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-31 Feed To Heater target_unit_id=heater-7"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-3",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-3 Hot Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / vapor-31",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "vapor-31 Separator Vapor source_unit_id=separator-3"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-7",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-7 Feed Heater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.11"
+      }
+    ],
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion-composite-drift",
+      "v91"
+    ],
+    "collection_batch": "2026-04-26-radishflow-suggest-edits-poc-real-v91-high-value-composite-drift",
+    "notes": "v91 composite drift real capture for cross-object citation, mixed reconnect patch, local parameter, multi-action, and spec ordering."
+  }
+}

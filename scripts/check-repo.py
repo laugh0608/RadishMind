@@ -663,7 +663,7 @@ def check_generated_eval_metadata() -> None:
     suggest_coverage_summary = suggest_chain.get("coverage_summary") or {}
     if int(suggest_coverage_summary.get("real_captured_sample_count") or 0) != 33:
         raise SystemExit("radishflow suggest edits: unexpected real captured sample count in governance status report")
-    if int(suggest_coverage_summary.get("latest_batch_matched_sample_count") or 0) != 3:
+    if int(suggest_coverage_summary.get("latest_batch_matched_sample_count") or 0) != 6:
         raise SystemExit("radishflow suggest edits: unexpected latest batch matched sample count in governance status report")
     suggest_priority = suggest_chain.get("priority") or {}
     if int(suggest_priority.get("rank") or 0) != 1:
