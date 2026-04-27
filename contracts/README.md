@@ -25,7 +25,7 @@
 - `contracts/` 中的 schema 是程序化校验入口
 - 当前 schema 只冻结通用骨架与最小项目上下文字段，不把所有任务细节一次写死
 - 当前 `copilot-gateway-envelope.schema.json` 用于冻结服务/API 层 envelope，明确 `status / response / error / metadata` 的最小结构，并保持业务响应仍由 `copilot-response.schema.json` 校验
-- 当前 `scripts/run-radishflow-gateway-demo.py` 已把 `RadishFlow` export snapshot 通过 adapter/request assembly 接到 `handle_copilot_request`，并在同一 smoke 中校验 `copilot-request.schema.json`、`copilot-response.schema.json` 与 `copilot-gateway-envelope.schema.json`；`scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json` 固定了当前仓库级 demo 门禁使用的代表样本集合
+- 当前 `scripts/run-radishflow-gateway-demo.py` 已把 `RadishFlow` export snapshot 通过 adapter/request assembly 接到 `handle_copilot_request`，并在同一 smoke 中校验 `copilot-request.schema.json`、`copilot-response.schema.json` 与 `copilot-gateway-envelope.schema.json`；`scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json` 固定了当前仓库级 demo 门禁使用的代表样本集合，`scripts/checks/fixtures/radishflow-gateway-demo-summary.json` 固定调用侧依赖的 envelope 行为字段
 - 任务级最小输入和风险规则以 [docs/task-cards/README.md](../docs/task-cards/README.md) 为准
 - 当前 `Radish` 文档问答回归会直接复用这两份 schema 校验 `input_request` 与 `golden_response`，再叠加任务级召回边界与输出对照规则
 - 当前 `RadishFlow` 已在 schema 中补入 `suggest_ghost_completion` 与 `ghost_completion` 候选动作，用于承接编辑器内的 ghost 补全建议

@@ -961,6 +961,8 @@ def main() -> int:
         [
             "--manifest",
             "scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json",
+            "--check-summary",
+            "scripts/checks/fixtures/radishflow-gateway-demo-summary.json",
             "--check",
         ],
     )

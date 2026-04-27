@@ -35,6 +35,24 @@
 
 真实 provider capture 只在服务/API 或集成演示暴露现有样本无法覆盖的新 drift 时触发；触发前应先写清楚新假设、覆盖缺口和退出条件。
 
+### `CopilotGatewayEnvelope` 调用口径
+
+当前 gateway 层返回值统一采用 `CopilotGatewayEnvelope`，schema 真相源为 `contracts/copilot-gateway-envelope.schema.json`。
+
+调用侧口径建议固定为：
+
+- 上层提交 schema-valid `CopilotRequest`，不直接调用任务 runtime 或 provider
+- Gateway 返回 `schema_version / status / request_id / project / task / response / error / metadata`
+- 当 `status=ok` 或 `status=partial` 时，`response` 必须存在，并继续按 `contracts/copilot-response.schema.json` 校验和消费
+- 当 `status=failed` 时，调用侧必须优先读取 `error.code` 与 `error.message`；若同时存在 `response`，它也只能作为 failed advisory response 展示或记录，不能转成可执行动作
+- `metadata.route` 固定表达 `project/task`，用于调用侧日志、审计和路由观测
+- `metadata.provider` 只表达本次 gateway 使用的 provider/profile/model 摘要，不应被上层当作业务结果
+- `metadata.advisory_only` 必须保持 `true`；上层不得绕过人工确认或规则层复核直接执行 `response.proposed_actions`
+- `metadata.request_validated` 与 `metadata.response_validated` 用于确认 gateway 是否完成请求和响应 schema 校验；生产前调用侧应把任一 `false` 视为异常观测信号
+- 对 `RadishFlow suggest_flowsheet_edits`，即使 gateway 返回 `partial`，只要 `response.requires_confirmation=true`，上层也只能呈现候选建议，不能写回 `FlowsheetDocument`
+
+当前仓库用 `scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check` 固定这条调用口径的最小可复跑门禁。该 summary 只锁定上层依赖的 envelope 行为字段，不锁死完整自然语言响应。
+
 ## 统一输入抽象
 
 建议统一请求对象命名为 `CopilotRequest`。

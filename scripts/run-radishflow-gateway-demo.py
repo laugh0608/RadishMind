@@ -48,6 +48,16 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Validate the demo chain without printing the full gateway envelope.",
     )
+    parser.add_argument(
+        "--summary-output",
+        default="",
+        help="Optional output path for a stable manifest summary json.",
+    )
+    parser.add_argument(
+        "--check-summary",
+        default="",
+        help="Optional expected stable manifest summary json. Fails if regenerated summary differs.",
+    )
     return parser.parse_args()
 
 
@@ -73,6 +83,11 @@ def write_json_document(path: Path, document: Any) -> None:
 def assert_condition(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
+
+
+def assert_json_equal(expected: Any, actual: Any, *, label: str) -> None:
+    if expected != actual:
+        raise SystemExit(f"generated gateway demo summary does not match expected summary: {label}")
 
 
 def resolve_expected_request(document: Any, label: str) -> dict[str, Any]:
@@ -162,17 +177,18 @@ def run_manifest_demo(manifest_path_value: str) -> dict[str, Any]:
         envelope = build_demo_envelope(load_export_snapshot(export_path_value), fixture=fixture)
         metadata = envelope["metadata"]
         provider = metadata["provider"]
+        response = envelope["response"]
         results.append(
             {
                 "id": fixture_id,
-                "export_snapshot": export_path_value,
                 "request_id": envelope["request_id"],
                 "status": envelope["status"],
                 "route": metadata["route"],
                 "provider": provider["name"],
+                "advisory_only": metadata["advisory_only"],
                 "request_validated": metadata["request_validated"],
                 "response_validated": metadata["response_validated"],
-                "advisory_only": metadata["advisory_only"],
+                "requires_confirmation": response["requires_confirmation"],
             }
         )
     return {
@@ -186,11 +202,24 @@ def main() -> int:
     args = parse_args()
     if args.manifest.strip() and args.output.strip():
         raise SystemExit("--output is only supported for single --input mode")
+    if not args.manifest.strip() and (args.summary_output.strip() or args.check_summary.strip()):
+        raise SystemExit("--summary-output and --check-summary require --manifest")
 
     result = run_manifest_demo(args.manifest) if args.manifest.strip() else run_single_demo(args)
 
     if args.output.strip():
         write_json_document(resolve_repo_path(args.output), result)
+    if args.summary_output.strip():
+        write_json_document(resolve_repo_path(args.summary_output), result)
+    if args.check_summary.strip():
+        expected_summary_path = resolve_repo_path(args.check_summary)
+        if not expected_summary_path.is_file():
+            raise SystemExit(f"expected summary file not found: {args.check_summary}")
+        assert_json_equal(
+            load_json_document(expected_summary_path),
+            result,
+            label=expected_summary_path.relative_to(REPO_ROOT).as_posix(),
+        )
 
     if args.check:
         if args.manifest.strip():
