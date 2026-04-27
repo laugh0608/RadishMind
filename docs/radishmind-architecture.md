@@ -61,6 +61,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
   - 当前仓库已先落最小 `adapter-radishflow` 骨架：`adapters/radishflow/request_builder.py` 与 `scripts/build-radishflow-request.py` 可把上游快照稳定装配为 `CopilotRequest`，并已对齐六条既有 eval sample，覆盖最小样本、控制面冲突态与多选裁剪态
   - 当前还已补 export -> adapter 的中间转换层：`adapters/radishflow/export_snapshot.py` 与 `scripts/build-radishflow-adapter-snapshot.py` 可先把更贴近真实导出对象的嵌套快照收口成 adapter snapshot，避免 adapter 直接绑定到手工拼装的扁平 fixture
   - 当前还已补 export -> request 的直达入口：`scripts/build-radishflow-export-request.py` 可让更贴近真实导出对象的输入直接落到 runtime 请求，避免端到端链路只靠“两段脚本各自正确”来间接保证
+  - 当前还已补 `RadishFlow` 集成演示切片：`scripts/run-radishflow-gateway-demo.py` 直接读取 committed export snapshot，经由 `export -> adapter snapshot -> CopilotRequest -> handle_copilot_request -> gateway envelope`，使用 `mock` provider 完成可复跑服务/API smoke，并同时校验 request、response 与 gateway envelope 三层契约
   - `RadishFlowExportSnapshot` 当前已在集成契约中补上字段映射约定：上游负责直接导出 `document_state / selection_state / diagnostics_export / solve_session_state / solve_snapshot / control_plane_snapshot`，而 adapter 不再擅自反推 `selected_unit` 或提前替上游做根因归一
   - 当前还已补 exporter bootstrap 入口：`scripts/init-radishflow-export-snapshot.py` 可按任务生成最小 schema-valid 模板，作为真实接线前的起步骨架
   - 当前还已补 exporter preflight 入口：`scripts/validate-radishflow-export-snapshot.py` 可在真实接线前先做 schema、任务级语义与敏感透传 smoke 校验，再进入 export -> adapter -> request 正式链路
@@ -94,6 +95,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 提供鉴权、审计、请求追踪与版本标记
 - 当前 `M3` 后半段的首个实现切片，应优先把既有 `services/runtime/inference.py` 包成稳定服务/API 边界；最小范围包括请求校验、任务路由、provider profile、超时/错误语义、审计 metadata 与响应结构收口
 - 当前已先落最小纯 Python gateway 骨架：`services/gateway/copilot_gateway.py` 接收 schema-valid `CopilotRequest`，按 `project/task` 做显式路由，经由 `services/runtime/inference.py` 生成 `CopilotResponse`，再返回包含 `status / response / error / metadata` 的服务 envelope；该 envelope 已由 `contracts/copilot-gateway-envelope.schema.json` 冻结最小结构，`scripts/check-gateway-service-smoke.py` 已接入仓库级验证，覆盖成功路由、schema-invalid 请求与 schema-valid 但 gateway 暂不支持的任务
+- 当前 `RadishFlow` 的服务/API 集成演示已经接入仓库级验证：`scripts/run-radishflow-gateway-demo.py --check` 使用 `suggest-flowsheet-edits-reconnect-outlet-001.export.json` 作为上游导出 fixture，固定 gateway metadata 中的 `route / provider / advisory_only / request_validated / response_validated`，确保这条链路不是只验证静态 schema 或孤立 runtime
 
 建议接口风格：
 
