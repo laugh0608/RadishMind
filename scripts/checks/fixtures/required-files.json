@@ -68,6 +68,7 @@
   "adapters/radishflow/exports/explain-control-plane-mixed-support-summaries-001.export.json",
   "adapters/radishflow/exports/explain-control-plane-mixed-summary-variants-001.export.json",
   "scripts/run-radishflow-gateway-demo.py",
+  "scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json",
   "datasets/README.md",
   "datasets/examples/README.md",
   "datasets/examples/radishflow-ghost-candidate-set-flash-basic-001.json",

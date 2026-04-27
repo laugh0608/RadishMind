@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "description": "RadishFlow export -> adapter/request -> Copilot Gateway demo fixtures using the mock provider.",
+  "fixtures": [
+    {
+      "id": "suggest-flowsheet-edits-reconnect-outlet-001",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-reconnect-outlet-001.export.json",
+      "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json"
+    },
+    {
+      "id": "suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.export.json",
+      "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json"
+    },
+    {
+      "id": "suggest-flowsheet-edits-three-step-priority-chain-001",
+      "export_snapshot": "adapters/radishflow/exports/suggest-flowsheet-edits-three-step-priority-chain-001.export.json",
+      "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json"
+    }
+  ]
+}

@@ -37,6 +37,11 @@ def parse_args() -> argparse.Namespace:
         default=str(DEFAULT_EXPORT_PATH.relative_to(REPO_ROOT)),
         help="Path to a RadishFlow export snapshot json file.",
     )
+    parser.add_argument(
+        "--manifest",
+        default="",
+        help="Optional manifest with multiple RadishFlow gateway demo fixtures.",
+    )
     parser.add_argument("--output", default="", help="Optional path for the generated gateway envelope json.")
     parser.add_argument(
         "--check",
@@ -70,7 +75,15 @@ def assert_condition(condition: bool, message: str) -> None:
         raise SystemExit(message)
 
 
-def build_demo_envelope(export_snapshot: dict[str, Any]) -> dict[str, Any]:
+def resolve_expected_request(document: Any, label: str) -> dict[str, Any]:
+    if isinstance(document, dict) and isinstance(document.get("input_request"), dict):
+        return document["input_request"]
+    if isinstance(document, dict):
+        return document
+    raise SystemExit(f"{label} must be a json object or an eval sample containing input_request")
+
+
+def build_demo_envelope(export_snapshot: dict[str, Any], *, fixture: dict[str, Any] | None = None) -> dict[str, Any]:
     jsonschema.validate(export_snapshot, load_schema(EXPORT_SNAPSHOT_SCHEMA_PATH))
 
     adapter_snapshot = build_adapter_snapshot_from_export_snapshot(export_snapshot)
@@ -78,6 +91,18 @@ def build_demo_envelope(export_snapshot: dict[str, Any]) -> dict[str, Any]:
 
     copilot_request = build_request_from_snapshot(adapter_snapshot)
     validate_request_document(copilot_request)
+    if fixture:
+        expected_sample_path_value = str(fixture.get("sample") or "").strip()
+        if expected_sample_path_value:
+            expected_sample_path = resolve_repo_path(expected_sample_path_value)
+            expected_request = resolve_expected_request(
+                load_json_document(expected_sample_path),
+                expected_sample_path.relative_to(REPO_ROOT).as_posix(),
+            )
+            assert_condition(
+                copilot_request == expected_request,
+                f"generated request does not match fixture sample: {expected_sample_path_value}",
+            )
 
     envelope = handle_copilot_request(copilot_request, options=GatewayOptions(provider="mock"))
     validate_gateway_envelope(envelope)
@@ -98,25 +123,82 @@ def build_demo_envelope(export_snapshot: dict[str, Any]) -> dict[str, Any]:
     return envelope
 
 
-def main() -> int:
-    args = parse_args()
-    input_path = resolve_repo_path(args.input)
+def load_export_snapshot(input_value: str) -> dict[str, Any]:
+    input_path = resolve_repo_path(input_value)
     if not input_path.is_file():
-        raise SystemExit(f"input file not found: {args.input}")
+        raise SystemExit(f"input file not found: {input_value}")
 
     export_snapshot = load_json_document(input_path)
     if not isinstance(export_snapshot, dict):
         raise SystemExit(f"input must be a json object: {input_path.relative_to(REPO_ROOT)}")
+    return export_snapshot
 
-    envelope = build_demo_envelope(export_snapshot)
+
+def run_single_demo(args: argparse.Namespace) -> dict[str, Any]:
+    return build_demo_envelope(load_export_snapshot(args.input))
+
+
+def run_manifest_demo(manifest_path_value: str) -> dict[str, Any]:
+    manifest_path = resolve_repo_path(manifest_path_value)
+    if not manifest_path.is_file():
+        raise SystemExit(f"manifest file not found: {manifest_path_value}")
+    manifest = load_json_document(manifest_path)
+    if not isinstance(manifest, dict):
+        raise SystemExit(f"manifest must be a json object: {manifest_path.relative_to(REPO_ROOT)}")
+    fixtures = manifest.get("fixtures")
+    if not isinstance(fixtures, list) or not fixtures:
+        raise SystemExit(f"manifest must contain a non-empty fixtures array: {manifest_path_value}")
+
+    results: list[dict[str, Any]] = []
+    for index, fixture in enumerate(fixtures, start=1):
+        if not isinstance(fixture, dict):
+            raise SystemExit(f"manifest fixture #{index} must be a json object")
+        fixture_id = str(fixture.get("id") or "").strip()
+        export_path_value = str(fixture.get("export_snapshot") or "").strip()
+        if not fixture_id:
+            raise SystemExit(f"manifest fixture #{index} is missing id")
+        if not export_path_value:
+            raise SystemExit(f"manifest fixture '{fixture_id}' is missing export_snapshot")
+        envelope = build_demo_envelope(load_export_snapshot(export_path_value), fixture=fixture)
+        metadata = envelope["metadata"]
+        provider = metadata["provider"]
+        results.append(
+            {
+                "id": fixture_id,
+                "export_snapshot": export_path_value,
+                "request_id": envelope["request_id"],
+                "status": envelope["status"],
+                "route": metadata["route"],
+                "provider": provider["name"],
+                "request_validated": metadata["request_validated"],
+                "response_validated": metadata["response_validated"],
+                "advisory_only": metadata["advisory_only"],
+            }
+        )
+    return {
+        "schema_version": 1,
+        "fixture_count": len(results),
+        "results": results,
+    }
+
+
+def main() -> int:
+    args = parse_args()
+    if args.manifest.strip() and args.output.strip():
+        raise SystemExit("--output is only supported for single --input mode")
+
+    result = run_manifest_demo(args.manifest) if args.manifest.strip() else run_single_demo(args)
 
     if args.output.strip():
-        write_json_document(resolve_repo_path(args.output), envelope)
+        write_json_document(resolve_repo_path(args.output), result)
 
     if args.check:
-        print("radishflow gateway demo smoke passed.")
+        if args.manifest.strip():
+            print(f"radishflow gateway demo smoke passed: {result['fixture_count']} fixture(s).")
+        else:
+            print("radishflow gateway demo smoke passed.")
     else:
-        print(json.dumps(envelope, ensure_ascii=False, indent=2))
+        print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 
