@@ -78,7 +78,7 @@
 
 因此下一轮 `M3` 推进不应继续滞留在 `default teacher` 对照，而应把主线切回更高价值真实样本池扩样、复杂 drift 观察，以及与 `suggest_ghost_completion` 的真实 capture 继续并行推进。
 
-当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已完成八组“高价值真实扩样”样本组，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary`、`high-value-real-expansion-tertiary`、`high-value-real-expansion-baseline-stability`、`high-value-real-expansion-foundation-stability`、`high-value-real-expansion-tail-stability`、`high-value-real-expansion-composite-drift` 与 `high-value-real-expansion-risk-localization` 现都已完成一轮正式真实 capture。
+当前这一步也已进一步收口成可直接执行的正式入口：`run-radishflow-suggest-edits-poc-batch.py` 现已完成八组“高价值真实扩样”样本组，并已继续补出下一组 action filtering 入口，不再要求人工每次从 33 条样本里临时挑选；其中 `high-value-real-expansion-core`、`high-value-real-expansion-secondary`、`high-value-real-expansion-tertiary`、`high-value-real-expansion-baseline-stability`、`high-value-real-expansion-foundation-stability`、`high-value-real-expansion-tail-stability`、`high-value-real-expansion-composite-drift` 与 `high-value-real-expansion-risk-localization` 现都已完成一轮正式真实 capture。
 
 - `high-value-real-expansion-core`
   - 优先覆盖 triad mixed-risk、mixed patch combo、cross-object primary focus、parameter detail ordering、local-edits evidence gap 与 mixed-risk reconnect 六类复杂 drift 面
@@ -104,8 +104,11 @@
 - `high-value-real-expansion-risk-localization`
   - 作为 `v91` 之后的新一组非重复高价值入口，继续把 mixed-risk reconnect、cross-object warning 边界、issue/action ordering、placeholder ordering、compressor 参数更新与 valve 局部修复 vs 全局平衡放到同一批风险定位观察面
   - 已作为 `v92` 正式真实 capture 完成收口：`rfb-c5b74d9fd718` 覆盖 6 条 risk localization 样本；首轮暴露的两处失败已收口为 `flowdoc-stream-*` 样本断言编号漂移与 `DOWNSTREAM_SEPARATOR_STATE_DEPENDENT` warning-only unit action 过滤缺口，并基于现有 dump 重新 canonicalize 后达到 `audit=6/6 pass`
+- `high-value-real-expansion-action-filtering`
+  - 作为 `v92` 之后的新一组非重复高价值入口，聚焦 warning-only action 过滤、cross-object citation 交错、contextual warning citation merge、多动作排序与局部 action 边界
+  - 当前已作为下一轮真实 capture 的正式入口入脚本和治理报表；后续若启动 `v93`，应优先使用这组入口，而不是复跑 `risk-localization` 或旧 `remaining-horizontal-gaps`
 
-至此当前 33 条 `suggest_flowsheet_edits` 离线样本都已进入过一轮高价值真实扩样池，且 `v92` 已完成 risk localization 复合观察；下一步不应复跑 `remaining-horizontal-gaps` 或已完成的八组高价值入口，而应只在新增非重复高价值样本组时再起真实 capture。
+至此当前 33 条 `suggest_flowsheet_edits` 离线样本都已进入过一轮高价值真实扩样池，且 `v92` 已完成 risk localization 复合观察；下一步不应复跑 `remaining-horizontal-gaps` 或已完成的八组高价值入口，而应优先按 `high-value-real-expansion-action-filtering` 启动下一轮真实 capture。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 
@@ -129,6 +132,7 @@
 - `high-value-real-expansion-tail-stability`
 - `high-value-real-expansion-composite-drift`
 - `high-value-real-expansion-risk-localization`
+- `high-value-real-expansion-action-filtering`
 - `remaining-horizontal-gaps`
 
 ## 请求映射

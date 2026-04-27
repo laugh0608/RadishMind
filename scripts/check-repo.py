@@ -650,7 +650,7 @@ def check_generated_eval_metadata() -> None:
         "radish-answer-docs-question",
     ]:
         raise SystemExit("governance status report priority queue drifted from current M3 baseline")
-    if "高价值真实样本池" not in str(governance_report.get("next_mainline_focus") or ""):
+    if "high-value-real-expansion-action-filtering" not in str(governance_report.get("next_mainline_focus") or ""):
         raise SystemExit("governance status report next_mainline_focus drifted from current M3 baseline")
 
     suggest_chain = next((chain for chain in governance_chains if chain.get("chain_id") == "radishflow-suggest-flowsheet-edits"), None)
@@ -668,6 +668,11 @@ def check_generated_eval_metadata() -> None:
     suggest_priority = suggest_chain.get("priority") or {}
     if int(suggest_priority.get("rank") or 0) != 1:
         raise SystemExit("radishflow suggest edits: unexpected priority rank in governance status report")
+    suggest_coverage = suggest_chain.get("coverage") or {}
+    if str(suggest_coverage.get("next_high_value_capture_group") or "").strip() != (
+        "high-value-real-expansion-action-filtering"
+    ):
+        raise SystemExit("radishflow suggest edits: unexpected next high-value group in governance status report")
     for blocker_key in (
         "negative_replay_index_blocker",
         "recommended_negative_replay_summary_blocker",

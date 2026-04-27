@@ -285,7 +285,7 @@
 在正式进入实现期前，当前建议按以下顺序继续推进：
 
 1. 为 `RadishFlow` 首批 3 个任务继续扩展真实样本与 `golden_response` / `candidate_response` 口径，优先补控制面冲突态和对抗样本
-2. 将 `RadishFlow suggest_flowsheet_edits` 从“真实主线已阶段性收口”继续推进到“按非重复高价值真实样本池继续扩样”；当前不再围绕已闭环 teacher comparison 或八组已跑通的 `high-value-real-expansion-*` 样本族深挖，而应先定义下一组非重复高价值样本组，或把主线切向 ghost 链新增样本设计
+2. 将 `RadishFlow suggest_flowsheet_edits` 从“真实主线已阶段性收口”继续推进到“按非重复高价值真实样本池继续扩样”；当前不再围绕已闭环 teacher comparison 或八组已跑通的 `high-value-real-expansion-*` 样本族深挖，下一组已收口为 `high-value-real-expansion-action-filtering`，用于优先观察 warning-only action 过滤、cross-object citation 交错、contextual warning citation merge 与多动作排序边界
 3. 将 `RadishFlow / suggest_ghost_completion` 从“链式基线已闭环”继续推进到“在 replay / real-derived 已接通后持续扩真实 capture 样本池”；当前已从固定 trio 扩到十六批高价值链式样本，现有 remaining sample-group 与五组 residual backfill 已正式跑通，并已达到 `78/78` 真实覆盖；后续不应复跑旧入口，只在新增非重复高价值样本时继续扩真实 capture
 4. 继续沿 `RadishFlow export -> adapter -> request` 主线补更真实的 exporter 边界，但从“补单个 fixture”转到“优先补批量 smoke 或正式契约”；当前已具备 selection 契约、priority 契约与 batch smoke 入口，后续除非上游 exporter 继续暴露新边界，否则不再优先深挖这一层
 5. 维护 `Radish` 文档问答已覆盖 `docs/wiki/attachments/forum/faq` 的混合召回基线，仅按需补少量极端冲突样本

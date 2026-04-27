@@ -32,7 +32,7 @@ RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-de
 RADISHFLOW_SUGGEST_EDITS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-real-derived-negatives.json"
 MISSING_NEGATIVE_SAMPLES = "missing_negative_samples"
 MISSING_REAL_DERIVED_NEGATIVE_SAMPLES = "missing_real_derived_negative_samples"
-NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = ""
+NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = "high-value-real-expansion-action-filtering"
 
 
 def parse_args() -> argparse.Namespace:
@@ -722,6 +722,12 @@ def build_report() -> dict[str, Any]:
             next_mainline_focus = (
                 "当前三条主治理链的 replay / real-derived 资产均已接通；"
                 f"下一步优先补 suggest_ghost_completion 的 {ghost_next_group} 高价值真实样本池入口。"
+            )
+        elif NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP:
+            next_mainline_focus = (
+                "当前三条主治理链的 replay / real-derived 资产均已接通；"
+                f"下一步优先用 suggest_flowsheet_edits 的 {NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP} "
+                "启动新的非重复高价值真实样本池 capture。"
             )
         else:
             next_mainline_focus = (
