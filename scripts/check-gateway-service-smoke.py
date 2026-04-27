@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from services.gateway import GatewayOptions, handle_copilot_request  # noqa: E402
+from services.gateway import GatewayOptions, handle_copilot_request, validate_gateway_envelope  # noqa: E402
 from services.runtime.inference import validate_response_document  # noqa: E402
 
 
@@ -34,6 +34,7 @@ def assert_condition(condition: bool, message: str) -> None:
 def check_successful_gateway_call() -> None:
     request = load_sample_request()
     envelope = handle_copilot_request(request, options=GatewayOptions(provider="mock"))
+    validate_gateway_envelope(envelope)
     response = envelope.get("response")
     assert_condition(envelope.get("schema_version") == 1, "gateway envelope schema_version mismatch")
     assert_condition(envelope.get("status") in {"ok", "partial"}, "gateway smoke expected ok or partial status")
@@ -53,6 +54,7 @@ def check_unsupported_route() -> None:
     request = copy.deepcopy(load_sample_request())
     request["task"] = "explain_diagnostics"
     envelope = handle_copilot_request(request, options=GatewayOptions(provider="mock"))
+    validate_gateway_envelope(envelope)
     response = envelope.get("response")
     error = envelope.get("error") or {}
     assert_condition(envelope.get("status") == "failed", "unsupported route should return failed envelope")
@@ -63,6 +65,7 @@ def check_unsupported_route() -> None:
 
 def check_invalid_request() -> None:
     envelope = handle_copilot_request({}, options=GatewayOptions(provider="mock"))
+    validate_gateway_envelope(envelope)
     error = envelope.get("error") or {}
     assert_condition(envelope.get("status") == "failed", "invalid request should return failed envelope")
     assert_condition(error.get("code") == "REQUEST_SCHEMA_INVALID", "invalid request error code mismatch")

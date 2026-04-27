@@ -28,6 +28,7 @@
   "contracts/README.md",
   "contracts/copilot-request.schema.json",
   "contracts/copilot-response.schema.json",
+  "contracts/copilot-gateway-envelope.schema.json",
   "contracts/radishflow-ghost-candidate-set.schema.json",
   "contracts/radishflow-adapter-snapshot.schema.json",
   "contracts/radishflow-export-snapshot.schema.json",

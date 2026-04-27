@@ -93,7 +93,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 统一输出结构化响应
 - 提供鉴权、审计、请求追踪与版本标记
 - 当前 `M3` 后半段的首个实现切片，应优先把既有 `services/runtime/inference.py` 包成稳定服务/API 边界；最小范围包括请求校验、任务路由、provider profile、超时/错误语义、审计 metadata 与响应结构收口
-- 当前已先落最小纯 Python gateway 骨架：`services/gateway/copilot_gateway.py` 接收 schema-valid `CopilotRequest`，按 `project/task` 做显式路由，经由 `services/runtime/inference.py` 生成 `CopilotResponse`，再返回包含 `status / response / error / metadata` 的服务 envelope；`scripts/check-gateway-service-smoke.py` 已接入仓库级验证，覆盖成功路由、schema-invalid 请求与 schema-valid 但 gateway 暂不支持的任务
+- 当前已先落最小纯 Python gateway 骨架：`services/gateway/copilot_gateway.py` 接收 schema-valid `CopilotRequest`，按 `project/task` 做显式路由，经由 `services/runtime/inference.py` 生成 `CopilotResponse`，再返回包含 `status / response / error / metadata` 的服务 envelope；该 envelope 已由 `contracts/copilot-gateway-envelope.schema.json` 冻结最小结构，`scripts/check-gateway-service-smoke.py` 已接入仓库级验证，覆盖成功路由、schema-invalid 请求与 schema-valid 但 gateway 暂不支持的任务
 
 建议接口风格：
 

@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import jsonschema
 
 from services.runtime.inference import run_inference, validate_request_document, validate_response_document
-from services.runtime.inference_support import make_failed_response, utc_now_iso
+from services.runtime.inference_support import load_schema, make_failed_response, utc_now_iso
 
 
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+GATEWAY_ENVELOPE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-gateway-envelope.schema.json"
 SUPPORTED_ROUTES = {
     ("radish", "answer_docs_question"),
     ("radishflow", "suggest_flowsheet_edits"),
@@ -91,6 +94,16 @@ def build_gateway_envelope(
     }
 
 
+def validate_gateway_envelope(document: Any) -> None:
+    jsonschema.validate(document, load_schema(GATEWAY_ENVELOPE_SCHEMA_PATH))
+
+
+def validated_gateway_envelope(**kwargs: Any) -> dict[str, Any]:
+    envelope = build_gateway_envelope(**kwargs)
+    validate_gateway_envelope(envelope)
+    return envelope
+
+
 def failed_copilot_response(copilot_request: dict[str, Any], *, code: str, message: str) -> dict[str, Any]:
     response = make_failed_response(copilot_request, message, message, code)
     validate_response_document(response)
@@ -108,7 +121,7 @@ def handle_copilot_request(
     try:
         validate_request_document(copilot_request)
     except jsonschema.ValidationError as exc:
-        return build_gateway_envelope(
+        return validated_gateway_envelope(
             started_at=started_at,
             copilot_request=copilot_request if isinstance(copilot_request, dict) else None,
             options=gateway_options,
@@ -124,7 +137,7 @@ def handle_copilot_request(
     if (project, task) not in SUPPORTED_ROUTES:
         message = f"unsupported copilot route: {project} / {task}"
         response = failed_copilot_response(copilot_request, code="UNSUPPORTED_TASK", message=message)
-        return build_gateway_envelope(
+        return validated_gateway_envelope(
             started_at=started_at,
             copilot_request=copilot_request,
             options=gateway_options,
@@ -151,7 +164,7 @@ def handle_copilot_request(
         )
         response = inference_result["response"]
         validate_response_document(response)
-        return build_gateway_envelope(
+        return validated_gateway_envelope(
             started_at=started_at,
             copilot_request=copilot_request,
             options=gateway_options,
@@ -163,7 +176,7 @@ def handle_copilot_request(
     except Exception as exc:
         message = f"gateway inference failed: {exc}"
         response = failed_copilot_response(copilot_request, code="GATEWAY_INFERENCE_FAILED", message=message)
-        return build_gateway_envelope(
+        return validated_gateway_envelope(
             started_at=started_at,
             copilot_request=copilot_request,
             options=gateway_options,
