@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-27-radishflow-suggest-edits-poc-real-v93-high-value-action-filtering",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-citation-interleaving-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-citation-interleaving-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/r/sfe-cdd128806fd3.record.json",
+      "sample_key": "sfe-cdd128806fd3",
+      "record_relpath": "r/sfe-cdd128806fd3.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/r/sfe-2bc78786d14c.record.json",
+      "sample_key": "sfe-2bc78786d14c",
+      "record_relpath": "r/sfe-2bc78786d14c.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-spec-plus-pump-update-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/r/sfe-14ee2fecd92e.record.json",
+      "sample_key": "sfe-14ee2fecd92e",
+      "record_relpath": "r/sfe-14ee2fecd92e.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/r/sfe-f6849801bec8.record.json",
+      "sample_key": "sfe-f6849801bec8",
+      "record_relpath": "r/sfe-f6849801bec8.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/r/sfe-290019393cff.record.json",
+      "sample_key": "sfe-290019393cff",
+      "record_relpath": "r/sfe-290019393cff.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/r/sfe-406d3d7721cc.record.json",
+      "sample_key": "sfe-406d3d7721cc",
+      "record_relpath": "r/sfe-406d3d7721cc.record.json"
+    }
+  ],
+  "batch_key": "rfb-05bdfac0a45d",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits v93 真实 provider capture 批次，覆盖 action filtering、cross-object citation 交错、contextual warning citation merge 与多动作排序边界。"
+}

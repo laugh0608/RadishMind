@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "requires_confirmation": true,
+  "summary": "当前围绕已选中的进料流股 feed-1 与加热器 heater-1 的缺失规格问题生成候选提案：为 Cold Feed 补充缺失的流量规格占位，并为 Feed Heater 补充缺失的出口温度目标占位。",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "针对 feed-1 与 heater-1 的两个直接报错，提出两个局部、可审查的候选补丁，占位补全求解所需规格，不改动拓扑。",
+      "citation_ids": [
+        "diag-1",
+        "diag-2",
+        "flowdoc-stream-1",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Cold Feed 添加流量规格占位",
+      "rationale": "该流股被直接诊断为缺少流量规格；补充占位可将修改限制在当前选中的目标对象上，避免臆测具体数值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "feed-1"
+      },
+      "patch": {
+        "spec_placeholders": [
+          "flow_rate_kg_per_h"
+        ],
+        "retain_existing_specs": true
+      }
+    },
+    {
+      "kind": "candidate_edit",
+      "title": "为 Feed Heater 添加出口温度目标占位",
+      "rationale": "该设备已配置为 outlet_temperature 控制模式，诊断明确指出缺少出口温度目标；添加参数占位可保持最小修改且不改变连接关系。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "heater-1"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_temperature_c"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "STREAM_SPEC_MISSING",
+      "message": "Cold Feed is missing flow rate specification.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1"
+      ]
+    },
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-2",
+        "flowdoc-unit-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_SPEC_MISSING",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Cold Feed is missing flow rate specification."
+    },
+    {
+      "id": "diag-2",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[1]",
+      "excerpt": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / feed-1",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "feed-1 Cold Feed target_unit_id=heater-1"
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-1",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-1 Feed Heater kind=Heater"
+    }
+  ],
+  "risk_level": "medium",
+  "confidence": 0.2
+}

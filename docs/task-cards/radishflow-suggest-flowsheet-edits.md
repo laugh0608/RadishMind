@@ -106,9 +106,9 @@
   - 已作为 `v92` 正式真实 capture 完成收口：`rfb-c5b74d9fd718` 覆盖 6 条 risk localization 样本；首轮暴露的两处失败已收口为 `flowdoc-stream-*` 样本断言编号漂移与 `DOWNSTREAM_SEPARATOR_STATE_DEPENDENT` warning-only unit action 过滤缺口，并基于现有 dump 重新 canonicalize 后达到 `audit=6/6 pass`
 - `high-value-real-expansion-action-filtering`
   - 作为 `v92` 之后的新一组非重复高价值入口，聚焦 warning-only action 过滤、cross-object citation 交错、contextual warning citation merge、多动作排序与局部 action 边界
-  - 当前已作为下一轮真实 capture 的正式入口入脚本和治理报表；后续若启动 `v93`，应优先使用这组入口，而不是复跑 `risk-localization` 或旧 `remaining-horizontal-gaps`
+  - 已作为 `v93` 正式真实 capture 完成收口：`rfb-05bdfac0a45d` 覆盖 6 条 action filtering 样本；首轮暴露的失败已收口为 warning-only stream action 过滤缺口，并基于现有 dump 重新 canonicalize 后达到 `audit=6/6 pass`
 
-至此当前 33 条 `suggest_flowsheet_edits` 离线样本都已进入过一轮高价值真实扩样池，且 `v92` 已完成 risk localization 复合观察；下一步不应复跑 `remaining-horizontal-gaps` 或已完成的八组高价值入口，而应优先按 `high-value-real-expansion-action-filtering` 启动下一轮真实 capture。
+至此当前 33 条 `suggest_flowsheet_edits` 离线样本都已进入过一轮高价值真实扩样池，且 `v93` 已完成 action filtering 复合观察；下一步不应复跑 `remaining-horizontal-gaps` 或已完成的九组高价值入口，而应优先规划新的非重复高价值 drift 组合。
 
 为便于继续推进下一轮真实 capture，当前脚本入口 [run-radishflow-suggest-edits-poc-batch.py](../../scripts/run-radishflow-suggest-edits-poc-batch.py) 已补 `--sample-group`，可直接复用：
 

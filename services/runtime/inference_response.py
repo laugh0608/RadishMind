@@ -551,7 +551,7 @@ def should_keep_suggest_edits_existing_action_target(
             "HEATER_OUTLET_EFFECT_UNCONFIRMED",
             "COOLER_OUTLET_EFFECT_UNCONFIRMED",
         }
-        if target_type == "unit" and target_diagnostics:
+        if target_type in {"stream", "unit"} and target_diagnostics:
             target_codes = {
                 str((diagnostic or {}).get("code") or "").strip()
                 for diagnostic in target_diagnostics

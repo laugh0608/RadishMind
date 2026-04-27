@@ -32,7 +32,7 @@ RADISHFLOW_GHOST_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-ghost-real-de
 RADISHFLOW_SUGGEST_EDITS_REAL_DERIVED_FIXTURE = FIXTURE_ROOT / "radishflow-suggest-edits-real-derived-negatives.json"
 MISSING_NEGATIVE_SAMPLES = "missing_negative_samples"
 MISSING_REAL_DERIVED_NEGATIVE_SAMPLES = "missing_real_derived_negative_samples"
-NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = "high-value-real-expansion-action-filtering"
+NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP = ""
 
 
 def parse_args() -> argparse.Namespace:
