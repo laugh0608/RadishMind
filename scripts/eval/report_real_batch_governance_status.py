@@ -275,7 +275,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
         next_gap = (
             "当前四主 apiyi coverage 与 replay / real-derived 治理资产均已接通；"
             "既有 suggest_flowsheet_edits 高价值真实扩样入口也已跑通；"
-            "下一步应优先定义新的非重复高价值样本组，或转向 ghost 链新增非重复高价值样本设计。"
+            "下一步应把现有评测资产上提为服务/API 接入闸口，新增真实 capture 仅在服务或集成暴露新 drift 假设时触发。"
         )
     governance: dict[str, Any] = {
         "level": (
@@ -329,7 +329,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
             "cross_sample_negative_replay_index"
         ):
             governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
-    priority_category = "expand_real_capture_pool"
+    priority_category = "m3_exit_and_service_slice"
     if NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP:
         priority_recommendation = (
             f"继续扩高价值真实样本池，优先补 {NEXT_SUGGEST_EDITS_HIGH_VALUE_GROUP} 这组非重复高价值真实样本。"
@@ -337,7 +337,7 @@ def build_suggest_edits_chain() -> dict[str, Any]:
     else:
         priority_recommendation = (
             "既有 suggest_flowsheet_edits 高价值真实扩样入口已跑通；"
-            "下一步先定义新的非重复高价值样本组，避免回到 remaining-horizontal-gaps 或重复 replay 扩样。"
+            "下一步把当前评测资产上提为服务/API 接入闸口，新增真实 capture 仅在出现非重复高价值 drift 假设时触发。"
         )
     if next_group:
         priority_category = "teacher_comparison_capture"
@@ -471,11 +471,14 @@ def build_ghost_chain() -> dict[str, Any]:
             "cross_sample_negative_replay_index"
         ):
             governance["cross_sample_recommended_negative_replay_summary_blocker"] = ""
-    priority_category = "expand_real_capture_pool"
-    priority_recommendation = "继续扩非重复高价值真实 capture 样本池，避免回到重复 replay 扩样。"
+    priority_category = "m3_exit_and_service_slice"
+    priority_recommendation = (
+        "保持现有真实覆盖与 replay / real-derived 闸口稳定，优先服务后续集成演示；"
+        "只有新增非重复编辑器交互假设时才继续扩真实 capture。"
+    )
     next_gap = (
         "same-sample / cross-sample replay 与首批 real-derived negative 已接通；"
-        "下一步应继续扩非重复高价值真实 capture 样本池。"
+        "下一步应把现有真实覆盖用作服务/API 接入闸口，而不是继续惯性扩样。"
     )
     if next_group:
         priority_category = "grouped_real_capture"
@@ -732,7 +735,8 @@ def build_report() -> dict[str, Any]:
         else:
             next_mainline_focus = (
                 "当前三条主治理链的 replay / real-derived 资产均已接通；"
-                "下一步优先扩 suggest_flowsheet_edits 与 ghost 链的高价值真实样本池。"
+                "下一步主线转向 M3 退出标准、服务/API 骨架与 RadishFlow 集成演示切片；"
+                "真实样本扩展仅在新增非重复高价值假设时触发。"
             )
     return {
         "schema_version": 1,

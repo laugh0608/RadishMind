@@ -1,6 +1,6 @@
 # `RadishFlow` 任务卡：`suggest_ghost_completion`
 
-更新时间：2026-04-25
+更新时间：2026-04-27
 
 ## 任务目标
 
@@ -94,7 +94,7 @@
 - 最近连续七批正式真实 capture 均首轮 `audit pass`，未再暴露新的 runtime 根因；因此当前兜底层可阶段性收口，不必继续围绕旧坏法深挖
 - 因此本链下一轮 `M3` 推进不应回到 teacher capture 或重复补 replay，而应在 `78/78` 真实覆盖基线上继续观察是否需要新增非重复高价值样本；当前 `high-value-template-asymmetry-backfill`、`high-value-suppression-cooldown-symmetry-backfill`、`high-value-residual-conflict-recovery-backfill`、`high-value-residual-cooldown-tail-backfill` 与 `high-value-residual-other-candidate-cooldown-tail` 已正式跑通
 - 为避免下一轮真实 capture 再回到人工临时挑样本，批次入口 [run-radishflow-ghost-real-batch.py](../../scripts/run-radishflow-ghost-real-batch.py) 当前已支持 `--sample-group` 并继续由共享真相源维护下一组正式入口；`v21` 到 `v25` 已证明这条“remaining groups 之后继续拆 residual sample-group”口径可以稳定落地
-- 当前 `high-value-residual-other-candidate-cooldown-tail / v25` 已正式跑通；治理报表下一步会回到“继续扩非重复高价值真实 capture 样本池”的通用判断，而不是指向任何旧 remaining 或 residual 入口
+- 当前 `high-value-residual-other-candidate-cooldown-tail / v25` 已正式跑通；治理报表下一步不再指向旧 remaining 或 residual 入口，也不把继续扩样作为默认主线。后续只有服务/API 接入或编辑器集成暴露新的非重复交互假设时，才继续扩真实 capture
 
 ## 最小必需输入
 

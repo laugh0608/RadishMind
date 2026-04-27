@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约草案
 
-更新时间：2026-04-12
+更新时间：2026-04-27
 
 ## 文档目的
 
@@ -19,6 +19,21 @@
 - 结构化 JSON 优先，图像和附件作为 artifact 补充
 - 默认 advisory mode，不做直接写回
 - 所有高风险输出都必须带 `requires_confirmation`
+
+## 当前服务/API 接入切片
+
+从 `suggest_flowsheet_edits v93` 与 `suggest_ghost_completion v25` 收口后，下一步不再默认通过继续跑真实样本推进，而是把现有协议和评测资产上提为服务/API 接入门禁。
+
+当前最小切片建议固定为：
+
+1. 上层或本地 smoke 提供 schema-valid `CopilotRequest`
+2. `Copilot Gateway / Task Router` 校验 `project / task / schema_version`
+3. Gateway 调用现有 `services/runtime/inference.py` 路径生成 `CopilotResponse`
+4. Response Builder 保持统一 `risk_level / requires_confirmation / citations / proposed_actions`
+5. 服务层只输出 advisory response，不写回 `RadishFlow` 或 `Radish` 真相源
+6. 同一请求必须能复用既有 eval regression、candidate record audit 与治理报表作为验收门禁
+
+真实 provider capture 只在服务/API 或集成演示暴露现有样本无法覆盖的新 drift 时触发；触发前应先写清楚新假设、覆盖缺口和退出条件。
 
 ## 统一输入抽象
 

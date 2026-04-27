@@ -1,14 +1,14 @@
 # RadishMind 文档总览
 
-更新时间：2026-04-15
+更新时间：2026-04-27
 
 ## 文档目的
 
 本目录用于沉淀 `RadishMind` 的产品定位、系统架构、阶段路线和跨项目集成边界，作为后续设计与实现的真相源入口。
 
 当前版本已经基于对 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 的只读审查完成了一轮收口；当前已冻结 `Python` 主实现栈，并将首轮模型路线收口为 `minimind-v` 主线、`Qwen2.5-VL` 强基线和 `SmolVLM` 轻量对照组。
-当前 `RadishFlow export -> adapter -> request` 主线也已从“只有扁平 adapter fixture”推进到“存在上游导出边界、bootstrap 模板、preflight smoke validator 与 committed exporter edge fixtures”的状态。
-当前 `RadishFlow suggest_flowsheet_edits` 主线也已从“只有 mock / fixture 回归”推进到“已具备 `candidate_response_record -> manifest -> audit` 的正式真实批次治理链”，并已把 cross-object citation、mixed-risk + cross-object、triad patch-shape mixed-risk 三组样本接进正式批次；其中 `apiyi_cx / apiyi_cc / apiyi_de` 已在最新 triad 组合样本上正式收口，`apiyi_ch` 则在同组样本上暂记为 provider 读超时阻塞观察项。
+当前 `RadishFlow export -> adapter -> request` 主线也已从“只有扁平 adapter fixture”推进到“存在上游导出边界、bootstrap 模板、preflight smoke validator、batch smoke 与 committed exporter edge fixtures”的状态。
+当前 `RadishFlow suggest_flowsheet_edits` 与 `suggest_ghost_completion` 都已具备真实批次、artifact summary、replay、recommended replay 与 real-derived negative 治理链；`suggest_flowsheet_edits v93` 与 `suggest_ghost_completion v25` 收口后，下一步主线转为服务/API 最小实现切片，而不是继续默认跑样本。
 
 ## 当前优先文档
 
@@ -46,8 +46,8 @@
 
 ## 下一步优先推进
 
-1. 继续沿 `RadishFlow suggest_flowsheet_edits` 主线推进新的非重复高价值真实样本池；当前 `high-value-real-expansion-core` 与 `high-value-real-expansion-secondary` 已都完成正式收口，下一步不应回到 teacher comparison 或低价值 replay，而应继续挑选更容易暴露 mixed reconnect / mixed patch citation drift 的真实样本。
-2. 继续沿 `RadishFlow export -> adapter -> request` 主线补更贴近真实 exporter 的边界样本和 validator 规则，优先观察更复杂的联合选择、同风险多动作并列优先级，以及 `support_artifacts` 在更高阶 mixed summary 变体之后是否还需要升级成正式契约。
-3. 继续把 `RadishFlow` 的 `suggest_ghost_completion` 从“链式三模板主干基线已闭环”推进到“高价值真实 capture 样本池继续扩张”的阶段；当前不再优先重复 cooldown 对称组，而应转向尚未真实化的恢复边界与更复杂交错历史。
-4. 继续把 `Radish` 的 `answer_docs_question` 作为唯一最小入口推进；当前治理链已经完整接通，下一步优先扩大真实 captured negative 批次并沉淀更多跨 source 复合 drift 的高频违规类型。
+1. 将当前 `M3` 主线从继续跑真实 batch 切到服务/API 最小实现切片：优先把 `RadishFlow suggest_flowsheet_edits` 的 `CopilotRequest -> runtime -> CopilotResponse` 路径上提为 Gateway 入口和回归门禁。
+2. 把 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 的现有治理资产继续维护为服务改动的验收基础，而不是默认继续扩样。
+3. 继续沿 `RadishFlow export -> adapter -> request` 主线维护真实 exporter 契约；除非上游暴露新边界，否则不再优先补单个边界样本。
+4. 维护 `Radish` 的 `answer_docs_question` 治理链；只有真实 captured negative 或跨 source drift 出现新增高价值假设时，再扩对应样本。
 5. 在 `contracts/` 基础上补充 schema 校验示例与后续类型生成策略。
