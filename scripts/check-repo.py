@@ -954,6 +954,7 @@ def main() -> int:
     run_python_script("run-eval-regression.py", ["radishflow-diagnostics", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-ghost-completion", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-suggest-edits", "--fail-on-violation"])
+    run_python_script("check-gateway-service-smoke.py", [])
 
     check_path_budget()
     check_required_files()
