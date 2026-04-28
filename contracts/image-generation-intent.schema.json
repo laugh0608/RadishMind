@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/image-generation-intent.schema.json",
+  "title": "ImageGenerationIntent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "prompt",
+    "output",
+    "style",
+    "constraints",
+    "backend",
+    "safety",
+    "artifact_metadata"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "intent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "image_generation"
+    },
+    "source_request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prompt": {
+      "$ref": "#/$defs/prompt"
+    },
+    "output": {
+      "$ref": "#/$defs/output"
+    },
+    "style": {
+      "$ref": "#/$defs/style"
+    },
+    "constraints": {
+      "$ref": "#/$defs/constraints"
+    },
+    "backend": {
+      "$ref": "#/$defs/backend"
+    },
+    "safety": {
+      "$ref": "#/$defs/safety"
+    },
+    "artifact_metadata": {
+      "$ref": "#/$defs/artifact_metadata"
+    }
+  },
+  "$defs": {
+    "prompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "positive",
+        "negative",
+        "locale"
+      ],
+      "properties": {
+        "positive": {
+          "type": "string",
+          "minLength": 1
+        },
+        "negative": {
+          "type": "string"
+        },
+        "locale": {
+          "type": "string",
+          "minLength": 2
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "count",
+        "format"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "png",
+            "jpg",
+            "webp"
+          ]
+        }
+      }
+    },
+    "style": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preset",
+        "reference_artifact_ids"
+      ],
+      "properties": {
+        "preset": {
+          "type": "string",
+          "enum": [
+            "diagram",
+            "technical_illustration",
+            "visual_reference",
+            "concept_art",
+            "product_mockup",
+            "none"
+          ]
+        },
+        "reference_artifact_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "must_include",
+        "must_avoid",
+        "edit_artifact_id",
+        "mask_artifact_id"
+      ],
+      "properties": {
+        "must_include": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "must_avoid": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "edit_artifact_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mask_artifact_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preferred",
+        "seed",
+        "steps",
+        "guidance_scale"
+      ],
+      "properties": {
+        "preferred": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "guidance_scale": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_confirmation",
+        "risk_level",
+        "review_notes"
+      ],
+      "properties": {
+        "requires_confirmation": {
+          "type": "boolean"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "review_notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "artifact_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposed_title",
+        "purpose",
+        "trace_ids"
+      ],
+      "properties": {
+        "proposed_title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "visual_reference",
+            "diagram",
+            "concept_art",
+            "product_mockup",
+            "edit_result"
+          ]
+        },
+        "trace_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

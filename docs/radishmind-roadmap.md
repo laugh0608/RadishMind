@@ -167,7 +167,7 @@
 | `SmolVLM` | 轻量对照组 | 用于低资源回归、图片输入下限和部署成本对照 | 不替代主线 student/base |
 | 生图 backend | 独立图片像素生成能力 | 先通过 `RadishMind-Image Adapter` 接收结构化意图并产出 artifact metadata | 不并入主模型训练目标，不从零训练 |
 
-首轮建议先完成三件事：固定 `3B/4B` 的离线评测矩阵、生成最小 `CopilotRequest/CopilotResponse` 训练样本格式、为 `RadishMind-Image Adapter` 建立一组可回归的图片生成意图样本。只有这些基础资产可复跑后，才进入微调、蒸馏或量化实验。
+首轮建议先完成三件事：固定 `3B/4B` 的离线评测矩阵、生成最小 `CopilotRequest/CopilotResponse` 训练样本格式、为 `RadishMind-Image Adapter` 建立一组可回归的图片生成意图样本。当前 `RadishMind-Image Adapter` 已先把第一版图片生成意图落成 `contracts/image-generation-intent.schema.json`、`scripts/checks/fixtures/image-generation-intent-basic.json` 与 `scripts/check-image-generation-intent-contract.py` 三件仓库级契约资产；后续只有这些基础资产可复跑后，才进入微调、蒸馏或量化实验。
 
 ### 退出标准
 
@@ -304,7 +304,7 @@
 2. 把已落地的 gateway demo manifest / summary fixture 作为 `RadishFlow suggest_flowsheet_edits` 服务/API 改动的默认门禁，后续任何 gateway metadata、错误 envelope 或确认语义改动都必须同步更新该 summary 或解释兼容性
 3. 冻结当前进程内 gateway、UI consumption summary 与 candidate edit handoff summary，把它们视为未来上层接入验收门禁；在上层项目未准备好前，不继续新增同类模拟 summary
 4. 转入 `M4` 前置准备：补 `RadishMind-Core` 首版基座选择评估、训练样本格式、teacher / student / lightweight baseline 的对照矩阵
-5. 补 `RadishMind-Image Adapter` 第一版 schema 草案和最小图片生成意图样本，使图片生成能力先以 adapter / backend 形式站住，而不是并入主模型参数目标
+5. 继续沿 `contracts/image-generation-intent.schema.json` 与最小图片生成意图 fixture 推进 `RadishMind-Image Adapter`，下一步再补 backend 抽象和图片生成评测样本，使图片生成能力先以 adapter / backend 形式站住，而不是并入主模型参数目标
 6. 只有当服务/API、模型评测或后续真实接入暴露现有样本无法覆盖的新失败面时，才回到真实 capture 扩样；扩样完成后必须同步更新治理报表和周志
 
 ### 大节点切换条件
@@ -333,7 +333,7 @@
 - `Qwen2.5-VL` 的首选尺寸与推理预算
 - `SmolVLM` 的回归任务边界与保留条件
 - `RadishMind-Core` 首版到底先锁定 `3B` 还是 `4B`，以及 `7B` 档位的进入阈值
-- `RadishMind-Image Adapter` 的第一版 schema、backend 抽象和最小评测样本如何落到仓库级门禁
+- `RadishMind-Image Adapter` 的第一版 schema 已落到仓库级门禁；backend 抽象和最小评测样本如何继续接入同一契约链
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
 - `M7` 到来时，agent runtime 与 model / training / inference service 是继续同仓库分包，还是拆成独立仓库与独立发布单元
