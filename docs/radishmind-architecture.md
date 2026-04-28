@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-27
+更新时间：2026-04-28
 
 ## 架构目标
 
@@ -137,12 +137,37 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 
 这里承载真正的 LLM / VLM 推理。
 
-建议分为两类：
+建议分为四类：
 
 - Teacher Models
   - 用于强能力推理、数据蒸馏、标注参考和 PoC 对照
 - Student Models
   - 用于本地化、小成本部署和项目内推理实验
+- `RadishMind-Core`
+  - 项目自研主模型，默认采用“开源基座 + RadishMind 数据 / 协议 / 评测偏好适配”的路线，而不是从零预训练
+  - 首版目标为 `3B` / `4B`，长期本地部署上限为 `7B`
+  - 负责文本理解、可选图片输入理解、项目场景推理、候选动作排序、风险标记和结构化响应
+  - 不负责直接生成图片像素，也不直接写入上层项目真相源
+- Image Generation Runtime
+  - 作为独立 backend 被 `RadishMind-Image Adapter` 调度
+  - 负责图片像素生成、局部编辑、风格化或后处理
+  - 首轮不自研从零训练，优先接入或参考 `SD1.5`、`PixArt-δ 0.6B`；中期可评估 `Segmind-Vega` 或 `SD3.5 Medium 2.5B`
+
+图片生成相关请求的默认路径应是：
+
+```text
+RadishMind-Core
+        ↓
+结构化 image_generation intent / constraints
+        ↓
+RadishMind-Image Adapter
+        ↓
+Image Generation Backend
+        ↓
+artifact 引用 / 生成结果 metadata
+```
+
+因此，`RadishMind` 可以提供图片生成能力，但能力边界应落在“主模型理解、规划、约束和审查；专用 backend 生成像素”，而不是把主模型训练成统一图文理解和生图的单体模型。
 
 当前判断：
 
@@ -151,6 +176,8 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - `minimind-v` 当前作为默认 `student/base` 主线，承接领域适配、训练实验与后续部署路线
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 多模态强基线，优先承担复杂图文任务 PoC、标注参考与蒸馏输入
 - `SmolVLM` 当前作为轻量本地对照组，优先承担低资源回归与部署下限比较
+- `RadishMind-Core` 的硬件友好目标应优先服务 `32GB` 级本地开发 / 小型部署机：默认 `3B` / `4B`，增强档 `7B`，不把 `14B` / `32B` 写成默认部署基线
+- 图片生成 backend 应按需加载或独立进程运行，不与较大的 VLM / Core 模型默认同时常驻
 
 ### 5. Rule Validation & Response Builder
 
@@ -268,6 +295,8 @@ RadishMind/
 - `RadishFlow` 优先走状态优先上下文，截图是补充，不是第一阶段唯一中心
 - `Radish` 优先走知识优先上下文，重点是 Docs / Wiki / Forum / Console 语义
 - 模型输出默认是建议，不直接成为最终状态
+- `RadishMind-Core` 是基座适配型自研主模型，不是从零预训练型基础模型
+- 图片生成能力默认通过 `RadishMind-Image Adapter` + 独立 backend 提供，主模型只输出生成意图、约束、审查信息和 artifact 元数据
 - 训练数据优先从自有项目生成，不依赖大量外部脏数据
 - 评测必须从第一阶段就开始建立
 - 对 `suggest_flowsheet_edits` 这类 advisory patch 任务，评测不仅要检查“能不能答”，还要检查同一输入下的结构化顺序是否稳定，避免候选动作、证据引用和 patch 细节在回归中随机漂移

@@ -61,6 +61,8 @@
 - 当前不让模型替代 `RadishFlow` 的求解热路径
 - 当前不把模型服务和上层业务控制面混为同一个系统
 - Teacher / Student 模型、工具调用、检索增强和规则校验应保持解耦
+- `RadishMind-Core` 是基座适配型自研主模型，不是从零预训练基础大模型；当前建议 `3B/4B` 起步，长期本地部署上限 `7B`
+- 图片生成能力默认由独立 `RadishMind-Image Adapter` 与生图 backend 承接，主模型只负责理解、规划、约束、审查和结构化意图输出
 
 ## 当前阶段优先项
 
@@ -173,6 +175,8 @@
 - 能规则化或工具化的逻辑，不强行压给模型
 - 训练数据优先从自有项目与可合成样本中生成
 - 优先建立评测，再扩大训练规模
+- `RadishMind-Core` 默认采用“开源基座 + RadishMind 数据 / 协议 / 评测偏好适配”的自研路线，不把 `14B/32B` 作为当前默认自研主模型目标
+- 图片输入理解可以进入主模型或视觉适配路线；图片像素生成不应并入主模型参数目标，优先通过独立 adapter / backend 和 artifact 返回链路实现
 - committed 的物理路径只承载稳定短键与必要结构层级，`RadishFlow` 与 `Radish` 都不得重复编码 `collection_batch`、长 sample slug、provider/profile 标签或其它长自然语言语义
 - 需要保留的长语义应回收到 `manifest`、`record`、fixture 或其它结构化元数据中，而不是继续拉长目录名和文件名
 - `RadishFlow` 的 committed `candidate-records` 正式布局固定为 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/`
@@ -200,6 +204,7 @@
 - 不要在没有统一协议前让不同项目各自私接模型
 - 不要在没有评测集前只凭主观体验迭代提示词和模型
 - 不要为了追求“统一模型”而忽略项目适配层的必要差异
+- 不要把 `RadishMind-Core` 扩张成必须自己生成图片像素的一体化大模型
 - 不要过早承诺完全本地化、完全自治或一步到位的万能模型
 
 ## Git 提交规范

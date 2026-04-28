@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-04-27
+更新时间：2026-04-28
 
 ## 路线图目标
 
@@ -14,6 +14,8 @@
 - `minimind-v` 当前作为默认 `student/base` 主线，围绕评测闭环进入适配与训练阶段
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 强基线，优先承担多模态对照评测与蒸馏参考
 - `SmolVLM` 当前作为轻量本地对照组，优先承担小模型回归与部署下限比较
+- `RadishMind-Core` 当前定义为基座适配型自研主模型：首版目标 `3B` / `4B`，长期本地部署上限 `7B`
+- 图片生成能力不并入 `RadishMind-Core` 主模型参数目标，默认通过独立 `RadishMind-Image Adapter` 与生图 backend 提供
 
 ## M0：真实上下文审查与规划冻结
 
@@ -129,24 +131,33 @@
 - 至少一条 `RadishFlow` 场景能把 `adapter -> runtime -> response builder -> audit fixture` 串成服务/API 级最小切片，并复用现有 eval 样本作为验收门禁；当前这条门槛已由 `suggest_flowsheet_edits` 的 gateway demo manifest 与 summary fixture 初步满足，后续重点转为补上层调用形态、错误消费和确认流对齐，而不是继续证明单脚本可跑
 - 继续扩样必须先写清楚新 drift 假设、覆盖缺口和退出条件；没有新假设时，不再把跑真实 provider batch 当作默认推进方式
 
-## M4：`minimind-v` student/base 主线推进
+## M4：`RadishMind-Core` student/base 主线推进
 
 ### 目标
 
-在 `Qwen2.5-VL` 强基线验证过任务后，推进 `minimind-v` 主线的训练、蒸馏和领域适配。
+在 `Qwen2.5-VL` 强基线验证过任务后，推进 `RadishMind-Core` 的训练、蒸馏和领域适配。当前 `RadishMind-Core` 默认不是从零预训练基础模型，而是基于开源 `student/base` 的项目专属适配模型。
+
+模型规模目标按以下顺序收口：
+
+- PoC / 首个稳定版：`3B` 或 `4B`
+- 增强版与长期本地部署上限：`7B`
+- 默认不把 `14B` / `32B` 作为自研主模型目标
 
 ### 任务
 
-- 评估 `minimind-v` 作为默认 `student/base` 主线的改造成本与接入优先级
-- 明确哪些任务值得进入 `minimind-v` 主线，哪些继续保留在 `Qwen2.5-VL` 或工具侧
+- 评估 `minimind-v` 作为 `RadishMind-Core` 默认 `student/base` 主线的改造成本与接入优先级
+- 明确哪些任务值得进入 `RadishMind-Core` 主线，哪些继续保留在 `Qwen2.5-VL`、规则工具或外部 backend 侧
 - 建立领域样本格式转换脚本
 - 做第一轮小规模微调或蒸馏实验
 - 引入 `SmolVLM` 作为轻量对照组，验证低资源场景下的回归下限
+- 定义 `RadishMind-Image Adapter` 的第一版结构化输出：图片生成意图、prompt、尺寸、风格、seed、负面词、编辑约束、风险确认和 artifact 元数据
+- 对生图 backend 先采用现成小参数开源模型或其推理服务，不从零训练；首轮参考 `SD1.5` / `PixArt-δ 0.6B`，中期再评估 `Segmind-Vega` 或 `SD3.5 Medium 2.5B`
 
 ### 退出标准
 
-- `minimind-v` 在目标任务上达到可对比的基础表现
+- `RadishMind-Core` 在目标任务上达到可对比的基础表现，并能通过统一协议、评测和规则校验稳定替换 teacher / mock provider
 - 可以明确知道下一步应继续训练、补数据、优化工具路由，还是调整对照模型规模
+- 图片生成能力具备最小可演示链路：`RadishMind-Core` 输出结构化生成意图，`RadishMind-Image Adapter` 调度 backend，结果以 artifact 形式返回；主模型不直接生成图片像素
 
 ## M5：`Radish` 首批任务接入
 
@@ -210,7 +221,7 @@
 - `RadishFlow` 与 `Radish` 至少各有一个生产前稳定任务接入同一 agent runtime
 - `CopilotRequest` / `CopilotResponse`、artifact、risk、confirmation、citation 等核心协议连续多个迭代保持兼容
 - 至少有一条任务完成 teacher / student / mock 或多 provider 的可重复对照，证明模型已是可替换组件，而不是写死在任务逻辑里
-- `minimind-v` 或其它 student 路线进入持续训练、蒸馏、量化、评测发布节奏，且产生不适合直接入仓的大体积权重或训练产物
+- `RadishMind-Core` / `minimind-v` 或其它 student 路线进入持续训练、蒸馏、量化、评测发布节奏，且产生不适合直接入仓的大体积权重或训练产物
 - agent runtime 的发布节奏开始与模型训练 / 推理服务发布节奏明显不同
 - 模型服务需要独立 GPU / 推理基础设施、安全凭据、镜像发布或部署权限
 - 仓库 CI 因模型资产、训练脚本、推理镜像或大数据集显著拖慢，影响协议、adapter 和评测的日常协作
@@ -245,6 +256,7 @@
 8. `M7`
 
 不要在 `M1` 之前就直接开大规模训练，也不要在没有评测基线前频繁切换底座模型。
+不要把 `RadishMind-Core` 误收口成从零预训练的大模型项目；当前合理路线是 `3B` / `4B` 起步、`7B` 作为本地上限，并通过独立 backend 提供图片生成能力。
 不要在 `M6` 之前急于把 agent / model 拆成多仓库；在协议、adapter、评测和至少两个项目的任务接入稳定前，保持单仓库更利于收口。
 
 ## 当前优先推进
@@ -296,13 +308,15 @@
 4. 把现有 `scripts/run-copilot-inference.py`、`scripts/check-gateway-service-smoke.py` 与 `scripts/run-radishflow-gateway-demo.py` 能验证的路径收束成服务级 smoke 矩阵：同一类请求应能走 CLI、gateway 函数入口与未来 API 入口，并落到兼容的 `CopilotResponse` / `CopilotGatewayEnvelope`
 5. 明确服务层不负责直接写回业务真相源；`candidate_edit` 只能作为 UI 可审查提案，所有实际修改仍交由上层项目命令层和人工确认；当前 `CopilotGatewayEnvelope` 调用口径已在集成契约中补齐，应继续作为后续 HTTP/API 包装的语义真相源
 6. 继续维护 `Radish docs QA` 与 `suggest_ghost_completion` 的治理链，但不主动扩样；只有服务/API 集成或新产品场景暴露评测缺口时再补真实 capture
-7. 在服务/API 最小切片通过仓库级回归后，再评估是否进入 `M4 minimind-v` 的模型对照与训练路线验证
+7. 在服务/API 最小切片通过仓库级回归后，再评估是否进入 `M4 RadishMind-Core / minimind-v` 的模型对照与训练路线验证
 
 ## 当前仍缺的关键决策
 
 - `Copilot Gateway` 的首个对外调用形态优先采用进程内 Python API、HTTP JSON 服务，还是两者并行维护一段时间
 - `Qwen2.5-VL` 的首选尺寸与推理预算
 - `SmolVLM` 的回归任务边界与保留条件
+- `RadishMind-Core` 首版到底先锁定 `3B` 还是 `4B`，以及 `7B` 档位的进入阈值
+- `RadishMind-Image Adapter` 的第一版 schema、backend 抽象和最小评测样本
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
 - `M7` 到来时，agent runtime 与 model / training / inference service 是继续同仓库分包，还是拆成独立仓库与独立发布单元
