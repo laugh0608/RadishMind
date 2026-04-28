@@ -110,7 +110,7 @@
 - 当前 `Radish docs QA` 这条治理子线已把 `2026-04-05` real batch 中仍为 singleton 的 source 全部推进到同源双派生，real-derived index 已收口到 `34` 条 linked negatives；下一步重点转向跨 source 复合 drift 扩样，以及 `pattern` / `violation` 是否需要进一步结构化
 - 截至 `2026-04-27`，三条主治理链均已接通 `artifact summary / same-sample replay / cross-sample replay / recommended replay / real-derived negative` 资产；`suggest_ghost_completion` 的 `high-value-residual-other-candidate-cooldown-tail / v25` 已正式跑通并把真实覆盖推进到 `78/78`，`suggest_flowsheet_edits` 的 `high-value-real-expansion-action-filtering / v93` 也已正式跑通，当前仓库级优先级队列重新回到两条 RadishFlow 链都应避免复跑旧入口，只在新增非重复高价值样本时继续扩真实 capture
 - 从 `v93` 之后开始，真实样本扩展降级为“有明确非重复高价值假设才触发”的支线；当前 `M3` 主线不再以新增 batch 数量衡量推进，而应把现有评测资产上提为服务/API 接入、回归门禁和集成演示的基础
-- 当前已完成 `M3` 后半段服务/API 最小切片的第一轮落点：`services/gateway/copilot_gateway.py` 已把 schema-valid `CopilotRequest -> runtime -> CopilotResponse` 包成 advisory-only gateway envelope，`contracts/copilot-gateway-envelope.schema.json` 已冻结 `status / response / error / metadata` 最小结构，`scripts/run-radishflow-gateway-demo.py` 则通过 3 条 `RadishFlow suggest_flowsheet_edits` export fixture 固定 `export -> adapter/request -> handle_copilot_request -> gateway envelope` 的可复跑 demo，并用 summary fixture 锁定 `route / provider / advisory_only / request_validated / response_validated / requires_confirmation` 等上层调用依赖字段；随后又补 `scripts/check-radishflow-gateway-ui-consumption.py`，把 proposal-ready、unsupported route 与 schema-invalid 三类 envelope 映射成稳定 UI consumption summary，固定调用侧不得直接写回 `FlowsheetDocument`
+- 当前已完成 `M3` 后半段服务/API 最小切片的第一轮落点：`services/gateway/copilot_gateway.py` 已把 schema-valid `CopilotRequest -> runtime -> CopilotResponse` 包成 advisory-only gateway envelope，`contracts/copilot-gateway-envelope.schema.json` 已冻结 `status / response / error / metadata` 最小结构，`scripts/run-radishflow-gateway-demo.py` 则通过 3 条 `RadishFlow suggest_flowsheet_edits` export fixture 固定 `export -> adapter/request -> handle_copilot_request -> gateway envelope` 的可复跑 demo，并用 summary fixture 锁定 `route / provider / advisory_only / request_validated / response_validated / requires_confirmation` 等上层调用依赖字段；随后又补 `scripts/check-radishflow-gateway-ui-consumption.py`，把 proposal-ready、unsupported route 与 schema-invalid 三类 envelope 映射成稳定 UI consumption summary，固定调用侧不得直接写回 `FlowsheetDocument`；当前还补了 `scripts/check-radishflow-candidate-edit-handoff.py`，把人工确认后的 `candidate_edit` 固定为非执行式 command candidate handoff，确保 failed / invalid envelope 不会进入命令层
 
 ### 推荐指标
 
@@ -128,7 +128,7 @@
 - 对 `suggest_flowsheet_edits` 这类结构化建议任务，能够明确看见“是否答对”和“是否保持稳定排序”两个维度，而不把顺序漂移混进主观体验
 - 对真实 batch 的失败样本，能够看清“哪些已沉淀为 replay、哪些已扩成 repeated real-derived pattern、哪些仍缺治理闭环”
 - 三条已接线任务的 `artifact summary / replay / recommended replay / real-derived` 治理状态能由同一只读报告稳定盘点，且报告的 `next_mainline_focus` 不再把已跑通入口误导成必须继续复跑
-- 至少一条 `RadishFlow` 场景能把 `adapter -> runtime -> response builder -> audit fixture` 串成服务/API 级最小切片，并复用现有 eval 样本作为验收门禁；当前这条门槛已由 `suggest_flowsheet_edits` 的 gateway demo manifest、summary fixture 与 UI consumption summary 初步满足，后续重点转为补真实上层调用位置、错误消费和确认流对齐，而不是继续证明单脚本可跑
+- 至少一条 `RadishFlow` 场景能把 `adapter -> runtime -> response builder -> audit fixture` 串成服务/API 级最小切片，并复用现有 eval 样本作为验收门禁；当前这条门槛已由 `suggest_flowsheet_edits` 的 gateway demo manifest、summary fixture、UI consumption summary 与 candidate edit handoff summary 初步满足，后续重点转为补真实上层调用位置和命令层确认流对齐，而不是继续证明单脚本可跑
 - 继续扩样必须先写清楚新 drift 假设、覆盖缺口和退出条件；没有新假设时，不再把跑真实 provider batch 当作默认推进方式
 
 ## M4：`RadishMind-Core` student/base 主线推进
@@ -286,8 +286,8 @@
 
 1. 继续保持 `M3` 的退出门槛：三条真实治理链保持可机读、可复跑、无基础资产缺口；新 batch 只在有明确非重复 drift 假设时触发
 2. 把已落地的 gateway demo manifest / summary fixture 作为 `RadishFlow suggest_flowsheet_edits` 服务/API 改动的默认门禁，后续任何 gateway metadata、错误 envelope 或确认语义改动都必须同步更新该 summary 或解释兼容性
-3. 继续补清上层调用形态：当前进程内调用和 UI consumption summary 已站住，下一步应选择真实上层调用位置或更贴近上层命令层的确认流示例，继续保持 `proposed_actions` 只作为 advisory proposal
-4. 在 UI 消费口径站住后，再选择一个确认流或命令层 handoff 场景做集成演示口径：候选 patch 必须保持 advisory、`requires_confirmation=true`，不直接写入 `RadishFlow` 真相源
+3. 继续补清上层调用形态：当前进程内调用、UI consumption summary 与 candidate edit handoff summary 已站住，下一步应选择真实上层调用位置或 HTTP 包装边界，并继续保持 `proposed_actions` 只作为 advisory proposal
+4. 在 handoff 口径站住后，再选择真实上层接线或 HTTP JSON 包装场景做集成演示口径：候选 patch 必须保持 advisory、`requires_confirmation=true`，不直接写入 `RadishFlow` 真相源
 5. 只有当服务/API 或集成演示暴露现有评测无法覆盖的新失败面时，才回到真实 capture 扩样；扩样完成后必须同步更新治理报表和周志
 
 ### 大节点切换条件
@@ -305,7 +305,7 @@
 1. 把 `M3` 退出标准固定到文档和治理报表：当前阶段的主线目标是“评测资产可作为实现门禁”，不是继续增加真实 batch 数
 2. 继续收紧 `services/gateway` 的最小职责：接收 `CopilotRequest`、路由到现有 runtime、统一错误响应、写入可审计 metadata，并保持 provider profile 可配置；当前最小 Python 骨架已落地，下一步不再停留在职责定义，而应补调用形态和错误消费约定
 3. 继续以 `RadishFlow suggest_flowsheet_edits` 做服务/API 最小切片，因为它已有最完整的结构化建议、风险确认、citation、replay、real-derived 基线和 gateway demo summary 门禁
-4. 把现有 `scripts/run-copilot-inference.py`、`scripts/check-gateway-service-smoke.py`、`scripts/run-radishflow-gateway-demo.py` 与 `scripts/check-radishflow-gateway-ui-consumption.py` 能验证的路径收束成服务级 smoke 矩阵：同一类请求应能走 CLI、gateway 函数入口、UI consumption summary 与未来 API 入口，并落到兼容的 `CopilotResponse` / `CopilotGatewayEnvelope`
+4. 把现有 `scripts/run-copilot-inference.py`、`scripts/check-gateway-service-smoke.py`、`scripts/run-radishflow-gateway-demo.py`、`scripts/check-radishflow-gateway-ui-consumption.py` 与 `scripts/check-radishflow-candidate-edit-handoff.py` 能验证的路径收束成服务级 smoke 矩阵：同一类请求应能走 CLI、gateway 函数入口、UI consumption summary、candidate handoff summary 与未来 API 入口，并落到兼容的 `CopilotResponse` / `CopilotGatewayEnvelope`
 5. 明确服务层不负责直接写回业务真相源；`candidate_edit` 只能作为 UI 可审查提案，所有实际修改仍交由上层项目命令层和人工确认；当前 `CopilotGatewayEnvelope` 调用口径已在集成契约中补齐，应继续作为后续 HTTP/API 包装的语义真相源
 6. 继续维护 `Radish docs QA` 与 `suggest_ghost_completion` 的治理链，但不主动扩样；只有服务/API 集成或新产品场景暴露评测缺口时再补真实 capture
 7. 在服务/API 最小切片通过仓库级回归后，再评估是否进入 `M4 RadishMind-Core / minimind-v` 的模型对照与训练路线验证

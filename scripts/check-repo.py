@@ -979,6 +979,13 @@ def main() -> int:
             "scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json",
         ],
     )
+    run_python_script(
+        "check-radishflow-candidate-edit-handoff.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json",
+        ],
+    )
 
     check_path_budget()
     check_required_files()

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "handoff_surface": "radishflow_candidate_edit_confirmation",
+  "source": "copilot_gateway_envelope",
+  "case_count": 3,
+  "cases": [
+    {
+      "case_id": "confirmed_candidate_edit",
+      "source_status": "partial",
+      "source_route": "radishflow/suggest_flowsheet_edits",
+      "source_request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "eligible_action_count": 1,
+      "command_candidates": [
+        {
+          "handoff_kind": "radishflow_candidate_edit_proposal",
+          "command_candidate_id": "rf-suggest-edit-reconnect-outlet-001:candidate_edit:0",
+          "source_request_id": "rf-suggest-edit-reconnect-outlet-001",
+          "source_route": "radishflow/suggest_flowsheet_edits",
+          "action_index": 0,
+          "title": "为 stream-out-1 预留下游重连占位",
+          "target": {
+            "type": "stream",
+            "id": "stream-out-1"
+          },
+          "patch_keys": [
+            "connection_placeholder"
+          ],
+          "risk_level": "high",
+          "citation_ids": [
+            "diag-1",
+            "flowdoc-stream-1",
+            "snapshot-1"
+          ],
+          "requires_human_confirmation": true,
+          "can_execute": false
+        }
+      ],
+      "handoff_blocked": false,
+      "block_reason": "",
+      "can_execute_any": false
+    },
+    {
+      "case_id": "unsupported_route",
+      "source_status": "failed",
+      "source_route": "radishflow/explain_diagnostics",
+      "source_request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "eligible_action_count": 0,
+      "command_candidates": [],
+      "handoff_blocked": true,
+      "block_reason": "no_confirmed_candidate_edit",
+      "can_execute_any": false
+    },
+    {
+      "case_id": "schema_invalid",
+      "source_status": "failed",
+      "source_route": "",
+      "source_request_id": "",
+      "eligible_action_count": 0,
+      "command_candidates": [],
+      "handoff_blocked": true,
+      "block_reason": "no_confirmed_candidate_edit",
+      "can_execute_any": false
+    }
+  ]
+}
