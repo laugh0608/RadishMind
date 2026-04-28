@@ -147,6 +147,7 @@
 
 - 评估 `minimind-v` 作为 `RadishMind-Core` 默认 `student/base` 主线的改造成本与接入优先级
 - 明确哪些任务值得进入 `RadishMind-Core` 主线，哪些继续保留在 `Qwen2.5-VL`、规则工具或外部 backend 侧
+- 固定 `RadishMind-Core` 首版基座评估矩阵；当前已新增 `docs/radishmind-core-baseline-evaluation.md`、`scripts/checks/fixtures/radishmind-core-baseline-matrix.json` 与 `scripts/check-radishmind-core-baseline-matrix.py`
 - 建立领域样本格式转换脚本；当前已先固定 `contracts/copilot-training-sample.schema.json`、`scripts/checks/fixtures/copilot-training-sample-basic.json` 与 `scripts/check-copilot-training-sample-contract.py`，作为后续转换脚本的目标契约
 - 做第一轮小规模微调或蒸馏实验
 - 引入 `SmolVLM` 作为轻量对照组，验证低资源场景下的回归下限
@@ -167,7 +168,7 @@
 | `SmolVLM` | 轻量对照组 | 用于低资源回归、图片输入下限和部署成本对照 | 不替代主线 student/base |
 | 生图 backend | 独立图片像素生成能力 | 先通过 `RadishMind-Image Adapter` 接收结构化意图并产出 artifact metadata | 不并入主模型训练目标，不从零训练 |
 
-首轮建议先完成三件事：固定 `3B/4B` 的离线评测矩阵、生成最小 `CopilotRequest/CopilotResponse` 训练样本格式、为 `RadishMind-Image Adapter` 建立一组可回归的图片生成意图样本。当前训练 / 蒸馏样本格式已先落成 `contracts/copilot-training-sample.schema.json`、`scripts/checks/fixtures/copilot-training-sample-basic.json` 与 `scripts/check-copilot-training-sample-contract.py`；`RadishMind-Image Adapter` 也已把第一版图片生成意图落成 `contracts/image-generation-intent.schema.json`、`scripts/checks/fixtures/image-generation-intent-basic.json` 与 `scripts/check-image-generation-intent-contract.py`。后续只有这些基础资产可复跑后，才进入微调、蒸馏或量化实验。
+首轮建议先完成三件事：固定 `3B/4B` 的离线评测矩阵、生成最小 `CopilotRequest/CopilotResponse` 训练样本格式、为 `RadishMind-Image Adapter` 建立一组可回归的图片生成意图样本。当前 `RadishMind-Core` 首版基座评估矩阵已落成 `docs/radishmind-core-baseline-evaluation.md`、`scripts/checks/fixtures/radishmind-core-baseline-matrix.json` 与 `scripts/check-radishmind-core-baseline-matrix.py`；训练 / 蒸馏样本格式已落成 `contracts/copilot-training-sample.schema.json`、`scripts/checks/fixtures/copilot-training-sample-basic.json` 与 `scripts/check-copilot-training-sample-contract.py`；`RadishMind-Image Adapter` 也已把第一版图片生成意图落成 `contracts/image-generation-intent.schema.json`、`scripts/checks/fixtures/image-generation-intent-basic.json` 与 `scripts/check-image-generation-intent-contract.py`。后续只有这些基础资产可复跑后，才进入微调、蒸馏或量化实验。
 
 ### 退出标准
 
@@ -303,7 +304,7 @@
 1. 继续保持 `M3` 的退出门槛：三条真实治理链保持可机读、可复跑、无基础资产缺口；新 batch 只在有明确非重复 drift 假设时触发
 2. 把已落地的 gateway demo manifest / summary fixture 作为 `RadishFlow suggest_flowsheet_edits` 服务/API 改动的默认门禁，后续任何 gateway metadata、错误 envelope 或确认语义改动都必须同步更新该 summary 或解释兼容性
 3. 冻结当前进程内 gateway、UI consumption summary 与 candidate edit handoff summary，把它们视为未来上层接入验收门禁；在上层项目未准备好前，不继续新增同类模拟 summary
-4. 转入 `M4` 前置准备：训练样本格式已先落成仓库级契约，下一步补 `RadishMind-Core` 首版基座选择评估、teacher / student / lightweight baseline 的对照矩阵和样本转换入口
+4. 转入 `M4` 前置准备：基座评估矩阵与训练样本格式已先落成仓库级契约，下一步补 teacher / student / lightweight baseline 的离线评测样本选择、量化阈值和样本转换入口
 5. 继续沿 `contracts/image-generation-intent.schema.json` 与最小图片生成意图 fixture 推进 `RadishMind-Image Adapter`，下一步再补 backend 抽象和图片生成评测样本，使图片生成能力先以 adapter / backend 形式站住，而不是并入主模型参数目标
 6. 只有当服务/API、模型评测或后续真实接入暴露现有样本无法覆盖的新失败面时，才回到真实 capture 扩样；扩样完成后必须同步更新治理报表和周志
 
@@ -330,9 +331,9 @@
 
 ## 当前仍缺的关键决策
 
-- `Qwen2.5-VL` 的首选尺寸与推理预算
-- `SmolVLM` 的回归任务边界与保留条件
-- `RadishMind-Core` 首版到底先锁定 `3B` 还是 `4B`，以及 `7B` 档位的进入阈值
+- `Qwen2.5-VL` 的具体首选尺寸与推理预算
+- `SmolVLM` 的具体回归任务边界与保留条件
+- `RadishMind-Core` 首版基座评估矩阵已固定 `3B` 优先、`4B` 对照、`7B` 延后；具体量化阈值仍需由后续离线评测补齐
 - `RadishMind-Image Adapter` 的第一版 schema 已落到仓库级门禁；backend 抽象和最小评测样本如何继续接入同一契约链
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程

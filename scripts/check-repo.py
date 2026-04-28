@@ -988,6 +988,7 @@ def main() -> int:
             "scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json",
         ],
     )
+    run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
 
