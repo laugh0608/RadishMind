@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "call_mode": "in_process_python",
+  "case_count": 3,
+  "cases": [
+    {
+      "case_id": "successful_radishflow_suggest_edits",
+      "status": "partial",
+      "request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "request_validated": true,
+      "response_validated": true,
+      "advisory_only": true,
+      "provider": {
+        "name": "mock",
+        "profile": "",
+        "model": "",
+        "request_timeout_seconds": 120.0
+      },
+      "response_present": true,
+      "response_status": "partial",
+      "response_requires_confirmation": true,
+      "response_issue_codes": [
+        "STREAM_DISCONNECTED"
+      ],
+      "response_action_count": 1,
+      "error_code": null
+    },
+    {
+      "case_id": "unsupported_valid_route",
+      "status": "failed",
+      "request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "project": "radishflow",
+      "task": "explain_diagnostics",
+      "route": "radishflow/explain_diagnostics",
+      "request_validated": true,
+      "response_validated": true,
+      "advisory_only": true,
+      "provider": {
+        "name": "mock",
+        "profile": "",
+        "model": "",
+        "request_timeout_seconds": 120.0
+      },
+      "response_present": true,
+      "response_status": "failed",
+      "response_requires_confirmation": false,
+      "response_issue_codes": [
+        "UNSUPPORTED_TASK"
+      ],
+      "response_action_count": 0,
+      "error_code": "UNSUPPORTED_TASK"
+    },
+    {
+      "case_id": "schema_invalid_request",
+      "status": "failed",
+      "request_id": "",
+      "project": "",
+      "task": "",
+      "route": "",
+      "request_validated": false,
+      "response_validated": false,
+      "advisory_only": true,
+      "provider": {
+        "name": "mock",
+        "profile": "",
+        "model": "",
+        "request_timeout_seconds": 120.0
+      },
+      "response_present": false,
+      "response_status": null,
+      "response_requires_confirmation": null,
+      "response_issue_codes": [],
+      "response_action_count": 0,
+      "error_code": "REQUEST_SCHEMA_INVALID"
+    }
+  ]
+}

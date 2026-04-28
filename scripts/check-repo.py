@@ -955,7 +955,13 @@ def main() -> int:
     run_python_script("run-eval-regression.py", ["radishflow-diagnostics", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-ghost-completion", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-suggest-edits", "--fail-on-violation"])
-    run_python_script("check-gateway-service-smoke.py", [])
+    run_python_script(
+        "check-gateway-service-smoke.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/gateway-service-smoke-summary.json",
+        ],
+    )
     run_python_script(
         "run-radishflow-gateway-demo.py",
         [

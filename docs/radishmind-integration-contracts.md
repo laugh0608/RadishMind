@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约草案
 
-更新时间：2026-04-27
+更新时间：2026-04-28
 
 ## 文档目的
 
@@ -39,6 +39,19 @@
 
 当前 gateway 层返回值统一采用 `CopilotGatewayEnvelope`，schema 真相源为 `contracts/copilot-gateway-envelope.schema.json`。
 
+首个对外调用形态当前固定为**进程内 Python API**：
+
+```python
+from services.gateway import GatewayOptions, handle_copilot_request
+
+envelope = handle_copilot_request(
+    copilot_request,
+    options=GatewayOptions(provider="mock"),
+)
+```
+
+HTTP JSON 暂时只保留为后续包装形态；在长驻服务、鉴权、端口和部署生命周期尚未进入当前切片前，不把 HTTP server 作为 `M3` 的默认推进项。未来若添加 HTTP 包装，也必须复用同一个 `CopilotGatewayEnvelope` 语义，而不是引入第二套响应协议。
+
 调用侧口径建议固定为：
 
 - 上层提交 schema-valid `CopilotRequest`，不直接调用任务 runtime 或 provider
@@ -51,7 +64,12 @@
 - `metadata.request_validated` 与 `metadata.response_validated` 用于确认 gateway 是否完成请求和响应 schema 校验；生产前调用侧应把任一 `false` 视为异常观测信号
 - 对 `RadishFlow suggest_flowsheet_edits`，即使 gateway 返回 `partial`，只要 `response.requires_confirmation=true`，上层也只能呈现候选建议，不能写回 `FlowsheetDocument`
 
-当前仓库用 `scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check` 固定这条调用口径的最小可复跑门禁。该 summary 只锁定上层依赖的 envelope 行为字段，不锁死完整自然语言响应。
+当前仓库用两层 smoke 固定这条调用口径：
+
+- `scripts/check-gateway-service-smoke.py --check-summary scripts/checks/fixtures/gateway-service-smoke-summary.json`：固定进程内 Python API 的成功调用、schema-valid 但 unsupported route、schema-invalid request 三类 envelope 行为
+- `scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check`：固定 `RadishFlow export -> adapter/request -> gateway envelope` 的服务/API 集成 smoke
+
+这些 summary 只锁定上层依赖的 envelope 行为字段，不锁死完整自然语言响应。
 
 ## 统一输入抽象
 
