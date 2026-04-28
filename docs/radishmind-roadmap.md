@@ -128,7 +128,7 @@
 - 对 `suggest_flowsheet_edits` 这类结构化建议任务，能够明确看见“是否答对”和“是否保持稳定排序”两个维度，而不把顺序漂移混进主观体验
 - 对真实 batch 的失败样本，能够看清“哪些已沉淀为 replay、哪些已扩成 repeated real-derived pattern、哪些仍缺治理闭环”
 - 三条已接线任务的 `artifact summary / replay / recommended replay / real-derived` 治理状态能由同一只读报告稳定盘点，且报告的 `next_mainline_focus` 不再把已跑通入口误导成必须继续复跑
-- 至少一条 `RadishFlow` 场景能把 `adapter -> runtime -> response builder -> audit fixture` 串成服务/API 级最小切片，并复用现有 eval 样本作为验收门禁；当前这条门槛已由 `suggest_flowsheet_edits` 的 gateway demo manifest、summary fixture、UI consumption summary 与 candidate edit handoff summary 初步满足，后续重点转为补真实上层调用位置和命令层确认流对齐，而不是继续证明单脚本可跑
+- 至少一条 `RadishFlow` 场景能把 `adapter -> runtime -> response builder -> audit fixture` 串成服务/API 级最小切片，并复用现有 eval 样本作为验收门禁；当前这条门槛已由 `suggest_flowsheet_edits` 的 gateway demo manifest、summary fixture、UI consumption summary 与 candidate edit handoff summary 初步满足。在 `RadishFlow` / `Radish` 尚未准备真实模型 / Agent 接入前，这些 smoke 先冻结为未来验收门禁，后续重点转向 `M4` 的 Core 基座评估、训练样本格式和 Image Adapter schema，而不是继续证明单脚本可跑
 - 继续扩样必须先写清楚新 drift 假设、覆盖缺口和退出条件；没有新假设时，不再把跑真实 provider batch 当作默认推进方式
 
 ## M4：`RadishMind-Core` student/base 主线推进
@@ -152,6 +152,22 @@
 - 引入 `SmolVLM` 作为轻量对照组，验证低资源场景下的回归下限
 - 定义 `RadishMind-Image Adapter` 的第一版结构化输出：图片生成意图、prompt、尺寸、风格、seed、负面词、编辑约束、风险确认和 artifact 元数据
 - 对生图 backend 先采用现成小参数开源模型或其推理服务，不从零训练；首轮参考 `SD1.5` / `PixArt-δ 0.6B`，中期再评估 `Segmind-Vega` 或 `SD3.5 Medium 2.5B`
+
+### 首版基座评估表
+
+当前 `RadishFlow` 与 `Radish` 都尚未进入真实模型 / Agent 接入阶段，因此 `M4` 不应等待上层接线，也不应继续扩展本仓库内的模拟 UI / 命令层 summary。当前更合理的推进方式是先把 `RadishMind-Core` 的基座评估、领域数据格式和图片生成 adapter schema 做实，等上层项目具备接入条件后再使用既有 gateway smoke 作为验收门禁。
+
+| 对象 | 当前定位 | 进入首轮工作的条件 | 暂不做的事 |
+| --- | --- | --- | --- |
+| `minimind-v` | 默认 `student/base` 主线候选 | 能承接 `CopilotRequest -> CopilotResponse` 结构化输出、中文任务说明、风险标记和 citation 对齐 | 不把它直接承诺为最终生产模型；先用离线评测决定是否保留 |
+| `3B` `RadishMind-Core` | 首选本地友好档 | 在 32GB 级开发 / 部署机上能稳定跑通核心文本任务和结构化协议遵循 | 不强行承担复杂图片理解和图片像素生成 |
+| `4B` `RadishMind-Core` | 首版增强候选 | 当 `3B` 在协议遵循、长上下文或多步骤推理上明显不足时进入对照 | 不在没有评测差距前默认扩大规模 |
+| `7B` `RadishMind-Core` | 长期本地部署上限 | 只有当 `3B/4B` 无法满足关键任务，且部署机预算、量化策略和延迟目标可接受时进入 | 不作为首轮训练和默认部署基线 |
+| `Qwen2.5-VL` | teacher / 强基线 | 用于复杂图文任务、标注参考、蒸馏数据和质量上界评估 | 不作为 RadishMind-Core 的本地部署目标 |
+| `SmolVLM` | 轻量对照组 | 用于低资源回归、图片输入下限和部署成本对照 | 不替代主线 student/base |
+| 生图 backend | 独立图片像素生成能力 | 先通过 `RadishMind-Image Adapter` 接收结构化意图并产出 artifact metadata | 不并入主模型训练目标，不从零训练 |
+
+首轮建议先完成三件事：固定 `3B/4B` 的离线评测矩阵、生成最小 `CopilotRequest/CopilotResponse` 训练样本格式、为 `RadishMind-Image Adapter` 建立一组可回归的图片生成意图样本。只有这些基础资产可复跑后，才进入微调、蒸馏或量化实验。
 
 ### 退出标准
 
@@ -282,13 +298,14 @@
 
 ### 接下来两周主线
 
-接下来两周建议把仓库主线从“继续跑样本”切到“`M3` 退出收口 + 服务/API 最小实现切片”，并按以下顺序推进：
+接下来两周建议把仓库主线从“继续跑样本”切到“`M3` 退出收口 + `M4` 前置准备”。由于 `RadishFlow` 与 `Radish` 暂时都还没有进入真实模型 / Agent 接入阶段，当前不应继续把“真实上层调用位置”作为阻塞项，也不应继续扩展本仓库内的模拟 UI / 命令层 summary。
 
 1. 继续保持 `M3` 的退出门槛：三条真实治理链保持可机读、可复跑、无基础资产缺口；新 batch 只在有明确非重复 drift 假设时触发
 2. 把已落地的 gateway demo manifest / summary fixture 作为 `RadishFlow suggest_flowsheet_edits` 服务/API 改动的默认门禁，后续任何 gateway metadata、错误 envelope 或确认语义改动都必须同步更新该 summary 或解释兼容性
-3. 继续补清上层调用形态：当前进程内调用、UI consumption summary 与 candidate edit handoff summary 已站住，下一步应选择真实上层调用位置或 HTTP 包装边界，并继续保持 `proposed_actions` 只作为 advisory proposal
-4. 在 handoff 口径站住后，再选择真实上层接线或 HTTP JSON 包装场景做集成演示口径：候选 patch 必须保持 advisory、`requires_confirmation=true`，不直接写入 `RadishFlow` 真相源
-5. 只有当服务/API 或集成演示暴露现有评测无法覆盖的新失败面时，才回到真实 capture 扩样；扩样完成后必须同步更新治理报表和周志
+3. 冻结当前进程内 gateway、UI consumption summary 与 candidate edit handoff summary，把它们视为未来上层接入验收门禁；在上层项目未准备好前，不继续新增同类模拟 summary
+4. 转入 `M4` 前置准备：补 `RadishMind-Core` 首版基座选择评估、训练样本格式、teacher / student / lightweight baseline 的对照矩阵
+5. 补 `RadishMind-Image Adapter` 第一版 schema 草案和最小图片生成意图样本，使图片生成能力先以 adapter / backend 形式站住，而不是并入主模型参数目标
+6. 只有当服务/API、模型评测或后续真实接入暴露现有样本无法覆盖的新失败面时，才回到真实 capture 扩样；扩样完成后必须同步更新治理报表和周志
 
 ### 大节点切换条件
 
@@ -307,16 +324,16 @@
 3. 继续以 `RadishFlow suggest_flowsheet_edits` 做服务/API 最小切片，因为它已有最完整的结构化建议、风险确认、citation、replay、real-derived 基线和 gateway demo summary 门禁
 4. 把现有 `scripts/run-copilot-inference.py`、`scripts/check-gateway-service-smoke.py`、`scripts/run-radishflow-gateway-demo.py`、`scripts/check-radishflow-gateway-ui-consumption.py` 与 `scripts/check-radishflow-candidate-edit-handoff.py` 能验证的路径收束成服务级 smoke 矩阵：同一类请求应能走 CLI、gateway 函数入口、UI consumption summary、candidate handoff summary 与未来 API 入口，并落到兼容的 `CopilotResponse` / `CopilotGatewayEnvelope`
 5. 明确服务层不负责直接写回业务真相源；`candidate_edit` 只能作为 UI 可审查提案，所有实际修改仍交由上层项目命令层和人工确认；当前 `CopilotGatewayEnvelope` 调用口径已在集成契约中补齐，应继续作为后续 HTTP/API 包装的语义真相源
-6. 继续维护 `Radish docs QA` 与 `suggest_ghost_completion` 的治理链，但不主动扩样；只有服务/API 集成或新产品场景暴露评测缺口时再补真实 capture
-7. 在服务/API 最小切片通过仓库级回归后，再评估是否进入 `M4 RadishMind-Core / minimind-v` 的模型对照与训练路线验证
+6. 在 `RadishFlow` / `Radish` 未准备接入模型或 Agent 前，停止继续深挖真实上层调用位置；保留现有 smoke 作为未来验收门禁即可
+7. 继续维护 `Radish docs QA` 与 `suggest_ghost_completion` 的治理链，但不主动扩样；只有服务/API 集成、模型评测或新产品场景暴露评测缺口时再补真实 capture
+8. 从当前点开始并行进入 `M4 RadishMind-Core / minimind-v` 的模型对照与训练路线验证，先做基座评估、样本格式和 image adapter schema，不直接启动重训练
 
 ## 当前仍缺的关键决策
 
-- `Copilot Gateway` 的首个对外调用形态优先采用进程内 Python API、HTTP JSON 服务，还是两者并行维护一段时间
 - `Qwen2.5-VL` 的首选尺寸与推理预算
 - `SmolVLM` 的回归任务边界与保留条件
 - `RadishMind-Core` 首版到底先锁定 `3B` 还是 `4B`，以及 `7B` 档位的进入阈值
-- `RadishMind-Image Adapter` 的第一版 schema、backend 抽象和最小评测样本
+- `RadishMind-Image Adapter` 的第一版 schema、backend 抽象和最小评测样本如何落到仓库级门禁
 - `RadishFlow` 截图路线的进入时点
 - 评测样本的标注和维护流程
 - `M7` 到来时，agent runtime 与 model / training / inference service 是继续同仓库分包，还是拆成独立仓库与独立发布单元

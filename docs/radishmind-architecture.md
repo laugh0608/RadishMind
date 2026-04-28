@@ -175,6 +175,7 @@ artifact 引用 / 生成结果 metadata
 
 - `RadishFlow` 第一阶段不应把全部任务都压成截图推理；结构化状态和诊断解释优先
 - `Radish` 第一阶段以文档、内容和 Console 知识问答为主，VLM 只在附件或截图理解场景补充
+- `RadishFlow` 与 `Radish` 暂时都还没有进入真实模型 / Agent 接入阶段时，`RadishMind` 不应继续扩展本仓库内的模拟上层接线；现有 gateway smoke、UI consumption summary 与 candidate handoff summary 应冻结为未来验收门禁
 - `minimind-v` 当前作为默认 `student/base` 主线，承接领域适配、训练实验与后续部署路线
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 多模态强基线，优先承担复杂图文任务 PoC、标注参考与蒸馏输入
 - `SmolVLM` 当前作为轻量本地对照组，优先承担低资源回归与部署下限比较
