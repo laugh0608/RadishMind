@@ -299,6 +299,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/copilot-gateway-envelope.schema.json",
         REPO_ROOT / "contracts/copilot-training-sample.schema.json",
         REPO_ROOT / "contracts/image-generation-intent.schema.json",
+        REPO_ROOT / "contracts/radishmind-core-offline-eval-run.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
@@ -990,6 +991,7 @@ def main() -> int:
     )
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
+    run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
 

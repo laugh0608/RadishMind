@@ -90,11 +90,27 @@
 
 图片像素生成仍不进入 `RadishMind-Core` 指标；模型只负责结构化图片生成意图、约束和审查信息。
 
+## 离线评测样本选择与结果记录
+
+离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
+
+该契约当前只记录评测计划与结果格式，不下载模型、不启动训练、不访问外部 provider。`scripts/check-radishmind-core-offline-eval-run-contract.py` 会校验：
+
+- 样本选择必须覆盖 `radishflow/suggest_flowsheet_edits`、`radishflow/suggest_ghost_completion`、`radish/answer_docs_question`
+- 每个任务至少选择 3 条既有 committed eval 样本，且 `sample_id`、`project`、`task` 与文件内容一致
+- 候选模型必须保留 `minimind-v`、`radishmind-core-3b`、`radishmind-core-4b`、`radishmind-core-7b`、`Qwen2.5-VL` 与 `SmolVLM`
+- 阈值必须与 `scripts/checks/fixtures/radishmind-core-eval-thresholds.json` 保持一致
+- planned 结果不得伪造 observed metric；只有真实离线评测完成后，才允许填入 `observed_value`、`passed`、成本观测和证据路径
+- `7B` 仍保持延后评估，`14B/32B` 不得进入默认候选目标
+- 缺失真实观测值、削弱人工确认、宣称直接写回业务真相源或要求主模型生成图片像素时，不得晋级
+
 ## 仓库级门禁
 
 当前矩阵以 `scripts/checks/fixtures/radishmind-core-baseline-matrix.json` 作为机器可读真相源，并由 `scripts/check-radishmind-core-baseline-matrix.py` 接入 `check-repo`。
 
 当前阈值以 `scripts/checks/fixtures/radishmind-core-eval-thresholds.json` 作为机器可读真相源，并由 `scripts/check-radishmind-core-eval-thresholds.py` 接入 `check-repo`。
+
+当前离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为结构契约，并由 `scripts/check-radishmind-core-offline-eval-run-contract.py` 接入 `check-repo`。
 
 这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 
