@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/copilot-training-sample.schema.json",
+  "title": "CopilotTrainingSample",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "sample_id",
+    "training_mode",
+    "project",
+    "task",
+    "input_request",
+    "target_response",
+    "distillation",
+    "quality_gates",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "copilot_training_sample"
+    },
+    "sample_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "training_mode": {
+      "type": "string",
+      "enum": [
+        "supervised",
+        "distillation"
+      ]
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radishflow",
+        "radish"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_request": {
+      "type": "object"
+    },
+    "target_response": {
+      "type": "object"
+    },
+    "distillation": {
+      "$ref": "#/$defs/distillation"
+    },
+    "quality_gates": {
+      "$ref": "#/$defs/quality_gates"
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    }
+  },
+  "$defs": {
+    "distillation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "teacher",
+        "train_fields"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "golden_response",
+            "teacher_capture",
+            "human_reviewed"
+          ]
+        },
+        "teacher": {
+          "$ref": "#/$defs/teacher"
+        },
+        "train_fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "summary",
+              "answers",
+              "issues",
+              "proposed_actions",
+              "citations",
+              "confidence",
+              "risk_level",
+              "requires_confirmation"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "teacher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model",
+        "record_id"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "quality_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_validated",
+        "risk_reviewed",
+        "citation_checked",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_validated": {
+          "type": "boolean"
+        },
+        "risk_reviewed": {
+          "type": "boolean"
+        },
+        "citation_checked": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_eval_sample",
+        "created_for",
+        "notes"
+      ],
+      "properties": {
+        "source_eval_sample": {
+          "type": "string",
+          "minLength": 1
+        },
+        "created_for": {
+          "type": "string",
+          "enum": [
+            "radishmind-core",
+            "teacher-student-distillation",
+            "regression-baseline"
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

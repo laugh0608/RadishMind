@@ -297,6 +297,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/copilot-request.schema.json",
         REPO_ROOT / "contracts/copilot-response.schema.json",
         REPO_ROOT / "contracts/copilot-gateway-envelope.schema.json",
+        REPO_ROOT / "contracts/copilot-training-sample.schema.json",
         REPO_ROOT / "contracts/image-generation-intent.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
@@ -987,6 +988,7 @@ def main() -> int:
             "scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json",
         ],
     )
+    run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
 
     check_path_budget()

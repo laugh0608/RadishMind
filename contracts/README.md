@@ -15,10 +15,11 @@
 1. `copilot-request.schema.json`
 2. `copilot-response.schema.json`
 3. `copilot-gateway-envelope.schema.json`
-4. `image-generation-intent.schema.json`
-5. `radishflow-ghost-candidate-set.schema.json`
-6. `radishflow-adapter-snapshot.schema.json`
-7. `radishflow-export-snapshot.schema.json`
+4. `copilot-training-sample.schema.json`
+5. `image-generation-intent.schema.json`
+6. `radishflow-ghost-candidate-set.schema.json`
+7. `radishflow-adapter-snapshot.schema.json`
+8. `radishflow-export-snapshot.schema.json`
 
 使用原则：
 
@@ -26,6 +27,7 @@
 - `contracts/` 中的 schema 是程序化校验入口
 - 当前 schema 只冻结通用骨架与最小项目上下文字段，不把所有任务细节一次写死
 - 当前 `copilot-gateway-envelope.schema.json` 用于冻结服务/API 层 envelope，明确 `status / response / error / metadata` 的最小结构，并保持业务响应仍由 `copilot-response.schema.json` 校验
+- 当前 `copilot-training-sample.schema.json` 用于冻结 `RadishMind-Core` 训练 / 蒸馏样本 wrapper，明确一个样本如何承载 `input_request`、`target_response`、teacher/source、训练字段、质量门禁和来源 metadata；`scripts/check-copilot-training-sample-contract.py` 会用 `scripts/checks/fixtures/copilot-training-sample-basic.json` 同时校验 wrapper、`CopilotRequest` 与 `CopilotResponse`
 - 当前 `image-generation-intent.schema.json` 用于冻结 `RadishMind-Core -> RadishMind-Image Adapter` 的第一版结构化生图意图，明确 `prompt / output / style / constraints / backend / safety / artifact_metadata` 的最小字段；`scripts/check-image-generation-intent-contract.py` 会用 `scripts/checks/fixtures/image-generation-intent-basic.json` 固定最小回归样本，并额外校验需要人工确认的 intent 不可直接提交 backend
 - 当前 `scripts/run-radishflow-gateway-demo.py` 已把 `RadishFlow` export snapshot 通过 adapter/request assembly 接到 `handle_copilot_request`，并在同一 smoke 中校验 `copilot-request.schema.json`、`copilot-response.schema.json` 与 `copilot-gateway-envelope.schema.json`；`scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json` 固定了当前仓库级 demo 门禁使用的代表样本集合，`scripts/checks/fixtures/radishflow-gateway-demo-summary.json` 固定调用侧依赖的 envelope 行为字段
 - 任务级最小输入和风险规则以 [docs/task-cards/README.md](../docs/task-cards/README.md) 为准
