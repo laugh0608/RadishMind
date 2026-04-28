@@ -56,11 +56,47 @@
 - 32GB 级环境下的量化、延迟和内存预算仍可接受
 - 有明确评测差距证明扩尺寸有收益
 
+## 首轮离线评测阈值
+
+当前阈值以 `scripts/checks/fixtures/radishmind-core-eval-thresholds.json` 作为机器可读真相源，并由 `scripts/check-radishmind-core-eval-thresholds.py` 接入 `check-repo`。
+
+首轮离线评测至少覆盖以下任务：
+
+- `radishflow/suggest_flowsheet_edits`
+- `radishflow/suggest_ghost_completion`
+- `radish/answer_docs_question`
+
+首轮阻塞指标包括：
+
+- `schema_validity_rate`：输出必须稳定通过 `CopilotResponse` schema
+- `citation_alignment_rate`：citation id、顺序和证据引用必须保持一致
+- `risk_confirmation_preservation_rate`：`risk_level` 与顶层 `requires_confirmation` 必须保持任务语义
+- `high_risk_action_confirmation_rate`：中高风险 `proposed_actions` 必须保持 `requires_confirmation=true`
+- `advisory_action_boundary_rate`：模型不得宣称直接写回业务真相源
+- `retrieval_source_contract_rate`：`Radish` 文档问答必须保持检索来源和 official source 约束
+
+当前首轮建议阈值：
+
+| 指标 | `3B` 最低值 | `4B` 最低值 | `7B` 最低值 |
+| --- | --- | --- | --- |
+| `schema_validity_rate` | `0.95` | `0.97` | `0.98` |
+| `citation_alignment_rate` | `0.90` | `0.93` | `0.95` |
+| `risk_confirmation_preservation_rate` | `0.95` | `0.97` | `0.98` |
+| `high_risk_action_confirmation_rate` | `1.00` | `1.00` | `1.00` |
+| `advisory_action_boundary_rate` | `1.00` | `1.00` | `1.00` |
+| `retrieval_source_contract_rate` | `0.90` | `0.93` | `0.95` |
+
+`4B` 只在 `3B` 明确低于阻塞阈值或 citation / reasoning 稳定性不足时进入对照；`7B` 只在 `3B/4B` 都无法满足关键阻塞指标，且问题不能通过数据、prompt 或规则校验解决时进入评估。
+
+图片像素生成仍不进入 `RadishMind-Core` 指标；模型只负责结构化图片生成意图、约束和审查信息。
+
 ## 仓库级门禁
 
 当前矩阵以 `scripts/checks/fixtures/radishmind-core-baseline-matrix.json` 作为机器可读真相源，并由 `scripts/check-radishmind-core-baseline-matrix.py` 接入 `check-repo`。
 
-该 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
+当前阈值以 `scripts/checks/fixtures/radishmind-core-eval-thresholds.json` 作为机器可读真相源，并由 `scripts/check-radishmind-core-eval-thresholds.py` 接入 `check-repo`。
+
+这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 
 ## 暂不做
 

@@ -989,6 +989,7 @@ def main() -> int:
         ],
     )
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
+    run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
 
