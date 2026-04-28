@@ -972,6 +972,13 @@ def main() -> int:
             "--check",
         ],
     )
+    run_python_script(
+        "check-radishflow-gateway-ui-consumption.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json",
+        ],
+    )
 
     check_path_budget()
     check_required_files()

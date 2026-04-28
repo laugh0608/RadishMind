@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "ui_surface": "radishflow_suggest_flowsheet_edits_panel",
+  "source": "copilot_gateway_envelope",
+  "case_count": 3,
+  "cases": [
+    {
+      "case_id": "proposal_ready",
+      "display_state": "proposal_ready",
+      "request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "status": "partial",
+      "response_status": "partial",
+      "error_banner": null,
+      "audit_metadata": {
+        "provider": "mock",
+        "request_validated": true,
+        "response_validated": true,
+        "advisory_only": true
+      },
+      "summary_present": true,
+      "issue_chips": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "severity": "error"
+        }
+      ],
+      "candidate_cards": [
+        {
+          "kind": "candidate_edit",
+          "title": "为 stream-out-1 预留下游重连占位",
+          "target": {
+            "type": "stream",
+            "id": "stream-out-1"
+          },
+          "risk_level": "high",
+          "requires_confirmation": true,
+          "patch_keys": [
+            "connection_placeholder"
+          ],
+          "citation_count": 3
+        }
+      ],
+      "citation_count": 3,
+      "confirmation_required": true,
+      "can_write_flowsheet_document": false
+    },
+    {
+      "case_id": "unsupported_route",
+      "display_state": "gateway_failed",
+      "request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "route": "radishflow/explain_diagnostics",
+      "status": "failed",
+      "response_status": "failed",
+      "error_banner": {
+        "code": "UNSUPPORTED_TASK",
+        "message_present": true
+      },
+      "audit_metadata": {
+        "provider": "mock",
+        "request_validated": true,
+        "response_validated": true,
+        "advisory_only": true
+      },
+      "summary_present": true,
+      "issue_chips": [
+        {
+          "code": "UNSUPPORTED_TASK",
+          "severity": "warning"
+        }
+      ],
+      "candidate_cards": [],
+      "citation_count": 0,
+      "confirmation_required": false,
+      "can_write_flowsheet_document": false
+    },
+    {
+      "case_id": "schema_invalid",
+      "display_state": "gateway_failed",
+      "request_id": "",
+      "route": "",
+      "status": "failed",
+      "response_status": null,
+      "error_banner": {
+        "code": "REQUEST_SCHEMA_INVALID",
+        "message_present": true
+      },
+      "audit_metadata": {
+        "provider": "mock",
+        "request_validated": false,
+        "response_validated": false,
+        "advisory_only": true
+      },
+      "summary_present": false,
+      "issue_chips": [],
+      "candidate_cards": [],
+      "citation_count": 0,
+      "confirmation_required": false,
+      "can_write_flowsheet_document": false
+    }
+  ]
+}
