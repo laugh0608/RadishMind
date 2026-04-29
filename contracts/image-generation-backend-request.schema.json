@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/image-generation-backend-request.schema.json",
+  "title": "ImageGenerationBackendRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "request_id",
+    "intent_id",
+    "backend",
+    "prompt",
+    "output",
+    "parameters",
+    "inputs",
+    "constraints",
+    "safety",
+    "trace"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "image_generation_backend_request"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "backend": {
+      "$ref": "#/$defs/backend"
+    },
+    "prompt": {
+      "$ref": "#/$defs/prompt"
+    },
+    "output": {
+      "$ref": "#/$defs/output"
+    },
+    "parameters": {
+      "$ref": "#/$defs/parameters"
+    },
+    "inputs": {
+      "$ref": "#/$defs/inputs"
+    },
+    "constraints": {
+      "$ref": "#/$defs/constraints"
+    },
+    "safety": {
+      "$ref": "#/$defs/safety"
+    },
+    "trace": {
+      "$ref": "#/$defs/trace"
+    }
+  },
+  "$defs": {
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "model",
+        "adapter_profile"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adapter_profile": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "prompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "positive",
+        "negative",
+        "locale",
+        "transformed_from_intent"
+      ],
+      "properties": {
+        "positive": {
+          "type": "string",
+          "minLength": 1
+        },
+        "negative": {
+          "type": "string"
+        },
+        "locale": {
+          "type": "string",
+          "minLength": 2
+        },
+        "transformed_from_intent": {
+          "type": "boolean"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "count",
+        "format"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "png",
+            "jpg",
+            "webp"
+          ]
+        }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed",
+        "steps",
+        "guidance_scale"
+      ],
+      "properties": {
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "guidance_scale": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_artifact_ids",
+        "edit_artifact_id",
+        "mask_artifact_id"
+      ],
+      "properties": {
+        "reference_artifact_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "edit_artifact_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mask_artifact_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "must_include",
+        "must_avoid",
+        "style_preset"
+      ],
+      "properties": {
+        "must_include": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "must_avoid": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "style_preset": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate",
+        "requires_confirmation",
+        "risk_level",
+        "review_notes"
+      ],
+      "properties": {
+        "gate": {
+          "type": "string",
+          "enum": [
+            "approved_for_backend",
+            "blocked_requires_confirmation"
+          ]
+        },
+        "requires_confirmation": {
+          "type": "boolean"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "review_notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_request_id",
+        "trace_ids"
+      ],
+      "properties": {
+        "source_request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trace_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

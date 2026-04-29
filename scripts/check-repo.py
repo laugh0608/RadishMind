@@ -299,6 +299,8 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/copilot-gateway-envelope.schema.json",
         REPO_ROOT / "contracts/copilot-training-sample.schema.json",
         REPO_ROOT / "contracts/image-generation-intent.schema.json",
+        REPO_ROOT / "contracts/image-generation-backend-request.schema.json",
+        REPO_ROOT / "contracts/image-generation-artifact.schema.json",
         REPO_ROOT / "contracts/radishmind-core-offline-eval-run.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
