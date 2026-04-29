@@ -16,14 +16,25 @@ if str(REPO_ROOT) not in sys.path:
 
 from scripts.checks.copilot_training_sample import (  # noqa: E402
     TRAIN_FIELDS,
+    build_training_sample_from_candidate_record,
     build_training_sample_from_eval,
     check_training_sample,
     iter_proposed_actions,
+)
+from services.runtime.candidate_records import (  # noqa: E402
+    RECORD_BATCH_SCHEMA_PATH,
+    RECORD_SCHEMA_PATH,
+    make_repo_relative,
+    resolve_manifest_record_path,
 )
 
 TRAINING_SAMPLE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-training-sample.schema.json"
 COPILOT_REQUEST_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-request.schema.json"
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
+SUPPORTED_MANIFEST_KINDS = {
+    "copilot_training_sample_conversion_manifest",
+    "copilot_training_sample_candidate_record_conversion_manifest",
+}
 
 
 def load_json_document(path: Path) -> Any:
@@ -58,7 +69,7 @@ def resolve_output_path(path_value: str) -> Path:
 def iter_manifest_sample_entries(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     if manifest.get("schema_version") != 1:
         raise SystemExit("training sample conversion manifest schema_version must be 1")
-    if manifest.get("kind") != "copilot_training_sample_conversion_manifest":
+    if manifest.get("kind") not in SUPPORTED_MANIFEST_KINDS:
         raise SystemExit("training sample conversion manifest kind mismatch")
     selection = manifest.get("selection")
     if not isinstance(selection, list) or not selection:
@@ -89,6 +100,82 @@ def iter_manifest_sample_entries(manifest: dict[str, Any]) -> list[dict[str, Any
                 }
             )
     return entries
+
+
+def iter_candidate_record_selection_entries(manifest: dict[str, Any]) -> list[dict[str, Any]]:
+    if manifest.get("schema_version") != 1:
+        raise SystemExit("candidate record conversion manifest schema_version must be 1")
+    if manifest.get("kind") != "copilot_training_sample_candidate_record_conversion_manifest":
+        raise SystemExit("candidate record conversion manifest kind mismatch")
+    selection = manifest.get("record_selection")
+    if not isinstance(selection, list) or not selection:
+        raise SystemExit("candidate record conversion manifest must include non-empty record_selection")
+
+    entries: list[dict[str, Any]] = []
+    for group in selection:
+        if not isinstance(group, dict):
+            raise SystemExit("candidate record conversion selection group must be an object")
+        project = str(group.get("project") or "").strip()
+        task = str(group.get("task") or "").strip()
+        manifest_path = str(group.get("manifest") or "").strip()
+        audit_report_path = str(group.get("audit_report") or "").strip()
+        samples = group.get("samples")
+        if not project or not task:
+            raise SystemExit("candidate record conversion selection group is missing project/task")
+        if not manifest_path or not audit_report_path:
+            raise SystemExit(f"{project}/{task} candidate record selection group is missing manifest/audit_report")
+        if not isinstance(samples, list) or not samples:
+            raise SystemExit(f"{project}/{task} candidate record selection group must include samples")
+        for sample in samples:
+            if not isinstance(sample, dict):
+                raise SystemExit(f"{project}/{task} candidate record sample entry must be an object")
+            sample_path = str(sample.get("path") or "").strip()
+            record_id = str(sample.get("record_id") or "").strip()
+            if not sample_path or not record_id:
+                raise SystemExit(f"{project}/{task} candidate record sample entry is missing path/record_id")
+            entries.append(
+                {
+                    "project": project,
+                    "task": task,
+                    "manifest": normalize_repo_relative_path(manifest_path),
+                    "audit_report": normalize_repo_relative_path(audit_report_path),
+                    "path": normalize_repo_relative_path(sample_path),
+                    "record_id": record_id,
+                }
+            )
+    return entries
+
+
+def collect_audit_passed_sample_files(audit_report: dict[str, Any], audit_label: str) -> set[str]:
+    if audit_report.get("schema_version") != 1:
+        raise SystemExit(f"{audit_label} schema_version must be 1")
+    passed: set[str] = set()
+    samples = audit_report.get("samples")
+    if not isinstance(samples, list):
+        raise SystemExit(f"{audit_label} is missing samples")
+    for sample in samples:
+        if not isinstance(sample, dict):
+            continue
+        if sample.get("status") == "pass":
+            sample_file = str(sample.get("sample_file") or "").strip()
+            if sample_file:
+                passed.add(sample_file)
+    return passed
+
+
+def load_batch_manifest_record_map(batch_manifest_path: Path) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    batch_manifest = load_json_document(batch_manifest_path)
+    if not isinstance(batch_manifest, dict):
+        raise SystemExit(f"{batch_manifest_path.relative_to(REPO_ROOT)} must be a JSON object")
+    jsonschema.validate(batch_manifest, load_json_document(RECORD_BATCH_SCHEMA_PATH))
+    records: dict[str, dict[str, Any]] = {}
+    for entry in batch_manifest.get("records") or []:
+        if not isinstance(entry, dict):
+            continue
+        record_id = str(entry.get("record_id") or "").strip()
+        if record_id:
+            records[record_id] = entry
+    return batch_manifest, records
 
 
 def validate_and_build_samples(
@@ -136,6 +223,90 @@ def validate_and_build_samples(
     return samples, source_paths
 
 
+def validate_and_build_candidate_record_samples(
+    manifest: dict[str, Any],
+    *,
+    training_sample_schema: dict[str, Any],
+    copilot_request_schema: dict[str, Any],
+    copilot_response_schema: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[Path]]:
+    created_for = str(manifest.get("created_for") or "teacher-student-distillation").strip()
+    samples: list[dict[str, Any]] = []
+    source_paths: list[Path] = []
+    seen_generated_ids: set[str] = set()
+    batch_manifest_cache: dict[Path, tuple[dict[str, Any], dict[str, dict[str, Any]]]] = {}
+    audit_cache: dict[Path, tuple[dict[str, Any], set[str]]] = {}
+    record_schema = load_json_document(RECORD_SCHEMA_PATH)
+
+    for entry in iter_candidate_record_selection_entries(manifest):
+        relative_path = entry["path"]
+        eval_sample_path = REPO_ROOT / relative_path
+        eval_sample = load_json_document(eval_sample_path)
+        if not isinstance(eval_sample, dict):
+            raise SystemExit(f"{relative_path.as_posix()} must be a JSON object")
+        if eval_sample.get("project") != entry["project"] or eval_sample.get("task") != entry["task"]:
+            raise SystemExit(f"{relative_path.as_posix()} project/task does not match manifest")
+
+        batch_manifest_path = REPO_ROOT / entry["manifest"]
+        if batch_manifest_path not in batch_manifest_cache:
+            batch_manifest_cache[batch_manifest_path] = load_batch_manifest_record_map(batch_manifest_path)
+        batch_manifest, batch_records = batch_manifest_cache[batch_manifest_path]
+        if batch_manifest.get("project") != entry["project"] or batch_manifest.get("task") != entry["task"]:
+            raise SystemExit(f"{entry['manifest'].as_posix()} project/task does not match conversion manifest")
+
+        record_entry = batch_records.get(entry["record_id"])
+        if record_entry is None:
+            raise SystemExit(f"{entry['manifest'].as_posix()} is missing record_id {entry['record_id']}")
+        if record_entry.get("sample_id") != eval_sample.get("sample_id"):
+            raise SystemExit(f"{entry['manifest'].as_posix()} record sample_id does not match {relative_path.as_posix()}")
+
+        audit_report_path = REPO_ROOT / entry["audit_report"]
+        if audit_report_path not in audit_cache:
+            audit_report = load_json_document(audit_report_path)
+            if not isinstance(audit_report, dict):
+                raise SystemExit(f"{entry['audit_report'].as_posix()} must be a JSON object")
+            audit_manifest_path = str(audit_report.get("manifest_path") or "").strip()
+            if audit_manifest_path != entry["manifest"].as_posix():
+                raise SystemExit(f"{entry['audit_report'].as_posix()} does not point at {entry['manifest'].as_posix()}")
+            audit_cache[audit_report_path] = (
+                audit_report,
+                collect_audit_passed_sample_files(audit_report, entry["audit_report"].as_posix()),
+            )
+        _audit_report, passed_sample_files = audit_cache[audit_report_path]
+        if eval_sample_path.name not in passed_sample_files:
+            raise SystemExit(f"{relative_path.as_posix()} is not marked pass in {entry['audit_report'].as_posix()}")
+
+        record_path = resolve_manifest_record_path(batch_manifest_path, batch_manifest, record_entry)
+        candidate_record = load_json_document(record_path)
+        if not isinstance(candidate_record, dict):
+            raise SystemExit(f"{make_repo_relative(record_path)} must be a JSON object")
+        jsonschema.validate(candidate_record, record_schema)
+        sample = build_training_sample_from_candidate_record(
+            eval_sample,
+            candidate_record,
+            source_eval_sample=relative_path,
+            source_eval_sample_label=relative_path.as_posix(),
+            candidate_record_label=make_repo_relative(record_path),
+            created_for=created_for,
+        )
+        sample_id = str(sample.get("sample_id") or "").strip()
+        if sample_id in seen_generated_ids:
+            raise SystemExit(f"duplicate generated training sample id: {sample_id}")
+        seen_generated_ids.add(sample_id)
+
+        jsonschema.validate(sample, training_sample_schema)
+        jsonschema.validate(sample["input_request"], copilot_request_schema)
+        jsonschema.validate(sample["target_response"], copilot_response_schema)
+        try:
+            check_training_sample(sample)
+        except ValueError as exc:
+            raise SystemExit(f"{relative_path.as_posix()}: {exc}") from exc
+        samples.append(sample)
+        source_paths.append(relative_path)
+
+    return samples, source_paths
+
+
 def build_summary(
     samples: list[dict[str, Any]],
     source_paths: list[Path],
@@ -158,7 +329,9 @@ def build_summary(
     return {
         "schema_version": 1,
         "kind": "copilot_training_sample_conversion_summary",
-        "source": "golden_response",
+        "source": "teacher_capture"
+        if manifest.get("kind") == "copilot_training_sample_candidate_record_conversion_manifest"
+        else "golden_response",
         "created_for": str(manifest.get("created_for") or "teacher-student-distillation").strip(),
         "does_not_run_models": True,
         "sample_count": len(samples),
@@ -205,12 +378,20 @@ def main() -> int:
     copilot_request_schema = load_json_document(COPILOT_REQUEST_SCHEMA_PATH)
     copilot_response_schema = load_json_document(COPILOT_RESPONSE_SCHEMA_PATH)
     jsonschema.Draft202012Validator.check_schema(training_sample_schema)
-    samples, source_paths = validate_and_build_samples(
-        manifest,
-        training_sample_schema=training_sample_schema,
-        copilot_request_schema=copilot_request_schema,
-        copilot_response_schema=copilot_response_schema,
-    )
+    if manifest.get("kind") == "copilot_training_sample_candidate_record_conversion_manifest":
+        samples, source_paths = validate_and_build_candidate_record_samples(
+            manifest,
+            training_sample_schema=training_sample_schema,
+            copilot_request_schema=copilot_request_schema,
+            copilot_response_schema=copilot_response_schema,
+        )
+    else:
+        samples, source_paths = validate_and_build_samples(
+            manifest,
+            training_sample_schema=training_sample_schema,
+            copilot_request_schema=copilot_request_schema,
+            copilot_response_schema=copilot_response_schema,
+        )
     summary = build_summary(samples, source_paths, manifest=manifest)
 
     if args.output_jsonl:

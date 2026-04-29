@@ -175,3 +175,70 @@ def build_training_sample_from_eval(
             ],
         },
     }
+
+
+def build_training_sample_from_candidate_record(
+    eval_sample: dict[str, Any],
+    candidate_record: dict[str, Any],
+    *,
+    source_eval_sample: Path,
+    source_eval_sample_label: str,
+    candidate_record_label: str,
+    created_for: str = "teacher-student-distillation",
+) -> dict[str, Any]:
+    sample_id = str(eval_sample.get("sample_id") or "").strip()
+    project = str(eval_sample.get("project") or "").strip()
+    task = str(eval_sample.get("task") or "").strip()
+    input_request = eval_sample.get("input_request")
+    target_response = candidate_record.get("response")
+    record_id = str(candidate_record.get("record_id") or "").strip()
+    model = str(candidate_record.get("model") or "").strip()
+    source = str(candidate_record.get("source") or "").strip()
+    if not sample_id:
+        raise ValueError(f"{source_eval_sample_label} is missing sample_id")
+    if not project or not task:
+        raise ValueError(f"{source_eval_sample_label} is missing project/task")
+    if not isinstance(input_request, dict):
+        raise ValueError(f"{source_eval_sample_label} is missing input_request")
+    if not isinstance(target_response, dict):
+        raise ValueError(f"{candidate_record_label} is missing response")
+    if candidate_record.get("sample_id") != sample_id:
+        raise ValueError(f"{candidate_record_label} sample_id does not match {source_eval_sample_label}")
+    if candidate_record.get("project") != project or candidate_record.get("task") != task:
+        raise ValueError(f"{candidate_record_label} project/task does not match {source_eval_sample_label}")
+    if not record_id or not model or not source:
+        raise ValueError(f"{candidate_record_label} is missing record_id/model/source")
+
+    return {
+        "schema_version": 1,
+        "kind": "copilot_training_sample",
+        "sample_id": f"{sample_id}-training-capture-001",
+        "training_mode": "distillation",
+        "project": project,
+        "task": task,
+        "input_request": input_request,
+        "target_response": target_response,
+        "distillation": {
+            "source": "teacher_capture",
+            "teacher": {
+                "provider": source,
+                "model": model,
+                "record_id": record_id,
+            },
+            "train_fields": list(TRAIN_FIELDS),
+        },
+        "quality_gates": {
+            "schema_validated": True,
+            "risk_reviewed": True,
+            "citation_checked": True,
+            "human_review_required": False,
+        },
+        "metadata": {
+            "source_eval_sample": source_eval_sample.as_posix(),
+            "created_for": created_for,
+            "notes": [
+                f"Generated from audited candidate response record: {candidate_record_label}.",
+                "No model inference is run during conversion.",
+            ],
+        },
+    }

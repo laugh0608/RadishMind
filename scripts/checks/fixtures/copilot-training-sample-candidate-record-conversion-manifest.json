@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "kind": "copilot_training_sample_candidate_record_conversion_manifest",
+  "created_for": "teacher-student-distillation",
+  "record_selection": [
+    {
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0258634d1dc9/manifest.json",
+      "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0258634d1dc9/audit.json",
+      "selection_reason": "Uses an audited pass batch covering reconnect, stream spec placeholder, and three-step priority chain.",
+      "samples": [
+        {
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+          "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+          "coverage_tags": [
+            "candidate_edit",
+            "requires_confirmation"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+          "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+          "coverage_tags": [
+            "placeholder_patch",
+            "citation_alignment"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+          "record_id": "captured-radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+          "coverage_tags": [
+            "action_ordering",
+            "priority_chain"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0e8e36644e3a/manifest.json",
+      "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0e8e36644e3a/audit.json",
+      "selection_reason": "Uses an audited pass batch covering cooldown recovery, mixed-history empty suggestions, and other-candidate isolation.",
+      "samples": [
+        {
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001.json",
+          "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001",
+          "coverage_tags": [
+            "cooldown_recovery",
+            "other_candidate_isolation"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001.json",
+          "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001",
+          "coverage_tags": [
+            "empty_candidates",
+            "mixed_history"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json",
+          "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+          "coverage_tags": [
+            "latest_action_precedence",
+            "tab_default"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radish",
+      "task": "answer_docs_question",
+      "manifest": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.manifest.json",
+      "audit_report": "datasets/eval/candidate-records/radish/2026-04-04-radish-docs-qa-real-batch-v1.audit.json",
+      "selection_reason": "Uses only audited pass records from a mixed Radish docs QA batch.",
+      "samples": [
+        {
+          "path": "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
+          "record_id": "captured-radish-answer-docs-question-direct-answer-001",
+          "coverage_tags": [
+            "official_source",
+            "direct_answer"
+          ]
+        },
+        {
+          "path": "datasets/eval/radish/answer-docs-question-forum-supplement-001.json",
+          "record_id": "captured-radish-answer-docs-question-forum-supplement-001",
+          "coverage_tags": [
+            "forum_supplement",
+            "retrieval_scope"
+          ]
+        },
+        {
+          "path": "datasets/eval/radish/answer-docs-question-wiki-faq-mixed-001.json",
+          "record_id": "captured-radish-answer-docs-question-wiki-faq-mixed-001",
+          "coverage_tags": [
+            "official_source_precedence",
+            "mixed_sources"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -44,7 +44,7 @@
 `3B` 或 `4B` 进入首轮微调 / 蒸馏实验前，必须满足：
 
 - 能通过 `CopilotTrainingSample` 最小样本格式检查
-- 能从首批 committed eval 样本生成 schema-valid 的 `CopilotTrainingSample` JSONL，且转换过程不运行模型、不下载权重
+- 能从首批 committed eval 样本和 audit pass candidate record 生成 schema-valid 的 `CopilotTrainingSample` JSONL，且转换过程不运行模型、不下载权重
 - 在核心文本任务上达到可比较的 schema-valid 输出
 - 高风险候选动作和确认边界动作必须保留 `requires_confirmation=true`
 - 不把图片像素生成纳入主模型目标
@@ -113,7 +113,7 @@
 
 当前离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为结构契约，并由 `scripts/check-radishmind-core-offline-eval-run-contract.py` 接入 `check-repo`。
 
-当前训练样本转换入口以 `scripts/build-copilot-training-samples.py` 作为稳定命令，并由 `scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json` 与 `scripts/checks/fixtures/copilot-training-sample-conversion-summary.json` 接入 `check-repo`。首批只从 committed eval 样本的 `golden_response` 生成 9 条蒸馏样本，不读取真实 provider、不下载模型、不启动训练。
+当前训练样本转换入口以 `scripts/build-copilot-training-samples.py` 作为稳定命令，并由 `scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json`、`scripts/checks/fixtures/copilot-training-sample-conversion-summary.json`、`scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json` 与 `scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-summary.json` 接入 `check-repo`。首批从 committed eval 样本的 `golden_response` 生成 9 条蒸馏样本，并从 audit pass candidate record 生成 9 条 `teacher_capture` 样本；转换过程不读取外部 provider、不下载模型、不启动训练。
 
 这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 

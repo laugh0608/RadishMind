@@ -1005,6 +1005,17 @@ def main() -> int:
                 "scripts/checks/fixtures/copilot-training-sample-conversion-summary.json",
             ],
         )
+        run_python_script(
+            "build-copilot-training-samples.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json",
+                "--output-jsonl",
+                str(Path(temp_dir) / "copilot-training-samples-candidate-records.jsonl"),
+                "--check-summary",
+                "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-summary.json",
+            ],
+        )
     run_python_script("check-image-generation-intent-contract.py", [])
 
     check_path_budget()

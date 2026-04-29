@@ -13,7 +13,7 @@
 - `scripts/`
   - 保留稳定入口脚本，以及 `ps1` / `sh` 平台包装
   - 例如 `check-repo.py`、`run-eval-regression.py`、`check-repo.sh`
-  - 当前还提供 `build-copilot-training-samples.py`，用于把 committed eval 样本中的 `input_request + golden_response` 转换为 `CopilotTrainingSample` JSONL，并用 summary fixture 固定首批转换结果
+  - 当前还提供 `build-copilot-training-samples.py`，用于把 committed eval 样本中的 `input_request + golden_response` 转换为 `CopilotTrainingSample` JSONL，也支持把 audit pass candidate record 转换为 `teacher_capture` 训练样本，并用 summary fixture 固定首批转换结果
 - `scripts/checks/`
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper

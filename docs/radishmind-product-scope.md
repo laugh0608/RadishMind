@@ -155,7 +155,7 @@
 
 - `RadishMind-Core` 首版基座评估：先比较 `3B` / `4B` 的协议遵循、中文任务理解、结构化响应、citation 对齐和本地部署成本，再决定是否进入 `7B`
 - 训练 / 蒸馏样本格式：以 `CopilotRequest -> CopilotResponse` 为核心，保留 `project / task / artifacts / context / safety / proposed_actions / citations / requires_confirmation`
-- 训练样本转换入口：当前已能从 committed eval 样本的 `input_request + golden_response` 生成首批 9 条 `CopilotTrainingSample` JSONL，覆盖 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `answer_docs_question`
+- 训练样本转换入口：当前已能从 committed eval 样本的 `input_request + golden_response` 生成首批 9 条 `CopilotTrainingSample` JSONL，也能从 audit pass candidate record 生成首批 9 条 `teacher_capture` 样本，覆盖 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `answer_docs_question`
 - teacher / student / lightweight baseline 对照矩阵：`Qwen2.5-VL` 给出强基线和蒸馏参考，`minimind-v` 承接主线适配，`SmolVLM` 验证低资源下限
 - `RadishMind-Image Adapter` 第一版 schema：主模型只输出图片生成意图、约束和审查信息，图片像素生成交给独立 backend
 - 未来接入清单：保留现有 gateway smoke、UI consumption summary 与 candidate handoff summary 作为 `RadishFlow` / `Radish` 准备好后的验收门禁
