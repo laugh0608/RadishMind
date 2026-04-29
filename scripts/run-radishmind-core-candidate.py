@@ -28,6 +28,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--provider", choices=["golden_fixture", "echo", "local_transformers"])
     parser.add_argument("--model-dir")
     parser.add_argument("--max-new-tokens", type=int, default=1200)
+    parser.add_argument("--sample-id")
+    parser.add_argument(
+        "--allow-invalid-output",
+        action="store_true",
+        help="Write invalid local model outputs for inspection instead of failing the whole run.",
+    )
     return parser.parse_args()
 
 
@@ -282,7 +288,11 @@ def validate_candidate_response(
             )
 
 
-def iter_selected_samples(source_eval_manifest: dict[str, Any]) -> list[tuple[dict[str, Any], dict[str, Any]]]:
+def iter_selected_samples(
+    source_eval_manifest: dict[str, Any],
+    *,
+    sample_id_filter: str | None,
+) -> list[tuple[dict[str, Any], dict[str, Any]]]:
     selected: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for group in source_eval_manifest["sample_selection"]:
         project = str(group["project"])
@@ -290,6 +300,8 @@ def iter_selected_samples(source_eval_manifest: dict[str, Any]) -> list[tuple[di
         for selected_sample in group["selected_samples"]:
             sample_path_value = str(selected_sample.get("path") or "").strip()
             sample_id = str(selected_sample.get("sample_id") or "").strip()
+            if sample_id_filter and sample_id != sample_id_filter:
+                continue
             require(sample_path_value and sample_id, f"{project}/{task} selected sample must include sample_id and path")
             sample_path = normalize_repo_path(sample_path_value)
             require(sample_path is not None and sample_path.is_file(), f"candidate sample path is missing: {sample_path_value}")
@@ -299,7 +311,16 @@ def iter_selected_samples(source_eval_manifest: dict[str, Any]) -> list[tuple[di
             require(sample.get("project") == project, f"{sample_path_value} project mismatch")
             require(sample.get("task") == task, f"{sample_path_value} task mismatch")
             selected.append((sample, selected_sample))
+    if sample_id_filter:
+        require(selected, f"sample-id was not selected by source eval manifest: {sample_id_filter}")
     return selected
+
+
+def summarize_validation_error(exc: Exception) -> str:
+    if isinstance(exc, jsonschema.ValidationError):
+        location = ".".join(str(part) for part in exc.absolute_path)
+        return f"{location or '$'}: {exc.message}"
+    return str(exc)
 
 
 def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> dict[str, Any]:
@@ -330,11 +351,19 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
 
     task_counts: dict[str, int] = {}
     outputs: list[dict[str, Any]] = []
-    for sample, selected_sample in iter_selected_samples(source_eval_manifest):
+    valid_response_count = 0
+    invalid_response_count = 0
+    for sample, selected_sample in iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id):
         jsonschema.validate(sample["input_request"], request_schema)
         task_key = f"{sample['project']}/{sample['task']}"
         task_counts[task_key] = task_counts.get(task_key, 0) + 1
         prompt_document = build_prompt_document(sample, model_id=str(provider.get("model_id") or provider_id))
+        sample_id = str(sample["sample_id"])
+        prompt_relpath = Path("prompts") / f"{sample_id}.prompt.json"
+        response_relpath = Path("responses") / f"{sample_id}.candidate-response.json"
+        invalid_response_relpath = Path("invalid-responses") / f"{sample_id}.candidate-response.invalid.json"
+        write_json(prompt_dir / prompt_relpath.name, prompt_document)
+
         candidate_response, response_source = build_candidate_response(
             sample,
             provider_id=provider_id,
@@ -342,13 +371,22 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             model_dir=args.model_dir,
             max_new_tokens=args.max_new_tokens,
         )
-        validate_candidate_response(candidate_response, sample=sample, response_schema=response_schema)
+        response_valid = True
+        validation_error: str | None = None
+        try:
+            validate_candidate_response(candidate_response, sample=sample, response_schema=response_schema)
+        except Exception as exc:
+            if not args.allow_invalid_output:
+                raise
+            response_valid = False
+            validation_error = summarize_validation_error(exc)
 
-        sample_id = str(sample["sample_id"])
-        prompt_relpath = Path("prompts") / f"{sample_id}.prompt.json"
-        response_relpath = Path("responses") / f"{sample_id}.candidate-response.json"
-        write_json(prompt_dir / prompt_relpath.name, prompt_document)
-        write_json(response_dir / response_relpath.name, candidate_response)
+        if response_valid:
+            valid_response_count += 1
+            write_json(response_dir / response_relpath.name, candidate_response)
+        else:
+            invalid_response_count += 1
+            write_json(output_dir / invalid_response_relpath, candidate_response)
         outputs.append(
             {
                 "sample_id": sample_id,
@@ -356,15 +394,17 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 "task": sample["task"],
                 "coverage_tags": selected_sample.get("coverage_tags") or [],
                 "prompt_file": prompt_relpath.as_posix(),
-                "candidate_response_file": response_relpath.as_posix(),
+                "candidate_response_file": response_relpath.as_posix() if response_valid else invalid_response_relpath.as_posix(),
                 "response_source": response_source,
                 "copilot_request_schema_validated": True,
-                "copilot_response_schema_validated": True,
-                "project_task_matched": True,
+                "copilot_response_schema_validated": response_valid,
+                "project_task_matched": response_valid,
+                **({"validation_error": validation_error} if validation_error else {}),
             }
         )
 
     sample_count = len(outputs)
+    all_valid = invalid_response_count == 0
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_run_summary",
@@ -377,14 +417,15 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         "output_policy": {
             "output_dir": "provided at runtime",
             "prompt_files_written": sample_count,
-            "candidate_response_files_written": sample_count,
+            "candidate_response_files_written": valid_response_count,
+            "invalid_candidate_response_files_written": invalid_response_count,
             "commit_candidate_outputs": False,
         },
         "quality_gates": {
             "copilot_request_schema_validated": sample_count,
-            "copilot_response_schema_validated": sample_count,
-            "project_task_matched": sample_count,
-            "high_risk_actions_require_confirmation": True,
+            "copilot_response_schema_validated": valid_response_count,
+            "project_task_matched": valid_response_count,
+            "high_risk_actions_require_confirmation": all_valid,
             "does_not_download_model_artifacts": provider.get("model_artifacts_downloaded") is False,
             "does_not_start_training": True,
         },

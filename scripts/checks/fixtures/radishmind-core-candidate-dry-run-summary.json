@@ -27,6 +27,7 @@
     "output_dir": "provided at runtime",
     "prompt_files_written": 9,
     "candidate_response_files_written": 9,
+    "invalid_candidate_response_files_written": 0,
     "commit_candidate_outputs": false
   },
   "quality_gates": {
