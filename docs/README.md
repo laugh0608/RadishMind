@@ -1,6 +1,6 @@
 # RadishMind 文档总览
 
-更新时间：2026-04-28
+更新时间：2026-04-29
 
 ## 文档目的
 
@@ -9,7 +9,7 @@
 当前版本已经基于对 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 的只读审查完成了一轮收口；当前已冻结 `Python` 主实现栈，并将首轮模型路线收口为 `RadishMind-Core` 基座适配型自研主模型、`minimind-v` 默认 `student/base` 主线、`Qwen2.5-VL` 强基线和 `SmolVLM` 轻量对照组。
 当前 `RadishFlow export -> adapter -> request` 主线也已从“只有扁平 adapter fixture”推进到“存在上游导出边界、bootstrap 模板、preflight smoke validator、batch smoke 与 committed exporter edge fixtures”的状态。
 当前 `RadishFlow suggest_flowsheet_edits` 与 `suggest_ghost_completion` 都已具备真实批次、artifact summary、replay、recommended replay 与 real-derived negative 治理链；`suggest_flowsheet_edits v93` 与 `suggest_ghost_completion v25` 收口后，gateway、UI consumption 与 candidate handoff smoke 已冻结为未来上层接入验收门禁，不再继续扩展本仓库内模拟上层接线。
-当前模型规模口径为：`RadishMind-Core` 首版优先 `3B` / `4B`，长期本地部署上限 `7B`；图片生成能力不并入主模型参数目标，默认通过 `RadishMind-Image Adapter` 和独立生图 backend 提供。`RadishMind-Core` 首版基座评估矩阵、离线评测阈值与离线评测运行记录已落成可回归门禁，用于固定 `minimind-v`、`3B/4B/7B`、`Qwen2.5-VL` 与 `SmolVLM` 的首轮评估边界、阻塞指标、样本选择和结果记录格式。
+当前模型规模口径为：`RadishMind-Core` 首版优先 `3B` / `4B`，长期本地部署上限 `7B`；图片生成能力不并入主模型参数目标，默认通过 `RadishMind-Image Adapter` 和独立生图 backend 提供。`RadishMind-Core` 首版基座评估矩阵、离线评测阈值与离线评测运行记录已落成可回归门禁，用于固定 `minimind-v`、`3B/4B/7B`、`Qwen2.5-VL` 与 `SmolVLM` 的首轮评估边界、阻塞指标、样本选择和结果记录格式。当前还已新增从 committed eval 样本生成 `CopilotTrainingSample` 的转换入口，先固定三条主任务各 3 条 golden_response 蒸馏样本，不运行模型、不下载权重。
 
 ## 当前优先文档
 
@@ -40,7 +40,7 @@
 ## 当前仍缺的关键决策
 
 - 在 `JSON Schema` 之外，是否同步生成 TypeScript 类型或其他契约产物
-- 第一批评测集的任务粒度和标注格式
+- 第一批训练 / 蒸馏样本从 candidate record 继续扩展时的筛选口径和人工复核边界
 - `Qwen2.5-VL` 在当前任务上的具体首选尺寸、推理路由与成本上限
 - `SmolVLM` 作为轻量对照组的具体准入任务和退场条件
 - `RadishMind-Core` 首版基座评估矩阵、阻塞阈值和离线评测记录格式已固定；具体观测结果和成本实测仍需后续补齐
@@ -53,6 +53,6 @@
 
 1. 继续把现有 gateway、UI consumption 与 candidate handoff smoke 维护为未来上层接入验收门禁；在 `RadishFlow` / `Radish` 尚未准备真实模型或 Agent 接入前，不继续新增同类模拟 summary。
 2. 沿 `radishmind-core-baseline-evaluation.md` 已固定的离线评测运行记录契约，后续只在明确执行离线模型评测时补真实观测结果和成本实测；当前不下载模型、不启动训练。
-3. 在已落成的 `CopilotTrainingSample` 契约上，补从现有 eval sample / candidate record 生成训练样本的转换入口。
+3. 在已落成的 eval sample -> `CopilotTrainingSample` 转换入口上，后续补 candidate record 到训练样本的筛选、复核和转换口径。
 4. 继续沿 `contracts/image-generation-intent.schema.json` 推进 `RadishMind-Image Adapter` 的 backend 抽象、artifact 返回 metadata 和最小图片生成评测样本。
 5. 继续维护 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 的现有治理资产；只有服务/API、模型评测或真实接入暴露新增非重复缺口时，再扩真实 capture。

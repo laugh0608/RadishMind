@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-04-28
+更新时间：2026-04-29
 
 ## 文档目的
 
@@ -44,8 +44,9 @@
 `3B` 或 `4B` 进入首轮微调 / 蒸馏实验前，必须满足：
 
 - 能通过 `CopilotTrainingSample` 最小样本格式检查
+- 能从首批 committed eval 样本生成 schema-valid 的 `CopilotTrainingSample` JSONL，且转换过程不运行模型、不下载权重
 - 在核心文本任务上达到可比较的 schema-valid 输出
-- 中高风险候选动作必须保留 `requires_confirmation=true`
+- 高风险候选动作和确认边界动作必须保留 `requires_confirmation=true`
 - 不把图片像素生成纳入主模型目标
 - 能用现有 eval / gateway smoke 作为回归入口复查协议行为
 
@@ -71,7 +72,7 @@
 - `schema_validity_rate`：输出必须稳定通过 `CopilotResponse` schema
 - `citation_alignment_rate`：citation id、顺序和证据引用必须保持一致
 - `risk_confirmation_preservation_rate`：`risk_level` 与顶层 `requires_confirmation` 必须保持任务语义
-- `high_risk_action_confirmation_rate`：中高风险 `proposed_actions` 必须保持 `requires_confirmation=true`
+- `high_risk_action_confirmation_rate`：高风险 `proposed_actions` 与确认边界动作必须保持 `requires_confirmation=true`
 - `advisory_action_boundary_rate`：模型不得宣称直接写回业务真相源
 - `retrieval_source_contract_rate`：`Radish` 文档问答必须保持检索来源和 official source 约束
 
@@ -111,6 +112,8 @@
 当前阈值以 `scripts/checks/fixtures/radishmind-core-eval-thresholds.json` 作为机器可读真相源，并由 `scripts/check-radishmind-core-eval-thresholds.py` 接入 `check-repo`。
 
 当前离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为结构契约，并由 `scripts/check-radishmind-core-offline-eval-run-contract.py` 接入 `check-repo`。
+
+当前训练样本转换入口以 `scripts/build-copilot-training-samples.py` 作为稳定命令，并由 `scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json` 与 `scripts/checks/fixtures/copilot-training-sample-conversion-summary.json` 接入 `check-repo`。首批只从 committed eval 样本的 `golden_response` 生成 9 条蒸馏样本，不读取真实 provider、不下载模型、不启动训练。
 
 这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 

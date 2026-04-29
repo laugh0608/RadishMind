@@ -993,6 +993,18 @@ def main() -> int:
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
+    with tempfile.TemporaryDirectory(prefix="check-repo-training-samples-") as temp_dir:
+        run_python_script(
+            "build-copilot-training-samples.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json",
+                "--output-jsonl",
+                str(Path(temp_dir) / "copilot-training-samples.jsonl"),
+                "--check-summary",
+                "scripts/checks/fixtures/copilot-training-sample-conversion-summary.json",
+            ],
+        )
     run_python_script("check-image-generation-intent-contract.py", [])
 
     check_path_budget()
