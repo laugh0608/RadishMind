@@ -115,6 +115,8 @@
 
 当前训练样本转换入口以 `scripts/build-copilot-training-samples.py` 作为稳定命令，并由 `scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json`、`scripts/checks/fixtures/copilot-training-sample-conversion-summary.json`、`scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json` 与 `scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-summary.json` 接入 `check-repo`。首批从 committed eval 样本的 `golden_response` 生成 9 条蒸馏样本，并从 audit pass candidate record 生成 9 条 `teacher_capture` 样本；转换过程不读取外部 provider、不下载模型、不启动训练。
 
+当前更大训练集合治理以 `training/datasets/copilot-training-dataset-governance-v0.json` 作为首个 manifest 草案，并由 `scripts/check-copilot-training-dataset-governance.py` 接入 `check-repo`。该 manifest 固定 candidate record 入选条件、分层抽样复核比例、人工复核状态、离线评测 holdout、质量门禁、artifact 禁入仓和退场条件；它不生成 JSONL、不下载模型、不启动训练。
+
 这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 
 ## 暂不做

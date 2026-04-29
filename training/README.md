@@ -20,6 +20,7 @@
 - `datasets/` 继续承载 committed eval 样本、candidate record、示例对象和后续可复用的原始样本资产
 - `contracts/copilot-training-sample.schema.json` 是训练样本结构真相源
 - `scripts/build-copilot-training-samples.py` 是当前唯一正式训练样本 JSONL 转换入口
+- `training/datasets/copilot-training-dataset-governance-v0.json` 是首个训练集合治理 manifest 草案，用于固定 candidate record 入选、抽样复核、质量门禁、holdout 和退场条件
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
 
@@ -48,6 +49,20 @@ python3 scripts/build-copilot-training-samples.py \
 - 嵌套 `target_response` 仍通过 `contracts/copilot-response.schema.json`
 - `teacher_capture` 样本只来自 audit pass 的 committed candidate record
 - 高风险动作和需要确认的输出没有弱化 `requires_confirmation`
+- 更大 candidate record 池已按 `training/datasets/copilot-training-dataset-governance-v0.json` 完成分层抽样复核，并保留离线评测 holdout
+
+## 训练集合治理
+
+当前首个治理 manifest 是 `training/datasets/copilot-training-dataset-governance-v0.json`，状态为 `draft`。它不生成训练样本，也不启动训练，只固定 M4 前置阶段的集合治理规则：
+
+- 当前 seed set 来自两类转换 manifest：committed eval `golden_response` 与 audit pass `teacher_capture`
+- candidate record 必须显式列入转换 manifest，且通过 batch manifest、audit report、record schema、response schema、project/task/sample_id 一致性与风险/citation 检查
+- 当前小型 seed set 默认全量复核；后续更大池按 `project / task / source / provider / model / risk_level / requires_confirmation / coverage_tags / batch_id` 分层抽样
+- 默认每个分层至少复核 `20%` 且不少于 `5` 条；新任务、新 provider/model、高风险动作、确认边界样本、新 action/patch 结构、新来源族、schema 版本变化和历史失败模式必须全量复核
+- 至少保留 `10%` 离线评测 holdout，且每个任务至少 `3` 条，避免训练 / 评测泄漏
+- 样本一旦出现 audit 失效、schema 失效、人工复核拒绝、确认边界弱化、来源不可追踪、无理由重复或 holdout 泄漏，应从训练集合退场
+
+`scripts/check-copilot-training-dataset-governance.py` 已接入 `check-repo`，用于检查该治理 manifest 的关键字段、来源 summary、抽样比例、artifact 禁入仓规则和离线评测接线。
 
 ## 后续可扩展结构
 

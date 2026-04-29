@@ -14,6 +14,7 @@
   - 保留稳定入口脚本，以及 `ps1` / `sh` 平台包装
   - 例如 `check-repo.py`、`run-eval-regression.py`、`check-repo.sh`
   - 当前还提供 `build-copilot-training-samples.py`，用于把 committed eval 样本中的 `input_request + golden_response` 转换为 `CopilotTrainingSample` JSONL，也支持把 audit pass candidate record 转换为 `teacher_capture` 训练样本，并用 summary fixture 固定首批转换结果；生成 JSONL 默认输出到 `tmp/`，不直接作为 committed 训练资产
+  - 当前还提供 `check-copilot-training-dataset-governance.py`，用于校验 `training/datasets/copilot-training-dataset-governance-v0.json` 的训练集合入选、抽样复核、质量门禁、artifact 禁入仓和离线评测 holdout 口径
 - `scripts/checks/`
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper
