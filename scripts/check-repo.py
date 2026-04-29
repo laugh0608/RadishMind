@@ -995,6 +995,16 @@ def main() -> int:
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
     run_python_script("run-radishmind-core-offline-eval.py", [])
+    with tempfile.TemporaryDirectory(prefix="check-repo-core-candidate-") as temp_dir:
+        run_python_script(
+            "run-radishmind-core-candidate.py",
+            [
+                "--output-dir",
+                str(Path(temp_dir) / "candidate-run"),
+                "--check-summary",
+                "scripts/checks/fixtures/radishmind-core-candidate-dry-run-summary.json",
+            ],
+        )
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-training-samples-") as temp_dir:

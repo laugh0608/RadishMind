@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_candidate_run_summary",
+  "phase": "M4-preparation",
+  "run_id": "radishmind-core-candidate-dry-run-001",
+  "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-offline-eval-fixture-run-manifest.json",
+  "provider": {
+    "provider_id": "golden_fixture",
+    "model_id": "radishmind-core-candidate-dry-run",
+    "role": "core_candidate",
+    "target_size": "3B",
+    "does_not_run_models": true,
+    "provider_access": "none",
+    "model_artifacts_downloaded": false,
+    "notes": [
+      "Uses committed golden_response objects only to exercise candidate prompt/output plumbing.",
+      "Does not download models, call providers, start training, or commit generated response files."
+    ]
+  },
+  "sample_count": 9,
+  "task_counts": {
+    "radish/answer_docs_question": 3,
+    "radishflow/suggest_flowsheet_edits": 3,
+    "radishflow/suggest_ghost_completion": 3
+  },
+  "output_policy": {
+    "output_dir": "provided at runtime",
+    "prompt_files_written": 9,
+    "candidate_response_files_written": 9,
+    "commit_candidate_outputs": false
+  },
+  "quality_gates": {
+    "copilot_request_schema_validated": 9,
+    "copilot_response_schema_validated": 9,
+    "project_task_matched": 9,
+    "high_risk_actions_require_confirmation": true,
+    "does_not_download_model_artifacts": true,
+    "does_not_start_training": true
+  },
+  "outputs": [
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "coverage_tags": [
+        "candidate_edit",
+        "citation_alignment",
+        "requires_confirmation"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-flowsheet-edits-reconnect-outlet-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-flowsheet-edits-reconnect-outlet-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "coverage_tags": [
+        "selection_focus",
+        "advisory_boundary"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "coverage_tags": [
+        "citation_ordering",
+        "action_filtering"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "coverage_tags": [
+        "tab_default",
+        "candidate_ranking"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "coverage_tags": [
+        "manual_only",
+        "advisory_boundary"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-context-gap-none-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "coverage_tags": [
+        "empty_candidates",
+        "risk_confirmation"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-ghost-completion-context-gap-none-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-ghost-completion-context-gap-none-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radish-answer-docs-question-direct-answer-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "coverage_tags": [
+        "official_source",
+        "direct_answer"
+      ],
+      "prompt_file": "prompts/radish-answer-docs-question-direct-answer-001.prompt.json",
+      "candidate_response_file": "responses/radish-answer-docs-question-direct-answer-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radish-answer-docs-question-evidence-gap-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "coverage_tags": [
+        "evidence_gap",
+        "risk_confirmation"
+      ],
+      "prompt_file": "prompts/radish-answer-docs-question-evidence-gap-001.prompt.json",
+      "candidate_response_file": "responses/radish-answer-docs-question-evidence-gap-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "coverage_tags": [
+        "source_conflict",
+        "retrieval_scope"
+      ],
+      "prompt_file": "prompts/radish-answer-docs-question-docs-faq-forum-conflict-001.prompt.json",
+      "candidate_response_file": "responses/radish-answer-docs-question-docs-faq-forum-conflict-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    }
+  ],
+  "next_step": "After an approved local model exists, rerun with --provider local_transformers and --model-dir or RADISHMIND_MODEL_DIR; this script uses local_files_only and never downloads weights."
+}

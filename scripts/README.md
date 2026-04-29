@@ -15,6 +15,7 @@
   - 例如 `check-repo.py`、`run-eval-regression.py`、`check-repo.sh`
   - 当前还提供 `build-copilot-training-samples.py`，用于把 committed eval 样本中的 `input_request + golden_response` 转换为 `CopilotTrainingSample` JSONL，也支持把 audit pass candidate record 转换为 `teacher_capture` 训练样本，并用 summary fixture 固定首批转换结果；生成 JSONL 默认输出到 `tmp/`，不直接作为 committed 训练资产
   - 当前还提供 `run-radishmind-core-offline-eval.py`，用于运行 `RadishMind-Core` 首个离线评测 runner；当前 fixture-run 只读取 committed eval 样本的 `golden_response` 作为候选输出，生成符合 `radishmind-core-offline-eval-run` schema 的 completed run record，不调用模型、不访问 provider、不下载权重
+  - 当前还提供 `run-radishmind-core-candidate.py`，用于把离线评测样本转换成候选模型 prompt 与 candidate response 文件；仓库级检查只使用 `golden_fixture` dry-run provider，真实本地模型必须显式传入 `--provider local_transformers` 和 `--model-dir` 或 `RADISHMIND_MODEL_DIR`，且脚本使用 `local_files_only`，不自动下载模型
   - 当前还提供 `check-copilot-training-dataset-governance.py`，用于校验 `training/datasets/copilot-training-dataset-governance-v0.json` 的训练集合入选、抽样复核、质量门禁、artifact 禁入仓和离线评测 holdout 口径
   - 当前还提供 `check-image-generation-intent-contract.py`，用于校验 `image_generation_intent -> image_generation_backend_request -> image_generation_artifact` 三段契约、最小 fixture、确认门禁和 artifact provenance
   - 当前还提供 `check-image-generation-eval-manifest.py`，用于校验 `scripts/checks/fixtures/image-generation-eval-manifest-v0.json` 的最小图片生成评测 manifest；该检查只覆盖结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不调用真实生图 backend、不生成图片、不下载模型
