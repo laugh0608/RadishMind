@@ -21,6 +21,8 @@
 - `contracts/copilot-training-sample.schema.json` 是训练样本结构真相源
 - `scripts/build-copilot-training-samples.py` 是当前唯一正式训练样本 JSONL 转换入口
 - `training/datasets/copilot-training-dataset-governance-v0.json` 是首个训练集合治理 manifest 草案，用于固定 candidate record 入选、抽样复核、质量门禁、holdout 和退场条件
+- `training/datasets/copilot-training-review-record-v0.json` 是首个 planned 人工复核记录模板，用于后续记录 reviewer、逐维度结果和泄漏判断
+- `training/datasets/copilot-training-holdout-split-v0.json` 是首个 planned offline eval holdout split，当前每条主任务各保留 3 条且不与现有训练 seed manifest 重叠
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
 
@@ -63,6 +65,13 @@ python3 scripts/build-copilot-training-samples.py \
 - 样本一旦出现 audit 失效、schema 失效、人工复核拒绝、确认边界弱化、来源不可追踪、无理由重复或 holdout 泄漏，应从训练集合退场
 
 `scripts/check-copilot-training-dataset-governance.py` 已接入 `check-repo`，用于检查该治理 manifest 的关键字段、来源 summary、抽样比例、artifact 禁入仓规则和离线评测接线。
+
+当前还补了两份 planned 资产：
+
+- `training/datasets/copilot-training-review-record-v0.json`：记录 seed set 全量复核、teacher_capture 全量复核和 holdout 泄漏检查的模板；在没有真实 reviewer、timestamp 与逐维度结果前，保持 `pending_review`
+- `training/datasets/copilot-training-holdout-split-v0.json`：每个主任务保留 3 条 planned offline eval holdout，并显式排除当前训练 seed manifest 已列入样本
+
+这两份资产同样不生成 JSONL、不下载模型、不启动训练。
 
 ## 后续可扩展结构
 

@@ -117,6 +117,8 @@
 
 当前更大训练集合治理以 `training/datasets/copilot-training-dataset-governance-v0.json` 作为首个 manifest 草案，并由 `scripts/check-copilot-training-dataset-governance.py` 接入 `check-repo`。该 manifest 固定 candidate record 入选条件、分层抽样复核比例、人工复核状态、离线评测 holdout、质量门禁、artifact 禁入仓和退场条件；它不生成 JSONL、不下载模型、不启动训练。
 
+当前 planned 人工复核记录以 `training/datasets/copilot-training-review-record-v0.json` 固定模板和三组待复核批次：`golden_response` seed set、`teacher_capture` seed set 与 offline eval holdout 泄漏检查。当前 planned holdout split 以 `training/datasets/copilot-training-holdout-split-v0.json` 固定三条主任务各 3 条样本，并显式排除当前训练 seed manifest 已列入样本，避免训练 / 评测泄漏。
+
 这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 
 ## 暂不做

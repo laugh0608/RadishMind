@@ -7,13 +7,17 @@
 当前首个治理草案为：
 
 - `copilot-training-dataset-governance-v0.json`
+- `copilot-training-review-record-v0.json`
+- `copilot-training-holdout-split-v0.json`
 
-该 manifest 只描述训练集合治理口径，不包含生成后的训练 JSONL。它固定以下内容：
+这些 manifest 只描述训练集合治理口径，不包含生成后的训练 JSONL。它们固定以下内容：
 
 - 训练集合当前覆盖 `radishflow/suggest_flowsheet_edits`、`radishflow/suggest_ghost_completion` 与 `radish/answer_docs_question`
 - 训练样本结构继续以 `contracts/copilot-training-sample.schema.json` 为真相源
 - 转换入口继续使用 `scripts/build-copilot-training-samples.py`
 - 当前 seed set 来自 committed eval `golden_response` 与 audit pass `teacher_capture`，各 9 条
+- 当前人工复核记录仍是 `planned` 状态，不伪造已复核结论
+- 当前 holdout split 各任务保留 3 条样本，且不与现有训练 seed manifest 重叠
 - 大规模 JSONL、权重、checkpoint、adapter 二进制与 provider dump 不入仓
 
 当前只允许提交：
@@ -76,6 +80,24 @@
 - `reviewed_changes_required`
 - `rejected`
 - `deprecated`
+
+当前 `copilot-training-review-record-v0.json` 只记录复核模板和三组 planned review batch：
+
+- `golden_response` seed set 全量复核
+- `teacher_capture` seed set 全量复核
+- offline eval holdout 泄漏检查全量复核
+
+在没有真实 reviewer、timestamp、逐维度结果和泄漏判断前，不得把这些批次标为 `reviewed_pass`。
+
+## Offline Eval Holdout
+
+当前 `copilot-training-holdout-split-v0.json` 固定首个 planned holdout：
+
+- `radishflow/suggest_flowsheet_edits`: 3 条
+- `radishflow/suggest_ghost_completion`: 3 条
+- `radish/answer_docs_question`: 3 条
+
+该 split 明确排除当前两份训练转换 manifest 中已经列入的样本，避免首批 planned offline eval 与训练 seed JSONL 发生泄漏。它只声明切分口径，不运行模型、不生成 JSONL。
 
 ## 质量门禁与退场条件
 
