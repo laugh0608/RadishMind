@@ -16,9 +16,11 @@
   - 当前还提供 `build-copilot-training-samples.py`，用于把 committed eval 样本中的 `input_request + golden_response` 转换为 `CopilotTrainingSample` JSONL，也支持把 audit pass candidate record 转换为 `teacher_capture` 训练样本，并用 summary fixture 固定首批转换结果；生成 JSONL 默认输出到 `tmp/`，不直接作为 committed 训练资产
   - 当前还提供 `check-copilot-training-dataset-governance.py`，用于校验 `training/datasets/copilot-training-dataset-governance-v0.json` 的训练集合入选、抽样复核、质量门禁、artifact 禁入仓和离线评测 holdout 口径
   - 当前还提供 `check-image-generation-intent-contract.py`，用于校验 `image_generation_intent -> image_generation_backend_request -> image_generation_artifact` 三段契约、最小 fixture、确认门禁和 artifact provenance
+  - 当前还提供 `check-image-generation-eval-manifest.py`，用于校验 `scripts/checks/fixtures/image-generation-eval-manifest-v0.json` 的最小图片生成评测 manifest；该检查只覆盖结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不调用真实生图 backend、不生成图片、不下载模型
 - `scripts/checks/`
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper
+  - 当前也承载 `scripts/checks/image_generation.py`，作为 Image Adapter 契约 smoke 与 eval manifest smoke 复用的结构化链路断言 helper
 - `scripts/eval/`
   - 放评测回归 runner 的内部实现模块
   - 当前 `run-eval-regression.py` 的具体实现已拆到这里

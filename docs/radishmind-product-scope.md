@@ -157,7 +157,7 @@
 - 训练 / 蒸馏样本格式：以 `CopilotRequest -> CopilotResponse` 为核心，保留 `project / task / artifacts / context / safety / proposed_actions / citations / requires_confirmation`
 - 训练样本转换入口：当前已能从 committed eval 样本的 `input_request + golden_response` 生成首批 9 条 `CopilotTrainingSample` JSONL，也能从 audit pass candidate record 生成首批 9 条 `teacher_capture` 样本，覆盖 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `answer_docs_question`
 - teacher / student / lightweight baseline 对照矩阵：`Qwen2.5-VL` 给出强基线和蒸馏参考，`minimind-v` 承接主线适配，`SmolVLM` 验证低资源下限
-- `RadishMind-Image Adapter` 第一版 schema：主模型只输出图片生成意图、约束和审查信息，Adapter 再生成 backend request，图片像素生成交给独立 backend，结果以 artifact metadata 回到 `RadishMind`
+- `RadishMind-Image Adapter` 第一版 schema 与最小评测 manifest：主模型只输出图片生成意图、约束和审查信息，Adapter 再生成 backend request，图片像素生成交给独立 backend，结果以 artifact metadata 回到 `RadishMind`；当前评测 manifest 只覆盖结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不评价图片像素质量
 - 未来接入清单：保留现有 gateway smoke、UI consumption summary 与 candidate handoff summary 作为 `RadishFlow` / `Radish` 准备好后的验收门禁
 
 ## 当前仍缺的决策
@@ -168,7 +168,7 @@
 - `SmolVLM` 进入默认回归矩阵的任务边界
 - `RadishFlow` 何时从“状态优先”扩展到“状态 + 截图并重”
 - 候选动作的 patch 结构在两个项目中分别如何落地
-- `RadishMind-Image Adapter` 已具备 intent、backend request 与 artifact metadata 三段 schema；后续仍需最小图片生成评测样本和真实 backend 包装
+- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata 三段 schema 和最小图片生成评测 manifest；后续仍需真实 backend 包装
 
 ## 远期备忘方向
 

@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "kind": "image_generation_eval_manifest",
+  "manifest_id": "image-generation-eval-v0",
+  "status": "draft",
+  "created_for": "radishmind-image-adapter-offline-eval",
+  "scope": {
+    "adapter": "RadishMind-Image Adapter",
+    "contract_chain": [
+      "contracts/image-generation-intent.schema.json",
+      "contracts/image-generation-backend-request.schema.json",
+      "contracts/image-generation-artifact.schema.json"
+    ],
+    "eval_dimensions": [
+      "structured_intent",
+      "backend_request_mapping",
+      "artifact_metadata",
+      "safety_gate",
+      "provenance"
+    ],
+    "excluded_dimensions": [
+      "image_pixel_quality",
+      "real_backend_latency",
+      "provider_specific_rendering",
+      "model_weight_quality"
+    ]
+  },
+  "execution_policy": {
+    "does_not_call_backend": true,
+    "does_not_generate_images": true,
+    "does_not_download_models": true,
+    "does_not_start_training": true
+  },
+  "artifact_policy": {
+    "committed_allowed": [
+      "manifest",
+      "small_json_fixture",
+      "expected_summary"
+    ],
+    "committed_disallowed": [
+      "image_pixels",
+      "provider_raw_dump",
+      "model_weights",
+      "checkpoint",
+      "large_jsonl"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "image-generation-approved-basic-001",
+      "purpose": "Validate the approved intent to backend request to artifact metadata chain.",
+      "intent_fixture": "scripts/checks/fixtures/image-generation-intent-basic.json",
+      "backend_request_fixture": "scripts/checks/fixtures/image-generation-backend-request-basic.json",
+      "artifact_fixture": "scripts/checks/fixtures/image-generation-artifact-basic.json",
+      "expected_safety_gate": "approved_for_backend",
+      "expected_artifact_status": "generated",
+      "expected_backend_submittable": true,
+      "coverage": [
+        "structured_intent",
+        "backend_request_mapping",
+        "artifact_metadata",
+        "provenance"
+      ]
+    },
+    {
+      "case_id": "image-generation-confirmation-blocked-001",
+      "purpose": "Validate that confirmation-required intent is blocked before backend submission.",
+      "intent_fixture": "scripts/checks/fixtures/image-generation-intent-basic.json",
+      "backend_request_fixture": "scripts/checks/fixtures/image-generation-backend-request-basic.json",
+      "artifact_fixture": null,
+      "simulate_confirmation_required": true,
+      "expected_safety_gate": "blocked_requires_confirmation",
+      "expected_artifact_status": null,
+      "expected_backend_submittable": false,
+      "coverage": [
+        "structured_intent",
+        "safety_gate"
+      ]
+    }
+  ],
+  "expected_summary": {
+    "case_count": 2,
+    "approved_for_backend_count": 1,
+    "blocked_requires_confirmation_count": 1,
+    "artifact_metadata_case_count": 1,
+    "does_not_call_backend": true,
+    "does_not_generate_images": true,
+    "does_not_download_models": true,
+    "does_not_start_training": true
+  }
+}
