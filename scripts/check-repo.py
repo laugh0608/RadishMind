@@ -994,6 +994,7 @@ def main() -> int:
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
+    run_python_script("run-radishmind-core-offline-eval.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-training-samples-") as temp_dir:
