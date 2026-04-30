@@ -161,13 +161,198 @@ def build_scaffold_citation(sample: dict[str, Any]) -> dict[str, str]:
     return citation
 
 
-def build_issue_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[dict[str, Any]]:
-    expected_shape = sample.get("expected_response_shape") if isinstance(sample.get("expected_response_shape"), dict) else {}
+def build_citation_scaffold(sample: dict[str, Any]) -> list[dict[str, str]]:
+    base = build_scaffold_citation(sample)
+    evaluation = sample.get("evaluation") if isinstance(sample.get("evaluation"), dict) else {}
+    ordered_ids = evaluation.get("ordered_citation_ids")
+    must_have_paths = evaluation.get("must_have_json_paths")
+    required_count = 0
+    if isinstance(ordered_ids, list) and ordered_ids:
+        citation_ids = [str(item) for item in ordered_ids if str(item).strip()]
+    else:
+        citation_ids = []
+        if isinstance(must_have_paths, list):
+            for path in must_have_paths:
+                path_text = str(path)
+                if path_text.startswith("$.citations[") and "]" in path_text:
+                    index_text = path_text.split("[", 1)[1].split("]", 1)[0]
+                    if index_text.isdigit():
+                        required_count = max(required_count, int(index_text) + 1)
+        citation_ids = [base["id"]] + [f"artifact-{index + 1}" for index in range(1, required_count)]
+
+    if not citation_ids:
+        citation_ids = [base["id"]]
+
+    citations: list[dict[str, str]] = []
+    for index, citation_id in enumerate(citation_ids):
+        citation = dict(base)
+        citation["id"] = citation_id
+        if index > 0:
+            citation["label"] = f"{base['label']} supporting citation {index + 1}"
+        citations.append(citation)
+    return citations
+
+
+def get_evaluation(sample: dict[str, Any]) -> dict[str, Any]:
+    evaluation = sample.get("evaluation")
+    return evaluation if isinstance(evaluation, dict) else {}
+
+
+def get_expected_shape(sample: dict[str, Any]) -> dict[str, Any]:
+    expected_shape = sample.get("expected_response_shape")
+    return expected_shape if isinstance(expected_shape, dict) else {}
+
+
+def get_expected_risk_level(sample: dict[str, Any], *, default: str = "low") -> str:
+    expected_risk_level = get_evaluation(sample).get("expected_risk_level")
+    return str(expected_risk_level) if expected_risk_level in {"low", "medium", "high"} else default
+
+
+def parse_json_path_expected_value(raw_value: str) -> Any:
+    stripped = raw_value.strip()
+    if stripped == "true":
+        return True
+    if stripped == "false":
+        return False
+    if stripped.startswith('"') and stripped.endswith('"'):
+        return stripped[1:-1]
+    return stripped
+
+
+def iter_must_have_path_values(sample: dict[str, Any], prefix: str) -> list[tuple[str, Any]]:
+    values: list[tuple[str, Any]] = []
+    must_have_paths = get_evaluation(sample).get("must_have_json_paths")
+    if not isinstance(must_have_paths, list):
+        return values
+    for path in must_have_paths:
+        path_text = str(path)
+        if not path_text.startswith(prefix) or "=" not in path_text:
+            continue
+        key = path_text[len(prefix) :].split("=", 1)[0]
+        raw_value = path_text.split("=", 1)[1]
+        if key:
+            values.append((key, parse_json_path_expected_value(raw_value)))
+    return values
+
+
+def set_nested_patch_value(patch: dict[str, Any], key_path: str, value: Any) -> None:
+    segments = key_path.split(".")
+    current: Any = patch
+    for index, segment in enumerate(segments):
+        is_last = index == len(segments) - 1
+        if "[" in segment and segment.endswith("]"):
+            key = segment.split("[", 1)[0]
+            index_text = segment.split("[", 1)[1].rstrip("]")
+            if not index_text.isdigit():
+                return
+            item_index = int(index_text)
+            target_list = current.setdefault(key, []) if isinstance(current, dict) else []
+            if not isinstance(target_list, list):
+                return
+            while len(target_list) <= item_index:
+                target_list.append(None)
+            if is_last:
+                target_list[item_index] = value
+            else:
+                if not isinstance(target_list[item_index], dict):
+                    target_list[item_index] = {}
+                current = target_list[item_index]
+            continue
+        if is_last:
+            current[segment] = value
+            continue
+        current = current.setdefault(segment, {})
+        if not isinstance(current, dict):
+            return
+
+
+def citation_ids_for_action(sample: dict[str, Any], *, fallback_ids: list[str]) -> list[str]:
+    evaluation = get_evaluation(sample)
+    sequences = evaluation.get("ordered_action_citation_sequences")
+    if isinstance(sequences, list):
+        for sequence in sequences:
+            if isinstance(sequence, dict) and int(sequence.get("action_index") or 0) == 0:
+                values = sequence.get("values")
+                if isinstance(values, list) and values:
+                    return [str(item) for item in values if str(item).strip()]
+    return fallback_ids
+
+
+def citation_ids_for_issue(sample: dict[str, Any], *, issue_index: int, fallback_ids: list[str]) -> list[str]:
+    sequences = get_evaluation(sample).get("ordered_issue_citation_sequences")
+    if isinstance(sequences, list):
+        for sequence in sequences:
+            if isinstance(sequence, dict) and int(sequence.get("issue_index") or 0) == issue_index:
+                values = sequence.get("values")
+                if isinstance(values, list) and values:
+                    return [str(item) for item in values if str(item).strip()]
+    return fallback_ids
+
+
+def extract_expected_connection_placeholder(sample: dict[str, Any]) -> dict[str, Any]:
+    evaluation = get_evaluation(sample)
+    placeholder: dict[str, Any] = {}
+    marker = "$.proposed_actions[0].patch.connection_placeholder."
+    for key, value in iter_must_have_path_values(sample, marker):
+        placeholder[key] = value
+    ordered_keys = evaluation.get("ordered_connection_placeholder_keys")
+    if isinstance(ordered_keys, list):
+        for entry in ordered_keys:
+            if not isinstance(entry, dict) or int(entry.get("action_index") or 0) != 0:
+                continue
+            keys = entry.get("keys")
+            if isinstance(keys, list):
+                for key_value in keys:
+                    key = str(key_value)
+                    if key and key not in placeholder:
+                        placeholder[key] = True if key.startswith("requires_") else "consumer_or_export_sink"
+    return placeholder
+
+
+def extract_expected_action_target(sample: dict[str, Any], *, fallback_type: str, fallback_id: str) -> dict[str, str]:
+    target = {
+        "type": fallback_type,
+        "id": fallback_id,
+    }
+    marker = "$.proposed_actions[0].target."
+    for key, value in iter_must_have_path_values(sample, marker):
+        if key in {"type", "id"} and isinstance(value, str) and value:
+            target[key] = value
+    return target
+
+
+def extract_expected_candidate_patch(sample: dict[str, Any]) -> dict[str, Any]:
+    patch: dict[str, Any] = {}
+    marker = "$.proposed_actions[0].patch."
+    for key, value in iter_must_have_path_values(sample, marker):
+        set_nested_patch_value(patch, key, value)
+    return patch
+
+
+def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> list[dict[str, Any]]:
+    expected_shape = get_expected_shape(sample)
     if expected_shape.get("requires_issues") is not True:
         return []
 
-    evaluation = sample.get("evaluation") if isinstance(sample.get("evaluation"), dict) else {}
+    evaluation = get_evaluation(sample)
     notes = str(evaluation.get("notes") or "").strip()
+    ordered_issue_codes = evaluation.get("ordered_issue_codes")
+    if isinstance(ordered_issue_codes, list) and ordered_issue_codes:
+        return [
+            {
+                "code": str(code),
+                "message": notes or f"需要审查 {code}。",
+                "severity": "error" if index == 0 else "warning",
+                "citation_ids": citation_ids_for_issue(
+                    sample,
+                    issue_index=index,
+                    fallback_ids=citation_ids[: max(1, min(len(citation_ids), 4))],
+                ),
+            }
+            for index, code in enumerate(ordered_issue_codes)
+            if str(code).strip()
+        ]
+
     project = str(sample.get("project") or "")
     task = str(sample.get("task") or "")
     if project == "radish" and task == "answer_docs_question":
@@ -176,7 +361,7 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[di
                 "code": "INSUFFICIENT_EVIDENCE",
                 "message": notes or "当前证据不足，不能直接给出确定结论。",
                 "severity": "warning",
-                "citation_ids": [citation_id],
+                "citation_ids": citation_ids[:1],
             }
         ]
 
@@ -191,7 +376,7 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[di
                 "severity": str(diagnostic.get("severity") or "warning")
                 if str(diagnostic.get("severity") or "warning") in {"info", "warning", "error"}
                 else "warning",
-                "citation_ids": [citation_id],
+                "citation_ids": citation_ids[: max(1, min(len(citation_ids), 3))],
             }
         ]
 
@@ -200,37 +385,43 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[di
             "code": "REVIEW_REQUIRED",
             "message": notes or "需要进一步审查输入上下文。",
             "severity": "warning",
-            "citation_ids": [citation_id],
+            "citation_ids": citation_ids[:1],
         }
     ]
 
 
-def build_candidate_edit_scaffold(sample: dict[str, Any], *, citation_id: str) -> dict[str, Any]:
+def build_candidate_edit_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> dict[str, Any]:
     request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
     context = request.get("context") if isinstance(request.get("context"), dict) else {}
     diagnostics = context.get("diagnostics") if isinstance(context.get("diagnostics"), list) else []
     diagnostic = next((item for item in diagnostics if isinstance(item, dict)), {})
     target_type = str(diagnostic.get("target_type") or "object")
     target_id = str(diagnostic.get("target_id") or "target-id")
+    target = extract_expected_action_target(sample, fallback_type=target_type, fallback_id=target_id)
+    action_citation_ids = citation_ids_for_action(sample, fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))])
+    patch = extract_expected_candidate_patch(sample)
+    connection_placeholder = extract_expected_connection_placeholder(sample)
+    if not connection_placeholder:
+        connection_placeholder = {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": True,
+        }
+    if "connection_placeholder" not in patch:
+        patch["connection_placeholder"] = connection_placeholder
+    risk_level = get_expected_risk_level(sample, default="high")
     return {
         "kind": "candidate_edit",
         "title": "生成待人工确认的 flowsheet 编辑提案",
-        "target": {
-            "type": target_type,
-            "id": target_id,
-        },
+        "target": target,
         "rationale": str(diagnostic.get("message") or "根据当前诊断生成候选编辑；该提案只供人工确认，不直接写回。"),
-        "patch": {
-            "review_required": True,
-            "source_diagnostic_code": str(diagnostic.get("code") or "DIAGNOSTIC_REVIEW_REQUIRED"),
-        },
-        "risk_level": "high",
+        "patch": patch,
+        "risk_level": risk_level,
         "requires_confirmation": True,
-        "citation_ids": [citation_id],
+        "citation_ids": action_citation_ids,
     }
 
 
-def build_ghost_completion_scaffold(sample: dict[str, Any], *, citation_id: str) -> dict[str, Any]:
+def build_ghost_completion_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> dict[str, Any]:
     request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
     context = request.get("context") if isinstance(request.get("context"), dict) else {}
     candidates = context.get("legal_candidate_completions") if isinstance(context.get("legal_candidate_completions"), list) else []
@@ -269,12 +460,12 @@ def build_ghost_completion_scaffold(sample: dict[str, Any], *, citation_id: str)
         },
         "risk_level": "low",
         "requires_confirmation": False,
-        "citation_ids": [citation_id],
+        "citation_ids": citation_ids[:1],
     }
 
 
-def build_action_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[dict[str, Any]]:
-    expected_shape = sample.get("expected_response_shape") if isinstance(sample.get("expected_response_shape"), dict) else {}
+def build_action_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> list[dict[str, Any]]:
+    expected_shape = get_expected_shape(sample)
     if expected_shape.get("allow_proposed_actions") is False:
         return []
     required_action_kinds = expected_shape.get("required_action_kinds")
@@ -284,9 +475,9 @@ def build_action_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[d
     actions: list[dict[str, Any]] = []
     for action_kind in [str(item) for item in required_action_kinds]:
         if action_kind == "candidate_edit":
-            actions.append(build_candidate_edit_scaffold(sample, citation_id=citation_id))
+            actions.append(build_candidate_edit_scaffold(sample, citation_ids=citation_ids))
         elif action_kind == "ghost_completion":
-            actions.append(build_ghost_completion_scaffold(sample, citation_id=citation_id))
+            actions.append(build_ghost_completion_scaffold(sample, citation_ids=citation_ids))
         elif action_kind == "read_only_check":
             actions.append(
                 {
@@ -295,16 +486,17 @@ def build_action_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[d
                     "rationale": "仅建议调用侧进行只读核查，不写回业务状态。",
                     "risk_level": "low",
                     "requires_confirmation": False,
-                    "citation_ids": [citation_id],
+                    "citation_ids": citation_ids[:1],
                 }
             )
     return actions
 
 
 def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) -> dict[str, Any]:
-    citation = build_scaffold_citation(sample)
-    actions = build_action_scaffold(sample, citation_id=citation["id"])
-    issues = build_issue_scaffold(sample, citation_id=citation["id"])
+    citations = build_citation_scaffold(sample)
+    citation_ids = [citation["id"] for citation in citations]
+    actions = build_action_scaffold(sample, citation_ids=citation_ids)
+    issues = build_issue_scaffold(sample, citation_ids=citation_ids)
     scaffold = {
         "schema_version": 1,
         "status": "ok",
@@ -315,33 +507,29 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
             {
                 "kind": "direct_answer",
                 "text": "给出可展示给用户的回答。",
-                "citation_ids": [citation["id"]]
+                "citation_ids": citation_ids[:1]
             }
         ],
         "issues": issues,
         "proposed_actions": actions,
-        "citations": [citation],
+        "citations": citations,
         "confidence": 0.8,
         "risk_level": "low",
         "requires_confirmation": False,
     }
-    expected_shape = sample.get("expected_response_shape")
-    if isinstance(expected_shape, dict):
-        status = expected_shape.get("status")
-        if status in {"ok", "partial", "failed"}:
-            scaffold["status"] = status
-        if expected_shape.get("allow_proposed_actions") is False:
-            scaffold["proposed_actions"] = []
-            scaffold["requires_confirmation"] = False
-    evaluation = sample.get("evaluation")
-    if isinstance(evaluation, dict):
-        expected_risk_level = evaluation.get("expected_risk_level")
-        if expected_risk_level in {"low", "medium", "high"}:
-            scaffold["risk_level"] = expected_risk_level
-            if expected_risk_level == "high":
-                scaffold["requires_confirmation"] = True
-            elif expected_shape.get("allow_proposed_actions") is False:
-                scaffold["requires_confirmation"] = False
+    expected_shape = get_expected_shape(sample)
+    status = expected_shape.get("status")
+    if status in {"ok", "partial", "failed"}:
+        scaffold["status"] = status
+    if expected_shape.get("allow_proposed_actions") is False:
+        scaffold["proposed_actions"] = []
+        scaffold["requires_confirmation"] = False
+    expected_risk_level = get_expected_risk_level(sample)
+    scaffold["risk_level"] = expected_risk_level
+    if actions:
+        scaffold["requires_confirmation"] = task == "suggest_flowsheet_edits"
+    elif expected_shape.get("allow_proposed_actions") is False:
+        scaffold["requires_confirmation"] = False
     return scaffold
 
 
@@ -357,10 +545,13 @@ def build_output_contract_text(*, project: str, task: str, sample: dict[str, Any
         "status 只能是 ok、partial 或 failed；risk_level 只能是 low、medium 或 high；confidence 必须是 0 到 1 的数字。\n"
         "answers、issues、proposed_actions、citations 即使为空也必须输出数组。\n"
         "不要输出 null；不知道时用空数组、低置信度和简短说明。\n"
+        "下面 scaffold 中的 status、risk_level、requires_confirmation、project、task、schema_version、"
+        "issue code 顺序、citation id 顺序、issue/action citation_ids 顺序、action target 和 patch key 是硬约束，必须照抄；"
+        "只允许改写 summary、answers[*].text、issues[*].message、proposed_actions[*].title 和 rationale 这类自然语言字段。\n"
         "issues[*] 只能包含 code、message、severity、citation_ids；禁止输出 target_id、target_type 或其它额外字段。\n"
         "所有 citation_ids 必须引用 citations 中已经存在的 id。\n"
         "如果 expected_response_shape.requires_citations=true，answers[0].citation_ids 不能为空；"
-        "如果只有一个 citations[0].id，就把它原样复制到 answers[0].citation_ids。\n"
+        "如果 scaffold 里已有 citations，就必须保留这些 citations，并把相关 id 复制到 answer/issue/action 的 citation_ids。\n"
         "所有 proposed_actions 都必须包含 kind、title、rationale、risk_level、requires_confirmation。\n"
         "proposed_actions[*] 不能使用 text、type、reason 字段；动作说明必须写入 title 和 rationale。\n"
         "candidate_edit 必须包含 target 与 patch；ghost_completion 必须包含 target、patch、preview、apply。\n"
@@ -688,6 +879,8 @@ def summarize_validation_error(exc: Exception) -> str:
 
 def categorize_failure(message: str) -> str:
     lowered = message.lower()
+    if "json object" in lowered or "jsondecode" in lowered or "decode" in lowered:
+        return "generation_parse"
     if "confidence" in lowered:
         return "missing_confidence"
     if "patch" in lowered or "preview" in lowered or "apply" in lowered:
@@ -757,23 +950,38 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         invalid_response_relpath = Path("invalid-responses") / f"{sample_id}.candidate-response.invalid.json"
         write_json(prompt_dir / prompt_relpath.name, prompt_document)
 
-        candidate_response, response_source = build_candidate_response(
-            sample,
-            provider_id=provider_id,
-            prompt_document=prompt_document,
-            local_runtime=local_runtime,
-            max_new_tokens=args.max_new_tokens,
-        )
         response_valid = True
         validation_error: str | None = None
         try:
-            validate_candidate_response(candidate_response, sample=sample, response_schema=response_schema)
-        except Exception as exc:
+            candidate_response, response_source = build_candidate_response(
+                sample,
+                provider_id=provider_id,
+                prompt_document=prompt_document,
+                local_runtime=local_runtime,
+                max_new_tokens=args.max_new_tokens,
+            )
+        except (Exception, SystemExit) as exc:
             if not args.allow_invalid_output:
                 raise
             response_valid = False
-            validation_error = summarize_validation_error(exc)
+            response_source = provider_id
+            validation_error = str(exc) or "candidate response generation failed"
+            candidate_response = {
+                "kind": "invalid_candidate_response",
+                "sample_id": sample_id,
+                "provider_id": provider_id,
+                "error": validation_error,
+            }
             add_count(schema_failure_categories, categorize_failure(validation_error))
+        if response_valid:
+            try:
+                validate_candidate_response(candidate_response, sample=sample, response_schema=response_schema)
+            except Exception as exc:
+                if not args.allow_invalid_output:
+                    raise
+                response_valid = False
+                validation_error = summarize_validation_error(exc)
+                add_count(schema_failure_categories, categorize_failure(validation_error))
 
         if response_valid:
             valid_response_count += 1
