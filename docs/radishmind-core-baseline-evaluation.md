@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-04-29
+更新时间：2026-04-30
 
 ## 文档目的
 
@@ -90,6 +90,23 @@
 `4B` 只在 `3B` 明确低于阻塞阈值或 citation / reasoning 稳定性不足时进入对照；`7B` 只在 `3B/4B` 都无法满足关键阻塞指标，且问题不能通过数据、prompt 或规则校验解决时进入评估。
 
 图片像素生成仍不进入 `RadishMind-Core` 指标；模型只负责结构化图片生成意图、约束和审查信息。
+
+## 当前本地候选观测
+
+当前已用同一批 9 条 M4 fixture 对本地 `Qwen2.5-0.5B-Instruct` 与 `Qwen2.5-1.5B-Instruct` 做小规模候选输出观测。该观测只用于验证 candidate wrapper、prompt scaffold、schema/task validator、性能统计和结构化修复策略，不代表 `RadishMind-Core` 正式晋级。
+
+raw 观测结论：
+
+- `Qwen2.5-0.5B-Instruct` v8：`schema_valid=7/9`，`task_valid=0/7 schema-valid`
+- `Qwen2.5-1.5B-Instruct` raw：`schema_valid=8/9`，`task_valid=1/8 schema-valid`
+- 两者都仍会改写或削弱 `status / risk_level / requires_confirmation` 等硬字段；1.5B 有容量改善，但尚不足以直接作为可晋级 student/base 结论
+
+repaired 观测结论：
+
+- `run-radishmind-core-candidate.py --repair-hard-fields` 会在 schema/task 校验前，用 prompt scaffold 派生的硬字段修复 `status / risk_level / requires_confirmation / action kind / action shape / issue / citation / answer kind`
+- 1.5B repaired 在同批 9 条 fixture 上达到 `schema_valid=9/9`、`task_valid=9/9`
+- 本轮 1.5B repaired 生成观测为：`json_extracted_count=9`、`hit_max_new_tokens_count=0`、总输入 `16650` token、总输出 `3125` token、总生成耗时约 `619.195s`
+- repaired 结果只能证明后处理链路可行，不能替代 raw 模型能力；后续晋级判断必须同时保留 raw summary、repaired summary、修复路径统计、样本覆盖说明和人工复核结论
 
 ## 离线评测样本选择与结果记录
 
