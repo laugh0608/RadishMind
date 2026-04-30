@@ -161,8 +161,150 @@ def build_scaffold_citation(sample: dict[str, Any]) -> dict[str, str]:
     return citation
 
 
+def build_issue_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[dict[str, Any]]:
+    expected_shape = sample.get("expected_response_shape") if isinstance(sample.get("expected_response_shape"), dict) else {}
+    if expected_shape.get("requires_issues") is not True:
+        return []
+
+    evaluation = sample.get("evaluation") if isinstance(sample.get("evaluation"), dict) else {}
+    notes = str(evaluation.get("notes") or "").strip()
+    project = str(sample.get("project") or "")
+    task = str(sample.get("task") or "")
+    if project == "radish" and task == "answer_docs_question":
+        return [
+            {
+                "code": "INSUFFICIENT_EVIDENCE",
+                "message": notes or "当前证据不足，不能直接给出确定结论。",
+                "severity": "warning",
+                "citation_ids": [citation_id],
+            }
+        ]
+
+    request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
+    diagnostics = request.get("context", {}).get("diagnostics", []) if isinstance(request.get("context"), dict) else []
+    if isinstance(diagnostics, list) and diagnostics:
+        diagnostic = next((item for item in diagnostics if isinstance(item, dict)), {})
+        return [
+            {
+                "code": str(diagnostic.get("code") or "DIAGNOSTIC_REVIEW_REQUIRED"),
+                "message": str(diagnostic.get("message") or "需要基于诊断信息生成候选建议。"),
+                "severity": str(diagnostic.get("severity") or "warning")
+                if str(diagnostic.get("severity") or "warning") in {"info", "warning", "error"}
+                else "warning",
+                "citation_ids": [citation_id],
+            }
+        ]
+
+    return [
+        {
+            "code": "REVIEW_REQUIRED",
+            "message": notes or "需要进一步审查输入上下文。",
+            "severity": "warning",
+            "citation_ids": [citation_id],
+        }
+    ]
+
+
+def build_candidate_edit_scaffold(sample: dict[str, Any], *, citation_id: str) -> dict[str, Any]:
+    request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
+    context = request.get("context") if isinstance(request.get("context"), dict) else {}
+    diagnostics = context.get("diagnostics") if isinstance(context.get("diagnostics"), list) else []
+    diagnostic = next((item for item in diagnostics if isinstance(item, dict)), {})
+    target_type = str(diagnostic.get("target_type") or "object")
+    target_id = str(diagnostic.get("target_id") or "target-id")
+    return {
+        "kind": "candidate_edit",
+        "title": "生成待人工确认的 flowsheet 编辑提案",
+        "target": {
+            "type": target_type,
+            "id": target_id,
+        },
+        "rationale": str(diagnostic.get("message") or "根据当前诊断生成候选编辑；该提案只供人工确认，不直接写回。"),
+        "patch": {
+            "review_required": True,
+            "source_diagnostic_code": str(diagnostic.get("code") or "DIAGNOSTIC_REVIEW_REQUIRED"),
+        },
+        "risk_level": "high",
+        "requires_confirmation": True,
+        "citation_ids": [citation_id],
+    }
+
+
+def build_ghost_completion_scaffold(sample: dict[str, Any], *, citation_id: str) -> dict[str, Any]:
+    request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
+    context = request.get("context") if isinstance(request.get("context"), dict) else {}
+    candidates = context.get("legal_candidate_completions") if isinstance(context.get("legal_candidate_completions"), list) else []
+    candidate = next((item for item in candidates if isinstance(item, dict) and item.get("is_tab_default") is True), None)
+    if not isinstance(candidate, dict):
+        candidate = next((item for item in candidates if isinstance(item, dict)), {})
+    candidate_ref = str(candidate.get("candidate_ref") or "candidate-ref")
+    target_unit_id = str(candidate.get("target_unit_id") or context.get("selected_unit", {}).get("id") or "unit-id")
+    port_key = str(candidate.get("target_port_key") or "port-key")
+    stream_name = str(candidate.get("suggested_stream_name") or "ghost-stream")
+    return {
+        "kind": "ghost_completion",
+        "title": "生成合法 ghost completion 候选",
+        "target": {
+            "type": "unit_port",
+            "unit_id": target_unit_id,
+            "port_key": port_key,
+        },
+        "rationale": "仅从 legal_candidate_completions 中选择候选，作为可预览的编辑器 ghost。",
+        "patch": {
+            "ghost_kind": str(candidate.get("ghost_kind") or "ghost_connection"),
+            "candidate_ref": candidate_ref,
+            "target_port_key": port_key,
+            "ghost_stream_name": stream_name,
+        },
+        "preview": {
+            "ghost_color": "gray",
+            "accept_key": "Tab" if candidate.get("is_tab_default") is True else "manual_only",
+            "render_priority": 1,
+        },
+        "apply": {
+            "command_kind": "accept_ghost_completion",
+            "payload": {
+                "candidate_ref": candidate_ref,
+            },
+        },
+        "risk_level": "low",
+        "requires_confirmation": False,
+        "citation_ids": [citation_id],
+    }
+
+
+def build_action_scaffold(sample: dict[str, Any], *, citation_id: str) -> list[dict[str, Any]]:
+    expected_shape = sample.get("expected_response_shape") if isinstance(sample.get("expected_response_shape"), dict) else {}
+    if expected_shape.get("allow_proposed_actions") is False:
+        return []
+    required_action_kinds = expected_shape.get("required_action_kinds")
+    if not isinstance(required_action_kinds, list) or not required_action_kinds:
+        return []
+
+    actions: list[dict[str, Any]] = []
+    for action_kind in [str(item) for item in required_action_kinds]:
+        if action_kind == "candidate_edit":
+            actions.append(build_candidate_edit_scaffold(sample, citation_id=citation_id))
+        elif action_kind == "ghost_completion":
+            actions.append(build_ghost_completion_scaffold(sample, citation_id=citation_id))
+        elif action_kind == "read_only_check":
+            actions.append(
+                {
+                    "kind": "read_only_check",
+                    "title": "执行只读核查",
+                    "rationale": "仅建议调用侧进行只读核查，不写回业务状态。",
+                    "risk_level": "low",
+                    "requires_confirmation": False,
+                    "citation_ids": [citation_id],
+                }
+            )
+    return actions
+
+
 def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) -> dict[str, Any]:
     citation = build_scaffold_citation(sample)
+    actions = build_action_scaffold(sample, citation_id=citation["id"])
+    issues = build_issue_scaffold(sample, citation_id=citation["id"])
     scaffold = {
         "schema_version": 1,
         "status": "ok",
@@ -176,8 +318,8 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
                 "citation_ids": [citation["id"]]
             }
         ],
-        "issues": [],
-        "proposed_actions": [],
+        "issues": issues,
+        "proposed_actions": actions,
         "citations": [citation],
         "confidence": 0.8,
         "risk_level": "low",
@@ -208,16 +350,20 @@ def build_output_contract_text(*, project: str, task: str, sample: dict[str, Any
     return (
         "输出必须是一个严格 JSON object，并且必须能通过 contracts/copilot-response.schema.json。\n"
         "禁止输出 markdown 代码块、解释性前后缀、注释、尾逗号、单引号、NaN、Infinity 或 JSON 字符串包裹的 JSON。\n"
+        "不要省略骨架中的任何顶层必填字段；即使你修改内容，也必须保留 confidence、risk_level 和 requires_confirmation。\n"
         "顶层只能包含这些字段：schema_version, status, project, task, summary, answers, issues, "
         "proposed_actions, citations, confidence, risk_level, requires_confirmation。\n"
         f"project 必须等于 {project}；task 必须等于 {task}；schema_version 必须等于 1。\n"
         "status 只能是 ok、partial 或 failed；risk_level 只能是 low、medium 或 high；confidence 必须是 0 到 1 的数字。\n"
         "answers、issues、proposed_actions、citations 即使为空也必须输出数组。\n"
         "不要输出 null；不知道时用空数组、低置信度和简短说明。\n"
+        "issues[*] 只能包含 code、message、severity、citation_ids；禁止输出 target_id、target_type 或其它额外字段。\n"
         "所有 citation_ids 必须引用 citations 中已经存在的 id。\n"
         "如果 expected_response_shape.requires_citations=true，answers[0].citation_ids 不能为空；"
         "如果只有一个 citations[0].id，就把它原样复制到 answers[0].citation_ids。\n"
         "所有 proposed_actions 都必须包含 kind、title、rationale、risk_level、requires_confirmation。\n"
+        "proposed_actions[*] 不能使用 text、type、reason 字段；动作说明必须写入 title 和 rationale。\n"
+        "candidate_edit 必须包含 target 与 patch；ghost_completion 必须包含 target、patch、preview、apply。\n"
         "candidate_edit / candidate_operation / read_only_check / ghost_completion 只能作为候选建议，不得声称已经写回业务真相源。\n"
         "high 风险动作或任何会修改业务状态的动作，action.requires_confirmation 和顶层 requires_confirmation 都必须为 true。\n"
         "如果没有足够证据提出动作，proposed_actions 输出 []。\n"
@@ -540,6 +686,29 @@ def summarize_validation_error(exc: Exception) -> str:
     return str(exc)
 
 
+def categorize_failure(message: str) -> str:
+    lowered = message.lower()
+    if "confidence" in lowered:
+        return "missing_confidence"
+    if "patch" in lowered or "preview" in lowered or "apply" in lowered:
+        return "action_shape"
+    if "additional properties" in lowered or "target_id" in lowered or "target_type" in lowered:
+        return "additional_properties"
+    if "risk_level" in lowered or "requires_confirmation" in lowered:
+        return "risk_confirmation"
+    if "citation" in lowered:
+        return "citation_alignment"
+    if "status" in lowered:
+        return "status_mismatch"
+    if "issue" in lowered:
+        return "issue_boundary"
+    return "other"
+
+
+def add_count(counter: dict[str, int], key: str) -> None:
+    counter[key] = counter.get(key, 0) + 1
+
+
 def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> dict[str, Any]:
     source_eval_manifest_path = normalize_repo_path(str(manifest["source_eval_manifest"]))
     require(source_eval_manifest_path is not None, "source_eval_manifest path is required")
@@ -573,6 +742,10 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     invalid_response_count = 0
     task_validated_count = 0
     task_invalid_count = 0
+    schema_valid_counts_by_task: dict[str, int] = {}
+    task_valid_counts_by_task: dict[str, int] = {}
+    schema_failure_categories: dict[str, int] = {}
+    task_failure_categories: dict[str, int] = {}
     for sample, selected_sample in iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id):
         jsonschema.validate(sample["input_request"], request_schema)
         task_key = f"{sample['project']}/{sample['task']}"
@@ -600,9 +773,11 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 raise
             response_valid = False
             validation_error = summarize_validation_error(exc)
+            add_count(schema_failure_categories, categorize_failure(validation_error))
 
         if response_valid:
             valid_response_count += 1
+            add_count(schema_valid_counts_by_task, task_key)
             write_json(response_dir / response_relpath.name, candidate_response)
         else:
             invalid_response_count += 1
@@ -618,8 +793,11 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             task_response_valid = len(task_validation_violations) == 0
             if task_response_valid:
                 task_validated_count += 1
+                add_count(task_valid_counts_by_task, task_key)
             else:
                 task_invalid_count += 1
+                for violation in task_validation_violations:
+                    add_count(task_failure_categories, categorize_failure(violation))
         outputs.append(
             {
                 "sample_id": sample_id,
@@ -640,6 +818,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
 
     sample_count = len(outputs)
     all_valid = invalid_response_count == 0
+    task_validation_attempted = task_validated_count + task_invalid_count
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_run_summary",
@@ -671,6 +850,22 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 if args.validate_task
                 else {}
             ),
+        },
+        "observation_summary": {
+            "schema_valid_rate": valid_response_count / sample_count if sample_count else 0.0,
+            "schema_invalid_rate": invalid_response_count / sample_count if sample_count else 0.0,
+            **(
+                {
+                    "task_valid_rate": task_validated_count / task_validation_attempted if task_validation_attempted else 0.0,
+                    "task_validation_attempted": task_validation_attempted,
+                }
+                if args.validate_task
+                else {}
+            ),
+            "schema_valid_counts_by_task": dict(sorted(schema_valid_counts_by_task.items())),
+            **({"task_valid_counts_by_task": dict(sorted(task_valid_counts_by_task.items()))} if args.validate_task else {}),
+            "schema_failure_categories": dict(sorted(schema_failure_categories.items())),
+            **({"task_failure_categories": dict(sorted(task_failure_categories.items()))} if args.validate_task else {}),
         },
         "outputs": outputs,
         "next_step": (

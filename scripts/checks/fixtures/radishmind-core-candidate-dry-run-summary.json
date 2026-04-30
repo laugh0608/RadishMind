@@ -38,6 +38,16 @@
     "does_not_download_model_artifacts": true,
     "does_not_start_training": true
   },
+  "observation_summary": {
+    "schema_valid_rate": 1.0,
+    "schema_invalid_rate": 0.0,
+    "schema_valid_counts_by_task": {
+      "radish/answer_docs_question": 3,
+      "radishflow/suggest_flowsheet_edits": 3,
+      "radishflow/suggest_ghost_completion": 3
+    },
+    "schema_failure_categories": {}
+  },
   "outputs": [
     {
       "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
