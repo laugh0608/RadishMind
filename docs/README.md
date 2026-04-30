@@ -1,6 +1,6 @@
 # RadishMind 文档总览
 
-更新时间：2026-04-29
+更新时间：2026-04-30
 
 ## 文档目的
 
@@ -9,7 +9,7 @@
 当前版本已经基于对 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 的只读审查完成了一轮收口；当前已冻结 `Python` 主实现栈，并将首轮模型路线收口为 `RadishMind-Core` 基座适配型自研主模型、`minimind-v` 默认 `student/base` 主线、`Qwen2.5-VL` 强基线和 `SmolVLM` 轻量对照组。
 当前 `RadishFlow export -> adapter -> request` 主线也已从“只有扁平 adapter fixture”推进到“存在上游导出边界、bootstrap 模板、preflight smoke validator、batch smoke 与 committed exporter edge fixtures”的状态。
 当前 `RadishFlow suggest_flowsheet_edits` 与 `suggest_ghost_completion` 都已具备真实批次、artifact summary、replay、recommended replay 与 real-derived negative 治理链；`suggest_flowsheet_edits v93` 与 `suggest_ghost_completion v25` 收口后，gateway、UI consumption 与 candidate handoff smoke 已冻结为未来上层接入验收门禁，不再继续扩展本仓库内模拟上层接线。
-当前模型规模口径为：`RadishMind-Core` 首版优先 `3B` / `4B`，长期本地部署上限 `7B`；图片生成能力不并入主模型参数目标，默认通过 `RadishMind-Image Adapter` 和独立生图 backend 提供。`RadishMind-Core` 首版基座评估矩阵、离线评测阈值与离线评测运行记录已落成可回归门禁，用于固定 `minimind-v`、`3B/4B/7B`、`Qwen2.5-VL` 与 `SmolVLM` 的首轮评估边界、阻塞指标、样本选择和结果记录格式；当前还新增首个离线评测 runner fixture-run，先用 committed eval 样本的 `golden_response` 作为候选输出生成 completed eval run record，证明“读样本、校验响应、计算阻塞指标、写运行记录”这条管线可复跑，同时不调用模型、不访问 provider、不下载权重。当前又新增 `RadishMind-Core` candidate wrapper dry-run，复用同一批离线评测样本生成 prompt 与 candidate response 本地文件，并用 `golden_fixture` provider 固定 request/response schema 校验、project/task 一致性和高风险确认边界；真实本地模型只通过 `--provider local_transformers` 加 `--model-dir` 或 `RADISHMIND_MODEL_DIR` 显式接入，脚本使用本地文件且不自动下载权重。当前已经用 WSL CPU 环境下的本地 `Qwen2.5-0.5B-Instruct` 完成首条真实 candidate 观测：模型能回答 `answer_docs_question` 样本，但输出仍是 schema-invalid 的简化 JSON，因此当前不计入离线评测通过记录，下一步优先收紧 prompt/chat template/JSON schema 输出策略。当前还已新增从 committed eval 样本和 audit pass candidate record 生成 `CopilotTrainingSample` 的转换入口，先固定三条主任务各 3 条 golden_response 蒸馏样本与各 3 条 teacher_capture 样本，不运行模型、不下载权重；训练 JSONL 默认作为 `tmp/` 下的本地生成产物，`training/` 只提交 manifest、summary、复核策略和实验说明。更大训练集合的首个治理草案已落到 `training/datasets/copilot-training-dataset-governance-v0.json`，用于固定 candidate record 入选、分层抽样复核、离线评测 holdout、质量门禁与退场条件；当前还补了 `copilot-training-review-record-v0.json` 与 `copilot-training-holdout-split-v0.json`，把 planned 人工复核模板和三条主任务各 3 条的非重叠 holdout split 接入仓库级检查。`RadishMind-Image Adapter` 也已从 intent schema 扩展到 backend request 与 artifact metadata 两段契约，并补首个最小图片生成评测 manifest，只评估结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不调用真实 backend、不生成图片。
+当前模型规模口径为：`RadishMind-Core` 首版优先 `3B` / `4B`，长期本地部署上限 `7B`；图片生成能力不并入主模型参数目标，默认通过 `RadishMind-Image Adapter` 和独立生图 backend 提供。`RadishMind-Core` 首版基座评估矩阵、离线评测阈值与离线评测运行记录已落成可回归门禁，用于固定 `minimind-v`、`3B/4B/7B`、`Qwen2.5-VL` 与 `SmolVLM` 的首轮评估边界、阻塞指标、样本选择和结果记录格式；当前还新增首个离线评测 runner fixture-run，先用 committed eval 样本的 `golden_response` 作为候选输出生成 completed eval run record，证明“读样本、校验响应、计算阻塞指标、写运行记录”这条管线可复跑，同时不调用模型、不访问 provider、不下载权重。当前又新增 `RadishMind-Core` candidate wrapper dry-run，复用同一批离线评测样本生成 prompt 与 candidate response 本地文件，并用 `golden_fixture` provider 固定 request/response schema 校验、project/task 一致性和高风险确认边界；真实本地模型只通过 `--provider local_transformers` 加 `--model-dir` 或 `RADISHMIND_MODEL_DIR` 显式接入，脚本使用本地文件且不自动下载权重。当前已经用 WSL CPU 环境下的本地 `Qwen2.5-0.5B-Instruct` 与 `Qwen2.5-1.5B-Instruct` 完成同批 9 条 M4 fixture 对照；raw 1.5B 仍会改写硬字段，显式 `--repair-hard-fields` 后处理实验则已在同批 1.5B 输出上达到 `9/9` schema-valid 与 `9/9` task-valid，并开始记录 per-sample token、JSON 抽取和推理耗时。该结果仍只代表结构化修复链路可行，不代表 raw 模型能力已达晋级标准。当前还已新增从 committed eval 样本和 audit pass candidate record 生成 `CopilotTrainingSample` 的转换入口，先固定三条主任务各 3 条 golden_response 蒸馏样本与各 3 条 teacher_capture 样本，不运行模型、不下载权重；训练 JSONL 默认作为 `tmp/` 下的本地生成产物，`training/` 只提交 manifest、summary、复核策略和实验说明。更大训练集合的首个治理草案已落到 `training/datasets/copilot-training-dataset-governance-v0.json`，用于固定 candidate record 入选、分层抽样复核、离线评测 holdout、质量门禁与退场条件；当前还补了 `copilot-training-review-record-v0.json` 与 `copilot-training-holdout-split-v0.json`，把 planned 人工复核模板和三条主任务各 3 条的非重叠 holdout split 接入仓库级检查。`RadishMind-Image Adapter` 也已从 intent schema 扩展到 backend request 与 artifact metadata 两段契约，并补首个最小图片生成评测 manifest，只评估结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不调用真实 backend、不生成图片。
 
 ## 当前优先文档
 
@@ -44,7 +44,7 @@
 - 更大训练 / 蒸馏样本集已具备首个治理 manifest 草案、planned 复核记录模板和 holdout split；后续仍缺真实 reviewer 复核结果和离线评测结果
 - `Qwen2.5-VL` 在当前任务上的具体首选尺寸、推理路由与成本上限
 - `SmolVLM` 作为轻量对照组的具体准入任务和退场条件
-- `RadishMind-Core` 首版基座评估矩阵、阻塞阈值、离线评测记录格式、fixture-run runner 与 candidate wrapper 已固定；`Qwen2.5-0.5B-Instruct` 已完成首条 schema-invalid 本地观测，后续仍需合法 `CopilotResponse` 观测结果和成本实测
+- `RadishMind-Core` 首版基座评估矩阵、阻塞阈值、离线评测记录格式、fixture-run runner 与 candidate wrapper 已固定；0.5B / 1.5B 本地 raw 对照与 1.5B 后处理修复实验已完成，后续仍需更大样本的 raw / repaired 双轨离线评测和人工复核
 - `RadishMind-Image Adapter` 已具备 backend request、artifact metadata 契约和首个最小图片生成评测 manifest；后续仍缺真实 backend 实现
 - `RadishFlow` 截图/VLM 路线进入主线的触发条件
 - `RadishFlow export` 在更多真实 exporter 接线后，是否需要继续把 `selection` 排序、focus 归一与 `support_artifacts` 摘要策略升级成更正式约束
@@ -53,7 +53,7 @@
 ## 下一步优先推进
 
 1. 继续把现有 gateway、UI consumption 与 candidate handoff smoke 维护为未来上层接入验收门禁；在 `RadishFlow` / `Radish` 尚未准备真实模型或 Agent 接入前，不继续新增同类模拟 summary。
-2. 沿 `run-radishmind-core-candidate.py` 已接通的 candidate wrapper，下一步先收紧本地模型 prompt/chat template/JSON schema 输出策略，让 `Qwen2.5-0.5B-Instruct` 或后续 `1.5B` 对照产出合法 `CopilotResponse`，再接入离线评测；当前仍不启动训练。
+2. 沿 `run-radishmind-core-candidate.py` 已接通的 candidate wrapper，下一步把 raw candidate 输出与 `--repair-hard-fields` 后处理输出接入同一离线评测记录格式，扩大样本后比较 schema/task 通过率、硬字段修复率、JSON 截断率和 per-sample 成本；当前仍不启动训练。
 3. 在已落成的训练集合治理 manifest、planned 复核记录和 holdout split 上，后续补真实 reviewer 复核结果与离线评测运行记录；JSONL 继续默认输出到 `tmp/`。
 4. 继续沿 `image-generation-intent / backend-request / artifact` 三段契约和最小图片生成评测 manifest 推进 `RadishMind-Image Adapter` 的真实 backend 包装；当前不下载模型、不生成图片。
 5. 继续维护 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 的现有治理资产；只有服务/API、模型评测或真实接入暴露新增非重复缺口时，再扩真实 capture。

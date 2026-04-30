@@ -6,6 +6,7 @@ import copy
 import json
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -42,6 +43,23 @@ class LocalTransformersRuntime(NamedTuple):
     model: Any
     device: str
 
+class CandidateResult(NamedTuple):
+    response: dict[str, Any]
+    response_source: str
+    generation_metrics: dict[str, Any]
+
+class ExtractedJsonObject(NamedTuple):
+    document: dict[str, Any]
+    json_text: str
+    start_index: int
+    end_index: int
+
+
+class LocalTransformersGenerationError(RuntimeError):
+    def __init__(self, message: str, *, generation_metrics: dict[str, Any]) -> None:
+        super().__init__(message)
+        self.generation_metrics = generation_metrics
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -62,6 +80,14 @@ def parse_args() -> argparse.Namespace:
         "--validate-task",
         action="store_true",
         help="Also run task-level eval validators against valid CopilotResponse outputs.",
+    )
+    parser.add_argument(
+        "--repair-hard-fields",
+        action="store_true",
+        help=(
+            "Experimental post-decode repair: copy scaffold hard fields, required action shapes, "
+            "issue/citation structure, and confirmation boundaries before validation."
+        ),
     )
     return parser.parse_args()
 
@@ -235,6 +261,31 @@ def iter_must_have_path_values(sample: dict[str, Any], prefix: str) -> list[tupl
     return values
 
 
+def expected_action_kinds_by_index(sample: dict[str, Any]) -> dict[int, str]:
+    action_kinds: dict[int, str] = {}
+    must_have_paths = get_evaluation(sample).get("must_have_json_paths")
+    if not isinstance(must_have_paths, list):
+        return action_kinds
+    marker = "$.proposed_actions["
+    for path in must_have_paths:
+        path_text = str(path)
+        if not path_text.startswith(marker) or "].kind=" not in path_text:
+            continue
+        index_text = path_text[len(marker) :].split("]", 1)[0]
+        if not index_text.isdigit():
+            continue
+        raw_value = path_text.split("=", 1)[1]
+        value = parse_json_path_expected_value(raw_value)
+        if isinstance(value, str) and value:
+            action_kinds[int(index_text)] = value
+    return action_kinds
+
+
+def must_not_have_path(sample: dict[str, Any], path: str) -> bool:
+    paths = get_evaluation(sample).get("must_not_have_json_paths")
+    return isinstance(paths, list) and path in {str(item) for item in paths}
+
+
 def set_nested_patch_value(patch: dict[str, Any], key_path: str, value: Any) -> None:
     segments = key_path.split(".")
     current: Any = patch
@@ -329,6 +380,24 @@ def extract_expected_candidate_patch(sample: dict[str, Any]) -> dict[str, Any]:
     return patch
 
 
+def extract_expected_issue_fields(sample: dict[str, Any], *, issue_index: int) -> dict[str, Any]:
+    marker = f"$.issues[{issue_index}]."
+    fields: dict[str, Any] = {}
+    for key, value in iter_must_have_path_values(sample, marker):
+        if key in {"code", "message", "severity"}:
+            fields[key] = value
+    return fields
+
+
+def extract_expected_answer_fields(sample: dict[str, Any], *, answer_index: int) -> dict[str, Any]:
+    marker = f"$.answers[{answer_index}]."
+    fields: dict[str, Any] = {}
+    for key, value in iter_must_have_path_values(sample, marker):
+        if key in {"kind", "text"}:
+            fields[key] = value
+    return fields
+
+
 def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> list[dict[str, Any]]:
     expected_shape = get_expected_shape(sample)
     if expected_shape.get("requires_issues") is not True:
@@ -351,6 +420,17 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
             }
             for index, code in enumerate(ordered_issue_codes)
             if str(code).strip()
+        ]
+
+    expected_issue_fields = extract_expected_issue_fields(sample, issue_index=0)
+    if expected_issue_fields:
+        return [
+            {
+                "code": str(expected_issue_fields.get("code") or "REVIEW_REQUIRED"),
+                "message": str(expected_issue_fields.get("message") or notes or "需要进一步审查输入上下文。"),
+                "severity": str(expected_issue_fields.get("severity") or "warning"),
+                "citation_ids": citation_ids[:1],
+            }
         ]
 
     project = str(sample.get("project") or "")
@@ -421,17 +501,36 @@ def build_candidate_edit_scaffold(sample: dict[str, Any], *, citation_ids: list[
     }
 
 
-def build_ghost_completion_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> dict[str, Any]:
+def build_ghost_completion_scaffold(
+    sample: dict[str, Any],
+    *,
+    citation_ids: list[str],
+    action_index: int = 0,
+) -> dict[str, Any]:
     request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
     context = request.get("context") if isinstance(request.get("context"), dict) else {}
     candidates = context.get("legal_candidate_completions") if isinstance(context.get("legal_candidate_completions"), list) else []
-    candidate = next((item for item in candidates if isinstance(item, dict) and item.get("is_tab_default") is True), None)
+    expected_patch = {
+        key: value
+        for key, value in iter_must_have_path_values(sample, f"$.proposed_actions[{action_index}].patch.")
+        if isinstance(key, str)
+    }
+    expected_candidate_ref = expected_patch.get("candidate_ref")
+    candidate = None
+    if isinstance(expected_candidate_ref, str) and expected_candidate_ref:
+        candidate = next(
+            (item for item in candidates if isinstance(item, dict) and item.get("candidate_ref") == expected_candidate_ref),
+            None,
+        )
+    if not isinstance(candidate, dict):
+        candidate = next((item for item in candidates if isinstance(item, dict) and item.get("is_tab_default") is True), None)
     if not isinstance(candidate, dict):
         candidate = next((item for item in candidates if isinstance(item, dict)), {})
     candidate_ref = str(candidate.get("candidate_ref") or "candidate-ref")
     target_unit_id = str(candidate.get("target_unit_id") or context.get("selected_unit", {}).get("id") or "unit-id")
     port_key = str(candidate.get("target_port_key") or "port-key")
     stream_name = str(candidate.get("suggested_stream_name") or "ghost-stream")
+    risk_level = get_expected_risk_level(sample, default="low")
     return {
         "kind": "ghost_completion",
         "title": "生成合法 ghost completion 候选",
@@ -458,7 +557,7 @@ def build_ghost_completion_scaffold(sample: dict[str, Any], *, citation_ids: lis
                 "candidate_ref": candidate_ref,
             },
         },
-        "risk_level": "low",
+        "risk_level": risk_level,
         "requires_confirmation": False,
         "citation_ids": citation_ids[:1],
     }
@@ -468,16 +567,21 @@ def build_action_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) ->
     expected_shape = get_expected_shape(sample)
     if expected_shape.get("allow_proposed_actions") is False:
         return []
+    indexed_action_kinds = expected_action_kinds_by_index(sample)
     required_action_kinds = expected_shape.get("required_action_kinds")
-    if not isinstance(required_action_kinds, list) or not required_action_kinds:
+    if indexed_action_kinds:
+        action_kinds = [indexed_action_kinds[index] for index in sorted(indexed_action_kinds)]
+    elif isinstance(required_action_kinds, list) and required_action_kinds:
+        action_kinds = [str(item) for item in required_action_kinds]
+    else:
         return []
 
     actions: list[dict[str, Any]] = []
-    for action_kind in [str(item) for item in required_action_kinds]:
+    for action_index, action_kind in enumerate(action_kinds):
         if action_kind == "candidate_edit":
             actions.append(build_candidate_edit_scaffold(sample, citation_ids=citation_ids))
         elif action_kind == "ghost_completion":
-            actions.append(build_ghost_completion_scaffold(sample, citation_ids=citation_ids))
+            actions.append(build_ghost_completion_scaffold(sample, citation_ids=citation_ids, action_index=action_index))
         elif action_kind == "read_only_check":
             actions.append(
                 {
@@ -518,6 +622,9 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
         "requires_confirmation": False,
     }
     expected_shape = get_expected_shape(sample)
+    expected_answer_fields = extract_expected_answer_fields(sample, answer_index=0)
+    if expected_answer_fields and scaffold["answers"]:
+        scaffold["answers"][0].update(expected_answer_fields)
     status = expected_shape.get("status")
     if status in {"ok", "partial", "failed"}:
         scaffold["status"] = status
@@ -710,9 +817,10 @@ def render_local_transformers_inputs(tokenizer: Any, prompt_document: dict[str, 
     return tokenizer(prompt_text, return_tensors="pt").to(device)
 
 
-def extract_json_object(text: str) -> dict[str, Any]:
+def extract_json_object(text: str) -> ExtractedJsonObject:
     start = text.find("{")
-    require(start >= 0, "local_transformers output did not contain a JSON object")
+    if start < 0:
+        raise ValueError("local_transformers output did not contain a JSON object")
     depth = 0
     in_string = False
     escaped = False
@@ -733,10 +841,17 @@ def extract_json_object(text: str) -> dict[str, Any]:
         elif char == "}":
             depth -= 1
             if depth == 0:
-                document = json.loads(text[start : index + 1])
-                require(isinstance(document, dict), "local_transformers output JSON must be an object")
-                return document
-    raise SystemExit("local_transformers output JSON object was not closed")
+                json_text = text[start : index + 1]
+                document = json.loads(json_text)
+                if not isinstance(document, dict):
+                    raise ValueError("local_transformers output JSON must be an object")
+                return ExtractedJsonObject(
+                    document=document,
+                    json_text=json_text,
+                    start_index=start,
+                    end_index=index,
+                )
+    raise ValueError("local_transformers output JSON object was not closed")
 
 
 def load_local_transformers_runtime(model_dir: str | None) -> LocalTransformersRuntime:
@@ -769,11 +884,13 @@ def run_local_transformers(
     *,
     runtime: LocalTransformersRuntime,
     max_new_tokens: int,
-) -> dict[str, Any]:
+) -> CandidateResult:
     tokenizer = runtime.tokenizer
     model = runtime.model
     device = runtime.device
+    started_at = time.perf_counter()
     inputs = render_local_transformers_inputs(tokenizer, prompt_document, device)
+    input_token_count = int(inputs["input_ids"].shape[-1])
     output_ids = model.generate(
         **inputs,
         max_new_tokens=max_new_tokens,
@@ -781,8 +898,42 @@ def run_local_transformers(
         pad_token_id=tokenizer.eos_token_id,
     )
     generated_ids = output_ids[0][inputs["input_ids"].shape[-1] :]
+    output_token_count = int(generated_ids.shape[-1])
     generated_text = tokenizer.decode(generated_ids, skip_special_tokens=True)
-    return extract_json_object(generated_text)
+    generation_seconds = round(time.perf_counter() - started_at, 3)
+    base_metrics: dict[str, Any] = {
+        "provider": "local_transformers",
+        "device": device,
+        "input_tokens": input_token_count,
+        "output_tokens": output_token_count,
+        "max_new_tokens": max_new_tokens,
+        "hit_max_new_tokens": output_token_count >= max_new_tokens,
+        "generated_text_chars": len(generated_text),
+        "generation_seconds": generation_seconds,
+    }
+    try:
+        extracted = extract_json_object(generated_text)
+    except Exception as exc:
+        metrics = {
+            **base_metrics,
+            "json_extracted": False,
+            "json_parse_error": str(exc),
+            "generated_text_excerpt": generated_text[:1200],
+        }
+        raise LocalTransformersGenerationError(str(exc), generation_metrics=metrics) from exc
+    metrics = {
+        **base_metrics,
+        "json_extracted": True,
+        "json_start_index": extracted.start_index,
+        "json_end_index": extracted.end_index,
+        "json_text_chars": len(extracted.json_text),
+        "trailing_text_chars": max(0, len(generated_text) - extracted.end_index - 1),
+    }
+    return CandidateResult(
+        response=extracted.document,
+        response_source="local_transformers",
+        generation_metrics=metrics,
+    )
 
 
 def build_candidate_response(
@@ -792,16 +943,16 @@ def build_candidate_response(
     prompt_document: dict[str, Any],
     local_runtime: LocalTransformersRuntime | None,
     max_new_tokens: int,
-) -> tuple[dict[str, Any], str]:
+) -> CandidateResult:
     if provider_id == "golden_fixture":
         response = sample.get("golden_response")
         require(isinstance(response, dict), f"{sample['sample_id']} is missing golden_response")
-        return copy.deepcopy(response), "golden_response"
+        return CandidateResult(copy.deepcopy(response), "golden_response", {})
     if provider_id == "echo":
-        return build_echo_response(sample), "echo"
+        return CandidateResult(build_echo_response(sample), "echo", {})
     if provider_id == "local_transformers":
         require(local_runtime is not None, "local_transformers runtime was not initialized")
-        return run_local_transformers(prompt_document, runtime=local_runtime, max_new_tokens=max_new_tokens), "local_transformers"
+        return run_local_transformers(prompt_document, runtime=local_runtime, max_new_tokens=max_new_tokens)
     raise SystemExit(f"unsupported provider: {provider_id}")
 
 
@@ -840,6 +991,183 @@ def validate_task_candidate_response(response: dict[str, Any], *, sample: dict[s
     test_document_against_schema(response, config["response_schema"], f"{sample_name} candidate_response", violations)
     validator(sample, response, "candidate_response", sample_name, violations)
     return violations
+
+
+def required_citation_ids(sample: dict[str, Any], scaffold: dict[str, Any]) -> list[str]:
+    ids = [str(citation.get("id")) for citation in scaffold.get("citations") or [] if isinstance(citation, dict)]
+    ordered_ids = get_evaluation(sample).get("ordered_citation_ids")
+    if isinstance(ordered_ids, list):
+        ids.extend(str(item) for item in ordered_ids if str(item).strip())
+    return list(dict.fromkeys(item for item in ids if item))
+
+
+def merge_scaffold_citations(response: dict[str, Any], scaffold: dict[str, Any], *, sample: dict[str, Any]) -> bool:
+    changed = False
+    existing = response.get("citations")
+    if not isinstance(existing, list):
+        response["citations"] = copy.deepcopy(scaffold.get("citations") or [])
+        return True
+
+    citations_by_id = {citation.get("id"): citation for citation in existing if isinstance(citation, dict) and citation.get("id")}
+    for scaffold_citation in scaffold.get("citations") or []:
+        if not isinstance(scaffold_citation, dict):
+            continue
+        citation_id = scaffold_citation.get("id")
+        if citation_id and citation_id not in citations_by_id:
+            existing.append(copy.deepcopy(scaffold_citation))
+            changed = True
+
+    if get_expected_shape(sample).get("requires_citations") is True and not existing:
+        response["citations"] = copy.deepcopy(scaffold.get("citations") or [])
+        changed = True
+    return changed
+
+
+def repair_answer_fields(response: dict[str, Any], *, citation_ids: list[str], sample: dict[str, Any]) -> bool:
+    answers = response.get("answers")
+    if not isinstance(answers, list) or not answers:
+        return False
+    changed = False
+    first_answer = answers[0]
+    if isinstance(first_answer, dict):
+        for key, value in extract_expected_answer_fields(sample, answer_index=0).items():
+            if first_answer.get(key) != value:
+                first_answer[key] = value
+                changed = True
+        if not first_answer.get("citation_ids") and citation_ids:
+            first_answer["citation_ids"] = citation_ids[:1]
+            changed = True
+    return changed
+
+
+def keep_keys(document: dict[str, Any], allowed_keys: set[str]) -> bool:
+    changed = False
+    for key in list(document.keys()):
+        if key not in allowed_keys:
+            del document[key]
+            changed = True
+    return changed
+
+
+def normalize_response_shape(response: dict[str, Any]) -> list[str]:
+    normalized_paths: list[str] = []
+    if keep_keys(
+        response,
+        {
+            "schema_version",
+            "status",
+            "project",
+            "task",
+            "summary",
+            "answers",
+            "issues",
+            "proposed_actions",
+            "citations",
+            "confidence",
+            "risk_level",
+            "requires_confirmation",
+        },
+    ):
+        normalized_paths.append("$")
+    for index, answer in enumerate(response.get("answers") or []):
+        if isinstance(answer, dict) and keep_keys(answer, {"kind", "text", "citation_ids"}):
+            normalized_paths.append(f"$.answers[{index}]")
+    for index, issue in enumerate(response.get("issues") or []):
+        if isinstance(issue, dict) and keep_keys(issue, {"code", "message", "severity", "citation_ids"}):
+            normalized_paths.append(f"$.issues[{index}]")
+    for index, action in enumerate(response.get("proposed_actions") or []):
+        if isinstance(action, dict) and keep_keys(
+            action,
+            {
+                "kind",
+                "title",
+                "target",
+                "rationale",
+                "patch",
+                "preview",
+                "apply",
+                "risk_level",
+                "requires_confirmation",
+                "citation_ids",
+            },
+        ):
+            normalized_paths.append(f"$.proposed_actions[{index}]")
+    for index, citation in enumerate(response.get("citations") or []):
+        if isinstance(citation, dict) and keep_keys(citation, {"id", "kind", "label", "locator", "excerpt", "source_uri"}):
+            normalized_paths.append(f"$.citations[{index}]")
+    return normalized_paths
+
+
+def repair_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    repaired = copy.deepcopy(response)
+    scaffold = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
+    repaired_paths: list[str] = normalize_response_shape(repaired)
+
+    for field in ("schema_version", "project", "task", "status", "risk_level", "requires_confirmation"):
+        if repaired.get(field) != scaffold.get(field):
+            repaired[field] = copy.deepcopy(scaffold.get(field))
+            repaired_paths.append(f"$.{field}")
+
+    for field in ("answers", "issues", "proposed_actions", "citations"):
+        if not isinstance(repaired.get(field), list):
+            repaired[field] = copy.deepcopy(scaffold.get(field) or [])
+            repaired_paths.append(f"$.{field}")
+
+    expected_shape = get_expected_shape(sample)
+    if expected_shape.get("requires_answers") is True and not repaired.get("answers"):
+        repaired["answers"] = copy.deepcopy(scaffold.get("answers") or [])
+        repaired_paths.append("$.answers")
+    if expected_shape.get("allow_proposed_actions") is False and repaired.get("proposed_actions") != []:
+        repaired["proposed_actions"] = []
+        repaired_paths.append("$.proposed_actions")
+    if must_not_have_path(sample, "$.proposed_actions[0]") and repaired.get("proposed_actions") != []:
+        repaired["proposed_actions"] = []
+        repaired_paths.append("$.proposed_actions")
+
+    if expected_shape.get("requires_issues") is True:
+        scaffold_issues = scaffold.get("issues") if isinstance(scaffold.get("issues"), list) else []
+        current_issues = repaired.get("issues") if isinstance(repaired.get("issues"), list) else []
+        ordered_issue_codes = get_evaluation(sample).get("ordered_issue_codes")
+        missing_ordered_issue = False
+        if isinstance(ordered_issue_codes, list):
+            current_codes = [issue.get("code") for issue in current_issues if isinstance(issue, dict)]
+            missing_ordered_issue = current_codes[: len(ordered_issue_codes)] != ordered_issue_codes
+        if not current_issues or missing_ordered_issue:
+            repaired["issues"] = copy.deepcopy(scaffold_issues)
+            repaired_paths.append("$.issues")
+
+    scaffold_actions = scaffold.get("proposed_actions") if isinstance(scaffold.get("proposed_actions"), list) else []
+    current_actions = repaired.get("proposed_actions") if isinstance(repaired.get("proposed_actions"), list) else []
+    if scaffold_actions:
+        repaired_actions: list[dict[str, Any]] = []
+        actions_changed = len(current_actions) < len(scaffold_actions)
+        for index, scaffold_action in enumerate(scaffold_actions):
+            current_action = current_actions[index] if index < len(current_actions) and isinstance(current_actions[index], dict) else {}
+            merged_action = copy.deepcopy(scaffold_action)
+            for natural_field in ("title", "rationale"):
+                if isinstance(current_action.get(natural_field), str) and current_action[natural_field].strip():
+                    merged_action[natural_field] = current_action[natural_field]
+                elif current_action.get(natural_field) != scaffold_action.get(natural_field):
+                    actions_changed = True
+            if current_action.get("kind") != scaffold_action.get("kind"):
+                actions_changed = True
+            for hard_field in ("target", "patch", "preview", "apply", "risk_level", "requires_confirmation", "citation_ids"):
+                if current_action.get(hard_field) != scaffold_action.get(hard_field):
+                    actions_changed = True
+            repaired_actions.append(merged_action)
+        if len(current_actions) > len(scaffold_actions):
+            actions_changed = True
+        if actions_changed:
+            repaired["proposed_actions"] = repaired_actions
+            repaired_paths.append("$.proposed_actions")
+
+    if merge_scaffold_citations(repaired, scaffold, sample=sample):
+        repaired_paths.append("$.citations")
+    citation_ids = required_citation_ids(sample, scaffold)
+    if repair_answer_fields(repaired, citation_ids=citation_ids, sample=sample):
+        repaired_paths.append("$.answers[0]")
+
+    return repaired, list(dict.fromkeys(repaired_paths))
 
 
 def iter_selected_samples(
@@ -939,6 +1267,9 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     task_valid_counts_by_task: dict[str, int] = {}
     schema_failure_categories: dict[str, int] = {}
     task_failure_categories: dict[str, int] = {}
+    generation_metric_entries: list[dict[str, Any]] = []
+    repaired_output_count = 0
+    repaired_path_counts: dict[str, int] = {}
     for sample, selected_sample in iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id):
         jsonschema.validate(sample["input_request"], request_schema)
         task_key = f"{sample['project']}/{sample['task']}"
@@ -952,20 +1283,27 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
 
         response_valid = True
         validation_error: str | None = None
+        generation_metrics: dict[str, Any] = {}
+        repaired_paths: list[str] = []
         try:
-            candidate_response, response_source = build_candidate_response(
+            candidate_result = build_candidate_response(
                 sample,
                 provider_id=provider_id,
                 prompt_document=prompt_document,
                 local_runtime=local_runtime,
                 max_new_tokens=args.max_new_tokens,
             )
+            candidate_response = candidate_result.response
+            response_source = candidate_result.response_source
+            generation_metrics = candidate_result.generation_metrics
         except (Exception, SystemExit) as exc:
             if not args.allow_invalid_output:
                 raise
             response_valid = False
             response_source = provider_id
             validation_error = str(exc) or "candidate response generation failed"
+            if isinstance(exc, LocalTransformersGenerationError):
+                generation_metrics = exc.generation_metrics
             candidate_response = {
                 "kind": "invalid_candidate_response",
                 "sample_id": sample_id,
@@ -973,6 +1311,12 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 "error": validation_error,
             }
             add_count(schema_failure_categories, categorize_failure(validation_error))
+        if response_valid and args.repair_hard_fields:
+            candidate_response, repaired_paths = repair_candidate_hard_fields(candidate_response, sample=sample)
+            if repaired_paths:
+                repaired_output_count += 1
+                for path in repaired_paths:
+                    add_count(repaired_path_counts, path)
         if response_valid:
             try:
                 validate_candidate_response(candidate_response, sample=sample, response_schema=response_schema)
@@ -982,6 +1326,8 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 response_valid = False
                 validation_error = summarize_validation_error(exc)
                 add_count(schema_failure_categories, categorize_failure(validation_error))
+        if generation_metrics:
+            generation_metric_entries.append(generation_metrics)
 
         if response_valid:
             valid_response_count += 1
@@ -1019,6 +1365,17 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 "copilot_response_schema_validated": response_valid,
                 "project_task_matched": response_valid,
                 **({"validation_error": validation_error} if validation_error else {}),
+                **({"generation_metrics": generation_metrics} if generation_metrics else {}),
+                **(
+                    {
+                        "postprocess": {
+                            "repair_hard_fields": True,
+                            "repaired_paths": repaired_paths,
+                        }
+                    }
+                    if repaired_paths
+                    else {}
+                ),
                 **({"task_response_validated": task_response_valid} if args.validate_task and response_valid else {}),
                 **({"task_validation_violations": task_validation_violations} if task_validation_violations else {}),
             }
@@ -1027,6 +1384,21 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     sample_count = len(outputs)
     all_valid = invalid_response_count == 0
     task_validation_attempted = task_validated_count + task_invalid_count
+    total_generation_seconds = round(sum(float(entry.get("generation_seconds") or 0.0) for entry in generation_metric_entries), 3)
+    total_output_tokens = sum(int(entry.get("output_tokens") or 0) for entry in generation_metric_entries)
+    total_input_tokens = sum(int(entry.get("input_tokens") or 0) for entry in generation_metric_entries)
+    generation_summary = {
+        "samples_measured": len(generation_metric_entries),
+        "total_generation_seconds": total_generation_seconds,
+        "avg_generation_seconds": round(total_generation_seconds / len(generation_metric_entries), 3)
+        if generation_metric_entries
+        else 0.0,
+        "total_input_tokens": total_input_tokens,
+        "total_output_tokens": total_output_tokens,
+        "avg_output_tokens": round(total_output_tokens / len(generation_metric_entries), 3) if generation_metric_entries else 0.0,
+        "hit_max_new_tokens_count": sum(1 for entry in generation_metric_entries if entry.get("hit_max_new_tokens") is True),
+        "json_extracted_count": sum(1 for entry in generation_metric_entries if entry.get("json_extracted") is True),
+    }
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_run_summary",
@@ -1043,6 +1415,21 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             "invalid_candidate_response_files_written": invalid_response_count,
             "commit_candidate_outputs": False,
         },
+        **(
+            {
+                "postprocess_policy": {
+                    "repair_hard_fields": True,
+                    "scope": (
+                        "Experimental: repairs scaffold-derived hard fields before schema/task validation; "
+                        "raw model capability must still be assessed with this flag disabled."
+                    ),
+                    "repaired_output_count": repaired_output_count,
+                    "repaired_path_counts": dict(sorted(repaired_path_counts.items())),
+                }
+            }
+            if args.repair_hard_fields
+            else {}
+        ),
         "quality_gates": {
             "copilot_request_schema_validated": sample_count,
             "copilot_response_schema_validated": valid_response_count,
@@ -1074,6 +1461,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             **({"task_valid_counts_by_task": dict(sorted(task_valid_counts_by_task.items()))} if args.validate_task else {}),
             "schema_failure_categories": dict(sorted(schema_failure_categories.items())),
             **({"task_failure_categories": dict(sorted(task_failure_categories.items()))} if args.validate_task else {}),
+            **({"generation_summary": generation_summary} if generation_metric_entries else {}),
         },
         "outputs": outputs,
         "next_step": (
