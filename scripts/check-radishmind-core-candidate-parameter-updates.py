@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import sys
 from pathlib import Path
 from typing import Any
@@ -31,6 +32,15 @@ def load_json(path: Path) -> dict[str, Any]:
     return document
 
 
+def load_candidate_runner() -> Any:
+    module_path = REPO_ROOT / "scripts/run-radishmind-core-candidate.py"
+    spec = importlib.util.spec_from_file_location("radishmind_core_candidate_runner", module_path)
+    require(spec is not None and spec.loader is not None, "candidate runner module spec must be loadable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def main() -> int:
     sample = load_json(VALVE_HOLDOUT_SAMPLE)
     parameter_updates = extract_ordered_parameter_updates(
@@ -57,6 +67,29 @@ def main() -> int:
     require(
         parameter_updates["opening_percent"]["suggested_maximum"] == 85,
         "opening_percent suggested_maximum must preserve the declared numeric threshold",
+    )
+
+    runner = load_candidate_runner()
+    scaffold = runner.build_response_scaffold(
+        project=str(sample["project"]),
+        task=str(sample["task"]),
+        sample=sample,
+    )
+    citations = scaffold.get("citations")
+    require(isinstance(citations, list), "candidate scaffold citations must be a list")
+    require(
+        [citation.get("id") for citation in citations] == ["diag-1", "diag-2", "flowdoc-unit-1", "snapshot-1"],
+        "indexed citation assertions must drive scaffold citation ids",
+    )
+    require(
+        [citation.get("locator") for citation in citations]
+        == [
+            "context:diagnostics[0]",
+            "context:diagnostics[1]",
+            "artifact:flowsheet_document.units[0]",
+            "context:latest_snapshot",
+        ],
+        "indexed citation assertions must drive scaffold citation locators",
     )
 
     print("radishmind core candidate parameter updates check passed.")

@@ -49,6 +49,9 @@
     "repaired_full_holdout_fix1_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix1/summary.json",
     "repaired_full_holdout_fix1_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix1-run.json",
     "full_holdout_fix1_pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
+    "repaired_full_holdout_fix3_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3/summary.json",
+    "repaired_full_holdout_fix3_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3-run.json",
+    "full_holdout_fix3_pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix3-summary.json",
     "committed_outputs": false
   },
   "raw_result": {
@@ -715,6 +718,103 @@
       "The targeted detail-key ordering fix let the old machine metric reach 9/9 task-valid, but manual review blocks the result and raw remains blocked at 5/9.",
       "The result validates the need for stricter value and citation assertions before any repaired holdout result is treated as acceptable; it is not raw model promotion evidence.",
       "Further promotion or training decisions still require raw improvement, manual review of repaired paths, and broader non-overlapping holdout coverage."
+    ]
+  },
+  "full_holdout300_fix3": {
+    "status": "completed_after_indexed_citation_scaffold_fix",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json",
+    "sample_count": 9,
+    "code_changes_observed": [
+      "candidate citation scaffold now derives indexed citation ids and locators from must_have_json_paths.",
+      "repair-hard-fields replaces citation arrays when indexed citation assertions require a stable order and precise locator metadata."
+    ],
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_summary_reused_from_full_holdout300": true,
+      "repaired_share_timeout_with_raw": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "repair_hard_fields": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3/summary.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3-run.json",
+      "pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix3-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.5555555555555556,
+      "task_validation_attempted": 9,
+      "summary_source": "full_holdout300.raw"
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 649.201,
+        "avg_generation_seconds": 72.133,
+        "total_input_tokens": 17093,
+        "total_output_tokens": 3274,
+        "avg_output_tokens": 363.778,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 8,
+      "repaired_path_counts": {
+        "$.answers": 3,
+        "$.answers[0]": 5,
+        "$.citations": 3,
+        "$.issues": 3,
+        "$.proposed_actions": 2,
+        "$.status": 3
+      },
+      "manual_review": {
+        "status": "accepted_for_postprocess_observation",
+        "reviewed_sample_ids": [
+          "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001"
+        ],
+        "accepted_observations": [
+          "pressure_drop_kpa.minimum_value is preserved as 10.",
+          "opening_percent.suggested_maximum is preserved as 85.",
+          "citations are repaired to diagnostics[0], diagnostics[1], flowsheet_document.units[0], and latest_snapshot locators."
+        ]
+      },
+      "remaining_failure": null
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "indexed citation scaffold repair brings all three full holdout suggest edits samples back to task-valid under the stricter value and citation assertions."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "ghost completion remains fully task-valid on the full holdout slice."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "docs QA remains fully task-valid after repair on the full holdout slice."
+      }
+    ],
+    "interpretation": [
+      "The stricter full holdout repaired track reaches 9/9 task-valid after indexed citation scaffold repair, but raw remains blocked at 5/9.",
+      "This is still postprocess evidence, not raw model promotion evidence.",
+      "Further training or promotion decisions require raw improvement, broader non-overlapping holdout coverage, and continued manual review of repaired paths."
     ]
   },
   "task_metric_summary": [

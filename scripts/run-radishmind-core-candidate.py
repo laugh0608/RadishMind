@@ -215,13 +215,51 @@ def build_scaffold_citation(sample: dict[str, Any]) -> dict[str, str]:
     return citation
 
 
+def golden_citations_by_id(sample: dict[str, Any]) -> dict[str, dict[str, str]]:
+    golden_response = sample.get("golden_response") if isinstance(sample.get("golden_response"), dict) else {}
+    citations_by_id: dict[str, dict[str, str]] = {}
+    for citation in golden_response.get("citations") or []:
+        if not isinstance(citation, dict):
+            continue
+        citation_id = str(citation.get("id") or "").strip()
+        if not citation_id:
+            continue
+        citations_by_id[citation_id] = {
+            key: str(value)
+            for key, value in citation.items()
+            if key in {"id", "kind", "label", "locator", "excerpt", "source_uri"} and value is not None
+        }
+    return citations_by_id
+
+
+def indexed_citation_fields_from_expectations(sample: dict[str, Any]) -> dict[int, dict[str, str]]:
+    indexed: dict[int, dict[str, str]] = {}
+    for key, value in iter_must_have_path_values(sample, "$.citations["):
+        if "]" not in key:
+            continue
+        index_text, field_path = key.split("]", 1)
+        field_name = field_path.lstrip(".")
+        if not index_text.isdigit() or field_name not in {"id", "kind", "label", "locator", "excerpt", "source_uri"}:
+            continue
+        indexed.setdefault(int(index_text), {})[field_name] = str(value)
+    return indexed
+
+
 def build_citation_scaffold(sample: dict[str, Any]) -> list[dict[str, str]]:
     base = build_scaffold_citation(sample)
     evaluation = sample.get("evaluation") if isinstance(sample.get("evaluation"), dict) else {}
     ordered_ids = evaluation.get("ordered_citation_ids")
+    indexed_fields = indexed_citation_fields_from_expectations(sample)
+    golden_by_id = golden_citations_by_id(sample)
     must_have_paths = evaluation.get("must_have_json_paths")
     required_count = 0
-    if isinstance(ordered_ids, list) and ordered_ids:
+    if indexed_fields:
+        required_count = max(indexed_fields) + 1
+        citation_ids = [
+            indexed_fields.get(index, {}).get("id") or f"artifact-{index + 1}"
+            for index in range(required_count)
+        ]
+    elif isinstance(ordered_ids, list) and ordered_ids:
         citation_ids = [str(item) for item in ordered_ids if str(item).strip()]
     else:
         citation_ids = []
@@ -239,10 +277,12 @@ def build_citation_scaffold(sample: dict[str, Any]) -> list[dict[str, str]]:
 
     citations: list[dict[str, str]] = []
     for index, citation_id in enumerate(citation_ids):
-        citation = dict(base)
+        citation = dict(golden_by_id.get(citation_id) or base)
         citation["id"] = citation_id
         if index > 0:
-            citation["label"] = f"{base['label']} supporting citation {index + 1}"
+            citation["label"] = citation.get("label") or f"{base['label']} supporting citation {index + 1}"
+        for field, value in indexed_fields.get(index, {}).items():
+            citation[field] = value
         citations.append(citation)
     return citations
 
@@ -984,8 +1024,14 @@ def merge_scaffold_citations(response: dict[str, Any], scaffold: dict[str, Any],
         response["citations"] = copy.deepcopy(scaffold.get("citations") or [])
         return True
 
+    indexed_fields = indexed_citation_fields_from_expectations(sample)
+    scaffold_citations = scaffold.get("citations") if isinstance(scaffold.get("citations"), list) else []
+    if indexed_fields and existing[: len(scaffold_citations)] != scaffold_citations:
+        response["citations"] = copy.deepcopy(scaffold_citations)
+        return True
+
     citations_by_id = {citation.get("id"): citation for citation in existing if isinstance(citation, dict) and citation.get("id")}
-    for scaffold_citation in scaffold.get("citations") or []:
+    for scaffold_citation in scaffold_citations:
         if not isinstance(scaffold_citation, dict):
             continue
         citation_id = scaffold_citation.get("id")

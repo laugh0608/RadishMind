@@ -170,6 +170,11 @@ repaired 观测结论：
 
 人工复核 `valve-local-fix-vs-global-balance` 后发现，旧 repaired fix1 虽通过机器指标，但 `parameter_updates.pressure_drop_kpa.minimum_value` 与 `parameter_updates.opening_percent.suggested_maximum` 被补成 `true`，不是可执行的数值阈值；同时 citation 只落到泛化的 `artifact:flowsheet_document`，没有精确指向 `diagnostics[0]`、`diagnostics[1]`、`flowsheet_document.units[0]` 与 `latest_snapshot`。因此旧 repaired fix1 应视为“机器指标通过、人工复核阻塞”，后续必须按新收紧的数值和 citation 断言重跑，不能沿用旧 `9/9` 作为通过结论。
 
+随后补齐 indexed citation scaffold：当样本通过 `must_have_json_paths` 声明 `$.citations[index].id` / `locator` 等字段时，candidate scaffold 会优先按这些 index 断言和 golden citation 元数据生成精确 citation，`--repair-hard-fields` 也会在存在 indexed citation 断言时替换为该稳定顺序。按同一 9 条 full holdout、同一 `300s` timeout、`--allow-invalid-output`、`--validate-task` 和 `--repair-hard-fields` 复跑后：
+
+- repaired full holdout fix3：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `649.201s`；`valve-local-fix-vs-global-balance` 的 `minimum_value=10`、`suggested_maximum=85` 与 `diagnostics[0]` / `diagnostics[1]` / `flowsheet_document.units[0]` / `latest_snapshot` citation locator 均通过新门禁
+- 该结果只说明当前 indexed scaffold / repair 能覆盖完整 planned holdout 的已知后处理失败面；raw full holdout 仍为 `task_valid_rate=0.5555555555555556` 且保持 `blocked`，不得把 repaired fix3 视为 raw 模型晋级或训练样本准入依据
+
 可复跑命令示例：
 
 ```bash
