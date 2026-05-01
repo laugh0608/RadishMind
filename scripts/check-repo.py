@@ -1083,6 +1083,14 @@ def main() -> int:
         expected_summary="scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-summary.json",
         eval_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-eval-manifest.json",
     )
+    check_core_candidate_probe(
+        temp_prefix="check-repo-core-full-holdout-",
+        output_dir_name="full-holdout-candidate-run",
+        summary_name="full-holdout-candidate-summary.json",
+        candidate_manifest="scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        expected_summary="scripts/checks/fixtures/radishmind-core-full-holdout-candidate-summary.json",
+        eval_manifest="scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+    )
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-training-samples-") as temp_dir:

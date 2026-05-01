@@ -155,6 +155,14 @@ repaired 观测结论：
 - repaired fix1：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，3 条样本均通过任务级校验；修复路径为 `$.answers`、`$.answers[0]`、`$.citations`、`$.issues`、`$.proposed_actions` 与 `$.status`
 - 该结果只证明当前 3 条 holdout 的后处理与结构化抽取失败面已收敛，不改变 raw / repaired 分离口径；后续扩到完整 planned holdout 前仍不得把 repaired 结果视为 raw 能力晋级或训练样本准入依据
 
+随后新增完整 planned holdout 的 dry-run 入口：`scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json`、`scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json`、`scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json` 与 committed summary。该 manifest 镜像 `training/datasets/copilot-training-holdout-split-v0.json` 的 9 条样本，并接入 `check-repo` 的 `golden_fixture` 门禁。
+
+使用本地 `Qwen2.5-1.5B-Instruct` 对完整 planned holdout 执行真实 `300s` raw / repaired 双轨观测后：
+
+- raw full holdout：`schema_valid_rate=1.0`、`task_valid_rate=0.5555555555555556`，`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `628.422s`；3 条 ghost completion 全部 task-valid，docs QA 为 `2/3`，suggest edits 为 `0/3`
+- repaired full holdout：`schema_valid_rate=1.0`、`task_valid_rate=0.8888888888888888`，`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `609.850s`；docs QA 与 ghost completion 均全通过，但 `suggest_flowsheet_edits` 仍有 `valve-local-fix-vs-global-balance` 的 `parameter_updates` 内层 detail key ordering 失败，offline eval 仍为 `blocked`
+- 该结果确认 3 条 holdout fix1 repaired 全通过不能外推为完整 holdout 通过；下一步应窄化处理 `minimum_value`、`suggested_maximum` 等 parameter update detail-key ordering，同时继续把 repaired 视为后处理观测，不作为 raw 模型晋级或训练样本准入依据
+
 可复跑命令示例：
 
 ```bash
@@ -214,6 +222,27 @@ repaired 观测结论：
   --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
   --output-dir tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300 \
   --summary-output tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --repair-hard-fields \
+  --sample-timeout-seconds 300
+
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300 \
+  --summary-output tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --sample-timeout-seconds 300
+
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300 \
+  --summary-output tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300/summary.json \
   --allow-invalid-output \
   --validate-task \
   --repair-hard-fields \

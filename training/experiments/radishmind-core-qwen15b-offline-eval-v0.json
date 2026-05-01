@@ -41,6 +41,11 @@
     "raw_holdout_probe_fix1_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1-run.json",
     "repaired_holdout_probe_fix1_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1-run.json",
     "holdout_probe_fix1_pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
+    "raw_full_holdout_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json",
+    "repaired_full_holdout_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300/summary.json",
+    "raw_full_holdout_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300-run.json",
+    "repaired_full_holdout_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-run.json",
+    "full_holdout_pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-summary.json",
     "committed_outputs": false
   },
   "raw_result": {
@@ -492,6 +497,114 @@
       "The focused fix removes the holdout probe schema-invalid blocker and lets the repaired track pass this 3-sample holdout slice.",
       "Raw still remains blocked because compressor and docs navigation outputs fail task-level structure/citation requirements without repair.",
       "The repaired pass is still a postprocess observation, not raw model promotion evidence; expanding to the full planned holdout should continue to preserve raw/repaired separation."
+    ]
+  },
+  "full_holdout300": {
+    "status": "completed_for_full_planned_training_excluded_holdout",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json",
+    "source_holdout_split": "training/datasets/copilot-training-holdout-split-v0.json",
+    "sample_count": 9,
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-run.json",
+      "pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.5555555555555556,
+      "task_validation_attempted": 9,
+      "schema_failure_categories": {},
+      "task_failure_categories": {
+        "action_shape": 4,
+        "citation_alignment": 17,
+        "issue_boundary": 7,
+        "other": 11,
+        "risk_confirmation": 1,
+        "status_mismatch": 2
+      },
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 628.422,
+        "avg_generation_seconds": 69.825,
+        "total_input_tokens": 16615,
+        "total_output_tokens": 3078,
+        "avg_output_tokens": 342.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      }
+    },
+    "repaired": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.8888888888888888,
+      "task_validation_attempted": 9,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 609.85,
+        "avg_generation_seconds": 67.761,
+        "total_input_tokens": 16615,
+        "total_output_tokens": 3078,
+        "avg_output_tokens": 342.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 8,
+      "repaired_path_counts": {
+        "$.answers": 3,
+        "$.answers[0]": 5,
+        "$.citations": 3,
+        "$.issues": 3,
+        "$.proposed_actions": 3,
+        "$.status": 3
+      },
+      "remaining_failure": {
+        "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "failure_category": "action_shape",
+        "details": [
+          "parameter_updates.pressure_drop_kpa keys must remain ordered as ['action', 'minimum_value']",
+          "parameter_updates.opening_percent keys must remain ordered as ['action', 'suggested_maximum']"
+        ]
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "repaired improves the full holdout slice but still fails advisory_action_boundary_rate=0.6666666666666666 because one valve parameter update sample violates inner detail-key ordering."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "all three full holdout ghost completion samples pass raw and repaired task checks without timeout."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "repaired restores docs QA citation and read-only-check structure across all three planned holdout samples."
+      }
+    ],
+    "interpretation": [
+      "The full planned holdout confirms the 3-sample fix1 result does not fully generalize: repaired improves task_valid_rate to 8/9 but remains blocked.",
+      "Raw improves versus the 3-sample probe but is still blocked at 5/9 task-valid, with suggest_flowsheet_edits as the main failure family.",
+      "The next holdout repair step should target ordered parameter_update detail keys such as minimum_value and suggested_maximum without treating repaired output as raw model capability."
     ]
   },
   "task_metric_summary": [
