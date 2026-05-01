@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_candidate_run_summary",
+  "phase": "M4-preparation",
+  "run_id": "radishmind-core-holdout-probe-candidate-001",
+  "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-eval-manifest.json",
+  "provider": {
+    "provider_id": "golden_fixture",
+    "model_id": "radishmind-core-holdout-probe-dry-run",
+    "role": "core_candidate",
+    "target_size": "3B",
+    "does_not_run_models": true,
+    "provider_access": "none",
+    "model_artifacts_downloaded": false,
+    "notes": [
+      "Uses committed golden_response objects only to exercise the holdout probe prompt/output plumbing.",
+      "Real 300 second local_transformers holdout probes must explicitly pass --provider local_transformers and keep generated artifacts under tmp/."
+    ]
+  },
+  "sample_count": 3,
+  "task_counts": {
+    "radish/answer_docs_question": 1,
+    "radishflow/suggest_flowsheet_edits": 1,
+    "radishflow/suggest_ghost_completion": 1
+  },
+  "output_policy": {
+    "output_dir": "provided at runtime",
+    "prompt_files_written": 3,
+    "candidate_response_files_written": 3,
+    "invalid_candidate_response_files_written": 0,
+    "commit_candidate_outputs": false
+  },
+  "quality_gates": {
+    "copilot_request_schema_validated": 3,
+    "copilot_response_schema_validated": 3,
+    "project_task_matched": 3,
+    "high_risk_actions_require_confirmation": true,
+    "does_not_download_model_artifacts": true,
+    "does_not_start_training": true
+  },
+  "observation_summary": {
+    "schema_valid_rate": 1.0,
+    "schema_invalid_rate": 0.0,
+    "schema_valid_counts_by_task": {
+      "radish/answer_docs_question": 1,
+      "radishflow/suggest_flowsheet_edits": 1,
+      "radishflow/suggest_ghost_completion": 1
+    },
+    "schema_failure_categories": {}
+  },
+  "outputs": [
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "coverage_tags": [
+        "offline_eval_holdout",
+        "parameter_update",
+        "patch_ordering",
+        "risk_confirmation",
+        "holdout_probe"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "coverage_tags": [
+        "offline_eval_holdout",
+        "mixer_outlet",
+        "topology_pattern",
+        "tab_default",
+        "holdout_probe"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-ghost-completion-mixer-standard-outlet-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-ghost-completion-mixer-standard-outlet-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radish-answer-docs-question-navigation-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "coverage_tags": [
+        "offline_eval_holdout",
+        "navigation",
+        "official_source",
+        "attachment_reference",
+        "holdout_probe"
+      ],
+      "prompt_file": "prompts/radish-answer-docs-question-navigation-001.prompt.json",
+      "candidate_response_file": "responses/radish-answer-docs-question-navigation-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    }
+  ],
+  "next_step": "After an approved local model exists, rerun with --provider local_transformers and --model-dir or RADISHMIND_MODEL_DIR; this script uses local_files_only and never downloads weights."
+}

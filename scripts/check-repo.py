@@ -145,6 +145,51 @@ def check_committed_candidate_record_batches() -> None:
             )
 
 
+def check_core_candidate_probe(
+    *,
+    temp_prefix: str,
+    output_dir_name: str,
+    summary_name: str,
+    candidate_manifest: str,
+    expected_summary: str,
+    eval_manifest: str | None = None,
+) -> None:
+    with tempfile.TemporaryDirectory(prefix=temp_prefix) as temp_dir:
+        output_dir = Path(temp_dir) / output_dir_name
+        summary_path = Path(temp_dir) / summary_name
+        run_python_script(
+            "run-radishmind-core-candidate.py",
+            [
+                "--manifest",
+                candidate_manifest,
+                "--output-dir",
+                str(output_dir),
+                "--summary-output",
+                str(summary_path),
+                "--check-summary",
+                expected_summary,
+            ],
+        )
+        if eval_manifest is None:
+            return
+        eval_path = Path(temp_dir) / "offline-eval-run.json"
+        run_python_script(
+            "run-radishmind-core-offline-eval.py",
+            [
+                "--manifest",
+                eval_manifest,
+                "--candidate-summary",
+                str(summary_path),
+                "--candidate-output-dir",
+                str(output_dir),
+                "--output",
+                str(eval_path),
+                "--check-output",
+                str(eval_path),
+            ],
+        )
+
+
 def check_required_files() -> None:
     for relative_path in REQUIRED_FILES:
         if not (REPO_ROOT / relative_path).is_file():
@@ -1022,22 +1067,21 @@ def main() -> int:
                 "scripts/checks/fixtures/radishmind-core-offline-eval-candidate-dry-run.json",
             ],
         )
-    with tempfile.TemporaryDirectory(prefix="check-repo-core-timeout-probe-") as temp_dir:
-        timeout_probe_output_dir = Path(temp_dir) / "timeout-probe-candidate-run"
-        timeout_probe_summary_path = Path(temp_dir) / "timeout-probe-candidate-summary.json"
-        run_python_script(
-            "run-radishmind-core-candidate.py",
-            [
-                "--manifest",
-                "scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json",
-                "--output-dir",
-                str(timeout_probe_output_dir),
-                "--summary-output",
-                str(timeout_probe_summary_path),
-                "--check-summary",
-                "scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-summary.json",
-            ],
-        )
+    check_core_candidate_probe(
+        temp_prefix="check-repo-core-timeout-probe-",
+        output_dir_name="timeout-probe-candidate-run",
+        summary_name="timeout-probe-candidate-summary.json",
+        candidate_manifest="scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json",
+        expected_summary="scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-summary.json",
+    )
+    check_core_candidate_probe(
+        temp_prefix="check-repo-core-holdout-probe-",
+        output_dir_name="holdout-probe-candidate-run",
+        summary_name="holdout-probe-candidate-summary.json",
+        candidate_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json",
+        expected_summary="scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-summary.json",
+        eval_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-eval-manifest.json",
+    )
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-training-samples-") as temp_dir:

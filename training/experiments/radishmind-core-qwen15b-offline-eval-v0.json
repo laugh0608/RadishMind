@@ -31,6 +31,11 @@
     "repaired_timeout240_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-repaired-timeout240-run.json",
     "timeout240_pair_summary": "tmp/radishmind-core-offline-eval-qwen15b-raw-vs-repaired-timeout240-summary.json",
     "timeout_smoke_summary": "tmp/radishmind-core-candidate-timeout-smoke/summary.json",
+    "raw_holdout_probe_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300/summary.json",
+    "repaired_holdout_probe_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300/summary.json",
+    "raw_holdout_probe_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-run.json",
+    "repaired_holdout_probe_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-run.json",
+    "holdout_probe_pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-summary.json",
     "committed_outputs": false
   },
   "raw_result": {
@@ -253,6 +258,129 @@
       "The raw slowest probe sample reached 254.678 seconds, so 240 seconds remains a same-environment 9-fixture comparison default rather than a permanent cross-sample or cross-hardware constant.",
       "Use the 300 second tier before judging slow probe samples, expanded sample sets, cold-cache runs, slower CPUs, or larger local candidates; record the reason and keep raw/repaired tracks on the same timeout tier when comparing quality.",
       "The repaired pass remains a postprocess observation and does not promote raw model capability."
+    ]
+  },
+  "holdout300_probe": {
+    "status": "completed_for_lightweight_training_excluded_holdout_probe",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-eval-manifest.json",
+    "source_holdout_split": "training/datasets/copilot-training-holdout-split-v0.json",
+    "sample_count": 3,
+    "purpose": "Observe a lightweight training-excluded holdout slice before expanding the local candidate sample set beyond the original 9 fixture samples.",
+    "selection": {
+      "radishflow/suggest_flowsheet_edits": [
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"
+      ],
+      "radishflow/suggest_ghost_completion": [
+        "radishflow-suggest-ghost-completion-mixer-standard-outlet-001"
+      ],
+      "radish/answer_docs_question": [
+        "radish-answer-docs-question-navigation-001"
+      ]
+    },
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-run.json",
+      "pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.6666666666666666,
+      "task_valid_rate": 0.0,
+      "task_validation_attempted": 2,
+      "schema_failure_categories": {
+        "other": 1
+      },
+      "task_failure_categories": {
+        "action_shape": 4,
+        "citation_alignment": 3,
+        "issue_boundary": 4,
+        "other": 13,
+        "status_mismatch": 1
+      },
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 174.198,
+        "avg_generation_seconds": 58.066,
+        "total_input_tokens": 5355,
+        "total_output_tokens": 736,
+        "avg_output_tokens": 245.333,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 2,
+        "timeout_count": 0
+      },
+      "invalid_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "failure": "json_parse_error"
+      }
+    },
+    "repaired": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.6666666666666666,
+      "task_valid_rate": 0.5,
+      "task_validation_attempted": 2,
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 173.57,
+        "avg_generation_seconds": 57.857,
+        "total_input_tokens": 5355,
+        "total_output_tokens": 736,
+        "avg_output_tokens": 245.333,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 2,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 2,
+      "repaired_path_counts": {
+        "$.answers": 1,
+        "$.answers[0]": 1,
+        "$.citations": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 2,
+        "$.status": 1
+      },
+      "invalid_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "failure": "json_parse_error"
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "repaired improved citation alignment but still failed advisory action boundary and parameter update detail checks."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "raw and repaired both produced schema-invalid JSON with a trailing-comma parse error on the mixer outlet holdout sample."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "repaired restored citation and read-only-check structure for the navigation holdout sample."
+      }
+    ],
+    "interpretation": [
+      "The lightweight holdout probe is the next sample-observation step after the 240 second full-run confirmation and the 300 second timeout probe; it uses one training-excluded sample per main task.",
+      "Both raw and repaired tracks completed without generation timeouts or max token hits, so the observed failures are output quality and JSON validity failures rather than timeout failures.",
+      "Raw remains blocked on schema validity, task validity, citation alignment, issue/action structure, and advisory boundary metrics.",
+      "Repaired is also blocked on this holdout slice because the mixer outlet ghost completion output remained schema-invalid and the compressor parameter update sample still failed task-level structure checks.",
+      "This result weakens the previous fixture-only repaired pass: --repair-hard-fields is useful for hard-field restoration but is not sufficient evidence for promotion or training use on training-excluded holdout samples."
     ]
   },
   "task_metric_summary": [

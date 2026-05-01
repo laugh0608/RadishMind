@@ -137,6 +137,18 @@ repaired 观测结论：
 
 当前已新增 `scripts/checks/fixtures/radishmind-core-timeout-probe-eval-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json`，固定 3 条小批量 timeout probe 样本：两条上轮最慢的 `suggest_ghost_completion` 样本，以及一条 `answer_docs_question` evidence-gap 对照。仓库级检查只用 `golden_fixture` 校验该 probe manifest 的 prompt / response 布局；真实 `300s` 探测仍必须显式使用 `local_transformers`，并把输出留在 `tmp/`。
 
+2026-05-01 继续新增 `scripts/checks/fixtures/radishmind-core-holdout-probe-eval-manifest.json`、`scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-eval-manifest.json`，从 `training/datasets/copilot-training-holdout-split-v0.json` 中各选 1 条训练外 holdout 样本，作为扩样前的轻量观测入口：
+
+- `radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001`
+- `radishflow-suggest-ghost-completion-mixer-standard-outlet-001`
+- `radish-answer-docs-question-navigation-001`
+
+该 holdout probe 的真实本地观测同样使用 `--sample-timeout-seconds 300`、`--allow-invalid-output`、`--validate-task`，并保持 raw / repaired 双轨同 timeout：
+
+- raw holdout probe：`schema_valid_rate=0.6666666666666666`、`task_valid_rate=0.0`、`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `174.198s`；`mixer-standard-outlet` 输出为 JSON parse error，`compressor-parameter-update` 与 `navigation` 虽 schema-valid 但任务级失败
+- repaired holdout probe：`schema_valid_rate=0.6666666666666666`、`task_valid_rate=0.5`、`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `173.570s`；`navigation` 经修复后通过任务级校验，但 `mixer-standard-outlet` 仍 schema-invalid，`compressor-parameter-update` 仍未通过参数 patch ordering 与多 issue 任务级要求
+- 该结果说明上一轮 9 fixture repaired 全通过不能外推为 holdout 晋级结论；`--repair-hard-fields` 对 citation / hard-field / action scaffold 有帮助，但仍不足以治理 JSON 解析失败和更细的任务级结构要求
+
 可复跑命令示例：
 
 ```bash
@@ -175,6 +187,27 @@ repaired 观测结论：
   --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
   --output-dir tmp/radishmind-core-timeout-probe-qwen15b-repaired-timeout300 \
   --summary-output tmp/radishmind-core-timeout-probe-qwen15b-repaired-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --repair-hard-fields \
+  --sample-timeout-seconds 300
+
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300 \
+  --summary-output tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --sample-timeout-seconds 300
+
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300 \
+  --summary-output tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300/summary.json \
   --allow-invalid-output \
   --validate-task \
   --repair-hard-fields \

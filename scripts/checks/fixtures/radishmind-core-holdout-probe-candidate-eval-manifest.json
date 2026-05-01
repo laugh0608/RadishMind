@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_offline_eval_candidate_run_manifest",
+  "run_id": "radishmind-core-holdout-probe-candidate-eval-001",
+  "created_at": "2026-05-01T00:00:00Z",
+  "phase": "M4-preparation",
+  "response_source": "candidate_response_file",
+  "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-eval-manifest.json",
+  "candidate_run": {
+    "summary_path": "provided at runtime",
+    "output_dir": "provided at runtime"
+  },
+  "candidate_model": {
+    "model_id": "radishmind-core-holdout-probe-candidate",
+    "role": "core_candidate",
+    "target_size": "3B",
+    "evaluation_role": "holdout probe candidate output evaluated through offline eval runner",
+    "local_memory_budget_gb": 32
+  },
+  "execution_policy": {
+    "run_status": "completed",
+    "does_not_run_models": true,
+    "provider_access": "none",
+    "model_artifacts_downloaded": false,
+    "notes": [
+      "Candidate responses are read from the holdout probe candidate wrapper output directory.",
+      "This offline eval pass does not rerun the model, call providers, download weights, or commit generated candidate files."
+    ]
+  },
+  "sample_selection": [
+    {
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "minimum_sample_count": 1,
+      "selection_reason": "Uses one training-excluded holdout sample that stresses compressor parameter patch ordering and confirmation boundaries.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
+          "coverage_tags": [
+            "offline_eval_holdout",
+            "parameter_update",
+            "patch_ordering",
+            "risk_confirmation",
+            "holdout_probe"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "minimum_sample_count": 1,
+      "selection_reason": "Uses one training-excluded holdout sample that checks a standard mixer outlet ghost completion path without reusing the timeout probe slow samples.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-mixer-standard-outlet-001.json",
+          "coverage_tags": [
+            "offline_eval_holdout",
+            "mixer_outlet",
+            "topology_pattern",
+            "tab_default",
+            "holdout_probe"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radish",
+      "task": "answer_docs_question",
+      "minimum_sample_count": 1,
+      "selection_reason": "Uses one training-excluded holdout sample that checks navigation answer grounding and attachment reference handling.",
+      "selected_samples": [
+        {
+          "sample_id": "radish-answer-docs-question-navigation-001",
+          "path": "datasets/eval/radish/answer-docs-question-navigation-001.json",
+          "coverage_tags": [
+            "offline_eval_holdout",
+            "navigation",
+            "official_source",
+            "attachment_reference",
+            "holdout_probe"
+          ]
+        }
+      ]
+    }
+  ],
+  "expected_output": "not committed; use candidate summary and offline eval tmp outputs for local probe runs"
+}
