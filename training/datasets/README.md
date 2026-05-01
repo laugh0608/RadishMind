@@ -38,6 +38,8 @@
 
 本地模型评测观察摘要放在 `training/experiments/`，不放在 `training/datasets/`。例如 `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json` 只记录 raw / repaired 指标、修复路径和本地 `tmp/` artifact 位置，不代表这些候选输出已进入训练集合。
 
+当前 `Qwen2.5-1.5B-Instruct` 的 full holdout repaired fix3 虽然可达到当前 planned holdout 的 task-valid 全通过，但 v2 非重叠 holdout repaired 仍被复杂跨对象 `suggest_flowsheet_edits` 参数 patch 阻塞。因此训练集合治理不得把 repaired fixture pass 作为样本准入或模型晋级依据；仍需 raw 结果、非重叠 holdout、人工复核和来源审计共同满足质量门禁。
+
 首批 JSONL 应继续由 `scripts/build-copilot-training-samples.py` 从 committed eval 样本或 audit pass candidate record 生成，并默认输出到 `tmp/`。
 
 ## Candidate Record 入选条件

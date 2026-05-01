@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-04-29
+更新时间：2026-05-01
 
 ## 项目目标
 
@@ -156,6 +156,7 @@
 - `RadishMind-Core` 首版基座评估：先比较 `3B` / `4B` 的协议遵循、中文任务理解、结构化响应、citation 对齐和本地部署成本，再决定是否进入 `7B`
 - 训练 / 蒸馏样本格式：以 `CopilotRequest -> CopilotResponse` 为核心，保留 `project / task / artifacts / context / safety / proposed_actions / citations / requires_confirmation`
 - 训练样本转换入口：当前已能从 committed eval 样本的 `input_request + golden_response` 生成首批 9 条 `CopilotTrainingSample` JSONL，也能从 audit pass candidate record 生成首批 9 条 `teacher_capture` 样本，覆盖 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `answer_docs_question`
+- 离线评测与本地候选观测：当前已能把 candidate wrapper 的 raw / repaired 输出接入同一 `radishmind-core-offline-eval-run` 记录格式；本地 `Qwen2.5-1.5B-Instruct` 的 9 fixture、timeout probe、planned holdout、full holdout 与 v2 非重叠 holdout 观测均显示 raw 仍 blocked，`--repair-hard-fields` 只能作为后处理实验，不能替代 raw 能力晋级或训练准入
 - teacher / student / lightweight baseline 对照矩阵：`Qwen2.5-VL` 给出强基线和蒸馏参考，`minimind-v` 承接主线适配，`SmolVLM` 验证低资源下限
 - `RadishMind-Image Adapter` 第一版 schema 与最小评测 manifest：主模型只输出图片生成意图、约束和审查信息，Adapter 再生成 backend request，图片像素生成交给独立 backend，结果以 artifact metadata 回到 `RadishMind`；当前评测 manifest 只覆盖结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不评价图片像素质量
 - 未来接入清单：保留现有 gateway smoke、UI consumption summary 与 candidate handoff summary 作为 `RadishFlow` / `Radish` 准备好后的验收门禁
@@ -210,3 +211,4 @@
 - 模型输出能被规则层或业务层复核，并明确要求确认
 - `minimind-v` 已作为默认 `student/base` 主线进入实际评测与适配，而不是继续停留在候选状态
 - `agent` 层已经能稳定证明模型可替换：同一任务至少能在 mock / teacher / student 或多 provider 之间比较，并仍保持统一协议、规则校验和评测口径
+- `RadishMind-Core` 的本地模型观测必须同时保留 raw / repaired 双轨、timeout / token / JSON 抽取指标和人工复核结论；不能用 repaired fixture pass 代替 raw 模型能力、训练样本准入或更大样本面质量判断

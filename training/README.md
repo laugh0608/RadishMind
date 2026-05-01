@@ -25,6 +25,7 @@
 - `training/datasets/copilot-training-holdout-split-v0.json` 是首个 planned offline eval holdout split，当前每条主任务各保留 3 条且不与现有训练 seed manifest 重叠
 - `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json` 是首个本地 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨离线评测观察摘要；它只记录指标、修复路径和 `tmp/` artifact 位置，不提交候选输出本体
 - `scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json` 是当前轻量 holdout 观测入口，从 planned holdout split 中各取 1 条主任务样本；真实本地运行继续使用 raw / repaired 双轨、同一 `300s` timeout、`--allow-invalid-output` 和 `--validate-task`
+- `scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json` 分别固定完整 planned holdout 和 6 条非重叠 holdout probe；当前观测结论是 full holdout repaired fix3 可作为后处理链路证据，但 v2 repaired 仍 blocked，因此训练准入不能只看 repaired pass
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
 
