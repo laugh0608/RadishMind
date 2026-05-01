@@ -19,6 +19,18 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.eval.regression_diagnostics_suggest import validate_suggest_response  # noqa: E402
+from scripts.eval.core_candidate_json import extract_json_object  # noqa: E402
+from scripts.eval.core_candidate_paths import (  # noqa: E402
+    expected_action_kinds_by_index,
+    get_evaluation,
+    iter_must_have_path_values,
+    must_not_have_path,
+    set_nested_patch_value,
+)
+from scripts.eval.core_candidate_scaffold import (  # noqa: E402
+    expected_issue_indices,
+    extract_ordered_parameter_updates,
+)
 from scripts.eval.regression_docs import validate_radish_docs_response  # noqa: E402
 from scripts.eval.regression_ghost import validate_ghost_completion_response  # noqa: E402
 from scripts.eval.regression_shared import TASK_CONFIG, test_document_against_schema  # noqa: E402
@@ -48,13 +60,6 @@ class CandidateResult(NamedTuple):
     response: dict[str, Any]
     response_source: str
     generation_metrics: dict[str, Any]
-
-class ExtractedJsonObject(NamedTuple):
-    document: dict[str, Any]
-    json_text: str
-    start_index: int
-    end_index: int
-
 
 class LocalTransformersGenerationError(RuntimeError):
     def __init__(self, message: str, *, generation_metrics: dict[str, Any]) -> None:
@@ -242,11 +247,6 @@ def build_citation_scaffold(sample: dict[str, Any]) -> list[dict[str, str]]:
     return citations
 
 
-def get_evaluation(sample: dict[str, Any]) -> dict[str, Any]:
-    evaluation = sample.get("evaluation")
-    return evaluation if isinstance(evaluation, dict) else {}
-
-
 def get_expected_shape(sample: dict[str, Any]) -> dict[str, Any]:
     expected_shape = sample.get("expected_response_shape")
     return expected_shape if isinstance(expected_shape, dict) else {}
@@ -255,89 +255,6 @@ def get_expected_shape(sample: dict[str, Any]) -> dict[str, Any]:
 def get_expected_risk_level(sample: dict[str, Any], *, default: str = "low") -> str:
     expected_risk_level = get_evaluation(sample).get("expected_risk_level")
     return str(expected_risk_level) if expected_risk_level in {"low", "medium", "high"} else default
-
-
-def parse_json_path_expected_value(raw_value: str) -> Any:
-    stripped = raw_value.strip()
-    if stripped == "true":
-        return True
-    if stripped == "false":
-        return False
-    if stripped.startswith('"') and stripped.endswith('"'):
-        return stripped[1:-1]
-    return stripped
-
-
-def iter_must_have_path_values(sample: dict[str, Any], prefix: str) -> list[tuple[str, Any]]:
-    values: list[tuple[str, Any]] = []
-    must_have_paths = get_evaluation(sample).get("must_have_json_paths")
-    if not isinstance(must_have_paths, list):
-        return values
-    for path in must_have_paths:
-        path_text = str(path)
-        if not path_text.startswith(prefix) or "=" not in path_text:
-            continue
-        key = path_text[len(prefix) :].split("=", 1)[0]
-        raw_value = path_text.split("=", 1)[1]
-        if key:
-            values.append((key, parse_json_path_expected_value(raw_value)))
-    return values
-
-
-def expected_action_kinds_by_index(sample: dict[str, Any]) -> dict[int, str]:
-    action_kinds: dict[int, str] = {}
-    must_have_paths = get_evaluation(sample).get("must_have_json_paths")
-    if not isinstance(must_have_paths, list):
-        return action_kinds
-    marker = "$.proposed_actions["
-    for path in must_have_paths:
-        path_text = str(path)
-        if not path_text.startswith(marker) or "].kind=" not in path_text:
-            continue
-        index_text = path_text[len(marker) :].split("]", 1)[0]
-        if not index_text.isdigit():
-            continue
-        raw_value = path_text.split("=", 1)[1]
-        value = parse_json_path_expected_value(raw_value)
-        if isinstance(value, str) and value:
-            action_kinds[int(index_text)] = value
-    return action_kinds
-
-
-def must_not_have_path(sample: dict[str, Any], path: str) -> bool:
-    paths = get_evaluation(sample).get("must_not_have_json_paths")
-    return isinstance(paths, list) and path in {str(item) for item in paths}
-
-
-def set_nested_patch_value(patch: dict[str, Any], key_path: str, value: Any) -> None:
-    segments = key_path.split(".")
-    current: Any = patch
-    for index, segment in enumerate(segments):
-        is_last = index == len(segments) - 1
-        if "[" in segment and segment.endswith("]"):
-            key = segment.split("[", 1)[0]
-            index_text = segment.split("[", 1)[1].rstrip("]")
-            if not index_text.isdigit():
-                return
-            item_index = int(index_text)
-            target_list = current.setdefault(key, []) if isinstance(current, dict) else []
-            if not isinstance(target_list, list):
-                return
-            while len(target_list) <= item_index:
-                target_list.append(None)
-            if is_last:
-                target_list[item_index] = value
-            else:
-                if not isinstance(target_list[item_index], dict):
-                    target_list[item_index] = {}
-                current = target_list[item_index]
-            continue
-        if is_last:
-            current[segment] = value
-            continue
-        current = current.setdefault(segment, {})
-        if not isinstance(current, dict):
-            return
 
 
 def citation_ids_for_action(sample: dict[str, Any], *, fallback_ids: list[str]) -> list[str]:
@@ -445,6 +362,25 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
             if str(code).strip()
         ]
 
+    issue_indices = expected_issue_indices(sample)
+    if issue_indices:
+        issues = []
+        for issue_index in issue_indices:
+            expected_issue_fields = extract_expected_issue_fields(sample, issue_index=issue_index)
+            issues.append(
+                {
+                    "code": str(expected_issue_fields.get("code") or "REVIEW_REQUIRED"),
+                    "message": str(expected_issue_fields.get("message") or notes or "需要进一步审查输入上下文。"),
+                    "severity": str(expected_issue_fields.get("severity") or ("error" if issue_index == 0 else "warning")),
+                    "citation_ids": citation_ids_for_issue(
+                        sample,
+                        issue_index=issue_index,
+                        fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))],
+                    ),
+                }
+            )
+        return issues
+
     expected_issue_fields = extract_expected_issue_fields(sample, issue_index=0)
     if expected_issue_fields:
         return [
@@ -503,8 +439,15 @@ def build_candidate_edit_scaffold(sample: dict[str, Any], *, citation_ids: list[
     target = extract_expected_action_target(sample, fallback_type=target_type, fallback_id=target_id)
     action_citation_ids = citation_ids_for_action(sample, fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))])
     patch = extract_expected_candidate_patch(sample)
+    parameter_updates = extract_ordered_parameter_updates(
+        sample,
+        action_index=0,
+        iter_must_have_path_values=iter_must_have_path_values,
+    )
+    if parameter_updates:
+        patch["parameter_updates"] = parameter_updates
     connection_placeholder = extract_expected_connection_placeholder(sample)
-    if not connection_placeholder:
+    if not connection_placeholder and not parameter_updates:
         connection_placeholder = {
             "expected_downstream_kind": "consumer_or_export_sink",
             "requires_manual_binding": True,
@@ -840,43 +783,6 @@ def render_local_transformers_inputs(tokenizer: Any, prompt_document: dict[str, 
     return tokenizer(prompt_text, return_tensors="pt").to(device)
 
 
-def extract_json_object(text: str) -> ExtractedJsonObject:
-    start = text.find("{")
-    if start < 0:
-        raise ValueError("local_transformers output did not contain a JSON object")
-    depth = 0
-    in_string = False
-    escaped = False
-    for index in range(start, len(text)):
-        char = text[index]
-        if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
-            continue
-        if char == '"':
-            in_string = True
-        elif char == "{":
-            depth += 1
-        elif char == "}":
-            depth -= 1
-            if depth == 0:
-                json_text = text[start : index + 1]
-                document = json.loads(json_text)
-                if not isinstance(document, dict):
-                    raise ValueError("local_transformers output JSON must be an object")
-                return ExtractedJsonObject(
-                    document=document,
-                    json_text=json_text,
-                    start_index=start,
-                    end_index=index,
-                )
-    raise ValueError("local_transformers output JSON object was not closed")
-
-
 def load_local_transformers_runtime(model_dir: str | None) -> LocalTransformersRuntime:
     resolved_model_dir = model_dir or os.environ.get("RADISHMIND_MODEL_DIR")
     require(
@@ -987,6 +893,7 @@ def run_local_transformers(
     metrics = {
         **base_metrics,
         "json_extracted": True,
+        "json_cleanup_applied": extracted.cleanup_applied,
         "json_start_index": extracted.start_index,
         "json_end_index": extracted.end_index,
         "json_text_chars": len(extracted.json_text),

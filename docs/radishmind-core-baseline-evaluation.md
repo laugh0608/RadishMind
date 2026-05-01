@@ -149,6 +149,12 @@ repaired 观测结论：
 - repaired holdout probe：`schema_valid_rate=0.6666666666666666`、`task_valid_rate=0.5`、`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `173.570s`；`navigation` 经修复后通过任务级校验，但 `mixer-standard-outlet` 仍 schema-invalid，`compressor-parameter-update` 仍未通过参数 patch ordering 与多 issue 任务级要求
 - 该结果说明上一轮 9 fixture repaired 全通过不能外推为 holdout 晋级结论；`--repair-hard-fields` 对 citation / hard-field / action scaffold 有帮助，但仍不足以治理 JSON 解析失败和更细的任务级结构要求
 
+随后针对该 3 条 holdout 的两个集中失败面补了窄范围治理：`local_transformers` JSON 抽取会对对象 / 数组闭合前的尾逗号做一次结构安全清理，并在 generation metrics 中记录 `json_cleanup_applied`；`candidate_edit` scaffold 会从 `evaluation.ordered_parameter_update_*` 与 issue path 中生成有序 `parameter_updates` 与多 issue 结构。复跑同一 3 条 holdout 后：
+
+- raw fix1：`schema_valid_rate=1.0`、`task_valid_rate=0.3333333333333333`，`mixer-standard-outlet` 通过 schema 与任务级校验，且记录 `json_cleanup_applied=true`；但 compressor 与 docs navigation 仍为任务级失败，raw 继续保持 `blocked`
+- repaired fix1：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，3 条样本均通过任务级校验；修复路径为 `$.answers`、`$.answers[0]`、`$.citations`、`$.issues`、`$.proposed_actions` 与 `$.status`
+- 该结果只证明当前 3 条 holdout 的后处理与结构化抽取失败面已收敛，不改变 raw / repaired 分离口径；后续扩到完整 planned holdout 前仍不得把 repaired 结果视为 raw 能力晋级或训练样本准入依据
+
 可复跑命令示例：
 
 ```bash

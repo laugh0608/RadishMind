@@ -1039,6 +1039,7 @@ def main() -> int:
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
+    run_python_script("check-radishmind-core-candidate-json-cleanup.py", [])
     run_python_script("run-radishmind-core-offline-eval.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-core-candidate-") as temp_dir:
         candidate_output_dir = Path(temp_dir) / "candidate-run"

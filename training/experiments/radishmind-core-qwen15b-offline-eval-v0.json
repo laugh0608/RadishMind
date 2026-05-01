@@ -36,6 +36,11 @@
     "raw_holdout_probe_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-run.json",
     "repaired_holdout_probe_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-run.json",
     "holdout_probe_pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-summary.json",
+    "raw_holdout_probe_fix1_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1/summary.json",
+    "repaired_holdout_probe_fix1_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1/summary.json",
+    "raw_holdout_probe_fix1_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1-run.json",
+    "repaired_holdout_probe_fix1_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1-run.json",
+    "holdout_probe_fix1_pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
     "committed_outputs": false
   },
   "raw_result": {
@@ -381,6 +386,112 @@
       "Raw remains blocked on schema validity, task validity, citation alignment, issue/action structure, and advisory boundary metrics.",
       "Repaired is also blocked on this holdout slice because the mixer outlet ghost completion output remained schema-invalid and the compressor parameter update sample still failed task-level structure checks.",
       "This result weakens the previous fixture-only repaired pass: --repair-hard-fields is useful for hard-field restoration but is not sufficient evidence for promotion or training use on training-excluded holdout samples."
+    ]
+  },
+  "holdout300_probe_fix1": {
+    "status": "completed_after_json_cleanup_and_parameter_update_scaffold_fix",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-eval-manifest.json",
+    "sample_count": 3,
+    "code_changes_observed": [
+      "local_transformers JSON extraction now retries after removing trailing commas before object/array closers and records json_cleanup_applied in generation metrics.",
+      "candidate_edit scaffold now derives ordered parameter_updates and multi-issue structure from evaluation.ordered_parameter_update_* and must_have issue paths."
+    ],
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1-run.json",
+      "pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.3333333333333333,
+      "task_validation_attempted": 3,
+      "schema_failure_categories": {},
+      "task_failure_categories": {
+        "action_shape": 4,
+        "citation_alignment": 3,
+        "issue_boundary": 4,
+        "other": 13,
+        "status_mismatch": 1
+      },
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 232.06,
+        "avg_generation_seconds": 77.353,
+        "total_input_tokens": 5542,
+        "total_output_tokens": 735,
+        "avg_output_tokens": 245.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "json_cleanup_observation": {
+        "cleanup_applied_sample": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "cleanup_result": "schema_valid_and_task_valid"
+      }
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 3,
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 185.858,
+        "avg_generation_seconds": 61.953,
+        "total_input_tokens": 5542,
+        "total_output_tokens": 735,
+        "avg_output_tokens": 245.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 3,
+      "repaired_path_counts": {
+        "$.answers": 1,
+        "$.answers[0]": 2,
+        "$.citations": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 2,
+        "$.status": 1
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "ordered parameter update scaffold and repair now make the compressor holdout sample pass after repair; raw remains task-invalid."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "trailing-comma cleanup turns the mixer outlet output into schema-valid task-valid JSON while recording json_cleanup_applied."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "repaired continues to restore citation and read-only-check structure for the navigation holdout sample."
+      }
+    ],
+    "interpretation": [
+      "The focused fix removes the holdout probe schema-invalid blocker and lets the repaired track pass this 3-sample holdout slice.",
+      "Raw still remains blocked because compressor and docs navigation outputs fail task-level structure/citation requirements without repair.",
+      "The repaired pass is still a postprocess observation, not raw model promotion evidence; expanding to the full planned holdout should continue to preserve raw/repaired separation."
     ]
   },
   "task_metric_summary": [
