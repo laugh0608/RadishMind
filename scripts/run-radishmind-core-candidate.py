@@ -5,6 +5,7 @@ import argparse
 import copy
 import json
 import os
+import signal
 import sys
 import time
 from pathlib import Path
@@ -61,6 +62,14 @@ class LocalTransformersGenerationError(RuntimeError):
         self.generation_metrics = generation_metrics
 
 
+class LocalTransformersTimeoutError(TimeoutError):
+    pass
+
+
+def raise_local_transformers_timeout(_signum: int, _frame: Any) -> None:
+    raise LocalTransformersTimeoutError("local_transformers sample timed out")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST_PATH.relative_to(REPO_ROOT)))
@@ -70,6 +79,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--provider", choices=["golden_fixture", "echo", "local_transformers"])
     parser.add_argument("--model-dir")
     parser.add_argument("--max-new-tokens", type=int, default=1200)
+    parser.add_argument(
+        "--sample-timeout-seconds",
+        type=float,
+        default=0.0,
+        help="Per-sample local_transformers generation timeout. 0 disables timeout.",
+    )
     parser.add_argument("--sample-id")
     parser.add_argument(
         "--allow-invalid-output",
@@ -892,6 +907,7 @@ def run_local_transformers(
     *,
     runtime: LocalTransformersRuntime,
     max_new_tokens: int,
+    sample_timeout_seconds: float,
 ) -> CandidateResult:
     tokenizer = runtime.tokenizer
     model = runtime.model
@@ -899,12 +915,51 @@ def run_local_transformers(
     started_at = time.perf_counter()
     inputs = render_local_transformers_inputs(tokenizer, prompt_document, device)
     input_token_count = int(inputs["input_ids"].shape[-1])
-    output_ids = model.generate(
-        **inputs,
-        max_new_tokens=max_new_tokens,
-        do_sample=False,
-        pad_token_id=tokenizer.eos_token_id,
-    )
+    try:
+        if sample_timeout_seconds > 0:
+            require(
+                hasattr(signal, "SIGALRM") and hasattr(signal, "setitimer"),
+                "--sample-timeout-seconds requires POSIX signal support",
+            )
+            previous_handler = signal.getsignal(signal.SIGALRM)
+            signal.signal(signal.SIGALRM, raise_local_transformers_timeout)
+            signal.setitimer(signal.ITIMER_REAL, sample_timeout_seconds)
+            try:
+                output_ids = model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=tokenizer.eos_token_id,
+                )
+            finally:
+                signal.setitimer(signal.ITIMER_REAL, 0)
+                signal.signal(signal.SIGALRM, previous_handler)
+        else:
+            output_ids = model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=False,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+    except LocalTransformersTimeoutError as exc:
+        generation_seconds = round(time.perf_counter() - started_at, 3)
+        metrics = {
+            "provider": "local_transformers",
+            "device": device,
+            "input_tokens": input_token_count,
+            "output_tokens": 0,
+            "max_new_tokens": max_new_tokens,
+            "hit_max_new_tokens": False,
+            "generated_text_chars": 0,
+            "generation_seconds": generation_seconds,
+            "json_extracted": False,
+            "timeout": True,
+            "timeout_seconds": sample_timeout_seconds,
+        }
+        raise LocalTransformersGenerationError(
+            f"local_transformers sample timed out after {sample_timeout_seconds:g}s",
+            generation_metrics=metrics,
+        ) from exc
     generated_ids = output_ids[0][inputs["input_ids"].shape[-1] :]
     output_token_count = int(generated_ids.shape[-1])
     generated_text = tokenizer.decode(generated_ids, skip_special_tokens=True)
@@ -951,6 +1006,7 @@ def build_candidate_response(
     prompt_document: dict[str, Any],
     local_runtime: LocalTransformersRuntime | None,
     max_new_tokens: int,
+    sample_timeout_seconds: float,
 ) -> CandidateResult:
     if provider_id == "golden_fixture":
         response = sample.get("golden_response")
@@ -960,7 +1016,12 @@ def build_candidate_response(
         return CandidateResult(build_echo_response(sample), "echo", {})
     if provider_id == "local_transformers":
         require(local_runtime is not None, "local_transformers runtime was not initialized")
-        return run_local_transformers(prompt_document, runtime=local_runtime, max_new_tokens=max_new_tokens)
+        return run_local_transformers(
+            prompt_document,
+            runtime=local_runtime,
+            max_new_tokens=max_new_tokens,
+            sample_timeout_seconds=sample_timeout_seconds,
+        )
     raise SystemExit(f"unsupported provider: {provider_id}")
 
 
@@ -1215,6 +1276,8 @@ def summarize_validation_error(exc: Exception) -> str:
 
 def categorize_failure(message: str) -> str:
     lowered = message.lower()
+    if "timed out" in lowered or "timeout" in lowered:
+        return "generation_timeout"
     if "json object" in lowered or "jsondecode" in lowered or "decode" in lowered:
         return "generation_parse"
     if "confidence" in lowered:
@@ -1239,6 +1302,7 @@ def add_count(counter: dict[str, int], key: str) -> None:
 
 
 def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> dict[str, Any]:
+    require(args.sample_timeout_seconds >= 0, "--sample-timeout-seconds must be greater than or equal to 0")
     source_eval_manifest_path = normalize_repo_path(str(manifest["source_eval_manifest"]))
     require(source_eval_manifest_path is not None, "source_eval_manifest path is required")
     source_eval_manifest = load_json(source_eval_manifest_path)
@@ -1308,6 +1372,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 prompt_document=prompt_document,
                 local_runtime=local_runtime,
                 max_new_tokens=args.max_new_tokens,
+                sample_timeout_seconds=args.sample_timeout_seconds if provider_id == "local_transformers" else 0.0,
             )
             candidate_response = candidate_result.response
             response_source = candidate_result.response_source
@@ -1414,6 +1479,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         "avg_output_tokens": round(total_output_tokens / len(generation_metric_entries), 3) if generation_metric_entries else 0.0,
         "hit_max_new_tokens_count": sum(1 for entry in generation_metric_entries if entry.get("hit_max_new_tokens") is True),
         "json_extracted_count": sum(1 for entry in generation_metric_entries if entry.get("json_extracted") is True),
+        "timeout_count": sum(1 for entry in generation_metric_entries if entry.get("timeout") is True),
     }
     return {
         "schema_version": 1,
