@@ -611,7 +611,7 @@
     ]
   },
   "full_holdout300_fix1": {
-    "status": "completed_after_detail_key_ordering_scaffold_fix",
+    "status": "machine_passed_but_manual_review_blocked",
     "executed_with": ".venv/bin/python",
     "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
     "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json",
@@ -643,7 +643,7 @@
       "summary_source": "full_holdout300.raw"
     },
     "repaired": {
-      "promotion_status": "no_promotion_planned",
+      "promotion_status": "blocked_by_manual_review",
       "schema_valid_rate": 1.0,
       "task_valid_rate": 1.0,
       "task_validation_attempted": 9,
@@ -667,14 +667,36 @@
         "$.proposed_actions": 3,
         "$.status": 3
       },
-      "remaining_failure": null
+      "remaining_failure": {
+        "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "failure_category": "manual_review",
+        "details": [
+          "parameter_updates.pressure_drop_kpa.minimum_value was repaired to true instead of a concrete threshold such as 10.",
+          "parameter_updates.opening_percent.suggested_maximum was repaired to true instead of a concrete upper bound such as 85.",
+          "citation locator was too broad because it pointed at artifact:flowsheet_document instead of diagnostics, valve unit, and latest_snapshot evidence."
+        ]
+      },
+      "manual_review": {
+        "status": "blocked",
+        "reviewed_sample_ids": [
+          "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001"
+        ],
+        "new_assertions_required": [
+          "$.proposed_actions[0].patch.parameter_updates.pressure_drop_kpa.minimum_value=10",
+          "$.proposed_actions[0].patch.parameter_updates.opening_percent.suggested_maximum=85",
+          "$.citations[0].locator=\"context:diagnostics[0]\"",
+          "$.citations[1].locator=\"context:diagnostics[1]\"",
+          "$.citations[2].locator=\"artifact:flowsheet_document.units[0]\"",
+          "$.citations[3].locator=\"context:latest_snapshot\""
+        ]
+      }
     },
     "task_metric_summary": [
       {
         "task": "radishflow/suggest_flowsheet_edits",
         "raw_all_metrics_passed": false,
         "repaired_all_metrics_passed": true,
-        "main_observation": "detail-key ordering scaffold fix makes all three full holdout suggest edits samples pass after repair."
+        "main_observation": "machine metrics passed after the detail-key ordering scaffold fix, but manual review blocks this result because the valve sample still used boolean parameter thresholds and overly broad citations."
       },
       {
         "task": "radishflow/suggest_ghost_completion",
@@ -690,8 +712,8 @@
       }
     ],
     "interpretation": [
-      "The targeted detail-key ordering fix lets repaired full holdout reach 9/9 task-valid, but raw remains blocked at 5/9.",
-      "The result validates the current repair/scaffold path for this planned holdout slice only; it is not raw model promotion evidence.",
+      "The targeted detail-key ordering fix let the old machine metric reach 9/9 task-valid, but manual review blocks the result and raw remains blocked at 5/9.",
+      "The result validates the need for stricter value and citation assertions before any repaired holdout result is treated as acceptable; it is not raw model promotion evidence.",
       "Further promotion or training decisions still require raw improvement, manual review of repaired paths, and broader non-overlapping holdout coverage."
     ]
   },

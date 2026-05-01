@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -14,6 +15,10 @@ def parse_json_path_expected_value(raw_value: str) -> Any:
         return True
     if stripped == "false":
         return False
+    if re.fullmatch(r"-?\d+", stripped):
+        return int(stripped)
+    if re.fullmatch(r"-?\d+\.\d+", stripped):
+        return float(stripped)
     if stripped.startswith('"') and stripped.endswith('"'):
         return stripped[1:-1]
     return stripped

@@ -47,8 +47,16 @@ def main() -> int:
         "pressure_drop_kpa detail keys must preserve declared order",
     )
     require(
+        parameter_updates["pressure_drop_kpa"]["minimum_value"] == 10,
+        "pressure_drop_kpa minimum_value must preserve the declared numeric threshold",
+    )
+    require(
         list(parameter_updates["opening_percent"].keys()) == ["action", "suggested_maximum"],
         "opening_percent detail keys must preserve declared order",
+    )
+    require(
+        parameter_updates["opening_percent"]["suggested_maximum"] == 85,
+        "opening_percent suggested_maximum must preserve the declared numeric threshold",
     )
 
     print("radishmind core candidate parameter updates check passed.")
