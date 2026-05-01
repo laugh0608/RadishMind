@@ -288,6 +288,10 @@ repaired 观测结论：
   --sample-timeout-seconds 300
 ```
 
+本地 `Qwen2.5-1.5B-Instruct` v2 probe 已完成。raw 结果为 `schema_valid_rate=1.0`、`task_valid_rate=0.3333333333333333`、`task_validation_attempted=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `760.997s`；raw 通过的两条样本均为 `suggest_ghost_completion`，`suggest_flowsheet_edits` 与 `answer_docs_question` 仍 blocked。repaired 结果为 `schema_valid_rate=1.0`、`task_valid_rate=0.8333333333333334`、`task_validation_attempted=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `692.28s`，但 repaired 仍 blocked：`radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001` 的第二个 action target、citation order、`parameter_updates` payload 与 patch ordering 未通过。
+
+该结果说明 v2 非重叠样本没有复现 full holdout fix3 的 repaired 全通过：raw 继续不能晋级，repaired 也不能作为当前 v2 fixture pass 使用。下一步应优先复核跨对象 `suggest_flowsheet_edits` 参数 patch 家族，区分 scaffold 覆盖不足与模型 action planning 缺口；继续保持 raw / repaired 双轨和 `tmp/` artifact 禁入仓口径。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

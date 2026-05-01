@@ -52,6 +52,11 @@
     "repaired_full_holdout_fix3_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3/summary.json",
     "repaired_full_holdout_fix3_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3-run.json",
     "full_holdout_fix3_pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix3-summary.json",
+    "raw_holdout_probe_v2_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+    "repaired_holdout_probe_v2_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json",
+    "raw_holdout_probe_v2_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+    "repaired_holdout_probe_v2_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json",
+    "holdout_probe_v2_pair_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-vs-repaired-timeout300-summary.json",
     "committed_outputs": false
   },
   "raw_result": {
@@ -815,6 +820,109 @@
       "The stricter full holdout repaired track reaches 9/9 task-valid after indexed citation scaffold repair, but raw remains blocked at 5/9.",
       "This is still postprocess evidence, not raw model promotion evidence.",
       "Further training or promotion decisions require raw improvement, broader non-overlapping holdout coverage, and continued manual review of repaired paths."
+    ]
+  },
+  "holdout_probe_v2_timeout300": {
+    "status": "completed_non_overlapping_holdout_probe",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-eval-manifest.json",
+    "sample_count": 6,
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "repair_hard_fields": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json",
+      "pair_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-vs-repaired-timeout300-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.3333333333333333,
+      "task_validation_attempted": 6,
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 760.997,
+        "avg_generation_seconds": 126.833,
+        "total_input_tokens": 12867,
+        "total_output_tokens": 3317,
+        "avg_output_tokens": 552.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "task_failure_categories": {
+        "action_shape": 7,
+        "citation_alignment": 5,
+        "issue_boundary": 6,
+        "other": 16,
+        "risk_confirmation": 1,
+        "status_mismatch": 3
+      }
+    },
+    "repaired": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.8333333333333334,
+      "task_validation_attempted": 6,
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 692.28,
+        "avg_generation_seconds": 115.38,
+        "total_input_tokens": 12867,
+        "total_output_tokens": 3317,
+        "avg_output_tokens": 552.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 5,
+      "repaired_path_counts": {
+        "$.answers": 2,
+        "$.answers[0]": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 2,
+        "$.risk_level": 1,
+        "$.status": 3
+      },
+      "remaining_failure": {
+        "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "summary": "The repaired response still fails the second action target, citation order, parameter_updates payload, and patch ordering requirements."
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "the non-overlapping cross-object reconnect plus pump parameter sample remains blocked after repair; citation_alignment_rate and advisory_action_boundary_rate stay at 0.5 for this two-sample slice."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "both ghost completion samples pass raw and repaired, including the previously slow valve ambiguous no-tab sample."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "docs QA repairs the source-conflict read_only_check and evidence-gap risk/status boundaries, but this remains postprocess evidence."
+      }
+    ],
+    "interpretation": [
+      "The v2 non-overlapping probe confirms that raw remains blocked outside the original full holdout slice.",
+      "Repair improves task-valid from 2/6 to 5/6 but no longer reaches a fixture pass, because complex cross-object suggest edits still fails target, citation, and parameter patch requirements.",
+      "The next useful work is to inspect the failed cross-object suggest edits family and decide whether the scaffold is intentionally insufficient or whether model output strategy needs a stronger structured action plan."
     ]
   },
   "task_metric_summary": [
