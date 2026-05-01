@@ -44,6 +44,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST_PATH.relative_to(REPO_ROOT)))
     parser.add_argument("--output")
     parser.add_argument("--check-output", default=str(DEFAULT_CHECK_OUTPUT_PATH.relative_to(REPO_ROOT)))
+    parser.add_argument("--candidate-summary")
+    parser.add_argument("--candidate-output-dir")
     return parser.parse_args()
 
 
@@ -96,15 +98,51 @@ def load_thresholds() -> tuple[dict[str, dict[str, float]], dict[tuple[str, str]
 
 def validate_manifest(manifest: dict[str, Any]) -> None:
     require(manifest.get("schema_version") == 1, "offline eval fixture run manifest schema_version must be 1")
-    require(manifest.get("kind") == "radishmind_core_offline_eval_fixture_run_manifest", "offline eval fixture run manifest kind mismatch")
+    require(
+        manifest.get("kind")
+        in {
+            "radishmind_core_offline_eval_fixture_run_manifest",
+            "radishmind_core_offline_eval_candidate_run_manifest",
+        },
+        "offline eval run manifest kind mismatch",
+    )
     require(manifest.get("phase") == "M4-preparation", "offline eval fixture run phase mismatch")
-    require(manifest.get("response_source") == "golden_response", "first offline eval runner only supports golden_response fixture source")
+    require(
+        manifest.get("response_source") in {"golden_response", "candidate_response_file"},
+        "offline eval runner response_source must be golden_response or candidate_response_file",
+    )
     execution_policy = manifest.get("execution_policy")
     require(isinstance(execution_policy, dict), "offline eval fixture run execution_policy must be an object")
     require(execution_policy.get("run_status") == "completed", "offline eval fixture run must produce completed records")
-    require(execution_policy.get("does_not_run_models") is True, "offline eval fixture run must not run models")
-    require(execution_policy.get("provider_access") == "none", "offline eval fixture run must not access providers")
     require(execution_policy.get("model_artifacts_downloaded") is False, "offline eval fixture run must not download model artifacts")
+    if manifest.get("response_source") == "golden_response":
+        require(execution_policy.get("does_not_run_models") is True, "golden offline eval fixture run must not run models")
+        require(execution_policy.get("provider_access") == "none", "golden offline eval fixture run must not access providers")
+    else:
+        require(isinstance(manifest.get("candidate_run"), dict), "candidate response eval manifest must include candidate_run")
+
+
+def validate_candidate_summary(summary: dict[str, Any]) -> None:
+    require(summary.get("schema_version") == 1, "candidate run summary schema_version must be 1")
+    require(summary.get("kind") == "radishmind_core_candidate_run_summary", "candidate run summary kind mismatch")
+    require(summary.get("phase") == "M4-preparation", "candidate run summary phase mismatch")
+    provider = summary.get("provider")
+    require(isinstance(provider, dict), "candidate run summary provider must be an object")
+    require(provider.get("model_artifacts_downloaded") is False, "candidate run must not download model artifacts")
+    require(summary.get("output_policy", {}).get("commit_candidate_outputs") is False, "candidate outputs must remain generated artifacts")
+    outputs = summary.get("outputs")
+    require(isinstance(outputs, list) and outputs, "candidate run summary outputs must be non-empty")
+
+
+def candidate_summary_by_sample(summary: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    by_sample: dict[str, dict[str, Any]] = {}
+    for output in get_array(summary.get("outputs")):
+        require(isinstance(output, dict), "candidate run summary output entry must be an object")
+        sample_id = str(output.get("sample_id") or "").strip()
+        require(sample_id, "candidate run summary output entry is missing sample_id")
+        require(sample_id not in by_sample, f"duplicate candidate output sample_id: {sample_id}")
+        by_sample[sample_id] = output
+    return by_sample
 
 
 def validate_sample_and_response(
@@ -114,7 +152,7 @@ def validate_sample_and_response(
     project: str,
     task: str,
     sample_name: str,
-) -> dict[str, bool]:
+) -> tuple[dict[str, bool], list[str]]:
     config = TASK_CONFIG[TASK_TO_CONFIG_KEY[(project, task)]]
     request_violations: list[str] = []
     response_violations: list[str] = []
@@ -129,9 +167,20 @@ def validate_sample_and_response(
         request_validator(sample, sample_name, request_violations)
     if (project, task) == ("radish", "answer_docs_question"):
         validate_radish_docs_retrieval(sample, sample_name, retrieval_violations)
-    response_validator(sample, response, "candidate_response", sample_name, response_violations)
+    response_schema_valid = not any("schema validation failed" in violation for violation in response_violations)
+    if response_schema_valid:
+        response_validator(sample, response, "candidate_response", sample_name, response_violations)
 
     all_response_violations = response_violations + retrieval_violations
+    if not response_schema_valid:
+        return {
+            "schema_validity_rate": False,
+            "citation_alignment_rate": False,
+            "risk_confirmation_preservation_rate": False,
+            "high_risk_action_confirmation_rate": False,
+            "advisory_action_boundary_rate": False,
+            "retrieval_source_contract_rate": len(retrieval_violations) == 0,
+        }, request_violations + all_response_violations
     return {
         "schema_validity_rate": not any("schema validation failed" in violation for violation in request_violations + response_violations),
         "citation_alignment_rate": not any("citation" in violation for violation in all_response_violations),
@@ -147,7 +196,7 @@ def validate_sample_and_response(
             for violation in all_response_violations
         ),
         "retrieval_source_contract_rate": len(retrieval_violations) == 0,
-    }
+    }, request_violations + all_response_violations
 
 
 def build_metric_results(
@@ -179,11 +228,14 @@ def build_result_records(
     *,
     metric_thresholds: dict[str, dict[str, float]],
     task_metrics: dict[tuple[str, str], list[str]],
+    candidate_summary: dict[str, Any] | None,
+    candidate_output_dir: Path | None,
 ) -> list[dict[str, Any]]:
     candidate_model = manifest["candidate_model"]
     model_id = str(candidate_model["model_id"])
     model_size = str(candidate_model["target_size"])
     result_records: list[dict[str, Any]] = []
+    candidate_outputs = candidate_summary_by_sample(candidate_summary) if candidate_summary else {}
     for group in manifest["sample_selection"]:
         project = str(group["project"])
         task = str(group["task"])
@@ -204,18 +256,35 @@ def build_result_records(
             require(sample.get("sample_id") == sample_id, f"{sample_path_value} sample_id mismatch")
             require(sample.get("project") == project, f"{sample_path_value} project mismatch")
             require(sample.get("task") == task, f"{sample_path_value} task mismatch")
-            response = sample.get(str(manifest["response_source"]))
-            require(isinstance(response, dict), f"{sample_path_value} is missing {manifest['response_source']} object")
-            sample_results.append(
-                validate_sample_and_response(
-                    sample,
-                    response,
-                    project=project,
-                    task=task,
-                    sample_name=sample_path.name,
-                )
+            response_evidence_path = sample_path_value
+            if manifest["response_source"] == "golden_response":
+                response = sample.get("golden_response")
+                require(isinstance(response, dict), f"{sample_path_value} is missing golden_response object")
+            else:
+                require(candidate_output_dir is not None, "candidate response eval requires candidate output dir")
+                candidate_output = candidate_outputs.get(sample_id)
+                require(candidate_output is not None, f"candidate run summary is missing output for sample: {sample_id}")
+                require(candidate_output.get("project") == project, f"{sample_id} candidate output project mismatch")
+                require(candidate_output.get("task") == task, f"{sample_id} candidate output task mismatch")
+                response_relpath = str(candidate_output.get("candidate_response_file") or "").strip()
+                require(response_relpath, f"{sample_id} candidate output is missing candidate_response_file")
+                response_path = candidate_output_dir / response_relpath
+                require(response_path.is_file(), f"{sample_id} candidate response file is missing: {response_relpath}")
+                response = load_json(response_path)
+                require(isinstance(response, dict), f"{response_relpath} must be a JSON object")
+                response_evidence_path = f"candidate_output:{response_relpath}"
+
+            sample_result, violations = validate_sample_and_response(
+                sample,
+                response,
+                project=project,
+                task=task,
+                sample_name=sample_path.name,
             )
+            sample_results.append(sample_result)
             evidence_paths.append(sample_path_value)
+            if response_evidence_path != sample_path_value:
+                evidence_paths.append(response_evidence_path)
 
         result_records.append(
             {
@@ -235,7 +304,7 @@ def build_result_records(
                     "memory_gb": None,
                     "latency_p95_ms": None,
                     "notes": [
-                        "Fixture response source; no model process was started."
+                        build_cost_observation_note(manifest, candidate_summary, sample_results, project=project, task=task)
                     ],
                 },
                 "evidence_paths": evidence_paths,
@@ -244,9 +313,44 @@ def build_result_records(
     return result_records
 
 
-def build_eval_run(manifest: dict[str, Any]) -> dict[str, Any]:
+def build_cost_observation_note(
+    manifest: dict[str, Any],
+    candidate_summary: dict[str, Any] | None,
+    sample_results: list[dict[str, bool]],
+    *,
+    project: str,
+    task: str,
+) -> str:
+    if manifest["response_source"] == "golden_response":
+        return "Fixture response source; no model process was started."
+    observation_summary = candidate_summary.get("observation_summary", {}) if candidate_summary else {}
+    generation_summary = observation_summary.get("generation_summary") if isinstance(observation_summary, dict) else None
+    if isinstance(generation_summary, dict) and generation_summary.get("samples_measured"):
+        return (
+            f"Candidate files evaluated for {project}/{task}; generation summary measured "
+            f"{generation_summary.get('samples_measured')} samples, "
+            f"total_generation_seconds={generation_summary.get('total_generation_seconds')}, "
+            f"total_input_tokens={generation_summary.get('total_input_tokens')}, "
+            f"total_output_tokens={generation_summary.get('total_output_tokens')}."
+        )
+    passed_count = sum(1 for result in sample_results if all(result.values()))
+    return f"Candidate response files evaluated for {project}/{task}; all-metric-pass samples={passed_count}/{len(sample_results)}."
+
+
+def build_eval_run(
+    manifest: dict[str, Any],
+    *,
+    candidate_summary: dict[str, Any] | None = None,
+    candidate_output_dir: Path | None = None,
+) -> dict[str, Any]:
     metric_thresholds, task_metrics = load_thresholds()
-    result_records = build_result_records(manifest, metric_thresholds=metric_thresholds, task_metrics=task_metrics)
+    result_records = build_result_records(
+        manifest,
+        metric_thresholds=metric_thresholds,
+        task_metrics=task_metrics,
+        candidate_summary=candidate_summary,
+        candidate_output_dir=candidate_output_dir,
+    )
     all_passed = all(
         metric_result.get("passed") is True
         for record in result_records
@@ -278,16 +382,8 @@ def build_eval_run(manifest: dict[str, Any]) -> dict[str, Any]:
                 "32B"
             ],
             "per_candidate": [
-                {
-                    "model_id": candidate_model["model_id"],
-                    "run_allowed": True,
-                    "max_memory_gb": candidate_model["local_memory_budget_gb"],
-                    "max_latency_p95_ms": None,
-                    "notes": [
-                        "Fixture response source; no runtime cost observed."
-                    ],
-                }
-            ],
+            build_candidate_cost_budget(manifest, candidate_model, candidate_summary)
+        ],
         },
         "result_records": result_records,
         "decision": {
@@ -309,14 +405,71 @@ def build_eval_run(manifest: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def build_candidate_cost_budget(
+    manifest: dict[str, Any],
+    candidate_model: dict[str, Any],
+    candidate_summary: dict[str, Any] | None,
+) -> dict[str, Any]:
+    notes = ["Fixture response source; no runtime cost observed."]
+    if manifest["response_source"] == "candidate_response_file":
+        provider = candidate_summary.get("provider", {}) if candidate_summary else {}
+        observation_summary = candidate_summary.get("observation_summary", {}) if candidate_summary else {}
+        generation_summary = observation_summary.get("generation_summary") if isinstance(observation_summary, dict) else None
+        notes = [
+            (
+                "Candidate response files were generated by "
+                f"{provider.get('provider_id', 'unknown')} and evaluated without rerunning the model."
+            )
+        ]
+        if isinstance(generation_summary, dict) and generation_summary.get("samples_measured"):
+            notes.append(
+                "Candidate run recorded "
+                f"avg_generation_seconds={generation_summary.get('avg_generation_seconds')} and "
+                f"avg_output_tokens={generation_summary.get('avg_output_tokens')}."
+            )
+        if candidate_summary and candidate_summary.get("postprocess_policy"):
+            repaired_count = candidate_summary["postprocess_policy"].get("repaired_output_count")
+            notes.append(f"Postprocess repair was enabled; repaired_output_count={repaired_count}.")
+    return {
+        "model_id": candidate_model["model_id"],
+        "run_allowed": True,
+        "max_memory_gb": candidate_model["local_memory_budget_gb"],
+        "max_latency_p95_ms": None,
+        "notes": notes,
+    }
+
+
 def main() -> int:
     args = parse_args()
     manifest_path = normalize_repo_path(args.manifest)
     manifest = load_json(manifest_path)
     require(isinstance(manifest, dict), "offline eval fixture run manifest must be an object")
     validate_manifest(manifest)
+    candidate_summary = None
+    candidate_output_dir = None
+    if manifest.get("response_source") == "candidate_response_file":
+        candidate_run = manifest["candidate_run"]
+        summary_path_value = args.candidate_summary or str(candidate_run.get("summary_path") or "").strip()
+        output_dir_value = args.candidate_output_dir or str(candidate_run.get("output_dir") or "").strip()
+        require(summary_path_value, "candidate response eval requires --candidate-summary or candidate_run.summary_path")
+        require(output_dir_value, "candidate response eval requires --candidate-output-dir or candidate_run.output_dir")
+        summary_path = normalize_repo_path(summary_path_value)
+        candidate_output_dir = normalize_repo_path(output_dir_value)
+        require(summary_path.is_file(), f"candidate run summary is missing: {summary_path_value}")
+        require(candidate_output_dir.is_dir(), f"candidate output dir is missing: {output_dir_value}")
+        candidate_summary = load_json(summary_path)
+        require(isinstance(candidate_summary, dict), "candidate run summary must be a JSON object")
+        validate_candidate_summary(candidate_summary)
+        require(
+            candidate_summary.get("source_eval_manifest") == manifest.get("source_eval_manifest"),
+            "candidate run summary source_eval_manifest mismatch",
+        )
 
-    run_document = build_eval_run(manifest)
+    run_document = build_eval_run(
+        manifest,
+        candidate_summary=candidate_summary,
+        candidate_output_dir=candidate_output_dir,
+    )
     run_schema = load_json(RUN_SCHEMA_PATH)
     jsonschema.Draft202012Validator.check_schema(run_schema)
     jsonschema.validate(run_document, run_schema)
@@ -329,7 +482,7 @@ def main() -> int:
         if expected != run_document:
             raise SystemExit(f"offline eval run output does not match {expected_path.relative_to(REPO_ROOT)}")
 
-    print("radishmind core offline eval fixture run passed.")
+    print("radishmind core offline eval run passed.")
     return 0
 
 

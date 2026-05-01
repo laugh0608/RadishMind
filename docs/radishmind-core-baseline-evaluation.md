@@ -119,6 +119,7 @@ repaired 观测结论：
 - 候选模型必须保留 `minimind-v`、`radishmind-core-3b`、`radishmind-core-4b`、`radishmind-core-7b`、`Qwen2.5-VL` 与 `SmolVLM`
 - 阈值必须与 `scripts/checks/fixtures/radishmind-core-eval-thresholds.json` 保持一致
 - planned 结果不得伪造 observed metric；只有真实离线评测完成后，才允许填入 `observed_value`、`passed`、成本观测和证据路径
+- candidate wrapper 生成的 raw / repaired response 文件必须能通过 `response_source=candidate_response_file` 接入同一离线评测记录；schema-invalid raw 输出应记录为阻塞指标失败，不得被当作通过结果或训练样本
 - `7B` 仍保持延后评估，`14B/32B` 不得进入默认候选目标
 - 缺失真实观测值、削弱人工确认、宣称直接写回业务真相源或要求主模型生成图片像素时，不得晋级
 

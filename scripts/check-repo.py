@@ -996,13 +996,30 @@ def main() -> int:
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
     run_python_script("run-radishmind-core-offline-eval.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-core-candidate-") as temp_dir:
+        candidate_output_dir = Path(temp_dir) / "candidate-run"
+        candidate_summary_path = Path(temp_dir) / "candidate-summary.json"
         run_python_script(
             "run-radishmind-core-candidate.py",
             [
                 "--output-dir",
-                str(Path(temp_dir) / "candidate-run"),
+                str(candidate_output_dir),
+                "--summary-output",
+                str(candidate_summary_path),
                 "--check-summary",
                 "scripts/checks/fixtures/radishmind-core-candidate-dry-run-summary.json",
+            ],
+        )
+        run_python_script(
+            "run-radishmind-core-offline-eval.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/radishmind-core-offline-eval-candidate-run-manifest.json",
+                "--candidate-summary",
+                str(candidate_summary_path),
+                "--candidate-output-dir",
+                str(candidate_output_dir),
+                "--check-output",
+                "scripts/checks/fixtures/radishmind-core-offline-eval-candidate-dry-run.json",
             ],
         )
     run_python_script("check-copilot-training-sample-contract.py", [])
