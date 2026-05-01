@@ -122,6 +122,12 @@ repaired 观测结论：
 
 该档位来自当前本地 WSL CPU 观测：同批 9 条 fixture raw 全量平均约 `77.472s`、最慢约 `168.264s`；repaired 全量平均约 `72.983s`、最慢约 `162.238s`；两者均未命中 `max_new_tokens=1200`，且 1 秒 timeout smoke 已能稳定写出 `generation_timeout`。因此 `240s` 是当前 1.5B raw / repaired 全量复跑的默认治理档，既给最慢样本留出余量，又避免异常样本无限拖住整批。
 
+2026-05-01 已按 `--sample-timeout-seconds 240` 复跑同一批 9 条 fixture：
+
+- raw 复跑：`schema_valid_rate=0.8888888888888888`、`task_valid_rate=0.25`，仍为 `blocked`；`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `685.915s`、平均 `76.213s`、最慢样本 `181.348s`
+- repaired 复跑：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，仍只作为 `--repair-hard-fields` 后处理实验；`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `813.796s`、平均 `90.422s`、最慢样本 `233.771s`
+- 该结果确认 `240s` 在当前 WSL CPU / 1.5B / 9 fixture 条件下可复现 raw 与 repaired 对照，但 repaired 最慢样本距离 timeout 只剩约 `6.229s`，后续更换硬件、冷缓存、模型尺寸或样本面时必须继续记录 `max_generation_seconds`，必要时先使用 `300s` 探测档
+
 可复跑命令示例：
 
 ```bash

@@ -25,6 +25,11 @@
     "raw_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-raw-run-v2.json",
     "repaired_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-repaired-run-v2.json",
     "pair_summary": "tmp/radishmind-core-offline-eval-qwen15b-raw-vs-repaired-summary-v2.json",
+    "raw_timeout240_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240/summary.json",
+    "repaired_timeout240_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240/summary.json",
+    "raw_timeout240_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-raw-timeout240-run.json",
+    "repaired_timeout240_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-repaired-timeout240-run.json",
+    "timeout240_pair_summary": "tmp/radishmind-core-offline-eval-qwen15b-raw-vs-repaired-timeout240-summary.json",
     "timeout_smoke_summary": "tmp/radishmind-core-candidate-timeout-smoke/summary.json",
     "committed_outputs": false
   },
@@ -116,6 +121,71 @@
       "repaired_full": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240 --summary-output tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240/summary.json --allow-invalid-output --validate-task --repair-hard-fields --sample-timeout-seconds 240",
       "timeout_smoke": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --sample-id radish-answer-docs-question-direct-answer-001 --output-dir tmp/radishmind-core-candidate-timeout-smoke --summary-output tmp/radishmind-core-candidate-timeout-smoke/summary.json --allow-invalid-output --sample-timeout-seconds 1"
     }
+  },
+  "timeout240_confirmation": {
+    "status": "confirmed_for_current_1_5b_9_fixture_run_with_margin_warning",
+    "executed_with": ".venv/bin/python",
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.8888888888888888,
+      "task_valid_rate": 0.25,
+      "task_validation_attempted": 8,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 685.915,
+        "avg_generation_seconds": 76.213,
+        "max_generation_seconds": 181.348,
+        "total_input_tokens": 16650,
+        "total_output_tokens": 3125,
+        "avg_output_tokens": 347.222,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "offline_eval_metric_failures": {
+        "radishflow/suggest_flowsheet_edits": [
+          "citation_alignment_rate=0.3333333333333333",
+          "risk_confirmation_preservation_rate=0.3333333333333333",
+          "advisory_action_boundary_rate=0.3333333333333333"
+        ],
+        "radishflow/suggest_ghost_completion": [
+          "schema_validity_rate=0.6666666666666666",
+          "citation_alignment_rate=0.6666666666666666",
+          "risk_confirmation_preservation_rate=0.6666666666666666",
+          "high_risk_action_confirmation_rate=0.6666666666666666",
+          "advisory_action_boundary_rate=0.6666666666666666"
+        ],
+        "radish/answer_docs_question": [
+          "citation_alignment_rate=0.3333333333333333"
+        ]
+      }
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 813.796,
+        "avg_generation_seconds": 90.422,
+        "max_generation_seconds": 233.771,
+        "total_input_tokens": 16650,
+        "total_output_tokens": 3125,
+        "avg_output_tokens": 347.222,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 8,
+      "all_offline_eval_required_metrics_passed": true
+    },
+    "interpretation": [
+      "The 240 second timeout reproduced the previous raw blocked result and the repaired fixture-pass result without generation timeouts or max token hits.",
+      "The repaired slowest sample reached 233.771 seconds, leaving only about 6.229 seconds of headroom under the 240 second timeout on this WSL CPU run.",
+      "Keep 240 seconds as the current default for same-environment 1.5B raw/repaired comparisons, but monitor max_generation_seconds on every rerun and use the documented 300 second probe tier when hardware, cache state, or model size changes.",
+      "This confirmation still does not promote the raw model; repaired output remains an explicit postprocess experiment rather than raw capability evidence."
+    ]
   },
   "task_metric_summary": [
     {
