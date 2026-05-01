@@ -117,7 +117,7 @@ repaired 观测结论：
 | 单样本定位 | `180` | 适合模型已加载、只查一条样本的快速定位；若命中 timeout，再用 `240` 秒复核一次 |
 | raw 全量 candidate run | `240` | 当前 9 条 M4 fixture raw 全量默认档；必须配合 `--allow-invalid-output --validate-task` |
 | repaired 全量 candidate run | `240` | 与 raw 使用同一档位，避免 raw / `--repair-hard-fields` 对照被不同生成预算污染 |
-| 慢 CPU、首次冷缓存或更大本地候选探测 | `300` | 只作为调试放宽档；用于对照前应在实验记录中说明原因 |
+| 慢样本 probe、扩样本、慢 CPU、首次冷缓存或更大本地候选探测 | `300` | 作为调试探测档；用于对照前应在实验记录中说明原因，并保持 raw / repaired 同档位 |
 | timeout 机制 smoke | `1` | 只验证 `generation_timeout`、invalid response 与 `timeout_count` 链路，不进入质量对照 |
 
 该档位来自当前本地 WSL CPU 观测：同批 9 条 fixture raw 全量平均约 `77.472s`、最慢约 `168.264s`；repaired 全量平均约 `72.983s`、最慢约 `162.238s`；两者均未命中 `max_new_tokens=1200`，且 1 秒 timeout smoke 已能稳定写出 `generation_timeout`。因此 `240s` 是当前 1.5B raw / repaired 全量复跑的默认治理档，既给最慢样本留出余量，又避免异常样本无限拖住整批。
@@ -128,12 +128,19 @@ repaired 观测结论：
 - repaired 复跑：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，仍只作为 `--repair-hard-fields` 后处理实验；`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `813.796s`、平均 `90.422s`、最慢样本 `233.771s`
 - 该结果确认 `240s` 在当前 WSL CPU / 1.5B / 9 fixture 条件下可复现 raw 与 repaired 对照，但 repaired 最慢样本距离 timeout 只剩约 `6.229s`，后续更换硬件、冷缓存、模型尺寸或样本面时必须继续记录 `max_generation_seconds`，必要时先使用 `300s` 探测档
 
+2026-05-01 又按 `--sample-timeout-seconds 300` 复跑 timeout probe manifest 中的 3 条小批量样本：
+
+- raw probe：`schema_valid_rate=1.0`、`task_valid_rate=0.6666666666666666`，`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `431.482s`、平均 `143.827s`、最慢样本 `radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001` 达到 `254.678s`
+- repaired probe：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `366.371s`、平均 `122.124s`、最慢样本同为 `radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001`，耗时 `183.007s`
+- 该 probe 说明慢样本 raw 可能超过 `240s`，因此 `240s` 只保留为当前同环境 9 条 fixture 全量 raw / repaired 对照默认档；当目标是慢样本定位、扩样本、冷缓存、慢 CPU 或更大本地候选探测时，应先使用 `300s` 档记录 `max_generation_seconds / timeout_count / hit_max_new_tokens_count`，再决定是否把正式对照档位继续收回到 `240s`
+- repaired probe 修复了 `2/3` 条输出，修复路径为 `$.answers[0]` 与 `$.status`；该结果仍只代表后处理链路可用，不能替代 raw 模型能力晋级
+
 当前已新增 `scripts/checks/fixtures/radishmind-core-timeout-probe-eval-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json`，固定 3 条小批量 timeout probe 样本：两条上轮最慢的 `suggest_ghost_completion` 样本，以及一条 `answer_docs_question` evidence-gap 对照。仓库级检查只用 `golden_fixture` 校验该 probe manifest 的 prompt / response 布局；真实 `300s` 探测仍必须显式使用 `local_transformers`，并把输出留在 `tmp/`。
 
 可复跑命令示例：
 
 ```bash
-python3 scripts/run-radishmind-core-candidate.py \
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
   --provider local_transformers \
   --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
   --output-dir tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240 \
@@ -142,7 +149,7 @@ python3 scripts/run-radishmind-core-candidate.py \
   --validate-task \
   --sample-timeout-seconds 240
 
-python3 scripts/run-radishmind-core-candidate.py \
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
   --provider local_transformers \
   --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
   --output-dir tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240 \
@@ -152,7 +159,7 @@ python3 scripts/run-radishmind-core-candidate.py \
   --repair-hard-fields \
   --sample-timeout-seconds 240
 
-python3 scripts/run-radishmind-core-candidate.py \
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
   --manifest scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json \
   --provider local_transformers \
   --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
@@ -162,7 +169,7 @@ python3 scripts/run-radishmind-core-candidate.py \
   --validate-task \
   --sample-timeout-seconds 300
 
-python3 scripts/run-radishmind-core-candidate.py \
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
   --manifest scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json \
   --provider local_transformers \
   --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \

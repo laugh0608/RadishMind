@@ -187,6 +187,74 @@
       "This confirmation still does not promote the raw model; repaired output remains an explicit postprocess experiment rather than raw capability evidence."
     ]
   },
+  "timeout300_probe": {
+    "status": "completed_for_current_timeout_probe_manifest",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json",
+    "sample_count": 3,
+    "purpose": "Probe samples that were slow or boundary-sensitive under the 240 second full-run confirmation before expanding hardware, model size, or sample coverage.",
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-timeout-probe-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-timeout-probe-qwen15b-repaired-timeout300/summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.6666666666666666,
+      "task_validation_attempted": 3,
+      "task_failure_categories": {
+        "status_mismatch": 1
+      },
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 431.482,
+        "avg_generation_seconds": 143.827,
+        "max_generation_seconds": 254.678,
+        "total_input_tokens": 5687,
+        "total_output_tokens": 1592,
+        "avg_output_tokens": 530.667,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "slowest_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+        "generation_seconds": 254.678
+      }
+    },
+    "repaired": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 3,
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 366.371,
+        "avg_generation_seconds": 122.124,
+        "max_generation_seconds": 183.007,
+        "total_input_tokens": 5687,
+        "total_output_tokens": 1592,
+        "avg_output_tokens": 530.667,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 2,
+      "repaired_path_counts": {
+        "$.answers[0]": 1,
+        "$.status": 1
+      },
+      "slowest_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+        "generation_seconds": 183.007
+      }
+    },
+    "interpretation": [
+      "The 300 second probe completed both raw and repaired tracks without generation timeouts or max token hits.",
+      "The raw slowest probe sample reached 254.678 seconds, so 240 seconds remains a same-environment 9-fixture comparison default rather than a permanent cross-sample or cross-hardware constant.",
+      "Use the 300 second tier before judging slow probe samples, expanded sample sets, cold-cache runs, slower CPUs, or larger local candidates; record the reason and keep raw/repaired tracks on the same timeout tier when comparing quality.",
+      "The repaired pass remains a postprocess observation and does not promote raw model capability."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
