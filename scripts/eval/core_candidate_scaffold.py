@@ -52,24 +52,28 @@ def extract_ordered_parameter_updates(
 ) -> dict[str, Any]:
     evaluation = sample.get("evaluation") if isinstance(sample.get("evaluation"), dict) else {}
     update_keys: list[str] = []
+    detail_keys_by_parameter: dict[str, list[str]] = {}
+    has_explicit_update_keys = False
     for entry in evaluation.get("ordered_parameter_update_keys") or []:
         if not isinstance(entry, dict) or int(entry.get("action_index") or 0) != action_index:
             continue
         keys = entry.get("keys")
         if isinstance(keys, list):
             update_keys = [str(key) for key in keys if str(key).strip()]
+            has_explicit_update_keys = True
             break
-    if not update_keys:
-        return {}
 
-    detail_keys_by_parameter: dict[str, list[str]] = {}
     for entry in evaluation.get("ordered_parameter_update_detail_keys") or []:
         if not isinstance(entry, dict) or int(entry.get("action_index") or 0) != action_index:
             continue
         parameter_key = str(entry.get("parameter_key") or "").strip()
         keys = entry.get("keys")
         if parameter_key and isinstance(keys, list):
+            if not has_explicit_update_keys:
+                update_keys.append(parameter_key)
             detail_keys_by_parameter[parameter_key] = [str(key) for key in keys if str(key).strip()]
+    if not update_keys:
+        return {}
 
     value_sequences: dict[tuple[str, str], list[Any]] = {}
     for entry in evaluation.get("ordered_parameter_update_value_sequences") or []:

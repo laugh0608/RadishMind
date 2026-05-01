@@ -163,6 +163,11 @@ repaired 观测结论：
 - repaired full holdout：`schema_valid_rate=1.0`、`task_valid_rate=0.8888888888888888`，`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `609.850s`；docs QA 与 ghost completion 均全通过，但 `suggest_flowsheet_edits` 仍有 `valve-local-fix-vs-global-balance` 的 `parameter_updates` 内层 detail key ordering 失败，offline eval 仍为 `blocked`
 - 该结果确认 3 条 holdout fix1 repaired 全通过不能外推为完整 holdout 通过；下一步应窄化处理 `minimum_value`、`suggested_maximum` 等 parameter update detail-key ordering，同时继续把 repaired 视为后处理观测，不作为 raw 模型晋级或训练样本准入依据
 
+针对上述剩余失败，随后补齐 `candidate_edit` scaffold 的 detail-key-only 参数更新路径：当样本声明 `evaluation.ordered_parameter_update_detail_keys` 但未声明 `ordered_parameter_update_keys` 时，scaffold 会按 detail-key metadata 推导 `parameter_updates` 外层参数顺序，并保留 `action -> minimum_value`、`action -> suggested_maximum` 等内层键顺序。复跑同一 9 条 full holdout 的 repaired 轨后：
+
+- repaired full holdout fix1：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `749.582s`；3 个任务组均通过 offline eval 指标
+- 该结果只说明当前 scaffold / repair 能覆盖完整 planned holdout 的已知结构失败面；raw full holdout 仍为 `task_valid_rate=0.5555555555555556` 且保持 `blocked`，因此不得把 repaired fix1 视为 raw 模型晋级或训练样本准入依据
+
 可复跑命令示例：
 
 ```bash
