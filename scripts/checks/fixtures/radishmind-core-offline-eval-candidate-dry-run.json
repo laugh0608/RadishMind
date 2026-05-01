@@ -118,7 +118,7 @@
       "model_id": "radishmind-core-candidate-dry-run",
       "role": "core_candidate",
       "target_size": "3B",
-      "evaluation_role": "candidate wrapper dry-run output evaluated through offline eval runner",
+      "evaluation_role": "candidate response output from golden_fixture evaluated through offline eval runner",
       "local_memory_budget_gb": 32
     }
   ],

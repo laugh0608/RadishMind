@@ -1,6 +1,6 @@
 # training/datasets 说明
 
-更新时间：2026-04-29
+更新时间：2026-05-01
 
 本目录预留给训练 / 蒸馏数据集的轻量治理文件。
 
@@ -35,6 +35,8 @@
 - tokenizer、checkpoint、adapter 二进制产物
 - provider 原始输出临时 dump
 - 本地探测缓存
+
+本地模型评测观察摘要放在 `training/experiments/`，不放在 `training/datasets/`。例如 `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json` 只记录 raw / repaired 指标、修复路径和本地 `tmp/` artifact 位置，不代表这些候选输出已进入训练集合。
 
 首批 JSONL 应继续由 `scripts/build-copilot-training-samples.py` 从 committed eval 样本或 audit pass candidate record 生成，并默认输出到 `tmp/`。
 

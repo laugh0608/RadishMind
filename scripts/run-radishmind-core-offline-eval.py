@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import sys
 from pathlib import Path
@@ -231,7 +232,7 @@ def build_result_records(
     candidate_summary: dict[str, Any] | None,
     candidate_output_dir: Path | None,
 ) -> list[dict[str, Any]]:
-    candidate_model = manifest["candidate_model"]
+    candidate_model = build_candidate_model(manifest, candidate_summary)
     model_id = str(candidate_model["model_id"])
     model_size = str(candidate_model["target_size"])
     result_records: list[dict[str, Any]] = []
@@ -356,7 +357,7 @@ def build_eval_run(
         for record in result_records
         for metric_result in get_array(record.get("metric_results"))
     )
-    candidate_model = manifest["candidate_model"]
+    candidate_model = build_candidate_model(manifest, candidate_summary)
     return {
         "schema_version": 1,
         "kind": "radishmind_core_offline_eval_run",
@@ -437,6 +438,27 @@ def build_candidate_cost_budget(
         "max_latency_p95_ms": None,
         "notes": notes,
     }
+
+
+def build_candidate_model(manifest: dict[str, Any], candidate_summary: dict[str, Any] | None) -> dict[str, Any]:
+    candidate_model = copy.deepcopy(manifest["candidate_model"])
+    if manifest["response_source"] != "candidate_response_file" or not candidate_summary:
+        return candidate_model
+    provider = candidate_summary.get("provider")
+    if not isinstance(provider, dict):
+        return candidate_model
+    model_id = str(provider.get("model_id") or "").strip()
+    if model_id:
+        candidate_model["model_id"] = model_id
+    role = provider.get("role")
+    if role in {"student_base", "core_candidate", "teacher_baseline", "lightweight_baseline"}:
+        candidate_model["role"] = role
+    target_size = str(provider.get("target_size") or "").strip()
+    if target_size:
+        candidate_model["target_size"] = target_size
+    provider_id = str(provider.get("provider_id") or "candidate").strip()
+    candidate_model["evaluation_role"] = f"candidate response output from {provider_id} evaluated through offline eval runner"
+    return candidate_model
 
 
 def main() -> int:

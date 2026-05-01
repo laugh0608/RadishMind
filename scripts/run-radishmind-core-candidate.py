@@ -123,6 +123,14 @@ def repo_rel(path: Path) -> str:
         return path.as_posix()
 
 
+def infer_model_id_from_path(model_dir: str | None) -> str:
+    resolved_model_dir = model_dir or os.environ.get("RADISHMIND_MODEL_DIR")
+    if not resolved_model_dir:
+        return "local-transformers"
+    model_name = Path(str(resolved_model_dir)).expanduser().name.strip()
+    return model_name or "local-transformers"
+
+
 def load_schema(path: Path) -> dict[str, Any]:
     schema = load_json(path)
     require(isinstance(schema, dict), f"{repo_rel(path)} must be a JSON object")
@@ -1245,6 +1253,14 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         provider.update(
             {
                 "provider_id": provider_id,
+                **(
+                    {
+                        "model_id": infer_model_id_from_path(args.model_dir),
+                        "role": "student_base",
+                    }
+                    if provider_id == "local_transformers"
+                    else {}
+                ),
                 "does_not_run_models": provider_id != "local_transformers",
                 "provider_access": "local_only" if provider_id == "local_transformers" else "none",
                 "model_artifacts_downloaded": False,

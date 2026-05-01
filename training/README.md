@@ -1,6 +1,6 @@
 # RadishMind 训练目录
 
-更新时间：2026-04-29
+更新时间：2026-05-01
 
 ## 目录目标
 
@@ -23,6 +23,7 @@
 - `training/datasets/copilot-training-dataset-governance-v0.json` 是首个训练集合治理 manifest 草案，用于固定 candidate record 入选、抽样复核、质量门禁、holdout 和退场条件
 - `training/datasets/copilot-training-review-record-v0.json` 是首个 planned 人工复核记录模板，用于后续记录 reviewer、逐维度结果和泄漏判断
 - `training/datasets/copilot-training-holdout-split-v0.json` 是首个 planned offline eval holdout split，当前每条主任务各保留 3 条且不与现有训练 seed manifest 重叠
+- `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json` 是首个本地 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨离线评测观察摘要；它只记录指标、修复路径和 `tmp/` artifact 位置，不提交候选输出本体
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
 
@@ -78,7 +79,7 @@ python3 scripts/build-copilot-training-samples.py \
 后续进入真实微调或蒸馏前，可按稳定职责补充浅层目录：
 
 - `training/datasets/`: committed 小型训练集合索引、manifest、summary 和抽样复核记录
-- `training/experiments/`: 小规模实验说明、参数摘要、评测结果和退场判断
+- `training/experiments/`: 小规模实验说明、参数摘要、评测结果和退场判断；实验记录应优先提交轻量 JSON/Markdown 摘要，不提交本地模型输出、provider dump 或权重
 - `training/adapters/`: LoRA / adapter 配置摘要和可复跑命令说明
 
 这些目录不用于提交权重、缓存、下载模型或大规模生成数据。

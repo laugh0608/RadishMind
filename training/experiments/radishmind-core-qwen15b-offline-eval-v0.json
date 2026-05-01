@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_candidate_eval_observation",
+  "phase": "M4-preparation",
+  "experiment_id": "radishmind-core-qwen15b-offline-eval-v0",
+  "model": {
+    "provider": "local_transformers",
+    "model_id": "Qwen2.5-1.5B-Instruct",
+    "role": "student_base_observation",
+    "model_dir": "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+    "downloaded_by_this_experiment": false
+  },
+  "sample_set": {
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-offline-eval-fixture-run-manifest.json",
+    "sample_count": 9,
+    "tasks": {
+      "radishflow/suggest_flowsheet_edits": 3,
+      "radishflow/suggest_ghost_completion": 3,
+      "radish/answer_docs_question": 3
+    }
+  },
+  "local_artifacts": {
+    "raw_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-raw-eval-v2/summary.json",
+    "repaired_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-repaired-eval-v2/summary.json",
+    "raw_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-raw-run-v2.json",
+    "repaired_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-repaired-run-v2.json",
+    "pair_summary": "tmp/radishmind-core-offline-eval-qwen15b-raw-vs-repaired-summary-v2.json",
+    "committed_outputs": false
+  },
+  "raw_result": {
+    "promotion_status": "blocked",
+    "schema_valid_rate": 0.8888888888888888,
+    "task_valid_rate": 0.25,
+    "task_validation_attempted": 8,
+    "schema_failure_categories": {
+      "other": 1
+    },
+    "task_failure_categories": {
+      "action_shape": 3,
+      "citation_alignment": 24,
+      "issue_boundary": 4,
+      "other": 8,
+      "risk_confirmation": 5,
+      "status_mismatch": 3
+    }
+  },
+  "repaired_result": {
+    "promotion_status": "no_promotion_planned",
+    "schema_valid_rate": 1.0,
+    "task_valid_rate": 1.0,
+    "task_validation_attempted": 9,
+    "repaired_output_count": 8,
+    "repaired_path_counts": {
+      "$.answers": 3,
+      "$.answers[0]": 3,
+      "$.citations": 4,
+      "$.issues": 2,
+      "$.proposed_actions": 3,
+      "$.requires_confirmation": 1,
+      "$.risk_level": 1,
+      "$.status": 5
+    }
+  },
+  "generation_summary": {
+    "samples_measured": 9,
+    "total_generation_seconds": 656.847,
+    "avg_generation_seconds": 72.983,
+    "total_input_tokens": 16650,
+    "total_output_tokens": 3125,
+    "avg_output_tokens": 347.222,
+    "hit_max_new_tokens_count": 0,
+    "json_extracted_count": 9
+  },
+  "task_metric_summary": [
+    {
+      "task": "radishflow/suggest_flowsheet_edits",
+      "raw_all_metrics_passed": false,
+      "repaired_all_metrics_passed": true,
+      "main_raw_failures": [
+        "citation_alignment_rate=0.3333333333333333",
+        "risk_confirmation_preservation_rate=0.3333333333333333",
+        "advisory_action_boundary_rate=0.3333333333333333"
+      ]
+    },
+    {
+      "task": "radishflow/suggest_ghost_completion",
+      "raw_all_metrics_passed": false,
+      "repaired_all_metrics_passed": true,
+      "main_raw_failures": [
+        "schema_validity_rate=0.6666666666666666",
+        "citation_alignment_rate=0.6666666666666666",
+        "risk_confirmation_preservation_rate=0.6666666666666666",
+        "high_risk_action_confirmation_rate=0.6666666666666666",
+        "advisory_action_boundary_rate=0.6666666666666666"
+      ]
+    },
+    {
+      "task": "radish/answer_docs_question",
+      "raw_all_metrics_passed": false,
+      "repaired_all_metrics_passed": true,
+      "main_raw_failures": [
+        "citation_alignment_rate=0.3333333333333333"
+      ]
+    }
+  ],
+  "interpretation": {
+    "raw_model_is_blocked": true,
+    "repaired_output_passes_current_fixture": true,
+    "repaired_is_not_raw_capability": true,
+    "do_not_train_from_raw_failed_outputs": true,
+    "do_not_promote_from_repaired_fixture_only": true,
+    "recommended_next_step": "Keep raw and repaired tracks separate, add per-sample timeout governance, expand beyond the current 9 fixture samples, and manually review repaired paths before any training or promotion decision."
+  }
+}
