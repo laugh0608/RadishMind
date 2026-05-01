@@ -1022,6 +1022,22 @@ def main() -> int:
                 "scripts/checks/fixtures/radishmind-core-offline-eval-candidate-dry-run.json",
             ],
         )
+    with tempfile.TemporaryDirectory(prefix="check-repo-core-timeout-probe-") as temp_dir:
+        timeout_probe_output_dir = Path(temp_dir) / "timeout-probe-candidate-run"
+        timeout_probe_summary_path = Path(temp_dir) / "timeout-probe-candidate-summary.json"
+        run_python_script(
+            "run-radishmind-core-candidate.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json",
+                "--output-dir",
+                str(timeout_probe_output_dir),
+                "--summary-output",
+                str(timeout_probe_summary_path),
+                "--check-summary",
+                "scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-summary.json",
+            ],
+        )
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-training-samples-") as temp_dir:

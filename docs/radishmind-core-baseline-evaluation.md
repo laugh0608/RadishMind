@@ -128,6 +128,8 @@ repaired 观测结论：
 - repaired 复跑：`schema_valid_rate=1.0`、`task_valid_rate=1.0`，仍只作为 `--repair-hard-fields` 后处理实验；`timeout_count=0`、`hit_max_new_tokens_count=0`、总生成耗时约 `813.796s`、平均 `90.422s`、最慢样本 `233.771s`
 - 该结果确认 `240s` 在当前 WSL CPU / 1.5B / 9 fixture 条件下可复现 raw 与 repaired 对照，但 repaired 最慢样本距离 timeout 只剩约 `6.229s`，后续更换硬件、冷缓存、模型尺寸或样本面时必须继续记录 `max_generation_seconds`，必要时先使用 `300s` 探测档
 
+当前已新增 `scripts/checks/fixtures/radishmind-core-timeout-probe-eval-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json`，固定 3 条小批量 timeout probe 样本：两条上轮最慢的 `suggest_ghost_completion` 样本，以及一条 `answer_docs_question` evidence-gap 对照。仓库级检查只用 `golden_fixture` 校验该 probe manifest 的 prompt / response 布局；真实 `300s` 探测仍必须显式使用 `local_transformers`，并把输出留在 `tmp/`。
+
 可复跑命令示例：
 
 ```bash
@@ -149,6 +151,27 @@ python3 scripts/run-radishmind-core-candidate.py \
   --validate-task \
   --repair-hard-fields \
   --sample-timeout-seconds 240
+
+python3 scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-timeout-probe-qwen15b-raw-timeout300 \
+  --summary-output tmp/radishmind-core-timeout-probe-qwen15b-raw-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --sample-timeout-seconds 300
+
+python3 scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-timeout-probe-qwen15b-repaired-timeout300 \
+  --summary-output tmp/radishmind-core-timeout-probe-qwen15b-repaired-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --repair-hard-fields \
+  --sample-timeout-seconds 300
 ```
 
 上述命令的输出目录仍在 `tmp/` 下，只作为本地 artifact；提交时只记录 summary 摘要、指标和复跑命令，不提交候选响应本体、provider dump 或权重。
