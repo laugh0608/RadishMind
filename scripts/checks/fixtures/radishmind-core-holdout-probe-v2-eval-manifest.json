@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_offline_eval_fixture_run_manifest",
+  "run_id": "radishmind-core-holdout-probe-v2-eval-001",
+  "created_at": "2026-05-01T00:00:00Z",
+  "phase": "M4-preparation",
+  "response_source": "golden_response",
+  "candidate_model": {
+    "model_id": "radishmind-core-holdout-probe-v2",
+    "role": "core_candidate",
+    "target_size": "3B",
+    "evaluation_role": "small non-overlapping committed eval probe before wider local model inference",
+    "local_memory_budget_gb": 32
+  },
+  "execution_policy": {
+    "run_status": "completed",
+    "does_not_run_models": true,
+    "provider_access": "none",
+    "model_artifacts_downloaded": false,
+    "notes": [
+      "This manifest defines a lightweight committed eval probe that does not overlap the current 9-sample planned full holdout.",
+      "The committed fixture uses golden_response only; real local model outputs must remain under tmp/ and be summarized separately."
+    ]
+  },
+  "sample_selection": [
+    {
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "minimum_sample_count": 2,
+      "selection_reason": "Uses non-full-holdout samples that stress mixed-risk reconnect plus parameter updates and ordered numeric parameter ranges.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.json",
+          "coverage_tags": [
+            "non_full_holdout_probe",
+            "mixed_risk",
+            "reconnect",
+            "parameter_update",
+            "citation_alignment"
+          ]
+        },
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-efficiency-range-ordering-001.json",
+          "coverage_tags": [
+            "non_full_holdout_probe",
+            "parameter_update",
+            "ordered_range",
+            "patch_ordering"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "minimum_sample_count": 2,
+      "selection_reason": "Uses non-full-holdout ghost completion samples for candidate legality, tab behavior, and manual-only ambiguity.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-flash-vapor-outlet-001.json",
+          "coverage_tags": [
+            "non_full_holdout_probe",
+            "vapor_outlet",
+            "candidate_ranking",
+            "tab_default"
+          ]
+        },
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-valve-ambiguous-no-tab-001.json",
+          "coverage_tags": [
+            "non_full_holdout_probe",
+            "manual_only",
+            "ambiguous_candidate",
+            "advisory_boundary"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radish",
+      "task": "answer_docs_question",
+      "minimum_sample_count": 2,
+      "selection_reason": "Uses non-full-holdout docs QA samples for source conflict handling and evidence-gap boundaries.",
+      "selected_samples": [
+        {
+          "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "path": "datasets/eval/radish/answer-docs-question-docs-faq-forum-conflict-001.json",
+          "coverage_tags": [
+            "non_full_holdout_probe",
+            "source_conflict",
+            "official_source",
+            "read_only_check"
+          ]
+        },
+        {
+          "sample_id": "radish-answer-docs-question-evidence-gap-001",
+          "path": "datasets/eval/radish/answer-docs-question-evidence-gap-001.json",
+          "coverage_tags": [
+            "non_full_holdout_probe",
+            "evidence_gap",
+            "partial_answer",
+            "no_action"
+          ]
+        }
+      ]
+    }
+  ],
+  "expected_output": "not committed; use candidate summary and offline eval tmp outputs for local probe runs"
+}

@@ -263,6 +263,31 @@ repaired 观测结论：
 
 上述命令的输出目录仍在 `tmp/` 下，只作为本地 artifact；提交时只记录 summary 摘要、指标和复跑命令，不提交候选响应本体、provider dump 或权重。
 
+完成 full holdout fix3 后，下一步不再继续围绕同一 9 条做 repaired 收敛；新增 `radishmind-core-holdout-probe-v2-*` committed manifest，从 committed eval 中选择 6 条不与当前 9 条 planned full holdout 重叠的样本，用于观察 raw 在跨对象参数 patch、ghost ambiguity、docs source conflict 与 evidence gap 上的缺口。真实本地观测仍应使用 `300s`、raw / repaired 双轨、`--allow-invalid-output`、`--validate-task`，并只提交 summary / 实验记录 / 文档。
+
+```bash
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300 \
+  --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --sample-timeout-seconds 300
+
+.venv/bin/python scripts/run-radishmind-core-candidate.py \
+  --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300 \
+  --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --repair-hard-fields \
+  --sample-timeout-seconds 300
+```
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

@@ -1085,6 +1085,14 @@ def main() -> int:
         eval_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-eval-manifest.json",
     )
     check_core_candidate_probe(
+        temp_prefix="check-repo-core-holdout-probe-v2-",
+        output_dir_name="holdout-probe-v2-candidate-run",
+        summary_name="holdout-probe-v2-candidate-summary.json",
+        candidate_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+        expected_summary="scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json",
+        eval_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+    )
+    check_core_candidate_probe(
         temp_prefix="check-repo-core-full-holdout-",
         output_dir_name="full-holdout-candidate-run",
         summary_name="full-holdout-candidate-summary.json",
