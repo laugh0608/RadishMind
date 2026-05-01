@@ -110,6 +110,43 @@ repaired 观测结论：
 - repaired 结果只能证明后处理链路可行，不能替代 raw 模型能力；后续晋级判断必须同时保留 raw summary、repaired summary、修复路径统计、样本覆盖说明和人工复核结论
 - `run-radishmind-core-candidate.py` 已为 `local_transformers` 增加显式 `--sample-timeout-seconds` 单样本超时边界；timeout 会记录为 invalid candidate output、`generation_timeout` 失败分类和 generation summary 的 `timeout_count`，避免单条本地生成长时间阻塞整批评测
 
+当前 `Qwen2.5-1.5B-Instruct` 的 `local_transformers` timeout 推荐档位：
+
+| 场景 | 推荐 `--sample-timeout-seconds` | 用法说明 |
+| --- | ---: | --- |
+| 单样本定位 | `180` | 适合模型已加载、只查一条样本的快速定位；若命中 timeout，再用 `240` 秒复核一次 |
+| raw 全量 candidate run | `240` | 当前 9 条 M4 fixture raw 全量默认档；必须配合 `--allow-invalid-output --validate-task` |
+| repaired 全量 candidate run | `240` | 与 raw 使用同一档位，避免 raw / `--repair-hard-fields` 对照被不同生成预算污染 |
+| 慢 CPU、首次冷缓存或更大本地候选探测 | `300` | 只作为调试放宽档；用于对照前应在实验记录中说明原因 |
+| timeout 机制 smoke | `1` | 只验证 `generation_timeout`、invalid response 与 `timeout_count` 链路，不进入质量对照 |
+
+该档位来自当前本地 WSL CPU 观测：同批 9 条 fixture raw 全量平均约 `77.472s`、最慢约 `168.264s`；repaired 全量平均约 `72.983s`、最慢约 `162.238s`；两者均未命中 `max_new_tokens=1200`，且 1 秒 timeout smoke 已能稳定写出 `generation_timeout`。因此 `240s` 是当前 1.5B raw / repaired 全量复跑的默认治理档，既给最慢样本留出余量，又避免异常样本无限拖住整批。
+
+可复跑命令示例：
+
+```bash
+python3 scripts/run-radishmind-core-candidate.py \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240 \
+  --summary-output tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --sample-timeout-seconds 240
+
+python3 scripts/run-radishmind-core-candidate.py \
+  --provider local_transformers \
+  --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct \
+  --output-dir tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240 \
+  --summary-output tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240/summary.json \
+  --allow-invalid-output \
+  --validate-task \
+  --repair-hard-fields \
+  --sample-timeout-seconds 240
+```
+
+上述命令的输出目录仍在 `tmp/` 下，只作为本地 artifact；提交时只记录 summary 摘要、指标和复跑命令，不提交候选响应本体、provider dump 或权重。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

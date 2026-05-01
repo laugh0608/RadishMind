@@ -25,6 +25,7 @@
     "raw_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-raw-run-v2.json",
     "repaired_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-repaired-run-v2.json",
     "pair_summary": "tmp/radishmind-core-offline-eval-qwen15b-raw-vs-repaired-summary-v2.json",
+    "timeout_smoke_summary": "tmp/radishmind-core-candidate-timeout-smoke/summary.json",
     "committed_outputs": false
   },
   "raw_result": {
@@ -43,6 +44,18 @@
       "risk_confirmation": 5,
       "status_mismatch": 3
     }
+  },
+  "raw_generation_summary": {
+    "samples_measured": 9,
+    "total_generation_seconds": 697.245,
+    "avg_generation_seconds": 77.472,
+    "max_generation_seconds": 168.264,
+    "total_input_tokens": 16650,
+    "total_output_tokens": 3125,
+    "avg_output_tokens": 347.222,
+    "hit_max_new_tokens_count": 0,
+    "json_extracted_count": 9,
+    "timeout_count": 0
   },
   "repaired_result": {
     "promotion_status": "no_promotion_planned",
@@ -65,11 +78,44 @@
     "samples_measured": 9,
     "total_generation_seconds": 656.847,
     "avg_generation_seconds": 72.983,
+    "max_generation_seconds": 162.238,
     "total_input_tokens": 16650,
     "total_output_tokens": 3125,
     "avg_output_tokens": 347.222,
     "hit_max_new_tokens_count": 0,
-    "json_extracted_count": 9
+    "json_extracted_count": 9,
+    "timeout_count": 0
+  },
+  "timeout_governance": {
+    "status": "recommended_for_local_transformers_full_candidate_runs",
+    "basis": {
+      "raw_max_generation_seconds": 168.264,
+      "repaired_max_generation_seconds": 162.238,
+      "raw_avg_generation_seconds": 77.472,
+      "repaired_avg_generation_seconds": 72.983,
+      "timeout_smoke_seconds": 1,
+      "timeout_smoke_result": "generation_timeout invalid candidate response with timeout_count=1",
+      "scope": "WSL CPU local Qwen2.5-1.5B-Instruct, 9 M4 fixture samples, max_new_tokens=1200"
+    },
+    "recommended_sample_timeout_seconds": {
+      "single_sample_debug": 180,
+      "full_raw_candidate_run": 240,
+      "full_repaired_candidate_run": 240,
+      "slow_cpu_or_first_run_probe": 300,
+      "timeout_mechanism_smoke": 1
+    },
+    "policy": [
+      "Raw and repaired full candidate runs should use the same timeout so quality comparisons are not biased by different generation budgets.",
+      "Use 240 seconds for the current 1.5B full 9-sample raw/repaired run; it leaves margin above the observed 168.264 second slowest sample while still bounding abnormal stalls.",
+      "Use 180 seconds for focused single-sample debugging after the model is warm; if the sample times out, rerun once at 240 seconds before treating it as a model/case failure.",
+      "Use 300 seconds only for first-run cold cache, slower CPU, or larger local candidates; record the reason in the experiment note before comparing against the 240 second baseline.",
+      "Use 1 second only to verify timeout plumbing; such output is a mechanism smoke and must not be included in model quality comparisons."
+    ],
+    "rerun_commands": {
+      "raw_full": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240 --summary-output tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240/summary.json --allow-invalid-output --validate-task --sample-timeout-seconds 240",
+      "repaired_full": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240 --summary-output tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240/summary.json --allow-invalid-output --validate-task --repair-hard-fields --sample-timeout-seconds 240",
+      "timeout_smoke": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --sample-id radish-answer-docs-question-direct-answer-001 --output-dir tmp/radishmind-core-candidate-timeout-smoke --summary-output tmp/radishmind-core-candidate-timeout-smoke/summary.json --allow-invalid-output --sample-timeout-seconds 1"
+    }
   },
   "task_metric_summary": [
     {
@@ -109,6 +155,6 @@
     "repaired_is_not_raw_capability": true,
     "do_not_train_from_raw_failed_outputs": true,
     "do_not_promote_from_repaired_fixture_only": true,
-    "recommended_next_step": "Keep raw and repaired tracks separate, add per-sample timeout governance, expand beyond the current 9 fixture samples, and manually review repaired paths before any training or promotion decision."
+    "recommended_next_step": "Keep raw and repaired tracks separate, use --sample-timeout-seconds 240 for the current local_transformers full raw/repaired 1.5B candidate runs, expand beyond the current 9 fixture samples, and manually review repaired paths before any training or promotion decision."
   }
 }
