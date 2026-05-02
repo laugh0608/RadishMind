@@ -302,6 +302,8 @@ repaired 观测结论：
 
 先用用户本地执行的单样本 `radish-answer-docs-question-evidence-gap-001` 验证了该审计链路：`Qwen2.5-1.5B-Instruct` raw 输出耗时约 `78.957s`，schema-valid 但 task-invalid；freeze audit 显示 7 个冻结字段中 `$.status` 从 `partial` 漂移为 `ok`、`$.risk_level` 从 `medium` 漂移为 `low`。这说明 prompt-time freeze 已经可审计，但单靠当前 prompt 仍不足以让 1.5B raw 稳定遵守 evidence-gap 的风险边界；后续若继续推进 raw 能力，应优先验证 constrained decoding / 结构化字段冻结，而不是把该样本误判为检索失败。
 
+随后用户用同一单样本执行 repaired 轨，`--repair-hard-fields` 后输出 schema-valid 且 task-valid，freeze audit 通过；summary 中 `repaired_paths` 只有 `$.status` 与 `$.risk_level`。这说明该样本 raw 的 answer、issue、citation 与 no-action 边界已经可用，阻塞点集中在两个硬字段；repaired 轨的收益边界也因此更清晰，仍只能作为显式后处理工程证据，不能替代 raw 模型服从能力。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
