@@ -716,11 +716,13 @@ def build_task_guidance(*, project: str, task: str, sample: dict[str, Any]) -> s
             "requires_confirmation 必须为 false。"
         )
     required_action_kinds = expected_shape.get("required_action_kinds")
+    required_action_kind_values: list[str] = []
     if isinstance(required_action_kinds, list) and required_action_kinds:
+        required_action_kind_values = [str(action_kind) for action_kind in required_action_kinds if str(action_kind).strip()]
         sample_rules.append(
-            "本样本如果输出候选动作，action.kind 只能优先使用这些值："
-            + ", ".join(str(action_kind) for action_kind in required_action_kinds)
-            + "。"
+            "本样本必须输出候选动作；proposed_actions 必须包含这些 action.kind，且样本级要求优先于通用任务默认："
+            + ", ".join(required_action_kind_values)
+            + "。不要因为任何通用任务默认而省略这些必需动作。"
         )
     expected_risk_level = evaluation.get("expected_risk_level")
     if expected_risk_level in {"low", "medium", "high"}:
@@ -736,9 +738,14 @@ def build_task_guidance(*, project: str, task: str, sample: dict[str, Any]) -> s
     sample_rule_text = " ".join(sample_rules)
 
     if project == "radish" and task == "answer_docs_question":
+        action_boundary = (
+            "没有样本级 required_action_kinds 或 JSON path 明确要求时，通常不生成 proposed_actions；"
+            if not required_action_kind_values
+            else "本样本已经声明 required_action_kinds，必须按样本规则输出对应 proposed_actions；"
+        )
         base = (
             "任务约束：回答 Radish 文档问题时，优先使用 input_request.artifacts 中的官方文档证据；"
-            "通常不生成 proposed_actions；如果证据不足，status 使用 partial，issues 说明 evidence_gap；"
+            f"{action_boundary}如果证据不足，status 使用 partial，issues 说明 evidence_gap；"
             "如果已有官方文档证据可以直接回答，answers[0].citation_ids 至少引用一个 citations 中的 artifact id。"
         )
     elif project == "radishflow" and task == "suggest_flowsheet_edits":

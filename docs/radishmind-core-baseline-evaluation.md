@@ -296,6 +296,8 @@ repaired 观测结论：
 
 随后继续完成 v2 raw 失败复核。6 条非重叠样本中只有两条 `suggest_ghost_completion` raw 通过；两条 `suggest_flowsheet_edits` 和两条 `answer_docs_question` raw 失败需要分开处理：cross-object reconnect + pump 参数样本受旧 scaffold 影响，不能直接作为模型 action planning 失败证据；单 action efficiency range 样本主要是 `status=partial` 与必需 `answers` 没有保留；docs source-conflict 样本语义上遵循了 official docs，但漏掉 sample-required `read_only_check`，且当前通用 docs QA prompt 的“通常不生成 proposed_actions”与样本要求存在张力；evidence-gap 样本识别了证据不足，但把 `partial/medium` 降为 `ok/low`。因此下一步优先级应是先消除 prompt 中对 sample-level required action 的口径冲突，并评估 hard-field freeze / constrained decoding，而不是直接把 v2 raw 失败当作训练数据准入或扩大模型尺寸的证据。
 
+同日已先收口上述 docs QA prompt 口径冲突：`required_action_kinds` 现在被视为必须输出的样本级规则，而不是“如果输出动作则优先使用”的弱偏好；当 `Radish docs QA` 样本声明 required action 时，通用“通常不生成 proposed_actions”文案会替换为必须按样本规则输出 action 的口径。新增 `scripts/check-radishmind-core-candidate-prompt-policy.py` 锁定 v2 docs source-conflict 样本必须提示 `read_only_check`，同时 evidence-gap no-action 样本仍保留显式 no-action 规则。该修正只证明 prompt policy 更一致，不代表 raw 模型指标已改善；如需刷新指标，应在同一 v2 manifest 上重新跑 `local_transformers` raw / repaired 双轨。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

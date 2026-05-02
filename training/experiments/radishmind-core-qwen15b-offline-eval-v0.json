@@ -1055,6 +1055,26 @@
     ],
     "recommended_next_step": "Do not train from this review. First remove prompt ambiguity around sample-level required actions and consider a constrained-decoding or hard-field-freeze experiment; rerun v2 raw only after those prompt/scaffold changes if updated metrics are needed."
   },
+  "holdout_probe_v2_prompt_policy_fix_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "source_review": "holdout_probe_v2_raw_failure_review_2026_05_02",
+    "target_failure": "radish-answer-docs-question-docs-faq-forum-conflict-001 omitted the sample-required read_only_check action while still following official source precedence.",
+    "root_cause": "The generic Radish docs QA guidance said proposed_actions are usually absent, while the sample-level expected_response_shape.required_action_kinds explicitly required read_only_check.",
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now treats required_action_kinds as a mandatory sample-level rule instead of a conditional preference.",
+      "For Radish docs QA samples with required_action_kinds, the generic no-action wording is replaced by wording that requires the corresponding proposed_actions.",
+      "scripts/check-radishmind-core-candidate-prompt-policy.py locks this policy using the v2 docs source-conflict sample and an evidence-gap no-action sample."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-prompt-policy.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-prompt-policy-candidate-run --summary-output tmp/check-v2-prompt-policy-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json"
+    ],
+    "interpretation": [
+      "This fixes a prompt-policy ambiguity; it does not prove raw model improvement until local_transformers is rerun.",
+      "The evidence-gap no-action prompt still keeps the explicit no-action rule.",
+      "The docs source-conflict prompt now names read_only_check and no longer contains the generic no-action phrase."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
