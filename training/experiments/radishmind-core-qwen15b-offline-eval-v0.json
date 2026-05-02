@@ -1083,17 +1083,20 @@
     "code_changes": [
       "scripts/eval/core_candidate_hard_field_freeze.py derives prompt-time frozen JSON path/value pairs from the candidate scaffold.",
       "scripts/run-radishmind-core-candidate.py writes hard_field_freeze into prompt documents and renders the frozen fields in the output contract text.",
-      "scripts/check-radishmind-core-candidate-hard-field-freeze.py locks v2 evidence-gap, docs source-conflict and efficiency-range prompt freeze behavior."
+      "scripts/check-radishmind-core-candidate-hard-field-freeze.py locks v2 evidence-gap, docs source-conflict and efficiency-range prompt freeze behavior.",
+      "scripts/audit-radishmind-core-candidate-freeze.py compares completed candidate responses against the prompt hard_field_freeze without rerunning a model."
     ],
     "frozen_field_scope": [
       "Top-level schema_version, project, task, status, risk_level and requires_confirmation.",
-      "Required answer hard fields such as kind and citation_ids, while leaving answer text editable.",
-      "Required issue code, severity and citation_ids, while leaving issue messages editable.",
-      "Required action kind, target, patch, preview, apply, risk_level, requires_confirmation and citation_ids.",
-      "Explicit no-action samples freeze proposed_actions as an empty array."
+      "Explicit no-action samples freeze proposed_actions as an empty array.",
+      "Required action kind and read_only_check confirmation boundaries from required_action_kinds.",
+      "Action target, patch, preview and apply only when the sample has explicit JSON path assertions for those fields.",
+      "Answer, issue and citation detail fields are not frozen when they only come from generic scaffold placeholders."
     ],
     "verification": [
-      "python3 scripts/check-radishmind-core-candidate-hard-field-freeze.py"
+      "python3 scripts/check-radishmind-core-candidate-hard-field-freeze.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-freeze-audit-candidate-run --summary-output tmp/check-v2-freeze-audit-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json",
+      "python3 scripts/audit-radishmind-core-candidate-freeze.py --summary tmp/check-v2-freeze-audit-candidate-summary.json --output-dir tmp/check-v2-freeze-audit-candidate-run --audit-output tmp/check-v2-freeze-audit.json"
     ],
     "interpretation": [
       "This is a prompt-time contract, not --repair-hard-fields post-decode repair.",

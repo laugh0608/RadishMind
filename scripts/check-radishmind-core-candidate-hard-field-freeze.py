@@ -82,8 +82,8 @@ def main() -> int:
     require(evidence_fields.get("$.requires_confirmation") is False, "evidence-gap confirmation must be frozen false")
     require(evidence_fields.get("$.proposed_actions") == [], "evidence-gap no-action boundary must be frozen")
     require(
-        evidence_fields.get("$.answers[0].kind") == "direct_answer",
-        "evidence-gap answer kind must be frozen when answers are required",
+        "$.answers[0].kind" not in evidence_fields,
+        "evidence-gap answer kind must not be frozen without an explicit answer-kind assertion",
     )
 
     docs_conflict = load_json(DOCS_CONFLICT_SAMPLE)
