@@ -1,6 +1,6 @@
 # RadishMind 文档总览
 
-更新时间：2026-05-01
+更新时间：2026-05-02
 
 ## 文档目的
 
@@ -53,7 +53,7 @@
 ## 下一步优先推进
 
 1. 继续把现有 gateway、UI consumption 与 candidate handoff smoke 维护为未来上层接入验收门禁；在 `RadishFlow` / `Radish` 尚未准备真实模型或 Agent 接入前，不继续新增同类模拟 summary。
-2. 沿 `run-radishmind-core-candidate.py` 与 `run-radishmind-core-offline-eval.py` 已接通的 candidate 输出评测入口，继续保持 raw / repaired 双轨、同 timeout、`--allow-invalid-output` 与 `--validate-task`；下一步优先复核 v2 暴露的跨对象 `suggest_flowsheet_edits` 参数 patch 失败，区分 scaffold 覆盖不足与模型 action planning 缺口，当前仍不启动训练。
+2. 沿 `run-radishmind-core-candidate.py` 与 `run-radishmind-core-offline-eval.py` 已接通的 candidate 输出评测入口，继续保持 raw / repaired 双轨、同 timeout、`--allow-invalid-output` 与 `--validate-task`；下一步优先处理 v2 cross-object 样本暴露的 prompt/scaffold 成本边界，先评估更短的 hard-field freeze 表达或 constrained decoding，再决定是否重跑本地 `local_transformers`，当前仍不启动训练。
 3. 在已落成的训练集合治理 manifest、planned 复核记录和 holdout split 上，后续补真实 reviewer 复核结果与离线评测运行记录；JSONL 继续默认输出到 `tmp/`。
 4. 继续沿 `image-generation-intent / backend-request / artifact` 三段契约和最小图片生成评测 manifest 推进 `RadishMind-Image Adapter` 的真实 backend 包装；当前不下载模型、不生成图片。
 5. 继续维护 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 的现有治理资产；只有服务/API、模型评测或真实接入暴露新增非重复缺口时，再扩真实 capture。
