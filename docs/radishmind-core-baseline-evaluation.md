@@ -304,6 +304,8 @@ repaired 观测结论：
 
 随后用户用同一单样本执行 repaired 轨，`--repair-hard-fields` 后输出 schema-valid 且 task-valid，freeze audit 通过；summary 中 `repaired_paths` 只有 `$.status` 与 `$.risk_level`。这说明该样本 raw 的 answer、issue、citation 与 no-action 边界已经可用，阻塞点集中在两个硬字段；repaired 轨的收益边界也因此更清晰，仍只能作为显式后处理工程证据，不能替代 raw 模型服从能力。
 
+继续用用户本地执行的单样本 `radish-answer-docs-question-docs-faq-forum-conflict-001` 验证 prompt policy 修正后效果：raw 输出耗时约 `73.326s`，schema-valid 但 task-invalid。与旧 v2 raw 结论不同，本次模型已经输出样本要求的 `read_only_check`，且 freeze audit 通过；剩余 violation 只剩缺少 `$.citations[1]` 与 `$.citations[2]`。因此该样本不应再归为 required-action preservation failure，而应更新为 multi-citation / source-context preservation failure：模型保留了官方 docs citation，但没有保留 FAQ 与 forum 两条上下文引用。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

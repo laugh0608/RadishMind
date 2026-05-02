@@ -1201,6 +1201,55 @@
       "This supports keeping --repair-hard-fields as an explicit post-decode engineering track while treating raw hard-field obedience as still blocked."
     ]
   },
+  "holdout_probe_v2_single_docs_conflict_raw_prompt_policy_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_probe",
+    "source_prompt_policy_fix": "holdout_probe_v2_prompt_policy_fix_2026_05_02",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-docs-conflict-raw/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-docs-conflict-raw/freeze-audit.json",
+    "execution": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "generation_seconds": 73.326,
+      "input_tokens": 2111,
+      "output_tokens": 327,
+      "timeout": false,
+      "hit_max_new_tokens": false
+    },
+    "raw_result": {
+      "schema_valid": true,
+      "task_valid": false,
+      "task_failure_categories": {
+        "citation_alignment": 2
+      },
+      "task_validation_violations": [
+        "missing required json path '$.citations[1]'",
+        "missing required json path '$.citations[2]'"
+      ]
+    },
+    "freeze_audit": {
+      "audited_count": 1,
+      "passed_count": 1,
+      "failed_count": 0,
+      "violation_counts_by_path": {}
+    },
+    "observed_response": {
+      "status": "ok",
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "proposed_action_kinds": [
+        "read_only_check"
+      ],
+      "citation_count": 1
+    },
+    "interpretation": [
+      "The prompt policy fix appears effective for this sample: raw now emits the sample-required read_only_check action and the freeze audit passes.",
+      "The remaining raw blocker moved to citation coverage: the model kept only the official docs citation and omitted the FAQ and forum citations required by the evaluation paths.",
+      "This should no longer be classified as a required-action preservation failure; it is now a multi-citation/source-context preservation failure."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
