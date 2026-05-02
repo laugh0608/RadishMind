@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-05-01
+更新时间：2026-05-02
 
 ## 文档目的
 
@@ -319,6 +319,20 @@ repaired 观测结论：
 - freeze audit 两轨均为 `audited_count=0`、`skipped_count=1`，原因是 candidate response schema-invalid；因此本轮不能判断模型是否遵守冻结字段
 
 该结果应记录为复杂 cross-object suggest edits 样本的成本 / timeout 边界，而不是 action planning 质量证据。它确认修复后的 scaffold 已进入 prompt，但当前 WSL CPU + `Qwen2.5-1.5B-Instruct` 在 `5010` input token、`300s` 档位下无法产出可审计 JSON。后续若要刷新该样本质量指标，应明确选择更长 timeout probe、缩短 prompt/scaffold，或换硬件 / backend；任何方案都必须继续保留 raw / repaired 双轨与 `tmp/` artifact 禁入仓口径。
+
+随后为该成本边界补了静态 prompt budget 观测闭环。`run-radishmind-core-candidate.py` 会在每个 prompt document 中写入 `prompt_budget`，按字符拆出 system/user message、request JSON、task guidance、output contract、scaffold JSON、hard-field freeze JSON、freeze 字段数和 scaffold payload 体量；`scripts/check-radishmind-core-candidate-prompt-budget.py` 使用 v2 candidate manifest 的 `golden_fixture` dry-run 生成 prompt，不加载模型、不访问 provider，并把预算 summary 固定在 `scripts/checks/fixtures/radishmind-core-holdout-probe-v2-prompt-budget-summary.json`。
+
+当前 v2 prompt budget 显示，最大 prompt 仍是 `radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001`：
+
+- `total_message_chars=17428`
+- `request_json_chars=3632`
+- `output_contract_chars=12116`
+- `scaffold_json_chars=5950`
+- `hard_field_freeze_json_chars=4351`
+- `hard_field_freeze_field_count=17`
+- `scaffold_counts` 为 `answers=1`、`issues=4`、`actions=2`、`citations=9`
+
+这说明本轮 `300s` CPU timeout 的更直接工程解释是长 output contract + scaffold + freeze + 多 citation 组合造成的执行成本边界；在缩短 prompt 或验证 constrained decoding 之前，不应继续盲目要求用户复跑同一样本。新增预算门禁当前约束 `max_total_message_chars=18000`、`max_request_json_chars=4000`、`max_output_contract_chars=12500` 与 `max_hard_field_freeze_field_count=20`，用于防止后续 scaffold / freeze 为了追求 repaired 通过率继续无审计扩张。
 
 ## 离线评测样本选择与结果记录
 

@@ -724,9 +724,18 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
     return scaffold
 
 
-def build_output_contract_text(*, project: str, task: str, sample: dict[str, Any]) -> str:
-    scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
-    hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
+def build_output_contract_text(
+    *,
+    project: str,
+    task: str,
+    sample: dict[str, Any],
+    scaffold_document: dict[str, Any] | None = None,
+    hard_field_freeze: dict[str, Any] | None = None,
+) -> str:
+    if scaffold_document is None:
+        scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
+    if hard_field_freeze is None:
+        hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
     freeze_fields = json.dumps(hard_field_freeze["fields"], ensure_ascii=False, indent=2)
     scaffold = json.dumps(scaffold_document, ensure_ascii=False, indent=2)
     return (
@@ -818,6 +827,58 @@ def build_task_guidance(*, project: str, task: str, sample: dict[str, Any]) -> s
     return f"{base} {sample_rule_text}".strip()
 
 
+def json_char_count(document: Any) -> int:
+    return len(json.dumps(document, ensure_ascii=False, indent=2))
+
+
+def build_prompt_budget(
+    *,
+    prompt_messages: list[dict[str, str]],
+    request_payload: str,
+    task_guidance: str,
+    output_contract_text: str,
+    scaffold_document: dict[str, Any],
+    hard_field_freeze: dict[str, Any],
+) -> dict[str, Any]:
+    user_message = next((message for message in prompt_messages if message.get("role") == "user"), {})
+    system_message = next((message for message in prompt_messages if message.get("role") == "system"), {})
+    citations = scaffold_document.get("citations") if isinstance(scaffold_document.get("citations"), list) else []
+    issues = scaffold_document.get("issues") if isinstance(scaffold_document.get("issues"), list) else []
+    actions = scaffold_document.get("proposed_actions") if isinstance(scaffold_document.get("proposed_actions"), list) else []
+    action_patch_chars = sum(
+        json_char_count(action.get("patch"))
+        for action in actions
+        if isinstance(action, dict) and isinstance(action.get("patch"), dict)
+    )
+    return {
+        "schema_version": 1,
+        "kind": "radishmind_core_candidate_prompt_budget",
+        "measurement": "static_prompt_character_budget",
+        "total_message_chars": sum(len(str(message.get("content") or "")) for message in prompt_messages),
+        "system_message_chars": len(str(system_message.get("content") or "")),
+        "user_message_chars": len(str(user_message.get("content") or "")),
+        "task_guidance_chars": len(task_guidance),
+        "request_json_chars": len(request_payload),
+        "output_contract_chars": len(output_contract_text),
+        "scaffold_json_chars": json_char_count(scaffold_document),
+        "hard_field_freeze_json_chars": json_char_count(hard_field_freeze.get("fields") or []),
+        "hard_field_freeze_field_count": len(hard_field_freeze.get("fields") or []),
+        "scaffold_counts": {
+            "answer_count": len(scaffold_document.get("answers") or []),
+            "issue_count": len(issues),
+            "action_count": len(actions),
+            "citation_count": len(citations),
+        },
+        "scaffold_payload_chars": {
+            "answers": json_char_count(scaffold_document.get("answers") or []),
+            "issues": json_char_count(issues),
+            "proposed_actions": json_char_count(actions),
+            "action_patches": action_patch_chars,
+            "citations": json_char_count(citations),
+        },
+    }
+
+
 def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str, Any]:
     input_request = sample["input_request"]
     project = str(sample["project"])
@@ -825,6 +886,34 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
     request_payload = json.dumps(input_request, ensure_ascii=False, indent=2)
     scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
     hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
+    task_guidance = build_task_guidance(project=project, task=task, sample=sample)
+    output_contract_text = build_output_contract_text(
+        project=project,
+        task=task,
+        sample=sample,
+        scaffold_document=scaffold_document,
+        hard_field_freeze=hard_field_freeze,
+    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "你是 RadishMind-Core 候选模型。你的唯一输出是一个可被 JSON.parse 解析的 "
+                "CopilotResponse JSON 对象。"
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"请基于这个 {project}/{task} CopilotRequest 生成 CopilotResponse。\n\n"
+                f"{task_guidance}\n\n"
+                f"{output_contract_text}\n\n"
+                "CopilotRequest:\n"
+                f"{request_payload}\n\n"
+                "现在只输出最终 JSON 对象。"
+            ),
+        },
+    ]
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_prompt",
@@ -832,28 +921,17 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
         "project": project,
         "task": task,
         "model_id": model_id,
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "你是 RadishMind-Core 候选模型。你的唯一输出是一个可被 JSON.parse 解析的 "
-                    "CopilotResponse JSON 对象。"
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"请基于这个 {project}/{task} CopilotRequest 生成 CopilotResponse。\n\n"
-                    f"{build_task_guidance(project=project, task=task, sample=sample)}\n\n"
-                    f"{build_output_contract_text(project=project, task=task, sample=sample)}\n\n"
-                    "CopilotRequest:\n"
-                    f"{request_payload}\n\n"
-                    "现在只输出最终 JSON 对象。"
-                ),
-            },
-        ],
+        "messages": messages,
         "output_contract": "contracts/copilot-response.schema.json",
         "hard_field_freeze": hard_field_freeze,
+        "prompt_budget": build_prompt_budget(
+            prompt_messages=messages,
+            request_payload=request_payload,
+            task_guidance=task_guidance,
+            output_contract_text=output_contract_text,
+            scaffold_document=scaffold_document,
+            hard_field_freeze=hard_field_freeze,
+        ),
         "safety": {
             "advisory_only": True,
             "must_preserve_requires_confirmation": True,
