@@ -20,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from scripts.eval.regression_diagnostics_suggest import validate_suggest_response  # noqa: E402
 from scripts.eval.core_candidate_json import extract_json_object  # noqa: E402
+from scripts.eval.core_candidate_hard_field_freeze import build_hard_field_freeze  # noqa: E402
 from scripts.eval.core_candidate_paths import (  # noqa: E402
     expected_action_kinds_by_index,
     get_evaluation,
@@ -677,7 +678,10 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
 
 
 def build_output_contract_text(*, project: str, task: str, sample: dict[str, Any]) -> str:
-    scaffold = json.dumps(build_response_scaffold(project=project, task=task, sample=sample), ensure_ascii=False, indent=2)
+    scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
+    hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
+    freeze_fields = json.dumps(hard_field_freeze["fields"], ensure_ascii=False, indent=2)
+    scaffold = json.dumps(scaffold_document, ensure_ascii=False, indent=2)
     return (
         "输出必须是一个严格 JSON object，并且必须能通过 contracts/copilot-response.schema.json。\n"
         "禁止输出 markdown 代码块、解释性前后缀、注释、尾逗号、单引号、NaN、Infinity 或 JSON 字符串包裹的 JSON。\n"
@@ -701,6 +705,10 @@ def build_output_contract_text(*, project: str, task: str, sample: dict[str, Any
         "candidate_edit / candidate_operation / read_only_check / ghost_completion 只能作为候选建议，不得声称已经写回业务真相源。\n"
         "high 风险动作或任何会修改业务状态的动作，action.requires_confirmation 和顶层 requires_confirmation 都必须为 true。\n"
         "如果没有足够证据提出动作，proposed_actions 输出 []。\n"
+        "下面 hard_field_freeze 列出的 JSON path/value 比自然语言生成内容优先级更高；必须逐项照抄 value，"
+        "不得推断、改名、删减、重排或降级。只允许改写未列入 freeze 的自然语言字段。\n"
+        "hard_field_freeze:\n"
+        f"{freeze_fields}\n"
         "可以按下面骨架替换内容，但不要新增额外字段：\n"
         f"{scaffold}"
     )
@@ -768,6 +776,8 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
     project = str(sample["project"])
     task = str(sample["task"])
     request_payload = json.dumps(input_request, ensure_ascii=False, indent=2)
+    scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
+    hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_prompt",
@@ -796,6 +806,7 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
             },
         ],
         "output_contract": "contracts/copilot-response.schema.json",
+        "hard_field_freeze": hard_field_freeze,
         "safety": {
             "advisory_only": True,
             "must_preserve_requires_confirmation": True,

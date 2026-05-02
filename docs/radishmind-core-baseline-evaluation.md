@@ -298,6 +298,8 @@ repaired 观测结论：
 
 同日已先收口上述 docs QA prompt 口径冲突：`required_action_kinds` 现在被视为必须输出的样本级规则，而不是“如果输出动作则优先使用”的弱偏好；当 `Radish docs QA` 样本声明 required action 时，通用“通常不生成 proposed_actions”文案会替换为必须按样本规则输出 action 的口径。新增 `scripts/check-radishmind-core-candidate-prompt-policy.py` 锁定 v2 docs source-conflict 样本必须提示 `read_only_check`，同时 evidence-gap no-action 样本仍保留显式 no-action 规则。该修正只证明 prompt policy 更一致，不代表 raw 模型指标已改善；如需刷新指标，应在同一 v2 manifest 上重新跑 `local_transformers` raw / repaired 双轨。
 
+继续推进 hard-field freeze 的轻量实现：`run-radishmind-core-candidate.py` 现在会在 prompt document 中写入 `hard_field_freeze`，并在输出契约文本里列出由 scaffold 派生的不可改写 JSON path/value。该 freeze 合约覆盖顶层 `status / risk_level / requires_confirmation`、必需 answer 的结构字段、必需 issue 的 code / severity / citation_ids、必需 action 的 kind / target / patch / confirmation / citation_ids，以及 no-action 样本的空 `proposed_actions` 边界。新增 `scripts/eval/core_candidate_hard_field_freeze.py` 与 `scripts/check-radishmind-core-candidate-hard-field-freeze.py` 锁住 v2 evidence-gap、docs source-conflict 和 efficiency-range 三类 raw 漂移点。该策略属于 prompt-time 约束，不是 `--repair-hard-fields` 后处理；后续仍需用 raw / repaired 双轨重跑才能判断真实模型是否遵守 freeze。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

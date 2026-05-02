@@ -1075,6 +1075,32 @@
       "The docs source-conflict prompt now names read_only_check and no longer contains the generic no-action phrase."
     ]
   },
+  "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "source_review": "holdout_probe_v2_raw_failure_review_2026_05_02",
+    "source_prompt_policy_fix": "holdout_probe_v2_prompt_policy_fix_2026_05_02",
+    "goal": "Make hard-field preservation observable in raw candidate prompts before rerunning local_transformers.",
+    "code_changes": [
+      "scripts/eval/core_candidate_hard_field_freeze.py derives prompt-time frozen JSON path/value pairs from the candidate scaffold.",
+      "scripts/run-radishmind-core-candidate.py writes hard_field_freeze into prompt documents and renders the frozen fields in the output contract text.",
+      "scripts/check-radishmind-core-candidate-hard-field-freeze.py locks v2 evidence-gap, docs source-conflict and efficiency-range prompt freeze behavior."
+    ],
+    "frozen_field_scope": [
+      "Top-level schema_version, project, task, status, risk_level and requires_confirmation.",
+      "Required answer hard fields such as kind and citation_ids, while leaving answer text editable.",
+      "Required issue code, severity and citation_ids, while leaving issue messages editable.",
+      "Required action kind, target, patch, preview, apply, risk_level, requires_confirmation and citation_ids.",
+      "Explicit no-action samples freeze proposed_actions as an empty array."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-hard-field-freeze.py"
+    ],
+    "interpretation": [
+      "This is a prompt-time contract, not --repair-hard-fields post-decode repair.",
+      "It should make future raw/repaired reruns easier to interpret because raw outputs can be audited against explicit frozen path/value constraints.",
+      "No local model metric is updated by this record; v2 raw/repaired metrics still require a same-manifest local_transformers rerun."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
