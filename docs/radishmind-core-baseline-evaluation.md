@@ -294,6 +294,8 @@ repaired 观测结论：
 
 2026-05-02 已完成该 v2 阻塞样本的根因复核：失败主因是 candidate scaffold / repair 对多个 `candidate_edit` action 没有按 `action_index` 读取 target、citation、patch、`connection_placeholder` 与 `parameter_updates`，导致第二条 pump 参数 action 被修成第一条 stream reconnect action；同时还发现 ordered `connection_placeholder` 键未与已有 patch 合并、`minimum_reference_stream_id` 被填成布尔占位。当前已在 wrapper 与共享 scaffold helper 中收口这些缺口，并补仓库级检查锁住该 cross-object 样本的第二 action target、patch 顺序、`parameter_updates` payload 与 citation ids。基于旧 `tmp/` candidate response 重新执行 repair 和任务 validator 后已无 violation；这说明该 repaired blocker 属于 scaffold 覆盖不足，不应解读为该样本必须依赖更强模型 action planning。但 raw 仍保持 blocked，不能作为模型晋级或训练准入证据。
 
+随后继续完成 v2 raw 失败复核。6 条非重叠样本中只有两条 `suggest_ghost_completion` raw 通过；两条 `suggest_flowsheet_edits` 和两条 `answer_docs_question` raw 失败需要分开处理：cross-object reconnect + pump 参数样本受旧 scaffold 影响，不能直接作为模型 action planning 失败证据；单 action efficiency range 样本主要是 `status=partial` 与必需 `answers` 没有保留；docs source-conflict 样本语义上遵循了 official docs，但漏掉 sample-required `read_only_check`，且当前通用 docs QA prompt 的“通常不生成 proposed_actions”与样本要求存在张力；evidence-gap 样本识别了证据不足，但把 `partial/medium` 降为 `ok/low`。因此下一步优先级应是先消除 prompt 中对 sample-level required action 的口径冲突，并评估 hard-field freeze / constrained decoding，而不是直接把 v2 raw 失败当作训练数据准入或扩大模型尺寸的证据。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

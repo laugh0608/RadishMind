@@ -978,6 +978,83 @@
       "A future real local_transformers rerun is optional for metric refresh, but the root-cause fix is already covered by committed dry-run and scaffold checks."
     ]
   },
+  "holdout_probe_v2_raw_failure_review_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "source_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+    "source_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+    "raw_metrics": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.3333333333333333,
+      "task_validation_attempted": 6,
+      "passed_raw_samples": [
+        "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+        "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001"
+      ],
+      "blocked_raw_samples": [
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "radish-answer-docs-question-docs-faq-forum-conflict-001",
+        "radish-answer-docs-question-evidence-gap-001"
+      ]
+    },
+    "failure_classification": [
+      {
+        "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "task": "radishflow/suggest_flowsheet_edits",
+        "classification": "mixed_scaffold_and_raw_hard_field_gap",
+        "observed_raw_failure": "The output stayed schema-valid but changed status to ok, dropped answers and issues, emitted only one candidate_edit, omitted the action target, and missed the second pump parameter action.",
+        "scaffold_context": "The raw run used the pre-fix scaffold where the second candidate_edit duplicated action_index=0. This likely amplified the missing second-action failure, so this raw result should not be used alone to judge model action planning.",
+        "still_model_relevant": [
+          "raw ignored the scaffold requirement to keep status=partial",
+          "raw dropped required answers and issues arrays",
+          "raw omitted a required target field even though candidate_edit requires target"
+        ],
+        "recommended_followup": "Refresh this sample only after the action-indexed scaffold fix if a new raw metric is needed; otherwise keep it as evidence that complex suggest edits requires stronger hard-field preservation."
+      },
+      {
+        "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "task": "radishflow/suggest_flowsheet_edits",
+        "classification": "raw_top_level_shape_gap",
+        "observed_raw_failure": "The output preserved the core unit target and parameter_updates payload, but changed status from partial to ok and left answers empty.",
+        "scaffold_context": "The core action planning and ordered suggested_range were mostly correct, so this is not a parameter patch planning failure.",
+        "still_model_relevant": [
+          "raw weakens expected partial status",
+          "raw does not preserve required answers even for a simple one-action sample"
+        ],
+        "recommended_followup": "Treat as a hard-field/status preservation prompt or constrained-decoding candidate, not as a reason to add more training data yet."
+      },
+      {
+        "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+        "task": "radish/answer_docs_question",
+        "classification": "prompt_policy_conflict_plus_optional_action_gap",
+        "observed_raw_failure": "The answer follows the official docs over the forum suggestion, but omits the required read_only_check action.",
+        "scaffold_context": "The generic docs QA prompt says proposed_actions are usually absent, while this sample explicitly requires read_only_check. That prompt tension likely contributed to the raw omission.",
+        "still_model_relevant": [
+          "raw can follow source precedence",
+          "raw does not reliably preserve sample-specific required_action_kinds when the generic task wording points the other way"
+        ],
+        "recommended_followup": "Adjust docs QA prompt wording so sample-level required_action_kinds overrides the generic no-action default before treating this as a model capacity failure."
+      },
+      {
+        "sample_id": "radish-answer-docs-question-evidence-gap-001",
+        "task": "radish/answer_docs_question",
+        "classification": "raw_risk_status_boundary_gap",
+        "observed_raw_failure": "The output recognizes insufficient evidence and keeps issues/proposed_actions/citation shape, but changes status from partial to ok and risk_level from medium to low.",
+        "scaffold_context": "The prompt and scaffold already state partial and medium, so this is a direct raw hard-field preservation gap.",
+        "still_model_relevant": [
+          "raw weakens evidence-gap risk boundary",
+          "raw treats an authorization uncertainty as low risk even when the sample expects medium"
+        ],
+        "recommended_followup": "Keep this as a primary raw-failure probe for risk/status preservation and evaluate schema-constrained decoding or stronger hard-field freezing."
+      }
+    ],
+    "task_level_conclusions": [
+      "suggest_ghost_completion is the only v2 task group with raw pass on both non-overlapping samples.",
+      "suggest_flowsheet_edits raw failures split into one stale-scaffold-affected complex sample and one simple top-level shape preservation failure.",
+      "answer_docs_question raw failures are not retrieval-source failures; they are required-action preservation and evidence-gap risk/status preservation failures."
+    ],
+    "recommended_next_step": "Do not train from this review. First remove prompt ambiguity around sample-level required actions and consider a constrained-decoding or hard-field-freeze experiment; rerun v2 raw only after those prompt/scaffold changes if updated metrics are needed."
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
