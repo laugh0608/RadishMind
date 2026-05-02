@@ -306,6 +306,8 @@ repaired 观测结论：
 
 继续用用户本地执行的单样本 `radish-answer-docs-question-docs-faq-forum-conflict-001` 验证 prompt policy 修正后效果：raw 输出耗时约 `73.326s`，schema-valid 但 task-invalid。与旧 v2 raw 结论不同，本次模型已经输出样本要求的 `read_only_check`，且 freeze audit 通过；剩余 violation 只剩缺少 `$.citations[1]` 与 `$.citations[2]`。因此该样本不应再归为 required-action preservation failure，而应更新为 multi-citation / source-context preservation failure：模型保留了官方 docs citation，但没有保留 FAQ 与 forum 两条上下文引用。
 
+同一样本的 repaired 轨随后达到 schema/task 通过，`repaired_paths` 为 `$.citations` 与 `$.answers[0]`，freeze audit 通过。但人工复核发现 pre-fix repaired 输出只是把 `citations[1] / citations[2]` 补成重复的 docs citation，并没有恢复 golden 中的 FAQ / forum source-context。根因是 citation scaffold 在只看到 `$.citations[index]` 存在性要求时，会复制 primary artifact 生成 `artifact-2 / artifact-3`。当前已修正为优先按 `golden_response.citations` 的 index 恢复 citation，并新增 `check-radishmind-core-candidate-citation-scaffold.py` 锁住 docs / FAQ / forum 的 id 与 locator 顺序；如需更新 `tmp/` repaired summary，应在该修正后重跑同一单样本 repaired 命令。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

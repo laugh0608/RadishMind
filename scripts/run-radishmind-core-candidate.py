@@ -271,7 +271,15 @@ def build_citation_scaffold(sample: dict[str, Any]) -> list[dict[str, str]]:
                     index_text = path_text.split("[", 1)[1].split("]", 1)[0]
                     if index_text.isdigit():
                         required_count = max(required_count, int(index_text) + 1)
-        citation_ids = [base["id"]] + [f"artifact-{index + 1}" for index in range(1, required_count)]
+        golden_citation_ids = [
+            str(citation.get("id") or "").strip()
+            for citation in (sample.get("golden_response") or {}).get("citations", [])
+            if isinstance(citation, dict) and str(citation.get("id") or "").strip()
+        ]
+        citation_ids = [
+            golden_citation_ids[index] if index < len(golden_citation_ids) else (base["id"] if index == 0 else f"artifact-{index + 1}")
+            for index in range(required_count)
+        ]
 
     if not citation_ids:
         citation_ids = [base["id"]]

@@ -19,6 +19,7 @@
   - 当前还提供 `check-radishmind-core-candidate-parameter-updates.py`，用于固定 detail-key-only `parameter_updates` scaffold 行为，确保样本只声明 `ordered_parameter_update_detail_keys` 时仍能生成稳定的参数外层顺序和内层 detail key 顺序
   - 当前还提供 `check-radishmind-core-candidate-prompt-policy.py`，用于固定 candidate prompt 的样本级 action 口径，确保 `required_action_kinds` 不会被通用 docs QA “通常不生成 proposed_actions” 文案削弱
   - 当前还提供 `check-radishmind-core-candidate-hard-field-freeze.py`，用于固定 candidate prompt 中由 scaffold 派生的 `hard_field_freeze` 合约，确保 `status / risk_level / requires_confirmation / answers / proposed_actions` 等硬字段以 prompt-time 约束进入 raw 观测
+  - 当前还提供 `check-radishmind-core-candidate-citation-scaffold.py`，用于固定 docs source-conflict 样本的 citation scaffold / repair 行为，确保缺失的多来源 citation 优先按 golden `docs / faq / forum` 顺序恢复，而不是复制 primary docs citation
   - 当前还提供 `audit-radishmind-core-candidate-freeze.py`，用于在本地模型复跑完成后比对 prompt `hard_field_freeze` 与实际 candidate response，生成轻量 freeze 遵守情况审计；该脚本只读取 `tmp/` 下的 summary / prompt / response，不重新运行模型
   - 当前还提供 `check-copilot-training-dataset-governance.py`，用于校验 `training/datasets/copilot-training-dataset-governance-v0.json` 的训练集合入选、抽样复核、质量门禁、artifact 禁入仓和离线评测 holdout 口径
   - 当前还提供 `check-image-generation-intent-contract.py`，用于校验 `image_generation_intent -> image_generation_backend_request -> image_generation_artifact` 三段契约、最小 fixture、确认门禁和 artifact provenance

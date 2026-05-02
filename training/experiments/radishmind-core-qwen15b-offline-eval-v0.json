@@ -1250,6 +1250,41 @@
       "This should no longer be classified as a required-action preservation failure; it is now a multi-citation/source-context preservation failure."
     ]
   },
+  "holdout_probe_v2_single_docs_conflict_repaired_citation_scaffold_review_2026_05_02": {
+    "status": "completed_single_sample_repaired_review_with_scaffold_fix",
+    "source_raw_probe": "holdout_probe_v2_single_docs_conflict_raw_prompt_policy_audit_2026_05_02",
+    "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-docs-conflict-repaired/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-docs-conflict-repaired/freeze-audit.json",
+    "repaired_result_before_scaffold_fix": {
+      "schema_valid": true,
+      "task_valid": true,
+      "generation_seconds": 70.882,
+      "repaired_paths": [
+        "$.citations",
+        "$.answers[0]"
+      ],
+      "freeze_audit_passed": true,
+      "manual_review_caveat": "The machine-valid repaired output padded citations[1] and citations[2] with duplicate docs_page citations instead of restoring the expected FAQ and forum source-context citations."
+    },
+    "root_cause": "When must_have_json_paths required only $.citations[index] existence without explicit citation ids, build_citation_scaffold generated artifact-2/artifact-3 from the primary artifact instead of using the sample golden_response citation order.",
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now uses golden_response.citations by index when citation count is inferred from $.citations[index] path requirements.",
+      "scripts/check-radishmind-core-candidate-citation-scaffold.py locks the docs source-conflict docs/faq/forum citation id and locator order and verifies repair restores those citations.",
+      "scripts/check-repo.py now includes the citation scaffold check."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-citation-scaffold.py",
+      "python3 scripts/check-radishmind-core-candidate-hard-field-freeze.py",
+      "python3 scripts/check-radishmind-core-candidate-prompt-policy.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-citation-scaffold-candidate-run --summary-output tmp/check-v2-citation-scaffold-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json"
+    ],
+    "interpretation": [
+      "The repaired track can make the sample machine-valid, but the pre-fix repaired output was not strong enough as manual evidence because it duplicated the primary docs citation.",
+      "This is a scaffold/repair coverage bug, not a raw model improvement.",
+      "A same-sample repaired rerun is needed if an updated tmp repaired summary with restored FAQ/forum citations is required."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
