@@ -1279,10 +1279,33 @@
       "python3 scripts/check-radishmind-core-candidate-prompt-policy.py",
       "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-citation-scaffold-candidate-run --summary-output tmp/check-v2-citation-scaffold-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json"
     ],
+    "post_fix_repaired_rerun": {
+      "schema_valid": true,
+      "task_valid": true,
+      "generation_seconds": 104.119,
+      "input_tokens": 2087,
+      "output_tokens": 486,
+      "timeout": false,
+      "hit_max_new_tokens": false,
+      "repaired_paths": [
+        "$.answers[0]"
+      ],
+      "freeze_audit_passed": true,
+      "citation_ids": [
+        "doc-1",
+        "faq-1",
+        "forum-1"
+      ],
+      "citation_locators": [
+        "artifact:docs_page",
+        "artifact:faq_excerpt",
+        "artifact:forum_excerpt"
+      ]
+    },
     "interpretation": [
       "The repaired track can make the sample machine-valid, but the pre-fix repaired output was not strong enough as manual evidence because it duplicated the primary docs citation.",
       "This is a scaffold/repair coverage bug, not a raw model improvement.",
-      "A same-sample repaired rerun is needed if an updated tmp repaired summary with restored FAQ/forum citations is required."
+      "The post-fix same-sample repaired rerun restores the expected docs/FAQ/forum citations; remaining repair is limited to answers[0] citation alignment."
     ]
   },
   "task_metric_summary": [
