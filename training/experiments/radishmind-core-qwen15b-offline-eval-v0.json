@@ -1104,6 +1104,61 @@
       "No local model metric is updated by this record; v2 raw/repaired metrics still require a same-manifest local_transformers rerun."
     ]
   },
+  "holdout_probe_v2_single_evidence_gap_freeze_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_probe",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radish-answer-docs-question-evidence-gap-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-evidence-gap-raw/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-evidence-gap-raw/freeze-audit.json",
+    "execution": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "generation_seconds": 78.957,
+      "input_tokens": 1631,
+      "output_tokens": 337,
+      "timeout": false,
+      "hit_max_new_tokens": false
+    },
+    "raw_result": {
+      "schema_valid": true,
+      "task_valid": false,
+      "task_failure_categories": {
+        "risk_confirmation": 1,
+        "status_mismatch": 1
+      },
+      "task_validation_violations": [
+        "candidate_response.status does not match expected_response_shape.status",
+        "candidate_response.risk_level does not match evaluation.expected_risk_level"
+      ]
+    },
+    "freeze_audit": {
+      "audited_count": 1,
+      "passed_count": 0,
+      "failed_count": 1,
+      "violation_counts_by_path": {
+        "$.risk_level": 1,
+        "$.status": 1
+      },
+      "violations": [
+        {
+          "path": "$.status",
+          "expected": "partial",
+          "actual": "ok"
+        },
+        {
+          "path": "$.risk_level",
+          "expected": "medium",
+          "actual": "low"
+        }
+      ]
+    },
+    "interpretation": [
+      "The prompt-time hard_field_freeze contract is present and auditable, but this 1.5B raw output still violates the frozen status and risk_level paths.",
+      "The output preserved schema shape, issues, no-action boundary and citations, so the remaining blocker is specifically hard-field obedience rather than retrieval or JSON validity.",
+      "Do not treat prompt-time freeze alone as sufficient for raw promotion; continue evaluating constrained decoding or keep raw/repaired separation with explicit freeze audits."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",

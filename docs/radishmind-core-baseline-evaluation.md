@@ -300,6 +300,8 @@ repaired 观测结论：
 
 继续推进 hard-field freeze 的轻量实现：`run-radishmind-core-candidate.py` 现在会在 prompt document 中写入 `hard_field_freeze`，并在输出契约文本里列出由 scaffold 派生的不可改写 JSON path/value。该 freeze 合约只覆盖顶层 `status / risk_level / requires_confirmation`、显式 no-action 样本的空 `proposed_actions` 边界，以及样本通过 JSON path / required action 明确声明的稳定 action kind / target / patch / confirmation 字段；不冻结仅由 scaffold 占位生成的 answer kind、citation_ids、issue severity 等自然回答细节。新增 `scripts/eval/core_candidate_hard_field_freeze.py`、`scripts/check-radishmind-core-candidate-hard-field-freeze.py` 和 `scripts/audit-radishmind-core-candidate-freeze.py`，分别负责生成 prompt-time freeze、锁住 v2 evidence-gap / docs source-conflict / efficiency-range 三类 raw 漂移点，以及在本地模型复跑后审计 response 是否遵守 freeze。该策略不是 `--repair-hard-fields` 后处理；后续仍需用 raw / repaired 双轨重跑才能判断真实模型是否遵守 freeze。
 
+先用用户本地执行的单样本 `radish-answer-docs-question-evidence-gap-001` 验证了该审计链路：`Qwen2.5-1.5B-Instruct` raw 输出耗时约 `78.957s`，schema-valid 但 task-invalid；freeze audit 显示 7 个冻结字段中 `$.status` 从 `partial` 漂移为 `ok`、`$.risk_level` 从 `medium` 漂移为 `low`。这说明 prompt-time freeze 已经可审计，但单靠当前 prompt 仍不足以让 1.5B raw 稳定遵守 evidence-gap 的风险边界；后续若继续推进 raw 能力，应优先验证 constrained decoding / 结构化字段冻结，而不是把该样本误判为检索失败。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
