@@ -308,6 +308,8 @@ repaired 观测结论：
 
 同一样本的 repaired 轨随后达到 schema/task 通过，`repaired_paths` 为 `$.citations` 与 `$.answers[0]`，freeze audit 通过。但人工复核发现 pre-fix repaired 输出只是把 `citations[1] / citations[2]` 补成重复的 docs citation，并没有恢复 golden 中的 FAQ / forum source-context。根因是 citation scaffold 在只看到 `$.citations[index]` 存在性要求时，会复制 primary artifact 生成 `artifact-2 / artifact-3`。当前已修正为优先按 `golden_response.citations` 的 index 恢复 citation，并新增 `check-radishmind-core-candidate-citation-scaffold.py` 锁住 docs / FAQ / forum 的 id 与 locator 顺序。修复后用户重跑同一单样本 repaired 轨，输出仍 schema/task 通过，freeze audit 通过，citations 已恢复为 `doc-1 / faq-1 / forum-1`，`repaired_paths` 收窄为 `$.answers[0]`。
 
+随后继续用用户本地执行的单样本 `radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001` 验证 v2 中的单 action 参数范围样本。raw 输出耗时约 `70.147s`，schema-valid 但 task-invalid；模型保留了 `candidate_edit` target、`parameter_updates.efficiency_percent.suggested_range=[65,82]`、`preserve_topology=true`、`risk_level=medium` 与确认边界，但把 frozen `$.status` 从 `partial` 漂移为 `ok`，并漏掉必需 answer。因此该样本应继续归为 hard-field/status 与 answer-shape preservation gap，而不是参数 patch planning 失败。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

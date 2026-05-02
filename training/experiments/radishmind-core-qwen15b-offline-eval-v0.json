@@ -1308,6 +1308,75 @@
       "The post-fix same-sample repaired rerun restores the expected docs/FAQ/forum citations; remaining repair is limited to answers[0] citation alignment."
     ]
   },
+  "holdout_probe_v2_single_efficiency_range_raw_freeze_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_probe",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-efficiency-range-raw/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-efficiency-range-raw/freeze-audit.json",
+    "execution": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "generation_seconds": 70.147,
+      "input_tokens": 2182,
+      "output_tokens": 372,
+      "timeout": false,
+      "hit_max_new_tokens": false
+    },
+    "raw_result": {
+      "schema_valid": true,
+      "task_valid": false,
+      "task_failure_categories": {
+        "other": 1,
+        "status_mismatch": 1
+      },
+      "task_validation_violations": [
+        "candidate_response.status does not match expected_response_shape.status",
+        "candidate_response must contain at least 1 answer"
+      ]
+    },
+    "freeze_audit": {
+      "audited_count": 1,
+      "passed_count": 0,
+      "failed_count": 1,
+      "violation_counts_by_path": {
+        "$.status": 1
+      },
+      "violations": [
+        {
+          "path": "$.status",
+          "expected": "partial",
+          "actual": "ok"
+        }
+      ]
+    },
+    "observed_response": {
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "answer_count": 0,
+      "action_kind": "candidate_edit",
+      "action_target": {
+        "type": "unit",
+        "id": "pump-3"
+      },
+      "parameter_updates": {
+        "efficiency_percent": {
+          "action": "clamp_to_review_range",
+          "suggested_range": [
+            65,
+            82
+          ]
+        }
+      },
+      "preserve_topology": true
+    },
+    "interpretation": [
+      "The raw output preserved the important candidate_edit target, parameter_updates payload, range ordering, risk level and confirmation boundary.",
+      "The remaining raw blockers are top-level status drift from partial to ok and omission of the required answer.",
+      "This sample is therefore a hard-field/status and answer-shape preservation gap, not a parameter patch planning failure."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
