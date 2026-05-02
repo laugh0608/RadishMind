@@ -139,6 +139,13 @@
 - 大规模训练、显著占用 GPU/CPU/磁盘的命令
 - 打包、发布、上传类命令
 
+### 本地模型脚本协作方式
+
+- 长时间运行、显著占用 CPU/GPU 或会加载本地模型权重的脚本，默认由用户在本机终端执行，AI 不应抢先代跑
+- AI 要求用户执行此类脚本前，必须先给出完整可复制的命令，包括 `--manifest`、`--provider`、`--model-dir`、`--sample-id`、`--output-dir`、`--summary-output`、`--sample-timeout-seconds` 以及是否使用 `--repair-hard-fields` / `--validate-task`
+- 用户执行完成后，AI 负责读取和审计生成在 `tmp/` 下的 `summary.json`、candidate response、prompt、audit 或 offline eval 结果，并据此更新结论、文档和必要提交
+- 若脚本执行卡住、超时、被用户中断或只完成部分样本，AI 应优先检查已有 `tmp/` 产物和终端输出，先判断是模型推理耗时、timeout 机制、单样本失败还是脚本可观测性问题，再决定是否修改脚本或要求用户重跑
+
 ### 当前默认不做
 
 - 跨工作区编辑 `D:\Code\RadishFlow` 或 `D:\Code\Radish`
