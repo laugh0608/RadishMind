@@ -297,12 +297,12 @@ def get_expected_risk_level(sample: dict[str, Any], *, default: str = "low") -> 
     return str(expected_risk_level) if expected_risk_level in {"low", "medium", "high"} else default
 
 
-def citation_ids_for_action(sample: dict[str, Any], *, fallback_ids: list[str]) -> list[str]:
+def citation_ids_for_action(sample: dict[str, Any], *, action_index: int, fallback_ids: list[str]) -> list[str]:
     evaluation = get_evaluation(sample)
     sequences = evaluation.get("ordered_action_citation_sequences")
     if isinstance(sequences, list):
         for sequence in sequences:
-            if isinstance(sequence, dict) and int(sequence.get("action_index") or 0) == 0:
+            if isinstance(sequence, dict) and int(sequence.get("action_index") or 0) == action_index:
                 values = sequence.get("values")
                 if isinstance(values, list) and values:
                     return [str(item) for item in values if str(item).strip()]
@@ -320,41 +320,49 @@ def citation_ids_for_issue(sample: dict[str, Any], *, issue_index: int, fallback
     return fallback_ids
 
 
-def extract_expected_connection_placeholder(sample: dict[str, Any]) -> dict[str, Any]:
+def extract_expected_connection_placeholder(sample: dict[str, Any], *, action_index: int) -> dict[str, Any]:
     evaluation = get_evaluation(sample)
     placeholder: dict[str, Any] = {}
-    marker = "$.proposed_actions[0].patch.connection_placeholder."
+    marker = f"$.proposed_actions[{action_index}].patch.connection_placeholder."
     for key, value in iter_must_have_path_values(sample, marker):
         placeholder[key] = value
     ordered_keys = evaluation.get("ordered_connection_placeholder_keys")
     if isinstance(ordered_keys, list):
         for entry in ordered_keys:
-            if not isinstance(entry, dict) or int(entry.get("action_index") or 0) != 0:
+            if not isinstance(entry, dict) or int(entry.get("action_index") or 0) != action_index:
                 continue
             keys = entry.get("keys")
             if isinstance(keys, list):
                 for key_value in keys:
                     key = str(key_value)
                     if key and key not in placeholder:
-                        placeholder[key] = True if key.startswith("requires_") else "consumer_or_export_sink"
+                        placeholder[key] = (
+                            True if key.startswith(("requires_", "retain_")) else "consumer_or_export_sink"
+                        )
     return placeholder
 
 
-def extract_expected_action_target(sample: dict[str, Any], *, fallback_type: str, fallback_id: str) -> dict[str, str]:
+def extract_expected_action_target(
+    sample: dict[str, Any],
+    *,
+    action_index: int,
+    fallback_type: str,
+    fallback_id: str,
+) -> dict[str, str]:
     target = {
         "type": fallback_type,
         "id": fallback_id,
     }
-    marker = "$.proposed_actions[0].target."
+    marker = f"$.proposed_actions[{action_index}].target."
     for key, value in iter_must_have_path_values(sample, marker):
         if key in {"type", "id"} and isinstance(value, str) and value:
             target[key] = value
     return target
 
 
-def extract_expected_candidate_patch(sample: dict[str, Any]) -> dict[str, Any]:
+def extract_expected_candidate_patch(sample: dict[str, Any], *, action_index: int) -> dict[str, Any]:
     patch: dict[str, Any] = {}
-    marker = "$.proposed_actions[0].patch."
+    marker = f"$.proposed_actions[{action_index}].patch."
     for key, value in iter_must_have_path_values(sample, marker):
         set_nested_patch_value(patch, key, value)
     return patch
@@ -469,31 +477,53 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
     ]
 
 
-def build_candidate_edit_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> dict[str, Any]:
+def build_candidate_edit_scaffold(
+    sample: dict[str, Any],
+    *,
+    citation_ids: list[str],
+    action_index: int,
+) -> dict[str, Any]:
     request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
     context = request.get("context") if isinstance(request.get("context"), dict) else {}
     diagnostics = context.get("diagnostics") if isinstance(context.get("diagnostics"), list) else []
-    diagnostic = next((item for item in diagnostics if isinstance(item, dict)), {})
+    diagnostic = diagnostics[action_index] if action_index < len(diagnostics) and isinstance(diagnostics[action_index], dict) else {}
+    if not diagnostic:
+        diagnostic = next((item for item in diagnostics if isinstance(item, dict)), {})
     target_type = str(diagnostic.get("target_type") or "object")
     target_id = str(diagnostic.get("target_id") or "target-id")
-    target = extract_expected_action_target(sample, fallback_type=target_type, fallback_id=target_id)
-    action_citation_ids = citation_ids_for_action(sample, fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))])
-    patch = extract_expected_candidate_patch(sample)
+    target = extract_expected_action_target(
+        sample,
+        action_index=action_index,
+        fallback_type=target_type,
+        fallback_id=target_id,
+    )
+    action_citation_ids = citation_ids_for_action(
+        sample,
+        action_index=action_index,
+        fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))],
+    )
+    patch = extract_expected_candidate_patch(sample, action_index=action_index)
     parameter_updates = extract_ordered_parameter_updates(
         sample,
-        action_index=0,
+        action_index=action_index,
         iter_must_have_path_values=iter_must_have_path_values,
     )
     if parameter_updates:
         patch["parameter_updates"] = parameter_updates
-    connection_placeholder = extract_expected_connection_placeholder(sample)
+    connection_placeholder = extract_expected_connection_placeholder(sample, action_index=action_index)
     if not connection_placeholder and not parameter_updates:
         connection_placeholder = {
             "expected_downstream_kind": "consumer_or_export_sink",
             "requires_manual_binding": True,
         }
-    if "connection_placeholder" not in patch:
-        patch["connection_placeholder"] = connection_placeholder
+    if connection_placeholder:
+        existing_placeholder = patch.get("connection_placeholder")
+        if isinstance(existing_placeholder, dict):
+            for key, value in connection_placeholder.items():
+                if key not in existing_placeholder:
+                    existing_placeholder[key] = value
+        elif "connection_placeholder" not in patch:
+            patch["connection_placeholder"] = connection_placeholder
     risk_level = get_expected_risk_level(sample, default="high")
     return {
         "kind": "candidate_edit",
@@ -585,7 +615,7 @@ def build_action_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) ->
     actions: list[dict[str, Any]] = []
     for action_index, action_kind in enumerate(action_kinds):
         if action_kind == "candidate_edit":
-            actions.append(build_candidate_edit_scaffold(sample, citation_ids=citation_ids))
+            actions.append(build_candidate_edit_scaffold(sample, citation_ids=citation_ids, action_index=action_index))
         elif action_kind == "ghost_completion":
             actions.append(build_ghost_completion_scaffold(sample, citation_ids=citation_ids, action_index=action_index))
         elif action_kind == "read_only_check":

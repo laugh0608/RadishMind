@@ -292,6 +292,8 @@ repaired 观测结论：
 
 该结果说明 v2 非重叠样本没有复现 full holdout fix3 的 repaired 全通过：raw 继续不能晋级，repaired 也不能作为当前 v2 fixture pass 使用。下一步应优先复核跨对象 `suggest_flowsheet_edits` 参数 patch 家族，区分 scaffold 覆盖不足与模型 action planning 缺口；继续保持 raw / repaired 双轨和 `tmp/` artifact 禁入仓口径。
 
+2026-05-02 已完成该 v2 阻塞样本的根因复核：失败主因是 candidate scaffold / repair 对多个 `candidate_edit` action 没有按 `action_index` 读取 target、citation、patch、`connection_placeholder` 与 `parameter_updates`，导致第二条 pump 参数 action 被修成第一条 stream reconnect action；同时还发现 ordered `connection_placeholder` 键未与已有 patch 合并、`minimum_reference_stream_id` 被填成布尔占位。当前已在 wrapper 与共享 scaffold helper 中收口这些缺口，并补仓库级检查锁住该 cross-object 样本的第二 action target、patch 顺序、`parameter_updates` payload 与 citation ids。基于旧 `tmp/` candidate response 重新执行 repair 和任务 validator 后已无 violation；这说明该 repaired blocker 属于 scaffold 覆盖不足，不应解读为该样本必须依赖更强模型 action planning。但 raw 仍保持 blocked，不能作为模型晋级或训练准入证据。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

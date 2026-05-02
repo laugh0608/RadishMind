@@ -925,6 +925,59 @@
       "The next useful work is to inspect the failed cross-object suggest edits family and decide whether the scaffold is intentionally insufficient or whether model output strategy needs a stronger structured action plan."
     ]
   },
+  "holdout_probe_v2_scaffold_root_cause_review_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "reviewed_sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "source_candidate_response": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.json",
+    "root_cause": "The candidate scaffold and repair path reused action_index=0 for every candidate_edit, so the second action was repaired into the first stream reconnect action instead of the pump parameter update action.",
+    "secondary_scaffold_gaps": [
+      "ordered connection_placeholder keys were not merged when the patch already contained connection_placeholder.expected_downstream_kind",
+      "minimum_reference_stream_id fell back to a boolean placeholder instead of the inferred upstream feed stream id"
+    ],
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now reads target, citation_ids, patch, connection_placeholder and parameter_updates with the current action_index",
+      "scripts/eval/core_candidate_scaffold.py now infers minimum_reference_stream_id from the same upstream stream helper used for reference_stream_id",
+      "scripts/check-radishmind-core-candidate-parameter-updates.py now locks the cross-object v2 sample's second action target, patch order, parameter_updates and citation_ids"
+    ],
+    "local_repair_recheck": {
+      "reran_model": false,
+      "repaired_paths": [
+        "$.proposed_actions"
+      ],
+      "task_validation_violations_after_repair": [],
+      "action_targets_after_repair": [
+        {
+          "type": "stream",
+          "id": "cooler-outlet-81"
+        },
+        {
+          "type": "unit",
+          "id": "pump-12"
+        }
+      ],
+      "second_action_patch_after_repair": {
+        "parameter_updates": {
+          "outlet_pressure_target_kpa": {
+            "action": "review_and_raise_above_inlet",
+            "minimum_reference_stream_id": "feed-81"
+          },
+          "efficiency_percent": {
+            "action": "clamp_to_review_range",
+            "suggested_range": [
+              60,
+              85
+            ]
+          }
+        },
+        "preserve_topology": true
+      }
+    },
+    "interpretation": [
+      "The previous v2 repaired blocker was a scaffold/repair coverage bug, not evidence that this specific sample requires a stronger model action plan.",
+      "Raw output remains blocked and still must not be promoted or used as training evidence.",
+      "A future real local_transformers rerun is optional for metric refresh, but the root-cause fix is already covered by committed dry-run and scaffold checks."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
