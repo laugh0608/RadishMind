@@ -1410,6 +1410,101 @@
       "The answer scaffold fix is a postprocess/scaffold quality improvement; it is not raw model improvement."
     ]
   },
+  "holdout_probe_v2_single_cross_object_timeout_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_timeout_probe",
+    "source_scaffold_review": "holdout_probe_v2_scaffold_root_cause_review_2026_05_02",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-v2-single-cross-object-raw/summary.json",
+      "raw_invalid_response": "tmp/radishmind-core-v2-single-cross-object-raw/invalid-responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.invalid.json",
+      "raw_prompt": "tmp/radishmind-core-v2-single-cross-object-raw/prompts/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.prompt.json",
+      "raw_freeze_audit": "tmp/radishmind-core-v2-single-cross-object-raw/freeze-audit.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-v2-single-cross-object-repaired/summary.json",
+      "repaired_invalid_response": "tmp/radishmind-core-v2-single-cross-object-repaired/invalid-responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.invalid.json",
+      "repaired_prompt": "tmp/radishmind-core-v2-single-cross-object-repaired/prompts/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.prompt.json",
+      "repaired_freeze_audit": "tmp/radishmind-core-v2-single-cross-object-repaired/freeze-audit.json",
+      "committed_outputs": false
+    },
+    "execution_policy": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true
+    },
+    "prompt_observation": {
+      "input_tokens": 5010,
+      "hard_field_freeze_field_count": 17,
+      "freeze_scope_includes": [
+        "$.status=partial",
+        "$.risk_level=high",
+        "$.requires_confirmation=true",
+        "$.citations",
+        "$.issues[0..3].code",
+        "$.proposed_actions[0].target",
+        "$.proposed_actions[0].patch",
+        "$.proposed_actions[1].target",
+        "$.proposed_actions[1].patch"
+      ]
+    },
+    "raw_result": {
+      "schema_valid": false,
+      "task_valid": false,
+      "schema_failure_categories": {
+        "generation_timeout": 1
+      },
+      "generation_summary": {
+        "generation_seconds": 300.028,
+        "input_tokens": 5010,
+        "output_tokens": 0,
+        "json_extracted": false,
+        "timeout": true,
+        "timeout_count": 1,
+        "hit_max_new_tokens": false
+      },
+      "invalid_response_error": "local_transformers sample timed out after 300s"
+    },
+    "repaired_result": {
+      "schema_valid": false,
+      "task_valid": false,
+      "repair_hard_fields": true,
+      "repaired_output_count": 0,
+      "repaired_path_counts": {},
+      "schema_failure_categories": {
+        "generation_timeout": 1
+      },
+      "generation_summary": {
+        "generation_seconds": 300.021,
+        "input_tokens": 5010,
+        "output_tokens": 0,
+        "json_extracted": false,
+        "timeout": true,
+        "timeout_count": 1,
+        "hit_max_new_tokens": false
+      },
+      "invalid_response_error": "local_transformers sample timed out after 300s"
+    },
+    "freeze_audit": {
+      "raw": {
+        "audited_count": 0,
+        "skipped_count": 1,
+        "reason": "candidate_response_not_schema_valid"
+      },
+      "repaired": {
+        "audited_count": 0,
+        "skipped_count": 1,
+        "reason": "candidate_response_not_schema_valid"
+      }
+    },
+    "interpretation": [
+      "The post-fix prompt and scaffold are present, including indexed second-action target and patch freeze fields, but the local CPU 1.5B run produced no output tokens before the 300 second timeout.",
+      "This observation should be classified as a cost/timeout boundary for the complex cross-object suggest edits sample, not as task-level action planning evidence.",
+      "--repair-hard-fields cannot help when no JSON is generated, so raw and repaired both remain schema-invalid with identical timeout failure semantics.",
+      "A future quality rerun for this sample should either use a longer explicitly documented timeout probe or reduce the prompt/scaffold size first; it must still keep raw/repaired separation and tmp-only artifacts."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",

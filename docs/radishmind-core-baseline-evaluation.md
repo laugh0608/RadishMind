@@ -312,6 +312,14 @@ repaired 观测结论：
 
 同一样本 repaired 轨随后 schema/task 通过，freeze audit 通过，`repaired_paths` 为 `$.status` 与 `$.answers`，且未改动 `candidate_edit` target 或 parameter update patch。但人工复核发现 pre-fix repaired answer 使用了通用占位句。当前已将 `suggest_flowsheet_edits` 的 answer scaffold 改成任务相关 `edit_rationale`，并新增 `check-radishmind-core-candidate-answer-scaffold.py` 锁住缺失 answer 修复时不得恢复通用占位文本。该修正提升 repaired 轨的人工可审计性，但不改变 raw 模型仍会漂移 `status` / 漏 answer 的结论。
 
+随后按修复后的 action-index scaffold 与 hard-field freeze prompt 重新执行 v2 中最复杂的 `radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001` 单样本 raw / repaired 观测。两轨都使用本地 `Qwen2.5-1.5B-Instruct`、同一 `300s` timeout、`--allow-invalid-output` 与 `--validate-task`，repaired 轨额外启用 `--repair-hard-fields`。prompt 已包含 `5010` 个 input token 与 `17` 个冻结字段，覆盖顶层 `partial/high/requires_confirmation`、完整 citations、四个 issue code、两条 `candidate_edit` 的 target 与 patch。
+
+- raw 单样本：`schema_valid=false`、`task_valid=false`、`generation_seconds=300.028`、`output_tokens=0`、`json_extracted=false`、`timeout_count=1`，invalid response 仅记录 `local_transformers sample timed out after 300s`
+- repaired 单样本：`schema_valid=false`、`task_valid=false`、`generation_seconds=300.021`、`output_tokens=0`、`json_extracted=false`、`timeout_count=1`，`repaired_output_count=0`，因为没有生成 JSON，`--repair-hard-fields` 没有可修复对象
+- freeze audit 两轨均为 `audited_count=0`、`skipped_count=1`，原因是 candidate response schema-invalid；因此本轮不能判断模型是否遵守冻结字段
+
+该结果应记录为复杂 cross-object suggest edits 样本的成本 / timeout 边界，而不是 action planning 质量证据。它确认修复后的 scaffold 已进入 prompt，但当前 WSL CPU + `Qwen2.5-1.5B-Instruct` 在 `5010` input token、`300s` 档位下无法产出可审计 JSON。后续若要刷新该样本质量指标，应明确选择更长 timeout probe、缩短 prompt/scaffold，或换硬件 / backend；任何方案都必须继续保留 raw / repaired 双轨与 `tmp/` artifact 禁入仓口径。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
