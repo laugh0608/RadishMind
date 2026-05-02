@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-flash-nearby-node-ranking-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-flash-nearby-node-ranking-001",
+  "request_id": "rf-suggest-ghost-flash-nearby-ranking-001",
+  "captured_at": "2026-04-23T13:43:38Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 46,
+    "selected_unit_ids": [
+      "flash-5"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-5-inlet-main",
+      "cand-flash-5-inlet-side"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前已给出 ghost 建议：基于高置信候选 cand-flash-5-inlet-main 生成一条 ghost_completion，用于将 feed-main 流连接到 flash-5 的 inlet 端口。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-candidate-2"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-5 的 inlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-5",
+          "port_key": "inlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-5-inlet-main",
+          "target_port_key": "inlet",
+          "ghost_stream_name": "F-201"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-5-inlet-main"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "保留 flash-5 的 inlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-5",
+          "port_key": "inlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-5-inlet-side",
+          "target_port_key": "inlet",
+          "ghost_stream_name": "F-201B"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-5-inlet-side"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-2"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-5",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-5 kind=FlashDrum name=V-201 Drum"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-5-inlet-main",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-5-inlet-main target_port_key=inlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-candidate-2",
+        "kind": "context",
+        "label": "候选 cand-flash-5-inlet-side",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-flash-5-inlet-side target_port_key=inlet is_tab_default=False is_high_confidence=False"
+      }
+    ],
+    "status": "ok",
+    "summary": "当前已给出 ghost 建议：基于高置信候选 cand-flash-5-inlet-main 生成一条 ghost_completion，用于将 feed-main 流连接到 flash-5 的 inlet 端口。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-general-basics"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v20-remaining-general-basics",
+    "notes": "v20 remaining general basics expansion."
+  }
+}

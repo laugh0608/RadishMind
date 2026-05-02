@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+  "captured_at": "2026-04-26T03:17:16Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "high-value-residual-cooldown-tail-backfill",
+      "v24"
+    ],
+    "collection_batch": "2026-04-26-radishflow-ghost-poc-real-v24-high-value-residual-cooldown-tail-backfill"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 68,
+    "selected_unit_ids": [
+      "heater-8"
+    ],
+    "legal_candidate_refs": [
+      "cand-heater-8-outlet-flash-28"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-229",
+          "streams": [
+            {
+              "id": "feed-607",
+              "name": "F-607",
+              "target_unit_id": "heater-8"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-607-unit",
+              "kind": "Feed",
+              "name": "Feed 607"
+            },
+            {
+              "id": "heater-8",
+              "kind": "Heater",
+              "name": "Feed Heater 607"
+            },
+            {
+              "id": "flash-28",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 607"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 68,
+      "selected_unit_ids": [
+        "heater-8"
+      ],
+      "selected_unit": {
+        "id": "heater-8",
+        "kind": "Heater",
+        "name": "Feed Heater 607"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-28.inlet",
+          "distance_px": 60,
+          "alignment_score": 0.95,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-heater-8-outlet-flash-28",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "heater-8",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-28.inlet",
+          "suggested_stream_name": "H-607",
+          "ranking_signals": {
+            "distance_px": 60,
+            "alignment_score": 0.95,
+            "topology_score": 0.92,
+            "score_gap_to_next": 0.38,
+            "template_frequency": 0.84
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "607",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-607-to-heater-8-inlet",
+            "accepted_at_revision": 65
+          },
+          {
+            "kind": "dismiss_ghost_completion",
+            "candidate_ref": "cand-heater-8-outlet-flash-28",
+            "dismissed_at_revision": 66
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-607"
+        ],
+        "existing_stream_names": [
+          "F-607"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "607"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "recent_dismiss_cooldown_elapsed_same_candidate_can_retab"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-heater-flash-outlet-tab-after-dismiss-cooldown-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-229\",\n        \"streams\": [\n          {\n            \"id\": \"feed-607\",\n            \"name\": \"F-607\",\n            \"target_unit_id\": \"heater-8\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-607-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 607\"\n          },\n          {\n            \"id\": \"heater-8\",\n            \"kind\": \"Heater\",\n            \"name\": \"Feed Heater 607\"\n          },\n          {\n            \"id\": \"flash-28\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 607\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 68,\n    \"selected_unit_ids\": [\n      \"heater-8\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"heater-8\",\n      \"kind\": \"Heater\",\n      \"name\": \"Feed Heater 607\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-28.inlet\",\n        \"distance_px\": 60,\n        \"alignment_score\": 0.95,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-heater-8-outlet-flash-28\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_unit_id\": \"heater-8\",\n        \"target_port_key\": \"outlet\",\n        \"target_node_id\": \"flash-28.inlet\",\n        \"suggested_stream_name\": \"H-607\",\n        \"ranking_signals\": {\n          \"distance_px\": 60,\n          \"alignment_score\": 0.95,\n          \"topology_score\": 0.92,\n          \"score_gap_to_next\": 0.38,\n          \"template_frequency\": 0.84\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"H\",\n          \"numeric_suffix\": \"607\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"is_high_confidence\": true,\n        \"is_tab_default\": true\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-607-to-heater-8-inlet\",\n          \"accepted_at_revision\": 65\n        },\n        {\n          \"kind\": \"dismiss_ghost_completion\",\n          \"candidate_ref\": \"cand-heater-8-outlet-flash-28\",\n          \"dismissed_at_revision\": 66\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-607\"\n      ],\n      \"existing_stream_names\": [\n        \"F-607\"\n      ],\n      \"preferred_outlet_prefix\": \"H\",\n      \"numeric_suffix_from_unit\": \"607\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_heater_flash_chain\",\n      \"heater_outlet_to_flash_inlet_after_feed_connection\",\n      \"recent_dismiss_cooldown_elapsed_same_candidate_can_retab\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "e46a56ca-2538-46d5-a9ca-1d0d59e8ef11",
+    "object": "chat.completion",
+    "created": 1777173402,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"project\":\"radishflow\",\"task\":\"suggest_ghost_completion\",\"status\":\"success\",\"summary\":\"检测到 Heater 8 的出口未连接，下游附近存在 Flash Drum 607 的入口，距离仅 60 px、对齐度 0.95、拓扑评分 0.92，且候选连接 H‑607 与上游 F‑607 命名一致。该连接曾在上个版本被忽略，但冷却时间已过，重新推荐。\",\"answers\":[{\"text\":\"建议将 Heater 8 出口连接到 Flash Drum 607 入口，形成流股 H‑607。\",\"citations\":[\"flowsheet_document\"]}],\"issues\":[],\"proposed_actions\":[{\"action\":\"ghost_completion\",\"ghost_completion\":{\"title\":\"连接 H‑607\",\"target\":\"heater-8.outlet → flash-28.inlet\",\"rationale\":\"位于 feed‑heater‑flash 拓扑链上，加热器出口通常连接到闪蒸罐入口。距离短、对齐高度匹配，命名派生自上游 F‑607，遵循现有模式。虽然该 ghost 此前被手动忽略，但根据 cooldown 策略已允许重提示。\",\"patch\":{\"add_stream\":{\"id\":\"H‑607\",\"from_unit_id\":\"heater-8\",\"from_port\":\"outlet\",\"to_unit_id\":\"flash-28\",\"to_port\":\"inlet\"}},\"preview\":{\"accept_key\":\"Tab\"},\"apply\":{\"command_kind\":\"accept_ghost_completion\",\"payload\":{\"candidate_ref\":\"cand-heater-8-outlet-flash-28\"}},\"risk_level\":\"low\",\"requires_confirmation\":false}}],\"citations\":[{\"source_id\":\"flowsheet_document\",\"description\":\"流程图纸 flowsheet‑ghost‑229\"},{\"source_id\":\"ranking_signals\",\"description\":\"距离 60 px, 对齐 0.95, 拓扑 0.92, 评分领先第二名 0.38\"},{\"source_id\":\"naming_signals\",\"description\":\"H‑607 前缀 H，后缀 607 重复现有模式且无碰撞\"}],\"requires_confirmation\":false}",
+          "reasoning_content": "我们被要求输出一个 JSON 对象。任务：suggest_ghost_completion。上下文中有 legal_candidate_completions 只有一条：cand-heater-8-outlet-flash-28，且 is_high_confidence 为 true，is_tab_default 为 true。需要根据规则：高置信度、是默认 Tab 候选，且 recent_actions 有 dismiss 过该候选，但 topology_pattern_hints 中有 \"recent_dismiss_cooldown_elapsed_same_candidate_can_retab\"，说明冷却时间已过，可以重新推荐。所以应该建议这一个 ghost completion。需要设置 preview.accept_key=\"Tab\" 因为它是唯一候选且高置信度且 is_tab_default 为 true。输出 CopilotResponse 结构。\n\nCopilotResponse 字段：\n- project: \"radishflow\"\n- task: \"suggest_ghost_completion\"\n- status: \"success\" 或 \"partial\"（如果无建议则 partial）这里应 \"success\"\n- summary: 简短描述\n- answers: 数组，至少一个？实际上答案可能是 ghost_completion 的建议吗？看文档，CopilotResponse 有 answers 字段，但示例中 answers 可能包含字符串？实际看问题描述：“answers 至少 1 条”。可能是用一个回答摘要。我们按照标准格式。也可能是 summary 和 answers。对于 suggest_ghost_completion，可能 answers 内容是提议的 ghost completion 的描述，但最终动作在 proposed_actions 里。我们构造一个 answers 为字符串描述，或者结构化？根据 radishflow 之前的对话，answers 可能是一个对象列表，每个对象包含 text 和 citations？但这里要求 JSON 对象，我们按常见的：answers: [{ \"text\": \"建议连接 Heater 8 出口到 Flash Drum 607 入口\", \"citations\": [\"flowsheet_document\"] }] 等。我们提供一个简单的 answers。\n\nproposed_actions: 数组，每个包含 action: \"ghost_completion\"，ghost_completion 对象包含必要字段。\n\n构造 ghost_completion:\n- title: \"连接 H-607\"\n- target: \"heater-8.outlet -> flash-28.inlet\"\n- rationale: \"基于拓扑模式 feed-heater-flash 链条，Heater 出口通常连接到 Flash 入口。距离近，对齐良好，下游命名 H-607 与上游 F-607 一致。\"\n- patch: 描述更改，比如 { \"add_stream\": { \"id\": \"H-607\", \"from\": \"heater-8.outlet\", \"to\": \"flash-28.inlet\" } } 等等。\n- preview: { \"accept_key\": \"Tab\" } （因为高置信度、默认）\n- apply: { \"command_kind\": \"accept_ghost_completion\", \"payload\": { \"candidate_ref\": \"cand-heater-8-outlet-flash-28\" } }\n- risk_level: \"low\"\n- requires_confirmation: false\n\n根据规则 requires_confirmation 必须 false。整体 requires_confirmation 也要 false。\n\ncitations: 可引用 flowsheet_document，并提到 context 里的 ranking_signals 等。可以在 ghost_completion 里放 citations？文档要求每个 ghost_completion 包含哪些字段，没有要求 citations，但 CopilotResponse 整体可以包含 citations 字段。我们在顶层提供 citations 数组，引用文档。\n\nissues: 无，因为没有问题。\n\nsummary: \"检查到 Heater 8 出口下游存在 Flash Drum 607 入口，距离 60px，对齐 0.95，拓扑评分高，且命名 H-607 符合模式。虽然该连接此前被忽略，但冷却时间已过，建议重新连接。\"\n\nstatus: \"success\"\n\n整体 JSON 构建。\n\n注意不要输出 markdown 代码块，只输出 JSON 字符串。\n\n最终输出。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1396,
+      "completion_tokens": 1268,
+      "total_tokens": 2664,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 821
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 1140
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "summary": "检测到 Heater 8 的出口未连接，下游附近存在 Flash Drum 607 的入口，距离仅 60 px、对齐度 0.95、拓扑评分 0.92，且候选连接 H‑607 与上游 F‑607 命名一致。该连接曾在上个版本被忽略，但冷却时间已过，重新推荐。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "建议将 Heater 8 出口连接到 Flash Drum 607 入口，形成流股 H‑607。",
+        "citation_ids": [
+          "ctx-unit"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 heater-8 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-8",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-8-outlet-flash-28",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-607"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-8-outlet-flash-28"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-8",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-8 kind=Heater name=Feed Heater 607"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-heater-8-outlet-flash-28",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-8-outlet-flash-28 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-607\"], \"existing_stream_names\": [\"F-607\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"607\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"dismiss_ghost_completion\", \"candidate_ref\": \"cand-heater-8-outlet-flash-28\", \"dismissed_at_revision\": 66}"
+      }
+    ],
+    "requires_confirmation": false,
+    "schema_version": 1,
+    "risk_level": "low",
+    "confidence": 0.93
+  }
+}

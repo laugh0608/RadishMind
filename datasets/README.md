@@ -1,8 +1,8 @@
 # RadishMind 数据集与评测目录
 
-更新时间：2026-04-05
+更新时间：2026-04-29
 
-本目录用于承载 `RadishMind` 的样本、评测和后续训练输入。
+本目录用于承载 `RadishMind` 的样本、评测和后续训练输入来源。
 
 当前阶段先建立最小评测骨架，不急着铺大规模数据。
 
@@ -12,6 +12,14 @@
 - `annotated/`: 人工校正样本
 - `examples/`: 面向契约与适配器的最小示例对象
 - `eval/`: 离线评测样本、样本 schema 和回归输入
+
+训练 / 蒸馏输出边界：
+
+- `datasets/` 只保留可复用的原始样本资产、eval 样本、candidate record 与示例对象
+- `training/` 承载训练集合 manifest、summary、复核策略和实验说明
+- `scripts/build-copilot-training-samples.py` 负责把 committed eval 样本或 audit pass candidate record 转成 `CopilotTrainingSample` JSONL
+- 默认 JSONL 输出到 `tmp/`，不提交大规模生成文件
+- 若后续确需提交小型 JSONL fixture，必须在 `training/` 中说明样本数、用途、来源和复核状态
 
 当前已经先落地：
 
@@ -71,6 +79,7 @@
 - 当前 `RadishFlow explain_diagnostics` 已补首批 `golden_response` 样本与最小回归 runner，后续优先扩展更多真实诊断场景
 - 当前 `Radish` 文档问答样本已补最小召回输入约束与回归 runner，后续优先扩展真实样本和候选输出对照入口
 - 当前 `Radish docs QA` 的 `2026-04-05` real batch 已补一份批次级 README，用于把真实 bad record 的主失败面、same-sample / cross-sample replay 覆盖状态，以及 `check-repo` 末尾 recommended replay 输出为何会打印 `FAIL` 统一解释清楚
+- 当前 `CopilotTrainingSample` JSONL 不直接在 `datasets/` 入仓；训练集合优先通过 manifest + summary + 可复跑转换入口表达，生成文件默认留在 `tmp/`
 - 当前 `examples/` 目录开始承接“schema + 实例”双校验，避免新契约只有结构没有真实对象参照
 - 当前 `build-radishflow-ghost-request.py` 已可把本地 ghost 候选集示例装配成最小 `CopilotRequest`，默认使用 `model-minimal` profile 裁剪本地排序/冲突证据，同时保留 `debug-full` 对照示例，并由 `check-repo` 校验基础 `FlashDrum`、`Valve ambiguous`、连续搭建链正向与链式停住边界几组输出都不漂移
 - 当前 `examples/` 已新增 `Feed -> Valve -> FlashDrum` 连续搭建链基线，把 `cursor_context.recent_actions` 从 `eval` 样本推进到 pre-model candidate set 与 request assembly 示例，固定“上一跳已接受 ghost 会影响下一跳默认建议”的最小口径

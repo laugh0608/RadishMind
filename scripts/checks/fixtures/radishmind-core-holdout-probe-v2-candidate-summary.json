@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_candidate_run_summary",
+  "phase": "M4-preparation",
+  "run_id": "radishmind-core-holdout-probe-v2-candidate-001",
+  "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-eval-manifest.json",
+  "provider": {
+    "provider_id": "golden_fixture",
+    "model_id": "radishmind-core-holdout-probe-v2-dry-run",
+    "role": "core_candidate",
+    "target_size": "3B",
+    "does_not_run_models": true,
+    "provider_access": "none",
+    "model_artifacts_downloaded": false,
+    "notes": [
+      "Uses committed golden_response objects only to exercise the non-overlapping holdout probe v2 prompt/output plumbing.",
+      "Real 300 second local_transformers holdout probe v2 observations must explicitly pass --provider local_transformers and keep generated artifacts under tmp/."
+    ]
+  },
+  "sample_count": 6,
+  "task_counts": {
+    "radish/answer_docs_question": 2,
+    "radishflow/suggest_flowsheet_edits": 2,
+    "radishflow/suggest_ghost_completion": 2
+  },
+  "output_policy": {
+    "output_dir": "provided at runtime",
+    "prompt_files_written": 6,
+    "candidate_response_files_written": 6,
+    "invalid_candidate_response_files_written": 0,
+    "commit_candidate_outputs": false
+  },
+  "quality_gates": {
+    "copilot_request_schema_validated": 6,
+    "copilot_response_schema_validated": 6,
+    "project_task_matched": 6,
+    "high_risk_actions_require_confirmation": true,
+    "does_not_download_model_artifacts": true,
+    "does_not_start_training": true
+  },
+  "observation_summary": {
+    "schema_valid_rate": 1.0,
+    "schema_invalid_rate": 0.0,
+    "schema_valid_counts_by_task": {
+      "radish/answer_docs_question": 2,
+      "radishflow/suggest_flowsheet_edits": 2,
+      "radishflow/suggest_ghost_completion": 2
+    },
+    "schema_failure_categories": {}
+  },
+  "outputs": [
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "coverage_tags": [
+        "non_full_holdout_probe",
+        "mixed_risk",
+        "reconnect",
+        "parameter_update",
+        "citation_alignment"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "coverage_tags": [
+        "non_full_holdout_probe",
+        "parameter_update",
+        "ordered_range",
+        "patch_ordering"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "coverage_tags": [
+        "non_full_holdout_probe",
+        "vapor_outlet",
+        "candidate_ranking",
+        "tab_default"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "coverage_tags": [
+        "non_full_holdout_probe",
+        "manual_only",
+        "ambiguous_candidate",
+        "advisory_boundary"
+      ],
+      "prompt_file": "prompts/radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001.prompt.json",
+      "candidate_response_file": "responses/radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "coverage_tags": [
+        "non_full_holdout_probe",
+        "source_conflict",
+        "official_source",
+        "read_only_check"
+      ],
+      "prompt_file": "prompts/radish-answer-docs-question-docs-faq-forum-conflict-001.prompt.json",
+      "candidate_response_file": "responses/radish-answer-docs-question-docs-faq-forum-conflict-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    },
+    {
+      "sample_id": "radish-answer-docs-question-evidence-gap-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "coverage_tags": [
+        "non_full_holdout_probe",
+        "evidence_gap",
+        "partial_answer",
+        "no_action"
+      ],
+      "prompt_file": "prompts/radish-answer-docs-question-evidence-gap-001.prompt.json",
+      "candidate_response_file": "responses/radish-answer-docs-question-evidence-gap-001.candidate-response.json",
+      "response_source": "golden_response",
+      "copilot_request_schema_validated": true,
+      "copilot_response_schema_validated": true,
+      "project_task_matched": true
+    }
+  ],
+  "next_step": "After an approved local model exists, rerun with --provider local_transformers and --model-dir or RADISHMIND_MODEL_DIR; this script uses local_files_only and never downloads weights."
+}

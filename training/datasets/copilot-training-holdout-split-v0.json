@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "kind": "copilot_training_holdout_split_manifest",
+  "holdout_id": "copilot-training-holdout-split-v0",
+  "status": "planned",
+  "governance_manifest": "training/datasets/copilot-training-dataset-governance-v0.json",
+  "offline_eval_run_fixture": "scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json",
+  "created_for": "teacher-student-distillation",
+  "does_not_generate_jsonl": true,
+  "does_not_run_models": true,
+  "split_policy": {
+    "offline_eval_holdout_ratio": 0.1,
+    "minimum_holdout_records_per_task": 3,
+    "leakage_rule": "Samples in this holdout split must not be included in the same generated training JSONL split.",
+    "current_selection_rule": "Use committed eval samples that are not listed in the current golden_response or teacher_capture training conversion manifests."
+  },
+  "excluded_training_conversion_manifests": [
+    "scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json",
+    "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json"
+  ],
+  "holdout_selection": [
+    {
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "minimum_sample_count": 3,
+      "selection_reason": "Holds out ordering, compressor parameter update, and local-vs-global action boundary samples outside the current training seed manifests.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.json",
+          "coverage_tags": [
+            "action_ordering",
+            "citation_alignment",
+            "artifact_snapshot"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        },
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
+          "coverage_tags": [
+            "parameter_update",
+            "patch_ordering",
+            "risk_confirmation"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        },
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001.json",
+          "coverage_tags": [
+            "local_edit",
+            "global_warning",
+            "advisory_boundary"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        }
+      ]
+    },
+    {
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "minimum_sample_count": 3,
+      "selection_reason": "Holds out simple inlet, stream naming, and mixer outlet completion samples outside the current training seed manifests.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-flash-inlet-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-flash-inlet-001.json",
+          "coverage_tags": [
+            "inlet_connection",
+            "candidate_ranking",
+            "tab_default"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        },
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-heater-stream-name-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-heater-stream-name-001.json",
+          "coverage_tags": [
+            "stream_naming",
+            "naming_pattern",
+            "tab_default"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        },
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-mixer-standard-outlet-001.json",
+          "coverage_tags": [
+            "mixer_outlet",
+            "topology_pattern",
+            "tab_default"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        }
+      ]
+    },
+    {
+      "project": "radish",
+      "task": "answer_docs_question",
+      "minimum_sample_count": 3,
+      "selection_reason": "Holds out attachment, docs+FAQ, and navigation samples outside the current training seed manifests.",
+      "selected_samples": [
+        {
+          "sample_id": "radish-answer-docs-question-attachment-mixed-001",
+          "path": "datasets/eval/radish/answer-docs-question-attachment-mixed-001.json",
+          "coverage_tags": [
+            "attachments",
+            "official_source",
+            "read_only_check"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        },
+        {
+          "sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+          "path": "datasets/eval/radish/answer-docs-question-docs-attachments-faq-001.json",
+          "coverage_tags": [
+            "docs",
+            "attachments",
+            "faq_supplement"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        },
+        {
+          "sample_id": "radish-answer-docs-question-navigation-001",
+          "path": "datasets/eval/radish/answer-docs-question-navigation-001.json",
+          "coverage_tags": [
+            "navigation",
+            "official_source",
+            "attachment_reference"
+          ],
+          "holdout_role": "offline_eval_holdout"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "holdout_sample_count": 9,
+    "task_counts": {
+      "radish/answer_docs_question": 3,
+      "radishflow/suggest_flowsheet_edits": 3,
+      "radishflow/suggest_ghost_completion": 3
+    },
+    "overlaps_current_training_seed": false,
+    "review_status": "pending_review"
+  }
+}

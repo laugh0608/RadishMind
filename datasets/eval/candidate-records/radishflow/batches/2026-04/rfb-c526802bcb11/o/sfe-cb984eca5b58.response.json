@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "ok",
+  "requires_confirmation": true,
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前围绕已选择的加热器单元 heater-2 的出口温度控制参数缺失问题生成候选提案。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 heater-2 添加出口温度目标占位参数",
+      "rationale": "诊断明确指出 heater-2 在 outlet_temperature 控制模式下缺少出口温度目标。建议仅添加一个待用户确认的局部参数占位，不直接推断具体温度值。",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "unit",
+        "id": "heater-2"
+      },
+      "patch": {
+        "parameter_placeholders": [
+          "outlet_temperature_c",
+          "/units/heater-2/config/outlet_temperature_target_c"
+        ],
+        "patch_scope": "unit_parameters",
+        "preserve_existing_connections": true
+      }
+    }
+  ],
+  "issues": [
+    {
+      "code": "UNIT_PARAMETER_INCOMPLETE",
+      "message": "Preheater is configured for outlet temperature control but outlet temperature target is missing.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-unit-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Preheater is configured for outlet temperature control but outlet temperature target is missing."
+    },
+    {
+      "id": "flowdoc-unit-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / heater-2",
+      "locator": "artifact:flowsheet_document.units[0]",
+      "excerpt": "heater-2 Preheater kind=Heater"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_parameters"
+    }
+  ],
+  "summary": "当前围绕已选择的加热器单元 heater-2 的出口温度控制参数缺失问题生成候选提案。",
+  "risk_level": "medium",
+  "confidence": 0.2
+}

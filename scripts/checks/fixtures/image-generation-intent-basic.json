@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "intent_id": "image-intent-basic-001",
+  "kind": "image_generation",
+  "source_request_id": "copilot-request-image-basic-001",
+  "prompt": {
+    "positive": "生成一张用于说明 RadishMind-Image Adapter 调度链路的简洁技术示意图，包含结构化意图、adapter、backend 和 artifact metadata 四个节点。",
+    "negative": "避免真实品牌标识、人物肖像、敏感内容和难以审计的暗色背景。",
+    "locale": "zh-CN"
+  },
+  "output": {
+    "width": 1024,
+    "height": 1024,
+    "count": 1,
+    "format": "png"
+  },
+  "style": {
+    "preset": "diagram",
+    "reference_artifact_ids": []
+  },
+  "constraints": {
+    "must_include": [
+      "structured intent",
+      "image adapter",
+      "backend",
+      "artifact metadata"
+    ],
+    "must_avoid": [
+      "direct RadishMind-Core pixel generation"
+    ],
+    "edit_artifact_id": null,
+    "mask_artifact_id": null
+  },
+  "backend": {
+    "preferred": "sd15",
+    "seed": 12345,
+    "steps": 24,
+    "guidance_scale": 7.0
+  },
+  "safety": {
+    "requires_confirmation": false,
+    "risk_level": "low",
+    "review_notes": []
+  },
+  "artifact_metadata": {
+    "proposed_title": "radishmind-image-adapter-intent-basic",
+    "purpose": "visual_reference",
+    "trace_ids": [
+      "copilot-request-image-basic-001"
+    ]
+  }
+}

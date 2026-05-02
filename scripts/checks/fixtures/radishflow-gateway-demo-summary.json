@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "fixture_count": 3,
+  "results": [
+    {
+      "id": "suggest-flowsheet-edits-reconnect-outlet-001",
+      "request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "status": "partial",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "provider": "mock",
+      "advisory_only": true,
+      "request_validated": true,
+      "response_validated": true,
+      "requires_confirmation": true
+    },
+    {
+      "id": "suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+      "request_id": "rf-suggest-edit-multi-selection-single-actionable-target-001",
+      "status": "partial",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "provider": "mock",
+      "advisory_only": true,
+      "request_validated": true,
+      "response_validated": true,
+      "requires_confirmation": true
+    },
+    {
+      "id": "suggest-flowsheet-edits-three-step-priority-chain-001",
+      "request_id": "rf-suggest-edit-three-step-priority-chain-001",
+      "status": "partial",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "provider": "mock",
+      "advisory_only": true,
+      "request_validated": true,
+      "response_validated": true,
+      "requires_confirmation": true
+    }
+  ]
+}

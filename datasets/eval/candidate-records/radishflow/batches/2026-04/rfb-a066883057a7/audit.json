@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "radishflow-ghost-completion",
+  "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-a066883057a7/manifest.json",
+  "sample_dir": "datasets/eval/radishflow",
+  "matched_sample_count": 6,
+  "expected_source": "captured_candidate_response",
+  "required_capture_origin": "adapter_debug_dump",
+  "required_collection_batch": "2026-04-24-radishflow-ghost-poc-real-v22-high-value-suppression-cooldown-symmetry-backfill",
+  "required_tags": [],
+  "exit_code": 0,
+  "passed_count": 6,
+  "failed_count": 0,
+  "violation_count": 0,
+  "warning_line": "",
+  "summary_line": "radishflow ghost completion regression passed.",
+  "stderr": "",
+  "samples": [
+    {
+      "sample_file": "suggest-ghost-completion-chain-feed-cooler-flash-outlet-dismiss-no-retab-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "suggest-ghost-completion-chain-feed-heater-flash-outlet-skip-no-retab-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "suggest-ghost-completion-chain-feed-valve-flash-outlet-reject-no-retab-001.json",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "sample_file": "suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-reject-cooldown-001.json",
+      "status": "pass",
+      "violations": []
+    }
+  ]
+}

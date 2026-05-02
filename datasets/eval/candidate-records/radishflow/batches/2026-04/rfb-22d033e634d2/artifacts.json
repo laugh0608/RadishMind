@@ -43,6 +43,26 @@
       "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/d",
       "exists": false,
       "file_count": 0
+    },
+    "negative_replay_index": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/negative-replay-index.json",
+      "exists": true
+    },
+    "cross_sample_negative_replay_index": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-replay-index.json",
+      "exists": true
+    },
+    "recommended_negative_replay_summary": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/recommended-negative-replay.summary.json",
+      "exists": true
+    },
+    "cross_sample_recommended_negative_replay_summary": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-recommended.summary.json",
+      "exists": true
     }
   },
   "summary": {
@@ -55,7 +75,89 @@
     "root_record_count": 3,
     "nested_record_count": 0,
     "response_file_count": 0,
-    "dump_file_count": 0
+    "dump_file_count": 0,
+    "violation_group_count": 5,
+    "cross_sample_violation_group_count": 5,
+    "linked_same_sample_negative_count": 3,
+    "linked_cross_sample_negative_count": 3,
+    "recommended_replay_group_count": 3,
+    "cross_sample_recommended_replay_group_count": 2
+  },
+  "recommended_negative_replays": {
+    "default_replay_mode": "same_sample",
+    "recommended_group_ids": [
+      "group-001",
+      "group-004",
+      "group-005"
+    ],
+    "groups": [
+      {
+        "group_id": "group-001",
+        "replay_mode": "same_sample",
+        "entry_count": 1,
+        "expected_candidate_violations": [
+          "Tab accept key must map to a legal candidate marked is_tab_default=true",
+          "Tab accept key must map to a high-confidence legal candidate",
+          "Tab accept key must not map to a legal candidate with conflict_flags",
+          "json path '$.proposed_actions[0].preview.accept_key' should not equal 'Tab'"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-ghost-completion-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json --group-id group-001 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
+      },
+      {
+        "group_id": "group-004",
+        "replay_mode": "same_sample",
+        "entry_count": 1,
+        "expected_candidate_violations": [
+          "ghost_completion patch.candidate_ref must come from context.legal_candidate_completions",
+          "json path '$.proposed_actions[0]' should not exist"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-ghost-completion-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json --group-id group-004 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
+      },
+      {
+        "group_id": "group-005",
+        "replay_mode": "same_sample",
+        "entry_count": 1,
+        "expected_candidate_violations": [
+          "json path '$.proposed_actions[0].preview.accept_key' expected 'Tab' but found 'manual_only'"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-ghost-completion-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json --group-id group-005 --replay-mode same_sample --fail-on-violation",
+        "same_sample_entry_count": 1
+      }
+    ],
+    "cross_sample_recommended_group_ids": [
+      "group-002",
+      "group-003"
+    ],
+    "cross_sample_groups": [
+      {
+        "group_id": "group-002",
+        "replay_mode": "cross_sample",
+        "entry_count": 2,
+        "expected_candidate_violations": [
+          "candidate_response_record.sample_id must match sample_id",
+          "candidate_response_record.request_id must match input_request.request_id",
+          ".status does not match expected_response_shape.status",
+          "is missing required action kind 'ghost_completion'"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-ghost-completion-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json --group-id group-002 --replay-mode cross_sample --fail-on-violation",
+        "cross_sample_entry_count": 2
+      },
+      {
+        "group_id": "group-003",
+        "replay_mode": "cross_sample",
+        "entry_count": 1,
+        "expected_candidate_violations": [
+          "candidate_response_record.sample_id must match sample_id",
+          "candidate_response_record.request_id must match input_request.request_id",
+          ".status does not match expected_response_shape.status",
+          "json path '$.proposed_actions[0]' should not exist"
+        ],
+        "python_command": "python3 ./scripts/run-eval-regression.py radishflow-ghost-completion-negative --batch-artifact-summary datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json --group-id group-003 --replay-mode cross_sample --fail-on-violation",
+        "cross_sample_entry_count": 1
+      }
+    ]
   },
   "model": "deepseek-chat",
   "capture_origin": "adapter_debug_dump"

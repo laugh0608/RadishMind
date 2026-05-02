@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-flash-liquid-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-flash-liquid-outlet-001",
+  "request_id": "rf-suggest-ghost-flash-liquid-001",
+  "captured_at": "2026-04-23T13:43:30Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 43,
+    "selected_unit_ids": [
+      "flash-3"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-3-liquid-stub"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前检测到闪蒸罐 V-103 Drum 的液体出口未连接，已给出高置信度的 ghost 建议：连接液体出口流股 L-103。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-3 的 liquid_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-3",
+          "port_key": "liquid_outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-3-liquid-stub",
+          "target_port_key": "liquid_outlet",
+          "ghost_stream_name": "L-103"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-3-liquid-stub"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-3",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-3 kind=FlashDrum name=V-103 Drum"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-3-liquid-stub",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-3-liquid-stub target_port_key=liquid_outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "flash_standard_vapor_liquid_split"
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "summary": "当前检测到闪蒸罐 V-103 Drum 的液体出口未连接，已给出高置信度的 ghost 建议：连接液体出口流股 L-103。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-general-basics"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v20-remaining-general-basics",
+    "notes": "v20 remaining general basics expansion."
+  }
+}

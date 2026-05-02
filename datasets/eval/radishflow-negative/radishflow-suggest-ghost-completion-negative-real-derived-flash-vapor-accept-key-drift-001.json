@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "sample_id": "radishflow-suggest-ghost-completion-negative-real-derived-flash-vapor-accept-key-drift-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-negative-real-derived-flash-vapor-accept-key-drift-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-202",
+          "streams": [
+            {
+              "id": "feed-102",
+              "name": "F-102",
+              "target_unit_id": "flash-2"
+            }
+          ],
+          "units": [
+            {
+              "id": "flash-2",
+              "kind": "FlashDrum",
+              "name": "V-102 Drum"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 42,
+      "selected_unit_ids": [
+        "flash-2"
+      ],
+      "selected_unit": {
+        "id": "flash-2",
+        "kind": "FlashDrum",
+        "name": "V-102 Drum"
+      },
+      "unconnected_ports": [
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-2-vapor-stub",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-2",
+          "target_port_key": "vapor_outlet",
+          "suggested_stream_name": "V-102",
+          "is_high_confidence": true,
+          "is_tab_default": true
+        },
+        {
+          "candidate_ref": "cand-flash-2-liquid-stub",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-2",
+          "target_port_key": "liquid_outlet",
+          "suggested_stream_name": "L-102",
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "naming_hints": {
+        "preferred_prefix_by_port": {
+          "vapor_outlet": "V",
+          "liquid_outlet": "L"
+        }
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "expected_response_shape": {
+    "status": "ok",
+    "requires_summary": true,
+    "requires_answers": true,
+    "requires_issues": false,
+    "requires_citations": true,
+    "allow_proposed_actions": true,
+    "required_action_kinds": [
+      "ghost_completion"
+    ]
+  },
+  "evaluation": {
+    "expected_risk_level": "low",
+    "must_have_json_paths": [
+      "$.summary",
+      "$.proposed_actions[0].kind=\"ghost_completion\"",
+      "$.proposed_actions[0].target.unit_id=\"flash-2\"",
+      "$.proposed_actions[0].target.port_key=\"vapor_outlet\"",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-2-vapor-stub\"",
+      "$.proposed_actions[0].patch.ghost_stream_name=\"V-102\"",
+      "$.proposed_actions[0].preview.accept_key=\"Tab\"",
+      "$.risk_level=\"low\"",
+      "$.requires_confirmation=false"
+    ],
+    "must_not_have_json_paths": [
+      "$.issues[0]",
+      "$.proposed_actions[0].patch.candidate_ref=\"cand-flash-2-liquid-stub\""
+    ],
+    "scoring_focus": [
+      "schema_validity",
+      "field_completeness",
+      "actionability",
+      "ghost_candidate_legality",
+      "ghost_tab_accept",
+      "pending_ghost_semantics",
+      "candidate_record_alignment"
+    ],
+    "notes": "基于 latest clean formal batch `rfb-22d033e634d2` 的 flash vapor real record 派生 committed real-derived negative，验证默认高置信 ghost 被错误降级为 manual_only 时会命中 accept_key 边界违规。"
+  },
+  "golden_response": {
+    "schema_version": 1,
+    "status": "ok",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "flash-2 当前最适合作为默认 ghost 的是 vapor_outlet，建议先渲染 V-102 的气相出口占位。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "本地候选集中 vapor_outlet 被标记为默认高置信候选，且命名提示也已经收口到 V-102，因此它应排在第一位。",
+        "citation_ids": [
+          "ctx-candidate-vapor",
+          "ctx-naming-hints"
+        ]
+      }
+    ],
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-2 的 vapor_outlet ghost 连线",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-2",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "FlashDrum 的气相出口是当前领先的合法候选，先以灰态占位渲染可减少重复手工连线。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-2-vapor-stub",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "V-102"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-2-vapor-stub"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-candidate-vapor",
+          "ctx-unit"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-2",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-2 kind=FlashDrum"
+      },
+      {
+        "id": "ctx-candidate-vapor",
+        "kind": "context",
+        "label": "vapor_outlet 合法候选",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-2-vapor-stub target_port_key=vapor_outlet is_tab_default=true"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "气液出口命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "preferred_prefix_by_port.vapor_outlet=V preferred_prefix_by_port.liquid_outlet=L"
+      }
+    ],
+    "confidence": 0.95,
+    "risk_level": "low",
+    "requires_confirmation": false
+  },
+  "negative_replay_expectations": {
+    "expected_candidate_violations": [
+      "json path '$.proposed_actions[0].preview.accept_key' expected 'Tab' but found 'manual_only'"
+    ]
+  },
+  "candidate_response_record": {
+    "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ee35765bdc06/manifest.json",
+    "expected_source": "simulated_candidate_response",
+    "required_collection_batch": "2026-04-20-radishflow-ghost-simulated-negatives-v1",
+    "required_capture_origin": "manual_fixture",
+    "required_tags": [
+      "radishflow_suggest_ghost_completion",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:ghost_accept_key_policy_drift",
+      "w17_batch"
+    ],
+    "record_id": "simulated-radishflow-suggest-ghost-completion-negative-real-derived-flash-vapor-accept-key-drift-001"
+  }
+}

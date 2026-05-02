@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/image-generation-artifact.schema.json",
+  "title": "ImageGenerationArtifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "artifact_id",
+    "intent_id",
+    "backend_request_id",
+    "status",
+    "artifact",
+    "generation",
+    "safety",
+    "provenance",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "image_generation_artifact"
+    },
+    "artifact_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "backend_request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "generated",
+        "blocked",
+        "failed"
+      ]
+    },
+    "artifact": {
+      "$ref": "#/$defs/artifact"
+    },
+    "generation": {
+      "$ref": "#/$defs/generation"
+    },
+    "safety": {
+      "$ref": "#/$defs/safety"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uri",
+        "mime_type",
+        "width",
+        "height",
+        "format",
+        "sha256",
+        "title",
+        "purpose"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mime_type": {
+          "type": "string",
+          "enum": [
+            "image/png",
+            "image/jpeg",
+            "image/webp"
+          ]
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "png",
+            "jpg",
+            "webp"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "visual_reference",
+            "diagram",
+            "concept_art",
+            "product_mockup",
+            "edit_result"
+          ]
+        }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend_id",
+        "model",
+        "seed",
+        "steps",
+        "guidance_scale"
+      ],
+      "properties": {
+        "backend_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "guidance_scale": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "risk_level",
+        "requires_confirmation",
+        "review_status",
+        "review_notes"
+      ],
+      "properties": {
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "requires_confirmation": {
+          "type": "boolean"
+        },
+        "review_status": {
+          "type": "string",
+          "enum": [
+            "not_required",
+            "pending_review",
+            "reviewed_pass",
+            "blocked"
+          ]
+        },
+        "review_notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_request_id",
+        "trace_ids",
+        "backend_request_id",
+        "intent_id"
+      ],
+      "properties": {
+        "source_request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trace_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "backend_request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

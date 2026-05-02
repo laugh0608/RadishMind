@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-flash-inlet-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-flash-inlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-flash-inlet-001",
+  "request_id": "rf-suggest-ghost-flash-inlet-001",
+  "captured_at": "2026-04-23T13:43:23Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-general-basics"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v20-remaining-general-basics",
+    "notes": "v20 remaining general basics expansion."
+  },
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 41,
+    "selected_unit_ids": [
+      "flash-1"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-1-inlet-from-feed-101"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-flash-inlet-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-201",
+          "streams": [
+            {
+              "id": "feed-101",
+              "name": "F-101",
+              "source_unit_id": "feed-src-1"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-src-1",
+              "kind": "Feed",
+              "name": "Feed 101"
+            },
+            {
+              "id": "flash-1",
+              "kind": "FlashDrum",
+              "name": "V-101 Drum"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 41,
+      "selected_unit_ids": [
+        "flash-1"
+      ],
+      "selected_unit": {
+        "id": "flash-1",
+        "kind": "FlashDrum",
+        "name": "V-101 Drum"
+      },
+      "unconnected_ports": [
+        "inlet",
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "stream_stub",
+          "id": "feed-101",
+          "direction": "upstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-1-inlet-from-feed-101",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "flash-1",
+          "target_port_key": "inlet",
+          "source_stream_id": "feed-101",
+          "suggested_stream_name": "F-101",
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-flash-inlet-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-201\",\n        \"streams\": [\n          {\n            \"id\": \"feed-101\",\n            \"name\": \"F-101\",\n            \"source_unit_id\": \"feed-src-1\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-src-1\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 101\"\n          },\n          {\n            \"id\": \"flash-1\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"V-101 Drum\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 41,\n    \"selected_unit_ids\": [\n      \"flash-1\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"flash-1\",\n      \"kind\": \"FlashDrum\",\n      \"name\": \"V-101 Drum\"\n    },\n    \"unconnected_ports\": [\n      \"inlet\",\n      \"vapor_outlet\",\n      \"liquid_outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"stream_stub\",\n        \"id\": \"feed-101\",\n        \"direction\": \"upstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-flash-1-inlet-from-feed-101\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_unit_id\": \"flash-1\",\n        \"target_port_key\": \"inlet\",\n        \"source_stream_id\": \"feed-101\",\n        \"suggested_stream_name\": \"F-101\",\n        \"is_high_confidence\": true,\n        \"is_tab_default\": true\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "73f9760c-b312-4049-9acb-de885937d34d",
+    "object": "chat.completion",
+    "created": 1776951796,
+    "model": "deepseek-chat",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-flash-inlet-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"answers\": [\n    {\n      \"summary\": \"当前已给出一个高置信度的 ghost 建议：将上游流股 F-101 连接到闪蒸罐 V-101 Drum 的 inlet 端口。\",\n      \"issues\": [],\n      \"proposed_actions\": [\n        {\n          \"action\": \"ghost_completion\",\n          \"ghost_completion\": {\n            \"title\": \"连接 F-101 到 V-101 Drum 的 inlet\",\n            \"target\": {\n              \"unit_id\": \"flash-1\",\n              \"port_key\": \"inlet\"\n            },\n            \"rationale\": \"闪蒸罐 V-101 Drum 的 inlet 端口未连接，而上游存在流股 F-101，这是最直接的连接候选，且系统标记为高置信度。\",\n            \"patch\": {\n              \"connections\": [\n                {\n                  \"from\": {\n                    \"stream_id\": \"feed-101\"\n                  },\n                  \"to\": {\n                    \"unit_id\": \"flash-1\",\n                    \"port_key\": \"inlet\"\n                  }\n                }\n              ]\n            },\n            \"preview\": {\n              \"accept_key\": \"Tab\",\n              \"manual_only\": false\n            },\n            \"apply\": {\n              \"command_kind\": \"accept_ghost_completion\"\n            },\n            \"risk_level\": \"low\",\n            \"requires_confirmation\": false\n          }\n        }\n      ],\n      \"citations\": [\n        {\n          \"source\": \"flowsheet_document\",\n          \"content\": \"闪蒸罐 V-101 Drum 的 inlet 端口未连接，上游存在流股 F-101。\"\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 988,
+      "completion_tokens": 411,
+      "total_tokens": 1399,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 988
+    },
+    "system_fingerprint": "fp_058df29938_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前已给出一个高置信度的 ghost 建议：将上游流股 F-101 连接到闪蒸罐 V-101 Drum 的 inlet 端口。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-1 的 inlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-1",
+          "port_key": "inlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-1-inlet-from-feed-101",
+          "target_port_key": "inlet",
+          "ghost_stream_name": "F-101"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-1-inlet-from-feed-101"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-1",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-1 kind=FlashDrum name=V-101 Drum"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-1-inlet-from-feed-101",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-1-inlet-from-feed-101 target_port_key=inlet is_tab_default=True is_high_confidence=True"
+      }
+    ],
+    "summary": "当前已给出一个高置信度的 ghost 建议：将上游流股 F-101 连接到闪蒸罐 V-101 Drum 的 inlet 端口。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-issue-citation-ordering-warning-artifact-before-snapshot-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001",
+  "request_id": "rf-suggest-edit-issue-citation-ordering-warning-artifact-before-snapshot-001",
+  "captured_at": "2026-04-25T03:33:16Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion",
+      "baseline-stability"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v88-baseline-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 75,
+    "selected_unit_ids": [
+      "heater-6"
+    ],
+    "selected_stream_ids": [
+      "feed-16",
+      "product-16"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-issue-citation-ordering-warning-artifact-before-snapshot-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-121",
+          "streams": [
+            {
+              "id": "feed-16",
+              "name": "Cold Feed",
+              "target_unit_id": "heater-6",
+              "specs": {
+                "pressure_kpa": 202
+              }
+            },
+            {
+              "id": "product-16",
+              "name": "Heater Outlet",
+              "source_unit_id": "heater-6",
+              "specs": {
+                "temperature_c": 145
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-6",
+              "kind": "Heater",
+              "name": "Warning Heater",
+              "config": {
+                "control_mode": "outlet_temperature"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 75,
+      "selected_unit_ids": [
+        "heater-6"
+      ],
+      "selected_stream_ids": [
+        "feed-16",
+        "product-16"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 1
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Cold Feed is missing flow rate specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-16"
+        },
+        {
+          "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+          "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+          "severity": "warning",
+          "target_type": "stream",
+          "target_id": "product-16"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-08T00:35:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-issue-citation-ordering-warning-artifact-before-snapshot-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-121\",\n        \"streams\": [\n          {\n            \"id\": \"feed-16\",\n            \"name\": \"Cold Feed\",\n            \"target_unit_id\": \"heater-6\",\n            \"specs\": {\n              \"pressure_kpa\": 202\n            }\n          },\n          {\n            \"id\": \"product-16\",\n            \"name\": \"Heater Outlet\",\n            \"source_unit_id\": \"heater-6\",\n            \"specs\": {\n              \"temperature_c\": 145\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"heater-6\",\n            \"kind\": \"Heater\",\n            \"name\": \"Warning Heater\",\n            \"config\": {\n              \"control_mode\": \"outlet_temperature\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 75,\n    \"selected_unit_ids\": [\n      \"heater-6\"\n    ],\n    \"selected_stream_ids\": [\n      \"feed-16\",\n      \"product-16\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 1\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Cold Feed is missing flow rate specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-16\"\n      },\n      {\n        \"code\": \"HEATER_OUTLET_EFFECT_UNCONFIRMED\",\n        \"message\": \"Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.\",\n        \"severity\": \"warning\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"product-16\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_parameters\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-08T00:35:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "bb7c32d4-7a95-4fc8-9b18-db84f2d29f0a",
+    "object": "chat.completion",
+    "created": 1777087913,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"schema_version\":1,\"request_id\":\"rf-suggest-edit-issue-citation-ordering-warning-artifact-before-snapshot-001\",\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"status\":\"partial\",\"requires_confirmation\":true,\"answers\":[{\"id\":\"candidate-edit-feed-16-flow\",\"kind\":\"candidate_edit\",\"title\":\"为 Cold Feed 添加流量规格占位符\",\"summary\":\"根据缺失流量规格的错误，在 Cold Feed 流上添加一个流量参数占位符，供用户填写流量值。\",\"issues\":[{\"code\":\"STREAM_SPEC_MISSING\",\"message\":\"Cold Feed is missing flow rate specification.\",\"target\":\"feed-16\",\"severity\":\"error\",\"citations\":[\"diag-1\"]}],\"proposed_actions\":[{\"title\":\"添加 Cold Feed 流量占位符\",\"target\":\"feed-16\",\"rationale\":\"解决 STREAM_SPEC_MISSING 错误，使求解器能够计算质量平衡。\",\"patch\":{\"spec_placeholders\":{\"flow_rate\":{\"description\":\"需指定质量流量 (mass_flow_kg_per_s) 或体积流量 (vol_flow_m3_per_s)，例如 10.0 kg/s\",\"suggested_key\":\"mass_flow_kg_per_s\",\"example_value\":10.0}}},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-1\",\"flowdoc-stream-feed-16\",\"snapshot-1\"]}]},{\"id\":\"candidate-edit-product-16-confirm\",\"kind\":\"candidate_edit\",\"title\":\"确认 Heater Outlet 温度设计值\",\"summary\":\"由于入口条件缺失，加热器出口温度145°C的设定值尚未得到验证，建议添加确认占位符。\",\"issues\":[{\"code\":\"HEATER_OUTLET_EFFECT_UNCONFIRMED\",\"message\":\"Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.\",\"target\":\"product-16\",\"severity\":\"warning\",\"citations\":[\"diag-2\"]}],\"proposed_actions\":[{\"title\":\"标记产品流出口温度为待确认\",\"target\":\"product-16\",\"rationale\":\"确保用户审核出口温度设计值，避免盲目依赖未验证的参数。\",\"patch\":{\"parameter_placeholders\":[{\"key\":\"temperature_c_confirmation\",\"description\":\"出口温度145°C需要根据校正后的入口条件重新确认\",\"current_value\":145}]},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-2\",\"flowdoc-stream-product-16\",\"snapshot-1\"]}]}],\"summary\":\"针对选中的加热器及其进出料流，建议为 Cold Feed 补充流量规格占位符，并为 Heater Outlet 温度添加确认标记，以解决诊断中的错误和警告。\",\"confidence\":0.85}",
+          "reasoning_content": "我们被要求生成一个JSON对象，结构要符合CopilotResponse。我们需要根据输入的请求来构建响应。请求中包含了 flowsheet document、诊断、快照等。我们需要提出候选编辑（candidate_edit）来解决诊断问题。\n\n分析诊断：\n- 错误：STREAM_SPEC_MISSING 针对 feed-16（Cold Feed）缺少流量规格。\n- 警告：HEATER_OUTLET_EFFECT_UNCONFIRMED 针对 product-16（Heater Outlet）温度模式可能受缺失入口条件影响，局部出口效应未确认。\n\n快照显示求解器状态 invalid_parameters，残差 null。\n\n选中的单元是 heater-6，流是 feed-16 和 product-16。\n\n我们需要针对缺失的规格提出补全。对于 feed-16，缺少流量规格（例如 mass flow 或 volumetric flow）。我们可以提议添加一个流量参数占位符。通常对于流，需要提供流量，如 mass_flow_kg_per_s 或 molar_flow。我们可以建议在 stream 的 specs 中添加一个参数占位符，如 `spec_placeholders`。\n\n根据输出要求，patch 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates` 等局部结构。对于 stream spec missing，我们可以添加一个 `spec_placeholders`，表示需要用户确认该值。对于 product-16 警告，可能是由于缺少 inlet 条件，但 inlet 就是 feed-16，一旦 feed-16 流量补全，警告可能缓解。但警告本身可能还需要确认 product-16 的 outlet temperature 参数是否合理？不过诊断只是说“未确认”，所以我们可以建议在 product-16 的规格中添加一个确认标志或参数占位符？但更可能的候选编辑是确认 outlet temperature 值是否为设计值，或者建议添加一个确认注释。patch 结构可能是在 product-16 的 specs 中添加一个 `confirmation_needed` 之类的字段？但根据输出要求，patch 应使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder`。或许可以为 product-16 添加 `parameter_placeholders` 以表示 outlet temperature 需要确认？不过 outlet temperature 已有值 145°C。未确认可能是因为缺少 inlet 流量导致无法验证。所以如果在 feed-16 添加流量后，警告可能消失。但根据要求，我们要提出候选编辑以解决诊断。对于错误，我们直接提出补全流量。对于警告，我们可以建议添加一个占位符指示该 outlet temperature 是临时的，或者需要根据 inlet 条件进一步调整。但鉴于架构，可能只需关注错误，警告作为伴随信息。我们在 issues 中列出这两个诊断，但提出的动作可能只针对错误，因为警告是派生问题。不过我们可以针对每个诊断都提出候选编辑。对于警告，我们可以建议在 product-16 上添加一个 `parameter_placeholder` 表示 outlet temperature 的确认状态，或者更新参数名称？或许用 `parameter_updates` 将温度参数标记为待确认。我们可以利用 `parameter_updates` 键名，值为一个确认标志。或者 `spec_placeholders` 在 stream 层面。根据文档结构，stream 的 specs 中已经有了 temperature_c: 145，我们无法直接修改该值，但可以添加一个“占位符”表示需要用户确认该值是否合理。或者利用 `parameter_placeholders` 在 unit 或 stream 上。但目标应该是 product-16。我们可以用 `parameter_placeholders` 来添加一个说明，比如需要确认出口温度是否在预期范围内。\n\n不过我们需要检查输出示例，但没有给出。只能根据要求推理。要确保 `citations` 引用优先顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后。所以对于 feed-16 的动作，citations 应该是 [\"diag-1\", \"flowdoc-stream-feed-16\", \"snapshot-1\"]？诊断是按输入顺序编号的，第1个诊断代码 STREAM_SPEC_MISSING 为 diag-1，第2个警告为 diag-2。目标对象 artifact 可以用 \"flowdoc-stream-feed-16\" 和 \"flowdoc-unit-heater-6\" 等。snapshot 使用 \"snapshot-1\"。\n\n我们为 feed-16 创建 candidate_edit：\ntitle: \"为 Cold Feed 添加流量规格占位符\"\ntarget: \"feed-16\" (stream)\nrationale: \"解决 STREAM_SPEC_MISSING 错误，确保物料流具备必要的流量参数以便求解器收敛。\"\npatch: { \"spec_placeholders\": { \"flow_rate\": { \"description\": \"需指定质量流量或体积流量\", \"suggested_key\": \"mass_flow_kg_per_s\", \"example_value\": 10.0 } } }\nrisk_level: \"medium\" (低风险，只是添加占位符，不会改变计算)\nrequires_confirmation: true\ncitations: [\"diag-1\", \"flowdoc-stream-feed-16\", \"snapshot-1\"]\n\n对于 product-16 警告，我们可以建议：添加一个参数确认标记，确保 outlet temperature 设计值已审核。或者建议使用 parameter_updates 将 temperature_c 标记为需确认。patch: { \"parameter_updates\": { \"temperature_c\": { \"action\": \"confirm_design\", \"note\": \"出口温度145°C需根据入口流量确认合理性\" } } } 这个可能不被支持。更安全是使用 parameter_placeholders 或 spec_placeholders。由于 stream 已经有 temperature_c，我们可以添加一个 spec_placeholder 表示出口温度确认状态？但 spec_placeholders 一般是用来添加缺失的 key。或许我们只用 parameter_placeholders，它是一个数组，可以添加需要确认的参数。在 stream specs 中添加一个 \"parameter_placeholders\": [{ \"key\": \"temperature_c_confirmation\", \"description\": \"出口温度145°C作为设计值待确认\" }]。但这样会增加一个新key，不太对。可能更好的做法是直接针对单元 heater-6 的配置，因为出口温度是 heater 的控制模式，可能需要对 heater-6 添加 parameter_placeholder 以确认 outlet temperature 设定点。警告信息是“outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.” 所以核心是出口温度设定可能未经验证。我们可以给 heater-6 的 config 中 outlet_temperature 添加一个确认占位符。但 heater-6 的 config 中只有 control_mode: \"outlet_temperature\"，并没有具体温度值。温度是在 product-16 stream 上的。所以警告是关于 stream product-16 的温度值可能未确认。那么还是回到 stream。我们可以提出 candidate_edit，target product-16，rationale 说明需要确认出口温度设定值，并添加一个 parameter_placeholder 表明需要用户审核该值。risk_level 低，requires_confirmation true。citations: [\"diag-2\", \"flowdoc-stream-product-16\", \"snapshot-1\"]\n\n但是否需要为每个诊断都提出动作？要求 proposed_actions 至少1条，所以我们可以提供两条。也可以只提供对 feed-16 的动作，因为警告可能随之解决，但要求说“只要存在 candidate_edit，整体 requires_confirmation 为 true”，我们肯定至少有一条。为了更全面，提供两条。\n\n现在构建 CopilotResponse：\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-issue-citation-ordering-warning-artifact-before-snapshot-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\", // 因为有警告，证据不足，只是partial\n  \"requires_confirmation\": true,\n  \"answers\": [\n    {\n      \"id\": \"candidate-edit-feed-16-flow\",\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为 Cold Feed 添加流量规格占位符\",\n      \"summary\": \"根据缺失流量规格的错误，在 Cold Feed 流上添加一个流量参数占位符，供用户填写流量值。\",\n      \"issues\": [\n        {\n          \"code\": \"STREAM_SPEC_MISSING\",\n          \"message\": \"Cold Feed is missing flow rate specification.\",\n          \"target\": \"feed-16\",\n          \"severity\": \"error\",\n          \"citations\": [\"diag-1\"]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"title\": \"添加 Cold Feed 流量占位符\",\n          \"target\": \"feed-16\",\n          \"rationale\": \"解决 STREAM_SPEC_MISSING 错误，使求解器能够计算质量平衡。\",\n          \"patch\": {\n            \"spec_placeholders\": {\n              \"flow_rate\": {\n                \"description\": \"需指定质量流量 (mass_flow_kg_per_s) 或体积流量 (vol_flow_m3_per_s)，例如 10.0 kg/s\",\n                \"suggested_key\": \"mass_flow_kg_per_s\",\n                \"example_value\": 10.0\n              }\n            }\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\"diag-1\", \"flowdoc-stream-feed-16\", \"snapshot-1\"]\n        }\n      ]\n    },\n    {\n      \"id\": \"candidate-edit-product-16-confirm\",\n      \"kind\": \"candidate_edit\",\n      \"title\": \"确认 Heater Outlet 温度设计值\",\n      \"summary\": \"由于入口条件缺失，加热器出口温度145°C的设定值尚未得到验证，建议添加确认占位符。\",\n      \"issues\": [\n        {\n          \"code\": \"HEATER_OUTLET_EFFECT_UNCONFIRMED\",\n          \"message\": \"Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.\",\n          \"target\": \"product-16\",\n          \"severity\": \"warning\",\n          \"citations\": [\"diag-2\"]\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"title\": \"标记产品流出口温度为待确认\",\n          \"target\": \"product-16\",\n          \"rationale\": \"确保用户审核出口温度设计值，避免盲目依赖未验证的参数。\",\n          \"patch\": {\n            \"parameter_placeholders\": [\n              {\n                \"key\": \"temperature_c_confirmation\",\n                \"description\": \"出口温度145°C需要根据校正后的入口条件重新确认\",\n                \"current_value\": 145\n              }\n            ]\n          },\n          \"risk_level\": \"medium\",\n          \"requires_confirmation\": true,\n          \"citations\": [\"diag-2\", \"flowdoc-stream-product-16\", \"snapshot-1\"]\n        }\n      ]\n    }\n  ],\n  \"summary\": \"针对选中的加热器及其进出料流，建议为 Cold Feed 补充流量规格占位符，并为 Heater Outlet 温度添加确认标记，以解决诊断中的错误和警告。\",\n  \"confidence\": 0.85\n}\n\n注意：confidence 值 0.85，因为警告不是致命错误，但我们有较高的信心这些编辑能解决问题。\n\n确保 citations 中包括目标 artifact 引用，格式为 \"flowdoc-stream-feed-16\" 和 \"flowdoc-stream-product-16\"。\n\n最后，不要输出 markdown 代码块，直接输出 JSON 对象。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1287,
+      "completion_tokens": 3071,
+      "total_tokens": 4358,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2463
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 775
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "candidate_edit",
+        "text": "根据缺失流量规格的错误，在 Cold Feed 流上添加一个流量参数占位符，供用户填写流量值。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "text": "由于入口条件缺失，加热器出口温度145°C的设定值尚未得到验证，建议添加确认占位符。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "summary": "针对选中的加热器及其进出料流，建议为 Cold Feed 补充流量规格占位符，并为 Heater Outlet 温度添加确认标记，以解决诊断中的错误和警告。",
+    "confidence": 0.85,
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "feed-16"
+        },
+        "title": "为 feed-16 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Cold Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cold Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-16",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-16 Cold Feed target_unit_id=heater-6"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-16",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-16 Heater Outlet source_unit_id=heater-6"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "risk_level": "medium"
+  }
+}

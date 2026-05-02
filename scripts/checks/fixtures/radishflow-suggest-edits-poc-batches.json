@@ -353,6 +353,88 @@
     "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/records",
     "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/manifest.json",
     "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/audit.json",
-    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json"
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/artifacts.json",
+    "cross_sample_replay_index": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-sample-replay-index.json",
+    "recommended_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/recommended-negative-replay.summary.json",
+    "recommended_top": "2",
+    "cross_sample_recommended_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-f91659bd901e/cross-recommended.summary.json",
+    "cross_sample_recommended_top": "2"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-2895d901d70e/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-7f8d3bdc4594/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-7f8d3bdc4594/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-7f8d3bdc4594/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-7f8d3bdc4594/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c526802bcb11/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-292eaf5dbf2f/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-292eaf5dbf2f/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-292eaf5dbf2f/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-292eaf5dbf2f/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4254cb3f8e81/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4254cb3f8e81/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4254cb3f8e81/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4254cb3f8e81/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-42723ef1b533/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-c5b74d9fd718/artifacts.json"
+  },
+  {
+    "task": "radishflow-suggest-edits",
+    "record_dir": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/r",
+    "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/manifest.json",
+    "audit_report": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/audit.json",
+    "artifact_summary": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-05bdfac0a45d/artifacts.json"
   }
 ]

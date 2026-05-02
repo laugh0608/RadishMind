@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+  "captured_at": "2026-04-26T03:16:42Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "high-value-residual-cooldown-tail-backfill",
+      "v24"
+    ],
+    "collection_batch": "2026-04-26-radishflow-ghost-poc-real-v24-high-value-residual-cooldown-tail-backfill"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 71,
+    "selected_unit_ids": [
+      "cooler-16"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-16-outlet-flash-40"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-264",
+          "streams": [
+            {
+              "id": "feed-710",
+              "name": "F-710",
+              "target_unit_id": "cooler-16"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-710-unit",
+              "kind": "Feed",
+              "name": "Feed 710"
+            },
+            {
+              "id": "cooler-16",
+              "kind": "Cooler",
+              "name": "Feed Cooler 710"
+            },
+            {
+              "id": "flash-40",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 710"
+            },
+            {
+              "id": "flash-39",
+              "kind": "FlashDrum",
+              "name": "Legacy Flash 710"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 71,
+      "selected_unit_ids": [
+        "cooler-16"
+      ],
+      "selected_unit": {
+        "id": "cooler-16",
+        "kind": "Cooler",
+        "name": "Feed Cooler 710"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-40.inlet",
+          "distance_px": 56,
+          "alignment_score": 0.97,
+          "direction": "downstream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-39.inlet",
+          "distance_px": 80,
+          "alignment_score": 0.83,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-cooler-16-outlet-flash-40",
+          "ghost_kind": "ghost_connection",
+          "target_port_key": "outlet",
+          "target_unit_id": "cooler-16",
+          "target_node_id": "flash-40.inlet",
+          "suggested_stream_name": "C-710",
+          "ranking_signals": {
+            "distance_px": 56,
+            "alignment_score": 0.97,
+            "topology_score": 0.95,
+            "score_gap_to_next": 0.37,
+            "template_frequency": 0.86
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "C",
+            "numeric_suffix": "710",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-710-to-cooler-16-inlet",
+            "accepted_at_revision": 67
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-cooler-16-outlet-flash-40",
+            "skipped_at_revision": 69
+          },
+          {
+            "kind": "reject_ghost_completion",
+            "candidate_ref": "cand-cooler-16-outlet-flash-39",
+            "rejected_at_revision": 70
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-710"
+        ],
+        "existing_stream_names": [
+          "F-710"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "710"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "recent_skip_cooldown_elapsed_other_reject_does_not_spill"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-264\",\n        \"streams\": [\n          {\n            \"id\": \"feed-710\",\n            \"name\": \"F-710\",\n            \"target_unit_id\": \"cooler-16\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-710-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 710\"\n          },\n          {\n            \"id\": \"cooler-16\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Feed Cooler 710\"\n          },\n          {\n            \"id\": \"flash-40\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 710\"\n          },\n          {\n            \"id\": \"flash-39\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Legacy Flash 710\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 71,\n    \"selected_unit_ids\": [\n      \"cooler-16\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-16\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Feed Cooler 710\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-40.inlet\",\n        \"distance_px\": 56,\n        \"alignment_score\": 0.97,\n        \"direction\": \"downstream\"\n      },\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-39.inlet\",\n        \"distance_px\": 80,\n        \"alignment_score\": 0.83,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_port_key\": \"outlet\",\n        \"target_unit_id\": \"cooler-16\",\n        \"target_node_id\": \"flash-40.inlet\",\n        \"suggested_stream_name\": \"C-710\",\n        \"ranking_signals\": {\n          \"distance_px\": 56,\n          \"alignment_score\": 0.97,\n          \"topology_score\": 0.95,\n          \"score_gap_to_next\": 0.37,\n          \"template_frequency\": 0.86\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"C\",\n          \"numeric_suffix\": \"710\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"is_high_confidence\": true,\n        \"is_tab_default\": true\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-710-to-cooler-16-inlet\",\n          \"accepted_at_revision\": 67\n        },\n        {\n          \"kind\": \"skip_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n          \"skipped_at_revision\": 69\n        },\n        {\n          \"kind\": \"reject_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-16-outlet-flash-39\",\n          \"rejected_at_revision\": 70\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-710\"\n      ],\n      \"existing_stream_names\": [\n        \"F-710\"\n      ],\n      \"preferred_outlet_prefix\": \"C\",\n      \"numeric_suffix_from_unit\": \"710\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_cooler_flash_chain\",\n      \"cooler_outlet_to_flash_inlet_after_feed_connection\",\n      \"recent_skip_cooldown_elapsed_other_reject_does_not_spill\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "dcfc0693-7e8d-4cfe-aa0a-962e9b4cb0ef",
+    "object": "chat.completion",
+    "created": 1777173332,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"summary\": \"冷却器的出口浮影连接建议：在跳过冷却期已过后重新建议将冷却器出口连接到 Flash Drum 40 入口。基于上下游匹配、对齐分数高、拓扑模式符合常规流程，且无其他合法候选，给出 Tab 默认 ghost 建议。\",\n  \"status\": \"ready\",\n  \"requires_confirmation\": false,\n  \"issues\": [],\n  \"citations\": [\n    {\n      \"source\": \"flowsheet_document\",\n      \"reference\": \"cooler-16 selected, unconnected outlet, nearby flash-40.inlet with alignment 0.97, distance 56px, legal candidate cand-cooler-16-outlet-flash-40, naming hints derived from upstream stream F-710 with prefix C.\"\n    }\n  ],\n  \"answers\": [\n    {\n      \"type\": \"ghost_suggestion\",\n      \"is_primary\": true,\n      \"label\": \"建议连接冷却器出口至闪蒸罐 40 入口\",\n      \"content\": {\n        \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"title\": \"连接冷却器出口至 Flash Drum 40 入口\",\n        \"target\": {\n          \"source_unit_id\": \"cooler-16\",\n          \"source_port_key\": \"outlet\",\n          \"target_unit_id\": \"flash-40\",\n          \"target_port_key\": \"inlet\"\n        },\n        \"rationale\": \"冷却器出口下游最近且对齐良好的单元为 Flash Drum 40（距离 56px，对齐 0.97），符合常规流程链 Feed→Cooler→Flash。先前的跳过已超过冷却期，且另一个 Flash Drum 39 已被拒绝，此候选为唯一合法且高置信选择。\",\n        \"patch\": {\n          \"stream_name\": \"C-710\",\n          \"command_kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n          \"params\": {\n            \"source_unit_id\": \"cooler-16\",\n            \"source_port_key\": \"outlet\",\n            \"target_unit_id\": \"flash-40\",\n            \"target_port_key\": \"inlet\",\n            \"stream_name\": \"C-710\"\n          }\n        },\n        \"preview\": {\n          \"accept_key\": \"Tab\",\n          \"label\": \"按 Tab 接受连接 C-710\"\n        },\n        \"apply\": {\n          \"command_kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\"\n        },\n        \"risk_level\": \"low\",\n        \"requires_confirmation\": false\n      }\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"kind\": \"ghost_completion\",\n      \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n      \"title\": \"连接冷却器出口至 Flash Drum 40 入口\",\n      \"target\": {\n        \"unit_id\": \"cooler-16\",\n        \"port\": \"outlet\",\n        \"connect_to\": \"flash-40.inlet\"\n      },\n      \"rationale\": \"最近下游、高对齐、已冷却且无替代，标准链。\",\n      \"patch\": {\n        \"stream_name\": \"C-710\",\n        \"command_kind\": \"accept_ghost_completion\",\n        \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n        \"params\": {\n          \"source_unit_id\": \"cooler-16\",\n          \"source_port_key\": \"outlet\",\n          \"target_unit_id\": \"flash-40\",\n          \"target_port_key\": \"inlet\",\n          \"stream_name\": \"C-710\"\n        }\n      },\n      \"preview\": {\n        \"accept_key\": \"Tab\",\n        \"label\": \"按 Tab 接受连接 C-710\"\n      },\n      \"apply\": {\n        \"command_kind\": \"accept_ghost_completion\",\n        \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\"\n      },\n      \"risk_level\": \"low\",\n      \"requires_confirmation\": false\n    }\n  ]\n}",
+          "reasoning_content": "我们被要求对给定的 CopilotRequest 生成 CopilotResponse。请求是 radishflow 的 suggest_ghost_completion。上下文里有 legal_candidate_completions 列表，只有一个候选：cand-cooler-16-outlet-flash-40。然而，最近的 cursor_context 显示 cand-cooler-16-outlet-flash-40 在 revision 69 被 skip 了。我们需要决定是否应该建议这个被跳过的候选。\n\n任务：基于上下文，cooler-16 的 outlet 未连接，nearby_nodes 给出了两个下游端口，但 legal_candidate_completions 里只有一个，即 flash-40.inlet。另一个 flash-39.inlet 在 nearby_nodes 中但没有在 legal 中（可能被拒绝或排除）。从 cursor_context 里看到 cand-cooler-16-outlet-flash-40 在 revision 69 跳过，cand-cooler-16-outlet-flash-39 在 revision 70 拒绝。所以 legal 里只剩 flash-40 的候选。但跳过意味着之前用户选择了跳过它。RadishMind 的 ghost completion 引擎可能有一个 cooldown 期，现在 revision 71，可能已超过冷却？topology_pattern_hints 里有 \"recent_skip_cooldown_elapsed_other_reject_does_not_spill\"，这暗示冷却已经过了，其他 reject 不溢出的意思？所以可以再次建议 flash-40。而且 ranking_signals 显示它是高置信度且 tab default。所以我们应该建议 ghost completion 为 cand-cooler-16-outlet-flash-40。\n\n输出 CopilotResponse JSON。按照要求，answers 至少 1 条。summary 说明给出 ghost 建议，可能解释 skip 冷却已过。issues 是否需要？没有明显问题。proposed_actions 里 ghost_completion 一项。\n\nghost_completion 字段：title, target, rationale, patch, preview, apply, risk_level, requires_confirmation (false)。target 大概是 \"cooler-16.outlet → flash-40.inlet\"。patch 应该是指向刷新或应用 ghost 的指令。按照之前的例子？我们需要构造。根据命名，suggested_stream_name \"C-710\"。rationale 基于得分和链。preview 使用 tab 键？因为 is_tab_default 为 true，且距离近，高置信。所以 preview.accept_key = \"Tab\"。apply.command_kind = \"accept_ghost_completion\" with candidate_ref。同时，整个 response 的 requires_confirmation 必须 false。risk_level 可能 low。citation 可以用上下文中的 artifact。\n\n所以构造如下：\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-and-other-reject-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"summary\": \"冷却器的出口浮影连接建议：在跳过冷却期后重新建议将冷却器出口连接到 Flash Drum 710 入口。基于上下游匹配、对齐分数高、拓扑模式符合常规流程，且无其他合法候选，给出 Tab 默认 ghost 建议。\",\n  \"status\": \"ready\",\n  \"requires_confirmation\": false,\n  \"issues\": [],\n  \"citations\": [\n    {\n      \"source\": \"flowsheet_document\",\n      \"reference\": \"cooler-16 selected, unconnected outlet, nearby flash-40.inlet with alignment 0.97, distance 56px, legal candidate cand-cooler-16-outlet-flash-40, naming hints derived from upstream stream F-710 with prefix C.\"\n    }\n  ],\n  \"answers\": [\n    {\n      \"type\": \"ghost_suggestion\",\n      \"is_primary\": true,\n      \"label\": \"建议连接冷却器出口至闪蒸罐 40 入口\",\n      \"content\": {\n        \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"title\": \"连接冷却器出口至 Flash Drum 40 入口\",\n        \"target\": {\n          \"source_unit_id\": \"cooler-16\",\n          \"source_port_key\": \"outlet\",\n          \"target_unit_id\": \"flash-40\",\n          \"target_port_key\": \"inlet\"\n        },\n        \"rationale\": \"冷却器出口下游最近且对齐良好的单元为 Flash Drum 40（距离 56px，对齐 0.97），符合常规流程链 Feed→Cooler→Flash。先前的跳过已超过冷却期，且另一个 Flash Drum 39 已被拒绝，此候选为唯一合法且高置信选择。\",\n        \"patch\": {\n          \"stream_name\": \"C-710\",\n          \"command_kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n          \"params\": {\n            \"source_unit_id\": \"cooler-16\",\n            \"source_port_key\": \"outlet\",\n            \"target_unit_id\": \"flash-40\",\n            \"target_port_key\": \"inlet\",\n            \"stream_name\": \"C-710\"\n          }\n        },\n        \"preview\": {\n          \"accept_key\": \"Tab\",\n          \"label\": \"按 Tab 接受连接 C-710\"\n        },\n        \"apply\": {\n          \"command_kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\"\n        },\n        \"risk_level\": \"low\",\n        \"requires_confirmation\": false\n      }\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"kind\": \"ghost_completion\",\n      \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n      \"title\": \"连接冷却器出口至 Flash Drum 40 入口\",\n      \"target\": {\n        \"unit_id\": \"cooler-16\",\n        \"port\": \"outlet\",\n        \"connect_to\": \"flash-40.inlet\"\n      },\n      \"rationale\": \"最近下游、高对齐、已冷却且无替代，标准链。\",\n      \"patch\": {\n        \"stream_name\": \"C-710\",\n        \"command_kind\": \"accept_ghost_completion\",\n        \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\",\n        \"params\": {\n          \"source_unit_id\": \"cooler-16\",\n          \"source_port_key\": \"outlet\",\n          \"target_unit_id\": \"flash-40\",\n          \"target_port_key\": \"inlet\",\n          \"stream_name\": \"C-710\"\n        }\n      },\n      \"preview\": {\n        \"accept_key\": \"Tab\",\n        \"label\": \"按 Tab 接受连接 C-710\"\n      },\n      \"apply\": {\n        \"command_kind\": \"accept_ghost_completion\",\n        \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\"\n      },\n      \"risk_level\": \"low\",\n      \"requires_confirmation\": false\n    }\n  ]\n}\n\n注意：需求要求 `proposed_actions` 中的动作只能是 `ghost_completion`，所以没问题。同时，`ghost_completion.requires_confirmation` 必须为 false，我们已经设置。整体 `requires_confirmation` 也为 false。`preview.accept_key` 为 \"Tab\" 因为这是默认高置信候选。citations 就引用 flowsheet_document 和上下文。\n\n确保 answers 至少一条，提议动作最多3条，这里只有一条。没问题。\n\n输出只有JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1530,
+      "completion_tokens": 2620,
+      "total_tokens": 4150,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1642
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 1274
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "冷却器的出口浮影连接建议：在跳过冷却期已过后重新建议将冷却器出口连接到 Flash Drum 40 入口。基于上下游匹配、对齐分数高、拓扑模式符合常规流程，且无其他合法候选，给出 Tab 默认 ghost 建议。",
+    "status": "ok",
+    "requires_confirmation": false,
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-16",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-16 kind=Cooler name=Feed Cooler 710"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-16-outlet-flash-40",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-16-outlet-flash-40 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-710\"], \"existing_stream_names\": [\"F-710\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"710\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "{\"kind\": \"reject_ghost_completion\", \"candidate_ref\": \"cand-cooler-16-outlet-flash-39\", \"rejected_at_revision\": 70}"
+      }
+    ],
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "{\"candidate_ref\": \"cand-cooler-16-outlet-flash-40\", \"ghost_kind\": \"ghost_connection\", \"title\": \"连接冷却器出口至 Flash Drum 40 入口\", \"target\": {\"source_unit_id\": \"cooler-16\", \"source_port_key\": \"outlet\", \"target_unit_id\": \"flash-40\", \"target_port_key\": \"inlet\"}, \"rationale\": \"冷却器出口下游最近且对齐良好的单元为 Flash Drum 40（距离 56px，对齐 0.97），符合常规流程链 Feed→Cooler→Flash。先前的跳过已超过冷却期，且另一个 Flash Drum 39 已被拒绝，此候选为唯一合法且高置信选择。\", \"patch\": {\"stream_name\": \"C-710\", \"command_kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\", \"params\": {\"source_unit_id\": \"cooler-16\", \"source_port_key\": \"outlet\", \"target_unit_id\": \"flash-40\", \"target_port_key\": \"inlet\", \"stream_name\": \"C-710\"}}, \"preview\": {\"accept_key\": \"Tab\", \"label\": \"按 Tab 接受连接 C-710\"}, \"apply\": {\"command_kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-cooler-16-outlet-flash-40\"}, \"risk_level\": \"low\", \"requires_confirmation\": false}",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 cooler-16 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-16",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-16-outlet-flash-40",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-710"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-16-outlet-flash-40"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "risk_level": "low",
+    "confidence": 0.93
+  }
+}

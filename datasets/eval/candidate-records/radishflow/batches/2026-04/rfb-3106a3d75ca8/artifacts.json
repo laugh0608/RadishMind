@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "pipeline": "radishflow-ghost-completion-poc-batch",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "eval_task": "radishflow-ghost-completion",
+  "provider": "openai-compatible",
+  "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v16-remaining-latest-action-precedence",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8",
+  "execution": {
+    "capture_exit_code": 0,
+    "audit_exit_code": 0
+  },
+  "artifacts": {
+    "manifest": {
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/manifest.json",
+      "exists": true,
+      "record_count": 5
+    },
+    "audit_report": {
+      "requested": true,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/audit.json",
+      "exists": true
+    },
+    "output_root": {
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8",
+      "exists": true
+    },
+    "records": {
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/r",
+      "exists": true,
+      "file_count": 5,
+      "root_file_count": 5,
+      "nested_file_count": 0
+    },
+    "responses": {
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/o",
+      "exists": true,
+      "file_count": 5
+    },
+    "dumps": {
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/d",
+      "exists": true,
+      "file_count": 5
+    },
+    "negative_replay_index": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/negative-replay-index.json",
+      "exists": false
+    },
+    "cross_sample_negative_replay_index": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/cross-sample-replay-index.json",
+      "exists": false
+    },
+    "recommended_negative_replay_summary": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/recommended-negative-replay.summary.json",
+      "exists": false
+    },
+    "cross_sample_recommended_negative_replay_summary": {
+      "requested": false,
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3106a3d75ca8/cross-recommended.summary.json",
+      "exists": false
+    }
+  },
+  "summary": {
+    "captured_record_count": 5,
+    "discovered_record_count": 5,
+    "matched_sample_count": 5,
+    "passed_sample_count": 5,
+    "failed_sample_count": 0,
+    "violation_count": 0,
+    "root_record_count": 5,
+    "nested_record_count": 0,
+    "response_file_count": 5,
+    "dump_file_count": 5,
+    "violation_group_count": 0,
+    "cross_sample_violation_group_count": 0,
+    "linked_same_sample_negative_count": 0,
+    "linked_cross_sample_negative_count": 0,
+    "recommended_replay_group_count": 0,
+    "cross_sample_recommended_replay_group_count": 0
+  },
+  "recommended_negative_replays": {
+    "default_replay_mode": "same_sample",
+    "recommended_group_ids": [],
+    "groups": []
+  },
+  "model": "deepseek-chat",
+  "capture_origin": "adapter_debug_dump"
+}

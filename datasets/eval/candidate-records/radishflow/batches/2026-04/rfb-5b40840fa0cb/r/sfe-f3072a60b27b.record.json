@@ -34,7 +34,6 @@
         "text": "当前围绕已选中的两个产物流对象生成候选提案：对 liquid-product-5 提出下游连接占位修补建议，对 vapor-product-5 提出温度规格补全占位建议。",
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1",
           "snapshot-1",
           "diag-2",
           "flowdoc-stream-2"
@@ -57,14 +56,14 @@
         "excerpt": "Vapor Product is missing temperature specification."
       },
       {
-        "id": "flowdoc-stream-1",
+        "id": "flowdoc-stream-2",
         "kind": "artifact",
         "label": "FlowsheetDocument / liquid-product-5",
         "locator": "artifact:flowsheet_document.streams[1]",
         "excerpt": "liquid-product-5 Liquid Product source_unit_id=separator-3"
       },
       {
-        "id": "flowdoc-stream-2",
+        "id": "flowdoc-stream-3",
         "kind": "artifact",
         "label": "FlowsheetDocument / vapor-product-5",
         "locator": "artifact:flowsheet_document.streams[2]",
@@ -87,7 +86,7 @@
         "requires_confirmation": true,
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1",
+          "flowdoc-stream-2",
           "snapshot-1"
         ],
         "target": {
@@ -110,7 +109,7 @@
         "requires_confirmation": true,
         "citation_ids": [
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ],
         "target": {
           "type": "stream",
@@ -131,7 +130,7 @@
         "severity": "error",
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1",
+          "flowdoc-stream-2",
           "snapshot-1"
         ]
       },
@@ -141,6 +140,7 @@
         "severity": "error",
         "citation_ids": [
           "diag-2",
+          "flowdoc-stream-3",
           "flowdoc-stream-2"
         ]
       }

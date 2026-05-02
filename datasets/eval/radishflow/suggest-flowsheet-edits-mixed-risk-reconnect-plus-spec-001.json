@@ -142,8 +142,8 @@
     "ordered_citation_ids": [
       "diag-1",
       "diag-2",
-      "flowdoc-stream-1",
       "flowdoc-stream-2",
+      "flowdoc-stream-3",
       "snapshot-1"
     ],
     "ordered_action_citation_sequences": [
@@ -151,7 +151,7 @@
         "action_index": 0,
         "values": [
           "diag-1",
-          "flowdoc-stream-1",
+          "flowdoc-stream-2",
           "snapshot-1"
         ]
       },
@@ -159,7 +159,7 @@
         "action_index": 1,
         "values": [
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ]
       }
     ],
@@ -195,8 +195,8 @@
           "diag-1",
           "diag-2",
           "snapshot-1",
-          "flowdoc-stream-1",
-          "flowdoc-stream-2"
+          "flowdoc-stream-2",
+          "flowdoc-stream-3"
         ]
       }
     ],
@@ -207,7 +207,7 @@
         "severity": "error",
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1"
+          "flowdoc-stream-2"
         ]
       },
       {
@@ -216,7 +216,7 @@
         "severity": "error",
         "citation_ids": [
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ]
       }
     ],
@@ -239,7 +239,7 @@
         "requires_confirmation": true,
         "citation_ids": [
           "diag-1",
-          "flowdoc-stream-1",
+          "flowdoc-stream-2",
           "snapshot-1"
         ]
       },
@@ -261,7 +261,7 @@
         "requires_confirmation": true,
         "citation_ids": [
           "diag-2",
-          "flowdoc-stream-2"
+          "flowdoc-stream-3"
         ]
       }
     ],
@@ -281,14 +281,14 @@
         "excerpt": "Vapor Product is missing temperature specification."
       },
       {
-        "id": "flowdoc-stream-1",
+        "id": "flowdoc-stream-2",
         "kind": "artifact",
         "label": "FlowsheetDocument / liquid-product-5",
         "locator": "artifact:flowsheet_document.streams[1]",
         "excerpt": "liquid-product-5 当前只有 source_unit_id，没有下游连接信息。"
       },
       {
-        "id": "flowdoc-stream-2",
+        "id": "flowdoc-stream-3",
         "kind": "artifact",
         "label": "FlowsheetDocument / vapor-product-5",
         "locator": "artifact:flowsheet_document.streams[2]",

@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001",
+  "captured_at": "2026-04-21T12:57:57Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v11-alternate-and-latest-action",
+    "notes": "v11 chain expansion focusing on alternate-candidate switch, latest same-candidate action priority, and cooler mixed-history empty boundary."
+  },
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 74,
+    "selected_unit_ids": [
+      "cooler-17"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-256",
+          "streams": [
+            {
+              "id": "feed-711",
+              "name": "F-711",
+              "target_unit_id": "cooler-17"
+            },
+            {
+              "id": "existing-c-711",
+              "name": "C-711",
+              "source_unit_id": "cooler-legacy",
+              "target_unit_id": "flash-41"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-711-unit",
+              "kind": "Feed",
+              "name": "Feed 711"
+            },
+            {
+              "id": "cooler-17",
+              "kind": "Cooler",
+              "name": "Feed Cooler 711"
+            },
+            {
+              "id": "flash-41",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 711A"
+            },
+            {
+              "id": "flash-42",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 711B"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 74,
+      "selected_unit_ids": [
+        "cooler-17"
+      ],
+      "selected_unit": {
+        "id": "cooler-17",
+        "kind": "Cooler",
+        "name": "Feed Cooler 711"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "legal_candidate_completions": [],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-41.inlet",
+          "distance_px": 67,
+          "alignment_score": 0.91,
+          "direction": "downstream",
+          "blocked_reason": "occupied_by_existing_stream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-42.inlet",
+          "distance_px": 79,
+          "alignment_score": 0.84,
+          "direction": "downstream",
+          "blocked_reason": "manual_skip_left_no_remaining_legal_route"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-711-to-cooler-17-inlet",
+            "accepted_at_revision": 71
+          },
+          {
+            "kind": "reject_ghost_completion",
+            "candidate_ref": "cand-cooler-17-outlet-flash-41",
+            "rejected_at_revision": 72
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-cooler-17-outlet-flash-42",
+            "skipped_at_revision": 73
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-711"
+        ],
+        "existing_stream_names": [
+          "F-711",
+          "C-711"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "711"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "stop_when_no_legal_cooler_outlet_candidates_after_mixed_history"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gpt-5.4",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-256\",\n        \"streams\": [\n          {\n            \"id\": \"feed-711\",\n            \"name\": \"F-711\",\n            \"target_unit_id\": \"cooler-17\"\n          },\n          {\n            \"id\": \"existing-c-711\",\n            \"name\": \"C-711\",\n            \"source_unit_id\": \"cooler-legacy\",\n            \"target_unit_id\": \"flash-41\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-711-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 711\"\n          },\n          {\n            \"id\": \"cooler-17\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Feed Cooler 711\"\n          },\n          {\n            \"id\": \"flash-41\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 711A\"\n          },\n          {\n            \"id\": \"flash-42\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 711B\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 74,\n    \"selected_unit_ids\": [\n      \"cooler-17\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-17\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Feed Cooler 711\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"legal_candidate_completions\": [],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-41.inlet\",\n        \"distance_px\": 67,\n        \"alignment_score\": 0.91,\n        \"direction\": \"downstream\",\n        \"blocked_reason\": \"occupied_by_existing_stream\"\n      },\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-42.inlet\",\n        \"distance_px\": 79,\n        \"alignment_score\": 0.84,\n        \"direction\": \"downstream\",\n        \"blocked_reason\": \"manual_skip_left_no_remaining_legal_route\"\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-711-to-cooler-17-inlet\",\n          \"accepted_at_revision\": 71\n        },\n        {\n          \"kind\": \"reject_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-17-outlet-flash-41\",\n          \"rejected_at_revision\": 72\n        },\n        {\n          \"kind\": \"skip_ghost_completion\",\n          \"candidate_ref\": \"cand-cooler-17-outlet-flash-42\",\n          \"skipped_at_revision\": 73\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-711\"\n      ],\n      \"existing_stream_names\": [\n        \"F-711\",\n        \"C-711\"\n      ],\n      \"preferred_outlet_prefix\": \"C\",\n      \"numeric_suffix_from_unit\": \"711\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_cooler_flash_chain\",\n      \"cooler_outlet_to_flash_inlet_after_feed_connection\",\n      \"stop_when_no_legal_cooler_outlet_candidates_after_mixed_history\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_cx",
+    "provider_profile_env": "APIYI_CX",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-07971ebb-31c1-4bdd-8fb9-dc9f9d22d745",
+    "object": "chat.completion",
+    "created": 1776776271,
+    "model": "gpt-5.4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"schema_version\":1,\"request_id\":\"rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-after-mixed-history-001\",\"project\":\"radishflow\",\"task\":\"suggest_ghost_completion\",\"summary\":\"当前不给出 ghost 建议，因为上下文未提供任何合法候选可用于 cooler 出口连接。\",\"answers\":[{\"status\":\"partial\",\"summary\":\"无合法 ghost completion 候选，返回空建议。\",\"issues\":[{\"code\":\"no_legal_candidates\",\"message\":\"context.legal_candidate_completions 为空，且附近节点均无剩余合法路由。\",\"citations\":[{\"source\":\"context.legal_candidate_completions\"},{\"source\":\"context.nearby_nodes\"},{\"source\":\"context.topology_pattern_hints\"},{\"source\":\"context.cursor_context.recent_actions\"}]}],\"proposed_actions\":[],\"citations\":[{\"source\":\"context.legal_candidate_completions\"},{\"source\":\"context.selected_unit\"},{\"source\":\"context.unconnected_ports\"}],\"requires_confirmation\":false}]}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1327,
+      "completion_tokens": 213,
+      "total_tokens": 1540
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "当前不给出 ghost 建议，因为上下文未提供任何合法候选可用于 cooler 出口连接。",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "当前不给出 ghost 建议，因为上下文未提供任何合法候选可用于 cooler 出口连接。",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern",
+          "ctx-recent-action"
+        ]
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-17",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-17 kind=Cooler name=Feed Cooler 711"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 legal_candidate_completions",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-711\"], \"existing_stream_names\": [\"F-711\", \"C-711\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"711\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-cooler-17-outlet-flash-42\", \"skipped_at_revision\": 73}"
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9
+  }
+}

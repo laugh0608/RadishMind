@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_offline_eval_candidate_run_manifest",
+  "run_id": "radishmind-core-offline-eval-candidate-dry-run-001",
+  "created_at": "2026-05-01T00:00:00Z",
+  "phase": "M4-preparation",
+  "response_source": "candidate_response_file",
+  "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-offline-eval-fixture-run-manifest.json",
+  "candidate_run": {
+    "summary_path": "provided at runtime",
+    "output_dir": "provided at runtime"
+  },
+  "candidate_model": {
+    "model_id": "radishmind-core-candidate-dry-run",
+    "role": "core_candidate",
+    "target_size": "3B",
+    "evaluation_role": "candidate wrapper dry-run output evaluated through offline eval runner",
+    "local_memory_budget_gb": 32
+  },
+  "execution_policy": {
+    "run_status": "completed",
+    "does_not_run_models": true,
+    "provider_access": "none",
+    "model_artifacts_downloaded": false,
+    "notes": [
+      "Candidate responses are read from the candidate wrapper output directory.",
+      "This offline eval pass does not rerun the model, call providers, download weights, or commit generated candidate files."
+    ]
+  },
+  "sample_selection": [
+    {
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "minimum_sample_count": 3,
+      "selection_reason": "Covers reconnect, multi-selection focus, and citation/action ordering boundaries.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-outlet-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+          "coverage_tags": [
+            "candidate_edit",
+            "citation_alignment",
+            "requires_confirmation"
+          ]
+        },
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-multi-selection-single-actionable-target-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
+          "coverage_tags": [
+            "selection_focus",
+            "advisory_boundary"
+          ]
+        },
+        {
+          "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-warning-citation-ordering-001",
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-warning-citation-ordering-001.json",
+          "coverage_tags": [
+            "citation_ordering",
+            "action_filtering"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "minimum_sample_count": 3,
+      "selection_reason": "Covers default Tab, ambiguous manual-only, and empty candidate boundaries.",
+      "selected_samples": [
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-flash-vapor-outlet-001.json",
+          "coverage_tags": [
+            "tab_default",
+            "candidate_ranking"
+          ]
+        },
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-valve-ambiguous-no-tab-001.json",
+          "coverage_tags": [
+            "manual_only",
+            "advisory_boundary"
+          ]
+        },
+        {
+          "sample_id": "radishflow-suggest-ghost-completion-context-gap-none-001",
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-context-gap-none-001.json",
+          "coverage_tags": [
+            "empty_candidates",
+            "risk_confirmation"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radish",
+      "task": "answer_docs_question",
+      "minimum_sample_count": 3,
+      "selection_reason": "Covers direct official docs answer, evidence gap, and mixed official source precedence.",
+      "selected_samples": [
+        {
+          "sample_id": "radish-answer-docs-question-direct-answer-001",
+          "path": "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
+          "coverage_tags": [
+            "official_source",
+            "direct_answer"
+          ]
+        },
+        {
+          "sample_id": "radish-answer-docs-question-evidence-gap-001",
+          "path": "datasets/eval/radish/answer-docs-question-evidence-gap-001.json",
+          "coverage_tags": [
+            "evidence_gap",
+            "risk_confirmation"
+          ]
+        },
+        {
+          "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+          "path": "datasets/eval/radish/answer-docs-question-docs-faq-forum-conflict-001.json",
+          "coverage_tags": [
+            "source_conflict",
+            "retrieval_scope"
+          ]
+        }
+      ]
+    }
+  ],
+  "expected_output": "scripts/checks/fixtures/radishmind-core-offline-eval-candidate-dry-run.json"
+}

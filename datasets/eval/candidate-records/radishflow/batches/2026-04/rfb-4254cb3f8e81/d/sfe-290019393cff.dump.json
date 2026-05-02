@@ -1,0 +1,286 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-heater-multi-action-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+  "request_id": "rf-suggest-edit-heater-multi-action-001",
+  "captured_at": "2026-04-25T03:31:52Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion",
+      "baseline-stability"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v88-baseline-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 28,
+    "selected_unit_ids": [
+      "heater-1"
+    ],
+    "selected_stream_ids": [
+      "feed-1"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-heater-multi-action-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-103",
+          "streams": [
+            {
+              "id": "feed-1",
+              "name": "Cold Feed",
+              "target_unit_id": "heater-1",
+              "specs": {
+                "temperature_c": 35,
+                "pressure_kpa": 210
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-1",
+              "kind": "Heater",
+              "name": "Feed Heater",
+              "config": {
+                "control_mode": "outlet_temperature"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 28,
+      "selected_unit_ids": [
+        "heater-1"
+      ],
+      "selected_stream_ids": [
+        "feed-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 2,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Cold Feed is missing flow rate specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-1"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "heater-1"
+        }
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-heater-multi-action-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-103\",\n        \"streams\": [\n          {\n            \"id\": \"feed-1\",\n            \"name\": \"Cold Feed\",\n            \"target_unit_id\": \"heater-1\",\n            \"specs\": {\n              \"temperature_c\": 35,\n              \"pressure_kpa\": 210\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"heater-1\",\n            \"kind\": \"Heater\",\n            \"name\": \"Feed Heater\",\n            \"config\": {\n              \"control_mode\": \"outlet_temperature\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 28,\n    \"selected_unit_ids\": [\n      \"heater-1\"\n    ],\n    \"selected_stream_ids\": [\n      \"feed-1\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 2,\n      \"warning_count\": 0\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Cold Feed is missing flow rate specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-1\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_INCOMPLETE\",\n        \"message\": \"Feed Heater is configured for outlet temperature control but outlet temperature target is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"heater-1\"\n      }\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "198f92df-18d8-4f3f-bc88-fcc925d6da9b",
+    "object": "chat.completion",
+    "created": 1777087847,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-heater-multi-action-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"requires_confirmation\": true,\n  \"summary\": \"针对选定的单元 heater-1 和流 feed-1，基于诊断提出的两个规格缺失问题生成候选编辑提案，为该流添加流量占位符，为该单元添加出口温度目标占位符。\",\n  \"issues\": [\n    \"STREAM_SPEC_MISSING: 流 feed-1 缺少流量规格。\",\n    \"UNIT_PARAMETER_INCOMPLETE: 单元 heater-1 配置出口温度控制但缺少出口温度目标。\"\n  ],\n  \"answers\": [\n    {\n      \"kind\": \"text\",\n      \"content\": \"已生成两个候选编辑：为 Cold Feed 添加流量规格占位符，为 Feed Heater 添加出口温度占位符。这些占位符不会改变现有模拟，但提醒用户完成输入。\"\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为流 feed-1 添加流量占位符\",\n      \"target\": {\n        \"kind\": \"stream\",\n        \"id\": \"feed-1\"\n      },\n      \"rationale\": \"诊断 STREAM_SPEC_MISSING 指出该流缺少流量规格，添加占位符可让后续编辑者明确需要给出流量值。\",\n      \"patch\": {\n        \"spec_placeholders\": {\n          \"flow_rate\": {}\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    },\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为单元 heater-1 添加出口温度占位符\",\n      \"target\": {\n        \"kind\": \"unit\",\n        \"id\": \"heater-1\"\n      },\n      \"rationale\": \"诊断 UNIT_PARAMETER_INCOMPLETE 表明该加热器采用出口温度控制但缺少目标温度，添加占位符提示用户指定。\",\n      \"patch\": {\n        \"parameter_placeholders\": {\n          \"outlet_temperature_target_c\": {}\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    }\n  ],\n  \"confidence\": 0.9,\n  \"citations\": [\n    {\n      \"kind\": \"diagnostic\",\n      \"ref\": \"diag-1\",\n      \"message\": \"STREAM_SPEC_MISSING for feed-1\"\n    },\n    {\n      \"kind\": \"artifact\",\n      \"ref\": \"flowdoc-stream-feed-1\",\n      \"message\": \"Stream feed-1 in flowsheet document\"\n    },\n    {\n      \"kind\": \"diagnostic\",\n      \"ref\": \"diag-2\",\n      \"message\": \"UNIT_PARAMETER_INCOMPLETE for heater-1\"\n    },\n    {\n      \"kind\": \"artifact\",\n      \"ref\": \"flowdoc-unit-heater-1\",\n      \"message\": \"Unit heater-1 in flowsheet document\"\n    }\n  ]\n}",
+          "reasoning_content": "我们被要求分析并生成一个 CopilotResponse JSON，基于给定的 CopilotRequest。我们需要输出一个 JSON 对象，不能有 markdown 代码块或额外解释。任务：suggest_flowsheet_edits，项目 radishflow。请求中有 flowsheet_document，诊断了两个错误：流 feed-1 缺少 flow rate 规格；单元 heater-1 配置为 outlet_temperature 控制但缺少 outlet temperature target。选中的单元 ID 是 heater-1，选中的流 ID 是 feed-1。我们需要生成 candidate_edit 动作。\n\n根据要求，我们必须输出 JSON，其中包含 proposed_actions 数组，每个条目具有 title, target, rationale, patch, risk_level, requires_confirmation。risk_level 应为 low/medium/high，这里填补缺失的参数属于常规补全，可能是 medium。patch 应该使用 spec_placeholders 或 parameter_placeholders 等。对于 feed-1 流量缺失，可以在 stream 上添加 spec_placeholders。对 heater-1 缺少出口温度 target，需要添加参数占位符。\n\n诊断：一个针对 stream，一个针对 unit。我们可以对每个生成一个 candidate_edit。target 应指向 stream feed-1 或 unit heater-1。我们需要提供 issue 描述，confidence 分数。还需要 summary，解释正在做什么。\n\ncopilotResponse 必须包含 schema_version（可能复制？），project, task, status, summary, issues, answers, proposed_actions, confidence, citations。status 可以是 partial，因为证据来自诊断，没有提供具体值，我们只建议占位符。requires_confirmation 必须 true。必须提供 citations，每个引用 diagnostics，目标 artifact，以及快照？可能没有 supporting snapshot，但我们可以使用一个名为 \"snapshot-1\" 的占位符？请求中没有快照，只有诊断，flowsheet。我们可以引用 diagnostic 和 flowdoc-stream/unit。指令说：“citations 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后”。没有 snapshot，我们可以忽略。所以 citations 可能包含 diag-1 (对于第一个诊断) 和 flowdoc-stream-feed-1（作为 artifact）。对于第二个，diag-2 和 flowdoc-unit-heater-1。对于整个响应，需要总体 citations。\n\n需要生成 answers 最少一条，可能描述每个候选编辑？提出 actions 后，不需要额外答案，但需要 answers 字段。或者 answer 可以总结提案？我们可以让 answers 为一个字符串：\"已生成两个候选编辑：为 Cold Feed 添加流量规格占位符，为 Feed Heater 添加出口温度占位符。\" 以中文。\n\nsummary 应说明当前围绕什么对象：选中的单元 heater-1 和流 feed-1，针对诊断。\n\nissues 列出诊断代码。我们可以列出两个 issue。\n\nproposed_actions 两个。每个必须包含 title, target, rationale, patch, risk_level, requires_confirmation。target 指向流或单元。target 对象可以是 \"feed-1\" 和 \"heater-1\"，但需要作为参考，例如 \"target\": {\"kind\": \"stream\", \"id\": \"feed-1\"} 或 {\"kind\": \"unit\", \"id\": \"heater-1\"}。类似。\n\npatch 对于流：可以使用 spec_placeholders 添加 \"flow_rate\": {}（占位符）。对于单元：在 config 中添加 \"outlet_temperature_target_c\": {} 或者 parameter_placeholder。建议使用 parameter_placeholders 结构，但也可以直接在 unit 的 config 中添加缺失参数。考虑到这只是候选编辑，我们可以提供 patch 来添加字段。CopilotResponse 的 patch 应该是什么样的？没有明确，但常见格式可能是 JSON Patch。但指令说“patch 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构”。所以我们可以提供类似 {\"spec_placeholders\": {\"flow_rate\": {}}} 对于 stream，或者 {\"parameter_placeholders\": {\"outlet_temperature_target_c\": {}}} 对于 unit。这似乎是建议添加的占位符，以便用户填写。因此，patch 可能是一个对象，包含上述结构。\n\n需要为每个动作指定 target，可能需要引用现有对象路径。我们可以将 target 设为流或单元的完整标识。并提供 patch 来说明要添加的内容。\n\nrationale: 基于诊断代码，解释为什么需要添加。\n\nrisk_level: medium（因为缺少关键参数可能导致模拟失败，但添加占位符不会改变现有行为，只是提醒输入）。requires_confirmation: true。\n\nconfidence: 0.9 因为诊断明确。\n\n总体 confidence: 0.9。\n\n现在构建 JSON。\n\n我们必须输出纯 JSON，没有 markdown 包裹。\n\n结构：\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-heater-multi-action-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"requires_confirmation\": true,\n  \"summary\": \"针对选定的单元 heater-1 和流 feed-1，基于诊断提出的两个规格缺失问题生成候选编辑提案，为该流添加流量占位符，为该单元添加出口温度目标占位符。\",\n  \"issues\": [\n    \"STREAM_SPEC_MISSING: 流 feed-1 缺少流量规格。\",\n    \"UNIT_PARAMETER_INCOMPLETE: 单元 heater-1 配置出口温度控制但缺少出口温度目标。\"\n  ],\n  \"answers\": [\n    {\n      \"kind\": \"text\",\n      \"content\": \"已生成两个候选编辑：为 Cold Feed 添加流量规格占位符，为 Feed Heater 添加出口温度占位符。这些占位符不会改变现有模拟，但提醒用户完成输入。\"\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为流 feed-1 添加流量占位符\",\n      \"target\": {\n        \"kind\": \"stream\",\n        \"id\": \"feed-1\"\n      },\n      \"rationale\": \"诊断 STREAM_SPEC_MISSING 指出该流缺少流量规格，添加占位符可让后续编辑者明确需要给出流量值。\",\n      \"patch\": {\n        \"spec_placeholders\": {\n          \"flow_rate\": {}\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    },\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为单元 heater-1 添加出口温度占位符\",\n      \"target\": {\n        \"kind\": \"unit\",\n        \"id\": \"heater-1\"\n      },\n      \"rationale\": \"诊断 UNIT_PARAMETER_INCOMPLETE 表明该加热器采用出口温度控制但缺少目标温度，添加占位符提示用户指定。\",\n      \"patch\": {\n        \"parameter_placeholders\": {\n          \"outlet_temperature_target_c\": {}\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    }\n  ],\n  \"confidence\": 0.9,\n  \"citations\": [\n    {\n      \"kind\": \"diagnostic\",\n      \"ref\": \"diag-1\",\n      \"message\": \"STREAM_SPEC_MISSING for feed-1\"\n    },\n    {\n      \"kind\": \"artifact\",\n      \"ref\": \"flowdoc-stream-feed-1\",\n      \"message\": \"Stream feed-1 in flowsheet document\"\n    },\n    {\n      \"kind\": \"diagnostic\",\n      \"ref\": \"diag-2\",\n      \"message\": \"UNIT_PARAMETER_INCOMPLETE for heater-1\"\n    },\n    {\n      \"kind\": \"artifact\",\n      \"ref\": \"flowdoc-unit-heater-1\",\n      \"message\": \"Unit heater-1 in flowsheet document\"\n    }\n  ]\n}\n\n注意，没有 snapshot，我们省略。但 guidelines 说“citations 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后”。我们没有 snapshot，所以这没问题。\n\n由于安全模式 advisory，requires_confirmation_for_actions 为 true，所以每个 candidate_edit.requires_confirmation 是 true，整体 requires_confirmation 也 true。已经满足。\n\n现在输出 JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1167,
+      "completion_tokens": 2475,
+      "total_tokens": 3642,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1783
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 1167
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "requires_confirmation": true,
+    "summary": "针对选定的单元 heater-1 和流 feed-1，基于诊断提出的两个规格缺失问题生成候选编辑提案，为该流添加流量占位符，为该单元添加出口温度目标占位符。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Cold Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "answers": [
+      {
+        "kind": "text",
+        "text": "已生成两个候选编辑：为 Cold Feed 添加流量规格占位符，为 Feed Heater 添加出口温度占位符。这些占位符不会改变现有模拟，但提醒用户完成输入。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "feed-1"
+        },
+        "title": "为 feed-1 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "unit",
+          "id": "heater-1"
+        },
+        "title": "为 heater-1 补充局部参数占位",
+        "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "confidence": 0.9,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cold Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-1",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-1 Cold Feed target_unit_id=heater-1"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-1 Feed Heater kind=Heater"
+      }
+    ],
+    "risk_level": "medium"
+  }
+}

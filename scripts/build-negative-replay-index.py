@@ -144,6 +144,7 @@ def build_status_entries(
             "source_sample_id": source_sample_id,
             "source_sample_file": sample_file,
             "record_id": record_id,
+            "source_status": "fail" if status == "fail" else "pass",
             "audit_violations": unique_strings(list(sample_entry.get("violations") or [])),
         }
 
@@ -172,7 +173,7 @@ def build_negative_replay_entry(
             f"{make_repo_relative(sample_path)} expected_candidate_violations is required for negative replay indexing"
         )
 
-    return {
+    entry = {
         "negative_sample_id": negative_sample_id,
         "negative_sample_path": make_repo_relative(sample_path),
         "source_sample_id": source_entry["source_sample_id"],
@@ -182,6 +183,9 @@ def build_negative_replay_entry(
         "audit_violations": source_entry["audit_violations"],
         "expected_candidate_violations": expected_candidate_violations,
     }
+    if source_entry["source_status"] != "fail":
+        entry["source_status"] = source_entry["source_status"]
+    return entry
 
 
 def build_index_document(
@@ -241,7 +245,11 @@ def build_index_document(
     ]
 
     grouped_entries: dict[tuple[str, ...], list[dict[str, Any]]] = {}
-    for entry in linked_failed_entries:
+    grouped_source_entries = list(linked_failed_entries)
+    if not grouped_source_entries and failed_entries == {}:
+        grouped_source_entries.extend(linked_non_failed_entries)
+
+    for entry in grouped_source_entries:
         group_key = tuple(entry["expected_candidate_violations"])
         grouped_entries.setdefault(group_key, []).append(entry)
 
@@ -254,15 +262,17 @@ def build_index_document(
         audit_violation_fragments = unique_strings(
             [fragment for entry in entries for fragment in entry["audit_violations"]]
         )
-        violation_groups.append(
-            {
-                "group_id": f"group-{index:03d}",
-                "expected_candidate_violations": list(group_key),
-                "audit_violation_fragments": audit_violation_fragments,
-                "entry_count": len(entries),
-                "entries": entries,
-            }
-        )
+        group_document = {
+            "group_id": f"group-{index:03d}",
+            "expected_candidate_violations": list(group_key),
+            "audit_violation_fragments": audit_violation_fragments,
+            "entry_count": len(entries),
+            "entries": entries,
+        }
+        source_statuses = unique_strings([str(entry.get("source_status") or "").strip() for entry in entries])
+        if source_statuses:
+            group_document["source_statuses"] = source_statuses
+        violation_groups.append(group_document)
 
     document: dict[str, Any] = {
         "schema_version": 1,

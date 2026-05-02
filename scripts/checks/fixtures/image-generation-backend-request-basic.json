@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "kind": "image_generation_backend_request",
+  "request_id": "image-backend-request-basic-001",
+  "intent_id": "image-intent-basic-001",
+  "backend": {
+    "id": "sd15",
+    "model": "sd15-local-or-service",
+    "adapter_profile": "diagram-default"
+  },
+  "prompt": {
+    "positive": "Clean technical diagram showing four labeled nodes: structured intent, image adapter, backend, artifact metadata.",
+    "negative": "No real brand logos, portraits, sensitive content, dark unreadable background.",
+    "locale": "en-US",
+    "transformed_from_intent": true
+  },
+  "output": {
+    "width": 1024,
+    "height": 1024,
+    "count": 1,
+    "format": "png"
+  },
+  "parameters": {
+    "seed": 12345,
+    "steps": 24,
+    "guidance_scale": 7.0
+  },
+  "inputs": {
+    "reference_artifact_ids": [],
+    "edit_artifact_id": null,
+    "mask_artifact_id": null
+  },
+  "constraints": {
+    "must_include": [
+      "structured intent",
+      "image adapter",
+      "backend",
+      "artifact metadata"
+    ],
+    "must_avoid": [
+      "direct RadishMind-Core pixel generation"
+    ],
+    "style_preset": "diagram"
+  },
+  "safety": {
+    "gate": "approved_for_backend",
+    "requires_confirmation": false,
+    "risk_level": "low",
+    "review_notes": []
+  },
+  "trace": {
+    "source_request_id": "copilot-request-image-basic-001",
+    "trace_ids": [
+      "copilot-request-image-basic-001",
+      "image-intent-basic-001"
+    ]
+  }
+}

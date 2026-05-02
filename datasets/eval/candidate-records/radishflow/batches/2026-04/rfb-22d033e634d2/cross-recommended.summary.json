@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "pipeline": "radishflow-ghost-completion-recommended-negative-replay",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "eval_task": "radishflow-ghost-completion-negative",
+  "provider": "openai-compatible",
+  "collection_batch": "2026-04-11-radishflow-ghost-poc-real-v9-deepseek",
+  "batch_artifact_summary_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json",
+  "negative_replay_index_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-sample-replay-index.json",
+  "output_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/cross-recommended.summary.json",
+  "selection": {
+    "requested_top": 2,
+    "selected_group_ids": [
+      "group-002",
+      "group-003"
+    ],
+    "replay_mode": "cross_sample",
+    "sample_dir_override": "",
+    "fail_on_violation": true
+  },
+  "execution": {
+    "overall_exit_code": 0
+  },
+  "summary": {
+    "selected_group_count": 2,
+    "passed_group_count": 2,
+    "failed_group_count": 0,
+    "selected_sample_count": 3,
+    "passed_sample_count": 3,
+    "failed_sample_count": 0,
+    "violation_count": 0
+  },
+  "groups": [
+    {
+      "group_id": "group-002",
+      "replay_mode": "cross_sample",
+      "requested_entry_count": 2,
+      "selected_sample_count": 2,
+      "exit_code": 0,
+      "passed_sample_count": 2,
+      "failed_sample_count": 0,
+      "violation_count": 0,
+      "expected_candidate_violations": [
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        ".status does not match expected_response_shape.status",
+        "is missing required action kind 'ghost_completion'"
+      ],
+      "sample_files": [
+        "radishflow-ghost-negative-cross-real-record-flash-liquid-uses-empty-001.json",
+        "radishflow-ghost-negative-cross-real-record-flash-vapor-uses-empty-001.json"
+      ],
+      "summary_line": "radishflow ghost completion negative regression passed.",
+      "warning_line": "",
+      "command": {
+        "python": [
+          "python3",
+          "./scripts/run-eval-regression.py",
+          "radishflow-ghost-completion-negative",
+          "--batch-artifact-summary",
+          "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json",
+          "--group-id",
+          "group-002",
+          "--replay-mode",
+          "cross_sample",
+          "--fail-on-violation"
+        ]
+      }
+    },
+    {
+      "group_id": "group-003",
+      "replay_mode": "cross_sample",
+      "requested_entry_count": 1,
+      "selected_sample_count": 1,
+      "exit_code": 0,
+      "passed_sample_count": 1,
+      "failed_sample_count": 0,
+      "violation_count": 0,
+      "expected_candidate_violations": [
+        "candidate_response_record.sample_id must match sample_id",
+        "candidate_response_record.request_id must match input_request.request_id",
+        ".status does not match expected_response_shape.status",
+        "json path '$.proposed_actions[0]' should not exist"
+      ],
+      "sample_files": [
+        "radishflow-ghost-negative-cross-real-record-empty-uses-valve-001.json"
+      ],
+      "summary_line": "radishflow ghost completion negative regression passed.",
+      "warning_line": "",
+      "command": {
+        "python": [
+          "python3",
+          "./scripts/run-eval-regression.py",
+          "radishflow-ghost-completion-negative",
+          "--batch-artifact-summary",
+          "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/artifacts.json",
+          "--group-id",
+          "group-003",
+          "--replay-mode",
+          "cross_sample",
+          "--fail-on-violation"
+        ]
+      }
+    }
+  ],
+  "model": "deepseek-chat",
+  "capture_origin": "adapter_debug_dump"
+}

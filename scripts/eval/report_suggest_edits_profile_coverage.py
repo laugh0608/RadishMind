@@ -11,6 +11,9 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SAMPLE_ROOT = REPO_ROOT / "datasets/eval/radishflow"
 RECORD_ROOT = REPO_ROOT / "datasets/eval/candidate-records/radishflow"
+SUGGEST_EDITS_BATCH_FIXTURE = (
+    REPO_ROOT / "scripts/checks/fixtures/radishflow-suggest-edits-poc-batches.json"
+)
 TARGET_PROFILES = ["apiyi_cx", "apiyi_cc", "apiyi_ch", "apiyi_de"]
 PROFILE_ALIASES = {
     "apiyi-cx": "apiyi_cx",
@@ -109,6 +112,28 @@ def load_json(path: Path) -> dict[str, Any]:
     return document
 
 
+def load_json_list(path: Path) -> list[dict[str, Any]]:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise SystemExit(f"failed to parse json '{path}': {exc}") from exc
+    if not isinstance(document, list):
+        raise SystemExit(f"expected json array: {path}")
+    normalized: list[dict[str, Any]] = []
+    for index, item in enumerate(document):
+        if not isinstance(item, dict):
+            raise SystemExit(f"expected object at index {index}: {path}")
+        normalized.append(item)
+    return normalized
+
+
+def resolve_repo_relative(path_value: str) -> Path:
+    path = Path(path_value)
+    if not path.is_absolute():
+        path = (REPO_ROOT / path).resolve()
+    return path
+
+
 def collect_eval_sample_ids() -> list[str]:
     sample_ids: list[str] = []
     for sample_path in sorted(SAMPLE_ROOT.glob("suggest-flowsheet-edits-*.json")):
@@ -127,21 +152,65 @@ def infer_profile(collection_batch: str) -> str:
     return "default"
 
 
+def iter_manifest_record_paths(manifest_path: Path) -> list[Path]:
+    manifest = load_json(manifest_path)
+    records = manifest.get("records") or []
+    if not isinstance(records, list):
+        raise SystemExit(f"manifest records must be an array: {manifest_path}")
+    record_paths: list[Path] = []
+    for index, item in enumerate(records):
+        if not isinstance(item, dict):
+            raise SystemExit(f"manifest record entries must be objects: {manifest_path}")
+        path_value = str(item.get("path") or "").strip()
+        if not path_value:
+            record_relpath = str(item.get("record_relpath") or "").strip()
+            output_root = str(manifest.get("output_root") or "").strip()
+            if record_relpath and output_root:
+                path_value = f"{output_root.rstrip('/')}/{record_relpath}"
+        if not path_value:
+            raise SystemExit(f"manifest record is missing path at index {index}: {manifest_path}")
+        record_path = resolve_repo_relative(path_value)
+        if not record_path.is_file():
+            raise SystemExit(f"record not found: {record_path}")
+        record_paths.append(record_path)
+    return record_paths
+
+
+def collect_formal_record_paths() -> list[Path]:
+    if not SUGGEST_EDITS_BATCH_FIXTURE.is_file():
+        return []
+    record_paths: list[Path] = []
+    for entry in load_json_list(SUGGEST_EDITS_BATCH_FIXTURE):
+        manifest_path_value = str(entry.get("manifest") or "").strip()
+        if not manifest_path_value:
+            continue
+        manifest_path = resolve_repo_relative(manifest_path_value)
+        if not manifest_path.is_file():
+            raise SystemExit(f"manifest not found: {manifest_path}")
+        manifest = load_json(manifest_path)
+        if str(manifest.get("source") or "").strip() != "captured_candidate_response":
+            continue
+        record_paths.extend(iter_manifest_record_paths(manifest_path))
+    return record_paths
+
+
 def collect_coverage() -> dict[str, set[str]]:
     coverage: dict[str, set[str]] = defaultdict(set)
-    for batch_dir in sorted(RECORD_ROOT.glob("*suggest-edits*poc-real*")):
-        if not batch_dir.is_dir():
+    record_paths = collect_formal_record_paths()
+    if not record_paths:
+        record_paths = sorted(RECORD_ROOT.rglob("*.record.json"))
+    for record_path in sorted(record_paths):
+        record = load_json(record_path)
+        if record.get("task") != "suggest_flowsheet_edits":
             continue
-        for record_path in sorted(batch_dir.rglob("*.record.json")):
-            record = load_json(record_path)
-            sample_id = str(record.get("sample_id") or "").strip()
-            if not sample_id:
-                continue
-            capture_metadata = record.get("capture_metadata")
-            collection_batch = ""
-            if isinstance(capture_metadata, dict):
-                collection_batch = str(capture_metadata.get("collection_batch") or "").strip()
-            coverage[sample_id].add(infer_profile(collection_batch))
+        sample_id = str(record.get("sample_id") or "").strip()
+        if not sample_id:
+            continue
+        capture_metadata = record.get("capture_metadata")
+        collection_batch = ""
+        if isinstance(capture_metadata, dict):
+            collection_batch = str(capture_metadata.get("collection_batch") or "").strip()
+        coverage[sample_id].add(infer_profile(collection_batch))
     return coverage
 
 

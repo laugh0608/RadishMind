@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-04-19
+更新时间：2026-05-01
 
 ## 项目目标
 
@@ -16,6 +16,7 @@
 - 结构化输出：问题、解释、证据、候选动作、风险等级与确认要求
 - 检索、工具调用、规则校验与模型编排
 - 数据集、评测、蒸馏和 student 模型实验
+- `RadishMind-Core` 自研主模型路线，以及独立的图片生成 adapter / backend 编排能力
 
 ## 基于真实上下文的统一定位
 
@@ -34,6 +35,15 @@
 - `agent` 是受控执行层，负责选择上下文、调用模型和工具、执行 schema / 规则校验、处理风险确认和沉淀评测记录
 - `adapter` 负责把 `RadishFlow` / `Radish` 的业务状态转换为统一 `CopilotRequest`，并把结构化响应映射回各自项目
 - `rule validation` 负责阻止模型输出越权、高风险直写或不符合业务契约的候选动作
+
+`RadishMind-Core` 是本项目的自研主模型口径，但这里的“自研”默认指“基座适配型自研”，而不是从零预训练基础大模型。它应基于开源 `base model`，叠加 `RadishMind` 的指令数据、任务协议、`RadishFlow` / `Radish` 场景样本、风险标记和评测偏好，形成项目专属的理解、推理和结构化输出能力。
+
+当前推荐目标为：
+
+- 首个稳定目标：`3B` 或 `4B` 级 `RadishMind-Core`
+- 长期本地部署上限：`7B` 级 `RadishMind-Core`
+- 默认不把 `14B` / `32B` 作为自研主模型目标，除非后续部署硬件、训练数据和评测基线都显著升级
+- 图片输入理解可以进入 `RadishMind-Core` 或其视觉适配路线；图片像素生成不进入主模型职责，默认由独立 `RadishMind-Image Adapter` 和生图 backend 承接
 
 当前阶段应把这些能力放在同一个仓库中统一演进，因为协议、上下文、任务 prompt、评测数据和候选记录仍需要同步收口。模型权重、大体积训练产物和生产级推理镜像不应直接进入本仓库，只保留训练配置、适配代码、评测基线和模型选择策略。
 
@@ -123,20 +133,33 @@
   - 文档语义、论坛内容、Console 权限知识和附件协议
   - 内容结构化建议和运营辅助
 
-## minimind-v 的位置
+## RadishMind-Core 与模型分工
 
-基于当前上下文，`minimind-v` 当前正式作为：
+基于当前上下文，`RadishMind-Core` 是项目自研主模型目标，`minimind-v` 当前正式作为它的默认 `student/base` 主线候选：
 
 - 默认 `student/base` 主线
 - M4 阶段的实验底座
 - 与教师模型对齐后的域内蒸馏承接路线
+- `3B` / `4B` 首版自研主模型的优先适配对象；若评测证明不足，再评估 `7B` 档位
 
 与之配套的首轮模型分工为：
 
 - `Qwen2.5-VL`：默认 `teacher` / 多模态强基线，用于高质量对照评测、复杂图文任务 PoC 和蒸馏参考
 - `SmolVLM`：默认轻量本地对照组，用于验证小模型下限、资源敏感部署和轻量回归基线
+- `RadishMind-Image Adapter`：负责把 `RadishMind-Core` 的结构化图片生成意图转换为 backend request，并记录 prompt、尺寸、风格、seed、负面词、编辑约束、安全门禁和 trace metadata
+- `Image Generation Backend`：负责真正生成图片像素；首轮不从零训练，优先参考或接入 `SD1.5`、`PixArt-δ 0.6B`，中期再评估 `Segmind-Vega` 或 `SD3.5 Medium 2.5B`
 
-当前阶段不再把 `minimind-v` 仅写成“候选”；默认路线是先围绕它建立领域适配与训练承接，再由离线评测结果决定是否调整主线。
+当前阶段不再把 `minimind-v` 仅写成“候选”；默认路线是先围绕它建立领域适配与训练承接，再由离线评测结果决定是否调整主线。图片生成能力应作为 `RadishMind` 的工具 / backend 能力交付，而不是要求 `RadishMind-Core` 同时承担 Copilot 推理、协议遵循和像素生成。
+
+由于 `RadishFlow` 与 `Radish` 暂时都还没有进入真实模型 / Agent 接入阶段，当前不把上层真实接线作为 `RadishMind` 的阻塞项。`RadishMind` 这边应先完成以下自身资产：
+
+- `RadishMind-Core` 首版基座评估：先比较 `3B` / `4B` 的协议遵循、中文任务理解、结构化响应、citation 对齐和本地部署成本，再决定是否进入 `7B`
+- 训练 / 蒸馏样本格式：以 `CopilotRequest -> CopilotResponse` 为核心，保留 `project / task / artifacts / context / safety / proposed_actions / citations / requires_confirmation`
+- 训练样本转换入口：当前已能从 committed eval 样本的 `input_request + golden_response` 生成首批 9 条 `CopilotTrainingSample` JSONL，也能从 audit pass candidate record 生成首批 9 条 `teacher_capture` 样本，覆盖 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `answer_docs_question`
+- 离线评测与本地候选观测：当前已能把 candidate wrapper 的 raw / repaired 输出接入同一 `radishmind-core-offline-eval-run` 记录格式；本地 `Qwen2.5-1.5B-Instruct` 的 9 fixture、timeout probe、planned holdout、full holdout 与 v2 非重叠 holdout 观测均显示 raw 仍 blocked，`--repair-hard-fields` 只能作为后处理实验，不能替代 raw 能力晋级或训练准入
+- teacher / student / lightweight baseline 对照矩阵：`Qwen2.5-VL` 给出强基线和蒸馏参考，`minimind-v` 承接主线适配，`SmolVLM` 验证低资源下限
+- `RadishMind-Image Adapter` 第一版 schema 与最小评测 manifest：主模型只输出图片生成意图、约束和审查信息，Adapter 再生成 backend request，图片像素生成交给独立 backend，结果以 artifact metadata 回到 `RadishMind`；当前评测 manifest 只覆盖结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不评价图片像素质量
+- 未来接入清单：保留现有 gateway smoke、UI consumption summary 与 candidate handoff summary 作为 `RadishFlow` / `Radish` 准备好后的验收门禁
 
 ## 当前仍缺的决策
 
@@ -146,6 +169,23 @@
 - `SmolVLM` 进入默认回归矩阵的任务边界
 - `RadishFlow` 何时从“状态优先”扩展到“状态 + 截图并重”
 - 候选动作的 patch 结构在两个项目中分别如何落地
+- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata 三段 schema 和最小图片生成评测 manifest；后续仍需真实 backend 包装
+
+## 远期备忘方向
+
+以下内容当前仅作为未来想法备忘，用于防止后续遗忘；它们不改变现阶段路线图、阶段优先级、任务卡范围或退出标准。
+
+### `RadishFlow`
+
+- 在现有 `suggest_ghost_completion` 与 `suggest_flowsheet_edits` 之外，未来可进一步探索“像代码补全一样”的流程链补全能力：用户放入一个模块后，系统继续预测下一步更可能补上的单元、连接和局部结构
+- 未来可探索围绕塔、分离器、换热器等典型对象的参数优化建议，但仍应坚持“建议 / 候选动作优先”，不直接侵入数值求解热路径
+- 未来可探索参数输入错误提示、参数组合不合理预警和纠错辅助，把“诊断解释”继续前推到“输入前校验 + 输入后纠偏”这一层
+
+### `Radish`
+
+- 在现有文档问答、内容摘要和论坛元数据建议之外，未来可探索“社区小助手”方向，例如审贴辅助、回复草稿、社区互动建议和运营协作
+- 对论坛或社区场景，未来可探索自动回复建议、跟帖建议和基于上下文的运营话术草稿，但默认仍应先以“人工确认后发送”为边界
+- 更远期才评估更强的账号代操作能力，例如代发帖、代回复、代执行部分社区管理动作；若进入该方向，必须额外补强审计、权限边界、风险分级与显式确认机制
 
 ## 第一阶段明确不做
 
@@ -153,6 +193,8 @@
 - 直接接管 `Radish` 的 Auth / Gateway / API / Console 业务逻辑
 - 让模型直接成为上层项目的真相源
 - 在没有评测基线前就围绕底座模型频繁换路线
+- 把 `RadishMind-Core` 定义成必须从零训练的基础大模型
+- 让 `RadishMind-Core` 直接承担图片像素生成，导致主模型训练、评测和部署目标失控
 - 为了追求“统一”而忽略两个项目的语义差异
 - 先把所有任务都压成截图理解或自治代理
 - 把 `RadishMind` 过早拆成模型仓库和 agent 仓库，导致协议、评测和任务边界提前分叉
@@ -169,3 +211,4 @@
 - 模型输出能被规则层或业务层复核，并明确要求确认
 - `minimind-v` 已作为默认 `student/base` 主线进入实际评测与适配，而不是继续停留在候选状态
 - `agent` 层已经能稳定证明模型可替换：同一任务至少能在 mock / teacher / student 或多 provider 之间比较，并仍保持统一协议、规则校验和评测口径
+- `RadishMind-Core` 的本地模型观测必须同时保留 raw / repaired 双轨、timeout / token / JSON 抽取指标和人工复核结论；不能用 repaired fixture pass 代替 raw 模型能力、训练样本准入或更大样本面质量判断

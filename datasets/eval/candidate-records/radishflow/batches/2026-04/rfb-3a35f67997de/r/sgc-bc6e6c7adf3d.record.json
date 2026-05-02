@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-latest-reject-after-skip-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-latest-reject-after-skip-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-valve-flash-outlet-latest-reject-after-skip-no-retab-001",
+  "captured_at": "2026-04-21T12:58:27Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 85,
+    "selected_unit_ids": [
+      "flash-44"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-44-vapor-outlet"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "当前不提供可直接用 Tab 接受的 ghost 建议；存在合法候选，但因最近跳过后又拒绝且要求手动重新选择，仅保留手动建议。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "检测到 flash-44 的 vapor_outlet 有一个合法候选，但受 recent_reject_cooldown_active 与 manual_reselection_required 约束，不作为默认 Tab ghost。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "requires_confirmation": false,
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 flash-44 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-44",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-44-vapor-outlet",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-513"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-44-vapor-outlet"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-44",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-44 kind=FlashDrum name=Flash Drum 513"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-44-vapor-outlet",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-44-vapor-outlet target_port_key=vapor_outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"V-513\"], \"existing_stream_names\": [\"F-513\", \"V-513\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\"}, \"numeric_suffix_from_unit\": \"513\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[3]",
+        "excerpt": "{\"kind\": \"reject_ghost_completion\", \"candidate_ref\": \"cand-flash-44-vapor-outlet\", \"rejected_at_revision\": 84}"
+      }
+    ],
+    "risk_level": "medium",
+    "confidence": 0.78
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v11-alternate-and-latest-action",
+    "notes": "v11 chain expansion focusing on alternate-candidate switch, latest same-candidate action priority, and cooler mixed-history empty boundary."
+  }
+}

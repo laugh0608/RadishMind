@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-dismiss-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-dismiss-no-retab-001",
+  "captured_at": "2026-04-24T13:10:50Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 55,
+    "selected_unit_ids": [
+      "heater-3"
+    ],
+    "legal_candidate_refs": [
+      "cand-heater-3-outlet-flash-15"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "summary": "为 Feed Heater 602 出口建议连接至 Flash Drum 602 入口的虚拟流，因候选刚被用户手动关闭且处于冷却期，需手动确认才能应用。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "为 Feed Heater 602 出口建议连接至 Flash Drum 602 入口的虚拟流，因候选刚被用户手动关闭且处于冷却期，需手动确认才能应用。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-3",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-3 kind=Heater name=Feed Heater 602"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-heater-3-outlet-flash-15",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-3-outlet-flash-15 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-602\"], \"existing_stream_names\": [\"F-602\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"602\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"dismiss_ghost_completion\", \"candidate_ref\": \"cand-heater-3-outlet-flash-15\", \"dismissed_at_revision\": 54}"
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 heater-3 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-3",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-3-outlet-flash-15",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-602"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-3-outlet-flash-15"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "requires_confirmation": false,
+    "risk_level": "medium",
+    "confidence": 0.78
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "real-capture",
+      "high-value-template-asymmetry-backfill"
+    ],
+    "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v21-high-value-template-asymmetry-backfill",
+    "notes": "Expand the next post-remaining high-value ghost sample group focused on template asymmetry backfill."
+  }
+}

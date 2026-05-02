@@ -27,7 +27,11 @@
     },
     "pipeline": {
       "type": "string",
-      "const": "radish-docs-qa-recommended-negative-replay"
+      "enum": [
+        "radish-docs-qa-recommended-negative-replay",
+        "radishflow-suggest-edits-recommended-negative-replay",
+        "radishflow-ghost-completion-recommended-negative-replay"
+      ]
     },
     "project": {
       "type": "string",
@@ -42,7 +46,11 @@
     },
     "eval_task": {
       "type": "string",
-      "const": "radish-docs-qa-negative"
+      "enum": [
+        "radish-docs-qa-negative",
+        "radishflow-suggest-edits-negative",
+        "radishflow-ghost-completion-negative"
+      ]
     },
     "provider": {
       "type": "string",

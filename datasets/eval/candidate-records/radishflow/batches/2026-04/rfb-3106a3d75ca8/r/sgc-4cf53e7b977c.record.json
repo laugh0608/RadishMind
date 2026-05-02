@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-latest-reject-after-skip-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-latest-reject-after-skip-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-latest-reject-after-skip-no-retab-001",
+  "captured_at": "2026-04-23T11:59:05Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 68,
+    "selected_unit_ids": [
+      "cooler-15"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-15-outlet-flash-38"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前未给出 ghost 建议。唯一候选 cand-cooler-15-outlet-flash-38 因近期被跳过（revision 66）且被拒绝（revision 67），触发冲突标志 recent_reject_cooldown_active、manual_reselection_required 和 older_same_candidate_feedback_present，导致 is_high_confidence 为 false，不满足默认高置信条件，因此不输出任何 ghost_completion 动作。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 cooler-15 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-15",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-15-outlet-flash-38",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-709"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-15-outlet-flash-38"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-15",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-15 kind=Cooler name=Feed Cooler 709"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-15-outlet-flash-38",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-15-outlet-flash-38 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-709\"], \"existing_stream_names\": [\"F-709\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"709\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "{\"kind\": \"reject_ghost_completion\", \"candidate_ref\": \"cand-cooler-15-outlet-flash-38\", \"rejected_at_revision\": 67}"
+      }
+    ],
+    "summary": "当前未给出 ghost 建议。唯一候选 cand-cooler-15-outlet-flash-38 因近期被跳过（revision 66）且被拒绝（revision 67），触发冲突标志 recent_reject_cooldown_active、manual_reselection_required 和 older_same_candidate_feedback_present，导致 is_high_confidence 为 false，不满足默认高置信条件，因此不输出任何 ghost_completion 动作。",
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-latest-action-precedence"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v16-remaining-latest-action-precedence",
+    "notes": "v16 remaining latest-action precedence expansion."
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+  "request_id": "rf-suggest-edit-heater-multi-action-001",
+  "captured_at": "2026-04-26T05:07:05Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 28,
+    "selected_unit_ids": [
+      "heater-1"
+    ],
+    "selected_stream_ids": [
+      "feed-1"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "requires_confirmation": true,
+    "summary": "当前围绕已选中的进料流股 feed-1 的缺失流量规格，以及已选中的加热器 heater-1 在出口温度控制模式下缺少目标温度这两类问题生成候选提案。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Cold Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "为当前选中的流股和加热器提出两个最小候选补丁：一个补全进料流量占位，另一个补全加热器出口温度目标占位。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-1 增加流量规格占位",
+        "rationale": "诊断明确指出该流股缺少流量规格；在不假设具体数值的前提下，增加可审查的规格占位是最小修补方式。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-1"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 heater-1 增加出口温度目标占位",
+        "rationale": "该设备已处于 outlet_temperature 控制模式，诊断明确指出缺少目标出口温度；补充参数占位可与现有控制模式直接对应，且不预设工艺目标数值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "heater-1"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cold Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Feed Heater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-1",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-1 Cold Feed target_unit_id=heater-1"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-1",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-1 Feed Heater kind=Heater"
+      }
+    ],
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion-composite-drift",
+      "v91"
+    ],
+    "collection_batch": "2026-04-26-radishflow-suggest-edits-poc-real-v91-high-value-composite-drift",
+    "notes": "v91 composite drift real capture for cross-object citation, mixed reconnect patch, local parameter, multi-action, and spec ordering."
+  }
+}

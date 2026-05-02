@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-reconnect-connection-placeholder-ordering-001",
+  "request_id": "rf-suggest-edit-reconnect-connection-placeholder-ordering-001",
+  "captured_at": "2026-04-21T12:10:45Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 64,
+    "selected_stream_ids": [
+      "liquid-out-2"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中流股 liquid-out-2 的下游未连接问题生成候选提案：为该出口流股添加一个非执行式的下游连接占位，供用户确认后选择导出汇或下游消费者。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Liquid Product 添加下游连接占位",
+        "rationale": "liquid-out-2 已由 separator-2 产生，但当前没有下游消费者或导出汇；添加连接占位可将修复范围限制在被选中的流股，并要求用户后续确认具体连接目标。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "liquid-out-2"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Liquid Product is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Liquid Product is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / liquid-out-2",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "liquid-out-2 Liquid Product source_unit_id=separator-2"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕已选中流股 liquid-out-2 的下游未连接问题生成候选提案：为该出口流股添加一个非执行式的下游连接占位，供用户确认后选择导出汇或下游消费者。",
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-21-radishflow-suggest-edits-poc-real-v84-default-mixed-risk-citation-reconnect"
+  }
+}

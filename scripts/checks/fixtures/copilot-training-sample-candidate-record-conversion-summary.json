@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "copilot_training_sample_conversion_summary",
+  "source": "teacher_capture",
+  "created_for": "teacher-student-distillation",
+  "does_not_run_models": true,
+  "sample_count": 9,
+  "task_counts": {
+    "radish/answer_docs_question": 3,
+    "radishflow/suggest_flowsheet_edits": 3,
+    "radishflow/suggest_ghost_completion": 3
+  },
+  "source_eval_samples": [
+    "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+    "datasets/eval/radishflow/suggest-flowsheet-edits-stream-spec-placeholder-001.json",
+    "datasets/eval/radishflow/suggest-flowsheet-edits-three-step-priority-chain-001.json",
+    "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001.json",
+    "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001.json",
+    "datasets/eval/radishflow/suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001.json",
+    "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
+    "datasets/eval/radish/answer-docs-question-forum-supplement-001.json",
+    "datasets/eval/radish/answer-docs-question-wiki-faq-mixed-001.json"
+  ],
+  "generated_sample_ids": [
+    "radishflow-suggest-flowsheet-edits-reconnect-outlet-001-training-capture-001",
+    "radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001-training-capture-001",
+    "radishflow-suggest-flowsheet-edits-three-step-priority-chain-001-training-capture-001",
+    "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-and-other-skip-001-training-capture-001",
+    "radishflow-suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-after-mixed-history-001-training-capture-001",
+    "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001-training-capture-001",
+    "radish-answer-docs-question-direct-answer-001-training-capture-001",
+    "radish-answer-docs-question-forum-supplement-001-training-capture-001",
+    "radish-answer-docs-question-wiki-faq-mixed-001-training-capture-001"
+  ],
+  "train_fields": [
+    "summary",
+    "answers",
+    "issues",
+    "proposed_actions",
+    "citations",
+    "confidence",
+    "risk_level",
+    "requires_confirmation"
+  ],
+  "quality_gate_counts": {
+    "citation_checked": 9,
+    "risk_reviewed": 9,
+    "schema_validated": 9
+  },
+  "requires_confirmation_count": 3,
+  "action_sample_count": 5,
+  "medium_high_action_count": 5
+}

@@ -1,0 +1,5 @@
+{
+  "manifest": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3e8d9082bbf9/manifest.json",
+  "negative_sample_dir": "datasets/eval/radishflow-negative",
+  "index": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-3e8d9082bbf9/real-derived-index.json"
+}

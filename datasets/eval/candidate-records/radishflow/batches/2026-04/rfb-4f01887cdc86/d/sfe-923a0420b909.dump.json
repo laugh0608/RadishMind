@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-stream-spec-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+  "request_id": "rf-suggest-edit-stream-spec-001",
+  "captured_at": "2026-04-25T05:08:28Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v90-tail-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 14,
+    "selected_stream_ids": [
+      "stream-1"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-stream-spec-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-101",
+          "streams": [
+            {
+              "id": "stream-1",
+              "name": "Feed Stream",
+              "target_unit_id": "heater-1",
+              "specs": {
+                "pressure_kpa": 220
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-1",
+              "kind": "Heater",
+              "name": "Feed Heater"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 14,
+      "selected_stream_ids": [
+        "stream-1"
+      ],
+      "diagnostic_summary": {
+        "error_count": 1,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Feed Stream is missing temperature specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "stream-1"
+        }
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-stream-spec-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-101\",\n        \"streams\": [\n          {\n            \"id\": \"stream-1\",\n            \"name\": \"Feed Stream\",\n            \"target_unit_id\": \"heater-1\",\n            \"specs\": {\n              \"pressure_kpa\": 220\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"heater-1\",\n            \"kind\": \"Heater\",\n            \"name\": \"Feed Heater\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 14,\n    \"selected_stream_ids\": [\n      \"stream-1\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 1,\n      \"warning_count\": 0\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Feed Stream is missing temperature specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"stream-1\"\n      }\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "4b82c8f3-446e-4ee0-b8b6-986cb8dbc06b",
+    "object": "chat.completion",
+    "created": 1777093665,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"schema_version\": 1, \"request_id\": \"rf-suggest-edit-stream-spec-001\", \"project\": \"radishflow\", \"task\": \"suggest_flowsheet_edits\", \"status\": \"partial\", \"summary\": \"当前仅处理被选中的 Feed Stream (stream-1) 缺少温度规范这一问题，为该流添加温度占位符，以便用户后续补充具体数值并完成模拟求解。\", \"issues\": [{\"description\": \"Feed Stream 缺少温度规范，将导致流程模拟无法初始化与求解。\", \"severity\": \"error\", \"citations\": [\"diag-1\"]}], \"confidence\": 0.9, \"proposed_actions\": [{\"title\": \"为 Feed Stream 添加温度规范占位符\", \"type\": \"candidate_edit\", \"target\": {\"type\": \"stream\", \"id\": \"stream-1\"}, \"rationale\": \"诊断 STREAM_SPEC_MISSING 标明 stream-1 温度缺失；该流当前仅有压力，添加温度占位符后可完成流股定义。\", \"patch\": {\"spec_placeholders\": [{\"key\": \"temperature_k\", \"sample_value\": 298.15, \"tip\": \"输入流体进入加热器前的温度（K）\"}]}, \"risk_level\": \"medium\", \"requires_confirmation\": true, \"citations\": [\"diag-1\", \"flowdoc-stream-1\"]}], \"requires_confirmation\": true, \"errors\": [], \"warnings\": [], \"citations\": {\"diag-1\": {\"type\": \"diagnostic\", \"item\": {\"code\": \"STREAM_SPEC_MISSING\", \"message\": \"Feed Stream is missing temperature specification.\", \"target_type\": \"stream\", \"target_id\": \"stream-1\"}}, \"flowdoc-stream-1\": {\"type\": \"artifact\", \"name\": \"flowsheet_document\", \"item\": {\"id\": \"stream-1\", \"name\": \"Feed Stream\"}}}}",
+          "reasoning_content": "我们被要求生成一个 JSON 对象作为 CopilotResponse。输入是一个 CopilotRequest，涉及流表文档，有一个错误诊断：流 stream-1 缺少温度规范。我们需要提出候选编辑。根据任务描述，我们需要输出 CopilotResponse。\n\n分析输入：\n- 流 \"Feed Stream\" (id: stream-1) 当前规范只有 pressure_kpa: 220，缺少温度规范。诊断建议 STREAM_SPEC_MISSING。\n- 该流的目标单元是 heater-1（加热器）。\n- 我们需要提出一个候选编辑，为 stream-1 添加温度规范。因为我们是推测性编辑，应该放置一个占位符或合理的默认值，但风险应标记为 medium 或 low？添加缺失的规范通常风险 low 或 medium，但需要确认。由于没有更多信息，我们可以建议一个温度默认值，比如 25°C (298.15 K)，但以占位符形式。按照要求，patch 可以使用 spec_placeholders。我们建议添加一个温度规范，例如 \"temperature_k\": \"placeholder_value\" 或具体建议？根据要求 \"最小、可审查、非执行式\" 的 patch，可能只放置一个占位符，而不是具体值。例如：添加 \"temperature_k\": \"spec_placeholder_temperature_c\" 或类似。但是 'patch' 字段应该描述如何修改文档。我们需要提供具体的 patch 结构。\n\n在 CopilotResponse 中，proposed_actions 包含 candidate_edit。每个 candidate_edit 包含 patch，它应该是一个可应用的修改。但我们并不实际修改文档，而是描述修改。格式应类似于 { \"op\": \"add\", \"path\": \"/streams/0/specs/temperature_k\", \"value\": \"TBD\" } 之类的。通常使用 JSON Patch 格式。但示例中可能允许其他格式。根据要求 \"patch 优先使用 spec_placeholders、parameter_placeholders...\", 我们可能可以提供一个 spec_placeholders 列表。那么，我们可以在 patch 中使用 \"spec_placeholders\": [{ \"key\": \"temperature_k\", \"sample_value\": 298.15, \"placeholder\": \"spec_temperature\" }] 或类似。\n\n让我们构造 CopilotResponse：\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-stream-spec-001\",  // 从请求中获取\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",   // 因为可能存在其他需要修改的，但这里只有一个诊断\n  \"summary\": \"诊断发现 Feed Stream (stream-1) 缺少温度规范，建议为该流添加温度占位符，以便后续求解。\",\n  \"issues\": [\n    {\n      \"description\": \"Feed Stream 缺少温度规范，会导致流程模拟无法完成。\",\n      \"severity\": \"error\",\n      \"citations\": [\"diag-1\"]\n    }\n  ],\n  \"confidence\": 0.9,   // 对修改有信心\n  \"proposed_actions\": [\n    {\n      \"title\": \"为 Feed Stream 添加温度规范占位符\",\n      \"type\": \"candidate_edit\",\n      \"target\": {\n        \"type\": \"stream\",\n        \"id\": \"stream-1\"\n      },\n      \"rationale\": \"来自诊断 STREAM_SPEC_MISSING，该流需要温度才能完整定义。建议添加占位符以便用户指定具体温度值。\",\n      \"patch\": {\n        \"spec_placeholders\": [\n          {\n            \"key\": \"temperature_k\",\n            \"sample_value\": 298.15,\n            \"tip\": \"输入流体进入加热器前的温度（K）\"\n          }\n        ]\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-1\", \"flowdoc-stream-1\"]\n    }\n  ],\n  \"requires_confirmation\": true,\n  \"errors\": [],\n  \"warnings\": [],\n  \"citations\": {\n    \"diag-1\": {\n      \"type\": \"diagnostic\",\n      \"item\": {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Feed Stream is missing temperature specification.\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"stream-1\"\n      }\n    },\n    \"flowdoc-stream-1\": {\n      \"type\": \"artifact\",\n      \"name\": \"flowsheet_document\",\n      \"item\": {\n        \"id\": \"stream-1\",\n        \"name\": \"Feed Stream\"\n      }\n    }\n  }\n}\n\n但需要确保 citations 在 issues 中引用。在 proposed_action 的 citations 中引用 diag-1 和 flowdoc-stream-1。在整体 citations 中定义它们。也可以没有全局 citations，但 issues 和 actions 中的 citations 可以使用简写，可能会期待在 answers 或别处定义。按照提示，citations 应保持稳定顺序，并在 answers 中有定义。不过最终 JSON 可以包含 \"citations\" 字段吗？根据 CopilotResponse 的结构，它可能允许 \"answers\" 包含 citations。但我们没有 answers 部分。或许我们只在 proposed_actions 和 issues 中引用文本，不定义全局 citations 也可以。这是允许的。但为了清晰，我保留全局 citations。\n\n此外，confidence 给 0.9，因为缺失温度，建议添加是明确的。\n\nstatus 为 partial 因为可能存在其他缺失的规范，但当前只针对这个诊断。\n\n现在输出 JSON，不加解释。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1056,
+      "completion_tokens": 1610,
+      "total_tokens": 2666,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1183
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 544
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "summary": "当前仅处理被选中的 Feed Stream (stream-1) 缺少温度规范这一问题，为该流添加温度占位符，以便用户后续补充具体数值并完成模拟求解。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Feed Stream is missing temperature specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "confidence": 0.9,
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Feed Stream 添加温度规范占位符",
+        "rationale": "诊断 STREAM_SPEC_MISSING 标明 stream-1 温度缺失；该流当前仅有压力，添加温度占位符后可完成流股定义。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "stream-1"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "requires_confirmation": true,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Feed Stream is missing temperature specification."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / stream-1",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "stream-1 Feed Stream target_unit_id=heater-1"
+      }
+    ],
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前仅处理被选中的 Feed Stream (stream-1) 缺少温度规范这一问题，为该流添加温度占位符，以便用户后续补充具体数值并完成模拟求解。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      }
+    ],
+    "risk_level": "medium"
+  }
+}

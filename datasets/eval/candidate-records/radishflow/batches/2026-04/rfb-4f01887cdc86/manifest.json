@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v90-tail-stability",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-same-risk-input-first-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-same-risk-input-first-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86/r/sfe-f25f17405ed4.record.json",
+      "sample_key": "sfe-f25f17405ed4",
+      "record_relpath": "r/sfe-f25f17405ed4.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86/r/sfe-923a0420b909.record.json",
+      "sample_key": "sfe-923a0420b909",
+      "record_relpath": "r/sfe-923a0420b909.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-4f01887cdc86/r/sfe-880c0207a49a.record.json",
+      "sample_key": "sfe-880c0207a49a",
+      "record_relpath": "r/sfe-880c0207a49a.record.json"
+    }
+  ],
+  "batch_key": "rfb-4f01887cdc86",
+  "capture_origin": "interactive_session",
+  "description": "RadishFlow suggest_flowsheet_edits 首批真实 provider capture 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+}

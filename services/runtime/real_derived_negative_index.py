@@ -12,6 +12,12 @@ GROUP_PART_FILE_NAMES = {
     "pattern_groups": "pattern-groups.json",
     "unlinked_derived_records": "unlinked-derived-records.json",
 }
+RADISHFLOW_SHORT_GROUP_PART_FILE_NAMES = {
+    "source_record_groups": "src.json",
+    "violation_groups": "viol.json",
+    "pattern_groups": "pat.json",
+    "unlinked_derived_records": "unlinked.json",
+}
 
 
 def expect_object(document: Any, label: str) -> dict[str, Any]:
@@ -20,7 +26,18 @@ def expect_object(document: Any, label: str) -> dict[str, Any]:
     return document
 
 
+def uses_radishflow_short_parts(index_path: Path) -> bool:
+    normalized_parts = index_path.as_posix().split("/")
+    target_parts = ["datasets", "eval", "candidate-records", "radishflow"]
+    for start in range(0, max(0, len(normalized_parts) - len(target_parts) + 1)):
+        if normalized_parts[start : start + len(target_parts)] == target_parts:
+            return True
+    return False
+
+
 def resolve_parts_dir(index_path: Path) -> Path:
+    if uses_radishflow_short_parts(index_path):
+        return index_path.with_name("rdi.parts")
     suffix = ".json"
     if index_path.name.endswith(suffix):
         parts_name = index_path.name[: -len(suffix)] + ".parts"
@@ -63,7 +80,10 @@ def build_compact_real_derived_negative_index(document: dict[str, Any], *, outpu
     }
     part_documents: dict[str, Any] = {}
     parts_dir = resolve_parts_dir(output_path)
-    for key, filename in GROUP_PART_FILE_NAMES.items():
+    part_file_names = (
+        RADISHFLOW_SHORT_GROUP_PART_FILE_NAMES if uses_radishflow_short_parts(output_path) else GROUP_PART_FILE_NAMES
+    )
+    for key, filename in part_file_names.items():
         part_path = parts_dir / filename
         compact[f"{key}_path"] = make_repo_relative(part_path)
         part_documents[filename] = document.get(key) or []

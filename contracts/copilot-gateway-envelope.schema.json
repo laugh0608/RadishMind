@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/copilot-gateway-envelope.schema.json",
+  "title": "CopilotGatewayEnvelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "request_id",
+    "project",
+    "task",
+    "response",
+    "error",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "partial",
+        "failed"
+      ]
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "project": {
+      "type": "string"
+    },
+    "task": {
+      "type": "string"
+    },
+    "response": {
+      "oneOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "error": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/gateway_error"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "metadata": {
+      "$ref": "#/$defs/gateway_metadata"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "partial"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "response": {
+            "type": "object"
+          },
+          "error": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "error": {
+            "$ref": "#/$defs/gateway_error"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "gateway_error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "gateway_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "handled_at",
+        "duration_ms",
+        "route",
+        "request_validated",
+        "response_validated",
+        "advisory_only",
+        "provider"
+      ],
+      "properties": {
+        "handled_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "route": {
+          "type": "string"
+        },
+        "request_validated": {
+          "type": "boolean"
+        },
+        "response_validated": {
+          "type": "boolean"
+        },
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "provider": {
+          "$ref": "#/$defs/gateway_provider"
+        }
+      }
+    },
+    "gateway_provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "profile",
+        "model",
+        "request_timeout_seconds"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "request_timeout_seconds": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-same-risk-input-first-ordering-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-same-risk-input-first-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-same-risk-input-first-ordering-001",
+  "request_id": "rf-suggest-edit-same-risk-input-first-ordering-001",
+  "captured_at": "2026-04-25T05:07:44Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v90-tail-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 49,
+    "selected_unit_ids": [
+      "pump-2"
+    ],
+    "selected_stream_ids": [
+      "feed-8",
+      "product-8"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-same-risk-input-first-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-110",
+          "streams": [
+            {
+              "id": "feed-8",
+              "name": "Pump Suction",
+              "target_unit_id": "pump-2",
+              "specs": {
+                "pressure_kpa": 190
+              }
+            },
+            {
+              "id": "product-8",
+              "name": "Pump Discharge",
+              "source_unit_id": "pump-2",
+              "specs": {
+                "temperature_c": 34
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "pump-2",
+              "kind": "Pump",
+              "name": "Transfer Pump",
+              "config": {
+                "efficiency_percent": 88
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 49,
+      "selected_unit_ids": [
+        "pump-2"
+      ],
+      "selected_stream_ids": [
+        "feed-8",
+        "product-8"
+      ],
+      "diagnostic_summary": {
+        "error_count": 3,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Pump Suction is missing temperature and flow rate specifications.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-8"
+        },
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Pump Discharge is missing pressure specification.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "product-8"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Transfer Pump is missing outlet pressure target for the current transfer scenario.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "pump-2"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T16:20:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-same-risk-input-first-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-110\",\n        \"streams\": [\n          {\n            \"id\": \"feed-8\",\n            \"name\": \"Pump Suction\",\n            \"target_unit_id\": \"pump-2\",\n            \"specs\": {\n              \"pressure_kpa\": 190\n            }\n          },\n          {\n            \"id\": \"product-8\",\n            \"name\": \"Pump Discharge\",\n            \"source_unit_id\": \"pump-2\",\n            \"specs\": {\n              \"temperature_c\": 34\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"pump-2\",\n            \"kind\": \"Pump\",\n            \"name\": \"Transfer Pump\",\n            \"config\": {\n              \"efficiency_percent\": 88\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 49,\n    \"selected_unit_ids\": [\n      \"pump-2\"\n    ],\n    \"selected_stream_ids\": [\n      \"feed-8\",\n      \"product-8\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 3,\n      \"warning_count\": 0\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Pump Suction is missing temperature and flow rate specifications.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-8\"\n      },\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Pump Discharge is missing pressure specification.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"product-8\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_INCOMPLETE\",\n        \"message\": \"Transfer Pump is missing outlet pressure target for the current transfer scenario.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"pump-2\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_parameters\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-07T16:20:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "aeecce6c-3443-4511-beef-3db052b0a5c5",
+    "object": "chat.completion",
+    "created": 1777093603,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"request_id\": \"rf-suggest-edit-same-risk-input-first-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"summary\": \"已针对当前选中的泵单元 pump-2 及其进出料流 feed-8、product-8，根据诊断中的规格缺失与参数不完整问题生成了三条补全候选编辑。\",\n  \"issues\": [\n    {\n      \"id\": \"issue-1\",\n      \"title\": \"Pump Suction 流规格缺失\",\n      \"description\": \"流 feed-8 缺少温度和流量规格，这将导致质量与能量衡算无法闭合。\",\n      \"severity\": \"error\",\n      \"source_diagnostics\": [\"diag-0\"],\n      \"citations\": [\"diag-0\", \"flowdoc-stream-feed-8\", \"snapshot-1\"]\n    },\n    {\n      \"id\": \"issue-2\",\n      \"title\": \"Pump Discharge 流压力规格缺失\",\n      \"description\": \"流 product-8 缺少压力规格，泵出口工况无法确定。\",\n      \"severity\": \"error\",\n      \"source_diagnostics\": [\"diag-1\"],\n      \"citations\": [\"diag-1\", \"flowdoc-stream-product-8\", \"snapshot-1\"]\n    },\n    {\n      \"id\": \"issue-3\",\n      \"title\": \"Transfer Pump 出口压力目标未指定\",\n      \"description\": \"泵 pump-2 缺少出口压力目标，限制泵的性能曲线寻优。\",\n      \"severity\": \"error\",\n      \"source_diagnostics\": [\"diag-2\"],\n      \"citations\": [\"diag-2\", \"flowdoc-unit-pump-2\", \"snapshot-1\"]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"type\": \"candidate_edit\",\n      \"title\": \"为 Pump Suction 添加温度和流量规格占位符\",\n      \"target\": {\n        \"type\": \"stream\",\n        \"id\": \"feed-8\"\n      },\n      \"rationale\": \"诊断显示该流缺少温度和流量规格，这会导致求解失败。通过添加可审查的占位符，提示需要工程师补充数值。\",\n      \"patch\": {\n        \"spec_placeholders\": {\n          \"temperature_c\": null,\n          \"flow_rate_kg_h\": null\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-0\", \"flowdoc-stream-feed-8\", \"snapshot-1\"]\n    },\n    {\n      \"type\": \"candidate_edit\",\n      \"title\": \"为 Pump Discharge 添加压力规格占位符\",\n      \"target\": {\n        \"type\": \"stream\",\n        \"id\": \"product-8\"\n      },\n      \"rationale\": \"诊断显示该流缺少压力规格，无法确定泵出口压力。加入占位符以便审查并补全。\",\n      \"patch\": {\n        \"spec_placeholders\": {\n          \"pressure_kpa\": null\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-1\", \"flowdoc-stream-product-8\", \"snapshot-1\"]\n    },\n    {\n      \"type\": \"candidate_edit\",\n      \"title\": \"为 Transfer Pump 添加出口压力目标占位符\",\n      \"target\": {\n        \"type\": \"unit\",\n        \"id\": \"pump-2\"\n      },\n      \"rationale\": \"泵缺少出口压力目标，当前仅有效率配置。补充占位符可在不破坏现有配置的前提下引导工程师指定参数。\",\n      \"patch\": {\n        \"parameter_updates\": {\n          \"outlet_pressure_target_kpa\": null\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-2\", \"flowdoc-unit-pump-2\", \"snapshot-1\"]\n    }\n  ],\n  \"answers\": [\n    {\n      \"id\": \"answer-1\",\n      \"summary\": \"候选编辑：为泵和流添加缺失规格的占位符，最小可审查，未执行任何修改。\",\n      \"proposed_actions\": [\n        { \"title\": \"为 Pump Suction 添加温度和流量规格占位符\", \"target\": \"feed-8\" },\n        { \"title\": \"为 Pump Discharge 添加压力规格占位符\", \"target\": \"product-8\" },\n        { \"title\": \"为 Transfer Pump 添加出口压力目标占位符\", \"target\": \"pump-2\" }\n      ],\n      \"citations\": [\"diag-0\", \"diag-1\", \"diag-2\", \"snapshot-1\"]\n    }\n  ],\n  \"confidence\": 0.9,\n  \"requires_confirmation\": true\n}",
+          "reasoning_content": "我们被要求生成 CopilotResponse。需要从诊断和 flowsheet 文档中寻找最小可审查的候选编辑。诊断：feed-8 缺少温度和流量规格，product-8 缺少压力规格，pump-2 缺少出口压力目标。流：feed-8 目标 unit pump-2，当前规格仅 pressure_kpa 190。product-8 源 unit pump-2，规格仅 temperature_c 34。泵 pump-2 效率 88。我们不能改变拓扑，只添加缺失的规格。对于 feed-8，补全温度和流量。对于 product-8，补全压力。对于泵，可能需要在配置中添加出口压力设定（如 outlet_pressure_target）。这些是规格补全，风险中等。要求确认。我们将制作三条候选编辑。每条包含 target, rationale, patch, risk_level (medium), requires_confirmation true。引用诊断和对象。我们需要 citations 顺序：诊断在前，然后目标 artifact，然后是快照。可能每条 candidate_edit 可以有引用。answers 将列出候选编辑。summary 说明围绕选中的 pump-2 及其流。issues 列出诊断发现。confidence 0.9。需要 status \"partial\"，因为诊断显示错误，补全后可能完整。但我们提供了补全补丁，status 可以 \"partial\" 或 \"ready\"，这里因为有多条诊断，补全后可能求解，status \"partial\" 较合适。proposed_actions 数组。需要确保每条包含 title, target, rationale, patch, risk_level, requires_confirmation。target 指向流或单元。patch 使用 spec_placeholders 或 parameter_updates。参考格式：对于流，我们可以用 spec_placeholders 添加缺失字段，设为 placeholder（如 \"to_be_specified\" 或 null）？但工单要求 \"最小、可审查、非执行式\" 的 patch，可以添加占位符。使用 spec_placeholders: { temperature_c: null, flow_rate_kg_h: null } 和 { pressure_kpa: null }。对于泵，parameter_placeholders: { outlet_pressure_target_kpa: null }。这样给审查者提示需要填写。或者用 parameter_updates: { outlet_pressure_target_kpa: \"REQUIRED\" }。但 placeholder 更合适。如此，风险 medium。citations：对于 feed-8，引用 diag-0（代码 STREAM_SPEC_MISSING target feed-8），artifact flowdoc-stream-feed-8，snapshot-1。由于我们定义了 artifacts 的 id 吗？没有明确，但我们可以用 stream id。使用字符串 \"diag-0\", \"flowdoc-stream-feed-8\", \"snapshot-1\"。其他类似。顺序按诊断在前。我们需要输出 JSON。不要额外解释。构建响应。{\n  \"request_id\": \"rf-suggest-edit-same-risk-input-first-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"summary\": \"已针对当前选中的泵单元 pump-2 及其进出料流 feed-8、product-8，根据诊断中的规格缺失与参数不完整问题生成了三条补全候选编辑。\",\n  \"issues\": [\n    {\n      \"id\": \"issue-1\",\n      \"title\": \"Pump Suction 流规格缺失\",\n      \"description\": \"流 feed-8 缺少温度和流量规格，这将导致质量与能量衡算无法闭合。\",\n      \"severity\": \"error\",\n      \"source_diagnostics\": [\"diag-0\"],\n      \"citations\": [\"diag-0\", \"flowdoc-stream-feed-8\", \"snapshot-1\"]\n    },\n    {\n      \"id\": \"issue-2\",\n      \"title\": \"Pump Discharge 流压力规格缺失\",\n      \"description\": \"流 product-8 缺少压力规格，泵出口工况无法确定。\",\n      \"severity\": \"error\",\n      \"source_diagnostics\": [\"diag-1\"],\n      \"citations\": [\"diag-1\", \"flowdoc-stream-product-8\", \"snapshot-1\"]\n    },\n    {\n      \"id\": \"issue-3\",\n      \"title\": \"Transfer Pump 出口压力目标未指定\",\n      \"description\": \"泵 pump-2 缺少出口压力目标，限制泵的性能曲线寻优。\",\n      \"severity\": \"error\",\n      \"source_diagnostics\": [\"diag-2\"],\n      \"citations\": [\"diag-2\", \"flowdoc-unit-pump-2\", \"snapshot-1\"]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"type\": \"candidate_edit\",\n      \"title\": \"为 Pump Suction 添加温度和流量规格占位符\",\n      \"target\": {\n        \"type\": \"stream\",\n        \"id\": \"feed-8\"\n      },\n      \"rationale\": \"诊断显示该流缺少温度和流量规格，这会导致求解失败。通过添加可审查的占位符，提示需要工程师补充数值。\",\n      \"patch\": {\n        \"spec_placeholders\": {\n          \"temperature_c\": null,\n          \"flow_rate_kg_h\": null\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-0\", \"flowdoc-stream-feed-8\", \"snapshot-1\"]\n    },\n    {\n      \"type\": \"candidate_edit\",\n      \"title\": \"为 Pump Discharge 添加压力规格占位符\",\n      \"target\": {\n        \"type\": \"stream\",\n        \"id\": \"product-8\"\n      },\n      \"rationale\": \"诊断显示该流缺少压力规格，无法确定泵出口压力。加入占位符以便审查并补全。\",\n      \"patch\": {\n        \"spec_placeholders\": {\n          \"pressure_kpa\": null\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-1\", \"flowdoc-stream-product-8\", \"snapshot-1\"]\n    },\n    {\n      \"type\": \"candidate_edit\",\n      \"title\": \"为 Transfer Pump 添加出口压力目标占位符\",\n      \"target\": {\n        \"type\": \"unit\",\n        \"id\": \"pump-2\"\n      },\n      \"rationale\": \"泵缺少出口压力目标，当前仅有效率配置。补充占位符可在不破坏现有配置的前提下引导工程师指定参数。\",\n      \"patch\": {\n        \"parameter_updates\": {\n          \"outlet_pressure_target_kpa\": null\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true,\n      \"citations\": [\"diag-2\", \"flowdoc-unit-pump-2\", \"snapshot-1\"]\n    }\n  ],\n  \"answers\": [\n    {\n      \"id\": \"answer-1\",\n      \"summary\": \"候选编辑：为泵和流添加缺失规格的占位符，最小可审查，未执行任何修改。\",\n      \"proposed_actions\": [\n        { \"title\": \"为 Pump Suction 添加温度和流量规格占位符\", \"target\": \"feed-8\" },\n        { \"title\": \"为 Pump Discharge 添加压力规格占位符\", \"target\": \"product-8\" },\n        { \"title\": \"为 Transfer Pump 添加出口压力目标占位符\", \"target\": \"pump-2\" }\n      ],\n      \"citations\": [\"diag-0\", \"diag-1\", \"diag-2\", \"snapshot-1\"]\n    }\n  ],\n  \"confidence\": 0.9,\n  \"requires_confirmation\": true\n}注意：诊断索引从 0 开始。diag-0 为 STREAM_SPEC_MISSING feed-8，diag-1 为 STREAM_SPEC_MISSING product-8，diag-2 为 UNIT_PARAMETER_INCOMPLETE pump-2。使用这些 ID。citations 中添加 \"snapshot-1\"。patch 中 parameter_updates 用于泵，但也可用 parameter_placeholders，但参数更新更准确，可以空值。用 parameter_updates 没问题。需要保证风险级别 medium，不是 high。没有拓扑更改。确认。输出纯 JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1327,
+      "completion_tokens": 2865,
+      "total_tokens": 4192,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1793
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 815
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "summary": "已针对当前选中的泵单元 pump-2 及其进出料流 feed-8、product-8，根据诊断中的规格缺失与参数不完整问题生成了三条补全候选编辑。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Pump Suction is missing temperature and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Pump Discharge is missing pressure specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Transfer Pump is missing outlet pressure target for the current transfer scenario.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Pump Suction 添加温度和流量规格占位符",
+        "rationale": "诊断显示该流缺少温度和流量规格，这会导致求解失败。通过添加可审查的占位符，提示需要工程师补充数值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-8"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Pump Discharge 添加压力规格占位符",
+        "rationale": "诊断显示该流缺少压力规格，无法确定泵出口压力。加入占位符以便审查并补全。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "product-8"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Transfer Pump 添加出口压力目标占位符",
+        "rationale": "泵缺少出口压力目标，当前仅有效率配置。补充占位符可在不破坏现有配置的前提下引导工程师指定参数。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "pump-2"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_pressure_target_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "候选编辑：为泵和流添加缺失规格的占位符，最小可审查，未执行任何修改。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "confidence": 0.9,
+    "requires_confirmation": true,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Pump Suction is missing temperature and flow rate specifications."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Pump Discharge is missing pressure specification."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Transfer Pump is missing outlet pressure target for the current transfer scenario."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-8",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-8 Pump Suction target_unit_id=pump-2"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-8",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-8 Pump Discharge source_unit_id=pump-2"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / pump-2",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "pump-2 Transfer Pump kind=Pump"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "medium"
+  }
+}

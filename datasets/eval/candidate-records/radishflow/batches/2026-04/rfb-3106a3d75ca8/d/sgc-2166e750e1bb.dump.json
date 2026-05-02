@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-heater-flash-outlet-latest-skip-after-reject-no-retab-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-latest-skip-after-reject-no-retab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-latest-skip-after-reject-no-retab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-latest-skip-after-reject-no-retab-001",
+  "captured_at": "2026-04-23T11:59:25Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-latest-action-precedence"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v16-remaining-latest-action-precedence",
+    "notes": "v16 remaining latest-action precedence expansion."
+  },
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 69,
+    "selected_unit_ids": [
+      "heater-9"
+    ],
+    "legal_candidate_refs": [
+      "cand-heater-9-outlet-flash-30"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-latest-skip-after-reject-no-retab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-260",
+          "streams": [
+            {
+              "id": "feed-608",
+              "name": "F-608",
+              "target_unit_id": "heater-9"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-608-unit",
+              "kind": "Feed",
+              "name": "Feed 608"
+            },
+            {
+              "id": "heater-9",
+              "kind": "Heater",
+              "name": "Feed Heater 608"
+            },
+            {
+              "id": "flash-30",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 608"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 69,
+      "selected_unit_ids": [
+        "heater-9"
+      ],
+      "selected_unit": {
+        "id": "heater-9",
+        "kind": "Heater",
+        "name": "Feed Heater 608"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-30.inlet",
+          "distance_px": 59,
+          "alignment_score": 0.95,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-heater-9-outlet-flash-30",
+          "ghost_kind": "ghost_connection",
+          "target_port_key": "outlet",
+          "target_unit_id": "heater-9",
+          "target_node_id": "flash-30.inlet",
+          "suggested_stream_name": "H-608",
+          "ranking_signals": {
+            "distance_px": 59,
+            "alignment_score": 0.95,
+            "topology_score": 0.94,
+            "score_gap_to_next": 0.33,
+            "template_frequency": 0.86
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "608",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "recent_skip_cooldown_active",
+            "manual_reselection_required",
+            "older_same_candidate_feedback_present"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-608-to-heater-9-inlet",
+            "accepted_at_revision": 65
+          },
+          {
+            "kind": "reject_ghost_completion",
+            "candidate_ref": "cand-heater-9-outlet-flash-30",
+            "rejected_at_revision": 67
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-heater-9-outlet-flash-30",
+            "skipped_at_revision": 68
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-608"
+        ],
+        "existing_stream_names": [
+          "F-608"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "608"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "recent_same_candidate_latest_action_keeps_manual_reselect"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-chat",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-heater-flash-outlet-latest-skip-after-reject-no-retab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-260\",\n        \"streams\": [\n          {\n            \"id\": \"feed-608\",\n            \"name\": \"F-608\",\n            \"target_unit_id\": \"heater-9\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-608-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 608\"\n          },\n          {\n            \"id\": \"heater-9\",\n            \"kind\": \"Heater\",\n            \"name\": \"Feed Heater 608\"\n          },\n          {\n            \"id\": \"flash-30\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 608\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 69,\n    \"selected_unit_ids\": [\n      \"heater-9\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"heater-9\",\n      \"kind\": \"Heater\",\n      \"name\": \"Feed Heater 608\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-30.inlet\",\n        \"distance_px\": 59,\n        \"alignment_score\": 0.95,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-heater-9-outlet-flash-30\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_port_key\": \"outlet\",\n        \"target_unit_id\": \"heater-9\",\n        \"target_node_id\": \"flash-30.inlet\",\n        \"suggested_stream_name\": \"H-608\",\n        \"ranking_signals\": {\n          \"distance_px\": 59,\n          \"alignment_score\": 0.95,\n          \"topology_score\": 0.94,\n          \"score_gap_to_next\": 0.33,\n          \"template_frequency\": 0.86\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"H\",\n          \"numeric_suffix\": \"608\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"recent_skip_cooldown_active\",\n          \"manual_reselection_required\",\n          \"older_same_candidate_feedback_present\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-608-to-heater-9-inlet\",\n          \"accepted_at_revision\": 65\n        },\n        {\n          \"kind\": \"reject_ghost_completion\",\n          \"candidate_ref\": \"cand-heater-9-outlet-flash-30\",\n          \"rejected_at_revision\": 67\n        },\n        {\n          \"kind\": \"skip_ghost_completion\",\n          \"candidate_ref\": \"cand-heater-9-outlet-flash-30\",\n          \"skipped_at_revision\": 68\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-608\"\n      ],\n      \"existing_stream_names\": [\n        \"F-608\"\n      ],\n      \"preferred_outlet_prefix\": \"H\",\n      \"numeric_suffix_from_unit\": \"608\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_heater_flash_chain\",\n      \"heater_outlet_to_flash_inlet_after_feed_connection\",\n      \"recent_same_candidate_latest_action_keeps_manual_reselect\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "a5ab9bce-1d25-4120-9c4e-7b30d50dd7bd",
+    "object": "chat.completion",
+    "created": 1776945559,
+    "model": "deepseek-chat",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-heater-flash-outlet-latest-skip-after-reject-no-retab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"answers\": [\n    {\n      \"summary\": \"当前未给出 ghost 建议。唯一候选 cand-heater-9-outlet-flash-30 因近期被拒绝和跳过，且冲突标记要求手动重新选择，不满足高置信条件，因此不提供自动补全。\",\n      \"issues\": [\n        {\n          \"severity\": \"warning\",\n          \"title\": \"候选被近期拒绝/跳过，需手动重新选择\",\n          \"description\": \"候选 cand-heater-9-outlet-flash-30 在 revision 67 被拒绝、revision 68 被跳过，且冲突标记包含 recent_skip_cooldown_active 和 manual_reselection_required，无法自动建议。\",\n          \"suggested_resolution\": \"用户可手动选择该候选进行连接。\"\n        }\n      ],\n      \"proposed_actions\": []\n    }\n  ]\n}"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1483,
+      "completion_tokens": 254,
+      "total_tokens": 1737,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 1483
+    },
+    "system_fingerprint": "fp_058df29938_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "当前未给出 ghost 建议。唯一候选 cand-heater-9-outlet-flash-30 因近期被拒绝和跳过，且冲突标记要求手动重新选择，不满足高置信条件，因此不提供自动补全。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 heater-9 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-9",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-9-outlet-flash-30",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-608"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-9-outlet-flash-30"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-9",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-9 kind=Heater name=Feed Heater 608"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-heater-9-outlet-flash-30",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-9-outlet-flash-30 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-608\"], \"existing_stream_names\": [\"F-608\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"608\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[2]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-heater-9-outlet-flash-30\", \"skipped_at_revision\": 68}"
+      }
+    ],
+    "summary": "当前未给出 ghost 建议。唯一候选 cand-heater-9-outlet-flash-30 因近期被拒绝和跳过，且冲突标记要求手动重新选择，不满足高置信条件，因此不提供自动补全。",
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  }
+}

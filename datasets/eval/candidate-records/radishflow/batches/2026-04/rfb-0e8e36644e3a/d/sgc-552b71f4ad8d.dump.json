@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+  "request_id": "rf-suggest-ghost-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+  "captured_at": "2026-04-21T12:44:56Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v10-chain-recovery-boundaries",
+    "notes": "v10 chain expansion beyond the fixed trio, focusing on cooldown recovery, mixed-history empty boundary, and other-candidate non-spill recovery."
+  },
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 99,
+    "selected_unit_ids": [
+      "flash-49"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-49-vapor-outlet"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-250",
+          "streams": [
+            {
+              "id": "feed-516",
+              "name": "F-516",
+              "target_unit_id": "valve-17"
+            },
+            {
+              "id": "v-516",
+              "name": "V-516",
+              "source_unit_id": "valve-17",
+              "target_unit_id": "flash-49"
+            }
+          ],
+          "units": [
+            {
+              "id": "valve-17",
+              "kind": "Valve",
+              "name": "Throttle Valve 516"
+            },
+            {
+              "id": "flash-49",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 516"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 99,
+      "selected_unit_ids": [
+        "flash-49"
+      ],
+      "selected_unit": {
+        "id": "flash-49",
+        "kind": "FlashDrum",
+        "name": "Flash Drum 516"
+      },
+      "unconnected_ports": [
+        "vapor_outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-49-vapor-outlet",
+          "ghost_kind": "ghost_connection",
+          "target_port_key": "vapor_outlet",
+          "target_unit_id": "flash-49",
+          "suggested_stream_name": "VG-516",
+          "ranking_signals": {
+            "distance_px": 60,
+            "alignment_score": 0.96,
+            "topology_score": 0.95,
+            "score_gap_to_next": 0.36,
+            "template_frequency": 0.88
+          },
+          "naming_signals": {
+            "applied_prefix": "VG",
+            "numeric_suffix": "516",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "is_high_confidence": true,
+          "is_tab_default": true
+        }
+      ],
+      "nearby_nodes": [
+        {
+          "type": "stream_stub",
+          "id": "flash-49-vapor-lane",
+          "distance_px": 60,
+          "alignment_score": 0.96,
+          "direction": "downstream"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-516-to-valve-17-inlet",
+            "accepted_at_revision": 94
+          },
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-valve-17-outlet-flash-49",
+            "accepted_at_revision": 95
+          },
+          {
+            "kind": "dismiss_ghost_completion",
+            "candidate_ref": "cand-flash-49-vapor-outlet",
+            "dismissed_at_revision": 96
+          },
+          {
+            "kind": "skip_ghost_completion",
+            "candidate_ref": "cand-flash-49-vapor-outlet",
+            "skipped_at_revision": 97
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "V-516"
+        ],
+        "existing_stream_names": [
+          "F-516",
+          "V-516"
+        ],
+        "preferred_prefix_by_port": {
+          "vapor_outlet": "VG"
+        },
+        "numeric_suffix_from_unit": "516"
+      },
+      "topology_pattern_hints": [
+        "feed_valve_flash_chain",
+        "flash_split_after_valve_outlet_connection",
+        "recent_latest_same_candidate_skip_cooldown_elapsed_overrides_older_dismiss"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gpt-5.4",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-250\",\n        \"streams\": [\n          {\n            \"id\": \"feed-516\",\n            \"name\": \"F-516\",\n            \"target_unit_id\": \"valve-17\"\n          },\n          {\n            \"id\": \"v-516\",\n            \"name\": \"V-516\",\n            \"source_unit_id\": \"valve-17\",\n            \"target_unit_id\": \"flash-49\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"valve-17\",\n            \"kind\": \"Valve\",\n            \"name\": \"Throttle Valve 516\"\n          },\n          {\n            \"id\": \"flash-49\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 516\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 99,\n    \"selected_unit_ids\": [\n      \"flash-49\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"flash-49\",\n      \"kind\": \"FlashDrum\",\n      \"name\": \"Flash Drum 516\"\n    },\n    \"unconnected_ports\": [\n      \"vapor_outlet\"\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-flash-49-vapor-outlet\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_port_key\": \"vapor_outlet\",\n        \"target_unit_id\": \"flash-49\",\n        \"suggested_stream_name\": \"VG-516\",\n        \"ranking_signals\": {\n          \"distance_px\": 60,\n          \"alignment_score\": 0.96,\n          \"topology_score\": 0.95,\n          \"score_gap_to_next\": 0.36,\n          \"template_frequency\": 0.88\n        },\n        \"naming_signals\": {\n          \"applied_prefix\": \"VG\",\n          \"numeric_suffix\": \"516\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"is_high_confidence\": true,\n        \"is_tab_default\": true\n      }\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"stream_stub\",\n        \"id\": \"flash-49-vapor-lane\",\n        \"distance_px\": 60,\n        \"alignment_score\": 0.96,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-516-to-valve-17-inlet\",\n          \"accepted_at_revision\": 94\n        },\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-valve-17-outlet-flash-49\",\n          \"accepted_at_revision\": 95\n        },\n        {\n          \"kind\": \"dismiss_ghost_completion\",\n          \"candidate_ref\": \"cand-flash-49-vapor-outlet\",\n          \"dismissed_at_revision\": 96\n        },\n        {\n          \"kind\": \"skip_ghost_completion\",\n          \"candidate_ref\": \"cand-flash-49-vapor-outlet\",\n          \"skipped_at_revision\": 97\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"V-516\"\n      ],\n      \"existing_stream_names\": [\n        \"F-516\",\n        \"V-516\"\n      ],\n      \"preferred_prefix_by_port\": {\n        \"vapor_outlet\": \"VG\"\n      },\n      \"numeric_suffix_from_unit\": \"516\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_valve_flash_chain\",\n      \"flash_split_after_valve_outlet_connection\",\n      \"recent_latest_same_candidate_skip_cooldown_elapsed_overrides_older_dismiss\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_cx",
+    "provider_profile_env": "APIYI_CX",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-ae1d6423-fcb5-4275-aba1-2d80d5cc91ed",
+    "object": "chat.completion",
+    "created": 1776775484,
+    "model": "gpt-5.4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-valve-flash-outlet-tab-after-latest-skip-cooldown-with-older-dismiss-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"requires_confirmation\": false,\n  \"summary\": \"给出 1 条 ghost 补全建议，可直接以 Tab 接受。\",\n  \"answers\": [\n    {\n      \"answer_id\": \"answer-1\",\n      \"status\": \"complete\",\n      \"summary\": \"建议为 Flash Drum 516 的 vapor_outlet 添加气相出口流股 VG-516。\",\n      \"citations\": [\n        {\n          \"source\": \"context.selected_unit\"\n        },\n        {\n          \"source\": \"context.unconnected_ports\"\n        },\n        {\n          \"source\": \"context.legal_candidate_completions[0]\"\n        },\n        {\n          \"source\": \"context.cursor_context.recent_actions\"\n        },\n        {\n          \"source\": \"context.topology_pattern_hints\"\n        }\n      ],\n      \"proposed_actions\": [\n        {\n          \"action_type\": \"ghost_completion\",\n          \"title\": \"补全 Flash Drum 516 的气相出口流股\",\n          \"target\": {\n            \"unit_id\": \"flash-49\",\n            \"port_key\": \"vapor_outlet\",\n            \"candidate_ref\": \"cand-flash-49-vapor-outlet\"\n          },\n          \"rationale\": \"当前所选单元 flash-49 的 vapor_outlet 处于未连接状态，且唯一合法候选为 cand-flash-49-vapor-outlet。该候选具备高置信度与默认 Tab 条件：is_high_confidence=true、is_tab_default=true，且对齐与拓扑信号较强，并复用现有 516 命名模式生成 VG-516。最近同候选虽曾被 dismiss 与 skip，但拓扑提示表明 latest same candidate skip 的冷却已过，可覆盖更早 dismiss。\",\n          \"patch\": {\n            \"candidate_ref\": \"cand-flash-49-vapor-outlet\",\n            \"ghost_kind\": \"ghost_connection\",\n            \"target_unit_id\": \"flash-49\",\n            \"target_port_key\": \"vapor_outlet\",\n            \"suggested_stream_name\": \"VG-516\"\n          },\n          \"preview\": {\n            \"mode\": \"inline\",\n            \"accept_key\": \"Tab\",\n            \"label\": \"VG-516\"\n          },\n          \"apply\": {\n            \"command_kind\": \"accept_ghost_completion\",\n            \"candidate_ref\": \"cand-flash-49-vapor-outlet\"\n          },\n          \"risk_level\": \"low\",\n          \"requires_confirmation\": false\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1419,
+      "completion_tokens": 600,
+      "total_tokens": 2019
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "requires_confirmation": false,
+    "summary": "给出 1 条 ghost 补全建议，可直接以 Tab 接受。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "建议为 Flash Drum 516 的 vapor_outlet 添加气相出口流股 VG-516。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 flash-49 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-49",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-49-vapor-outlet",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-516"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-49-vapor-outlet"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-49",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-49 kind=FlashDrum name=Flash Drum 516"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-49-vapor-outlet",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-49-vapor-outlet target_port_key=vapor_outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"V-516\"], \"existing_stream_names\": [\"F-516\", \"V-516\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\"}, \"numeric_suffix_from_unit\": \"516\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[3]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-flash-49-vapor-outlet\", \"skipped_at_revision\": 97}"
+      }
+    ],
+    "risk_level": "low",
+    "confidence": 0.93
+  }
+}

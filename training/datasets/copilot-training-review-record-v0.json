@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "copilot_training_review_record",
+  "review_id": "copilot-training-review-record-v0",
+  "status": "planned",
+  "governance_manifest": "training/datasets/copilot-training-dataset-governance-v0.json",
+  "created_for": "teacher-student-distillation",
+  "does_not_generate_jsonl": true,
+  "does_not_run_models": true,
+  "record_template": {
+    "sample_id": "required",
+    "source": "golden_response | teacher_capture | holdout_eval_sample",
+    "source_eval_sample": "datasets/eval/<project>/<sample>.json",
+    "source_record": "optional candidate response record path",
+    "strata": {
+      "project": "required",
+      "task": "required",
+      "source": "required",
+      "provider": "required_or_not_applicable",
+      "model": "required_or_not_applicable",
+      "risk_level": "required",
+      "requires_confirmation": "required",
+      "coverage_tags": [],
+      "batch_id": "required_or_not_applicable"
+    },
+    "review_status": "pending_review",
+    "review_dimensions": {
+      "schema_validity": "pending",
+      "task_relevance": "pending",
+      "citation_alignment": "pending",
+      "risk_level_correctness": "pending",
+      "requires_confirmation_preservation": "pending",
+      "advisory_only_boundary": "pending",
+      "duplicate_or_near_duplicate_check": "pending",
+      "source_traceability": "pending",
+      "offline_eval_holdout_leakage": "pending"
+    },
+    "holdout_role": "none | offline_eval_holdout",
+    "exit_reason": null,
+    "review_notes": []
+  },
+  "planned_review_batches": [
+    {
+      "review_batch_id": "seed-golden-response-full-review-v0",
+      "source": "golden_response",
+      "conversion_manifest": "scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json",
+      "conversion_summary": "scripts/checks/fixtures/copilot-training-sample-conversion-summary.json",
+      "review_status": "pending_review",
+      "manual_review_ratio": 1.0,
+      "expected_training_sample_count": 9,
+      "minimum_reviewed_records": 9,
+      "review_reason": "Current golden_response seed set is small and must remain fully reviewable before larger JSONL generation."
+    },
+    {
+      "review_batch_id": "seed-teacher-capture-full-review-v0",
+      "source": "teacher_capture",
+      "conversion_manifest": "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json",
+      "conversion_summary": "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-summary.json",
+      "review_status": "pending_review",
+      "manual_review_ratio": 1.0,
+      "expected_training_sample_count": 9,
+      "minimum_reviewed_records": 9,
+      "review_reason": "Current teacher_capture seed set comes from audit pass records but still requires full human review before larger training use."
+    },
+    {
+      "review_batch_id": "offline-eval-holdout-leakage-review-v0",
+      "source": "holdout_eval_sample",
+      "holdout_manifest": "training/datasets/copilot-training-holdout-split-v0.json",
+      "review_status": "pending_review",
+      "manual_review_ratio": 1.0,
+      "expected_training_sample_count": 0,
+      "minimum_reviewed_records": 9,
+      "review_reason": "Holdout samples must be reviewed for source traceability and leakage before any training split is generated."
+    }
+  ],
+  "planned_review_dimensions": [
+    "schema_validity",
+    "task_relevance",
+    "citation_alignment",
+    "risk_level_correctness",
+    "requires_confirmation_preservation",
+    "advisory_only_boundary",
+    "duplicate_or_near_duplicate_check",
+    "source_traceability",
+    "offline_eval_holdout_leakage"
+  ],
+  "allowed_review_statuses": [
+    "not_required_seed_fixture",
+    "pending_review",
+    "sampled_for_review",
+    "reviewed_pass",
+    "reviewed_changes_required",
+    "rejected",
+    "deprecated"
+  ],
+  "completion_rule": "Do not mark a planned review batch as reviewed_pass until every selected record has a concrete reviewer, timestamp, dimension results, and leakage decision.",
+  "artifact_policy": {
+    "committed_allowed": [
+      "review_record",
+      "summary",
+      "manifest"
+    ],
+    "committed_disallowed": [
+      "large_jsonl",
+      "model_weights",
+      "checkpoint",
+      "adapter_binary",
+      "provider_raw_dump"
+    ]
+  }
+}

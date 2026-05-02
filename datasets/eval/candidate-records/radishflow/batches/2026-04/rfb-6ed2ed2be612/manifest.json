@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-21-radishflow-ghost-poc-real-v15-reject-and-skip-cooldown-recovery",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-6ed2ed2be612",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-latest-skip-cooldown-with-older-reject-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-6ed2ed2be612/r/sgc-368de4c678e4.record.json",
+      "sample_key": "sgc-368de4c678e4",
+      "record_relpath": "r/sgc-368de4c678e4.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-6ed2ed2be612/r/sgc-4f3ad94bc81b.record.json",
+      "sample_key": "sgc-4f3ad94bc81b",
+      "record_relpath": "r/sgc-4f3ad94bc81b.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-latest-reject-cooldown-with-older-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-6ed2ed2be612/r/sgc-9878692fa143.record.json",
+      "sample_key": "sgc-9878692fa143",
+      "record_relpath": "r/sgc-9878692fa143.record.json"
+    }
+  ],
+  "batch_key": "rfb-6ed2ed2be612",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion 第十五批真实 provider 候选响应快照，继续扩固定 trio 之外的高价值链式样本，覆盖 valve / heater 模板上 latest reject cooldown 已过且 older dismiss 不再阻止 Tab 恢复，以及 cooler 模板上 latest skip cooldown 已过的恢复语义。"
+}

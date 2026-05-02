@@ -195,6 +195,19 @@ def normalize_text(value: Any) -> str:
     return re.sub(r"\s+", " ", json.dumps(value, ensure_ascii=False)).strip()
 
 
+def extract_embedded_summary_text(value: Any) -> str:
+    normalized_value = normalize_text(value)
+    if not normalized_value or not normalized_value.startswith("{") or not normalized_value.endswith("}"):
+        return ""
+    try:
+        parsed = json.loads(normalized_value)
+    except json.JSONDecodeError:
+        return ""
+    if not isinstance(parsed, dict):
+        return ""
+    return normalize_text(parsed.get("summary"))
+
+
 def artifact_content_text(artifact: dict[str, Any]) -> str:
     if "content" not in artifact:
         return ""
@@ -416,16 +429,6 @@ def build_suggest_edits_context_citations(copilot_request: dict[str, Any]) -> li
         flowdoc_content = primary_flowdoc.get("content") or {}
         units = list(flowdoc_content.get("units") or [])
         streams = list(flowdoc_content.get("streams") or [])
-        stream_id_to_entry = {
-            str((stream or {}).get("id") or "").strip(): (stream_index, stream)
-            for stream_index, stream in enumerate(streams)
-            if isinstance(stream, dict) and str((stream or {}).get("id") or "").strip()
-        }
-        unit_id_to_entry = {
-            str((unit or {}).get("id") or "").strip(): (unit_index, unit)
-            for unit_index, unit in enumerate(units)
-            if isinstance(unit, dict) and str((unit or {}).get("id") or "").strip()
-        }
         ordered_targets: list[tuple[str, str]] = []
         for diagnostic in context.get("diagnostics") or []:
             if not isinstance(diagnostic, dict):
@@ -1100,6 +1103,28 @@ def make_mock_ghost_completion_response(copilot_request: dict[str, Any]) -> dict
                 "citation_ids": [citation_id for citation_id in citation_ids if citation_id in {"ctx-candidate-1", "ctx-naming-hints", "ctx-unit"}] or citation_ids[:2],
             }
         )
+        secondary_candidates = [
+            candidate
+            for candidate in legal_candidates
+            if str(candidate.get("candidate_ref") or "").strip()
+            and str(candidate.get("candidate_ref") or "").strip()
+            != str(primary_candidate.get("candidate_ref") or "").strip()
+        ]
+        if secondary_candidates:
+            actions.append(
+                build_ghost_completion_action(
+                    secondary_candidates[0],
+                    action_index=2,
+                    accept_key="manual_only",
+                    risk_level="low",
+                    citation_ids=[
+                        citation_id
+                        for citation_id in citation_ids
+                        if citation_id in {"ctx-unit", "ctx-candidate-2", "ctx-naming-hints", "ctx-pattern"}
+                    ]
+                    or citation_ids[:2],
+                )
+            )
         summary = f"{selected_unit_id or '当前单元'} 当前最适合作为默认 ghost 的候选已明确，可优先渲染首条 `Tab` 建议。"
         confidence = 0.93
         risk_level = "low"

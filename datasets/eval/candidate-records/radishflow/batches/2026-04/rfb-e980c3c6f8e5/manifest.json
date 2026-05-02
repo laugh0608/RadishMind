@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v18-remaining-basic-no-retab-and-cooldown",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-e980c3c6f8e5",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-skip-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-e980c3c6f8e5/r/sgc-c2c8661acd31.record.json",
+      "sample_key": "sgc-c2c8661acd31",
+      "record_relpath": "r/sgc-c2c8661acd31.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-skip-cooldown-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-e980c3c6f8e5/r/sgc-450687e6f30d.record.json",
+      "sample_key": "sgc-450687e6f30d",
+      "record_relpath": "r/sgc-450687e6f30d.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-reject-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-reject-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-e980c3c6f8e5/r/sgc-00c13c9f9bb4.record.json",
+      "sample_key": "sgc-00c13c9f9bb4",
+      "record_relpath": "r/sgc-00c13c9f9bb4.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-reject-cooldown-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-e980c3c6f8e5/r/sgc-568bcdcd8402.record.json",
+      "sample_key": "sgc-568bcdcd8402",
+      "record_relpath": "r/sgc-568bcdcd8402.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-dismiss-no-retab-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-dismiss-no-retab-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-e980c3c6f8e5/r/sgc-ee69c917ae7a.record.json",
+      "sample_key": "sgc-ee69c917ae7a",
+      "record_relpath": "r/sgc-ee69c917ae7a.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlet-tab-after-dismiss-cooldown-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-e980c3c6f8e5/r/sgc-6d9993bca6a3.record.json",
+      "sample_key": "sgc-6d9993bca6a3",
+      "record_relpath": "r/sgc-6d9993bca6a3.record.json"
+    }
+  ],
+  "batch_key": "rfb-e980c3c6f8e5",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion v18 remaining basic no-retab and cooldown 真实 capture 批次。"
+}

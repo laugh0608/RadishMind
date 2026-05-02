@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "kind": "copilot_training_sample_conversion_manifest",
+  "created_for": "teacher-student-distillation",
+  "selection": [
+    {
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "selection_reason": "Covers reconnect, multi-selection focus, and citation/action ordering boundaries.",
+      "samples": [
+        {
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+          "coverage_tags": [
+            "candidate_edit",
+            "citation_alignment",
+            "requires_confirmation"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-multi-selection-single-actionable-target-001.json",
+          "coverage_tags": [
+            "selection_focus",
+            "advisory_boundary"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-warning-citation-ordering-001.json",
+          "coverage_tags": [
+            "citation_ordering",
+            "action_filtering"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "selection_reason": "Covers default Tab, ambiguous manual-only, and empty candidate boundaries.",
+      "samples": [
+        {
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-flash-vapor-outlet-001.json",
+          "coverage_tags": [
+            "tab_default",
+            "candidate_ranking"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-valve-ambiguous-no-tab-001.json",
+          "coverage_tags": [
+            "manual_only",
+            "advisory_boundary"
+          ]
+        },
+        {
+          "path": "datasets/eval/radishflow/suggest-ghost-completion-context-gap-none-001.json",
+          "coverage_tags": [
+            "empty_candidates",
+            "risk_confirmation"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "radish",
+      "task": "answer_docs_question",
+      "selection_reason": "Covers direct official docs answer, evidence gap, and mixed official source precedence.",
+      "samples": [
+        {
+          "path": "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
+          "coverage_tags": [
+            "official_source",
+            "direct_answer"
+          ]
+        },
+        {
+          "path": "datasets/eval/radish/answer-docs-question-evidence-gap-001.json",
+          "coverage_tags": [
+            "evidence_gap",
+            "risk_confirmation"
+          ]
+        },
+        {
+          "path": "datasets/eval/radish/answer-docs-question-docs-faq-forum-conflict-001.json",
+          "coverage_tags": [
+            "source_conflict",
+            "retrieval_scope"
+          ]
+        }
+      ]
+    }
+  ]
+}

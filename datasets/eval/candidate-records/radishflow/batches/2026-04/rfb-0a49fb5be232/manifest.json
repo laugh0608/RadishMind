@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-26-radishflow-suggest-edits-poc-real-v91-high-value-composite-drift",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-evidence-gap-partial-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/r/sfe-20b584ec036f.record.json",
+      "sample_key": "sfe-20b584ec036f",
+      "record_relpath": "r/sfe-20b584ec036f.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-citation-interleaving-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-citation-interleaving-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/r/sfe-cdd128806fd3.record.json",
+      "sample_key": "sfe-cdd128806fd3",
+      "record_relpath": "r/sfe-cdd128806fd3.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-compressor-mixed-parameter-patch-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/r/sfe-ee5994073c59.record.json",
+      "sample_key": "sfe-ee5994073c59",
+      "record_relpath": "r/sfe-ee5994073c59.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-pump-update-plus-separator-placeholder-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/r/sfe-f446bbc4c0af.record.json",
+      "sample_key": "sfe-f446bbc4c0af",
+      "record_relpath": "r/sfe-f446bbc4c0af.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-heater-multi-action-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/r/sfe-290019393cff.record.json",
+      "sample_key": "sfe-290019393cff",
+      "record_relpath": "r/sfe-290019393cff.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-stream-spec-sequence-ordering-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-0a49fb5be232/r/sfe-5d57fad2d342.record.json",
+      "sample_key": "sfe-5d57fad2d342",
+      "record_relpath": "r/sfe-5d57fad2d342.record.json"
+    }
+  ],
+  "batch_key": "rfb-0a49fb5be232",
+  "capture_origin": "manual_fixture",
+  "description": "RadishFlow suggest_flowsheet_edits v91 真实 provider capture，覆盖 composite drift 高价值组合样本。"
+}

@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-selection-chronology-single-actionable-target-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-selection-chronology-single-actionable-target-001",
+  "request_id": "rf-suggest-edit-selection-chronology-single-actionable-target-001",
+  "captured_at": "2026-04-25T03:34:52Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 68,
+    "selected_unit_ids": [
+      "separator-7",
+      "heater-6",
+      "cooler-7"
+    ],
+    "selected_stream_ids": [
+      "vapor-44",
+      "feed-44",
+      "cooled-44",
+      "heated-44"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "SEPARATOR_STATE_DEPENDENT",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+      "COOLER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "summary": "当前候选提案围绕 Recycle Feed 流（feed-44）缺失压力规格的问题，提出补全其 pressure_kpa 属性，以解决根本诊断错误并减少下游不确定性。",
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Recycle Feed is missing pressure specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "SEPARATOR_STATE_DEPENDENT",
+        "message": "Recycle Separator behavior still depends on the unresolved upstream feed pressure.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-3",
+          "flowdoc-stream-4",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Feed Trim Heater outlet response may still be influenced by the incomplete feed pressure state.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Recycle Cooler outlet response is still downstream of the unresolved feed pressure gap, so the cooler itself is not yet a confirmed root cause.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "feed-44"
+        },
+        "title": "为 feed-44 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "pressure_kpa"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "confidence": 0.85,
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "edit_rationale",
+        "text": "当前候选提案围绕 Recycle Feed 流（feed-44）缺失压力规格的问题，提出补全其 pressure_kpa 属性，以解决根本诊断错误并减少下游不确定性。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "schema_version": 1,
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Recycle Feed is missing pressure specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 SEPARATOR_STATE_DEPENDENT",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Recycle Separator behavior still depends on the unresolved upstream feed pressure."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Feed Trim Heater outlet response may still be influenced by the incomplete feed pressure state."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 COOLER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Recycle Cooler outlet response is still downstream of the unresolved feed pressure gap, so the cooler itself is not yet a confirmed root cause."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-44",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-44 Recycle Feed target_unit_id=heater-6"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-6",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-6 Feed Trim Heater kind=Heater"
+      },
+      {
+        "id": "flowdoc-unit-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-7",
+        "locator": "artifact:flowsheet_document.units[2]",
+        "excerpt": "separator-7 Recycle Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-stream-4",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / vapor-44",
+        "locator": "artifact:flowsheet_document.streams[3]",
+        "excerpt": "vapor-44 Recycle Separator Vapor source_unit_id=separator-7"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / cooler-7",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "cooler-7 Recycle Cooler kind=Cooler"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=partial_convergence residual_norm=0.13"
+      }
+    ],
+    "risk_level": "medium"
+  },
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high-value-real-expansion",
+      "baseline-stability"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v88-baseline-stability"
+  }
+}

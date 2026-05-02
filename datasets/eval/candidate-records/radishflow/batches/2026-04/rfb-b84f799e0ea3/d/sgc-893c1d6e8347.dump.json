@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-stop-no-legal-outlet-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001",
+  "captured_at": "2026-04-25T07:26:42Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-25-radishflow-ghost-poc-real-v23-high-value-residual-conflict-recovery-backfill"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 58,
+    "selected_unit_ids": [
+      "cooler-9"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-219",
+          "streams": [
+            {
+              "id": "feed-703",
+              "name": "F-703",
+              "target_unit_id": "cooler-9"
+            },
+            {
+              "id": "legacy-cl-703",
+              "name": "CL-703",
+              "source_unit_id": "cooler-legacy",
+              "target_unit_id": "flash-19"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-703-unit",
+              "kind": "Feed",
+              "name": "Feed 703"
+            },
+            {
+              "id": "cooler-9",
+              "kind": "Cooler",
+              "name": "Feed Cooler 703"
+            },
+            {
+              "id": "flash-19",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 703"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 58,
+      "selected_unit_ids": [
+        "cooler-9"
+      ],
+      "selected_unit": {
+        "id": "cooler-9",
+        "kind": "Cooler",
+        "name": "Feed Cooler 703"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "legal_candidate_completions": [],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-19.inlet",
+          "distance_px": 69,
+          "alignment_score": 0.92,
+          "direction": "downstream",
+          "blocked_reason": "occupied_by_existing_stream"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-703-to-cooler-9-inlet",
+            "accepted_at_revision": 57
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-703"
+        ],
+        "existing_stream_names": [
+          "F-703",
+          "CL-703"
+        ],
+        "preferred_outlet_prefix": "C",
+        "numeric_suffix_from_unit": "703"
+      },
+      "topology_pattern_hints": [
+        "feed_cooler_flash_chain",
+        "cooler_outlet_to_flash_inlet_after_feed_connection",
+        "stop_when_no_legal_cooler_outlet_candidates"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-cooler-flash-stop-no-legal-outlet-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-219\",\n        \"streams\": [\n          {\n            \"id\": \"feed-703\",\n            \"name\": \"F-703\",\n            \"target_unit_id\": \"cooler-9\"\n          },\n          {\n            \"id\": \"legacy-cl-703\",\n            \"name\": \"CL-703\",\n            \"source_unit_id\": \"cooler-legacy\",\n            \"target_unit_id\": \"flash-19\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-703-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 703\"\n          },\n          {\n            \"id\": \"cooler-9\",\n            \"kind\": \"Cooler\",\n            \"name\": \"Feed Cooler 703\"\n          },\n          {\n            \"id\": \"flash-19\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 703\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 58,\n    \"selected_unit_ids\": [\n      \"cooler-9\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"cooler-9\",\n      \"kind\": \"Cooler\",\n      \"name\": \"Feed Cooler 703\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"legal_candidate_completions\": [],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-19.inlet\",\n        \"distance_px\": 69,\n        \"alignment_score\": 0.92,\n        \"direction\": \"downstream\",\n        \"blocked_reason\": \"occupied_by_existing_stream\"\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-703-to-cooler-9-inlet\",\n          \"accepted_at_revision\": 57\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-703\"\n      ],\n      \"existing_stream_names\": [\n        \"F-703\",\n        \"CL-703\"\n      ],\n      \"preferred_outlet_prefix\": \"C\",\n      \"numeric_suffix_from_unit\": \"703\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_cooler_flash_chain\",\n      \"cooler_outlet_to_flash_inlet_after_feed_connection\",\n      \"stop_when_no_legal_cooler_outlet_candidates\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "89c276e1-d73b-4d13-9281-ec11a03e4a75",
+    "object": "chat.completion",
+    "created": 1777101981,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\",\n  \"summary\": \"未提供幽灵补全建议。Feed Cooler 703 的出口附近没有合法的连接候选，最近的 Flash Drum 703 入口已被现有流 CL-703 占用，且候选列表为空。\",\n  \"answers\": [\n    \"当前没有可用的幽灵补全建议。\"\n  ],\n  \"issues\": [\n    {\n      \"kind\": \"no_legal_candidates\",\n      \"message\": \"flash-19.inlet 被现有流阻挡，legal_candidate_completions 为空。\"\n    }\n  ],\n  \"proposed_actions\": [],\n  \"requires_confirmation\": false\n}",
+          "reasoning_content": "我们被要求根据 CopilotRequest 生成 CopilotResponse。请求中，`legal_candidate_completions` 为空数组。这意味着没有合法的候选补全。根据规则，如果没有合法候选，应返回空建议，`status=partial`。输出必须是一个 JSON 对象。\n\nCopilotResponse 的结构根据 schema，应该是包含 status, summary, answers, issues, proposed_actions, preview 等字段。由于没有合法候选，`proposed_actions` 应该是空数组或指示没有动作。但要求中说 `proposed_actions` 里的动作只能是 `ghost_completion`，但如果没有，那么可以是一个空数组，或者整个 response 没有动作。我们需要确保 `answers` 至少 1 条，`summary` 说明当前是否给出 ghost 建议，这里未给出，所以 summary 说明没有建议。`issues` 在使用空建议、证据不足或必须停住时使用，这里可以说明原因：附近节点被占用，无合法补全候选。\n\n具体：上下文显示 selected unit 是 cooler-9，有 unconnected_ports: [\"outlet\"]，但 legal_candidate_completions 为空。nearby_nodes 中有一个 flash-19.inlet，但被 `blocked_reason: occupied_by_existing_stream` 占用，且 `legal_candidate_completions` 为空。topology_pattern_hints 中有 `stop_when_no_legal_cooler_outlet_candidates`。所以我们要输出一个状态为 partial 的响应，无建议动作。\n\n答案至少一条，可能是一条表示没有建议的文本。但 `answers` 应该是一个字符串数组，用自然语言回答。\n\n因此，构建 JSON：\n\n{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\",\n  \"summary\": \"当前未提供幽灵补全建议，因为目标单元 Cooler 的出口附近没有合法的连接候选，最近的 flash 入口已被占用。\",\n  \"answers\": [\"当前没有可用的补全建议。\"],\n  \"issues\": [\n    {\n      \"kind\": \"no_legal_candidates\",\n      \"message\": \"附近节点 flash-19.inlet 已被现有流占用，且候选列表为空，无法建议出口连接。\"\n    }\n  ],\n  \"proposed_actions\": [],\n  \"requires_confirmation\": false,\n  \"preview\": null\n}\n\n注意：`preview` 可能不需要。根据 schema，`preview` 如果存在，需要 `accept_key` 等，但这里没有建议，所以可以省略或设为 null。`requires_confirmation` 为 false。`proposed_actions` 是空数组。所有这些满足要求。\n\n现在输出纯 JSON。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1177,
+      "completion_tokens": 742,
+      "total_tokens": 1919,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 579
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 921
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "partial",
+    "summary": "未提供幽灵补全建议。Feed Cooler 703 的出口附近没有合法的连接候选，最近的 Flash Drum 703 入口已被现有流 CL-703 占用，且候选列表为空。",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "未提供幽灵补全建议。Feed Cooler 703 的出口附近没有合法的连接候选，最近的 Flash Drum 703 入口已被现有流 CL-703 占用，且候选列表为空。",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern",
+          "ctx-recent-action"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "requires_confirmation": false,
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-9",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-9 kind=Cooler name=Feed Cooler 703"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 legal_candidate_completions",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-703\"], \"existing_stream_names\": [\"F-703\", \"CL-703\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"703\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-feed-703-to-cooler-9-inlet\", \"accepted_at_revision\": 57}"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "low",
+    "confidence": 0.9
+  }
+}

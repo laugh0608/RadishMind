@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001",
+  "captured_at": "2026-04-25T07:28:24Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-25-radishflow-ghost-poc-real-v23-high-value-residual-conflict-recovery-backfill"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 56,
+    "selected_unit_ids": [
+      "heater-5"
+    ],
+    "legal_candidate_refs": [
+      "cand-heater-5-outlet-flash-17",
+      "cand-heater-5-outlet-flash-18"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-221",
+          "streams": [
+            {
+              "id": "feed-604",
+              "name": "F-604",
+              "target_unit_id": "heater-5"
+            }
+          ],
+          "units": [
+            {
+              "id": "feed-604-unit",
+              "kind": "Feed",
+              "name": "Feed 604"
+            },
+            {
+              "id": "heater-5",
+              "kind": "Heater",
+              "name": "Feed Heater 604"
+            },
+            {
+              "id": "flash-17",
+              "kind": "FlashDrum",
+              "name": "Primary Flash 604"
+            },
+            {
+              "id": "flash-18",
+              "kind": "FlashDrum",
+              "name": "Secondary Flash 604"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 56,
+      "selected_unit_ids": [
+        "heater-5"
+      ],
+      "selected_unit": {
+        "id": "heater-5",
+        "kind": "Heater",
+        "name": "Feed Heater 604"
+      },
+      "unconnected_ports": [
+        "outlet"
+      ],
+      "nearby_nodes": [
+        {
+          "type": "unit_port",
+          "id": "flash-17.inlet",
+          "distance_px": 65,
+          "alignment_score": 0.94,
+          "direction": "downstream"
+        },
+        {
+          "type": "unit_port",
+          "id": "flash-18.inlet",
+          "distance_px": 69,
+          "alignment_score": 0.92,
+          "direction": "downstream"
+        }
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-heater-5-outlet-flash-17",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "heater-5",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-17.inlet",
+          "suggested_stream_name": "H-604A",
+          "ranking_signals": {
+            "distance_px": 65,
+            "alignment_score": 0.94,
+            "topology_score": 0.89,
+            "score_gap_to_next": 0.03,
+            "template_frequency": 0.59
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "604A",
+            "reused_existing_pattern": false,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        },
+        {
+          "candidate_ref": "cand-heater-5-outlet-flash-18",
+          "ghost_kind": "ghost_connection",
+          "target_unit_id": "heater-5",
+          "target_port_key": "outlet",
+          "target_node_id": "flash-18.inlet",
+          "suggested_stream_name": "H-604B",
+          "ranking_signals": {
+            "distance_px": 69,
+            "alignment_score": 0.92,
+            "topology_score": 0.87,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.57
+          },
+          "naming_signals": {
+            "derived_from_upstream_name": true,
+            "applied_prefix": "H",
+            "numeric_suffix": "604B",
+            "reused_existing_pattern": false,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-604-to-heater-5-inlet",
+            "accepted_at_revision": 55
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "F-604"
+        ],
+        "existing_stream_names": [
+          "F-604"
+        ],
+        "preferred_outlet_prefix": "H",
+        "numeric_suffix_from_unit": "604"
+      },
+      "topology_pattern_hints": [
+        "feed_heater_flash_chain",
+        "heater_outlet_to_flash_inlet_after_feed_connection",
+        "heater_outlet_parallel_flash_choice_requires_manual_selection"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-heater-flash-outlet-ranking-ambiguous-no-tab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-221\",\n        \"streams\": [\n          {\n            \"id\": \"feed-604\",\n            \"name\": \"F-604\",\n            \"target_unit_id\": \"heater-5\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"feed-604-unit\",\n            \"kind\": \"Feed\",\n            \"name\": \"Feed 604\"\n          },\n          {\n            \"id\": \"heater-5\",\n            \"kind\": \"Heater\",\n            \"name\": \"Feed Heater 604\"\n          },\n          {\n            \"id\": \"flash-17\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Primary Flash 604\"\n          },\n          {\n            \"id\": \"flash-18\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Secondary Flash 604\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 56,\n    \"selected_unit_ids\": [\n      \"heater-5\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"heater-5\",\n      \"kind\": \"Heater\",\n      \"name\": \"Feed Heater 604\"\n    },\n    \"unconnected_ports\": [\n      \"outlet\"\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-17.inlet\",\n        \"distance_px\": 65,\n        \"alignment_score\": 0.94,\n        \"direction\": \"downstream\"\n      },\n      {\n        \"type\": \"unit_port\",\n        \"id\": \"flash-18.inlet\",\n        \"distance_px\": 69,\n        \"alignment_score\": 0.92,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-heater-5-outlet-flash-17\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_unit_id\": \"heater-5\",\n        \"target_port_key\": \"outlet\",\n        \"target_node_id\": \"flash-17.inlet\",\n        \"suggested_stream_name\": \"H-604A\",\n        \"ranking_signals\": {\n          \"distance_px\": 65,\n          \"alignment_score\": 0.94,\n          \"topology_score\": 0.89,\n          \"score_gap_to_next\": 0.03,\n          \"template_frequency\": 0.59\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"H\",\n          \"numeric_suffix\": \"604A\",\n          \"reused_existing_pattern\": false,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"score_gap_too_small\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      },\n      {\n        \"candidate_ref\": \"cand-heater-5-outlet-flash-18\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_unit_id\": \"heater-5\",\n        \"target_port_key\": \"outlet\",\n        \"target_node_id\": \"flash-18.inlet\",\n        \"suggested_stream_name\": \"H-604B\",\n        \"ranking_signals\": {\n          \"distance_px\": 69,\n          \"alignment_score\": 0.92,\n          \"topology_score\": 0.87,\n          \"score_gap_to_next\": 0.0,\n          \"template_frequency\": 0.57\n        },\n        \"naming_signals\": {\n          \"derived_from_upstream_name\": true,\n          \"applied_prefix\": \"H\",\n          \"numeric_suffix\": \"604B\",\n          \"reused_existing_pattern\": false,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"score_gap_too_small\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-604-to-heater-5-inlet\",\n          \"accepted_at_revision\": 55\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"F-604\"\n      ],\n      \"existing_stream_names\": [\n        \"F-604\"\n      ],\n      \"preferred_outlet_prefix\": \"H\",\n      \"numeric_suffix_from_unit\": \"604\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_heater_flash_chain\",\n      \"heater_outlet_to_flash_inlet_after_feed_connection\",\n      \"heater_outlet_parallel_flash_choice_requires_manual_selection\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "d788c589-1ea4-4f7d-a75c-d5beaa9d25af",
+    "object": "chat.completion",
+    "created": 1777102044,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"schema_version\": 1,\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\",\n  \"summary\": \"加热器出口存在两个平行闪蒸入口候选，得分差异过小，无法自动选择默认连接。已提供两个手动 ghost 连接建议，请根据需要接受其中一个。\",\n  \"answers\": [\n    {\n      \"content_type\": \"ghost_completion\",\n      \"title\": \"加热器出口可选择连接到 Primary Flash 或 Secondary Flash\",\n      \"proposed_actions\": [\n        {\n          \"action_type\": \"ghost_completion\",\n          \"title\": \"连接到 Primary Flash 604 入口\",\n          \"target\": \"heater-5\",\n          \"rationale\": \"最近的闪蒸入口，距离 65px，对齐得分 0.94，但分数差距仅 0.03，不适合自动决定。\",\n          \"patch\": {\n            \"type\": \"ghost_connection\",\n            \"source_unit_id\": \"heater-5\",\n            \"source_port_key\": \"outlet\",\n            \"target_node_id\": \"flash-17.inlet\",\n            \"suggested_stream_name\": \"H-604A\"\n          },\n          \"preview\": {\n            \"accept_key\": \"manual_only\",\n            \"glyph\": \"ghost_line_dashed\",\n            \"label\": \"H-604A\"\n          },\n          \"apply\": {\n            \"command_kind\": \"accept_ghost_completion\",\n            \"candidate_ref\": \"cand-heater-5-outlet-flash-17\"\n          },\n          \"risk_level\": \"low\",\n          \"requires_confirmation\": false\n        },\n        {\n          \"action_type\": \"ghost_completion\",\n          \"title\": \"连接到 Secondary Flash 604 入口\",\n          \"target\": \"heater-5\",\n          \"rationale\": \"次近的闪蒸入口，距离 69px，对齐得分 0.92，与第一个候选接近，需人工确认。\",\n          \"patch\": {\n            \"type\": \"ghost_connection\",\n            \"source_unit_id\": \"heater-5\",\n            \"source_port_key\": \"outlet\",\n            \"target_node_id\": \"flash-18.inlet\",\n            \"suggested_stream_name\": \"H-604B\"\n          },\n          \"preview\": {\n            \"accept_key\": \"manual_only\",\n            \"glyph\": \"ghost_line_dashed\",\n            \"label\": \"H-604B\"\n          },\n          \"apply\": {\n            \"command_kind\": \"accept_ghost_completion\",\n            \"candidate_ref\": \"cand-heater-5-outlet-flash-18\"\n          },\n          \"risk_level\": \"low\",\n          \"requires_confirmation\": false\n        }\n      ],\n      \"issues\": [\n        \"两个候选评分差距太小（0.03），且拓扑模式为 parallel_flash_choice，自动完成可能选错目标，因此关闭 Tab 默认接受，仅提供手动选择。\"\n      ]\n    }\n  ],\n  \"citations\": [\n    {\n      \"source\": \"legal_candidate_completions\",\n      \"refs\": [\n        \"cand-heater-5-outlet-flash-17\",\n        \"cand-heater-5-outlet-flash-18\"\n      ],\n      \"description\": \"候选评分、冲突及命名信息来自上下文中的 flowsheet_document 和命名提示。\"\n    }\n  ]\n}",
+          "reasoning_content": "我们被要求输出 CopilotResponse JSON。需要根据输入的 context.legal_candidate_completions 选择候选。这里有两个候选：\n- cand-heater-5-outlet-flash-17 (score 0.89, gap 0.03, conflict \"score_gap_too_small\", is_high_confidence false, is_tab_default false)\n- cand-heater-5-outlet-flash-18 (score 0.87, gap 0.0, conflict \"score_gap_too_small\", is_high_confidence false, is_tab_default false)\n\n都标记为非高置信度，且分数差距小，拓扑提示中有 \"heater_outlet_parallel_flash_choice_requires_manual_selection\"。因此我们不能提供 tab 默认 ghost 建议。规则要求：只有明确满足默认高置信条件的首个候选才可使用 preview.accept_key=\"Tab\"。两个候选都不是高置信度，且冲突都是 score_gap_too_small，这暗示接近并列，需要人工选择。所以应该返回空建议，可能让用户手动从两个候选中选择。根据规则，如果没有合法的高置信度候选，应返回空建议，通常用 status=partial，并在 issues 中说明需要手动选择。然而问题要求：只有明确满足默认高置信条件的首个候选才可使用 Tab；这里都没有满足。所以不应给出任何 ghost_completion 动作。proposed_actions 空？可以给出 \"ghost_completion\" 但设置为 manual_only，并提供两个选项？但 rules 说 proposed_actions 里的动作只能是 ghost_completion，且每个 ghost_completion 需要 patch 等。如果建议手动，也许可以给出两个 ghost_completion 动作，但 preview 使用 manual_only，这样用户必须手动确认。但是规则里：“若本地规则没有给出任何合法候选，应返回空建议，通常用 status=partial”。此处的候选是合法的，但根据规则不应该自动建议，因为都不具有高置信度。也许可以提出两个 ghost_completion 动作，每个都 manual_only，要求用户确认其中一个？但 requires_confirmation 必须为 false。manual_only preview 表示接受键只能手动选择，不需确认。可以。proposed_actions 最多 3 条，可以放两个 ghost_completion，一个 for flash-17，一个 for flash-18，每个都是 ghost_connection，patch 为目标连接。但是需要命名建议。候选提供了 suggested_stream_name。我们需要构造 patch：连接 heater-5.outlet 到 flash-17.inlet / flash-18.inlet。可以。summary 说明当前两个候选接近，需要手动选择，因此提供两个手动 ghost 建议，无 Tab 默认。这样不算空建议。但是规则说“若本地规则没有给出任何合法候选，应返回空建议”，但这里我们有合法候选，只是没有高置信度。所以可以提供手动建议。preview 可以用 manual_only，action 的 command_kind accept_ghost_completion。需要确保 requires_confirmation 为 false。那么 answers 至少一条，可以都放在 answers[0] 里吗？可以只有一条 answer，summary 和 actions。或者可以有多个 answers？一般一个 answer。我们输出：\n\n{\n  \"schema_version\": 1,\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\",\n  \"summary\": \"加热器出口存在两个平行闪蒸入口候选，可信度接近且差距过小，无法确定默认建议。已生成两个手动 ghost 连接建议，请选择其中一个。\",\n  \"answers\": [\n    {\n      \"content_type\": \"ghost_completion\",\n      \"title\": \"出口连接至 Primary Flash 604 或 Secondary Flash 604\",\n      \"proposed_actions\": [\n        {\n          \"action_type\": \"ghost_completion\",\n          \"title\": \"连接到 Primary Flash 604 入口\",\n          \"target\": \"heater-5\",\n          \"rationale\": \"最近的闪蒸对齐，距离 65px，对齐得分 0.94。\",\n          \"patch\": {\n            \"type\": \"ghost_connection\",\n            \"source_unit_id\": \"heater-5\",\n            \"source_port_key\": \"outlet\",\n            \"target_node_id\": \"flash-17.inlet\",\n            \"suggested_stream_name\": \"H-604A\"\n          },\n          \"preview\": {\n            \"accept_key\": \"manual_only\",\n            \"glyph\": \"ghost_line_dashed\",\n            \"label\": \"H-604A\"\n          },\n          \"apply\": {\n            \"command_kind\": \"accept_ghost_completion\",\n            \"candidate_ref\": \"cand-heater-5-outlet-flash-17\"\n          },\n          \"risk_level\": \"low\",\n          \"requires_confirmation\": false\n        },\n        {\n          \"action_type\": \"ghost_completion\",\n          \"title\": \"连接到 Secondary Flash 604 入口\",\n          \"target\": \"heater-5\",\n          \"rationale\": \"次近的闪蒸对齐，距离 69px，对齐得分 0.92。\",\n          \"patch\": {\n            \"type\": \"ghost_connection\",\n            \"source_unit_id\": \"heater-5\",\n            \"source_port_key\": \"outlet\",\n            \"target_node_id\": \"flash-18.inlet\",\n            \"suggested_stream_name\": \"H-604B\"\n          },\n          \"preview\": {\n            \"accept_key\": \"manual_only\",\n            \"glyph\": \"ghost_line_dashed\",\n            \"label\": \"H-604B\"\n          },\n          \"apply\": {\n            \"command_kind\": \"accept_ghost_completion\",\n            \"candidate_ref\": \"cand-heater-5-outlet-flash-18\"\n          },\n          \"risk_level\": \"low\",\n          \"requires_confirmation\": false\n        }\n      ],\n      \"issues\": [\n        \"分数差距过小，拓扑模式为 heater_outlet_parallel_flash_choice，需手动选择连接目标。\"\n      ]\n    }\n  ],\n  \"citations\": [\n    {\n      \"source\": \"legal_candidate_completions\",\n      \"refs\": [\"cand-heater-5-outlet-flash-17\", \"cand-heater-5-outlet-flash-18\"],\n      \"description\": \"两个候选的评分、冲突及命名信号来源于 flowsheet_document 上下文。\"\n    }\n  ]\n}\n\n注意 proposed_actions 是两个，都在一个 answer 里。但答案内容类型可以是 ghost_completion，但结构要求 answers 是数组，每条 answer 可以有自己的 proposed_actions？可能更常见的是每个 answer 对应一个建议，但这里建议两个类似的动作，放在一个 answer 里也可以。需要确保 preview.accept_key 不是 Tab。符合要求。没有 requires_confirmation 在顶层，动作也 false。这样遵守了所有规则。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1693,
+      "completion_tokens": 2201,
+      "total_tokens": 3894,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1462
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 1437
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "summary": "加热器出口存在两个平行闪蒸入口候选，得分差异过小，无法自动选择默认连接。已提供两个手动 ghost 连接建议，请根据需要接受其中一个。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "加热器出口存在两个平行闪蒸入口候选，得分差异过小，无法自动选择默认连接。已提供两个手动 ghost 连接建议，请根据需要接受其中一个。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-candidate-2",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-5",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-5 kind=Heater name=Feed Heater 604"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-heater-5-outlet-flash-17",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-5-outlet-flash-17 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-candidate-2",
+        "kind": "context",
+        "label": "候选 cand-heater-5-outlet-flash-18",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-heater-5-outlet-flash-18 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-604\"], \"existing_stream_names\": [\"F-604\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"604\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-feed-604-to-heater-5-inlet\", \"accepted_at_revision\": 55}"
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 heater-5 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-5",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-5-outlet-flash-17",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-604A"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-5-outlet-flash-17"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "保留 heater-5 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-5",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-5-outlet-flash-18",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-604B"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-5-outlet-flash-18"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-2",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  }
+}

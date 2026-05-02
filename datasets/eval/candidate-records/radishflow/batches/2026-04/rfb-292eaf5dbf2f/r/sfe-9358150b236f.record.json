@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-three-action-ordering-001",
+  "request_id": "rf-suggest-edit-cross-object-mixed-risk-three-action-ordering-001",
+  "captured_at": "2026-04-23T14:10:32Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 85,
+    "selected_unit_ids": [
+      "heater-11",
+      "separator-7"
+    ],
+    "selected_stream_ids": [
+      "feed-71",
+      "heater-outlet-71",
+      "separator-vapor-71"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE",
+      "DOWNSTREAM_STATE_DEPENDENT"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕已选中的进料流、闪蒸罐以及其蒸汽出口的直接诊断，生成三个局部候选提案：补全进料流量规格、补全闪蒸罐固定压力目标，以及为未连接蒸汽出口添加下游连接占位。",
+        "citation_ids": [
+          "diag-2",
+          "diag-3",
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Separator Vapor 71 添加下游连接占位",
+        "rationale": "直接诊断显示该蒸汽流未连接到任何下游消费者或导出端。由于当前证据不足以确定具体去向，仅建议添加连接占位供人工审查确认。",
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-4",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "separator-vapor-71"
+        },
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Charge Heater Feed 添加流量规格占位",
+        "rationale": "直接诊断指出该已选中流股缺少 flow rate specification。先补充可审查的规格占位，比臆测具体数值更符合当前证据边界，也有助于减少下游状态依赖。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-71"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      },
+      {
+        "kind": "candidate_edit",
+        "title": "为 Hot Flash Separator 补固定压力目标占位",
+        "rationale": "该设备已处于 fixed pressure 模式，直接诊断表明目标压力缺失。建议仅添加参数占位而不指定未经证实的压力值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "separator-7"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "operating_pressure_kpa"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Separator Vapor 71 is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Charge Heater Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Hot Flash Separator is configured for fixed pressure mode but the operating pressure target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-2",
+          "flowdoc-stream-3",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "DOWNSTREAM_STATE_DEPENDENT",
+        "message": "Hot Flash Separator vapor interpretation still depends on the upstream feed gap and heater outlet condition.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-4",
+          "flowdoc-stream-3",
+          "flowdoc-unit-2",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Separator Vapor 71 is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Charge Heater Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Hot Flash Separator is configured for fixed pressure mode but the operating pressure target is missing."
+      },
+      {
+        "id": "diag-4",
+        "kind": "context",
+        "label": "诊断 DOWNSTREAM_STATE_DEPENDENT",
+        "locator": "context:diagnostics[3]",
+        "excerpt": "Hot Flash Separator vapor interpretation still depends on the upstream feed gap and heater outlet condition."
+      },
+      {
+        "id": "flowdoc-stream-3",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-vapor-71",
+        "locator": "artifact:flowsheet_document.streams[2]",
+        "excerpt": "separator-vapor-71 Separator Vapor 71 source_unit_id=separator-7"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-71",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-71 Charge Heater Feed target_unit_id=heater-11"
+      },
+      {
+        "id": "flowdoc-unit-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / separator-7",
+        "locator": "artifact:flowsheet_document.units[1]",
+        "excerpt": "separator-7 Hot Flash Separator kind=FlashDrum"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-11",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-11 Charge Heater kind=Heater"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-outlet-71",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "heater-outlet-71 Heater Outlet 71 source_unit_id=heater-11 target_unit_id=separator-7"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "summary": "当前围绕已选中的进料流、闪蒸罐以及其蒸汽出口的直接诊断，生成三个局部候选提案：补全进料流量规格、补全闪蒸罐固定压力目标，以及为未连接蒸汽出口添加下游连接占位。",
+    "risk_level": "high",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-23-radishflow-suggest-edits-poc-real-v87-high-value-tertiary"
+  }
+}

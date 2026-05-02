@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-21-radishflow-suggest-edits-poc-real-v82-default-cross-object-primary-focus",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-joint-selection-primary-focus-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-joint-selection-primary-focus-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/r/sfe-e503d0f1b4f0.record.json",
+      "sample_key": "sfe-e503d0f1b4f0",
+      "record_relpath": "r/sfe-e503d0f1b4f0.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-flowsheet-edits-multi-unit-stream-primary-focus-001",
+      "sample_id": "radishflow-suggest-flowsheet-edits-multi-unit-stream-primary-focus-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-49ca5a4d2113/r/sfe-dc11f0a51c68.record.json",
+      "sample_key": "sfe-dc11f0a51c68",
+      "record_relpath": "r/sfe-dc11f0a51c68.record.json"
+    }
+  ],
+  "batch_key": "rfb-49ca5a4d2113",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_flowsheet_edits 首批真实 provider capture 批次，覆盖高风险重连、局部规格占位与三步优先级链。"
+}

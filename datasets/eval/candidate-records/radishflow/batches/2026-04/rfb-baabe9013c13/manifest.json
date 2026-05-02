@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v17-remaining-other-candidate-recovery",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "source": "captured_candidate_response",
+  "output_root": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-baabe9013c13",
+  "records": [
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-reject-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-baabe9013c13/r/sgc-22581c793a8d.record.json",
+      "sample_key": "sgc-22581c793a8d",
+      "record_relpath": "r/sgc-22581c793a8d.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-skip-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-alternate-candidate-tab-after-other-skip-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-baabe9013c13/r/sgc-8b6de7bbe869.record.json",
+      "sample_key": "sgc-8b6de7bbe869",
+      "record_relpath": "r/sgc-8b6de7bbe869.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-reject-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-baabe9013c13/r/sgc-216df2797d98.record.json",
+      "sample_key": "sgc-216df2797d98",
+      "record_relpath": "r/sgc-216df2797d98.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-skip-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-alternate-candidate-tab-after-other-skip-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-baabe9013c13/r/sgc-3425d385453b.record.json",
+      "sample_key": "sgc-3425d385453b",
+      "record_relpath": "r/sgc-3425d385453b.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-dismiss-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-dismiss-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-baabe9013c13/r/sgc-d67f6a23c997.record.json",
+      "sample_key": "sgc-d67f6a23c997",
+      "record_relpath": "r/sgc-d67f6a23c997.record.json"
+    },
+    {
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-skip-001",
+      "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-alternate-candidate-tab-after-other-skip-001",
+      "path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-baabe9013c13/r/sgc-0270312c42cd.record.json",
+      "sample_key": "sgc-0270312c42cd",
+      "record_relpath": "r/sgc-0270312c42cd.record.json"
+    }
+  ],
+  "batch_key": "rfb-baabe9013c13",
+  "capture_origin": "adapter_debug_dump",
+  "description": "RadishFlow suggest_ghost_completion v17 remaining other-candidate recovery 真实 capture 批次。"
+}

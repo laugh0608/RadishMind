@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-three-step-priority-chain-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-three-step-priority-chain-001",
+  "request_id": "rf-suggest-edit-three-step-priority-chain-001",
+  "captured_at": "2026-04-25T05:10:44Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "interactive_session",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-25-radishflow-suggest-edits-poc-real-v90-tail-stability"
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 47,
+    "selected_unit_ids": [
+      "heater-3"
+    ],
+    "selected_stream_ids": [
+      "feed-7",
+      "product-7"
+    ],
+    "diagnostic_codes": [
+      "STREAM_DISCONNECTED",
+      "STREAM_SPEC_MISSING",
+      "UNIT_PARAMETER_INCOMPLETE"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-three-step-priority-chain-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-109",
+          "streams": [
+            {
+              "id": "feed-7",
+              "name": "Heater Feed",
+              "target_unit_id": "heater-3",
+              "specs": {
+                "pressure_kpa": 215
+              }
+            },
+            {
+              "id": "product-7",
+              "name": "Heater Outlet",
+              "source_unit_id": "heater-3",
+              "specs": {
+                "temperature_c": 155
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "heater-3",
+              "kind": "Heater",
+              "name": "Trim Heater",
+              "config": {
+                "control_mode": "outlet_temperature"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 47,
+      "selected_unit_ids": [
+        "heater-3"
+      ],
+      "selected_stream_ids": [
+        "feed-7",
+        "product-7"
+      ],
+      "diagnostic_summary": {
+        "error_count": 3,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "STREAM_DISCONNECTED",
+          "message": "Heater Outlet is not connected to any downstream consumer or export sink.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "product-7"
+        },
+        {
+          "code": "STREAM_SPEC_MISSING",
+          "message": "Heater Feed is missing temperature and flow rate specifications.",
+          "severity": "error",
+          "target_type": "stream",
+          "target_id": "feed-7"
+        },
+        {
+          "code": "UNIT_PARAMETER_INCOMPLETE",
+          "message": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "heater-3"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_topology",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T14:10:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-three-step-priority-chain-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-109\",\n        \"streams\": [\n          {\n            \"id\": \"feed-7\",\n            \"name\": \"Heater Feed\",\n            \"target_unit_id\": \"heater-3\",\n            \"specs\": {\n              \"pressure_kpa\": 215\n            }\n          },\n          {\n            \"id\": \"product-7\",\n            \"name\": \"Heater Outlet\",\n            \"source_unit_id\": \"heater-3\",\n            \"specs\": {\n              \"temperature_c\": 155\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"heater-3\",\n            \"kind\": \"Heater\",\n            \"name\": \"Trim Heater\",\n            \"config\": {\n              \"control_mode\": \"outlet_temperature\"\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 47,\n    \"selected_unit_ids\": [\n      \"heater-3\"\n    ],\n    \"selected_stream_ids\": [\n      \"feed-7\",\n      \"product-7\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 3,\n      \"warning_count\": 0\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"STREAM_DISCONNECTED\",\n        \"message\": \"Heater Outlet is not connected to any downstream consumer or export sink.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"product-7\"\n      },\n      {\n        \"code\": \"STREAM_SPEC_MISSING\",\n        \"message\": \"Heater Feed is missing temperature and flow rate specifications.\",\n        \"severity\": \"error\",\n        \"target_type\": \"stream\",\n        \"target_id\": \"feed-7\"\n      },\n      {\n        \"code\": \"UNIT_PARAMETER_INCOMPLETE\",\n        \"message\": \"Trim Heater is configured for outlet temperature control but outlet temperature target is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"heater-3\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_topology\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-07T14:10:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "475f7a96-39f9-4957-8e2d-c91231892750",
+    "object": "chat.completion",
+    "created": 1777093708,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",\n  \"requires_confirmation\": true,\n  \"confidence\": 0.78,\n  \"answers\": [\n    \"建议对 Heater Feed 添加温度和流量占位符，对 Trim Heater 设置出口温度目标，并为 Heater Outlet 增加下游接收器。\"\n  ],\n  \"summary\": \"基于三个错误诊断，围绕选中的 Trim Heater (heater-3) 及其流 feed-7 和 product-7 生成候选编辑。\",\n  \"issues\": [\n    {\n      \"description\": \"Heater Feed (feed-7) 缺少温度和流量规格。\",\n      \"severity\": \"error\",\n      \"evidence\": [\"diag-2\", \"flowdoc-stream-feed-7\"]\n    },\n    {\n      \"description\": \"Trim Heater (heater-3) 出口温度控制模式缺少目标温度。\",\n      \"severity\": \"error\",\n      \"evidence\": [\"diag-3\", \"flowdoc-unit-heater-3\", \"flowdoc-stream-product-7\"]\n    },\n    {\n      \"description\": \"Heater Outlet (product-7) 未连接至下游。\",\n      \"severity\": \"error\",\n      \"evidence\": [\"diag-1\", \"flowdoc-stream-product-7\", \"snapshot-1\"]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为 Heater Feed 添加温度和流量占位规格\",\n      \"target\": \"feed-7\",\n      \"rationale\": \"诊断 STREAM_SPEC_MISSING 指示该流缺少温度和流量定义。现有压力为 215 kPa，尚需温度和流量数据以完成物料平衡。添加占位符以提示用户填写。\",\n      \"patch\": {\n        \"streams\": {\n          \"feed-7\": {\n            \"specs\": {\n              \"temperature_c\": { \"placeholder\": true, \"comment\": \"需要指定\" },\n              \"mass_flowrate\": { \"placeholder\": true, \"unit\": \"kg/h\", \"comment\": \"需要指定\" }\n            }\n          }\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    },\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为 Trim Heater 设置出口温度目标\",\n      \"target\": \"heater-3\",\n      \"rationale\": \"单元配置为 outlet_temperature 控制模式但缺少目标值。下游流 product-7 的温度为 155°C，可作为初始目标。\",\n      \"patch\": {\n        \"units\": {\n          \"heater-3\": {\n            \"config\": {\n              \"target_temperature_c\": 155\n            }\n          }\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    },\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为 Heater Outlet 添加下游接收单元\",\n      \"target\": \"product-7\",\n      \"rationale\": \"诊断 STREAM_DISCONNECTED 要求出口流连接到下游消费者或导出槽。提出一个占位 Sink 单元使拓扑有效且可供后续定义。\",\n      \"patch\": {\n        \"new_units\": [\n          {\n            \"id\": \"sink-1\",\n            \"kind\": \"Sink\",\n            \"name\": \"Heater Product Sink\",\n            \"placeholder\": true\n          }\n        ],\n        \"streams\": {\n          \"product-7\": {\n            \"target_unit_id\": \"sink-1\"\n          }\n        }\n      },\n      \"risk_level\": \"high\",\n      \"requires_confirmation\": true\n    }\n  ],\n  \"citations\": [\n    { \"source\": \"diagnostic\", \"key\": \"diag-1\", \"message\": \"STREAM_DISCONNECTED on product-7\" },\n    { \"source\": \"diagnostic\", \"key\": \"diag-2\", \"message\": \"STREAM_SPEC_MISSING on feed-7\" },\n    { \"source\": \"diagnostic\", \"key\": \"diag-3\", \"message\": \"UNIT_PARAMETER_INCOMPLETE on heater-3\" },\n    { \"source\": \"flowdoc-stream\", \"key\": \"flowdoc-stream-feed-7\", \"name\": \"Heater Feed\" },\n    { \"source\": \"flowdoc-stream\", \"key\": \"flowdoc-stream-product-7\", \"name\": \"Heater Outlet\" },\n    { \"source\": \"flowdoc-unit\", \"key\": \"flowdoc-unit-heater-3\", \"name\": \"Trim Heater\" },\n    { \"source\": \"snapshot\", \"key\": \"snapshot-1\", \"status\": \"invalid_topology\" }\n  ]\n}",
+          "reasoning_content": "我们被要求生成一个 JSON 对象形式的 CopilotResponse。输入是一个 CopilotRequest。我们需要仔细阅读请求并生成适当的响应。首先，项目是 radishflow，任务是 suggest_flowsheet_edits。应该基于诊断、flowsheet_document 和快照。输出必须只包含 JSON 对象，且其中 project 和 task 固定。需要包括 answers, summary, issues, proposed_actions, citations, confidence 等等。\n\n查看请求：有三个诊断错误：\n1. STREAM_DISCONNECTED: Heater Outlet (product-7) 未连接到下游消费者或导出槽。\n2. STREAM_SPEC_MISSING: Heater Feed (feed-7) 缺少温度和流量规格。\n3. UNIT_PARAMETER_INCOMPLETE: Trim Heater (heater-3) 配置为出口温度控制，但缺少出口温度目标。\n\n选中的 unit 是 heater-3，选中的 stream 是 feed-7 和 product-7。\n\nflowsheet_document 中：stream feed-7 有 pressure_kpa: 215，但没有温度和流量。product-7 有 temperature_c: 155，但没有压力或流量？但诊断说缺少下游连接。unit heater-3: kind: Heater, 控制模式 outlet_temperature。但配置中可能缺少目标温度？我们需要仔细看：unit 的 config 有 control_mode: \"outlet_temperature\"，但可能没有指定 outlet temperature 目标值。诊断 \"UNIT_PARAMETER_INCOMPLETE\" 说出口温度目标缺失。我们可以提议在 heater-3 上添加 outlet temperature 目标，或者可能是设置一个参数。也需要注意产品流 product-7 有 temperature_c: 155，可能这就是出口温度？但那样还不够，单元配置也可能需要直接设置目标。\n\n我们需要提出候选编辑：proposed_actions 中的动作是 candidate_edit，需要包含 title, target, rationale, patch, risk_level, requires_confirmation。target 必须指向当前请求中有证据支撑的 stream 或 unit。这里可以针对 heater-3 或 stream 添加。风险：拓扑连接可能是高风险的，但这里只是添加规格，可能是中或低。添加缺失的连接可能涉及下游客流，但这里 product-7 未连接，可以提议添加一个占位符或消费者？但诊断说未连接到下游消费者或导出槽。这可能需要创建一个 sink 或 export，但这可能改变拓扑。我们可以提议添加一个简单的 \"Product\" 或 \"Sink\" 单元并连接，但风险较高。由于请求说只允许最小可审查的 patch，且不要执行。我们可以提议为 product-7 添加一个下游连接占位符，或者可以建议标记为未连接以提示用户，但 candidate_edit 应提出适当的补丁。另一种方法是添加一个缺失的流规格，或为 heater 添加参数。我们将为每个诊断生成一个候选编辑，但要确保整体 requires_confirmation 为 true，每条 candidate_edit.requires_confirmation 也为 true。\n\n我们先为缺失规格的 feed-7 添加温度和流量。对于 feed-7，可以添加 spec_placeholders 或 parameter_placeholders。在 patch 中，使用类似 streams 更新。对于 product-7 断开连接，可以建议在 product-7 后添加一个单元，如 \"Sink\" 并连接，这可能涉及修改 flowsheet 结构。这会导致拓扑变化，风险 high。但可以提议添加一个占位符消费者？我们可以用更温和的方法：在 streams 的 specs 中添加一个 \"connection_placeholder\" 或某种配置，表示需要连接。但文档结构中没有明确支持，我们可以使用 \"connection_type\": \"missing\" 或类似。但最好是根据 radishflow 的 schema 合理推断。由于我们不知道 schema，我们可以使用一个通用的注释方式，但要保持 patch 的合理性。替代方案是，由于它是出口流且没有下游，我们可以提议在 heuristic 侧将其标记为产品，但需要用户确认。然而，如果 product-7 已经命名为 \"Heater Outlet\"，可能就是产品，可以简单地添加一个 \"sink\" 单元并连接。但是否属于当前选中的目标？选中的 unit 是 heater-3，流是 feed-7 和 product-7。我们可以建议在 product-7 的目标上添加一个 \"sink\" 单元的占位符，如同添加一个单元然后连接。所以 patch 可能包括一个新单元和一个连接更新。这风险高。对于 heater 的出口温度目标，我们可以通过在 unit 配置中添加目标参数来解决。诊断说出口温度目标缺失，但 product-7 已经有 temperature_c: 155。也许出口温度可以等于该流温度？我们可以建议在 heater-3 配置中添加 \"target_temperature_c\": 155，引用该流。或者添加一个参数，然后该参数链接到该流。但这可能超出最小补丁。最简单的 patch 是：为 heater-3 添加一个参数 \"outlet_temperature_target\": {\"value\": 155, \"unit\": \"C\"}，匹配流规格。或者可能配置中已有 \"control_mode\"，我们需要添加一个 \"setpoint\" 属性。我们可以假设 heater 需要 \"target_temperature\" 参数。使用 parameter_updates 结构。\n\n现在构建 response JSON。\n\n总体 summary: \"基于诊断，为选中的 Heater Trim Heater 及其进出流生成候选编辑提案，包括补充缺失的流规格、加热器出口温度目标和产品流断开连接的处理。\"\n\nissues: 列出三个问题，从诊断推导。引用证据：diagnostic-1, diagnostic-2, diagnostic-3，目标 artifact flowdoc-stream-feed-7, flowdoc-unit-heater-3, flowdoc-stream-product-7，以及 snapshot-1。\n\ncandidate_edits: 三个 action。\n\n1. 为 feed-7 添加温度和流量规格。可以是 parameter_placeholders: 添加 temperature_c 和 flow_kg_h。风险 level: medium（因为只是补全规格，不影响拓扑）。patch 使用 streams 更新，用 spec_placeholders 或具体值？我可以用 spec_placeholders 表示需要用户提供值。例如，给 feed-7 添加 specs: {temperature_c: \"<specify>\", mass_flowrate_kg_per_h: \"<specify>\"} 或类似。谨慎起见，使用 \"parameter_placeholders\": [{\"name\": \"temperature_c\", \"value\": null, \"placeholder\": true}, {\"name\": \"mass_flowrate\", ...}] 这种形式。但响应结构中的 patch 可能应该与文档结构一致。我们可以设置 spec_placeholders 例子：在 stream feed-7 的 specs 中添加两个占位符字段。用 patch 对象表示：{\"op\": \"update\", \"path\": \"/streams/feed-7/specs\", \"value\": {\"pressure_kpa\": 215, \"temperature_c\": {\"placeholder\": true, \"suggested_value\": null}, \"mass_flowrate\": {\"placeholder\": true, \"suggested_value\": null}}}。这样表明需要填写。风险 medium，需要确认。\n\n2. 为 heater-3 添加出口温度目标。可以修改 unit config。使用 parameter_updates: 添加 \"target_temperature_c\" 值为 155，可能与 product-7 温度一致。patch: {\"op\": \"update\", \"path\": \"/units/heater-3/config\", \"value\": {\"control_mode\": \"outlet_temperature\", \"target_temperature_c\": 155}}。风险 medium，因为这影响控制行为。可以引用 product-7 的温度作为初始值，但不是必须。或者我们可以设置为占位符，但更好是给出具体建议：155°C，因为 product-7 已经有这个值。所以风险 medium。需要确认。\n\n3. 连接 product-7 到下游。由于没有下游，我们可以建议添加一个 \"Sink\" 单元并连接。这涉及创建新单元和修改流。风险 high。如果要保持最小，可以提议添加一个 \"Product\" 类型的接收器或导出单元。我们可以包括新单元的占位符和流的更新。patch 可能包括在 units 中新增一个单元，并给 product-7 设置 target_unit_id 指向该单元。例如，创建 id \"sink-1\"，kind \"Sink\"，name \"Heater Product\"，然后在 product-7 中添加 target_unit_id: \"sink-1\"。但需要确保在 flowsheet_document 中更新 stream。所以 patch 可能是一个组合操作。使用 \"op\": \"add\" 和 \"update\" 等。但我们的输出格式是 proposed_actions 中的 patch 字段，没有规定具体结构，应该是类似 JSON Patch 或者自定义但可解析的格式。我们可以用自定义对象，例如：{\"patch\": {\"new_unit\": {\"id\": \"sink-1\", \"kind\": \"Sink\", \"name\": \"Heater Product\"}, \"stream_update\": {\"target_unit_id\": \"sink-1\"}}}。但为了与其他可能一致，我们使用与文档相似的层级。因为是单个 patch 对象，描述修改的。我们可以使用 operations 数组，或直接描述目标对象的变化。为了简单，我将在 target 中指向 product-7，并在 rationale 中解释需要添加下游，在 patch 中提供一个建议：给 product-7 设置 `target_unit_id: \"<placeholder_sink>\"`，并建议添加 sink 单元。但是如果不对 flowsheet_document 做整体变更，可能无法实现。不过作为候选编辑，我们可以建议添加一个 placeholder 单元。风险 high。所以 patch: {\"proposed_changes\": {\"new_units\": [{\"id\": \"sink-1\", \"kind\": \"Sink\", \"name\": \"Heater Product Sink\", \"placeholder\": true}], \"stream_updates\": [{\"id\": \"product-7\", \"target_unit_id\": \"sink-1\"}]}}。这样引用了新单元。requires_confirmation: true。\n\n需要提供 citations，每项动作要证据。第一个动作针对 feed-7，证据：诊断 STREAM_SPEC_MISSING (diag-2)，目标 flowdoc-stream-feed-7。第二个动作针对 heater-3，诊断 UNIT_PARAMETER_INCOMPLETE (diag-3)，目标 flowdoc-unit-heater-3，也可引用 flowdoc-stream-product-7 的温度。第三个动作针对 product-7，诊断 STREAM_DISCONNECTED (diag-1)，目标 flowdoc-stream-product-7，快照 snapshot-1 (显示拓扑无效)。confidence: 对于补全规格和高层次目标，可以设 0.9 和 0.85，对于断开连接建议，由于需要创建新单元，但可以推断是合理，置信度 0.7。整体 confidence 可以取平均或最低，设为 0.8 左右，也可以分别设 candidate_edit 的 confidence？结构中没有给每项 confidence，但我们可以为每项添加？在 schema 中，proposed_actions 内没有提到 confidence，所以只在整体设置。每个 proposed_action 有 risk_level 和 requires_confirmation。confidence 是在整个 response 的顶层，不是 per action。所以 top-level 的 confidence 可以设为 0.75。\n\ncitations 格式：可以是一个数组，每个条目有 source 和 key 等。我们使用：{\"source\": \"diagnostic\", \"key\": \"diag-1\"}, {\"source\": \"flowdoc-stream\", \"key\": \"flowdoc-stream-product-7\"} 等等。为每个动作的 evidence 提供 citations。但是整个 CopilotResponse 有一个 citations 数组，可能用于整体。我们直接在 proposed_actions 的每个 candidate_edit 中添加 citations 字段？按照提供的 schema，CopilotResponse 有 citations 数组和 proposed_actions 数组，但 candidate_edit 内部可能不包含 citations。我们可以在理由中提及，并通过整体的 citations 来表达。可以设置全局 citations，然后在摘要中引用。这样更简洁。在 answer 中，我们可能需要提供 answers 数组，每个 answer 可能包含不同的内容。看结构要求：\"answers 至少 1 条，summary 必须先说明当前围绕哪个对象或哪类问题生成候选提案，issues 只写真正触发 patch 的诊断或约束...\" 然后 proposed_actions 和 citations。所以 answer 是一个字符串？可能 answers 数组是字符串？不确定。根据之前类似任务，CopilotResponse 包含一个 answers 字符串数组，例如此处可能有多个答案？但可能是单一摘要。我们可以在 answers 中放一个简短的摘要，如 \"为选定的加热器 Trim Heater 及其流提出三项编辑：补充 Heater Feed 的温度和流量规格，设定加热器出口温度目标，并为 Heater Outlet 增加下游连接。\" 然后 summary, issues 作为对象属性。我们依照典型格式。\n\n最后 JSON 对象如下：\n\n{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"status\": \"partial\",  // 因为部分修复未完全，证据不足不执行，所以 partial\n  \"requires_confirmation\": true,\n  \"confidence\": 0.78,\n  \"answers\": [\n    \"建议对 Heater Feed 添加温度和流量占位符，对 Trim Heater 设置出口温度目标，并为 Heater Outlet 增加下游接收器。\"\n  ],\n  \"summary\": \"基于三个错误诊断，围绕选中的 Trim Heater (heater-3) 及其流 feed-7 和 product-7 生成候选编辑。\",\n  \"issues\": [\n    {\n      \"description\": \"Heater Feed (feed-7) 缺少温度和流量规格。\",\n      \"severity\": \"error\",\n      \"evidence\": [\"diag-2\", \"flowdoc-stream-feed-7\"]\n    },\n    {\n      \"description\": \"Trim Heater (heater-3) 出口温度控制模式缺少目标温度。\",\n      \"severity\": \"error\",\n      \"evidence\": [\"diag-3\", \"flowdoc-unit-heater-3\", \"flowdoc-stream-product-7\"]\n    },\n    {\n      \"description\": \"Heater Outlet (product-7) 未连接至下游。\",\n      \"severity\": \"error\",\n      \"evidence\": [\"diag-1\", \"flowdoc-stream-product-7\", \"snapshot-1\"]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为 Heater Feed 添加温度和流量占位规格\",\n      \"target\": \"feed-7\",\n      \"rationale\": \"诊断 STREAM_SPEC_MISSING 指示该流缺少温度和流量定义。现有压力为 215 kPa，尚需温度和流量数据以完成物料平衡。添加占位符以提示用户填写。\",\n      \"patch\": {\n        \"streams\": {\n          \"feed-7\": {\n            \"specs\": {\n              \"temperature_c\": {\"placeholder\": true, \"comment\": \"需要指定\"},\n              \"mass_flowrate\": {\"placeholder\": true, \"unit\": \"kg/h\", \"comment\": \"需要指定\"}\n            }\n          }\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    },\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为 Trim Heater 设置出口温度目标\",\n      \"target\": \"heater-3\",\n      \"rationale\": \"单元配置为 outlet_temperature 控制模式但缺少目标值。下游流 product-7 的温度为 155°C，可作为初始目标。\",\n      \"patch\": {\n        \"units\": {\n          \"heater-3\": {\n            \"config\": {\n              \"target_temperature_c\": 155\n            }\n          }\n        }\n      },\n      \"risk_level\": \"medium\",\n      \"requires_confirmation\": true\n    },\n    {\n      \"kind\": \"candidate_edit\",\n      \"title\": \"为 Heater Outlet 添加下游接收单元\",\n      \"target\": \"product-7\",\n      \"rationale\": \"诊断 STREAM_DISCONNECTED 要求出口流连接到下游消费者或导出槽。提出一个占位 Sink 单元使拓扑有效且可供后续定义。\",\n      \"patch\": {\n        \"new_units\": [\n          {\n            \"id\": \"sink-1\",\n            \"kind\": \"Sink\",\n            \"name\": \"Heater Product Sink\",\n            \"placeholder\": true\n          }\n        ],\n        \"streams\": {\n          \"product-7\": {\n            \"target_unit_id\": \"sink-1\"\n          }\n        }\n      },\n      \"risk_level\": \"high\",\n      \"requires_confirmation\": true\n    }\n  ],\n  \"citations\": [\n    {\"source\": \"diagnostic\", \"key\": \"diag-1\", \"message\": \"STREAM_DISCONNECTED on product-7\"},\n    {\"source\": \"diagnostic\", \"key\": \"diag-2\", \"message\": \"STREAM_SPEC_MISSING on feed-7\"},\n    {\"source\": \"diagnostic\", \"key\": \"diag-3\", \"message\": \"UNIT_PARAMETER_INCOMPLETE on heater-3\"},\n    {\"source\": \"flowdoc-stream\", \"key\": \"flowdoc-stream-feed-7\", \"name\": \"Heater Feed\"},\n    {\"source\": \"flowdoc-stream\", \"key\": \"flowdoc-stream-product-7\", \"name\": \"Heater Outlet\"},\n    {\"source\": \"flowdoc-unit\", \"key\": \"flowdoc-unit-heater-3\", \"name\": \"Trim Heater\"},\n    {\"source\": \"snapshot\", \"key\": \"snapshot-1\", \"status\": \"invalid_topology\"}\n  ]\n}\n\n注意：对于 patch 的 stream 更新，我用了 \"streams\": {\"feed-7\": ...} 这种对象形式。但应该指出是更新操作，避免覆盖其他字段。我使用了嵌套对象表示要合并的规格。同样对于 heater。这可能被理解为替换，但在没有具体 schema 的情况下可以接受。最好使用 \"spec_placeholders\" 字段？但直接在 patch 中放置要合并的 kv 也是常见的。为了安全，我们可以在 patch 中使用更明确的结构：对于 feed-7，包括完整的当前 spec 并加上占位符。我已在 patch 中包含了 pressure 吗？没有，可能会覆盖掉 pressure。更好的做法是使用 \"update\" 操作，但我们没有指定 op。可以用这样的形式：{ \"specs_update\": { \"temperature_c\": {\"placeholder\": true}, \"mass_flowrate\": {\"placeholder\": true} } }。但在标准 JSON Patch 中不会这样，不过我们是 suggest_flowsheet_edits 也许可以定义专用结构。既然没有强制性，我采用更安全的，只添加新字段，保留原有字段的表述：直接在 feed-7 的 patch 中加上 \"temperature_c\": {\"placeholder\": true} 和 \"mass_flowrate\": {\"placeholder\": true}，并隐含原有的 pressure_kpa 保持不变。对于 product-7 的目标单元，加上新的 target_unit_id，原有的 specs 保持不变。同样对于 heater，在 config 中添加 target_temperature_c。这样 patch 可能会被解释为合并而不是替换，但用户能够理解。\n\n综上，输出 JSON 对象。\n\n最后检查：只有 JSON 输出，无说明。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1334,
+      "completion_tokens": 5167,
+      "total_tokens": 6501,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4112
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 822
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "confidence": 0.78,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "建议对 Heater Feed 添加温度和流量占位符，对 Trim Heater 设置出口温度目标，并为 Heater Outlet 增加下游接收器。",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "summary": "基于三个错误诊断，围绕选中的 Trim Heater (heater-3) 及其流 feed-7 和 product-7 生成候选编辑。",
+    "issues": [
+      {
+        "code": "STREAM_DISCONNECTED",
+        "message": "Heater Outlet is not connected to any downstream consumer or export sink.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Heater Feed is missing temperature and flow rate specifications.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "UNIT_PARAMETER_INCOMPLETE",
+        "message": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "product-7"
+        },
+        "title": "为 product-7 预留下游重连占位",
+        "rationale": "当前断链问题只能通过人工确认后续去向来处理，因此 patch 仅保留候选连接占位。",
+        "patch": {
+          "connection_placeholder": {
+            "expected_downstream_kind": "consumer_or_export_sink",
+            "requires_manual_binding": true,
+            "retain_existing_source_binding": true
+          }
+        },
+        "risk_level": "high",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "stream",
+          "id": "feed-7"
+        },
+        "title": "为 feed-7 补充缺失规格占位",
+        "rationale": "当前诊断已明确指出该流股规格不完整，因此更合适的是补局部规格占位，而不是给整图 patch。",
+        "patch": {
+          "spec_placeholders": [
+            "temperature_c",
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "kind": "candidate_edit",
+        "target": {
+          "type": "unit",
+          "id": "heater-3"
+        },
+        "title": "为 heater-3 补充局部参数占位",
+        "rationale": "当前诊断集中在局部参数或配置完整性，因此更合适的是输出可审查的局部参数占位提案。",
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_temperature_c"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        },
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_DISCONNECTED",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Heater Outlet is not connected to any downstream consumer or export sink."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Heater Feed is missing temperature and flow rate specifications."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 UNIT_PARAMETER_INCOMPLETE",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Trim Heater is configured for outlet temperature control but outlet temperature target is missing."
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-7",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-7 Heater Outlet source_unit_id=heater-3"
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-7",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-7 Heater Feed target_unit_id=heater-3"
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / heater-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "heater-3 Trim Heater kind=Heater"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_topology"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "high"
+  }
+}

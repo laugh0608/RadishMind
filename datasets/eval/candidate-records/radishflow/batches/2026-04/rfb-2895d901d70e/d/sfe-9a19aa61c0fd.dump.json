@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-edit-compressor-parameter-placeholder-ordering-001",
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001",
+  "request_id": "rf-suggest-edit-compressor-parameter-placeholder-ordering-001",
+  "captured_at": "2026-04-21T11:52:59Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-21-radishflow-suggest-edits-poc-real-v83-default-parameter-ordering"
+  },
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 61,
+    "selected_unit_ids": [
+      "compressor-3"
+    ],
+    "diagnostic_codes": [
+      "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+      "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+      "COMPRESSOR_EFFICIENCY_BASELINE_MISSING"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-edit-compressor-parameter-placeholder-ordering-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-114",
+          "streams": [
+            {
+              "id": "feed-10",
+              "name": "Compressor Feed",
+              "target_unit_id": "compressor-3",
+              "specs": {
+                "pressure_kpa": 240,
+                "temperature_c": 39,
+                "flow_rate_kg_per_h": 980
+              }
+            },
+            {
+              "id": "product-10",
+              "name": "Compressor Discharge",
+              "source_unit_id": "compressor-3",
+              "specs": {
+                "pressure_kpa": 510
+              }
+            }
+          ],
+          "units": [
+            {
+              "id": "compressor-3",
+              "kind": "Compressor",
+              "name": "Review Compressor",
+              "config": {
+                "control_mode": "outlet_pressure",
+                "anti_surge_review_required": true
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 61,
+      "selected_unit_ids": [
+        "compressor-3"
+      ],
+      "diagnostic_summary": {
+        "error_count": 3,
+        "warning_count": 0
+      },
+      "diagnostics": [
+        {
+          "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+          "message": "Review Compressor is configured for outlet pressure control but outlet pressure target is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-3"
+        },
+        {
+          "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+          "message": "Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-3"
+        },
+        {
+          "code": "COMPRESSOR_EFFICIENCY_BASELINE_MISSING",
+          "message": "Review Compressor is missing efficiency percent input required for current review baseline.",
+          "severity": "error",
+          "target_type": "unit",
+          "target_id": "compressor-3"
+        }
+      ],
+      "latest_snapshot": {
+        "solver_status": "invalid_parameters",
+        "residual_norm": null,
+        "last_updated": "2026-04-07T19:20:00Z"
+      }
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": true
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.apiyi.com/v1/chat/completions",
+    "payload": {
+      "model": "gpt-5.4",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的候选编辑提案推理器，只处理 `radishflow / suggest_flowsheet_edits`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_flowsheet_edits`\n5. `proposed_actions` 里的动作只能是 `candidate_edit`\n6. 只允许输出“最小、可审查、非执行式”的 patch，不要声称已经改图或已经执行\n7. 只使用当前输入里的诊断、`FlowsheetDocument`、选择集和快照；不要凭空发明外部证据\n8. 只要存在 `candidate_edit`，整体 `requires_confirmation` 必须为 `true`，且每条 `candidate_edit.requires_confirmation` 也必须为 `true`\n9. 证据不足时允许 `status=partial`，但仍应把 patch 限制在当前被选中且有直接诊断支撑的局部对象上\n10. `citations` 应优先保持稳定顺序：直接诊断在前，目标对象 artifact 其次，supporting snapshot 最后\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 必须先说明当前围绕哪个对象或哪类问题生成候选提案\n- `issues` 只写真正触发 patch 的诊断或约束，不要泛泛重复摘要\n- `proposed_actions` 至少 1 条，且每条都必须包含 `title`、`target`、`rationale`、`patch`、`risk_level`、`requires_confirmation`\n- `target` 只能指向当前请求里有证据支撑的 `stream` 或 `unit`\n- `patch` 优先使用 `spec_placeholders`、`parameter_placeholders`、`parameter_updates`、`connection_placeholder` 这类局部结构\n- `confidence` 使用 0 到 1 之间的小数\n\n风险规则：\n\n- 拓扑重连、删除对象、替换关键包或其他显著改变求解行为的建议应标为 `high`\n- 常规规格补全、局部参数修正或保护性占位通常标为 `medium`\n- 不要把高风险拓扑修改伪装成低风险设置调整\n\n引用规则：\n\n- 诊断通常使用 `diag-<n>`\n- 目标对象在 `flowsheet_document` 中的 artifact 引用通常使用 `flowdoc-stream-<n>` 或 `flowdoc-unit-<n>`\n- supporting snapshot 通常使用 `snapshot-1`\n- 若单条 `issue` 或 `candidate_edit` 同时引用多条证据，也应保持 `diagnostic -> artifact -> snapshot` 顺序"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-edit-compressor-parameter-placeholder-ordering-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_flowsheet_edits\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-114\",\n        \"streams\": [\n          {\n            \"id\": \"feed-10\",\n            \"name\": \"Compressor Feed\",\n            \"target_unit_id\": \"compressor-3\",\n            \"specs\": {\n              \"pressure_kpa\": 240,\n              \"temperature_c\": 39,\n              \"flow_rate_kg_per_h\": 980\n            }\n          },\n          {\n            \"id\": \"product-10\",\n            \"name\": \"Compressor Discharge\",\n            \"source_unit_id\": \"compressor-3\",\n            \"specs\": {\n              \"pressure_kpa\": 510\n            }\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"compressor-3\",\n            \"kind\": \"Compressor\",\n            \"name\": \"Review Compressor\",\n            \"config\": {\n              \"control_mode\": \"outlet_pressure\",\n              \"anti_surge_review_required\": true\n            }\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 61,\n    \"selected_unit_ids\": [\n      \"compressor-3\"\n    ],\n    \"diagnostic_summary\": {\n      \"error_count\": 3,\n      \"warning_count\": 0\n    },\n    \"diagnostics\": [\n      {\n        \"code\": \"COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING\",\n        \"message\": \"Review Compressor is configured for outlet pressure control but outlet pressure target is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-3\"\n      },\n      {\n        \"code\": \"COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING\",\n        \"message\": \"Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-3\"\n      },\n      {\n        \"code\": \"COMPRESSOR_EFFICIENCY_BASELINE_MISSING\",\n        \"message\": \"Review Compressor is missing efficiency percent input required for current review baseline.\",\n        \"severity\": \"error\",\n        \"target_type\": \"unit\",\n        \"target_id\": \"compressor-3\"\n      }\n    ],\n    \"latest_snapshot\": {\n      \"solver_status\": \"invalid_parameters\",\n      \"residual_norm\": null,\n      \"last_updated\": \"2026-04-07T19:20:00Z\"\n    }\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": true\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "apiyi_cx",
+    "provider_profile_env": "APIYI_CX",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "chatcmpl-083a4a5b-f17b-4968-bb1c-caef76d759dd",
+    "object": "chat.completion",
+    "created": 1776772367,
+    "model": "gpt-5.4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"schema_version\":1,\"request_id\":\"rf-suggest-edit-compressor-parameter-placeholder-ordering-001\",\"project\":\"radishflow\",\"task\":\"suggest_flowsheet_edits\",\"status\":\"success\",\"requires_confirmation\":true,\"answers\":[{\"summary\":\"当前围绕选中的压缩机单元 compressor-3 的缺失控制与评审参数生成候选提案，重点是补充 outlet_pressure 控制目标、最小流量旁通百分比和效率基线的参数占位。\",\"issues\":[{\"code\":\"COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING\",\"message\":\"压缩机配置为出口压力控制，但缺少出口压力目标参数。\",\"severity\":\"error\",\"target\":{\"type\":\"unit\",\"id\":\"compressor-3\"},\"citations\":[\"diag-1\",\"flowdoc-unit-1\",\"snapshot-1\"]},{\"code\":\"COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING\",\"message\":\"压缩机要求防喘振评审，但缺少最小流量旁通百分比参数。\",\"severity\":\"error\",\"target\":{\"type\":\"unit\",\"id\":\"compressor-3\"},\"citations\":[\"diag-2\",\"flowdoc-unit-1\",\"snapshot-1\"]},{\"code\":\"COMPRESSOR_EFFICIENCY_BASELINE_MISSING\",\"message\":\"压缩机缺少当前评审基线所需的效率百分比输入。\",\"severity\":\"error\",\"target\":{\"type\":\"unit\",\"id\":\"compressor-3\"},\"citations\":[\"diag-3\",\"flowdoc-unit-1\",\"snapshot-1\"]}],\"proposed_actions\":[{\"action\":\"candidate_edit\",\"title\":\"为 Review Compressor 补充缺失的参数占位\",\"target\":{\"type\":\"unit\",\"id\":\"compressor-3\"},\"rationale\":\"compressor-3 已配置为 outlet_pressure 控制且 anti_surge_review_required 为 true；当前诊断指出缺少出口压力目标、最小流量旁通百分比和效率百分比输入。该候选补丁仅添加待确认的局部参数占位，不填入未经确认的数值。\",\"patch\":{\"parameter_placeholders\":[{\"path\":\"config.outlet_pressure_target_kpa\",\"label\":\"Outlet pressure target\",\"unit\":\"kPa\",\"reason\":\"Required because control_mode is outlet_pressure.\"},{\"path\":\"config.minimum_flow_bypass_percent\",\"label\":\"Minimum flow bypass\",\"unit\":\"%\",\"reason\":\"Required because anti_surge_review_required is true.\"},{\"path\":\"config.efficiency_percent\",\"label\":\"Efficiency baseline\",\"unit\":\"%\",\"reason\":\"Required for current compressor review baseline.\"}]},\"risk_level\":\"medium\",\"requires_confirmation\":true,\"citations\":[\"diag-1\",\"diag-2\",\"diag-3\",\"flowdoc-unit-1\",\"snapshot-1\"]}],\"confidence\":0.86}]}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1366,
+      "completion_tokens": 584,
+      "total_tokens": 1950
+    }
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "ok",
+    "requires_confirmation": true,
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "当前围绕选中的压缩机单元 compressor-3 的缺失控制与评审参数生成候选提案，重点是补充 outlet_pressure 控制目标、最小流量旁通百分比和效率基线的参数占位。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 Review Compressor 补充缺失的参数占位",
+        "rationale": "compressor-3 已配置为 outlet_pressure 控制且 anti_surge_review_required 为 true；当前诊断指出缺少出口压力目标、最小流量旁通百分比和效率百分比输入。该候选补丁仅添加待确认的局部参数占位，不填入未经确认的数值。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-unit-1"
+        ],
+        "target": {
+          "type": "unit",
+          "id": "compressor-3"
+        },
+        "patch": {
+          "parameter_placeholders": [
+            "outlet_pressure_target_kpa",
+            "minimum_flow_bypass_percent",
+            "efficiency_percent"
+          ],
+          "patch_scope": "unit_parameters",
+          "preserve_existing_connections": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+        "message": "Review Compressor is configured for outlet pressure control but outlet pressure target is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "message": "Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "code": "COMPRESSOR_EFFICIENCY_BASELINE_MISSING",
+        "message": "Review Compressor is missing efficiency percent input required for current review baseline.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_OUTLET_PRESSURE_TARGET_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Review Compressor is configured for outlet pressure control but outlet pressure target is missing."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_MINIMUM_FLOW_BYPASS_MISSING",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Review Compressor anti-surge review requires minimum flow bypass percent, but the parameter is missing."
+      },
+      {
+        "id": "diag-3",
+        "kind": "context",
+        "label": "诊断 COMPRESSOR_EFFICIENCY_BASELINE_MISSING",
+        "locator": "context:diagnostics[2]",
+        "excerpt": "Review Compressor is missing efficiency percent input required for current review baseline."
+      },
+      {
+        "id": "flowdoc-unit-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / compressor-3",
+        "locator": "artifact:flowsheet_document.units[0]",
+        "excerpt": "compressor-3 Review Compressor kind=Compressor"
+      }
+    ],
+    "summary": "当前围绕选中的压缩机单元 compressor-3 的缺失控制与评审参数生成候选提案，重点是补充 outlet_pressure 控制目标、最小流量旁通百分比和效率基线的参数占位。",
+    "risk_level": "medium",
+    "confidence": 0.2
+  }
+}

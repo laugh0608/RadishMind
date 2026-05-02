@@ -3,6 +3,55 @@ from __future__ import annotations
 from .regression_shared import *  # noqa: F401,F403
 
 
+def validate_radishflow_ghost_negative_replay(
+    sample: dict[str, Any],
+    config: dict[str, Any],
+    sample_name: str,
+    violations: list[str],
+) -> None:
+    expectations = sample.get("negative_replay_expectations") or {}
+    expected_candidate_violations = [
+        str(item).strip()
+        for item in get_array(expectations.get("expected_candidate_violations"))
+        if str(item).strip()
+    ]
+    if len(expected_candidate_violations) == 0:
+        add_violation(
+            violations,
+            f"{sample_name}: negative_replay_expectations.expected_candidate_violations is required for negative replay samples",
+        )
+        return
+
+    candidate_response, record_violations = load_candidate_response_from_record(sample, config, sample_name)
+    if candidate_response is None:
+        add_violation(violations, f"{sample_name}: negative replay requires candidate_response or candidate_response_record")
+        return
+
+    candidate_violations: list[str] = []
+    candidate_violations.extend(record_violations)
+    test_document_against_schema(
+        candidate_response,
+        config["response_schema"],
+        f"{sample_name} candidate_response",
+        candidate_violations,
+    )
+    validate_ghost_completion_response(sample, candidate_response, "candidate_response", sample_name, candidate_violations)
+
+    if len(candidate_violations) == 0:
+        add_violation(
+            violations,
+            f"{sample_name}: candidate_response unexpectedly passed all checks in negative replay mode",
+        )
+        return
+
+    for expected_fragment in expected_candidate_violations:
+        if not any(expected_fragment in message for message in candidate_violations):
+            add_violation(
+                violations,
+                f"{sample_name}: negative replay did not trigger expected violation fragment '{expected_fragment}'",
+            )
+
+
 def validate_ghost_completion_request(sample: dict[str, Any], sample_name: str, violations: list[str]) -> None:
     request = sample["input_request"]
     context = request.get("context") or {}
@@ -318,4 +367,3 @@ def validate_ghost_completion_response(
 
     test_path_expectations(response, get_array(evaluation.get("must_have_json_paths")), True, f"{sample_name}:{response_label}", violations)
     test_path_expectations(response, get_array(evaluation.get("must_not_have_json_paths")), False, f"{sample_name}:{response_label}", violations)
-

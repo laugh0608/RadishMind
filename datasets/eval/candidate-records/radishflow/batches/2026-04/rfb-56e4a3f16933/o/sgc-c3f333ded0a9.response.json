@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "status": "ok",
+  "summary": "给出 1 条 ghost 建议：为已选中的加热器 outlet 连接到 Flash Drum 609 的 inlet。",
+  "answers": [
+    {
+      "kind": "ghost_rationale",
+      "text": "基于唯一合法候选，建议将 heater-10.outlet 连接至 flash-32.inlet，并命名流股为 H-609。",
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "ghost_completion",
+      "title": "补全 heater-10 的 outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "heater-10",
+        "port_key": "outlet"
+      },
+      "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-heater-10-outlet-flash-32",
+        "target_port_key": "outlet",
+        "ghost_stream_name": "H-609"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "Tab",
+        "render_priority": 1
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-heater-10-outlet-flash-32"
+        }
+      },
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "requires_confirmation": false,
+  "issues": [],
+  "citations": [
+    {
+      "id": "ctx-unit",
+      "kind": "context",
+      "label": "当前选中的 heater-10",
+      "locator": "context:selected_unit",
+      "excerpt": "selected_unit=heater-10 kind=Heater name=Feed Heater 609"
+    },
+    {
+      "id": "ctx-candidate-1",
+      "kind": "context",
+      "label": "候选 cand-heater-10-outlet-flash-32",
+      "locator": "context:legal_candidate_completions[0]",
+      "excerpt": "candidate_ref=cand-heater-10-outlet-flash-32 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+    },
+    {
+      "id": "ctx-naming-hints",
+      "kind": "context",
+      "label": "ghost 命名提示",
+      "locator": "context:naming_hints",
+      "excerpt": "{\"upstream_stream_names\": [\"F-609\"], \"existing_stream_names\": [\"F-609\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"609\"}"
+    },
+    {
+      "id": "ctx-pattern",
+      "kind": "context",
+      "label": "拓扑模式提示",
+      "locator": "context:topology_pattern_hints[0]",
+      "excerpt": "feed_heater_flash_chain"
+    },
+    {
+      "id": "ctx-recent-action",
+      "kind": "context",
+      "label": "最近 ghost 动作",
+      "locator": "context:cursor_context.recent_actions[2]",
+      "excerpt": "{\"kind\": \"reject_ghost_completion\", \"candidate_ref\": \"cand-heater-10-outlet-flash-31\", \"rejected_at_revision\": 71}"
+    }
+  ],
+  "risk_level": "low",
+  "confidence": 0.93
+}

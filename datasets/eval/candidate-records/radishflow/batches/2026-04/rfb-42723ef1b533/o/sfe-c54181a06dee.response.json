@@ -1,0 +1,81 @@
+{
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "status": "partial",
+  "answers": [
+    {
+      "kind": "direct_answer",
+      "text": "当前选定流 'Product Outlet' 未连接到任何下游单元或出口汇点，导致流程拓扑无效。建议为该流添加连接占位符，指示必须连接至下游出口单元。",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "summary": "围绕选定的流 'Product Outlet' 的断开连接问题，建议为它添加一个连接占位符以标识所需的下游连接。",
+  "issues": [
+    {
+      "code": "STREAM_DISCONNECTED",
+      "message": "Product Outlet is not connected to any downstream consumer or export sink.",
+      "severity": "error",
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "candidate_edit",
+      "title": "为 Product Outlet 添加下游连接占位符",
+      "rationale": "该流缺少下游连接，导致拓扑无效。需要连接至一个出口或消费单元以完成流程。此处仅标记所需的连接角色，而不立即添加单元，供用户审查。",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "citation_ids": [
+        "diag-1",
+        "flowdoc-stream-1",
+        "snapshot-1"
+      ],
+      "target": {
+        "type": "stream",
+        "id": "stream-out-1"
+      },
+      "patch": {
+        "connection_placeholder": {
+          "expected_downstream_kind": "consumer_or_export_sink",
+          "requires_manual_binding": true,
+          "retain_existing_source_binding": true
+        }
+      }
+    }
+  ],
+  "requires_confirmation": true,
+  "citations": [
+    {
+      "id": "diag-1",
+      "kind": "context",
+      "label": "诊断 STREAM_DISCONNECTED",
+      "locator": "context:diagnostics[0]",
+      "excerpt": "Product Outlet is not connected to any downstream consumer or export sink."
+    },
+    {
+      "id": "flowdoc-stream-1",
+      "kind": "artifact",
+      "label": "FlowsheetDocument / stream-out-1",
+      "locator": "artifact:flowsheet_document.streams[0]",
+      "excerpt": "stream-out-1 Product Outlet source_unit_id=separator-1"
+    },
+    {
+      "id": "snapshot-1",
+      "kind": "context",
+      "label": "求解快照 latest_snapshot",
+      "locator": "context:latest_snapshot",
+      "excerpt": "solver_status=invalid_topology"
+    }
+  ],
+  "schema_version": 1,
+  "risk_level": "high",
+  "confidence": 0.2
+}

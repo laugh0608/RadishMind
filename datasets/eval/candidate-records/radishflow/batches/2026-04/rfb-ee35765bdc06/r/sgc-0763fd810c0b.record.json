@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "record_id": "simulated-radishflow-suggest-ghost-completion-negative-real-derived-empty-candidates-boundary-drift-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-negative-real-derived-empty-candidates-boundary-drift-001",
+  "request_id": "rf-suggest-ghost-negative-real-derived-empty-candidates-boundary-drift-001",
+  "captured_at": "2026-04-20T09:32:00Z",
+  "source": "simulated_candidate_response",
+  "model": "radishmind-mock-radishflow-suggest_ghost_completion-real-derived-v1",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 61,
+    "selected_unit_ids": [
+      "flash-12"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "负例回放：recent_actions 不能替代本地合法候选集，但这里错误地补出了一个不存在的 outlet ghost。",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern",
+          "ctx-recent-action"
+        ]
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "错误补全 flash-12 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-12",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该负例故意忽略空 legal_candidate_completions，凭链式 recent_actions 主观补出下一跳。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-12-vapor-invented",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-504A"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-12-vapor-invented"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-12",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-12 kind=FlashDrum name=Flash Drum 504"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 legal_candidate_completions",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"V-504\"], \"existing_stream_names\": [\"F-504\", \"V-504\", \"VG-504\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\", \"liquid_outlet\": \"VL\"}, \"numeric_suff"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-valve-5-outlet-flash-12\", \"accepted_at_revision\": 60}"
+      }
+    ],
+    "summary": "负例回放：即使本地规则没有给出合法候选，也错误补出了一个 FlashDrum outlet ghost。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9
+  },
+  "capture_metadata": {
+    "capture_origin": "manual_fixture",
+    "collection_batch": "2026-04-20-radishflow-ghost-simulated-negatives-v1",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "simulated_negative",
+      "real_record_derived",
+      "derived_pattern:ghost_empty_candidate_boundary_drift",
+      "w17_batch"
+    ],
+    "source_candidate_response_record": {
+      "manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-22d033e634d2/manifest.json",
+      "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-stop-no-legal-outlet-001"
+    },
+    "notes": "基于 latest clean formal batch `rfb-22d033e634d2` 的 empty-candidates real record 派生，专门模拟 recent_actions 越过空候选边界主观补 ghost 的漂移。"
+  }
+}

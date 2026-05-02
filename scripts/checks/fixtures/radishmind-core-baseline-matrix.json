@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_baseline_matrix",
+  "phase": "M4-preparation",
+  "hardware_budget": {
+    "target_local_memory_gb": 32,
+    "preferred_core_sizes": [
+      "3B",
+      "4B"
+    ],
+    "maximum_local_core_size": "7B",
+    "excluded_default_sizes": [
+      "14B",
+      "32B"
+    ]
+  },
+  "capability_boundaries": {
+    "radishmind_core_is_from_scratch_pretraining": false,
+    "radishmind_core_direct_pixel_generation": false,
+    "image_pixel_generation_owner": "radishmind-image-adapter-backend",
+    "advisory_only": true
+  },
+  "evaluation_dimensions": [
+    "protocol_following",
+    "structured_response_validity",
+    "chinese_task_understanding",
+    "citation_alignment",
+    "risk_confirmation",
+    "action_boundary",
+    "training_sample_fit",
+    "image_intent_planning",
+    "local_deployment_cost"
+  ],
+  "minimum_entry_gates": [
+    "validates_copilot_training_sample",
+    "keeps_requires_confirmation_for_medium_high_risk",
+    "preserves_citation_ids",
+    "does_not_generate_image_pixels",
+    "can_be_checked_by_existing_eval_and_gateway_smoke"
+  ],
+  "models": [
+    {
+      "id": "minimind-v",
+      "role": "student_base_mainline",
+      "target_size": "base",
+      "current_status": "default_student_base_candidate",
+      "first_round_use": [
+        "domain_adaptation",
+        "training_sample_fit",
+        "protocol_following"
+      ],
+      "must_not_do": [
+        "claim_final_production_model_without_eval",
+        "generate_image_pixels"
+      ]
+    },
+    {
+      "id": "radishmind-core-3b",
+      "role": "first_local_core_candidate",
+      "target_size": "3B",
+      "current_status": "preferred_first_round_size",
+      "first_round_use": [
+        "core_text_tasks",
+        "structured_response",
+        "risk_confirmation"
+      ],
+      "enter_next_stage_when": [
+        "passes_protocol_following_gate",
+        "fits_32gb_local_budget",
+        "keeps_citation_alignment"
+      ],
+      "must_not_do": [
+        "handle_direct_pixel_generation",
+        "replace_business_truth_source"
+      ]
+    },
+    {
+      "id": "radishmind-core-4b",
+      "role": "first_enhanced_core_candidate",
+      "target_size": "4B",
+      "current_status": "compare_when_3b_is_insufficient",
+      "first_round_use": [
+        "core_text_tasks",
+        "longer_context_comparison",
+        "multi_step_reasoning_comparison"
+      ],
+      "enter_next_stage_when": [
+        "improves_over_3b_on_key_tasks",
+        "fits_32gb_local_budget",
+        "cost_is_acceptable"
+      ],
+      "must_not_do": [
+        "become_default_without_eval_gap",
+        "handle_direct_pixel_generation"
+      ]
+    },
+    {
+      "id": "radishmind-core-7b",
+      "role": "long_term_local_upper_bound",
+      "target_size": "7B",
+      "current_status": "deferred_until_3b_4b_gap_is_proven",
+      "first_round_use": [
+        "upper_bound_comparison",
+        "quantization_feasibility",
+        "latency_budget_check"
+      ],
+      "enter_next_stage_when": [
+        "3b_and_4b_fail_key_tasks",
+        "quantized_runtime_fits_budget",
+        "quality_gap_justifies_cost"
+      ],
+      "must_not_do": [
+        "be_first_default_training_target",
+        "expand_to_14b_or_32b_by_default",
+        "handle_direct_pixel_generation"
+      ]
+    },
+    {
+      "id": "qwen2.5-vl",
+      "role": "teacher_strong_baseline",
+      "target_size": "teacher",
+      "current_status": "quality_upper_bound_and_distillation_reference",
+      "first_round_use": [
+        "complex_multimodal_reference",
+        "annotation_reference",
+        "distillation_reference"
+      ],
+      "must_not_do": [
+        "be_radishmind_core_local_deployment_target",
+        "replace_student_base_mainline"
+      ]
+    },
+    {
+      "id": "smolvlm",
+      "role": "lightweight_baseline",
+      "target_size": "lightweight",
+      "current_status": "low_resource_comparison",
+      "first_round_use": [
+        "low_resource_floor",
+        "small_model_regression",
+        "deployment_lower_bound"
+      ],
+      "must_not_do": [
+        "replace_minimind_v_mainline",
+        "become_default_core_model_without_eval"
+      ]
+    }
+  ],
+  "decision_rules": {
+    "prefer_3b_when": [
+      "passes_core_protocol_tasks",
+      "fits_local_budget",
+      "quality_gap_to_4b_is_small"
+    ],
+    "promote_4b_when": [
+      "3b_fails_key_protocol_or_reasoning_tasks",
+      "4b_improves_without_unacceptable_cost"
+    ],
+    "evaluate_7b_when": [
+      "3b_and_4b_both_fail_key_tasks",
+      "issue_is_not_solved_by_data_prompt_or_rules",
+      "quantized_runtime_fits_local_budget"
+    ],
+    "never_do_by_default": [
+      "treat_14b_or_32b_as_default_core_target",
+      "merge_image_pixel_generation_into_radishmind_core",
+      "replace_eval_with_subjective_impression"
+    ]
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "sample_id": "radishflow-suggest-flowsheet-edits-issue-citation-ordering-warning-artifact-before-snapshot-001",
+  "request_id": "rf-suggest-edit-issue-citation-ordering-warning-artifact-before-snapshot-001",
+  "captured_at": "2026-04-27T11:21:24Z",
+  "source": "captured_candidate_response",
+  "model": "gpt-5.4",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 75,
+    "selected_unit_ids": [
+      "heater-6"
+    ],
+    "selected_stream_ids": [
+      "feed-16",
+      "product-16"
+    ],
+    "diagnostic_codes": [
+      "STREAM_SPEC_MISSING",
+      "HEATER_OUTLET_EFFECT_UNCONFIRMED"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "status": "partial",
+    "requires_confirmation": true,
+    "summary": "当前围绕已选中的进料流股 feed-16 缺少流量规格这一直接报错，生成最小候选提案；同时保留对 product-16 警告的谨慎态度，不在缺少入口条件确认前扩大修改范围。",
+    "answers": [
+      {
+        "kind": "direct_answer",
+        "text": "建议仅在 feed-16 上补充流量规格占位，以直接回应缺失规格报错，并避免对 heater-6 或 product-16 做超出当前证据的修改。",
+        "citation_ids": [
+          "diag-1",
+          "diag-2",
+          "flowdoc-stream-1",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "candidate_edit",
+        "title": "为 feed-16 补充流量规格占位",
+        "rationale": "feed-16 存在直接且明确的缺失流量规格报错。先补充最小规格占位，可为后续确认 heater-6 出口行为提供必要入口条件，同时不改变现有连接或控制模式。",
+        "risk_level": "medium",
+        "requires_confirmation": true,
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ],
+        "target": {
+          "type": "stream",
+          "id": "feed-16"
+        },
+        "patch": {
+          "spec_placeholders": [
+            "flow_rate_kg_per_h"
+          ],
+          "retain_existing_specs": true
+        }
+      }
+    ],
+    "issues": [
+      {
+        "code": "STREAM_SPEC_MISSING",
+        "message": "Cold Feed is missing flow rate specification.",
+        "severity": "error",
+        "citation_ids": [
+          "diag-1",
+          "flowdoc-stream-1"
+        ]
+      },
+      {
+        "code": "HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "message": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed.",
+        "severity": "warning",
+        "citation_ids": [
+          "diag-2",
+          "flowdoc-stream-2",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "diag-1",
+        "kind": "context",
+        "label": "诊断 STREAM_SPEC_MISSING",
+        "locator": "context:diagnostics[0]",
+        "excerpt": "Cold Feed is missing flow rate specification."
+      },
+      {
+        "id": "diag-2",
+        "kind": "context",
+        "label": "诊断 HEATER_OUTLET_EFFECT_UNCONFIRMED",
+        "locator": "context:diagnostics[1]",
+        "excerpt": "Heater Outlet temperature pattern may still be influenced by missing inlet conditions, and the local outlet effect is not yet confirmed."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-16",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-16 Cold Feed target_unit_id=heater-6"
+      },
+      {
+        "id": "flowdoc-stream-2",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / product-16",
+        "locator": "artifact:flowsheet_document.streams[1]",
+        "excerpt": "product-16 Heater Outlet source_unit_id=heater-6"
+      },
+      {
+        "id": "snapshot-1",
+        "kind": "context",
+        "label": "求解快照 latest_snapshot",
+        "locator": "context:latest_snapshot",
+        "excerpt": "solver_status=invalid_parameters"
+      }
+    ],
+    "risk_level": "medium",
+    "confidence": 0.2
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_flowsheet_edits",
+      "openai-compatible",
+      "real_capture",
+      "high_value_real_expansion_action_filtering",
+      "v93"
+    ],
+    "collection_batch": "2026-04-27-radishflow-suggest-edits-poc-real-v93-high-value-action-filtering"
+  }
+}

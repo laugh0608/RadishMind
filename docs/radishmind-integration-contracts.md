@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约草案
 
-更新时间：2026-04-12
+更新时间：2026-05-01
 
 ## 文档目的
 
@@ -12,6 +12,11 @@
 
 - `contracts/copilot-request.schema.json`
 - `contracts/copilot-response.schema.json`
+- `contracts/copilot-gateway-envelope.schema.json`
+- `contracts/copilot-training-sample.schema.json`
+- `contracts/image-generation-intent.schema.json`
+- `contracts/image-generation-backend-request.schema.json`
+- `contracts/image-generation-artifact.schema.json`
 
 当前协议原则已经根据真实仓库收口为：
 
@@ -19,6 +24,425 @@
 - 结构化 JSON 优先，图像和附件作为 artifact 补充
 - 默认 advisory mode，不做直接写回
 - 所有高风险输出都必须带 `requires_confirmation`
+
+## 当前服务/API 接入切片
+
+从 `suggest_flowsheet_edits v93` 与 `suggest_ghost_completion v25` 收口后，下一步不再默认通过继续跑真实样本推进，而是把现有协议和评测资产上提为服务/API 接入门禁。
+
+当前最小切片建议固定为：
+
+1. 上层或本地 smoke 提供 schema-valid `CopilotRequest`
+2. `Copilot Gateway / Task Router` 校验 `project / task / schema_version`
+3. Gateway 调用现有 `services/runtime/inference.py` 路径生成 `CopilotResponse`
+4. Response Builder 保持统一 `risk_level / requires_confirmation / citations / proposed_actions`
+5. 服务层只输出 advisory response，不写回 `RadishFlow` 或 `Radish` 真相源
+6. 同一请求必须能复用既有 eval regression、candidate record audit 与治理报表作为验收门禁
+
+真实 provider capture 只在服务/API 或集成演示暴露现有样本无法覆盖的新 drift 时触发；触发前应先写清楚新假设、覆盖缺口和退出条件。
+
+### `CopilotGatewayEnvelope` 调用口径
+
+当前 gateway 层返回值统一采用 `CopilotGatewayEnvelope`，schema 真相源为 `contracts/copilot-gateway-envelope.schema.json`。
+
+首个对外调用形态当前固定为**进程内 Python API**：
+
+```python
+from services.gateway import GatewayOptions, handle_copilot_request
+
+envelope = handle_copilot_request(
+    copilot_request,
+    options=GatewayOptions(provider="mock"),
+)
+```
+
+HTTP JSON 暂时只保留为后续包装形态；在长驻服务、鉴权、端口和部署生命周期尚未进入当前切片前，不把 HTTP server 作为 `M3` 的默认推进项。未来若添加 HTTP 包装，也必须复用同一个 `CopilotGatewayEnvelope` 语义，而不是引入第二套响应协议。
+
+调用侧口径建议固定为：
+
+- 上层提交 schema-valid `CopilotRequest`，不直接调用任务 runtime 或 provider
+- Gateway 返回 `schema_version / status / request_id / project / task / response / error / metadata`
+- 当 `status=ok` 或 `status=partial` 时，`response` 必须存在，并继续按 `contracts/copilot-response.schema.json` 校验和消费
+- 当 `status=failed` 时，调用侧必须优先读取 `error.code` 与 `error.message`；若同时存在 `response`，它也只能作为 failed advisory response 展示或记录，不能转成可执行动作
+- `metadata.route` 固定表达 `project/task`，用于调用侧日志、审计和路由观测
+- `metadata.provider` 只表达本次 gateway 使用的 provider/profile/model 摘要，不应被上层当作业务结果
+- `metadata.advisory_only` 必须保持 `true`；上层不得绕过人工确认或规则层复核直接执行 `response.proposed_actions`
+- `metadata.request_validated` 与 `metadata.response_validated` 用于确认 gateway 是否完成请求和响应 schema 校验；生产前调用侧应把任一 `false` 视为异常观测信号
+- 对 `RadishFlow suggest_flowsheet_edits`，即使 gateway 返回 `partial`，只要 `response.requires_confirmation=true`，上层也只能呈现候选建议，不能写回 `FlowsheetDocument`
+
+当前仓库用两层 smoke 固定这条调用口径：
+
+- `scripts/check-gateway-service-smoke.py --check-summary scripts/checks/fixtures/gateway-service-smoke-summary.json`：固定进程内 Python API 的成功调用、schema-valid 但 unsupported route、schema-invalid request 三类 envelope 行为
+- `scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check`：固定 `RadishFlow export -> adapter/request -> gateway envelope` 的服务/API 集成 smoke
+
+这些 summary 只锁定上层依赖的 envelope 行为字段，不锁死完整自然语言响应。
+
+### `RadishFlow` UI 消费口径
+
+`RadishFlow` 调用侧在消费 `CopilotGatewayEnvelope` 时，应先把 envelope 映射为 UI 可展示、可审计、不可直接执行的 consumption view：
+
+- `status=ok/partial` 且存在 `response.proposed_actions` 时，可展示候选提案卡片，但必须保留 `requires_confirmation`
+- `candidate_edit` 只能显示为 advisory proposal，后续真实修改仍交由上层命令层和人工确认流处理
+- `status=failed` 时，UI 应优先展示 `error.code / error.message`，并把同时存在的 failed `response` 仅作为说明或日志，不转成候选动作
+- `metadata.provider / route / request_validated / response_validated / advisory_only` 应进入调用侧审计或诊断信息，不作为业务真相源
+- 任一消费路径都不得直接写回 `FlowsheetDocument`
+
+当前仓库用 `scripts/check-radishflow-gateway-ui-consumption.py --check-summary scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json` 固定这层消费口径。该 summary 覆盖 proposal-ready、unsupported route 与 schema-invalid 三类路径，确保上层可消费视图始终保持 advisory-only。
+
+### `RadishFlow` 候选编辑 handoff 口径
+
+当用户在 UI 中确认某条 `candidate_edit` 后，调用侧仍不应直接执行 patch，而应生成命令层可接收的候选 handoff：
+
+- 只有 `kind=candidate_edit` 且 `requires_confirmation=true` 的动作可以进入 handoff
+- handoff 输出是 `radishflow_candidate_edit_proposal`，不是已执行命令
+- handoff 必须保留 `source_request_id`、`source_route`、`action_index`、`target`、`patch_keys`、`risk_level` 与 `citation_ids`
+- handoff 必须显式标记 `requires_human_confirmation=true` 与 `can_execute=false`
+- `status=failed`、schema-invalid request 或没有合格 `candidate_edit` 的响应不得产生 handoff
+
+当前仓库用 `scripts/check-radishflow-candidate-edit-handoff.py --check-summary scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json` 固定这层 handoff 口径。该 summary 只证明候选动作可被安全交接给上层命令层，不代表本仓库已经执行或实现 `RadishFlow` 真实命令。
+
+### 当前上层接入等待口径
+
+`RadishFlow` 与 `Radish` 暂时都还没有进入真实模型 / Agent 接入阶段，因此当前不把真实上层调用位置作为 `RadishMind` 的阻塞项。
+
+在上层项目准备好之前：
+
+- 当前已落地的 gateway smoke、`RadishFlow` UI consumption summary 与 candidate edit handoff summary 视为未来接入验收门禁
+- 不继续为尚不存在的上层 UI / 命令层扩展更多本仓库内模拟 summary
+- HTTP JSON 包装仍保留为后续部署形态，不在没有真实消费方前强行提前实现
+- 当前开发重心转向 `RadishMind-Core` 基座评估、训练 / 蒸馏样本格式和 `RadishMind-Image Adapter` schema
+- 未来 `RadishFlow` 或 `Radish` 准备接入时，应优先复用现有 `CopilotRequest`、`CopilotResponse` 与 `CopilotGatewayEnvelope`，而不是新增第二套协议
+
+## `CopilotTrainingSample` 训练 / 蒸馏样本契约
+
+`RadishMind-Core` 的首版训练 / 蒸馏样本以 `CopilotRequest -> CopilotResponse` 为核心，不引入第二套任务协议。样本 wrapper 只负责记录训练模式、teacher/source、训练字段、质量门禁和来源 metadata。
+
+当前已落成仓库级可回归契约：
+
+- Schema：`contracts/copilot-training-sample.schema.json`
+- 最小 fixture：`scripts/checks/fixtures/copilot-training-sample-basic.json`
+- Smoke：`scripts/check-copilot-training-sample-contract.py`
+- Eval 转换入口：`scripts/build-copilot-training-samples.py`
+- 首批转换清单：`scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json`
+- 首批转换 summary：`scripts/checks/fixtures/copilot-training-sample-conversion-summary.json`
+- 首批 candidate record 转换清单：`scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json`
+- 首批 candidate record 转换 summary：`scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-summary.json`
+- 训练集合治理 manifest 草案：`training/datasets/copilot-training-dataset-governance-v0.json`
+- 训练集合人工复核记录模板：`training/datasets/copilot-training-review-record-v0.json`
+- 训练集合 offline eval holdout split：`training/datasets/copilot-training-holdout-split-v0.json`
+- 训练集合治理 smoke：`scripts/check-copilot-training-dataset-governance.py`
+- 离线评测 runner：`scripts/run-radishmind-core-offline-eval.py`
+- 离线评测 fixture-run manifest：`scripts/checks/fixtures/radishmind-core-offline-eval-fixture-run-manifest.json`
+- 离线评测 fixture-run 输出：`scripts/checks/fixtures/radishmind-core-offline-eval-golden-run.json`
+- Candidate 输出离线评测 manifest：`scripts/checks/fixtures/radishmind-core-offline-eval-candidate-run-manifest.json`
+- Candidate 输出离线评测 dry-run：`scripts/checks/fixtures/radishmind-core-offline-eval-candidate-dry-run.json`
+- Candidate wrapper：`scripts/run-radishmind-core-candidate.py`
+- Candidate dry-run manifest：`scripts/checks/fixtures/radishmind-core-candidate-dry-run-manifest.json`
+- Candidate dry-run summary：`scripts/checks/fixtures/radishmind-core-candidate-dry-run-summary.json`
+- Timeout probe manifest / summary：`scripts/checks/fixtures/radishmind-core-timeout-probe-*`
+- Holdout probe manifest / summary：`scripts/checks/fixtures/radishmind-core-holdout-probe-*`
+- Full holdout manifest / summary：`scripts/checks/fixtures/radishmind-core-full-holdout-*`
+- Non-overlapping holdout probe v2 manifest / summary：`scripts/checks/fixtures/radishmind-core-holdout-probe-v2-*`
+
+当前 eval 转换入口先只使用 committed eval 样本中的 `input_request` 与 `golden_response`，不调用 provider、不下载模型、不读取 candidate record。首批转换固定三条主任务各 3 条样本：
+
+- `radishflow/suggest_flowsheet_edits`
+- `radishflow/suggest_ghost_completion`
+- `radish/answer_docs_question`
+
+该入口可输出 JSONL 训练样本，并用 summary fixture 固定样本数、任务分布、来源 eval 样本、生成 sample id、训练字段、质量门禁计数和确认边界统计。
+
+当前训练输出布局固定为：
+
+- `training/` 只提交训练集合治理说明、manifest、summary、抽样复核记录和实验说明
+- 默认 JSONL 输出到 `tmp/`，作为本地生成产物，不直接入仓
+- `datasets/` 继续承载 eval 样本、candidate record 和示例对象，不作为生成后训练 JSONL 的默认落点
+- 若后续确需提交小型 JSONL fixture，必须先在 `training/` 中说明样本数、用途、来源、复核状态和退场条件
+- 大规模 JSONL、权重、checkpoint、adapter 二进制和 provider 临时 dump 不进入本仓库 committed 资产
+
+当前更大训练集合的首个治理 manifest 已固定为 `training/datasets/copilot-training-dataset-governance-v0.json`，状态为 `draft`。它不替代转换 manifest，也不包含生成后的 JSONL；职责是约束哪些样本未来能进入更大的训练 / 蒸馏集合：
+
+- 当前 seed set 继续来自 committed eval `golden_response` 与 audit pass `teacher_capture` 两类转换 manifest
+- candidate record 必须被转换 manifest 显式列入，并通过 batch manifest、audit report、record schema、response schema、`project/task/sample_id` 一致性、风险确认和 citation 检查
+- 当前小型 seed set 默认全量复核；后续更大 candidate record 池按 `project / task / source / provider / model / risk_level / requires_confirmation / coverage_tags / batch_id` 分层抽样
+- 默认每个分层至少复核 `20%` 且不少于 `5` 条；新项目/任务、新 provider/model、高风险动作、`requires_confirmation=true`、新 action/patch 结构、新 retrieval source、schema/contract 版本变化和历史失败模式必须全量复核
+- 至少保留 `10%` 离线评测 holdout，且每个任务至少 `3` 条；holdout 不得进入同一训练 JSONL split
+- 样本若出现 audit 失效、schema 失效、人工复核拒绝、确认边界弱化、来源不可追踪、无理由重复、holdout 泄漏或模式过期，应从训练集合退场
+
+当前 planned 人工复核与 holdout 接线已补两份轻量资产：
+
+- `training/datasets/copilot-training-review-record-v0.json` 只记录复核模板与三组 planned review batch：`golden_response` seed set、`teacher_capture` seed set 和 offline eval holdout 泄漏检查。在没有真实 reviewer、timestamp、逐维度结果和泄漏判断前，不得标记为 `reviewed_pass`
+- `training/datasets/copilot-training-holdout-split-v0.json` 固定三条主任务各 3 条 planned holdout，且显式排除当前两份训练转换 manifest 中已经列入的样本，避免训练 / 评测泄漏。该 split 不生成 JSONL、不运行模型
+
+当前 candidate record 转换入口只允许显式列入转换 manifest 的记录进入训练样本，且必须同时满足：
+
+- 所属 batch manifest 与 audit report 都存在且互相指向一致
+- 选中的 `sample_file` 在 audit report 中为 `pass`
+- candidate record 通过 `datasets/eval/candidate-response-record.schema.json`
+- candidate record 内嵌 `response` 通过 `contracts/copilot-response.schema.json`
+- record 的 `project / task / sample_id` 必须与 committed eval 样本一致
+
+首批 candidate record 转换同样固定三条主任务各 3 条样本，`distillation.source=teacher_capture`，`teacher.model` 与 `teacher.record_id` 来自真实 record。该入口仍不重新调用 provider、不下载模型、不启动训练；它只把已审计通过的真实候选响应转换成可复验的训练 / 蒸馏样本。
+
+当前 `scripts/run-radishmind-core-offline-eval.py` 是 M4 的首个可执行离线评测 runner。它支持 `response_source=golden_response` 的 fixture-run，也支持 `response_source=candidate_response_file`，从 `run-radishmind-core-candidate.py` 生成的 summary 与 response 目录读取候选输出，复用现有任务级 validator 计算阻塞指标，并生成符合 `contracts/radishmind-core-offline-eval-run.schema.json` 的 completed run record。离线评测阶段不重新调用模型、不访问 provider、不下载权重；schema-invalid raw 输出会进入指标失败统计，而不是被伪装成通过或阻断整批记录生成。该 runner 仍不代表真实模型晋级，职责是证明真实 `student/base` raw / repaired 输出可以接入同一条评测管线。
+
+当前 `scripts/run-radishmind-core-candidate.py` 是真实模型 candidate 输出前的本地 wrapper。它复用同一份离线评测 fixture-run manifest，先把每条 `input_request` 包装成 prompt document，再把 provider 产出的候选 JSON 校验为 `CopilotResponse`，并把 prompt 与 candidate response 写到运行时指定的输出目录。仓库级检查只使用 `golden_fixture` provider，输出 summary 固定为 `scripts/checks/fixtures/radishmind-core-candidate-dry-run-summary.json`；这一步只验证 prompt 包装、响应文件布局、schema 校验、`project/task` 一致性和高风险 `requires_confirmation` 边界，不代表真实模型能力。调试真实小模型时可加 `--sample-id` 限定单条样本，并用 `--sample-timeout-seconds` 固定单样本生成边界；`--allow-invalid-output` 会将 schema-invalid、JSON parse error 或 timeout 原始输出写入 `tmp/.../invalid-responses/`，这类输出只能作为观测证据，不得进入离线评测通过记录或训练集合。本地 `local_transformers` summary 会记录 per-sample 输入 token、输出 token、JSON 抽取、JSON cleanup、是否触达 `max_new_tokens`、timeout 和推理耗时，便于比较不同模型容量的本地成本。
+
+若需要验证“解码后结构化修复”能否治理小模型硬字段漂移，可显式加 `--repair-hard-fields`。该模式会在 schema/task 校验前，用 prompt scaffold 派生的硬字段修复 `status / risk_level / requires_confirmation / action kind / action shape / issue / citation / answer kind` 等协议边界，并在 summary 的 `postprocess_policy` 与每条输出的 `postprocess.repaired_paths` 中记录修复范围。该模式是实验性后处理，不得替代 raw 模型能力观测；同一模型应同时保留未开启该开关的 raw summary 作为真实能力基线。当前 `Qwen2.5-1.5B-Instruct` 的 full holdout repaired fix3 可在既有 9 条 planned holdout 上达到 `9/9` task-valid，但 v2 非重叠 holdout repaired 仍被复杂跨对象 `suggest_flowsheet_edits` 参数 patch 阻塞，因此任何训练准入、模型晋级或样本面结论都必须继续以 raw / repaired 双轨、同 timeout、人工复核和非重叠 holdout 结果共同判断。
+
+真实本地模型接入必须显式运行：
+
+```bash
+python3 scripts/run-radishmind-core-candidate.py \
+  --provider local_transformers \
+  --model-dir /path/to/local/model \
+  --output-dir tmp/radishmind-core-candidate-local \
+  --allow-invalid-output \
+  --validate-task
+```
+
+或先设置 `RADISHMIND_MODEL_DIR`。该 provider 只使用本地模型目录和 `local_files_only`，不会自动下载权重、安装依赖、启动训练或提交生成的 candidate response 文件。若未提供模型目录，脚本应明确失败，而不是回退到联网下载。当前 WSL CPU 环境下的 `Qwen2.5-0.5B-Instruct` 与 `Qwen2.5-1.5B-Instruct` 已完成同批 9 条 M4 fixture raw 对照；1.5B raw 仍会改写硬字段，但显式 `--repair-hard-fields` 后处理实验已能在同批 1.5B 输出上达到 `9/9` schema-valid 与 `9/9` task-valid。该结果证明结构化修复策略有价值，但仍需后续与 raw 能力、更多样本和更严格的离线评测记录分开治理。
+
+第一版结构如下：
+
+```json
+{
+  "schema_version": 1,
+  "kind": "copilot_training_sample",
+  "sample_id": "radishflow-suggest-flowsheet-edits-training-basic-001",
+  "training_mode": "distillation",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "input_request": {},
+  "target_response": {},
+  "distillation": {
+    "source": "golden_response",
+    "teacher": {
+      "provider": "fixture",
+      "model": "golden-response",
+      "record_id": "radishflow-suggest-flowsheet-edits-training-basic-001"
+    },
+    "train_fields": [
+      "summary",
+      "answers",
+      "issues",
+      "proposed_actions",
+      "citations",
+      "risk_level",
+      "requires_confirmation"
+    ]
+  },
+  "quality_gates": {
+    "schema_validated": true,
+    "risk_reviewed": true,
+    "citation_checked": true,
+    "human_review_required": false
+  },
+  "metadata": {
+    "source_eval_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+    "created_for": "teacher-student-distillation",
+    "notes": []
+  }
+}
+```
+
+字段边界：
+
+- `input_request` 必须继续通过 `contracts/copilot-request.schema.json` 校验
+- `target_response` 必须继续通过 `contracts/copilot-response.schema.json` 校验
+- `project / task` 必须在 wrapper、`input_request` 与 `target_response` 三处一致
+- 训练样本必须保持 advisory safety：`input_request.safety.mode=advisory`
+- 当目标响应包含需要确认的输出、`high` 风险动作，或非 `manual_only` 的中风险执行边界动作时，`input_request.safety.requires_confirmation_for_actions` 必须保持 `true`
+- `quality_gates` 表示该样本进入训练 / 蒸馏集合前已经通过 schema、风险与 citation 检查，不表示真实业务动作可自动执行
+- `teacher_capture` 样本必须来自 audit pass 的 committed candidate record；audit failed、warning-only 未复核、schema-invalid 或 citation/risk 边界不稳定的 record 不得进入训练集合
+- `high` 风险 `proposed_actions` 仍必须保留 `requires_confirmation=true`，不得因进入训练样本而弱化人工确认边界
+- `suggest_ghost_completion` 的 `manual_only` 中风险候选属于可见候选排序边界，不等同于直接写回动作；只要响应本身不要求确认，且没有默认 `Tab` 或高风险动作，训练样本应保留原始 eval request 的确认口径
+
+## `RadishMind-Image Adapter` 第一版仓库级契约
+
+图片生成能力通过独立 adapter / backend 提供。`RadishMind-Core` 只负责生成结构化意图、约束、风险确认和审查信息，不直接生成图片像素。
+
+第一版 image generation intent 已落成仓库级可回归契约：
+
+- Schema：`contracts/image-generation-intent.schema.json`
+- Backend request schema：`contracts/image-generation-backend-request.schema.json`
+- Artifact schema：`contracts/image-generation-artifact.schema.json`
+- 最小 fixture：`scripts/checks/fixtures/image-generation-intent-basic.json`
+- Backend request fixture：`scripts/checks/fixtures/image-generation-backend-request-basic.json`
+- Artifact fixture：`scripts/checks/fixtures/image-generation-artifact-basic.json`
+- Smoke：`scripts/check-image-generation-intent-contract.py`
+- 最小评测 manifest：`scripts/checks/fixtures/image-generation-eval-manifest-v0.json`
+- 评测 manifest smoke：`scripts/check-image-generation-eval-manifest.py`
+
+当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
+
+```json
+{
+  "schema_version": 1,
+  "intent_id": "optional-string",
+  "kind": "image_generation",
+  "source_request_id": "copilot-request-id",
+  "prompt": {
+    "positive": "生成目标的正向描述",
+    "negative": "需要避免的内容",
+    "locale": "zh-CN"
+  },
+  "output": {
+    "width": 1024,
+    "height": 1024,
+    "count": 1,
+    "format": "png"
+  },
+  "style": {
+    "preset": "diagram",
+    "reference_artifact_ids": []
+  },
+  "constraints": {
+    "must_include": [],
+    "must_avoid": [],
+    "edit_artifact_id": null,
+    "mask_artifact_id": null
+  },
+  "backend": {
+    "preferred": "sd15",
+    "seed": 12345,
+    "steps": 24,
+    "guidance_scale": 7.0
+  },
+  "safety": {
+    "requires_confirmation": false,
+    "risk_level": "low",
+    "review_notes": []
+  },
+  "artifact_metadata": {
+    "proposed_title": "generated-image",
+    "purpose": "visual_reference",
+    "trace_ids": []
+  }
+}
+```
+
+字段边界：
+
+- `prompt` 是主模型输出给 image adapter 的自然语言生成意图，不应直接等同于最终 backend prompt；adapter 可以做模板化、翻译或安全改写
+- `constraints` 用于表达必须包含 / 避免 / 局部编辑输入，不承载业务真相源
+- `backend` 只表达推理偏好；实际 backend 可以根据部署环境降级或忽略不支持的参数，但必须在 artifact metadata 中记录
+- `safety.requires_confirmation=true` 时，调用侧必须先展示 intent，不得直接提交给生图 backend；当前 smoke 已把这一点纳入回归检查
+- 生成结果应以 artifact 形式返回，并保留来源 intent、backend、seed、尺寸、格式和审计 metadata
+
+第一版 backend request 只表达 Adapter 对 backend 的一次调度请求：
+
+```json
+{
+  "schema_version": 1,
+  "kind": "image_generation_backend_request",
+  "request_id": "image-backend-request-id",
+  "intent_id": "image-intent-id",
+  "backend": {
+    "id": "sd15",
+    "model": "sd15-local-or-service",
+    "adapter_profile": "diagram-default"
+  },
+  "prompt": {
+    "positive": "adapter transformed positive prompt",
+    "negative": "adapter transformed negative prompt",
+    "locale": "en-US",
+    "transformed_from_intent": true
+  },
+  "output": {
+    "width": 1024,
+    "height": 1024,
+    "count": 1,
+    "format": "png"
+  },
+  "parameters": {
+    "seed": 12345,
+    "steps": 24,
+    "guidance_scale": 7.0
+  },
+  "inputs": {
+    "reference_artifact_ids": [],
+    "edit_artifact_id": null,
+    "mask_artifact_id": null
+  },
+  "constraints": {
+    "must_include": [],
+    "must_avoid": [],
+    "style_preset": "diagram"
+  },
+  "safety": {
+    "gate": "approved_for_backend",
+    "requires_confirmation": false,
+    "risk_level": "low",
+    "review_notes": []
+  },
+  "trace": {
+    "source_request_id": "copilot-request-id",
+    "trace_ids": []
+  }
+}
+```
+
+第一版 artifact metadata 只表达 backend 产物回到 `RadishMind` 后的可审计索引，不提交图片像素本体：
+
+```json
+{
+  "schema_version": 1,
+  "kind": "image_generation_artifact",
+  "artifact_id": "image-artifact-id",
+  "intent_id": "image-intent-id",
+  "backend_request_id": "image-backend-request-id",
+  "status": "generated",
+  "artifact": {
+    "uri": "artifact://radishmind/generated/image.png",
+    "mime_type": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "format": "png",
+    "sha256": "64-char-lowercase-hex",
+    "title": "generated-image",
+    "purpose": "visual_reference"
+  },
+  "generation": {
+    "backend_id": "sd15",
+    "model": "sd15-local-or-service",
+    "seed": 12345,
+    "steps": 24,
+    "guidance_scale": 7.0
+  },
+  "safety": {
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "review_status": "not_required",
+    "review_notes": []
+  },
+  "provenance": {
+    "source_request_id": "copilot-request-id",
+    "trace_ids": [],
+    "backend_request_id": "image-backend-request-id",
+    "intent_id": "image-intent-id"
+  },
+  "created_at": "2026-04-29T00:00:00Z"
+}
+```
+
+链路边界：
+
+- backend request 中的 seed、steps、guidance、尺寸、格式、输入 artifact 和约束必须可追溯到 intent 或 adapter profile
+- `safety.gate=blocked_requires_confirmation` 时不得提交给真实 backend；当前 smoke 会构造该负向路径
+- artifact metadata 必须保留 `intent_id`、`backend_request_id`、backend/model、seed、尺寸、格式、hash 和 provenance
+- 当前不提交生成图片像素，也不把 artifact URI 当作已可公开访问的业务 URL
+
+### 图片生成最小评测 manifest
+
+当前 `scripts/checks/fixtures/image-generation-eval-manifest-v0.json` 是 `RadishMind-Image Adapter` 的首个评测 manifest 草案，状态为 `draft`。它的目标不是评价真实图片质量，而是把第一版 adapter 链路纳入仓库级回归：
+
+- `structured_intent`：intent 必须符合 schema，并保留 prompt、output、style、constraints、backend 和 safety 的最小结构
+- `backend_request_mapping`：backend request 的 backend、seed、steps、guidance、尺寸、输入 artifact、约束和 safety 必须能追溯到 intent
+- `artifact_metadata`：artifact metadata 必须保留 intent/backend request 反链、尺寸、格式、hash、backend/model、seed 和 safety review
+- `safety_gate`：`requires_confirmation=true` 的 intent 必须被 `blocked_requires_confirmation` 阻断，不得视为可提交 backend
+- `provenance`：source request、intent 和 backend request 必须进入 trace/provenance
+
+该 manifest 明确排除 `image_pixel_quality`、真实 backend 延迟、provider 渲染差异和模型权重质量；执行策略固定为不调用真实 backend、不生成图片、不下载模型、不启动训练。committed 资产只允许 manifest、小型 JSON fixture 和 expected summary，图片像素、provider raw dump、权重、checkpoint 与大规模 JSONL 均不得入仓。
 
 ## 统一输入抽象
 

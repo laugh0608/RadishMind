@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-context-gap-none-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-context-gap-none-001",
+  "request_id": "rf-suggest-ghost-context-gap-none-001",
+  "captured_at": "2026-04-23T13:43:18Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 45,
+    "selected_unit_ids": [
+      "flash-4"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "当前未给出 ghost 建议，因为 legal_candidate_completions 为空，没有可用的候选补全。",
+        "citation_ids": [
+          "ctx-empty-candidates"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-4",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-4 kind=FlashDrum name=V-104 Drum"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 legal_candidate_completions",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "summary": "当前未给出 ghost 建议，因为 legal_candidate_completions 为空，没有可用的候选补全。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-general-basics"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v20-remaining-general-basics",
+    "notes": "v20 remaining general basics expansion."
+  }
+}

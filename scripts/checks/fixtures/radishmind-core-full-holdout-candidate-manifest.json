@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_candidate_dry_run_manifest",
+  "run_id": "radishmind-core-full-holdout-candidate-001",
+  "created_at": "2026-05-01T00:00:00Z",
+  "phase": "M4-preparation",
+  "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json",
+  "provider": {
+    "provider_id": "golden_fixture",
+    "model_id": "radishmind-core-full-holdout-dry-run",
+    "role": "core_candidate",
+    "target_size": "3B",
+    "does_not_run_models": true,
+    "provider_access": "none",
+    "model_artifacts_downloaded": false,
+    "notes": [
+      "Uses committed golden_response objects only to exercise the full planned holdout prompt/output plumbing.",
+      "Real 300 second local_transformers full holdout observations must explicitly pass --provider local_transformers and keep generated artifacts under tmp/."
+    ]
+  },
+  "output_policy": {
+    "write_prompt_files": true,
+    "write_candidate_response_files": true,
+    "commit_candidate_outputs": false,
+    "default_output_root": "tmp/radishmind-core-full-holdout-candidate-dry-run"
+  },
+  "expected_summary": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-summary.json"
+}

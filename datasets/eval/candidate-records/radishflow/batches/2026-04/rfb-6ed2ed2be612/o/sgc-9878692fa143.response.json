@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "status": "ok",
+  "requires_confirmation": false,
+  "answers": [
+    {
+      "kind": "ghost_rationale",
+      "text": "当前给出 1 条 ghost 建议：为已选中的 Flash Drum 517 的 vapor_outlet 生成下游气相出口连接，且该候选满足高置信与 Tab 默认接受条件。",
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "ghost_completion",
+      "title": "补全 flash-51 的 vapor_outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "flash-51",
+        "port_key": "vapor_outlet"
+      },
+      "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-flash-51-vapor-outlet",
+        "target_port_key": "vapor_outlet",
+        "ghost_stream_name": "VG-517"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "Tab",
+        "render_priority": 1
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-flash-51-vapor-outlet"
+        }
+      },
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "issues": [],
+  "citations": [
+    {
+      "id": "ctx-unit",
+      "kind": "context",
+      "label": "当前选中的 flash-51",
+      "locator": "context:selected_unit",
+      "excerpt": "selected_unit=flash-51 kind=FlashDrum name=Flash Drum 517"
+    },
+    {
+      "id": "ctx-candidate-1",
+      "kind": "context",
+      "label": "候选 cand-flash-51-vapor-outlet",
+      "locator": "context:legal_candidate_completions[0]",
+      "excerpt": "candidate_ref=cand-flash-51-vapor-outlet target_port_key=vapor_outlet is_tab_default=True is_high_confidence=True"
+    },
+    {
+      "id": "ctx-naming-hints",
+      "kind": "context",
+      "label": "ghost 命名提示",
+      "locator": "context:naming_hints",
+      "excerpt": "{\"upstream_stream_names\": [\"V-517\"], \"existing_stream_names\": [\"F-517\", \"V-517\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\"}, \"numeric_suffix_from_unit\": \"517\"}"
+    },
+    {
+      "id": "ctx-pattern",
+      "kind": "context",
+      "label": "拓扑模式提示",
+      "locator": "context:topology_pattern_hints[0]",
+      "excerpt": "feed_valve_flash_chain"
+    },
+    {
+      "id": "ctx-recent-action",
+      "kind": "context",
+      "label": "最近 ghost 动作",
+      "locator": "context:cursor_context.recent_actions[3]",
+      "excerpt": "{\"kind\": \"reject_ghost_completion\", \"candidate_ref\": \"cand-flash-51-vapor-outlet\", \"rejected_at_revision\": 102}"
+    }
+  ],
+  "summary": "当前给出 1 条 ghost 建议：为已选中的 Flash Drum 517 的 vapor_outlet 生成下游气相出口连接，且该候选满足高置信与 Tab 默认接受条件。",
+  "risk_level": "low",
+  "confidence": 0.93
+}

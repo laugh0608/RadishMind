@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-04-19
+更新时间：2026-05-01
 
 ## 架构目标
 
@@ -61,12 +61,13 @@ Adapter 映射回各自 UI / 日志 / 候选提案
   - 当前仓库已先落最小 `adapter-radishflow` 骨架：`adapters/radishflow/request_builder.py` 与 `scripts/build-radishflow-request.py` 可把上游快照稳定装配为 `CopilotRequest`，并已对齐六条既有 eval sample，覆盖最小样本、控制面冲突态与多选裁剪态
   - 当前还已补 export -> adapter 的中间转换层：`adapters/radishflow/export_snapshot.py` 与 `scripts/build-radishflow-adapter-snapshot.py` 可先把更贴近真实导出对象的嵌套快照收口成 adapter snapshot，避免 adapter 直接绑定到手工拼装的扁平 fixture
   - 当前还已补 export -> request 的直达入口：`scripts/build-radishflow-export-request.py` 可让更贴近真实导出对象的输入直接落到 runtime 请求，避免端到端链路只靠“两段脚本各自正确”来间接保证
+  - 当前还已补 `RadishFlow` 集成演示切片：`scripts/run-radishflow-gateway-demo.py` 可直接读取单个 committed export snapshot，也可通过 `scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json` 批量复跑 3 条代表性 `suggest_flowsheet_edits` fixture，经由 `export -> adapter snapshot -> CopilotRequest -> handle_copilot_request -> gateway envelope`，使用 `mock` provider 完成可复跑服务/API smoke，并同时校验 request、response 与 gateway envelope 三层契约；`scripts/checks/fixtures/radishflow-gateway-demo-summary.json` 进一步固定上层依赖的 envelope 行为字段
   - `RadishFlowExportSnapshot` 当前已在集成契约中补上字段映射约定：上游负责直接导出 `document_state / selection_state / diagnostics_export / solve_session_state / solve_snapshot / control_plane_snapshot`，而 adapter 不再擅自反推 `selected_unit` 或提前替上游做根因归一
   - 当前还已补 exporter bootstrap 入口：`scripts/init-radishflow-export-snapshot.py` 可按任务生成最小 schema-valid 模板，作为真实接线前的起步骨架
   - 当前还已补 exporter preflight 入口：`scripts/validate-radishflow-export-snapshot.py` 可在真实接线前先做 schema、任务级语义与敏感透传 smoke 校验，再进入 export -> adapter -> request 正式链路
   - 当前还已补 exporter batch smoke 入口：`scripts/run-radishflow-export-smoke.py` 可对一组 committed export snapshot 批量执行 `validate -> adapter -> request`，并用结构化 summary 固定“真实 exporter 接线最小入口”是否仍保持稳定
   - 当前 exporter fixture 已继续补到更贴近真实接线的边界：联合选择态下 `primary_selected_unit` 与完整 selection 并存、`multi-unit + multi-stream + 单 primary focus` 组合仍稳定映射成 `selected_unit + 完整 selection` 且不重排 selection 顺序、更复杂 selection chronology 下主焦点与 chronology 解耦但仍只保留单 actionable target、同风险多动作并列时仍稳定优先补输入完整性、`support_artifacts` 既覆盖纯 `uri + metadata.summary` 的最小脱敏摘要，也覆盖 `attachment_ref + json summary + text note` 与 `sanitized_summary + summary/redaction_summary + 最小 json rollup + text note` 两档 mixed summary 组合，以及多对象 selection 下三动作优先级顺序不漂移
-  - 对 `RadishFlow suggest_flowsheet_edits`，当前除 response-level regression 外，也已补任务 prompt、最小 runtime 与正式 `candidate_response_record -> manifest -> audit` 批次入口：`scripts/run-radishflow-suggest-edits-poc-batch.py` 现已把真实主线推进到 `v81`、累计五十八批正式真实批次，且现有 `33/33` 条离线样本都至少已有一条正式真实覆盖；其中 `mixed-risk / citation / reconnect`、ordering 尾样、`mixed-risk patch combo`、cross-object primary-focus、parameter / patch ordering 与 local-edits 六组样本族都已完成 `apiyi_cx / apiyi_cc / apiyi_ch / apiyi_de` 四主 profile 的横向正式收口，`default` teacher 对照也已继续补到 `range-sequence-ordering`。当前 `apiyi_ch` 在 triad mixed-risk cross-object 上的正式口径也已收紧为“仅该两条样本使用样本级 `210s` timeout override”，而不是抬高 profile 全局默认超时；这条主线的下一步则已转向 `cross-object-primary-focus` 这类仍停留在 `default-only` 的高价值样本池，而不再继续围绕已收口样本族反复兜底
+  - 对 `RadishFlow suggest_flowsheet_edits`，当前除 response-level regression 外，也已补任务 prompt、最小 runtime 与正式 `candidate_response_record -> manifest -> audit` 批次入口：`scripts/run-radishflow-suggest-edits-poc-batch.py` 现已把真实主线推进到 `v93`，且现有 `33/33` 条离线样本都至少已有一条正式真实覆盖；四主 profile、`default` teacher 对照、高价值真实扩样、replay、recommended replay 与 real-derived negative 都已接通。后续不再默认继续跑样本；新增真实 capture 必须先说明非重复高价值 drift 假设，并优先服务于服务/API 接入或集成演示暴露出的评测缺口
   - 优先走状态优先打包：`FlowsheetDocument`、`document_revision`、`SelectionState`、`DiagnosticSummary`、`SolveSessionState`、`SolveSnapshot`
   - 对编辑器辅助场景，额外打包 `selected_unit`、`unconnected_ports`、`nearby_nodes`、`cursor_context` 与本地规则筛出的 `legal_candidate_completions`
   - `cursor_context.recent_actions` 当前不仅承接“最近 accept 了哪条 ghost”，也承接“最近 reject / dismiss / skip 了哪条 ghost”；其第一版正式语义已收口为三条链式模板共享的同一套规则：只压制同一 `candidate_ref` 的下一帧默认 `Tab`，隔一帧且候选仍是高置信合法默认项时允许恢复，而不同 `candidate_ref` 不共享 suppress 信号
@@ -92,6 +93,11 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 路由任务到对应的 retrieval / tool / model 组合
 - 统一输出结构化响应
 - 提供鉴权、审计、请求追踪与版本标记
+- 当前 `M3` 后半段的首个实现切片，应优先把既有 `services/runtime/inference.py` 包成稳定服务/API 边界；最小范围包括请求校验、任务路由、provider profile、超时/错误语义、审计 metadata 与响应结构收口
+- 当前已先落最小纯 Python gateway 骨架：`services/gateway/copilot_gateway.py` 接收 schema-valid `CopilotRequest`，按 `project/task` 做显式路由，经由 `services/runtime/inference.py` 生成 `CopilotResponse`，再返回包含 `status / response / error / metadata` 的服务 envelope；该 envelope 已由 `contracts/copilot-gateway-envelope.schema.json` 冻结最小结构，`scripts/check-gateway-service-smoke.py` 已接入仓库级验证，覆盖成功路由、schema-invalid 请求与 schema-valid 但 gateway 暂不支持的任务
+- 当前 `RadishFlow` 的服务/API 集成演示已经接入仓库级验证：`scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check` 覆盖最小 reconnect、多选单 actionable target 与三步 priority chain 三条上游导出 fixture，固定 gateway metadata 中的 `route / provider / advisory_only / request_validated / response_validated` 以及响应级 `requires_confirmation`，确保这条链路不是只验证静态 schema 或孤立 runtime
+- 当前还已补 `RadishFlow` UI consumption smoke：`scripts/check-radishflow-gateway-ui-consumption.py --check-summary scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json` 会把 gateway envelope 映射成调用侧可展示摘要，固定 proposal-ready、unsupported route 与 schema-invalid 三类路径下的错误展示、审计 metadata、候选卡片、确认要求和 `can_write_flowsheet_document=false`
+- 当前还已补 `RadishFlow` candidate edit handoff smoke：`scripts/check-radishflow-candidate-edit-handoff.py --check-summary scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json` 会把人工确认后的 `candidate_edit` 映射成非执行式 `radishflow_candidate_edit_proposal`，固定 `requires_human_confirmation=true`、`can_execute=false`，并确保 failed / invalid envelope 不产生 handoff
 
 建议接口风格：
 
@@ -133,20 +139,49 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 
 这里承载真正的 LLM / VLM 推理。
 
-建议分为两类：
+建议分为四类：
 
 - Teacher Models
   - 用于强能力推理、数据蒸馏、标注参考和 PoC 对照
 - Student Models
   - 用于本地化、小成本部署和项目内推理实验
+- `RadishMind-Core`
+  - 项目自研主模型，默认采用“开源基座 + RadishMind 数据 / 协议 / 评测偏好适配”的路线，而不是从零预训练
+  - 首版目标为 `3B` / `4B`，长期本地部署上限为 `7B`
+  - 负责文本理解、可选图片输入理解、项目场景推理、候选动作排序、风险标记和结构化响应
+  - 不负责直接生成图片像素，也不直接写入上层项目真相源
+- Image Generation Runtime
+  - 作为独立 backend 被 `RadishMind-Image Adapter` 调度
+  - 负责图片像素生成、局部编辑、风格化或后处理
+  - 首轮不自研从零训练，优先接入或参考 `SD1.5`、`PixArt-δ 0.6B`；中期可评估 `Segmind-Vega` 或 `SD3.5 Medium 2.5B`
+
+图片生成相关请求的默认路径应是：
+
+```text
+RadishMind-Core
+        ↓
+结构化 image_generation intent / constraints
+        ↓
+RadishMind-Image Adapter
+        ↓
+Image Generation Backend
+        ↓
+artifact 引用 / 生成结果 metadata
+```
+
+因此，`RadishMind` 可以提供图片生成能力，但能力边界应落在“主模型理解、规划、约束和审查；专用 backend 生成像素”，而不是把主模型训练成统一图文理解和生图的单体模型。
 
 当前判断：
 
 - `RadishFlow` 第一阶段不应把全部任务都压成截图推理；结构化状态和诊断解释优先
 - `Radish` 第一阶段以文档、内容和 Console 知识问答为主，VLM 只在附件或截图理解场景补充
+- `RadishFlow` 与 `Radish` 暂时都还没有进入真实模型 / Agent 接入阶段时，`RadishMind` 不应继续扩展本仓库内的模拟上层接线；现有 gateway smoke、UI consumption summary 与 candidate handoff summary 应冻结为未来验收门禁
 - `minimind-v` 当前作为默认 `student/base` 主线，承接领域适配、训练实验与后续部署路线
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 多模态强基线，优先承担复杂图文任务 PoC、标注参考与蒸馏输入
 - `SmolVLM` 当前作为轻量本地对照组，优先承担低资源回归与部署下限比较
+- `RadishMind-Core` 的硬件友好目标应优先服务 `32GB` 级本地开发 / 小型部署机：默认 `3B` / `4B`，增强档 `7B`，不把 `14B` / `32B` 写成默认部署基线
+- 图片生成 backend 应按需加载或独立进程运行，不与较大的 VLM / Core 模型默认同时常驻
+- 当前 `Qwen2.5-1.5B-Instruct` 只作为本地 `local_transformers` 观测基座使用：raw 在 9 fixture、full holdout 与 v2 非重叠 holdout 上仍 blocked；`--repair-hard-fields` repaired 只能作为结构化后处理实验，不代表 raw 模型能力、训练准入或上层接入就绪
 
 ### 5. Rule Validation & Response Builder
 
@@ -196,15 +231,17 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - 与正例共用同一套规则的负例回放
 - 通过 `capture_metadata` 标记来源批次的真实 captured replay
 - 对真实/模拟 batch 同时沉淀 same-sample / cross-sample replay index、recommended replay summary 与 artifact summary，避免 batch 审计、推荐回放和 committed fixture 漂成三套口径
-- 对 `RadishFlow` 当前这两条已接线任务，也应先承认治理成熟度分层：`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 现已接上最小 `artifact summary`，但仍未接上 `replay / repeated-pattern / real-derived`；后续统一治理时不应再把它们与 `Radish docs QA` 误判成同一成熟度
+- 对 `RadishFlow` 当前这两条已接线任务，也应先承认治理成熟度分层：`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 当前都已接上 `artifact summary`、same-sample / cross-sample replay、recommended replay summary 与首批 real-derived negative；两条链都已达到可作为服务/API 接入门禁的阶段性成熟度。后续统一治理时不应再把两条链误判成“只到 artifact summary”，也不应把已跑通入口继续误判成必须复跑的下一步 focus
+- 从 `2026-04-27` 起，真实 capture 扩样不再是 `M3` 默认主线，而是条件触发的治理手段；当前评测管线的主要职责，是把既有样本、replay 和 real-derived 资产变成服务/API 改动的验收门禁，并确保未来模型、prompt 或 provider 改动能稳定比较
 - 对基于真实 bad record 派生的本地负例，生成独立 real-derived negative index，并按 `source_record_groups`、`violation_groups`、`pattern_groups` 做结构化审计
 - 对 repeated real-derived pattern，优先在索引层保留“source 维度”和“pattern 维度”两个视角，而不是一开始就把所有违规文本做重度归一化
 - 当前 `Radish docs QA` 的 same-sample / cross-sample replay 与 real-derived negative index 已统一纳入 `check-repo`，且 `2026-04-05` real batch 已无 singleton source；这条治理链的后续重点应转向跨 source 复合 drift、真实 captured 扩充，以及 `pattern` / `violation` 结构化升级时机评估
 - 对 `RadishFlow suggest_ghost_completion`，评测当前不应只停在“同一 candidate 刚被 reject / dismiss / skip 后不立即 retab”，还应继续覆盖 same-candidate 一帧 cooldown 恢复 `Tab`、latest-action precedence 下的 reject / dismiss / skip 恢复态、other-candidate 不共享 suppress，以及多动作 recent-actions 交错下的恢复窗口
 - 对 `RadishFlow suggest_ghost_completion`，除 response-level regression 外，当前还应允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内已先落一条 3 样本的轻量 `capture -> manifest -> audit` PoC，且真实 batch 已统一迁到 `datasets/eval/candidate-records/radishflow/batches/YYYY-MM/<batch_key>/` 短路径布局，用于把 editor assist 任务从“只有 fixture”推进到“可真实捕获并治理候选输出”；其中当前新增观察项已分成五层：批处理编排下的 provider 卡顿稳定性、`manual_only` 多动作输出的结构坏法、供应商级限流或路由不可用时通过备用 profile 继续保持真实 capture 连续性、同 provider 备选模型虽可调用但仍可能出现不可正式导入的任务质量漂移，以及不同 provider 输出风格漂移下的字段文本归一化
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
-- 对 `RadishFlow suggest_flowsheet_edits`，除顺序回归外，当前也已允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内除 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 这批 3 样本 mock PoC 外，还已把真实主线推进到 `v81`、累计五十八批正式真实 teacher 批次，并全部接入 `check-repo`。其中现有 `33/33` 条离线样本都至少已有一条真实批次覆盖，且 `mixed-risk / citation / reconnect`、ordering 尾样、`mixed-risk patch combo`、cross-object primary-focus、parameter / patch ordering 与 local-edits 六组样本族都已完成四主 profile 的横向正式收口；下一步则转向仍停留在 `default-only` 的高价值样本池，并以 `cross-object-primary-focus` 作为当前第一优先级，而不是继续在已闭环样本族上做重复扩样
-- 对 `RadishFlow suggest_flowsheet_edits`，task-level canonicalization 当前也已正式承接几类只在真实 teacher 输出中暴露出来的任务漂移：`flowdoc-*` 引用已从“按完整 `flowsheet_document` 原始对象顺序稳定编号”进一步收紧为“按当前响应实际纳入的目标对象做紧凑稳定编号”，`flow_rate` / `flow_rate_kg_h` / `mass_flow_kg_per_h` / `mass_flow_kg_h` / `mass_flow_rate_kg_h` 等近义占位会统一归一，`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 与 `operating pressure` / `pressure target` 这类 message 线索也会回收到稳定参数名，路径式 placeholder 会回收到稳定字段名，多规格 `spec_placeholders` 会稳定收口到 `temperature_c -> pressure_kpa -> flow_rate_kg_per_h`，`STREAM_DISCONNECTED` 与 `STREAM_SPEC_MISSING` 等 error issue 的 `issues[*].citation_ids` 会与 `diag -> artifact -> snapshot` 或 `diag -> artifact -> supporting artifact -> snapshot` 正式口径对齐，reconnect patch 里的 `connection_placeholder` 会稳定补回 `retain_existing_source_binding=true`，跨对象真实样本中的 issue/action/top-level citation 交错顺序也会统一收口到 `diagnostic -> target artifact -> supporting artifact -> snapshot`。同时，若真实输出出现多余闭合 brace、未转义中文引号、错误 `flowdoc-*` 引用编号、warning citation 漂移、同 target warning 遗漏到首条 action citation 组、placeholder-only patch 误保留 `parameter_updates`、或 `efficiency_percent` review range 偏离既有 `[60, 85]` 正式口径，也会优先在 provider/runtime 层做窄范围修复并回收到当前样本的 canonical 输出；`apiyi_ch` 在 triad 路径上的超时治理也已收紧为样本级 `210s` override，而不是 profile 全局默认超时提升
+  - 对 `RadishFlow suggest_flowsheet_edits`，除顺序回归外，当前也已允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内除 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 这批 3 样本 mock PoC 外，还已把真实主线推进到 `v93`，并全部接入 `check-repo`。其中现有 `33/33` 条离线样本都至少已有一条真实批次覆盖，九组高价值真实扩样入口已完成阶段性收口；下一步不再以继续新增真实批次数量为主，而应把这些资产上提为服务/API 改动的验收门禁
+  - 对 `RadishFlow suggest_flowsheet_edits`，task-level canonicalization 当前也已正式承接几类只在真实 teacher 输出中暴露出来的任务漂移：`flowdoc-*` fallback citation id 已收口为沿 `FlowsheetDocument` 原始对象索引稳定编号，`flow_rate` / `flow_rate_kg_h` / `mass_flow_kg_per_h` / `mass_flow_kg_h` / `mass_flow_rate_kg_h` 等近义占位会统一归一，`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 与 `operating pressure` / `pressure target` 这类 message 线索也会回收到稳定参数名，路径式 placeholder 会回收到稳定字段名，多规格 `spec_placeholders` 会稳定收口到 `temperature_c -> pressure_kpa -> flow_rate_kg_per_h`，`STREAM_DISCONNECTED` 与 `STREAM_SPEC_MISSING` 等 error issue 的 `issues[*].citation_ids` 会与 `diag -> artifact -> snapshot` 或 `diag -> artifact -> supporting artifact -> snapshot` 正式口径对齐，reconnect patch 里的 `connection_placeholder` 会稳定补回 `retain_existing_source_binding=true`，跨对象真实样本中的 issue/action/top-level citation 交错顺序也会统一收口到 `diagnostic -> target artifact -> supporting artifact -> snapshot`；其中 connected-unit contextual warning 的并入边界也已进一步收紧为“只在同一响应仍存在其他 actionable edit 时才保留”。同时，若真实输出出现多余闭合 brace、未转义中文引号、错误 `flowdoc-*` 引用编号、warning citation 漂移、同 target warning 遗漏到首条 action citation 组、placeholder-only patch 误保留 `parameter_updates`、或 `efficiency_percent` review range 偏离既有 `[60, 85]` 正式口径，也会优先在 provider/runtime 层做窄范围修复并回收到当前样本的 canonical 输出；`apiyi_ch` 在 triad 路径上的超时治理也已收紧为样本级 `210s` override，而不是 profile 全局默认超时提升
+- 对 `RadishMind-Core` candidate 输出，评测管线当前已从单一 fixture-run 扩展到 raw / repaired 双轨、candidate-output offline eval、timeout probe、planned holdout、full holdout 与 v2 非重叠 holdout。所有真实本地候选输出继续只落到 `tmp/`；committed 资产只保留 manifest、summary、实验记录和文档。v2 非重叠 holdout 已暴露复杂跨对象参数 patch 仍是主要阻塞面，后续应优先复核 scaffold 与模型 action planning，而不是直接进入训练。
 
 ## 当前文件与脚本组织约定
 
@@ -263,6 +300,8 @@ RadishMind/
 - `RadishFlow` 优先走状态优先上下文，截图是补充，不是第一阶段唯一中心
 - `Radish` 优先走知识优先上下文，重点是 Docs / Wiki / Forum / Console 语义
 - 模型输出默认是建议，不直接成为最终状态
+- `RadishMind-Core` 是基座适配型自研主模型，不是从零预训练型基础模型
+- 图片生成能力默认通过 `RadishMind-Image Adapter` + 独立 backend 提供，主模型只输出生成意图、约束、审查信息和 artifact 元数据
 - 训练数据优先从自有项目生成，不依赖大量外部脏数据
 - 评测必须从第一阶段就开始建立
 - 对 `suggest_flowsheet_edits` 这类 advisory patch 任务，评测不仅要检查“能不能答”，还要检查同一输入下的结构化顺序是否稳定，避免候选动作、证据引用和 patch 细节在回归中随机漂移

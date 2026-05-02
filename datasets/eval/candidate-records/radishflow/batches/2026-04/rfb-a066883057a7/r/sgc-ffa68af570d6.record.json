@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-outlet-tab-after-skip-cooldown-001",
+  "captured_at": "2026-04-24T14:04:09Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 70,
+    "selected_unit_ids": [
+      "heater-9"
+    ],
+    "legal_candidate_refs": [
+      "cand-heater-9-outlet-flash-29"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "summary": "已为 Heater-9 出口提供默认连接建议到 Flash Drum 608 入口，可按下 Tab 键接受。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "{\"ghost_completion\": {\"candidate_ref\": \"cand-heater-9-outlet-flash-29\", \"ghost_kind\": \"ghost_connection\", \"title\": \"连接 Heater-9 出口至 Flash Drum 608 入口\", \"target\": \"heater-9.outlet → flash-29.inlet\", \"rationale\": \"基于排行榜最高得分（距离62px、对齐度0.95、拓扑0.92）和典型加热器-闪蒸链拓扑，且之前跳过冷却已过，再次提供默认建议。\", \"patch\": \"创建新流“H-608”，连接 heater-9.outlet 至 flash-29.inlet。\", \"preview\": {\"kind\": \"ghost_connection_preview\", \"accept_key\": \"Tab\", \"display_name\": \"H-608\", \"from_port\": \"heater-9.outlet\", \"to_port\": \"flash-29.inlet\", \"stream_style\": \"main_process\"}, \"apply\": {\"command_kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-heater-9-outlet-flash-29\"}, \"risk_level\": \"low\", \"requires_confirmation\": false}}",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 heater-9 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "heater-9",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-heater-9-outlet-flash-29",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "H-608"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-heater-9-outlet-flash-29"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-9",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-9 kind=Heater name=Feed Heater 608"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-heater-9-outlet-flash-29",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-heater-9-outlet-flash-29 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-608\"], \"existing_stream_names\": [\"F-608\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"608\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"skip_ghost_completion\", \"candidate_ref\": \"cand-heater-9-outlet-flash-29\", \"skipped_at_revision\": 68}"
+      }
+    ],
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v22-high-value-suppression-cooldown-symmetry-backfill"
+  }
+}

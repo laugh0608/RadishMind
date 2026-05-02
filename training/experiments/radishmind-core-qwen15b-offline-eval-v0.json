@@ -1,0 +1,968 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_candidate_eval_observation",
+  "phase": "M4-preparation",
+  "experiment_id": "radishmind-core-qwen15b-offline-eval-v0",
+  "model": {
+    "provider": "local_transformers",
+    "model_id": "Qwen2.5-1.5B-Instruct",
+    "role": "student_base_observation",
+    "model_dir": "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+    "downloaded_by_this_experiment": false
+  },
+  "sample_set": {
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-offline-eval-fixture-run-manifest.json",
+    "sample_count": 9,
+    "tasks": {
+      "radishflow/suggest_flowsheet_edits": 3,
+      "radishflow/suggest_ghost_completion": 3,
+      "radish/answer_docs_question": 3
+    }
+  },
+  "local_artifacts": {
+    "raw_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-raw-eval-v2/summary.json",
+    "repaired_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-repaired-eval-v2/summary.json",
+    "raw_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-raw-run-v2.json",
+    "repaired_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-repaired-run-v2.json",
+    "pair_summary": "tmp/radishmind-core-offline-eval-qwen15b-raw-vs-repaired-summary-v2.json",
+    "raw_timeout240_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240/summary.json",
+    "repaired_timeout240_candidate_summary": "tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240/summary.json",
+    "raw_timeout240_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-raw-timeout240-run.json",
+    "repaired_timeout240_offline_eval_run": "tmp/radishmind-core-offline-eval-qwen15b-repaired-timeout240-run.json",
+    "timeout240_pair_summary": "tmp/radishmind-core-offline-eval-qwen15b-raw-vs-repaired-timeout240-summary.json",
+    "timeout_smoke_summary": "tmp/radishmind-core-candidate-timeout-smoke/summary.json",
+    "raw_holdout_probe_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300/summary.json",
+    "repaired_holdout_probe_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300/summary.json",
+    "raw_holdout_probe_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-run.json",
+    "repaired_holdout_probe_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-run.json",
+    "holdout_probe_pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-summary.json",
+    "raw_holdout_probe_fix1_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1/summary.json",
+    "repaired_holdout_probe_fix1_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1/summary.json",
+    "raw_holdout_probe_fix1_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1-run.json",
+    "repaired_holdout_probe_fix1_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1-run.json",
+    "holdout_probe_fix1_pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
+    "raw_full_holdout_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json",
+    "repaired_full_holdout_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300/summary.json",
+    "raw_full_holdout_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300-run.json",
+    "repaired_full_holdout_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-run.json",
+    "full_holdout_pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-summary.json",
+    "repaired_full_holdout_fix1_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix1/summary.json",
+    "repaired_full_holdout_fix1_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix1-run.json",
+    "full_holdout_fix1_pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
+    "repaired_full_holdout_fix3_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3/summary.json",
+    "repaired_full_holdout_fix3_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3-run.json",
+    "full_holdout_fix3_pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix3-summary.json",
+    "raw_holdout_probe_v2_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+    "repaired_holdout_probe_v2_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json",
+    "raw_holdout_probe_v2_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+    "repaired_holdout_probe_v2_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json",
+    "holdout_probe_v2_pair_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-vs-repaired-timeout300-summary.json",
+    "committed_outputs": false
+  },
+  "raw_result": {
+    "promotion_status": "blocked",
+    "schema_valid_rate": 0.8888888888888888,
+    "task_valid_rate": 0.25,
+    "task_validation_attempted": 8,
+    "schema_failure_categories": {
+      "other": 1
+    },
+    "task_failure_categories": {
+      "action_shape": 3,
+      "citation_alignment": 24,
+      "issue_boundary": 4,
+      "other": 8,
+      "risk_confirmation": 5,
+      "status_mismatch": 3
+    }
+  },
+  "raw_generation_summary": {
+    "samples_measured": 9,
+    "total_generation_seconds": 697.245,
+    "avg_generation_seconds": 77.472,
+    "max_generation_seconds": 168.264,
+    "total_input_tokens": 16650,
+    "total_output_tokens": 3125,
+    "avg_output_tokens": 347.222,
+    "hit_max_new_tokens_count": 0,
+    "json_extracted_count": 9,
+    "timeout_count": 0
+  },
+  "repaired_result": {
+    "promotion_status": "no_promotion_planned",
+    "schema_valid_rate": 1.0,
+    "task_valid_rate": 1.0,
+    "task_validation_attempted": 9,
+    "repaired_output_count": 8,
+    "repaired_path_counts": {
+      "$.answers": 3,
+      "$.answers[0]": 3,
+      "$.citations": 4,
+      "$.issues": 2,
+      "$.proposed_actions": 3,
+      "$.requires_confirmation": 1,
+      "$.risk_level": 1,
+      "$.status": 5
+    }
+  },
+  "generation_summary": {
+    "samples_measured": 9,
+    "total_generation_seconds": 656.847,
+    "avg_generation_seconds": 72.983,
+    "max_generation_seconds": 162.238,
+    "total_input_tokens": 16650,
+    "total_output_tokens": 3125,
+    "avg_output_tokens": 347.222,
+    "hit_max_new_tokens_count": 0,
+    "json_extracted_count": 9,
+    "timeout_count": 0
+  },
+  "timeout_governance": {
+    "status": "recommended_for_local_transformers_full_candidate_runs",
+    "basis": {
+      "raw_max_generation_seconds": 168.264,
+      "repaired_max_generation_seconds": 162.238,
+      "raw_avg_generation_seconds": 77.472,
+      "repaired_avg_generation_seconds": 72.983,
+      "timeout_smoke_seconds": 1,
+      "timeout_smoke_result": "generation_timeout invalid candidate response with timeout_count=1",
+      "scope": "WSL CPU local Qwen2.5-1.5B-Instruct, 9 M4 fixture samples, max_new_tokens=1200"
+    },
+    "recommended_sample_timeout_seconds": {
+      "single_sample_debug": 180,
+      "full_raw_candidate_run": 240,
+      "full_repaired_candidate_run": 240,
+      "slow_cpu_or_first_run_probe": 300,
+      "timeout_mechanism_smoke": 1
+    },
+    "policy": [
+      "Raw and repaired full candidate runs should use the same timeout so quality comparisons are not biased by different generation budgets.",
+      "Use 240 seconds for the current 1.5B full 9-sample raw/repaired run; it leaves margin above the observed 168.264 second slowest sample while still bounding abnormal stalls.",
+      "Use 180 seconds for focused single-sample debugging after the model is warm; if the sample times out, rerun once at 240 seconds before treating it as a model/case failure.",
+      "Use 300 seconds only for first-run cold cache, slower CPU, or larger local candidates; record the reason in the experiment note before comparing against the 240 second baseline.",
+      "Use 1 second only to verify timeout plumbing; such output is a mechanism smoke and must not be included in model quality comparisons."
+    ],
+    "rerun_commands": {
+      "raw_full": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240 --summary-output tmp/radishmind-core-candidate-local-qwen15b-raw-timeout240/summary.json --allow-invalid-output --validate-task --sample-timeout-seconds 240",
+      "repaired_full": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240 --summary-output tmp/radishmind-core-candidate-local-qwen15b-repaired-timeout240/summary.json --allow-invalid-output --validate-task --repair-hard-fields --sample-timeout-seconds 240",
+      "timeout_smoke": "python3 scripts/run-radishmind-core-candidate.py --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --sample-id radish-answer-docs-question-direct-answer-001 --output-dir tmp/radishmind-core-candidate-timeout-smoke --summary-output tmp/radishmind-core-candidate-timeout-smoke/summary.json --allow-invalid-output --sample-timeout-seconds 1"
+    }
+  },
+  "timeout240_confirmation": {
+    "status": "confirmed_for_current_1_5b_9_fixture_run_with_margin_warning",
+    "executed_with": ".venv/bin/python",
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.8888888888888888,
+      "task_valid_rate": 0.25,
+      "task_validation_attempted": 8,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 685.915,
+        "avg_generation_seconds": 76.213,
+        "max_generation_seconds": 181.348,
+        "total_input_tokens": 16650,
+        "total_output_tokens": 3125,
+        "avg_output_tokens": 347.222,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "offline_eval_metric_failures": {
+        "radishflow/suggest_flowsheet_edits": [
+          "citation_alignment_rate=0.3333333333333333",
+          "risk_confirmation_preservation_rate=0.3333333333333333",
+          "advisory_action_boundary_rate=0.3333333333333333"
+        ],
+        "radishflow/suggest_ghost_completion": [
+          "schema_validity_rate=0.6666666666666666",
+          "citation_alignment_rate=0.6666666666666666",
+          "risk_confirmation_preservation_rate=0.6666666666666666",
+          "high_risk_action_confirmation_rate=0.6666666666666666",
+          "advisory_action_boundary_rate=0.6666666666666666"
+        ],
+        "radish/answer_docs_question": [
+          "citation_alignment_rate=0.3333333333333333"
+        ]
+      }
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 813.796,
+        "avg_generation_seconds": 90.422,
+        "max_generation_seconds": 233.771,
+        "total_input_tokens": 16650,
+        "total_output_tokens": 3125,
+        "avg_output_tokens": 347.222,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 8,
+      "all_offline_eval_required_metrics_passed": true
+    },
+    "interpretation": [
+      "The 240 second timeout reproduced the previous raw blocked result and the repaired fixture-pass result without generation timeouts or max token hits.",
+      "The repaired slowest sample reached 233.771 seconds, leaving only about 6.229 seconds of headroom under the 240 second timeout on this WSL CPU run.",
+      "Keep 240 seconds as the current default for same-environment 1.5B raw/repaired comparisons, but monitor max_generation_seconds on every rerun and use the documented 300 second probe tier when hardware, cache state, or model size changes.",
+      "This confirmation still does not promote the raw model; repaired output remains an explicit postprocess experiment rather than raw capability evidence."
+    ]
+  },
+  "timeout300_probe": {
+    "status": "completed_for_current_timeout_probe_manifest",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-timeout-probe-candidate-manifest.json",
+    "sample_count": 3,
+    "purpose": "Probe samples that were slow or boundary-sensitive under the 240 second full-run confirmation before expanding hardware, model size, or sample coverage.",
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-timeout-probe-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-timeout-probe-qwen15b-repaired-timeout300/summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.6666666666666666,
+      "task_validation_attempted": 3,
+      "task_failure_categories": {
+        "status_mismatch": 1
+      },
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 431.482,
+        "avg_generation_seconds": 143.827,
+        "max_generation_seconds": 254.678,
+        "total_input_tokens": 5687,
+        "total_output_tokens": 1592,
+        "avg_output_tokens": 530.667,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "slowest_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+        "generation_seconds": 254.678
+      }
+    },
+    "repaired": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 3,
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 366.371,
+        "avg_generation_seconds": 122.124,
+        "max_generation_seconds": 183.007,
+        "total_input_tokens": 5687,
+        "total_output_tokens": 1592,
+        "avg_output_tokens": 530.667,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 2,
+      "repaired_path_counts": {
+        "$.answers[0]": 1,
+        "$.status": 1
+      },
+      "slowest_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+        "generation_seconds": 183.007
+      }
+    },
+    "interpretation": [
+      "The 300 second probe completed both raw and repaired tracks without generation timeouts or max token hits.",
+      "The raw slowest probe sample reached 254.678 seconds, so 240 seconds remains a same-environment 9-fixture comparison default rather than a permanent cross-sample or cross-hardware constant.",
+      "Use the 300 second tier before judging slow probe samples, expanded sample sets, cold-cache runs, slower CPUs, or larger local candidates; record the reason and keep raw/repaired tracks on the same timeout tier when comparing quality.",
+      "The repaired pass remains a postprocess observation and does not promote raw model capability."
+    ]
+  },
+  "holdout300_probe": {
+    "status": "completed_for_lightweight_training_excluded_holdout_probe",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-eval-manifest.json",
+    "source_holdout_split": "training/datasets/copilot-training-holdout-split-v0.json",
+    "sample_count": 3,
+    "purpose": "Observe a lightweight training-excluded holdout slice before expanding the local candidate sample set beyond the original 9 fixture samples.",
+    "selection": {
+      "radishflow/suggest_flowsheet_edits": [
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"
+      ],
+      "radishflow/suggest_ghost_completion": [
+        "radishflow-suggest-ghost-completion-mixer-standard-outlet-001"
+      ],
+      "radish/answer_docs_question": [
+        "radish-answer-docs-question-navigation-001"
+      ]
+    },
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-run.json",
+      "pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.6666666666666666,
+      "task_valid_rate": 0.0,
+      "task_validation_attempted": 2,
+      "schema_failure_categories": {
+        "other": 1
+      },
+      "task_failure_categories": {
+        "action_shape": 4,
+        "citation_alignment": 3,
+        "issue_boundary": 4,
+        "other": 13,
+        "status_mismatch": 1
+      },
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 174.198,
+        "avg_generation_seconds": 58.066,
+        "total_input_tokens": 5355,
+        "total_output_tokens": 736,
+        "avg_output_tokens": 245.333,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 2,
+        "timeout_count": 0
+      },
+      "invalid_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "failure": "json_parse_error"
+      }
+    },
+    "repaired": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.6666666666666666,
+      "task_valid_rate": 0.5,
+      "task_validation_attempted": 2,
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 173.57,
+        "avg_generation_seconds": 57.857,
+        "total_input_tokens": 5355,
+        "total_output_tokens": 736,
+        "avg_output_tokens": 245.333,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 2,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 2,
+      "repaired_path_counts": {
+        "$.answers": 1,
+        "$.answers[0]": 1,
+        "$.citations": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 2,
+        "$.status": 1
+      },
+      "invalid_sample": {
+        "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "failure": "json_parse_error"
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "repaired improved citation alignment but still failed advisory action boundary and parameter update detail checks."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "raw and repaired both produced schema-invalid JSON with a trailing-comma parse error on the mixer outlet holdout sample."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "repaired restored citation and read-only-check structure for the navigation holdout sample."
+      }
+    ],
+    "interpretation": [
+      "The lightweight holdout probe is the next sample-observation step after the 240 second full-run confirmation and the 300 second timeout probe; it uses one training-excluded sample per main task.",
+      "Both raw and repaired tracks completed without generation timeouts or max token hits, so the observed failures are output quality and JSON validity failures rather than timeout failures.",
+      "Raw remains blocked on schema validity, task validity, citation alignment, issue/action structure, and advisory boundary metrics.",
+      "Repaired is also blocked on this holdout slice because the mixer outlet ghost completion output remained schema-invalid and the compressor parameter update sample still failed task-level structure checks.",
+      "This result weakens the previous fixture-only repaired pass: --repair-hard-fields is useful for hard-field restoration but is not sufficient evidence for promotion or training use on training-excluded holdout samples."
+    ]
+  },
+  "holdout300_probe_fix1": {
+    "status": "completed_after_json_cleanup_and_parameter_update_scaffold_fix",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-eval-manifest.json",
+    "sample_count": 3,
+    "code_changes_observed": [
+      "local_transformers JSON extraction now retries after removing trailing commas before object/array closers and records json_cleanup_applied in generation metrics.",
+      "candidate_edit scaffold now derives ordered parameter_updates and multi-issue structure from evaluation.ordered_parameter_update_* and must_have issue paths."
+    ],
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-raw-timeout300-fix1-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-qwen15b-repaired-timeout300-fix1-run.json",
+      "pair_summary": "tmp/radishmind-core-holdout-probe-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.3333333333333333,
+      "task_validation_attempted": 3,
+      "schema_failure_categories": {},
+      "task_failure_categories": {
+        "action_shape": 4,
+        "citation_alignment": 3,
+        "issue_boundary": 4,
+        "other": 13,
+        "status_mismatch": 1
+      },
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 232.06,
+        "avg_generation_seconds": 77.353,
+        "total_input_tokens": 5542,
+        "total_output_tokens": 735,
+        "avg_output_tokens": 245.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "json_cleanup_observation": {
+        "cleanup_applied_sample": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "cleanup_result": "schema_valid_and_task_valid"
+      }
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 3,
+      "generation_summary": {
+        "samples_measured": 3,
+        "total_generation_seconds": 185.858,
+        "avg_generation_seconds": 61.953,
+        "total_input_tokens": 5542,
+        "total_output_tokens": 735,
+        "avg_output_tokens": 245.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 3,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 3,
+      "repaired_path_counts": {
+        "$.answers": 1,
+        "$.answers[0]": 2,
+        "$.citations": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 2,
+        "$.status": 1
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "ordered parameter update scaffold and repair now make the compressor holdout sample pass after repair; raw remains task-invalid."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "trailing-comma cleanup turns the mixer outlet output into schema-valid task-valid JSON while recording json_cleanup_applied."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "repaired continues to restore citation and read-only-check structure for the navigation holdout sample."
+      }
+    ],
+    "interpretation": [
+      "The focused fix removes the holdout probe schema-invalid blocker and lets the repaired track pass this 3-sample holdout slice.",
+      "Raw still remains blocked because compressor and docs navigation outputs fail task-level structure/citation requirements without repair.",
+      "The repaired pass is still a postprocess observation, not raw model promotion evidence; expanding to the full planned holdout should continue to preserve raw/repaired separation."
+    ]
+  },
+  "full_holdout300": {
+    "status": "completed_for_full_planned_training_excluded_holdout",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json",
+    "source_holdout_split": "training/datasets/copilot-training-holdout-split-v0.json",
+    "sample_count": 9,
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-run.json",
+      "pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.5555555555555556,
+      "task_validation_attempted": 9,
+      "schema_failure_categories": {},
+      "task_failure_categories": {
+        "action_shape": 4,
+        "citation_alignment": 17,
+        "issue_boundary": 7,
+        "other": 11,
+        "risk_confirmation": 1,
+        "status_mismatch": 2
+      },
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 628.422,
+        "avg_generation_seconds": 69.825,
+        "total_input_tokens": 16615,
+        "total_output_tokens": 3078,
+        "avg_output_tokens": 342.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      }
+    },
+    "repaired": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.8888888888888888,
+      "task_validation_attempted": 9,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 609.85,
+        "avg_generation_seconds": 67.761,
+        "total_input_tokens": 16615,
+        "total_output_tokens": 3078,
+        "avg_output_tokens": 342.0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 8,
+      "repaired_path_counts": {
+        "$.answers": 3,
+        "$.answers[0]": 5,
+        "$.citations": 3,
+        "$.issues": 3,
+        "$.proposed_actions": 3,
+        "$.status": 3
+      },
+      "remaining_failure": {
+        "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "failure_category": "action_shape",
+        "details": [
+          "parameter_updates.pressure_drop_kpa keys must remain ordered as ['action', 'minimum_value']",
+          "parameter_updates.opening_percent keys must remain ordered as ['action', 'suggested_maximum']"
+        ]
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "repaired improves the full holdout slice but still fails advisory_action_boundary_rate=0.6666666666666666 because one valve parameter update sample violates inner detail-key ordering."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "all three full holdout ghost completion samples pass raw and repaired task checks without timeout."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "repaired restores docs QA citation and read-only-check structure across all three planned holdout samples."
+      }
+    ],
+    "interpretation": [
+      "The full planned holdout confirms the 3-sample fix1 result does not fully generalize: repaired improves task_valid_rate to 8/9 but remains blocked.",
+      "Raw improves versus the 3-sample probe but is still blocked at 5/9 task-valid, with suggest_flowsheet_edits as the main failure family.",
+      "The next holdout repair step should target ordered parameter_update detail keys such as minimum_value and suggested_maximum without treating repaired output as raw model capability."
+    ]
+  },
+  "full_holdout300_fix1": {
+    "status": "machine_passed_but_manual_review_blocked",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json",
+    "sample_count": 9,
+    "code_changes_observed": [
+      "candidate_edit scaffold now derives parameter_updates outer keys from ordered_parameter_update_detail_keys when ordered_parameter_update_keys is absent.",
+      "detail-key-only parameter update constraints now preserve action-first ordering for keys such as minimum_value and suggested_maximum."
+    ],
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_summary_reused_from_full_holdout300": true,
+      "repaired_share_timeout_with_raw": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix1/summary.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix1-run.json",
+      "pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix1-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.5555555555555556,
+      "task_validation_attempted": 9,
+      "summary_source": "full_holdout300.raw"
+    },
+    "repaired": {
+      "promotion_status": "blocked_by_manual_review",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 749.582,
+        "avg_generation_seconds": 83.287,
+        "total_input_tokens": 16607,
+        "total_output_tokens": 3083,
+        "avg_output_tokens": 342.556,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 8,
+      "repaired_path_counts": {
+        "$.answers": 3,
+        "$.answers[0]": 5,
+        "$.citations": 3,
+        "$.issues": 3,
+        "$.proposed_actions": 3,
+        "$.status": 3
+      },
+      "remaining_failure": {
+        "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "failure_category": "manual_review",
+        "details": [
+          "parameter_updates.pressure_drop_kpa.minimum_value was repaired to true instead of a concrete threshold such as 10.",
+          "parameter_updates.opening_percent.suggested_maximum was repaired to true instead of a concrete upper bound such as 85.",
+          "citation locator was too broad because it pointed at artifact:flowsheet_document instead of diagnostics, valve unit, and latest_snapshot evidence."
+        ]
+      },
+      "manual_review": {
+        "status": "blocked",
+        "reviewed_sample_ids": [
+          "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001"
+        ],
+        "new_assertions_required": [
+          "$.proposed_actions[0].patch.parameter_updates.pressure_drop_kpa.minimum_value=10",
+          "$.proposed_actions[0].patch.parameter_updates.opening_percent.suggested_maximum=85",
+          "$.citations[0].locator=\"context:diagnostics[0]\"",
+          "$.citations[1].locator=\"context:diagnostics[1]\"",
+          "$.citations[2].locator=\"artifact:flowsheet_document.units[0]\"",
+          "$.citations[3].locator=\"context:latest_snapshot\""
+        ]
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "machine metrics passed after the detail-key ordering scaffold fix, but manual review blocks this result because the valve sample still used boolean parameter thresholds and overly broad citations."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "ghost completion remains fully task-valid on the full holdout slice."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "docs QA remains fully task-valid after repair on the full holdout slice."
+      }
+    ],
+    "interpretation": [
+      "The targeted detail-key ordering fix let the old machine metric reach 9/9 task-valid, but manual review blocks the result and raw remains blocked at 5/9.",
+      "The result validates the need for stricter value and citation assertions before any repaired holdout result is treated as acceptable; it is not raw model promotion evidence.",
+      "Further promotion or training decisions still require raw improvement, manual review of repaired paths, and broader non-overlapping holdout coverage."
+    ]
+  },
+  "full_holdout300_fix3": {
+    "status": "completed_after_indexed_citation_scaffold_fix",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-eval-manifest.json",
+    "sample_count": 9,
+    "code_changes_observed": [
+      "candidate citation scaffold now derives indexed citation ids and locators from must_have_json_paths.",
+      "repair-hard-fields replaces citation arrays when indexed citation assertions require a stable order and precise locator metadata."
+    ],
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_summary_reused_from_full_holdout300": true,
+      "repaired_share_timeout_with_raw": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "repair_hard_fields": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3/summary.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-repaired-timeout300-fix3-run.json",
+      "pair_summary": "tmp/radishmind-core-full-holdout-qwen15b-raw-vs-repaired-timeout300-fix3-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.5555555555555556,
+      "task_validation_attempted": 9,
+      "summary_source": "full_holdout300.raw"
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "generation_summary": {
+        "samples_measured": 9,
+        "total_generation_seconds": 649.201,
+        "avg_generation_seconds": 72.133,
+        "total_input_tokens": 17093,
+        "total_output_tokens": 3274,
+        "avg_output_tokens": 363.778,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 9,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 8,
+      "repaired_path_counts": {
+        "$.answers": 3,
+        "$.answers[0]": 5,
+        "$.citations": 3,
+        "$.issues": 3,
+        "$.proposed_actions": 2,
+        "$.status": 3
+      },
+      "manual_review": {
+        "status": "accepted_for_postprocess_observation",
+        "reviewed_sample_ids": [
+          "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001"
+        ],
+        "accepted_observations": [
+          "pressure_drop_kpa.minimum_value is preserved as 10.",
+          "opening_percent.suggested_maximum is preserved as 85.",
+          "citations are repaired to diagnostics[0], diagnostics[1], flowsheet_document.units[0], and latest_snapshot locators."
+        ]
+      },
+      "remaining_failure": null
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "indexed citation scaffold repair brings all three full holdout suggest edits samples back to task-valid under the stricter value and citation assertions."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "ghost completion remains fully task-valid on the full holdout slice."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "docs QA remains fully task-valid after repair on the full holdout slice."
+      }
+    ],
+    "interpretation": [
+      "The stricter full holdout repaired track reaches 9/9 task-valid after indexed citation scaffold repair, but raw remains blocked at 5/9.",
+      "This is still postprocess evidence, not raw model promotion evidence.",
+      "Further training or promotion decisions require raw improvement, broader non-overlapping holdout coverage, and continued manual review of repaired paths."
+    ]
+  },
+  "holdout_probe_v2_timeout300": {
+    "status": "completed_non_overlapping_holdout_probe",
+    "executed_with": ".venv/bin/python",
+    "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+    "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-eval-manifest.json",
+    "sample_count": 6,
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "repair_hard_fields": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json",
+      "pair_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-vs-repaired-timeout300-summary.json",
+      "committed_outputs": false
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.3333333333333333,
+      "task_validation_attempted": 6,
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 760.997,
+        "avg_generation_seconds": 126.833,
+        "total_input_tokens": 12867,
+        "total_output_tokens": 3317,
+        "avg_output_tokens": 552.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "task_failure_categories": {
+        "action_shape": 7,
+        "citation_alignment": 5,
+        "issue_boundary": 6,
+        "other": 16,
+        "risk_confirmation": 1,
+        "status_mismatch": 3
+      }
+    },
+    "repaired": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.8333333333333334,
+      "task_validation_attempted": 6,
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 692.28,
+        "avg_generation_seconds": 115.38,
+        "total_input_tokens": 12867,
+        "total_output_tokens": 3317,
+        "avg_output_tokens": 552.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "repaired_output_count": 5,
+      "repaired_path_counts": {
+        "$.answers": 2,
+        "$.answers[0]": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 2,
+        "$.risk_level": 1,
+        "$.status": 3
+      },
+      "remaining_failure": {
+        "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "summary": "The repaired response still fails the second action target, citation order, parameter_updates payload, and patch ordering requirements."
+      }
+    },
+    "task_metric_summary": [
+      {
+        "task": "radishflow/suggest_flowsheet_edits",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": false,
+        "main_observation": "the non-overlapping cross-object reconnect plus pump parameter sample remains blocked after repair; citation_alignment_rate and advisory_action_boundary_rate stay at 0.5 for this two-sample slice."
+      },
+      {
+        "task": "radishflow/suggest_ghost_completion",
+        "raw_all_metrics_passed": true,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "both ghost completion samples pass raw and repaired, including the previously slow valve ambiguous no-tab sample."
+      },
+      {
+        "task": "radish/answer_docs_question",
+        "raw_all_metrics_passed": false,
+        "repaired_all_metrics_passed": true,
+        "main_observation": "docs QA repairs the source-conflict read_only_check and evidence-gap risk/status boundaries, but this remains postprocess evidence."
+      }
+    ],
+    "interpretation": [
+      "The v2 non-overlapping probe confirms that raw remains blocked outside the original full holdout slice.",
+      "Repair improves task-valid from 2/6 to 5/6 but no longer reaches a fixture pass, because complex cross-object suggest edits still fails target, citation, and parameter patch requirements.",
+      "The next useful work is to inspect the failed cross-object suggest edits family and decide whether the scaffold is intentionally insufficient or whether model output strategy needs a stronger structured action plan."
+    ]
+  },
+  "task_metric_summary": [
+    {
+      "task": "radishflow/suggest_flowsheet_edits",
+      "raw_all_metrics_passed": false,
+      "repaired_all_metrics_passed": true,
+      "main_raw_failures": [
+        "citation_alignment_rate=0.3333333333333333",
+        "risk_confirmation_preservation_rate=0.3333333333333333",
+        "advisory_action_boundary_rate=0.3333333333333333"
+      ]
+    },
+    {
+      "task": "radishflow/suggest_ghost_completion",
+      "raw_all_metrics_passed": false,
+      "repaired_all_metrics_passed": true,
+      "main_raw_failures": [
+        "schema_validity_rate=0.6666666666666666",
+        "citation_alignment_rate=0.6666666666666666",
+        "risk_confirmation_preservation_rate=0.6666666666666666",
+        "high_risk_action_confirmation_rate=0.6666666666666666",
+        "advisory_action_boundary_rate=0.6666666666666666"
+      ]
+    },
+    {
+      "task": "radish/answer_docs_question",
+      "raw_all_metrics_passed": false,
+      "repaired_all_metrics_passed": true,
+      "main_raw_failures": [
+        "citation_alignment_rate=0.3333333333333333"
+      ]
+    }
+  ],
+  "interpretation": {
+    "raw_model_is_blocked": true,
+    "repaired_output_passes_current_fixture": true,
+    "repaired_is_not_raw_capability": true,
+    "do_not_train_from_raw_failed_outputs": true,
+    "do_not_promote_from_repaired_fixture_only": true,
+    "recommended_next_step": "Keep raw and repaired tracks separate, use --sample-timeout-seconds 240 for the current local_transformers full raw/repaired 1.5B candidate runs, expand beyond the current 9 fixture samples, and manually review repaired paths before any training or promotion decision."
+  }
+}

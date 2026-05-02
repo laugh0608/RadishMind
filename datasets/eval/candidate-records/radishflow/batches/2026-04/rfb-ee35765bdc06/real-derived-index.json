@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "record_manifest_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ee35765bdc06/manifest.json",
+  "negative_sample_dir": "datasets/eval/radishflow-negative",
+  "collection_batch": "2026-04-20-radishflow-ghost-simulated-negatives-v1",
+  "source": "simulated_candidate_response",
+  "summary": {
+    "derived_record_count": 3,
+    "linked_negative_sample_count": 3,
+    "source_manifest_count": 1,
+    "source_record_count": 3,
+    "source_record_group_count": 3,
+    "violation_group_count": 3,
+    "pattern_group_count": 2,
+    "unlinked_derived_record_count": 0
+  },
+  "capture_origin": "manual_fixture",
+  "source_record_groups_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ee35765bdc06/rdi.parts/src.json",
+  "violation_groups_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ee35765bdc06/rdi.parts/viol.json",
+  "pattern_groups_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ee35765bdc06/rdi.parts/pat.json",
+  "unlinked_derived_records_path": "datasets/eval/candidate-records/radishflow/batches/2026-04/rfb-ee35765bdc06/rdi.parts/unlinked.json"
+}

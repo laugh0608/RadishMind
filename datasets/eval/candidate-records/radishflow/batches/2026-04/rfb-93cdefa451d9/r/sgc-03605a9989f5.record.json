@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-heater-flash-stop-no-legal-outlet-001",
+  "request_id": "rf-suggest-ghost-chain-feed-heater-flash-stop-no-legal-outlet-001",
+  "captured_at": "2026-04-23T13:29:28Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-chat",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 55,
+    "selected_unit_ids": [
+      "heater-4"
+    ]
+  },
+  "response": {
+    "schema_version": 1,
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "answers": [
+      {
+        "kind": "empty_suggestion_reason",
+        "text": "当前未给出 ghost 建议，因为 legal_candidate_completions 为空，且拓扑模式提示 stop_when_no_legal_heater_outlet_candidates。",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern",
+          "ctx-recent-action"
+        ]
+      }
+    ],
+    "status": "partial",
+    "issues": [
+      {
+        "code": "INSUFFICIENT_GHOST_CONTEXT",
+        "message": "当前没有本地规则确认的合法 ghost completion 候选，不能安全地产生默认或手动 ghost 建议。",
+        "severity": "info",
+        "citation_ids": [
+          "ctx-empty-candidates",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 heater-4",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=heater-4 kind=Heater name=Feed Heater 603"
+      },
+      {
+        "id": "ctx-empty-candidates",
+        "kind": "context",
+        "label": "空的 legal_candidate_completions",
+        "locator": "context:legal_candidate_completions",
+        "excerpt": "legal_candidate_completions=[]"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-603\"], \"existing_stream_names\": [\"F-603\", \"HL-603\"], \"preferred_outlet_prefix\": \"H\", \"numeric_suffix_from_unit\": \"603\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_heater_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[0]",
+        "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-feed-603-to-heater-4-inlet\", \"accepted_at_revision\": 54}"
+      }
+    ],
+    "summary": "当前未给出 ghost 建议，因为 legal_candidate_completions 为空，且拓扑模式提示 stop_when_no_legal_heater_outlet_candidates。",
+    "risk_level": "low",
+    "requires_confirmation": false,
+    "confidence": 0.9
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "remaining-foundation-and-conflict-basics"
+    ],
+    "collection_batch": "2026-04-23-radishflow-ghost-poc-real-v19-remaining-foundation-and-conflict-basics",
+    "notes": "v19 remaining foundation and conflict basics expansion."
+  }
+}

@@ -23,10 +23,25 @@ from services.runtime.eval_regression import parse_regression_output  # noqa: E4
 
 
 BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/batch-orchestration-summary.schema.json"
+RADISHFLOW_BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH = REPO_ROOT / "datasets/eval/radishflow-batch-artifact-summary.schema.json"
 NEGATIVE_REPLAY_INDEX_SCHEMA_PATH = REPO_ROOT / "datasets/eval/negative-replay-index.schema.json"
 RECOMMENDED_NEGATIVE_REPLAY_SUMMARY_SCHEMA_PATH = (
     REPO_ROOT / "datasets/eval/recommended-negative-replay-summary.schema.json"
 )
+NEGATIVE_REPLAY_PIPELINES = {
+    "radish-docs-qa": {
+        "eval_task": "radish-docs-qa-negative",
+        "pipeline": "radish-docs-qa-recommended-negative-replay",
+    },
+    "radishflow-suggest-edits": {
+        "eval_task": "radishflow-suggest-edits-negative",
+        "pipeline": "radishflow-suggest-edits-recommended-negative-replay",
+    },
+    "radishflow-ghost-completion": {
+        "eval_task": "radishflow-ghost-completion-negative",
+        "pipeline": "radishflow-ghost-completion-recommended-negative-replay",
+    },
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -82,7 +97,13 @@ def unique_strings(values: list[str]) -> list[str]:
 
 def load_batch_artifact_summary(summary_path: Path) -> dict[str, Any]:
     document = expect_object(load_json_document(summary_path), make_repo_relative(summary_path))
-    ensure_schema(document, BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH, make_repo_relative(summary_path))
+    eval_task = str(document.get("eval_task") or "").strip()
+    schema_path = (
+        RADISHFLOW_BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH
+        if eval_task in {"radishflow-suggest-edits", "radishflow-ghost-completion"}
+        else BATCH_ARTIFACT_SUMMARY_SCHEMA_PATH
+    )
+    ensure_schema(document, schema_path, make_repo_relative(summary_path))
     return document
 
 
@@ -141,6 +162,24 @@ def load_negative_replay_index(index_path: Path) -> dict[str, Any]:
     return document
 
 
+def resolve_negative_eval_task(batch_artifact_summary: dict[str, Any], summary_path: Path) -> str:
+    eval_task = str(batch_artifact_summary.get("eval_task") or "").strip()
+    config = NEGATIVE_REPLAY_PIPELINES.get(eval_task)
+    if config is None:
+        raise SystemExit(
+            f"{make_repo_relative(summary_path)}: unsupported eval_task for recommended negative replay: "
+            f"{eval_task or '<empty>'}"
+        )
+    return config["eval_task"]
+
+
+def resolve_recommended_pipeline(eval_task: str) -> str:
+    for config in NEGATIVE_REPLAY_PIPELINES.values():
+        if config["eval_task"] == eval_task:
+            return config["pipeline"]
+    raise SystemExit(f"unsupported negative replay eval_task: {eval_task}")
+
+
 def build_group_map(index_document: dict[str, Any]) -> dict[str, dict[str, Any]]:
     groups: dict[str, dict[str, Any]] = {}
     for group in index_document.get("violation_groups") or []:
@@ -182,6 +221,7 @@ def run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
 def build_group_summary(
     *,
     batch_artifact_summary_path: Path,
+    negative_eval_task: str,
     group_id: str,
     replay_mode: str,
     sample_dir_override: str,
@@ -191,7 +231,7 @@ def build_group_summary(
     command = [
         sys.executable,
         str(REPO_ROOT / "scripts" / "run-eval-regression.py"),
-        "radish-docs-qa-negative",
+        negative_eval_task,
         "--batch-artifact-summary",
         make_repo_relative(batch_artifact_summary_path),
         "--group-id",
@@ -234,7 +274,7 @@ def build_group_summary(
             "python": [
                 "python3",
                 "./scripts/run-eval-regression.py",
-                "radish-docs-qa-negative",
+                negative_eval_task,
                 "--batch-artifact-summary",
                 make_repo_relative(batch_artifact_summary_path),
                 "--group-id",
@@ -260,6 +300,7 @@ def build_summary_document(
     batch_artifact_summary_path: Path,
     batch_artifact_summary: dict[str, Any],
     negative_replay_index_path: Path,
+    negative_eval_task: str,
     requested_top: int,
     selected_group_ids: list[str],
     replay_mode: str,
@@ -270,10 +311,10 @@ def build_summary_document(
 ) -> dict[str, Any]:
     summary_document: dict[str, Any] = {
         "schema_version": 1,
-        "pipeline": "radish-docs-qa-recommended-negative-replay",
+        "pipeline": resolve_recommended_pipeline(negative_eval_task),
         "project": str(batch_artifact_summary.get("project") or "").strip(),
         "task": str(batch_artifact_summary.get("task") or "").strip(),
-        "eval_task": "radish-docs-qa-negative",
+        "eval_task": negative_eval_task,
         "provider": str(batch_artifact_summary.get("provider") or "").strip(),
         "collection_batch": str(batch_artifact_summary.get("collection_batch") or "").strip(),
         "batch_artifact_summary_path": make_repo_relative(batch_artifact_summary_path),
@@ -333,6 +374,7 @@ def main() -> int:
         raise SystemExit(f"batch artifact summary file not found: {args.batch_artifact_summary}")
 
     batch_artifact_summary = load_batch_artifact_summary(batch_artifact_summary_path)
+    negative_eval_task = resolve_negative_eval_task(batch_artifact_summary, batch_artifact_summary_path)
     selected_group_ids, replay_mode = resolve_recommended_selection(batch_artifact_summary, args.top, args.replay_mode)
     negative_replay_index_path = resolve_negative_replay_index(batch_artifact_summary, batch_artifact_summary_path, replay_mode)
     negative_replay_index = load_negative_replay_index(negative_replay_index_path)
@@ -358,6 +400,7 @@ def main() -> int:
         print(f"replaying recommended group {group_id} ({replay_mode})", file=sys.stderr)
         group_summary, exit_code = build_group_summary(
             batch_artifact_summary_path=batch_artifact_summary_path,
+            negative_eval_task=negative_eval_task,
             group_id=group_id,
             replay_mode=replay_mode,
             sample_dir_override=sample_dir_override,
@@ -373,6 +416,7 @@ def main() -> int:
         batch_artifact_summary_path=batch_artifact_summary_path,
         batch_artifact_summary=batch_artifact_summary,
         negative_replay_index_path=negative_replay_index_path,
+        negative_eval_task=negative_eval_task,
         requested_top=args.top,
         selected_group_ids=selected_group_ids,
         replay_mode=replay_mode,

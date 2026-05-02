@@ -1,0 +1,399 @@
+{
+  "schema_version": 1,
+  "dump_id": "dump-rf-suggest-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001",
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001",
+  "request_id": "rf-suggest-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001",
+  "captured_at": "2026-04-24T13:12:15Z",
+  "source": "captured_candidate_response",
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture",
+      "real-capture",
+      "high-value-template-asymmetry-backfill"
+    ],
+    "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v21-high-value-template-asymmetry-backfill",
+    "notes": "Expand the next post-remaining high-value ghost sample group focused on template asymmetry backfill."
+  },
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 63,
+    "selected_unit_ids": [
+      "flash-14"
+    ],
+    "legal_candidate_refs": [
+      "cand-flash-14-vapor-outlet-ranking-ambiguous",
+      "cand-flash-14-liquid-outlet-ranking-ambiguous"
+    ]
+  },
+  "input_request": {
+    "schema_version": 1,
+    "request_id": "rf-suggest-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001",
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "locale": "zh-CN",
+    "artifacts": [
+      {
+        "kind": "json",
+        "role": "primary",
+        "name": "flowsheet_document",
+        "mime_type": "application/json",
+        "content": {
+          "document_id": "flowsheet-ghost-222",
+          "streams": [
+            {
+              "id": "feed-506",
+              "name": "F-506",
+              "target_unit_id": "valve-7"
+            },
+            {
+              "id": "v-506",
+              "name": "V-506",
+              "source_unit_id": "valve-7",
+              "target_unit_id": "flash-14"
+            }
+          ],
+          "units": [
+            {
+              "id": "valve-7",
+              "kind": "Valve",
+              "name": "Throttle Valve 506"
+            },
+            {
+              "id": "flash-14",
+              "kind": "FlashDrum",
+              "name": "Flash Drum 506"
+            }
+          ]
+        }
+      }
+    ],
+    "context": {
+      "document_revision": 63,
+      "selected_unit_ids": [
+        "flash-14"
+      ],
+      "selected_unit": {
+        "id": "flash-14",
+        "kind": "FlashDrum",
+        "name": "Flash Drum 506"
+      },
+      "unconnected_ports": [
+        "vapor_outlet",
+        "liquid_outlet"
+      ],
+      "legal_candidate_completions": [
+        {
+          "candidate_ref": "cand-flash-14-vapor-outlet-ranking-ambiguous",
+          "ghost_kind": "ghost_connection",
+          "target_port_key": "vapor_outlet",
+          "target_unit_id": "flash-14",
+          "suggested_stream_name": "VG-506",
+          "ranking_signals": {
+            "distance_px": 70,
+            "alignment_score": 0.93,
+            "topology_score": 0.9,
+            "score_gap_to_next": 0.04,
+            "template_frequency": 0.84
+          },
+          "naming_signals": {
+            "applied_prefix": "VG",
+            "numeric_suffix": "506",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        },
+        {
+          "candidate_ref": "cand-flash-14-liquid-outlet-ranking-ambiguous",
+          "ghost_kind": "ghost_connection",
+          "target_port_key": "liquid_outlet",
+          "target_unit_id": "flash-14",
+          "suggested_stream_name": "VL-506",
+          "ranking_signals": {
+            "distance_px": 73,
+            "alignment_score": 0.92,
+            "topology_score": 0.88,
+            "score_gap_to_next": 0.0,
+            "template_frequency": 0.82
+          },
+          "naming_signals": {
+            "applied_prefix": "VL",
+            "numeric_suffix": "506",
+            "reused_existing_pattern": true,
+            "collision_checked": true
+          },
+          "conflict_flags": [
+            "score_gap_too_small"
+          ],
+          "is_high_confidence": false,
+          "is_tab_default": false
+        }
+      ],
+      "nearby_nodes": [
+        {
+          "type": "stream_stub",
+          "id": "flash-14-vapor-lane",
+          "distance_px": 70,
+          "alignment_score": 0.93,
+          "direction": "downstream"
+        },
+        {
+          "type": "stream_stub",
+          "id": "flash-14-liquid-lane",
+          "distance_px": 73,
+          "alignment_score": 0.92,
+          "direction": "downstream"
+        }
+      ],
+      "cursor_context": {
+        "mode": "unit_selected",
+        "recent_actions": [
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-feed-506-to-valve-7-inlet",
+            "accepted_at_revision": 61
+          },
+          {
+            "kind": "accept_ghost_completion",
+            "candidate_ref": "cand-valve-7-outlet-flash-14",
+            "accepted_at_revision": 62
+          }
+        ]
+      },
+      "naming_hints": {
+        "upstream_stream_names": [
+          "V-506"
+        ],
+        "existing_stream_names": [
+          "F-506",
+          "V-506"
+        ],
+        "preferred_prefix_by_port": {
+          "vapor_outlet": "VG",
+          "liquid_outlet": "VL"
+        },
+        "numeric_suffix_from_unit": "506"
+      },
+      "topology_pattern_hints": [
+        "feed_valve_flash_chain",
+        "flash_split_after_valve_outlet_connection",
+        "flash_outlet_priority_gap_requires_manual_selection"
+      ]
+    },
+    "tool_hints": {
+      "allow_retrieval": false,
+      "allow_tool_calls": false,
+      "allow_image_reasoning": false
+    },
+    "safety": {
+      "mode": "advisory",
+      "requires_confirmation_for_actions": false
+    }
+  },
+  "raw_request": {
+    "endpoint": "https://api.deepseek.com/v1/chat/completions",
+    "payload": {
+      "model": "deepseek-v4-pro",
+      "temperature": 0.0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是 RadishMind 的编辑器 ghost completion 推理器，只处理 `radishflow / suggest_ghost_completion`。\n\n输出要求：\n\n1. 只输出一个 JSON 对象，结构必须满足 `CopilotResponse`\n2. 不要输出 markdown 代码块，不要输出 JSON 之外的解释\n3. `project` 固定回写为 `radishflow`\n4. `task` 固定回写为 `suggest_ghost_completion`\n5. 只允许从 `context.legal_candidate_completions` 中选择候选；不要凭空发明新的 candidate\n6. 若本地规则没有给出任何合法候选，应返回空建议，通常用 `status=partial`\n7. `proposed_actions` 里的动作只能是 `ghost_completion`\n8. `ghost_completion.requires_confirmation` 必须为 `false`，整体 `requires_confirmation` 也必须为 `false`\n9. 只有明确满足默认高置信条件的首个候选才可使用 `preview.accept_key=\"Tab\"`；其余候选只能 `manual_only`\n10. `citations` 只能引用当前输入里的结构化上下文，不要凭空引用外部来源\n\n字段提醒：\n\n- `answers` 至少 1 条\n- `summary` 先说明当前是否给出 ghost 建议\n- `issues` 只在空建议、证据不足或必须停住时再使用\n- `proposed_actions` 最多 3 条\n- 每条 `ghost_completion` 都必须包含 `title`、`target`、`rationale`、`patch`、`preview`、`apply`、`risk_level`、`requires_confirmation`\n- `apply.command_kind` 固定为 `accept_ghost_completion`"
+        },
+        {
+          "role": "user",
+          "content": "请基于以下 CopilotRequest 生成一个 JSON 对象形式的 CopilotResponse。不要输出 markdown 代码块，也不要输出 JSON 之外的解释。\n\n{\n  \"schema_version\": 1,\n  \"request_id\": \"rf-suggest-ghost-chain-feed-valve-flash-outlets-ranking-ambiguous-no-tab-001\",\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"locale\": \"zh-CN\",\n  \"artifacts\": [\n    {\n      \"kind\": \"json\",\n      \"role\": \"primary\",\n      \"name\": \"flowsheet_document\",\n      \"mime_type\": \"application/json\",\n      \"content\": {\n        \"document_id\": \"flowsheet-ghost-222\",\n        \"streams\": [\n          {\n            \"id\": \"feed-506\",\n            \"name\": \"F-506\",\n            \"target_unit_id\": \"valve-7\"\n          },\n          {\n            \"id\": \"v-506\",\n            \"name\": \"V-506\",\n            \"source_unit_id\": \"valve-7\",\n            \"target_unit_id\": \"flash-14\"\n          }\n        ],\n        \"units\": [\n          {\n            \"id\": \"valve-7\",\n            \"kind\": \"Valve\",\n            \"name\": \"Throttle Valve 506\"\n          },\n          {\n            \"id\": \"flash-14\",\n            \"kind\": \"FlashDrum\",\n            \"name\": \"Flash Drum 506\"\n          }\n        ]\n      }\n    }\n  ],\n  \"context\": {\n    \"document_revision\": 63,\n    \"selected_unit_ids\": [\n      \"flash-14\"\n    ],\n    \"selected_unit\": {\n      \"id\": \"flash-14\",\n      \"kind\": \"FlashDrum\",\n      \"name\": \"Flash Drum 506\"\n    },\n    \"unconnected_ports\": [\n      \"vapor_outlet\",\n      \"liquid_outlet\"\n    ],\n    \"legal_candidate_completions\": [\n      {\n        \"candidate_ref\": \"cand-flash-14-vapor-outlet-ranking-ambiguous\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_port_key\": \"vapor_outlet\",\n        \"target_unit_id\": \"flash-14\",\n        \"suggested_stream_name\": \"VG-506\",\n        \"ranking_signals\": {\n          \"distance_px\": 70,\n          \"alignment_score\": 0.93,\n          \"topology_score\": 0.9,\n          \"score_gap_to_next\": 0.04,\n          \"template_frequency\": 0.84\n        },\n        \"naming_signals\": {\n          \"applied_prefix\": \"VG\",\n          \"numeric_suffix\": \"506\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"score_gap_too_small\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      },\n      {\n        \"candidate_ref\": \"cand-flash-14-liquid-outlet-ranking-ambiguous\",\n        \"ghost_kind\": \"ghost_connection\",\n        \"target_port_key\": \"liquid_outlet\",\n        \"target_unit_id\": \"flash-14\",\n        \"suggested_stream_name\": \"VL-506\",\n        \"ranking_signals\": {\n          \"distance_px\": 73,\n          \"alignment_score\": 0.92,\n          \"topology_score\": 0.88,\n          \"score_gap_to_next\": 0.0,\n          \"template_frequency\": 0.82\n        },\n        \"naming_signals\": {\n          \"applied_prefix\": \"VL\",\n          \"numeric_suffix\": \"506\",\n          \"reused_existing_pattern\": true,\n          \"collision_checked\": true\n        },\n        \"conflict_flags\": [\n          \"score_gap_too_small\"\n        ],\n        \"is_high_confidence\": false,\n        \"is_tab_default\": false\n      }\n    ],\n    \"nearby_nodes\": [\n      {\n        \"type\": \"stream_stub\",\n        \"id\": \"flash-14-vapor-lane\",\n        \"distance_px\": 70,\n        \"alignment_score\": 0.93,\n        \"direction\": \"downstream\"\n      },\n      {\n        \"type\": \"stream_stub\",\n        \"id\": \"flash-14-liquid-lane\",\n        \"distance_px\": 73,\n        \"alignment_score\": 0.92,\n        \"direction\": \"downstream\"\n      }\n    ],\n    \"cursor_context\": {\n      \"mode\": \"unit_selected\",\n      \"recent_actions\": [\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-feed-506-to-valve-7-inlet\",\n          \"accepted_at_revision\": 61\n        },\n        {\n          \"kind\": \"accept_ghost_completion\",\n          \"candidate_ref\": \"cand-valve-7-outlet-flash-14\",\n          \"accepted_at_revision\": 62\n        }\n      ]\n    },\n    \"naming_hints\": {\n      \"upstream_stream_names\": [\n        \"V-506\"\n      ],\n      \"existing_stream_names\": [\n        \"F-506\",\n        \"V-506\"\n      ],\n      \"preferred_prefix_by_port\": {\n        \"vapor_outlet\": \"VG\",\n        \"liquid_outlet\": \"VL\"\n      },\n      \"numeric_suffix_from_unit\": \"506\"\n    },\n    \"topology_pattern_hints\": [\n      \"feed_valve_flash_chain\",\n      \"flash_split_after_valve_outlet_connection\",\n      \"flash_outlet_priority_gap_requires_manual_selection\"\n    ]\n  },\n  \"tool_hints\": {\n    \"allow_retrieval\": false,\n    \"allow_tool_calls\": false,\n    \"allow_image_reasoning\": false\n  },\n  \"safety\": {\n    \"mode\": \"advisory\",\n    \"requires_confirmation_for_actions\": false\n  }\n}"
+        }
+      ]
+    },
+    "transport": "openai-chat-completions",
+    "provider_profile": "deepseek",
+    "provider_profile_env": "DEEPSEEK",
+    "api_style": "openai-compatible"
+  },
+  "raw_response": {
+    "id": "1ccd4594-e808-497b-a2e3-6dd8a49933a4",
+    "object": "chat.completion",
+    "created": 1777036292,
+    "model": "deepseek-v4-pro",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\n  \"project\": \"radishflow\",\n  \"task\": \"suggest_ghost_completion\",\n  \"status\": \"partial\",\n  \"summary\": \"已基于 Flash Drum 506 的两个未连接端口生成 ghost 连接建议，但排名分数过于接近（间隙 < 0.05），无法自动默认选择，需用户手动确认。\",\n  \"issues\": [\n    \"排名前列的两个候选（vapor_outlet 与 liquid_outlet）的 score_gap_to_next 为 0.0 或 0.04，不满足自动默认阈值。\",\n    \"冲突标志：score_gap_too_small，表明无明确的最高置信度候选。\"\n  ],\n  \"answers\": [\n    {\n      \"id\": \"ans-flash-506-outlets-ambiguous\",\n      \"title\": \"Flash Drum 506 出口 ghost 连接建议（需手动选择）\",\n      \"body\": \"针对 Flash Drum 506 的 vapour_outlet 和 liquid_outlet 提供两条 ghost 连接建议。两者均基于强对齐和拓扑模式（feed_valve_flash_chain 及 flash_split_after_valve_outlet_connection），但排名分数差距极小，系统无法自动注入默认 Tab，需要您从下方动作中手动接受适合的 ghost。\",\n      \"citations\": [\n        {\n          \"source\": \"legal_candidate_completions\",\n          \"candidate_ref\": \"cand-flash-14-vapor-outlet-ranking-ambiguous\",\n          \"note\": \"vapor outlet 候选，alignment 0.93, topology 0.9, gap 0.04\"\n        },\n        {\n          \"source\": \"legal_candidate_completions\",\n          \"candidate_ref\": \"cand-flash-14-liquid-outlet-ranking-ambiguous\",\n          \"note\": \"liquid outlet 候选，alignment 0.92, topology 0.88, gap 0.0\"\n        }\n      ]\n    }\n  ],\n  \"proposed_actions\": [\n    {\n      \"type\": \"ghost_completion\",\n      \"ghost_completion\": {\n        \"title\": \"VG-506 (Vapor Outlet Ghost)\",\n        \"target\": {\n          \"unit_id\": \"flash-14\",\n          \"port_key\": \"vapor_outlet\"\n        },\n        \"rationale\": \"对齐分数高（0.93），拓扑分数高（0.9），匹配 feed_valve_flash_chain 下游模式，且命名前缀 VG-506 符合规范。距离 70px，template_frequency 0.84。\",\n        \"patch\": {\n          \"description\": \"在 flash-14 的 vapour_outlet 创建一个 ghost 连接，流道名称为 VG-506，方向 downstream，从 vapour_outlet 出发连接至下游匹配的 stream_stub。\",\n          \"metadata\": {\n            \"suggested_stream_name\": \"VG-506\",\n            \"ghost_kind\": \"ghost_connection\",\n            \"direction\": \"downstream\"\n          }\n        },\n        \"preview\": {\n          \"accept_key\": null,\n          \"mode\": \"manual_only\"\n        },\n        \"apply\": {\n          \"command_kind\": \"accept_ghost_completion\",\n          \"payload\": {\n            \"candidate_ref\": \"cand-flash-14-vapor-outlet-ranking-ambiguous\"\n          }\n        },\n        \"risk_level\": \"low\",\n        \"requires_confirmation\": false\n      }\n    },\n    {\n      \"type\": \"ghost_completion\",\n      \"ghost_completion\": {\n        \"title\": \"VL-506 (Liquid Outlet Ghost)\",\n        \"target\": {\n          \"unit_id\": \"flash-14\",\n          \"port_key\": \"liquid_outlet\"\n        },\n        \"rationale\": \"对齐分数高（0.92），拓扑分数 0.88，符合 flash_split_after_valve_outlet_connection 模式，命名前缀 VL-506 符合规范。距离 73px，template_frequency 0.82。\",\n        \"patch\": {\n          \"description\": \"在 flash-14 的 liquid_outlet 创建一个 ghost 连接，流道名称为 VL-506，方向 downstream，从 liquid_outlet 出发连接至下游匹配的 stream_stub。\",\n          \"metadata\": {\n            \"suggested_stream_name\": \"VL-506\",\n            \"ghost_kind\": \"ghost_connection\",\n            \"direction\": \"downstream\"\n          }\n        },\n        \"preview\": {\n          \"accept_key\": null,\n          \"mode\": \"manual_only\"\n        },\n        \"apply\": {\n          \"command_kind\": \"accept_ghost_completion\",\n          \"payload\": {\n            \"candidate_ref\": \"cand-flash-14-liquid-outlet-ranking-ambiguous\"\n          }\n        },\n        \"risk_level\": \"low\",\n        \"requires_confirmation\": false\n      }\n    }\n  ],\n  \"citations\": [\n    {\n      \"source\": \"legal_candidate_completions\",\n      \"candidate_ref\": \"cand-flash-14-vapor-outlet-ranking-ambiguous\",\n      \"note\": \"vapor outlet 候选，ranking: distance 70px, alignment 0.93, topology 0.9, gap 0.04\"\n    },\n    {\n      \"source\": \"legal_candidate_completions\",\n      \"candidate_ref\": \"cand-flash-14-liquid-outlet-ranking-ambiguous\",\n      \"note\": \"liquid outlet 候选，ranking: distance 73px, alignment 0.92, topology 0.88, gap 0.0\"\n    }\n  ]\n}",
+          "reasoning_content": "我们被要求只输出 JSON。需要从 legal_candidate_completions 中选择候选。有两个候选：vapor_outlet 和 liquid_outlet，都有 conflict_flags score_gap_too_small，都不是高置信度，都不是 tab_default。根据规则，没有高置信度候选，不能使用 Tab 默认，因此 preview.accept_key 应该是 manual_only。需要提供建议，可能给出两条建议？但是规则说只有默认高置信条件才可使用 Tab，否则 manual_only。同时，要求只输出一个 JSON 对象。proposed_actions 最多3条，可以包含 ghost_completion 动作。这里有两个候选，但都是 ambiguous，而且规则说若本地规则没有给出任何合法候选，应返回空建议，通常用 status=partial。但这里有合法候选，只是不满足高置信度。我们可以输出一个建议，包含两个 ghost_completion 动作，分别针对 vapor 和 liquid。同时 summary 说明给出 ghost 建议，但需要 manual selection。issues 可以提一下“score gap 太小，需要手动选择”。citations 可以引用 legal_candidate_completions 里的内容。preview 为 manual_only。apply.command_kind 为 accept_ghost_completion。每条 ghost_completion 要有 title, target, rationale, patch, preview, apply, risk_level, requires_confirmation (false)。title 可以取候选的 suggested_stream_name 或类似。target 可以指向 target_unit_id 和 target_port_key。rationale 基于 ranking_signals。patch 可以是添加 ghost 连接的描述。risk_level 可以用 low 或 medium。因为 ambiguous，用 medium？应该是 low-medium。但风险不用太高。我们就按常规来设计。需要满足字段完整。\n\n最终输出一个 JSON 对象，不包含 markdown。"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1701,
+      "completion_tokens": 1570,
+      "total_tokens": 3271,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 374
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 1701
+    },
+    "system_fingerprint": "fp_9954b31ca7_prod0820_fp8_kvcache_20260402"
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "status": "ok",
+    "summary": "已基于 Flash Drum 506 的两个未连接端口生成 ghost 连接建议，但排名分数过于接近（间隙 < 0.05），无法自动默认选择，需用户手动确认。",
+    "issues": [],
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "已基于 Flash Drum 506 的两个未连接端口生成 ghost 连接建议，但排名分数过于接近（间隙 < 0.05），无法自动默认选择，需用户手动确认。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-candidate-2",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "保留 flash-14 的 vapor_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-14",
+          "port_key": "vapor_outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-14-vapor-outlet-ranking-ambiguous",
+          "target_port_key": "vapor_outlet",
+          "ghost_stream_name": "VG-506"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-14-vapor-outlet-ranking-ambiguous"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      },
+      {
+        "kind": "ghost_completion",
+        "title": "保留 flash-14 的 liquid_outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "flash-14",
+          "port_key": "liquid_outlet"
+        },
+        "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-flash-14-liquid-outlet-ranking-ambiguous",
+          "target_port_key": "liquid_outlet",
+          "ghost_stream_name": "VL-506"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "manual_only",
+          "render_priority": 2
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-flash-14-liquid-outlet-ranking-ambiguous"
+          }
+        },
+        "risk_level": "medium",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-2",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 flash-14",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=flash-14 kind=FlashDrum name=Flash Drum 506"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-flash-14-vapor-outlet-ranking-ambiguous",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-flash-14-vapor-outlet-ranking-ambiguous target_port_key=vapor_outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-candidate-2",
+        "kind": "context",
+        "label": "候选 cand-flash-14-liquid-outlet-ranking-ambiguous",
+        "locator": "context:legal_candidate_completions[1]",
+        "excerpt": "candidate_ref=cand-flash-14-liquid-outlet-ranking-ambiguous target_port_key=liquid_outlet is_tab_default=False is_high_confidence=False"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"V-506\"], \"existing_stream_names\": [\"F-506\", \"V-506\"], \"preferred_prefix_by_port\": {\"vapor_outlet\": \"VG\", \"liquid_outlet\": \"VL\"}, \"numeric_suffix_from_un"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_valve_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-valve-7-outlet-flash-14\", \"accepted_at_revision\": 62}"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "medium",
+    "requires_confirmation": false,
+    "confidence": 0.78
+  }
+}

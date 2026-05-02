@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "answers": [
+    {
+      "kind": "ghost_rationale",
+      "text": "当前未给出 ghost 建议，因为两个候选的分数差距过小，无法确定高置信度的默认候选。",
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-candidate-2",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "ctx-unit",
+      "kind": "context",
+      "label": "当前选中的 cooler-10",
+      "locator": "context:selected_unit",
+      "excerpt": "selected_unit=cooler-10 kind=Cooler name=Feed Cooler 704"
+    },
+    {
+      "id": "ctx-candidate-1",
+      "kind": "context",
+      "label": "候选 cand-cooler-10-outlet-flash-20",
+      "locator": "context:legal_candidate_completions[0]",
+      "excerpt": "candidate_ref=cand-cooler-10-outlet-flash-20 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+    },
+    {
+      "id": "ctx-candidate-2",
+      "kind": "context",
+      "label": "候选 cand-cooler-10-outlet-flash-21",
+      "locator": "context:legal_candidate_completions[1]",
+      "excerpt": "candidate_ref=cand-cooler-10-outlet-flash-21 target_port_key=outlet is_tab_default=False is_high_confidence=False"
+    },
+    {
+      "id": "ctx-naming-hints",
+      "kind": "context",
+      "label": "ghost 命名提示",
+      "locator": "context:naming_hints",
+      "excerpt": "{\"upstream_stream_names\": [\"F-704\"], \"existing_stream_names\": [\"F-704\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"704\"}"
+    },
+    {
+      "id": "ctx-pattern",
+      "kind": "context",
+      "label": "拓扑模式提示",
+      "locator": "context:topology_pattern_hints[0]",
+      "excerpt": "feed_cooler_flash_chain"
+    },
+    {
+      "id": "ctx-recent-action",
+      "kind": "context",
+      "label": "最近 ghost 动作",
+      "locator": "context:cursor_context.recent_actions[0]",
+      "excerpt": "{\"kind\": \"accept_ghost_completion\", \"candidate_ref\": \"cand-feed-704-to-cooler-10-inlet\", \"accepted_at_revision\": 58}"
+    }
+  ],
+  "proposed_actions": [
+    {
+      "kind": "ghost_completion",
+      "title": "保留 cooler-10 的 outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "cooler-10",
+        "port_key": "outlet"
+      },
+      "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-cooler-10-outlet-flash-20",
+        "target_port_key": "outlet",
+        "ghost_stream_name": "C-704A"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "manual_only",
+        "render_priority": 1
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-cooler-10-outlet-flash-20"
+        }
+      },
+      "risk_level": "medium",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-1",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    },
+    {
+      "kind": "ghost_completion",
+      "title": "保留 cooler-10 的 outlet ghost 候选",
+      "target": {
+        "type": "unit_port",
+        "unit_id": "cooler-10",
+        "port_key": "outlet"
+      },
+      "rationale": "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。",
+      "patch": {
+        "ghost_kind": "ghost_connection",
+        "candidate_ref": "cand-cooler-10-outlet-flash-21",
+        "target_port_key": "outlet",
+        "ghost_stream_name": "C-704B"
+      },
+      "preview": {
+        "ghost_color": "gray",
+        "accept_key": "manual_only",
+        "render_priority": 2
+      },
+      "apply": {
+        "command_kind": "accept_ghost_completion",
+        "payload": {
+          "candidate_ref": "cand-cooler-10-outlet-flash-21"
+        }
+      },
+      "risk_level": "medium",
+      "requires_confirmation": false,
+      "citation_ids": [
+        "ctx-unit",
+        "ctx-candidate-2",
+        "ctx-naming-hints",
+        "ctx-pattern"
+      ]
+    }
+  ],
+  "status": "ok",
+  "issues": [],
+  "summary": "当前未给出 ghost 建议，因为两个候选的分数差距过小，无法确定高置信度的默认候选。",
+  "risk_level": "medium",
+  "requires_confirmation": false,
+  "confidence": 0.78
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "record_id": "captured-radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001",
+  "project": "radishflow",
+  "task": "suggest_ghost_completion",
+  "sample_id": "radishflow-suggest-ghost-completion-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001",
+  "request_id": "rf-suggest-ghost-chain-feed-cooler-flash-outlet-tab-after-dismiss-cooldown-001",
+  "captured_at": "2026-04-24T14:02:21Z",
+  "source": "captured_candidate_response",
+  "model": "deepseek-v4-pro",
+  "input_record": {
+    "artifact_names": [
+      "flowsheet_document"
+    ],
+    "document_revision": 60,
+    "selected_unit_ids": [
+      "cooler-12"
+    ],
+    "legal_candidate_refs": [
+      "cand-cooler-12-outlet-flash-34"
+    ]
+  },
+  "response": {
+    "project": "radishflow",
+    "task": "suggest_ghost_completion",
+    "summary": "已检测到冷却器出口与下游闪蒸罐入口之间的高置信连接建议。该候选此前虽被驳回但冷却期已过，现再次推荐。",
+    "answers": [
+      {
+        "kind": "ghost_rationale",
+        "text": "建议将 Feed Cooler 706 的出口连接到 Flash Drum 706 的入口，并自动创建流 C-706。",
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "issues": [],
+    "requires_confirmation": false,
+    "proposed_actions": [
+      {
+        "kind": "ghost_completion",
+        "title": "补全 cooler-12 的 outlet ghost 候选",
+        "target": {
+          "type": "unit_port",
+          "unit_id": "cooler-12",
+          "port_key": "outlet"
+        },
+        "rationale": "该候选当前被本地规则层标记为默认高置信 ghost，因此可作为首个建议。",
+        "patch": {
+          "ghost_kind": "ghost_connection",
+          "candidate_ref": "cand-cooler-12-outlet-flash-34",
+          "target_port_key": "outlet",
+          "ghost_stream_name": "C-706"
+        },
+        "preview": {
+          "ghost_color": "gray",
+          "accept_key": "Tab",
+          "render_priority": 1
+        },
+        "apply": {
+          "command_kind": "accept_ghost_completion",
+          "payload": {
+            "candidate_ref": "cand-cooler-12-outlet-flash-34"
+          }
+        },
+        "risk_level": "low",
+        "requires_confirmation": false,
+        "citation_ids": [
+          "ctx-unit",
+          "ctx-candidate-1",
+          "ctx-naming-hints",
+          "ctx-pattern"
+        ]
+      }
+    ],
+    "status": "ok",
+    "citations": [
+      {
+        "id": "ctx-unit",
+        "kind": "context",
+        "label": "当前选中的 cooler-12",
+        "locator": "context:selected_unit",
+        "excerpt": "selected_unit=cooler-12 kind=Cooler name=Feed Cooler 706"
+      },
+      {
+        "id": "ctx-candidate-1",
+        "kind": "context",
+        "label": "候选 cand-cooler-12-outlet-flash-34",
+        "locator": "context:legal_candidate_completions[0]",
+        "excerpt": "candidate_ref=cand-cooler-12-outlet-flash-34 target_port_key=outlet is_tab_default=True is_high_confidence=True"
+      },
+      {
+        "id": "ctx-naming-hints",
+        "kind": "context",
+        "label": "ghost 命名提示",
+        "locator": "context:naming_hints",
+        "excerpt": "{\"upstream_stream_names\": [\"F-706\"], \"existing_stream_names\": [\"F-706\"], \"preferred_outlet_prefix\": \"C\", \"numeric_suffix_from_unit\": \"706\"}"
+      },
+      {
+        "id": "ctx-pattern",
+        "kind": "context",
+        "label": "拓扑模式提示",
+        "locator": "context:topology_pattern_hints[0]",
+        "excerpt": "feed_cooler_flash_chain"
+      },
+      {
+        "id": "ctx-recent-action",
+        "kind": "context",
+        "label": "最近 ghost 动作",
+        "locator": "context:cursor_context.recent_actions[1]",
+        "excerpt": "{\"kind\": \"dismiss_ghost_completion\", \"candidate_ref\": \"cand-cooler-12-outlet-flash-34\", \"dismissed_at_revision\": 58}"
+      }
+    ],
+    "schema_version": 1,
+    "risk_level": "low",
+    "confidence": 0.93
+  },
+  "capture_metadata": {
+    "capture_origin": "adapter_debug_dump",
+    "tags": [
+      "radishflow_suggest_ghost_completion",
+      "openai-compatible",
+      "real_capture"
+    ],
+    "collection_batch": "2026-04-24-radishflow-ghost-poc-real-v22-high-value-suppression-cooldown-symmetry-backfill"
+  }
+}
