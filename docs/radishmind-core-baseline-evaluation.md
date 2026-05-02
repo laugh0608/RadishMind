@@ -310,6 +310,8 @@ repaired 观测结论：
 
 随后继续用用户本地执行的单样本 `radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001` 验证 v2 中的单 action 参数范围样本。raw 输出耗时约 `70.147s`，schema-valid 但 task-invalid；模型保留了 `candidate_edit` target、`parameter_updates.efficiency_percent.suggested_range=[65,82]`、`preserve_topology=true`、`risk_level=medium` 与确认边界，但把 frozen `$.status` 从 `partial` 漂移为 `ok`，并漏掉必需 answer。因此该样本应继续归为 hard-field/status 与 answer-shape preservation gap，而不是参数 patch planning 失败。
 
+同一样本 repaired 轨随后 schema/task 通过，freeze audit 通过，`repaired_paths` 为 `$.status` 与 `$.answers`，且未改动 `candidate_edit` target 或 parameter update patch。但人工复核发现 pre-fix repaired answer 使用了通用占位句。当前已将 `suggest_flowsheet_edits` 的 answer scaffold 改成任务相关 `edit_rationale`，并新增 `check-radishmind-core-candidate-answer-scaffold.py` 锁住缺失 answer 修复时不得恢复通用占位文本。该修正提升 repaired 轨的人工可审计性，但不改变 raw 模型仍会漂移 `status` / 漏 answer 的结论。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

@@ -641,6 +641,45 @@ def build_action_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) ->
     return actions
 
 
+def build_answer_scaffold(
+    *,
+    project: str,
+    task: str,
+    citation_ids: list[str],
+    issues: list[dict[str, Any]],
+    actions: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    answer_citation_ids = citation_ids[: max(1, min(len(citation_ids), 3))]
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        issue_message = ""
+        if issues and isinstance(issues[0], dict):
+            issue_message = str(issues[0].get("message") or "").strip()
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        action_kind = str(action.get("kind") or "candidate_edit")
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_id = str(target.get("id") or "selected object")
+        text = (
+            f"{issue_message} 建议生成 {action_kind} 候选提案，目标为 {target_id}；"
+            "该提案保持 advisory-only，必须由人工确认后再进入上层业务执行。"
+            if issue_message
+            else f"建议生成 {action_kind} 候选提案，目标为 {target_id}；该提案只作为人工确认前的结构化建议。"
+        )
+        return [
+            {
+                "kind": "edit_rationale",
+                "text": text,
+                "citation_ids": answer_citation_ids,
+            }
+        ]
+    return [
+        {
+            "kind": "direct_answer",
+            "text": "给出可展示给用户的回答。",
+            "citation_ids": citation_ids[:1],
+        }
+    ]
+
+
 def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) -> dict[str, Any]:
     citations = build_citation_scaffold(sample)
     citation_ids = [citation["id"] for citation in citations]
@@ -652,13 +691,13 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
         "project": project,
         "task": task,
         "summary": "用一句话总结结论。",
-        "answers": [
-            {
-                "kind": "direct_answer",
-                "text": "给出可展示给用户的回答。",
-                "citation_ids": citation_ids[:1]
-            }
-        ],
+        "answers": build_answer_scaffold(
+            project=project,
+            task=task,
+            citation_ids=citation_ids,
+            issues=issues,
+            actions=actions,
+        ),
         "issues": issues,
         "proposed_actions": actions,
         "citations": citations,

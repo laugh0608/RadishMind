@@ -1377,6 +1377,39 @@
       "This sample is therefore a hard-field/status and answer-shape preservation gap, not a parameter patch planning failure."
     ]
   },
+  "holdout_probe_v2_single_efficiency_range_repaired_answer_scaffold_2026_05_02": {
+    "status": "completed_single_sample_repaired_review_with_scaffold_fix",
+    "source_raw_probe": "holdout_probe_v2_single_efficiency_range_raw_freeze_audit_2026_05_02",
+    "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-efficiency-range-repaired/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-efficiency-range-repaired/freeze-audit.json",
+    "repaired_result_before_answer_scaffold_fix": {
+      "schema_valid": true,
+      "task_valid": true,
+      "generation_seconds": 75.833,
+      "repaired_paths": [
+        "$.status",
+        "$.answers"
+      ],
+      "freeze_audit_passed": true,
+      "manual_review_caveat": "The repaired output restored status and the missing answer, but the answer text came from the generic scaffold placeholder."
+    },
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now builds task-aware suggest_flowsheet_edits answer scaffold entries with kind=edit_rationale.",
+      "scripts/check-radishmind-core-candidate-answer-scaffold.py locks that missing-answer repair does not restore the generic placeholder text.",
+      "scripts/check-repo.py now includes the answer scaffold check."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-answer-scaffold.py",
+      "python3 scripts/check-radishmind-core-candidate-citation-scaffold.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-answer-scaffold-candidate-run --summary-output tmp/check-v2-answer-scaffold-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json"
+    ],
+    "interpretation": [
+      "The repaired track fixes the raw status drift and missing-answer blocker without changing the candidate_edit target or parameter update patch.",
+      "Pre-fix repaired output was machine-valid but weak manual evidence because the restored answer was a generic placeholder.",
+      "The answer scaffold fix is a postprocess/scaffold quality improvement; it is not raw model improvement."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",
