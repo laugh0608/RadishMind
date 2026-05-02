@@ -1337,6 +1337,12 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     prompt_dir = output_dir / "prompts"
     response_dir = output_dir / "responses"
     local_runtime = load_local_transformers_runtime(args.model_dir) if provider_id == "local_transformers" else None
+    if local_runtime is not None:
+        print(
+            f"[runtime-ready] provider=local_transformers device={local_runtime.device} "
+            f"model_id={provider.get('model_id') or provider_id}",
+            flush=True,
+        )
 
     task_counts: dict[str, int] = {}
     outputs: list[dict[str, Any]] = []
@@ -1351,7 +1357,13 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     generation_metric_entries: list[dict[str, Any]] = []
     repaired_output_count = 0
     repaired_path_counts: dict[str, int] = {}
-    for sample, selected_sample in iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id):
+    selected_samples = iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id)
+    print(
+        f"[batch-start] provider={provider_id} sample_count={len(selected_samples)} "
+        f"output_dir={repo_rel(output_dir)}",
+        flush=True,
+    )
+    for sample_index, (sample, selected_sample) in enumerate(selected_samples, start=1):
         jsonschema.validate(sample["input_request"], request_schema)
         task_key = f"{sample['project']}/{sample['task']}"
         task_counts[task_key] = task_counts.get(task_key, 0) + 1
@@ -1366,6 +1378,13 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         validation_error: str | None = None
         generation_metrics: dict[str, Any] = {}
         repaired_paths: list[str] = []
+        sample_started_at = time.perf_counter()
+        print(
+            f"[sample-start {sample_index}/{len(selected_samples)}] {sample_id} "
+            f"task={task_key} provider={provider_id} timeout={args.sample_timeout_seconds:g}s "
+            f"max_new_tokens={args.max_new_tokens}",
+            flush=True,
+        )
         try:
             candidate_result = build_candidate_response(
                 sample,
@@ -1434,6 +1453,14 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 task_invalid_count += 1
                 for violation in task_validation_violations:
                     add_count(task_failure_categories, categorize_failure(violation))
+        sample_elapsed_seconds = round(time.perf_counter() - sample_started_at, 3)
+        print(
+            f"[sample-done {sample_index}/{len(selected_samples)}] {sample_id} "
+            f"schema_valid={response_valid} "
+            f"task_valid={task_response_valid if task_response_valid is not None else 'not_checked'} "
+            f"elapsed={sample_elapsed_seconds}s",
+            flush=True,
+        )
         outputs.append(
             {
                 "sample_id": sample_id,
