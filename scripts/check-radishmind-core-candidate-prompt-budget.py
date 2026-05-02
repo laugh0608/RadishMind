@@ -85,10 +85,15 @@ def load_prompt_budgets(output_dir: Path) -> list[dict[str, Any]]:
             "request_json_chars",
             "output_contract_chars",
             "scaffold_json_chars",
+            "prompt_scaffold_json_chars",
+            "response_scaffold_json_chars",
+            "compact_scaffold_reduction_chars",
+            "compact_scaffold_copy_marker_count",
             "hard_field_freeze_json_chars",
             "hard_field_freeze_field_count",
             "scaffold_counts",
             "scaffold_payload_chars",
+            "response_scaffold_payload_chars",
         }
         missing_keys = sorted(required_budget_keys - set(budget))
         require(not missing_keys, f"{repo_rel(prompt_path)} prompt_budget is missing keys: {missing_keys}")
@@ -101,10 +106,15 @@ def load_prompt_budgets(output_dir: Path) -> list[dict[str, Any]]:
                 "request_json_chars": budget["request_json_chars"],
                 "output_contract_chars": budget["output_contract_chars"],
                 "scaffold_json_chars": budget["scaffold_json_chars"],
+                "prompt_scaffold_json_chars": budget["prompt_scaffold_json_chars"],
+                "response_scaffold_json_chars": budget["response_scaffold_json_chars"],
+                "compact_scaffold_reduction_chars": budget["compact_scaffold_reduction_chars"],
+                "compact_scaffold_copy_marker_count": budget["compact_scaffold_copy_marker_count"],
                 "hard_field_freeze_json_chars": budget["hard_field_freeze_json_chars"],
                 "hard_field_freeze_field_count": budget["hard_field_freeze_field_count"],
                 "scaffold_counts": budget["scaffold_counts"],
                 "scaffold_payload_chars": budget["scaffold_payload_chars"],
+                "response_scaffold_payload_chars": budget["response_scaffold_payload_chars"],
             }
         )
     require(rows, "candidate prompt budget check found no prompts")
@@ -119,10 +129,19 @@ def build_summary(manifest: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
     largest = max_row(rows, "total_message_chars")
     freeze_largest = max_row(rows, "hard_field_freeze_field_count")
     require(largest["sample_id"] == LARGEST_EXPECTED_SAMPLE_ID, "v2 largest prompt sample changed; review prompt budget")
-    require(int(largest["total_message_chars"]) <= 18000, "v2 largest prompt exceeds current static char budget")
+    require(int(largest["total_message_chars"]) <= 15000, "v2 largest prompt exceeds current static char budget")
     require(int(largest["hard_field_freeze_field_count"]) <= 20, "v2 largest prompt exceeds freeze field budget")
     require(int(largest["request_json_chars"]) <= 4000, "v2 largest prompt request payload exceeds budget")
-    require(int(largest["output_contract_chars"]) <= 12500, "v2 largest prompt output contract exceeds budget")
+    require(int(largest["output_contract_chars"]) <= 10000, "v2 largest prompt output contract exceeds budget")
+    require(int(largest["prompt_scaffold_json_chars"]) <= 3500, "v2 largest prompt compact scaffold exceeds budget")
+    require(
+        int(largest["compact_scaffold_reduction_chars"]) >= 2000,
+        "v2 largest prompt compact scaffold no longer saves enough prompt budget",
+    )
+    require(
+        int(largest["compact_scaffold_copy_marker_count"]) > 0,
+        "v2 largest prompt must keep compact scaffold copy markers",
+    )
 
     return {
         "schema_version": 1,
@@ -132,10 +151,12 @@ def build_summary(manifest: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "sample_count": len(rows),
         "budget_policy": {
             "measurement": "static_prompt_character_budget",
-            "max_total_message_chars": 18000,
+            "max_total_message_chars": 15000,
             "max_request_json_chars": 4000,
-            "max_output_contract_chars": 12500,
+            "max_output_contract_chars": 10000,
+            "max_prompt_scaffold_json_chars": 3500,
             "max_hard_field_freeze_field_count": 20,
+            "min_largest_prompt_compact_scaffold_reduction_chars": 2000,
             "largest_prompt_sample_must_remain_reviewed": LARGEST_EXPECTED_SAMPLE_ID,
             "does_not_run_models": True,
         },
@@ -144,6 +165,14 @@ def build_summary(manifest: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
             "request_json_chars": max_row(rows, "request_json_chars")["request_json_chars"],
             "output_contract_chars": max_row(rows, "output_contract_chars")["output_contract_chars"],
             "scaffold_json_chars": max_row(rows, "scaffold_json_chars")["scaffold_json_chars"],
+            "prompt_scaffold_json_chars": max_row(rows, "prompt_scaffold_json_chars")["prompt_scaffold_json_chars"],
+            "response_scaffold_json_chars": max_row(rows, "response_scaffold_json_chars")["response_scaffold_json_chars"],
+            "compact_scaffold_reduction_chars": max_row(rows, "compact_scaffold_reduction_chars")[
+                "compact_scaffold_reduction_chars"
+            ],
+            "compact_scaffold_copy_marker_count": max_row(rows, "compact_scaffold_copy_marker_count")[
+                "compact_scaffold_copy_marker_count"
+            ],
             "hard_field_freeze_json_chars": max_row(rows, "hard_field_freeze_json_chars")["hard_field_freeze_json_chars"],
             "hard_field_freeze_field_count": freeze_largest["hard_field_freeze_field_count"],
         },
@@ -157,6 +186,10 @@ def build_summary(manifest: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
                 "request_json_chars",
                 "output_contract_chars",
                 "scaffold_json_chars",
+                "prompt_scaffold_json_chars",
+                "response_scaffold_json_chars",
+                "compact_scaffold_reduction_chars",
+                "compact_scaffold_copy_marker_count",
                 "hard_field_freeze_json_chars",
                 "hard_field_freeze_field_count",
                 "scaffold_counts",

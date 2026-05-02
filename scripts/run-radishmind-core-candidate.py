@@ -724,6 +724,27 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
     return scaffold
 
 
+def build_compact_prompt_scaffold(scaffold_document: dict[str, Any], hard_field_freeze: dict[str, Any]) -> dict[str, Any]:
+    freeze_paths = {
+        str(field.get("path"))
+        for field in hard_field_freeze.get("fields") or []
+        if isinstance(field, dict) and isinstance(field.get("path"), str)
+    }
+
+    def compact_value(value: Any, path: str) -> Any:
+        if path in freeze_paths:
+            if isinstance(value, (dict, list)) and value:
+                return {"copy_from_hard_field_freeze": path}
+            return value
+        if isinstance(value, dict):
+            return {key: compact_value(child, f"{path}.{key}") for key, child in value.items()}
+        if isinstance(value, list):
+            return [compact_value(child, f"{path}[{index}]") for index, child in enumerate(value)]
+        return value
+
+    return compact_value(scaffold_document, "$")
+
+
 def build_output_contract_text(
     *,
     project: str,
@@ -731,13 +752,16 @@ def build_output_contract_text(
     sample: dict[str, Any],
     scaffold_document: dict[str, Any] | None = None,
     hard_field_freeze: dict[str, Any] | None = None,
+    prompt_scaffold_document: dict[str, Any] | None = None,
 ) -> str:
     if scaffold_document is None:
         scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
     if hard_field_freeze is None:
         hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
+    if prompt_scaffold_document is None:
+        prompt_scaffold_document = build_compact_prompt_scaffold(scaffold_document, hard_field_freeze)
     freeze_fields = json.dumps(hard_field_freeze["fields"], ensure_ascii=False, indent=2)
-    scaffold = json.dumps(scaffold_document, ensure_ascii=False, indent=2)
+    prompt_scaffold = json.dumps(prompt_scaffold_document, ensure_ascii=False, indent=2)
     return (
         "输出必须是一个严格 JSON object，并且必须能通过 contracts/copilot-response.schema.json。\n"
         "禁止输出 markdown 代码块、解释性前后缀、注释、尾逗号、单引号、NaN、Infinity 或 JSON 字符串包裹的 JSON。\n"
@@ -748,13 +772,14 @@ def build_output_contract_text(
         "status 只能是 ok、partial 或 failed；risk_level 只能是 low、medium 或 high；confidence 必须是 0 到 1 的数字。\n"
         "answers、issues、proposed_actions、citations 即使为空也必须输出数组。\n"
         "不要输出 null；不知道时用空数组、低置信度和简短说明。\n"
-        "下面 scaffold 中的 status、risk_level、requires_confirmation、project、task、schema_version、"
+        "下面 compact_response_scaffold 中的 status、risk_level、requires_confirmation、project、task、schema_version、"
         "issue code 顺序、citation id 顺序、issue/action citation_ids 顺序、action target 和 patch key 是硬约束，必须照抄；"
         "只允许改写 summary、answers[*].text、issues[*].message、proposed_actions[*].title 和 rationale 这类自然语言字段。\n"
         "issues[*] 只能包含 code、message、severity、citation_ids；禁止输出 target_id、target_type 或其它额外字段。\n"
         "所有 citation_ids 必须引用 citations 中已经存在的 id。\n"
         "如果 expected_response_shape.requires_citations=true，answers[0].citation_ids 不能为空；"
-        "如果 scaffold 里已有 citations，就必须保留这些 citations，并把相关 id 复制到 answer/issue/action 的 citation_ids。\n"
+        "如果 compact_response_scaffold 或 hard_field_freeze 里已有 citations，就必须保留这些 citations，"
+        "并把相关 id 复制到 answer/issue/action 的 citation_ids。\n"
         "所有 proposed_actions 都必须包含 kind、title、rationale、risk_level、requires_confirmation。\n"
         "proposed_actions[*] 不能使用 text、type、reason 字段；动作说明必须写入 title 和 rationale。\n"
         "candidate_edit 必须包含 target 与 patch；ghost_completion 必须包含 target、patch、preview、apply。\n"
@@ -765,8 +790,10 @@ def build_output_contract_text(
         "不得推断、改名、删减、重排或降级。只允许改写未列入 freeze 的自然语言字段。\n"
         "hard_field_freeze:\n"
         f"{freeze_fields}\n"
-        "可以按下面骨架替换内容，但不要新增额外字段：\n"
-        f"{scaffold}"
+        "下面 compact_response_scaffold 只用于提示输出形状；如果某个值是 copy_from_hard_field_freeze，"
+        "必须从上面的 hard_field_freeze 中复制对应 path 的完整 value，不要输出 copy_from_hard_field_freeze 标记本身。\n"
+        "可以按下面骨架替换自然语言内容，但不要新增额外字段：\n"
+        f"{prompt_scaffold}"
     )
 
 
@@ -831,6 +858,15 @@ def json_char_count(document: Any) -> int:
     return len(json.dumps(document, ensure_ascii=False, indent=2))
 
 
+def count_compact_scaffold_copy_markers(document: Any) -> int:
+    if isinstance(document, dict):
+        count = 1 if set(document) == {"copy_from_hard_field_freeze"} else 0
+        return count + sum(count_compact_scaffold_copy_markers(value) for value in document.values())
+    if isinstance(document, list):
+        return sum(count_compact_scaffold_copy_markers(value) for value in document)
+    return 0
+
+
 def build_prompt_budget(
     *,
     prompt_messages: list[dict[str, str]],
@@ -838,6 +874,7 @@ def build_prompt_budget(
     task_guidance: str,
     output_contract_text: str,
     scaffold_document: dict[str, Any],
+    prompt_scaffold_document: dict[str, Any],
     hard_field_freeze: dict[str, Any],
 ) -> dict[str, Any]:
     user_message = next((message for message in prompt_messages if message.get("role") == "user"), {})
@@ -850,6 +887,8 @@ def build_prompt_budget(
         for action in actions
         if isinstance(action, dict) and isinstance(action.get("patch"), dict)
     )
+    prompt_scaffold_chars = json_char_count(prompt_scaffold_document)
+    response_scaffold_chars = json_char_count(scaffold_document)
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_prompt_budget",
@@ -860,7 +899,11 @@ def build_prompt_budget(
         "task_guidance_chars": len(task_guidance),
         "request_json_chars": len(request_payload),
         "output_contract_chars": len(output_contract_text),
-        "scaffold_json_chars": json_char_count(scaffold_document),
+        "scaffold_json_chars": prompt_scaffold_chars,
+        "prompt_scaffold_json_chars": prompt_scaffold_chars,
+        "response_scaffold_json_chars": response_scaffold_chars,
+        "compact_scaffold_reduction_chars": response_scaffold_chars - prompt_scaffold_chars,
+        "compact_scaffold_copy_marker_count": count_compact_scaffold_copy_markers(prompt_scaffold_document),
         "hard_field_freeze_json_chars": json_char_count(hard_field_freeze.get("fields") or []),
         "hard_field_freeze_field_count": len(hard_field_freeze.get("fields") or []),
         "scaffold_counts": {
@@ -870,6 +913,13 @@ def build_prompt_budget(
             "citation_count": len(citations),
         },
         "scaffold_payload_chars": {
+            "answers": json_char_count(scaffold_document.get("answers") or []),
+            "issues": json_char_count(issues),
+            "proposed_actions": json_char_count(actions),
+            "action_patches": action_patch_chars,
+            "citations": json_char_count(citations),
+        },
+        "response_scaffold_payload_chars": {
             "answers": json_char_count(scaffold_document.get("answers") or []),
             "issues": json_char_count(issues),
             "proposed_actions": json_char_count(actions),
@@ -886,6 +936,7 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
     request_payload = json.dumps(input_request, ensure_ascii=False, indent=2)
     scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
     hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
+    prompt_scaffold_document = build_compact_prompt_scaffold(scaffold_document, hard_field_freeze)
     task_guidance = build_task_guidance(project=project, task=task, sample=sample)
     output_contract_text = build_output_contract_text(
         project=project,
@@ -893,6 +944,7 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
         sample=sample,
         scaffold_document=scaffold_document,
         hard_field_freeze=hard_field_freeze,
+        prompt_scaffold_document=prompt_scaffold_document,
     )
     messages = [
         {
@@ -924,12 +976,18 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
         "messages": messages,
         "output_contract": "contracts/copilot-response.schema.json",
         "hard_field_freeze": hard_field_freeze,
+        "prompt_scaffold_policy": {
+            "kind": "compact_response_scaffold",
+            "copy_marker": "copy_from_hard_field_freeze",
+            "full_response_scaffold_used_for_repair": True,
+        },
         "prompt_budget": build_prompt_budget(
             prompt_messages=messages,
             request_payload=request_payload,
             task_guidance=task_guidance,
             output_contract_text=output_contract_text,
             scaffold_document=scaffold_document,
+            prompt_scaffold_document=prompt_scaffold_document,
             hard_field_freeze=hard_field_freeze,
         ),
         "safety": {
