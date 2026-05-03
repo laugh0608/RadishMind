@@ -337,6 +337,27 @@ repaired 观测结论：
 
 这说明本轮 `300s` CPU timeout 的更直接工程解释是长 output contract + scaffold + freeze + 多 citation 组合造成的执行成本边界；在进一步验证 constrained decoding 或换 backend 之前，不应继续盲目要求用户复跑同一样本。新增预算门禁当前约束 `max_total_message_chars=15000`、`max_request_json_chars=4000`、`max_output_contract_chars=10000`、`max_prompt_scaffold_json_chars=3500`、`max_hard_field_freeze_field_count=20`，并要求最大样本的 compact scaffold 至少节省 `2000` 字符，用于防止后续 scaffold / freeze 为了追求 repaired 通过率继续无审计扩张。
 
+## 当前执行停止线
+
+截至本轮复盘，`Qwen2.5-0.5B-Instruct` 与 `Qwen2.5-1.5B-Instruct` 的本地观测已经足够支撑阶段性判断：prompt scaffold 能提高 schema 合法率，`--repair-hard-fields` 能验证后处理链路价值，但 raw 仍不能稳定保持硬字段、citation 和复杂 action shape；复杂 cross-object 样本还会先撞到 prompt/scaffold 成本边界。
+
+因此后续不再把以下事项作为默认主线：
+
+- 继续围绕同一 9 条 fixture 或同一 v2 cross-object 样本反复加长自然语言 prompt
+- 用 repaired 全通过替代 raw 模型能力、训练样本准入或模型晋级判断
+- 在没有新实验假设时要求用户延长 `local_transformers` timeout 或重跑同一样本
+- 继续扩大 0.5B / 1.5B 细节补丁来证明本地小模型路线可行
+
+后续 M4 实验必须先写清楚它要回答的路线决策问题，并满足至少一类条件：
+
+- 验证 constrained decoding、JSON schema guided decoding 或硬字段外部注入是否能降低 raw 硬字段漂移
+- 对比 `minimind-v`、`3B` 或 `4B` 候选，判断当前失败是否来自模型容量 / 架构，而不是 prompt 表达
+- 补真实 reviewer 复核，把 repaired paths、citation 语义和训练 seed 质量从机器通过推进到人工可接受
+- 判断某类复杂任务是否应继续交给规则 / 工具层、response builder 或后处理，而不是压给 `RadishMind-Core` raw 生成
+- 形成可写入 `radishmind-core-offline-eval-run` 的真实观察记录、成本指标和晋级 / 暂缓结论
+
+除非满足上述条件，新的本地模型复跑只作为人工调试，不应进入项目主线或周志的主要完成项。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
