@@ -637,13 +637,61 @@
       "offline_eval_promotion_status": "no_promotion_planned"
     },
     "route_decision_signal": {
-      "status": "fixed_guardrail_requires_local_rerun_before_expanding_sample_surface",
-      "summary": "The local guardrail rerun kept all machine metrics green but showed that the first natural-language guardrail was too narrow for real model wording. The fixed guardrail now blocks the observed legal/regulation variants and avoids scaffold wording that says `合法 ghost completion`, but this fixed version still needs the same local v2 rerun before sample-surface expansion."
+      "status": "fixed_guardrail_local_verified",
+      "summary": "The local guardrail rerun kept all machine metrics green but showed that the first natural-language guardrail was too narrow for real model wording. The fixed guardrail now blocks the observed legal/regulation variants, avoids scaffold wording that says `合法 ghost completion`, and has been verified on the same local v2 holdout rerun before sample-surface expansion."
+    }
+  },
+  "task_scoped_natural_language_guardrail_local_v2_fixed_2026_05_04": {
+    "status": "machine_and_target_human_review_passed",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` rerun with the fixed task-scoped natural-language guardrail.",
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300-run.json",
+      "docs_source_conflict_response": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/responses/radish-answer-docs-question-docs-faq-forum-conflict-001.candidate-response.json",
+      "ghost_vapor_response": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/responses/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.candidate-response.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 6,
+      "builder_output_count": 6,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 6,
+      "total_generation_seconds": 894.117,
+      "avg_generation_seconds": 149.019,
+      "total_input_tokens": 15846,
+      "total_output_tokens": 3277,
+      "avg_output_tokens": 546.167
+    },
+    "offline_eval_summary": {
+      "promotion_status": "no_promotion_planned",
+      "blocking_metrics": {
+        "schema_validity_rate": 1.0,
+        "citation_alignment_rate": 1.0,
+        "risk_confirmation_preservation_rate": 1.0,
+        "high_risk_action_confirmation_rate": 1.0,
+        "advisory_action_boundary_rate": 1.0,
+        "retrieval_source_contract_rate": 1.0
+      }
+    },
+    "target_response_review": {
+      "docs_source_conflict_placeholder_removed": true,
+      "ghost_vapor_legal_regulation_mistranslation_removed": true,
+      "notes": [
+        "`docs-faq-forum-conflict` answer now falls back to task-aware docs/FAQ/forum source precedence text instead of `给出可展示给用户的回答。`.",
+        "`ghost flash vapor` now uses local candidate-set and preview wording, with no `法律`、`法规`、`合法` or `合规` mistranslation terms in the target response."
+      ]
+    },
+    "route_decision_signal": {
+      "status": "task_scoped_builder_tooling_track_ready_for_broader_review",
+      "summary": "The fixed guardrail preserves the task-scoped builder's full machine pass while closing the two targeted natural-language review gaps on the same local v2 holdout. This remains tooling-route evidence, not raw model promotion."
     }
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_tooling_track_machine_passed_but_fixed_guardrail_needs_local_rerun",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除；但首轮自然语言 guardrail 真实复跑仍残留通用占位 answer 与 ghost legal/法律/法规误译，当前已补强拒绝词表与 ghost scaffold fallback，并通过 deterministic smoke。",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；应让用户在同一 v2 非重叠 holdout 上重跑修正后的 `--build-task-scoped-response` 本地轨，读取 summary 与 response 样本，确认机器指标仍通过，并确认通用占位 answer 与 ghost legal/法律/法规误译已被任务感知 fallback 替代。"
+    "status": "task_scoped_builder_tooling_track_ready_for_broader_review",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除；修正后的自然语言 guardrail 已在同一 v2 本地复跑中保持机器指标全绿，并确认通用占位 answer 与 ghost legal/法律/法规误译已被任务感知 fallback 替代。",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；应在扩大 task-scoped builder 样本面前，先设计更系统的自然语言 review / audit 口径，覆盖语义正确性、引用解释质量和 fallback 使用比例。"
   }
 }

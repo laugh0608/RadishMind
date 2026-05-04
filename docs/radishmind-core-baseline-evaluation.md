@@ -414,6 +414,8 @@ repaired 观测结论：
 
 用户随后重跑同一 v2 非重叠 holdout 的真实本地 `--build-task-scoped-response` 轨与 offline eval。机器指标仍通过：candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`task_validation_attempted=6`、`builder_output_count=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、`json_extracted_count=6`、总生成耗时约 `779.401s`、平均 `129.9s`；offline eval 三组任务所有 blocking metrics 均为 `1.0`，整体仍是 `promotion_status=no_promotion_planned`。但人工复核目标未达成：`docs-faq-forum-conflict` 的 answer text 仍残留 `给出可展示给用户的回答。`，`ghost flash vapor` 仍残留 `法律候选完成体`、`合法 ghost completion` 与 `法规要求` 等误译。根因是首轮 guardrail 词表和回归样例过窄，且 ghost scaffold fallback 自身使用了“合法 ghost completion”措辞。当前已补强为真实失败面回归：拒绝 `法律候选完成体`、`符合法规要求`、`生成合法 ghost completion 候选` 等变体，并将 ghost scaffold fallback 改为不含法律/合法语义的候选补全描述；deterministic guardrail smoke 和 offline eval 仍通过。下一步仍需用户再跑修正后的真实本地轨，不能把本轮自然语言复核视为通过。
 
+用户继续完成修正后同一 v2 非重叠 holdout 的真实本地复跑。该轨机器指标继续通过：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`task_validation_attempted=6`、`builder_output_count=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、`json_extracted_count=6`、总生成耗时约 `894.117s`、平均 `149.019s`；offline eval 三组任务所有 blocking metrics 仍为 `1.0`，整体 `promotion_status=no_promotion_planned`。目标 response 抽查也通过：`docs-faq-forum-conflict` 的 answer 已替换为 docs / FAQ / forum source precedence 的任务感知文本，不再出现通用占位句；`ghost flash vapor` 使用本地候选集与预览描述，不再出现 `法律`、`法规`、`合法` 或 `合规` 误译。至此，task-scoped builder 在 v2 非重叠 holdout 上同时具备机器通过与两类目标自然语言 guardrail 验证；该结论仍是 tooling 分工路线证据，不是 raw 模型晋级证据。下一步应在扩大样本面前先固定自然语言 review / audit 口径，覆盖语义正确性、引用解释质量和 fallback 使用比例。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
