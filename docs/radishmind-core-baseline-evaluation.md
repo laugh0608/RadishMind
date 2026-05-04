@@ -388,6 +388,10 @@ repaired 观测结论：
 
 当前已先落成硬字段外部注入的最小 candidate wrapper 变体：`--inject-hard-fields`。它只写回 prompt document 中 `hard_field_freeze.fields` 明确声明的 JSON path/value，并在 summary 中记录 `postprocess_policy.inject_hard_fields`、`injected_output_count` 与 `injected_path_counts`；它不会像 `--repair-hard-fields` 那样重建完整 response scaffold，因此可以作为 raw 与 repaired 之间的第三轨对照。下一步应优先让用户在同一 v2 非重叠 holdout 上运行该第三轨，再判断“只注入稳定硬字段”是否足以改善 raw 阻塞指标。
 
+用户随后完成 `--inject-hard-fields` 第三轨真实本地运行和 offline eval。旧 wrapper 下第三轨仍为 `blocked`：candidate summary 为 `schema_valid_rate=0.8333333333333334`、`task_valid_rate=1.0`、`task_validation_attempted=5`、`timeout_count=0`，offline eval 中 `suggest_ghost_completion` 与 `answer_docs_question` 两组已全量通过，但 `suggest_flowsheet_edits` 仍因 `efficiency-range` 样本 schema-invalid 被阻塞。根因不是新增 action planning 失败，而是 `--inject-hard-fields` 只注入了 `$.issues[0].code`，未补齐 CopilotResponse schema 要求的 issue `message / severity`，导致注入后的对象不满足 schema。
+
+当前已将第三轨 wrapper 修正为 schema-minimum completion：只对被 hard-field injection 触碰到的 `issues[*]` 与 `proposed_actions[*]` 补齐 schema 必需字段，仍不重建完整 `answers / issues / proposed_actions / citations` scaffold，也不会覆盖模型明确输出的合法布尔值。该修正已通过 `scripts/check-radishmind-core-candidate-hard-field-injection.py`、v2 dry-run candidate wrapper 与 offline eval 最小验证。下一步需要在同一 v2 非重叠 holdout 上重新运行 `--inject-hard-fields`，刷新第三轨真实指标；若修正后 `suggest_flowsheet_edits` 也通过，则路线信号将更明确地偏向 response builder / tooling track。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

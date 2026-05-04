@@ -1494,6 +1494,59 @@ def set_json_path_value(document: dict[str, Any], path: str, value: Any) -> bool
     return False
 
 
+def ensure_injected_schema_minimums(
+    document: dict[str, Any],
+    *,
+    scaffold: dict[str, Any],
+    injected_paths: list[str],
+) -> list[str]:
+    completed_paths: list[str] = []
+    issue_indices: set[int] = set()
+    action_indices: set[int] = set()
+    for path in injected_paths:
+        segments = split_json_path(path)
+        if len(segments) >= 2 and segments[0] == "issues" and isinstance(segments[1], int):
+            issue_indices.add(segments[1])
+        if len(segments) >= 2 and segments[0] == "proposed_actions" and isinstance(segments[1], int):
+            action_indices.add(segments[1])
+
+    issues = document.get("issues")
+    scaffold_issues = scaffold.get("issues")
+    if isinstance(issues, list) and isinstance(scaffold_issues, list):
+        for issue_index in sorted(issue_indices):
+            if issue_index >= len(issues) or issue_index >= len(scaffold_issues):
+                continue
+            issue = issues[issue_index]
+            scaffold_issue = scaffold_issues[issue_index]
+            if not isinstance(issue, dict) or not isinstance(scaffold_issue, dict):
+                continue
+            for field in ("message", "severity"):
+                if not issue.get(field) and scaffold_issue.get(field):
+                    issue[field] = copy.deepcopy(scaffold_issue[field])
+                    completed_paths.append(f"$.issues[{issue_index}].{field}")
+
+    actions = document.get("proposed_actions")
+    scaffold_actions = scaffold.get("proposed_actions")
+    if isinstance(actions, list) and isinstance(scaffold_actions, list):
+        for action_index in sorted(action_indices):
+            if action_index >= len(actions) or action_index >= len(scaffold_actions):
+                continue
+            action = actions[action_index]
+            scaffold_action = scaffold_actions[action_index]
+            if not isinstance(action, dict) or not isinstance(scaffold_action, dict):
+                continue
+            for field in ("title", "rationale", "risk_level", "requires_confirmation"):
+                field_is_missing = (
+                    field not in action
+                    or (field == "requires_confirmation" and not isinstance(action.get(field), bool))
+                    or (field != "requires_confirmation" and not action.get(field))
+                )
+                if field_is_missing and scaffold_action.get(field) is not None:
+                    action[field] = copy.deepcopy(scaffold_action[field])
+                    completed_paths.append(f"$.proposed_actions[{action_index}].{field}")
+    return completed_paths
+
+
 def inject_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     injected = copy.deepcopy(response)
     scaffold = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
@@ -1507,6 +1560,7 @@ def inject_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, 
             continue
         if set_json_path_value(injected, path, field.get("value")):
             injected_paths.append(path)
+    injected_paths.extend(ensure_injected_schema_minimums(injected, scaffold=scaffold, injected_paths=injected_paths))
     return injected, list(dict.fromkeys(injected_paths))
 
 

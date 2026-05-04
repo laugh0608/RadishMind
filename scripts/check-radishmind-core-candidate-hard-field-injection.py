@@ -118,6 +118,14 @@ def main() -> int:
     require(injected_efficiency["risk_level"] == "medium", "efficiency risk_level must be injected from freeze")
     require(injected_efficiency["requires_confirmation"] is True, "efficiency confirmation must be injected from freeze")
     require(
+        injected_efficiency["issues"][0]["message"],
+        "efficiency issue injection must preserve schema-required issue message",
+    )
+    require(
+        injected_efficiency["issues"][0]["severity"],
+        "efficiency issue injection must preserve schema-required issue severity",
+    )
+    require(
         injected_efficiency["proposed_actions"][0]["patch"]
         == {
             "parameter_updates": {
@@ -134,6 +142,9 @@ def main() -> int:
         injected_efficiency["proposed_actions"][0]["target"] == {"type": "unit", "id": "pump-3"},
         "efficiency target must be injected from freeze",
     )
+    require("$.issues[0].code" in efficiency_paths, "injection must preserve explicit issue code path")
+    require("$.issues[0].message" in efficiency_paths, "injection must complete schema-required issue message")
+    require("$.issues[0].severity" in efficiency_paths, "injection must complete schema-required issue severity")
     require("$.answers" not in efficiency_paths, "injection must not synthesize full answer scaffold")
 
     print("radishmind core candidate hard-field injection check passed.")

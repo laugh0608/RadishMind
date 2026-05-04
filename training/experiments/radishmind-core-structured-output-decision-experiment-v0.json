@@ -252,9 +252,53 @@
       "next_variant": "hard_field_external_injection"
     }
   },
+  "hard_field_injection_observation_2026_05_04": {
+    "status": "completed_with_wrapper_fix_required",
+    "model": "Qwen2.5-1.5B-Instruct",
+    "sample_set": "holdout6-v2-non-overlap",
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 0.8333333333333334,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 5,
+      "injected_output_count": 4,
+      "timeout_count": 0,
+      "blocked_task": "radishflow/suggest_flowsheet_edits"
+    },
+    "offline_eval_summary": {
+      "promotion_status": "blocked",
+      "passed_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ]
+    },
+    "root_cause": "The old injection wrapper wrote `$.issues[0].code` without completing the CopilotResponse schema-required `message` and `severity` fields, creating a schema-invalid issue object in the efficiency-range sample.",
+    "wrapper_fix": {
+      "status": "implemented",
+      "summary": "Injection now performs schema-minimum completion only for issue/action objects touched by explicit hard-field injection paths. It does not rebuild full answers, issues, proposed_actions, or citations scaffold, and it does not overwrite an explicitly generated valid boolean value.",
+      "checks": [
+        "python3 scripts/check-radishmind-core-candidate-hard-field-injection.py",
+        "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-hard-field-injection-candidate-run --summary-output tmp/check-v2-hard-field-injection-candidate-summary.json --inject-hard-fields --validate-task --allow-invalid-output",
+        "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/check-v2-hard-field-injection-candidate-summary.json --candidate-output-dir tmp/check-v2-hard-field-injection-candidate-run --output tmp/check-v2-hard-field-injection-offline-eval-run.json --check-output tmp/check-v2-hard-field-injection-offline-eval-run.json"
+      ]
+    },
+    "next_step": "Rerun the same v2 non-overlap holdout with the fixed `--inject-hard-fields` wrapper to refresh the true third-track metrics."
+  },
   "current_conclusion": {
-    "status": "first_raw_repaired_v2_observation_recorded",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；这更像结构化输出约束和 response builder 分工问题，而不是应立即扩模型尺寸。",
-    "next_step": "优先在同一 v2 非重叠 holdout 上运行 `--inject-hard-fields` 第三轨；若第三轨改善有限，再实现 constrained/guided decoding 或进入 `minimind-v` / `3B` / `4B` 对照。"
+    "status": "hard_field_injection_wrapper_fixed_after_first_real_run",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；第三轨旧 wrapper 已把阻塞收窄到 schema-minimum completion 问题。这更支持先完善结构化输出约束和 response builder 分工，而不是应立即扩模型尺寸。",
+    "next_step": "优先在同一 v2 非重叠 holdout 上重跑修正后的 `--inject-hard-fields` 第三轨；若修正后仍改善有限，再实现 constrained/guided decoding 或进入 `minimind-v` / `3B` / `4B` 对照。"
   }
 }
