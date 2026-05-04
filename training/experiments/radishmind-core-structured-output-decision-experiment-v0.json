@@ -689,9 +689,40 @@
       "summary": "The fixed guardrail preserves the task-scoped builder's full machine pass while closing the two targeted natural-language review gaps on the same local v2 holdout. This remains tooling-route evidence, not raw model promotion."
     }
   },
+  "task_scoped_natural_language_audit_gate_2026_05_04": {
+    "status": "repository_gate_added",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Deterministic audit for task-scoped builder natural-language quality; no local model is run and generated candidate outputs remain temporary.",
+    "implementation": {
+      "script": "scripts/audit-radishmind-core-task-scoped-natural-language.py",
+      "committed_summary": "scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json",
+      "check_repo_integration": "scripts/check-repo.py regenerates a golden_fixture `--build-task-scoped-response` v2 candidate run, audits it, and compares the audit summary to the committed fixture.",
+      "required_candidate_track": "--build-task-scoped-response"
+    },
+    "audit_policy": [
+      "Fail on generic natural-language placeholders in summary, answer text, issue message, action title, or action rationale.",
+      "Fail on `suggest_ghost_completion` law/regulation mistranslation terms such as `法律`、`法规`、`合法` or `合规`.",
+      "Fail when the docs source-conflict sample loses docs / FAQ / forum source-context terms.",
+      "Track merged versus fallback natural-language field counts so fallback usage remains visible before broader sample expansion."
+    ],
+    "fixture_audit_summary": {
+      "status": "pass",
+      "sample_count": 6,
+      "violation_count": 0,
+      "warning_count": 0,
+      "natural_field_count": 32,
+      "merged_natural_field_count": 30,
+      "fallback_natural_field_count": 2,
+      "fallback_natural_field_rate": 0.0625
+    },
+    "route_decision_signal": {
+      "status": "natural_language_quality_gate_before_broader_review",
+      "summary": "The next expansion of the task-scoped builder now has a repository-level natural-language audit gate for the two observed target risks plus fallback visibility. This gate is still deterministic tooling validation, not raw model capability evidence."
+    }
+  },
   "current_conclusion": {
-    "status": "task_scoped_builder_tooling_track_ready_for_broader_review",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除；修正后的自然语言 guardrail 已在同一 v2 本地复跑中保持机器指标全绿，并确认通用占位 answer 与 ghost legal/法律/法规误译已被任务感知 fallback 替代。",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；应在扩大 task-scoped builder 样本面前，先设计更系统的自然语言 review / audit 口径，覆盖语义正确性、引用解释质量和 fallback 使用比例。"
+    "status": "task_scoped_builder_tooling_track_ready_for_broader_review_with_audit_gate",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除；修正后的自然语言 guardrail 已在同一 v2 本地复跑中保持机器指标全绿，并确认通用占位 answer 与 ghost legal/法律/法规误译已被任务感知 fallback 替代。当前已进一步把自然语言 review 口径落为仓库级 deterministic audit gate，跟踪 fallback 使用比例并阻塞两类已观测坏文本回归。",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；可以在保留自然语言 audit gate 的前提下扩大 task-scoped builder 样本面，并继续补充引用解释质量与事实充分性的 reviewer 口径。"
   }
 }

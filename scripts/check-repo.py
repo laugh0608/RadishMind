@@ -190,6 +190,44 @@ def check_core_candidate_probe(
         )
 
 
+def check_core_task_scoped_natural_language_audit() -> None:
+    with tempfile.TemporaryDirectory(prefix="check-repo-core-task-scoped-nl-audit-") as temp_dir:
+        output_dir = Path(temp_dir) / "candidate-run"
+        summary_path = Path(temp_dir) / "candidate-summary.json"
+        audit_path = Path(temp_dir) / "task-scoped-natural-language-audit.json"
+        run_python_script(
+            "run-radishmind-core-candidate.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+                "--output-dir",
+                str(output_dir),
+                "--summary-output",
+                str(summary_path),
+                "--allow-invalid-output",
+                "--validate-task",
+                "--build-task-scoped-response",
+                "--sample-timeout-seconds",
+                "300",
+            ],
+        )
+        run_python_script(
+            "audit-radishmind-core-task-scoped-natural-language.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+                "--candidate-summary",
+                str(summary_path),
+                "--candidate-output-dir",
+                str(output_dir),
+                "--output",
+                str(audit_path),
+                "--check-summary",
+                "scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json",
+            ],
+        )
+
+
 def check_required_files() -> None:
     for relative_path in REQUIRED_FILES:
         if not (REPO_ROOT / relative_path).is_file():
@@ -1100,6 +1138,7 @@ def main() -> int:
         expected_summary="scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json",
         eval_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
     )
+    check_core_task_scoped_natural_language_audit()
     check_core_candidate_probe(
         temp_prefix="check-repo-core-full-holdout-",
         output_dir_name="full-holdout-candidate-run",

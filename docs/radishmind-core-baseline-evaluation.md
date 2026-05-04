@@ -416,6 +416,8 @@ repaired 观测结论：
 
 用户继续完成修正后同一 v2 非重叠 holdout 的真实本地复跑。该轨机器指标继续通过：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`task_validation_attempted=6`、`builder_output_count=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、`json_extracted_count=6`、总生成耗时约 `894.117s`、平均 `149.019s`；offline eval 三组任务所有 blocking metrics 仍为 `1.0`，整体 `promotion_status=no_promotion_planned`。目标 response 抽查也通过：`docs-faq-forum-conflict` 的 answer 已替换为 docs / FAQ / forum source precedence 的任务感知文本，不再出现通用占位句；`ghost flash vapor` 使用本地候选集与预览描述，不再出现 `法律`、`法规`、`合法` 或 `合规` 误译。至此，task-scoped builder 在 v2 非重叠 holdout 上同时具备机器通过与两类目标自然语言 guardrail 验证；该结论仍是 tooling 分工路线证据，不是 raw 模型晋级证据。下一步应在扩大样本面前先固定自然语言 review / audit 口径，覆盖语义正确性、引用解释质量和 fallback 使用比例。
 
+当前已把该自然语言 review 口径落为仓库级 deterministic audit gate：新增 `scripts/audit-radishmind-core-task-scoped-natural-language.py` 与 `scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json`，并由 `scripts/check-repo.py` 重新生成 v2 `golden_fixture --build-task-scoped-response` 临时 candidate 输出后执行审计。该审计不运行模型、不下载权重，只接受 task-scoped builder summary；它会阻塞通用占位自然语言、ghost completion 的法律/法规/合法/合规误译，以及 docs source-conflict answer 中丢失 docs / FAQ / forum 来源语境的问题，同时记录 merged 与 fallback 自然语言字段比例。当前 fixture 审计结果为 `sample_count=6`、`violation_count=0`、`warning_count=0`、`natural_field_count=32`、`merged_natural_field_count=30`、`fallback_natural_field_count=2`、`fallback_natural_field_rate=0.0625`。这使下一步扩大 task-scoped builder 样本面前已有可复跑的自然语言质量门禁，但仍不能替代人工 reviewer 对引用解释质量、事实充分性和业务语义的判断。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
