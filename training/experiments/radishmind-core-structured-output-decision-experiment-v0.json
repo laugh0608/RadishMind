@@ -525,9 +525,71 @@
       "summary": "The deterministic smoke confirms that the composable task-scoped builder can cover the two remaining v2 blocker families in static form: ghost ambiguous action patch shape and docs evidence-gap status/risk. The next evidence still requires the user to run the local `Qwen2.5-1.5B-Instruct` task-scoped builder track because the smoke does not measure latency, timeout, or model-authored natural-language quality."
     }
   },
+  "task_scoped_response_builder_local_v2_2026_05_04": {
+    "status": "machine_metrics_passed_with_human_review_required",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run with `--build-task-scoped-response`; builder applies to all known v2 eval tasks and preserves only selected natural-language fields plus confidence.",
+    "command_keys": [
+      "task_scoped_response_builder_v2",
+      "offline_eval_v2_task_scoped_response_builder"
+    ],
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 6,
+      "builder_output_count": 6,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 6,
+      "total_generation_seconds": 779.401,
+      "avg_generation_seconds": 129.9,
+      "total_input_tokens": 15582,
+      "total_output_tokens": 3158,
+      "avg_output_tokens": 526.333,
+      "task_valid_counts_by_task": {
+        "radishflow/suggest_flowsheet_edits": "2/2",
+        "radishflow/suggest_ghost_completion": "2/2",
+        "radish/answer_docs_question": "2/2"
+      }
+    },
+    "offline_eval_summary": {
+      "promotion_status": "no_promotion_planned",
+      "passed_task_groups": [
+        "radishflow/suggest_flowsheet_edits",
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocking_metrics": {
+        "schema_validity_rate": 1.0,
+        "citation_alignment_rate": 1.0,
+        "risk_confirmation_preservation_rate": 1.0,
+        "high_risk_action_confirmation_rate": 1.0,
+        "advisory_action_boundary_rate": 1.0,
+        "retrieval_source_contract_rate": 1.0
+      }
+    },
+    "blocking_observations": [
+      "The previous `--build-suggest-edits-response` remaining blockers disappeared under the task-scoped builder: ambiguous ghost completion recovered `patch.ghost_kind` / `patch.candidate_ref`, and docs evidence-gap recovered `status=partial` plus `risk_level=medium`.",
+      "The real local v2 run wrote 6 schema-valid candidate responses, attempted task validation on all 6, and produced 6/6 task-valid outputs.",
+      "No sample timed out under the 300 second policy; the cross-object suggest edits sample generated extractable JSON in about `265.396s`."
+    ],
+    "human_review_observations": [
+      "Machine metrics passing does not mean the generated natural-language fields are production-ready: `radish-answer-docs-question-docs-faq-forum-conflict-001` still has a generic answer placeholder despite a useful summary.",
+      "`radishflow-suggest-ghost-completion-flash-vapor-outlet-001` mistranslates the English `legal_candidate_completions` cue as law/regulation language in summary/rationale.",
+      "The task-scoped builder should therefore be treated as strong tooling-route evidence, while natural-language merge/fallback quality needs its own review or guardrail before any production contract."
+    ],
+    "route_decision_signal": {
+      "status": "favor_task_scoped_builder_tooling_track_before_model_size_comparison",
+      "summary": "The same v2 holdout changed from raw/injected/suggest-only blocked surfaces to full machine pass when stable task structure was moved into a task-scoped builder. This strongly supports the response builder / tooling split as the next M4 route. It still does not promote raw model capability and still requires human review of preserved natural-language quality."
+    }
+  },
   "current_conclusion": {
-    "status": "task_scoped_builder_ready_for_local_v2_probe",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过，但 `suggest_flowsheet_edits` 仍 blocked。真实本地 `--build-suggest-edits-response` 轨已确认 `suggest_flowsheet_edits` 2/2 task-valid 且 offline eval 全指标通过，但 overall 阻塞面转移到 ghost completion action patch shape 和 docs QA evidence-gap status/risk。当前已实现可组合的 `--build-task-scoped-response` 实验轨，并用 v2 golden smoke 验证 6/6 schema/task-valid、offline eval `no_promotion_planned`。",
-    "next_step": "下一步应由用户在同一 v2 非重叠 holdout 上运行真实本地 `--build-task-scoped-response` 轨和 offline eval；若该组合轨通过，则路线收口到 task-scoped response builder / tooling 分工；若仍 blocked，再按剩余失败面决定 constrained/guided decoding 或 `minimind-v` / `3B` / `4B` 对照。"
+    "status": "task_scoped_builder_machine_passed_human_review_required",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。当前真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除。",
+    "next_step": "下一步不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；应把路线收口到 task-scoped builder/tooling 方案，同时补一轮自然语言 merge/fallback 人工复核与 guardrail，处理 docs QA 通用占位 answer 和 ghost completion legal/法律误译这类机器指标未覆盖的问题。"
   }
 }
