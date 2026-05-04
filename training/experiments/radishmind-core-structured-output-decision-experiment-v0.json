@@ -414,9 +414,65 @@
       "summary": "The deterministic smoke confirms the candidate wrapper can isolate `suggest_flowsheet_edits` structure into a builder and keep ghost/docs responses unchanged. The next evidence still requires the user to run the local `Qwen2.5-1.5B-Instruct` builder track because the smoke uses golden fixtures and does not measure model latency, timeout, or raw intent quality."
     }
   },
+  "suggest_edits_response_builder_local_v2_2026_05_04": {
+    "status": "suggest_edits_passed_but_overall_blocked",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run with `--build-suggest-edits-response`; builder applies only to `radishflow/suggest_flowsheet_edits`, while ghost completion and docs QA remain raw local_transformers outputs.",
+    "command_keys": [
+      "suggest_edits_response_builder_v2",
+      "offline_eval_v2_suggest_edits_response_builder"
+    ],
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.6666666666666666,
+      "task_validation_attempted": 6,
+      "builder_output_count": 2,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "total_generation_seconds": 844.708,
+      "avg_generation_seconds": 140.785,
+      "task_valid_counts_by_task": {
+        "radishflow/suggest_flowsheet_edits": "2/2",
+        "radishflow/suggest_ghost_completion": "1/2",
+        "radish/answer_docs_question": "1/2"
+      }
+    },
+    "offline_eval_summary": {
+      "promotion_status": "blocked",
+      "passed_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocking_metrics": {
+        "radishflow/suggest_ghost_completion": {
+          "advisory_action_boundary_rate": 0.5
+        },
+        "radish/answer_docs_question": {
+          "risk_confirmation_preservation_rate": 0.5
+        }
+      }
+    },
+    "blocking_observations": [
+      "`suggest_flowsheet_edits` changed from the injected track's remaining blocked group to fully passing: both v2 suggest samples are schema-valid/task-valid and all offline-eval blocking metrics pass.",
+      "The previous complex cross-object suggest edits timeout did not recur under the builder track: `timeout_count=0`, with the cross-object sample generating extractable JSON in about `272.763s`.",
+      "The overall v2 run is still `blocked` because `radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001` missed required `patch.ghost_kind` and `patch.candidate_ref` fields, and `radish-answer-docs-question-evidence-gap-001` drifted on expected `status` and `risk_level`.",
+      "This is tooling-separation evidence for `suggest_flowsheet_edits`, not raw model promotion evidence."
+    ],
+    "route_decision_signal": {
+      "status": "response_builder_confirmed_for_suggest_edits_but_not_sufficient_overall",
+      "summary": "The local builder run confirms that `suggest_flowsheet_edits` is a strong fit for the model-intent plus builder-structured-response split: the builder removes the injected track's answer/citation and cross-object timeout blockers for this task. The remaining blockers are now outside suggest edits, so the next route decision should focus on a composable task-scoped structured-output policy for ghost completion action patches and docs QA status/risk boundaries, not on expanding the suggest edits builder or treating this as raw promotion."
+    }
+  },
   "current_conclusion": {
-    "status": "suggest_edits_response_builder_ready_for_local_probe",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过，但 overall offline eval 仍 blocked。当前已新增 `suggest_flowsheet_edits` response builder 变体，并用 deterministic smoke 确认它能在 v2 的两条 suggest edits 上组装 schema/task-valid response，同时不改 ghost/docs 输出。",
-    "next_step": "下一步应让用户在同一 v2 非重叠 holdout 上运行 `--build-suggest-edits-response` 本地模型轨，观察 timeout_count、builder_output_count、task_valid_rate 和 offline eval 是否从 hard-field injection 的 blocked 转为通过；该结果仍不得视为 raw 模型晋级。"
+    "status": "suggest_edits_builder_confirmed_but_overall_blocked_by_other_tasks",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过，但 `suggest_flowsheet_edits` 仍 blocked。当前真实本地 `--build-suggest-edits-response` 轨已确认 `suggest_flowsheet_edits` 2/2 task-valid 且 offline eval 全指标通过，cross-object timeout 也未复现；但 overall offline eval 仍 blocked，阻塞面转移到 ghost completion action patch shape 和 docs QA evidence-gap 的 status/risk 边界。",
+    "next_step": "下一步不应继续扩 `suggest_flowsheet_edits` builder 或直接切模型尺寸，而应推进可组合的 task-scoped 结构化输出策略：保留 suggest edits builder，同时补齐 ghost completion 的 action patch 组装边界和 docs QA 的 evidence-gap status/risk 约束，再跑同一 v2 非重叠 holdout 对照。"
   }
 }
