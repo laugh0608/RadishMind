@@ -396,6 +396,10 @@ repaired 观测结论：
 
 同时据此补强 wrapper 边界：schema-minimum completion 现在按 explicit `hard_field_freeze` 覆盖的 issue/action path 判定，而不只依赖本轮实际发生值变化的 injected path。这样即使模型已经输出了正确的 frozen `issue.code`，但漏掉 schema 必需的 `message / severity`，`--inject-hard-fields` 也会补齐被 freeze 触达对象的最小合法字段。该补强不改变第三轨边界：仍不重建完整 answer、citation 或 action scaffold，也不把第三轨当作 raw 能力晋级证据。下一次真实本地复跑应覆盖这项补强后的 wrapper。
 
+补强后用户重新执行同一 v2 非重叠 holdout 第三轨与 offline eval。两条命令均正常完成，但第三轨 overall 仍为 `blocked`：candidate summary 为 `schema_valid_rate=0.8333333333333334`、`task_valid_rate=0.8`、`task_validation_attempted=5`、`timeout_count=1`、`hit_max_new_tokens_count=0`、总生成耗时约 `873.147s`、平均 `145.525s`。`suggest_ghost_completion` 与 `answer_docs_question` 两组已通过所有 blocking offline-eval 指标；剩余阻塞集中在 `suggest_flowsheet_edits`。
+
+本轮阻塞面已经不同于旧 wrapper schema-minimum bug：`cross-object-mixed-risk-reconnect-plus-pump-parameter` 样本在 `300s` 前未抽取到 JSON，injection 没有可约束对象；`efficiency-range` 样本经 injection 后已补齐 `issues[0].message / severity` 并 schema-valid，但仍因缺少必需 answer 与 citation 而 task-invalid。因此 `--inject-hard-fields` 被确认“有用但不足”：它能治理顶层硬字段、部分 action patch 和 issue schema minimum，不能单独恢复非冻结 answer/citation，也不能解决复杂 cross-object prompt 的本地 CPU timeout 成本边界。下一步应优先推进 constrained/guided decoding 或 response builder / tool 分工，而不是继续把 hard-field injection 单独扩成完整 scaffold repair。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

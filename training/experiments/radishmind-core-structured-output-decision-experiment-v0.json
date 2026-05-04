@@ -304,9 +304,54 @@
     },
     "next_step": "Rerun the same v2 non-overlap holdout with the strengthened `--inject-hard-fields` wrapper to refresh the true third-track metrics."
   },
+  "hard_field_injection_rerun_observation_2026_05_04": {
+    "status": "completed_blocked",
+    "model": "Qwen2.5-1.5B-Instruct",
+    "sample_set": "holdout6-v2-non-overlap",
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 0.8333333333333334,
+      "task_valid_rate": 0.8,
+      "task_validation_attempted": 5,
+      "injected_output_count": 3,
+      "timeout_count": 1,
+      "hit_max_new_tokens_count": 0,
+      "total_generation_seconds": 873.147,
+      "avg_generation_seconds": 145.525,
+      "blocked_task": "radishflow/suggest_flowsheet_edits"
+    },
+    "offline_eval_summary": {
+      "promotion_status": "blocked",
+      "passed_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ]
+    },
+    "blocking_observations": [
+      "`radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001` timed out after 300s before JSON extraction, so the injection wrapper had no response object to constrain.",
+      "`radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001` became schema-valid after issue schema minimum completion, but remained task-invalid because it still lacked the required answer and citation.",
+      "`suggest_ghost_completion` and `answer_docs_question` both passed all blocking offline-eval metrics under the injected third track."
+    ],
+    "route_decision_signal": {
+      "status": "hard_field_injection_helpful_but_insufficient_for_suggest_edits",
+      "summary": "The strengthened injection track confirms that explicit hard-field injection can fix top-level/status/risk and issue schema-minimum failures, but it cannot recover missing non-frozen answer/citation content or avoid the complex cross-object prompt timeout. The next decision point should move toward constrained/guided decoding or response-builder/tool separation for suggest edits rather than treating hard-field injection alone as sufficient."
+    }
+  },
   "current_conclusion": {
-    "status": "hard_field_injection_rerun_required_after_strengthened_wrapper_fix",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；第三轨旧 wrapper 已把阻塞收窄到 schema-minimum completion 问题。随后读取到的 injected tmp 产物早于修正提交，不能作为修正后第三轨最终结论；当前 wrapper 已进一步覆盖 frozen value 已正确但 schema-required sibling 缺失的边界。",
-    "next_step": "优先在同一 v2 非重叠 holdout 上重跑强化后的 `--inject-hard-fields` 第三轨；若修正后仍改善有限，再实现 constrained/guided decoding 或进入 `minimind-v` / `3B` / `4B` 对照。"
+    "status": "hard_field_injection_completed_but_blocked",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过，并修正了 issue schema-minimum 问题，但 overall offline eval 仍 blocked：复杂 cross-object suggest edits 样本在 300s timeout 前没有生成 JSON，efficiency-range 样本仍缺非冻结的 answer/citation。",
+    "next_step": "下一步不应继续把 hard-field injection 单独视为足够方案；应优先推进 constrained/guided decoding 或 response builder / tool 分工，特别是 suggest_flowsheet_edits 的 answer/citation 组装与复杂 cross-object 成本边界。"
   }
 }
