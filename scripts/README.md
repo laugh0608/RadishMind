@@ -19,6 +19,7 @@
   - 当前还提供 `check-radishmind-core-candidate-parameter-updates.py`，用于固定 detail-key-only `parameter_updates` scaffold 行为，确保样本只声明 `ordered_parameter_update_detail_keys` 时仍能生成稳定的参数外层顺序和内层 detail key 顺序
   - 当前还提供 `check-radishmind-core-candidate-prompt-policy.py`，用于固定 candidate prompt 的样本级 action 口径，确保 `required_action_kinds` 不会被通用 docs QA “通常不生成 proposed_actions” 文案削弱
   - 当前还提供 `check-radishmind-core-candidate-hard-field-freeze.py`，用于固定 candidate prompt 中由 scaffold 派生的 `hard_field_freeze` 合约，确保 `status / risk_level / requires_confirmation / answers / proposed_actions` 等硬字段以 prompt-time 约束进入 raw 观测
+  - 当前还提供 `check-radishmind-core-candidate-hard-field-injection.py`，用于固定 `--inject-hard-fields` 实验变体：它只写回 `hard_field_freeze.fields` 中明确声明的 path/value，不重建完整 response scaffold，也不替代 `--repair-hard-fields`
   - 当前还提供 `check-radishmind-core-candidate-citation-scaffold.py`，用于固定 docs source-conflict 样本的 citation scaffold / repair 行为，确保缺失的多来源 citation 优先按 golden `docs / faq / forum` 顺序恢复，而不是复制 primary docs citation
   - 当前还提供 `check-radishmind-core-candidate-answer-scaffold.py`，用于固定 `suggest_flowsheet_edits` 缺失 answer 时的 scaffold / repair 行为，确保补回的是任务相关 `edit_rationale`，而不是通用占位回答
   - 当前还提供 `check-radishmind-core-candidate-prompt-budget.py`，用于固定 v2 非重叠 holdout prompt 的静态字符预算；该检查只运行 `golden_fixture` candidate wrapper，不加载模型，当前锁住 cross-object 样本仍是最大 prompt，并约束总消息字符、request JSON、output contract、prompt scaffold、freeze 字段数量和 compact scaffold 最小节省量，避免 scaffold / freeze 继续无审计膨胀

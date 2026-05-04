@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_decision_experiment",
+  "phase": "M4-preparation",
+  "experiment_id": "radishmind-core-structured-output-decision-experiment-v0",
+  "status": "planned",
+  "updated_at": "2026-05-04T00:00:00Z",
+  "decision_question": "当前 raw blocked 的主因，是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足？",
+  "why_now": [
+    "当前 `Qwen2.5-1.5B-Instruct` raw 在 9 条 fixture、planned full holdout 和 v2 非重叠 holdout 上都仍 blocked。",
+    "`--repair-hard-fields` 已证明后处理链路有价值，但不能替代 raw 能力晋级、训练准入或模型扩尺寸判断。",
+    "复杂 cross-object 样本已经暴露 prompt/scaffold 成本边界，继续围绕同一批样本堆 prompt 文本不再是默认主线。"
+  ],
+  "scope": {
+    "in_scope": [
+      "比较 raw baseline、prompt-time hard-field freeze、结构化字段外部注入或 constrained decoding 这类更强输出约束手段。",
+      "继续沿现有 `candidate output -> offline eval` 入口记录 raw / repaired 双轨观察。",
+      "优先覆盖顶层硬字段、docs QA multi-citation/source-context、ghost completion action shape、suggest edits action target/patch ordering 四类已知失败面。"
+    ],
+    "out_of_scope": [
+      "启动训练、蒸馏、量化或下载新权重。",
+      "继续扩新的真实 capture 批次。",
+      "把 repaired pass 当作 raw 晋级证据。"
+    ]
+  },
+  "sample_sets": [
+    {
+      "id": "fixture9-baseline",
+      "manifest": "scripts/checks/fixtures/radishmind-core-candidate-dry-run-manifest.json",
+      "eval_manifest": "scripts/checks/fixtures/radishmind-core-offline-eval-candidate-run-manifest.json",
+      "sample_count": 9,
+      "role": "same-environment baseline"
+    },
+    {
+      "id": "holdout9-planned",
+      "manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+      "eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+      "sample_count": 9,
+      "role": "training-excluded planned holdout"
+    },
+    {
+      "id": "holdout6-v2-non-overlap",
+      "manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+      "eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+      "sample_count": 6,
+      "role": "non-overlapping failure probe"
+    }
+  ],
+  "comparison_variants": [
+    {
+      "variant_id": "raw_baseline",
+      "status": "available",
+      "description": "当前 `local_transformers` raw 基线，不启用 `--repair-hard-fields`。",
+      "expected_signal": "作为所有更强约束实验的真实能力对照。"
+    },
+    {
+      "variant_id": "prompt_time_hard_field_freeze",
+      "status": "available",
+      "description": "使用已落地的 prompt-time `hard_field_freeze` 审计链路，观察 raw 是否更稳定保留冻结字段。",
+      "expected_signal": "判断当前问题是否集中在顶层硬字段服从，而不是任务语义理解。"
+    },
+    {
+      "variant_id": "constrained_or_guided_decoding",
+      "status": "planned",
+      "description": "尝试 JSON schema guided decoding、字段级约束解码或等价结构化输出限制手段。",
+      "expected_signal": "若 raw 指标明显改善，则说明当前主阻塞更偏输出约束，而不是必须先扩模型尺寸。"
+    },
+    {
+      "variant_id": "hard_field_external_injection",
+      "status": "available",
+      "description": "把顶层 `status / risk_level / requires_confirmation` 等稳定字段移出自由生成区，由 wrapper 在生成前后显式注入。",
+      "expected_signal": "若关键阻塞集中消失，则说明可先走工具层/response builder 分工，而不是先训练或升尺寸。"
+    }
+  ],
+  "decision_rules": {
+    "promote_to_model_size_comparison_when": [
+      "更强输出约束后，raw 关键阻塞指标仍无显著改善。",
+      "失败面仍主要集中在复杂 action planning、多 citation 证据选择或跨对象 reasoning，而不是顶层硬字段漂移。"
+    ],
+    "promote_to_tooling_track_when": [
+      "更强输出约束后，顶层硬字段、citation 顺序和 action boundary 明显改善。",
+      "剩余失败面主要是可规则化的字段注入、patch 组装或 response builder 收口问题。"
+    ],
+    "require_manual_review_when": [
+      "机器指标通过但 repaired/canonicalized 输出仍可能把布尔占位误当数值阈值。",
+      "citation 需要区分 docs/faq/forum 或 diagnostics/snapshot 等精确 locator 语义。"
+    ],
+    "do_not_do_by_default": [
+      "不默认继续加长同一批 prompt/scaffold。",
+      "不默认延长同一样本 timeout。",
+      "不默认把 0.5B/1.5B repaired pass 当作训练准入依据。"
+    ]
+  },
+  "evaluation_focus": [
+    {
+      "family": "hard_field_preservation",
+      "paths": [
+        "$.status",
+        "$.risk_level",
+        "$.requires_confirmation"
+      ],
+      "current_observation": "evidence-gap、efficiency-range 等样本中 raw 仍会漂移。"
+    },
+    {
+      "family": "docs_source_context",
+      "paths": [
+        "$.answers[0]",
+        "$.citations[*]"
+      ],
+      "current_observation": "source-conflict 样本已不再主要卡 required action，而是卡 multi-citation/source-context 保留。"
+    },
+    {
+      "family": "ghost_completion_shape",
+      "paths": [
+        "$.proposed_actions[*].kind",
+        "$.proposed_actions[*].patch",
+        "$.proposed_actions[*].preview"
+      ],
+      "current_observation": "固定 trio 与 holdout 上大多可过，但仍要作为结构化约束实验的回归面。"
+    },
+    {
+      "family": "suggest_edits_cross_object",
+      "paths": [
+        "$.proposed_actions[*].target",
+        "$.proposed_actions[*].patch",
+        "$.issues[*]",
+        "$.citations[*]"
+      ],
+      "current_observation": "复杂 cross-object 样本同时暴露成本边界与 action/citation 结构压力。"
+    }
+  ],
+  "execution_policy": {
+    "raw_and_repaired_must_share_timeout": true,
+    "default_timeout_seconds": 240,
+    "probe_timeout_seconds": 300,
+    "allow_invalid_output": true,
+    "validate_task": true,
+    "generated_outputs_must_remain_in_tmp": true,
+    "requires_user_run_for_local_models": true
+  },
+  "artifacts_to_record": [
+    "candidate summary",
+    "offline eval run",
+    "freeze audit summary when applicable",
+    "pair summary or variant comparison summary",
+    "human review note when machine-pass output still has semantic defects"
+  ],
+  "first_recommended_run": {
+    "goal": "先回答硬字段外部约束是否足以改变路线判断，而不是继续扩样本或延长 timeout。",
+    "sample_set": "holdout6-v2-non-overlap",
+    "variant_order": [
+      "raw_baseline",
+      "prompt_time_hard_field_freeze",
+      "hard_field_external_injection",
+      "constrained_or_guided_decoding"
+    ],
+    "expected_exit": "若 `--inject-hard-fields` 与后续 constrained/guided decoding 仍无法明显改善 raw，则转入 `minimind-v` / `3B` / `4B` 对照；若改善明显，则优先推进 response builder / tooling track。"
+  },
+  "local_run_commands": {
+    "raw_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json --allow-invalid-output --validate-task --sample-timeout-seconds 300",
+    "hard_field_injection_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json --allow-invalid-output --validate-task --inject-hard-fields --sample-timeout-seconds 300",
+    "repaired_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json --allow-invalid-output --validate-task --repair-hard-fields --sample-timeout-seconds 300",
+    "offline_eval_v2_raw": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+    "offline_eval_v2_injected": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json",
+    "offline_eval_v2_repaired": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json"
+  },
+  "available_variant_implementation": {
+    "hard_field_external_injection": {
+      "status": "implemented_for_candidate_wrapper",
+      "cli_flag": "--inject-hard-fields",
+      "check": "scripts/check-radishmind-core-candidate-hard-field-injection.py",
+      "summary_policy": "Writes `postprocess_policy.inject_hard_fields=true`, `injected_output_count`, and `injected_path_counts`.",
+      "boundary": "Only writes path/value pairs already present in `hard_field_freeze.fields`; it does not rebuild missing non-frozen answers, issues, citations, actions, or natural-language fields.",
+      "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`."
+    }
+  },
+  "first_run_observation": {
+    "status": "completed",
+    "observed_at": "2026-05-04T00:00:00Z",
+    "model": "Qwen2.5-1.5B-Instruct",
+    "sample_set": "holdout6-v2-non-overlap",
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json"
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.8333333333333334,
+      "task_valid_rate": 0.4,
+      "task_validation_attempted": 5,
+      "candidate_response_files_written": 5,
+      "invalid_candidate_response_files_written": 1,
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 761.086,
+        "avg_generation_seconds": 126.848,
+        "total_input_tokens": 15579,
+        "total_output_tokens": 3173,
+        "avg_output_tokens": 528.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "blocking_observations": [
+        "suggest_flowsheet_edits failed all blocking offline-eval metrics on this two-sample slice.",
+        "cross-object suggest edits leaked a compact scaffold marker into `citations`, producing schema-invalid output.",
+        "efficiency-range suggest edits remained task-invalid because status, answers, issues, citations and target fields were not preserved.",
+        "suggest_ghost_completion passed schema/citation/risk metrics but still missed advisory_action_boundary_rate on one sample.",
+        "answer_docs_question preserved citation and retrieval source metrics but failed risk_confirmation_preservation_rate on the evidence-gap boundary."
+      ]
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 6,
+      "repaired_output_count": 6,
+      "repaired_path_counts": {
+        "$.answers": 1,
+        "$.answers[0]": 2,
+        "$.citations": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 3,
+        "$.risk_level": 1,
+        "$.status": 2
+      },
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 761.213,
+        "avg_generation_seconds": 126.869,
+        "total_input_tokens": 15579,
+        "total_output_tokens": 3173,
+        "avg_output_tokens": 528.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "offline_eval_summary": "All blocking metrics passed across suggest_flowsheet_edits, suggest_ghost_completion and answer_docs_question after explicit `--repair-hard-fields` postprocess."
+    },
+    "route_decision_signal": {
+      "status": "favor_structured_output_tooling_before_model_size_comparison",
+      "summary": "The same model, samples and timeout changed from raw blocked to repaired task-valid 6/6. This supports prioritizing constrained/guided decoding, hard-field external injection, and response builder/tooling separation before treating the failure as a pure model-size problem.",
+      "next_variant": "hard_field_external_injection"
+    }
+  },
+  "current_conclusion": {
+    "status": "first_raw_repaired_v2_observation_recorded",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；这更像结构化输出约束和 response builder 分工问题，而不是应立即扩模型尺寸。",
+    "next_step": "优先在同一 v2 非重叠 holdout 上运行 `--inject-hard-fields` 第三轨；若第三轨改善有限，再实现 constrained/guided decoding 或进入 `minimind-v` / `3B` / `4B` 对照。"
+  }
+}

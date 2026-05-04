@@ -1,6 +1,6 @@
 # RadishMind 训练目录
 
-更新时间：2026-05-01
+更新时间：2026-05-04
 
 ## 目录目标
 
@@ -24,8 +24,9 @@
 - `training/datasets/copilot-training-review-record-v0.json` 是首个 planned 人工复核记录模板，用于后续记录 reviewer、逐维度结果和泄漏判断
 - `training/datasets/copilot-training-holdout-split-v0.json` 是首个 planned offline eval holdout split，当前每条主任务各保留 3 条且不与现有训练 seed manifest 重叠
 - `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json` 是首个本地 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨离线评测观察摘要；它只记录指标、修复路径和 `tmp/` artifact 位置，不提交候选输出本体
+- `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json` 是当前 `M4` 主线的决策型实验骨架，用于固定“结构化输出约束是否足以改变路线判断”这一问题的样本面、对照变体、退出条件和本地复跑命令
 - `scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json` 是当前轻量 holdout 观测入口，从 planned holdout split 中各取 1 条主任务样本；真实本地运行继续使用 raw / repaired 双轨、同一 `300s` timeout、`--allow-invalid-output` 和 `--validate-task`
-- `scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json` 分别固定完整 planned holdout 和 6 条非重叠 holdout probe；当前观测结论是 full holdout repaired fix3 可作为后处理链路证据，但 v2 repaired 仍 blocked，因此训练准入不能只看 repaired pass
+- `scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json` 分别固定完整 planned holdout 和 6 条非重叠 holdout probe；当前观测结论是 full holdout repaired fix3 与 2026-05-04 v2 repaired 轨都可作为后处理链路证据，但 raw 仍 blocked，因此训练准入不能只看 repaired pass
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
 
@@ -85,3 +86,16 @@ python3 scripts/build-copilot-training-samples.py \
 - `training/adapters/`: LoRA / adapter 配置摘要和可复跑命令说明
 
 这些目录不用于提交权重、缓存、下载模型或大规模生成数据。
+
+## 当前实验主线
+
+当前训练/评测侧的主线不是继续扩 `RadishFlow` capture，也不是继续围绕同一批 0.5B / 1.5B 样本堆 prompt 文本，而是先回答一个路线决策问题：
+
+- 当前 raw blocked，主因是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足
+
+为此，当前优先实验入口是 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`。它要求：
+
+- 优先复用现有 `candidate output -> offline eval` 入口
+- 继续保留 raw / repaired 双轨、同 timeout、`tmp/` artifact 禁入仓
+- 先比较 raw baseline、prompt-time hard-field freeze、`--inject-hard-fields` 硬字段外部注入，以及后续 constrained/guided decoding 这类更强输出约束手段
+- 只有当更强约束仍不能显著改善 raw，才把下一步主线推进到 `minimind-v` / `3B` / `4B` 对照

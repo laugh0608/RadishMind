@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-05-02
+更新时间：2026-05-04
 
 ## 文档目的
 
@@ -357,6 +357,36 @@ repaired 观测结论：
 - 形成可写入 `radishmind-core-offline-eval-run` 的真实观察记录、成本指标和晋级 / 暂缓结论
 
 除非满足上述条件，新的本地模型复跑只作为人工调试，不应进入项目主线或周志的主要完成项。
+
+## 今日主线
+
+基于当前阶段判断，今天的主线已经从“继续补观测”收口为“先把决策型实验落成可复跑入口”。当前优先实验记录固定为 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，它明确回答以下问题：
+
+- 当前 raw blocked，主因是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足
+
+该实验当前固定三类输入资产：
+
+- 9 条 fixture baseline
+- 9 条 planned full holdout
+- 6 条 v2 非重叠 holdout probe
+
+当前优先比较的不是更多 prompt 文本，而是以下变体：
+
+- raw baseline
+- prompt-time `hard_field_freeze`
+- constrained / guided decoding
+- 顶层硬字段外部注入
+
+只有当这些更强约束后，raw 仍主要卡在复杂 reasoning 或 action planning，下一步才应进入 `minimind-v`、`3B` 或 `4B` 对照。反过来，如果更强约束已经明显改善 `status / risk_level / requires_confirmation`、citation 顺序或 action boundary，则下一步优先推进 response builder / tool 分工，而不是先扩模型尺寸。
+
+2026-05-04 首轮 v2 非重叠 holdout raw / repaired 双轨已经完成。两轨都使用本地 `Qwen2.5-1.5B-Instruct`、同一 6 条样本、同一 `300s` timeout、`--allow-invalid-output` 与 `--validate-task`；repaired 轨额外启用 `--repair-hard-fields`。随后 offline eval runner 只读取 `tmp/` candidate outputs 生成本地 run record，不重跑模型、不下载权重。
+
+- raw：`schema_valid_rate=0.8333333333333334`、`task_valid_rate=0.4`、`timeout_count=0`，offline eval 决策仍为 `blocked`
+- repaired：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`，但决策仍为 `no_promotion_planned`，因为它是显式后处理工程轨
+
+该结果强化当前路线判断：同样模型、同样样本和同样 timeout 下，raw blocked 到 repaired `6/6` task-valid 的差异更支持先验证 constrained / guided decoding、硬字段外部注入和 response builder / tooling 分工，而不是直接把失败归因到模型容量并进入 `3B/4B` 对照。
+
+当前已先落成硬字段外部注入的最小 candidate wrapper 变体：`--inject-hard-fields`。它只写回 prompt document 中 `hard_field_freeze.fields` 明确声明的 JSON path/value，并在 summary 中记录 `postprocess_policy.inject_hard_fields`、`injected_output_count` 与 `injected_path_counts`；它不会像 `--repair-hard-fields` 那样重建完整 response scaffold，因此可以作为 raw 与 repaired 之间的第三轨对照。下一步应优先让用户在同一 v2 非重叠 holdout 上运行该第三轨，再判断“只注入稳定硬字段”是否足以改善 raw 阻塞指标。
 
 ## 离线评测样本选择与结果记录
 

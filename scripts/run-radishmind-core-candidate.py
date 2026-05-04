@@ -110,6 +110,14 @@ def parse_args() -> argparse.Namespace:
             "issue/citation structure, and confirmation boundaries before validation."
         ),
     )
+    parser.add_argument(
+        "--inject-hard-fields",
+        action="store_true",
+        help=(
+            "Experimental structured-output constraint: inject only hard_field_freeze path/value pairs "
+            "before validation, without rebuilding the full response scaffold."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -1423,6 +1431,85 @@ def repair_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, 
     return repaired, list(dict.fromkeys(repaired_paths))
 
 
+def split_json_path(path: str) -> list[str | int]:
+    require(path.startswith("$."), f"unsupported hard field path: {path}")
+    segments: list[str | int] = []
+    index = 2
+    current = ""
+    while index < len(path):
+        char = path[index]
+        if char == ".":
+            if current:
+                segments.append(current)
+                current = ""
+            index += 1
+            continue
+        if char == "[":
+            if current:
+                segments.append(current)
+                current = ""
+            end_index = path.find("]", index)
+            require(end_index != -1, f"unterminated hard field path index: {path}")
+            index_text = path[index + 1 : end_index]
+            require(index_text.isdigit(), f"unsupported hard field path index: {path}")
+            segments.append(int(index_text))
+            index = end_index + 1
+            continue
+        current += char
+        index += 1
+    if current:
+        segments.append(current)
+    require(bool(segments), f"unsupported hard field path: {path}")
+    return segments
+
+
+def set_json_path_value(document: dict[str, Any], path: str, value: Any) -> bool:
+    segments = split_json_path(path)
+    current: Any = document
+    for index, segment in enumerate(segments):
+        is_last = index == len(segments) - 1
+        next_segment = segments[index + 1] if not is_last else None
+        if isinstance(segment, str):
+            require(isinstance(current, dict), f"hard field path requires object at {path}")
+            if is_last:
+                if current.get(segment) == value:
+                    return False
+                current[segment] = copy.deepcopy(value)
+                return True
+            if segment not in current or not isinstance(current[segment], (dict, list)):
+                current[segment] = [] if isinstance(next_segment, int) else {}
+            current = current[segment]
+            continue
+        require(isinstance(current, list), f"hard field path requires array at {path}")
+        while len(current) <= segment:
+            current.append({} if not isinstance(next_segment, int) else [])
+        if is_last:
+            if current[segment] == value:
+                return False
+            current[segment] = copy.deepcopy(value)
+            return True
+        if not isinstance(current[segment], (dict, list)):
+            current[segment] = [] if isinstance(next_segment, int) else {}
+        current = current[segment]
+    return False
+
+
+def inject_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    injected = copy.deepcopy(response)
+    scaffold = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
+    hard_field_freeze = build_hard_field_freeze(sample, scaffold)
+    injected_paths: list[str] = []
+    for field in hard_field_freeze.get("fields") or []:
+        if not isinstance(field, dict):
+            continue
+        path = field.get("path")
+        if not isinstance(path, str):
+            continue
+        if set_json_path_value(injected, path, field.get("value")):
+            injected_paths.append(path)
+    return injected, list(dict.fromkeys(injected_paths))
+
+
 def iter_selected_samples(
     source_eval_manifest: dict[str, Any],
     *,
@@ -1487,6 +1574,10 @@ def add_count(counter: dict[str, int], key: str) -> None:
 
 def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> dict[str, Any]:
     require(args.sample_timeout_seconds >= 0, "--sample-timeout-seconds must be greater than or equal to 0")
+    require(
+        not (args.repair_hard_fields and args.inject_hard_fields),
+        "--repair-hard-fields and --inject-hard-fields are separate experiment variants; use only one per run",
+    )
     source_eval_manifest_path = normalize_repo_path(str(manifest["source_eval_manifest"]))
     require(source_eval_manifest_path is not None, "source_eval_manifest path is required")
     source_eval_manifest = load_json(source_eval_manifest_path)
@@ -1538,8 +1629,8 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     schema_failure_categories: dict[str, int] = {}
     task_failure_categories: dict[str, int] = {}
     generation_metric_entries: list[dict[str, Any]] = []
-    repaired_output_count = 0
-    repaired_path_counts: dict[str, int] = {}
+    postprocessed_output_count = 0
+    postprocessed_path_counts: dict[str, int] = {}
     selected_samples = iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id)
     print(
         f"[batch-start] provider={provider_id} sample_count={len(selected_samples)} "
@@ -1560,7 +1651,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         response_valid = True
         validation_error: str | None = None
         generation_metrics: dict[str, Any] = {}
-        repaired_paths: list[str] = []
+        postprocessed_paths: list[str] = []
         sample_started_at = time.perf_counter()
         print(
             f"[sample-start {sample_index}/{len(selected_samples)}] {sample_id} "
@@ -1596,11 +1687,13 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             }
             add_count(schema_failure_categories, categorize_failure(validation_error))
         if response_valid and args.repair_hard_fields:
-            candidate_response, repaired_paths = repair_candidate_hard_fields(candidate_response, sample=sample)
-            if repaired_paths:
-                repaired_output_count += 1
-                for path in repaired_paths:
-                    add_count(repaired_path_counts, path)
+            candidate_response, postprocessed_paths = repair_candidate_hard_fields(candidate_response, sample=sample)
+        elif response_valid and args.inject_hard_fields:
+            candidate_response, postprocessed_paths = inject_candidate_hard_fields(candidate_response, sample=sample)
+        if response_valid and postprocessed_paths:
+            postprocessed_output_count += 1
+            for path in postprocessed_paths:
+                add_count(postprocessed_path_counts, path)
         if response_valid:
             try:
                 validate_candidate_response(candidate_response, sample=sample, response_schema=response_schema)
@@ -1661,11 +1754,13 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 **(
                     {
                         "postprocess": {
-                            "repair_hard_fields": True,
-                            "repaired_paths": repaired_paths,
+                            **({"repair_hard_fields": True} if args.repair_hard_fields else {}),
+                            **({"inject_hard_fields": True} if args.inject_hard_fields else {}),
+                            **({"repaired_paths": postprocessed_paths} if args.repair_hard_fields else {}),
+                            **({"injected_paths": postprocessed_paths} if args.inject_hard_fields else {}),
                         }
                     }
-                    if repaired_paths
+                    if postprocessed_paths
                     else {}
                 ),
                 **({"task_response_validated": task_response_valid} if args.validate_task and response_valid else {}),
@@ -1716,11 +1811,26 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                         "Experimental: repairs scaffold-derived hard fields before schema/task validation; "
                         "raw model capability must still be assessed with this flag disabled."
                     ),
-                    "repaired_output_count": repaired_output_count,
-                    "repaired_path_counts": dict(sorted(repaired_path_counts.items())),
+                    "repaired_output_count": postprocessed_output_count,
+                    "repaired_path_counts": dict(sorted(postprocessed_path_counts.items())),
                 }
             }
             if args.repair_hard_fields
+            else {}
+        ),
+        **(
+            {
+                "postprocess_policy": {
+                    "inject_hard_fields": True,
+                    "scope": (
+                        "Experimental: injects only prompt hard_field_freeze path/value pairs before schema/task validation; "
+                        "this is a structured-output constraint track and must not be treated as raw model capability."
+                    ),
+                    "injected_output_count": postprocessed_output_count,
+                    "injected_path_counts": dict(sorted(postprocessed_path_counts.items())),
+                }
+            }
+            if args.inject_hard_fields
             else {}
         ),
         "quality_gates": {
