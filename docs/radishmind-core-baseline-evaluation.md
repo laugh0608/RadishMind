@@ -392,6 +392,10 @@ repaired 观测结论：
 
 当前已将第三轨 wrapper 修正为 schema-minimum completion：只对被 hard-field injection 触碰到的 `issues[*]` 与 `proposed_actions[*]` 补齐 schema 必需字段，仍不重建完整 `answers / issues / proposed_actions / citations` scaffold，也不会覆盖模型明确输出的合法布尔值。该修正已通过 `scripts/check-radishmind-core-candidate-hard-field-injection.py`、v2 dry-run candidate wrapper 与 offline eval 最小验证。下一步需要在同一 v2 非重叠 holdout 上重新运行 `--inject-hard-fields`，刷新第三轨真实指标；若修正后 `suggest_flowsheet_edits` 也通过，则路线信号将更明确地偏向 response builder / tooling track。
 
+随后复核当前 `tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/` 与 `tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json` 时确认，这组产物写入时间早于 `3e2b9bf fix(core): complete injected schema minimums`，仍是旧 wrapper 产物，不应视为修正后第三轨最终观测。该 stale 产物仍显示 `schema_valid_rate=0.8333333333333334`、`task_valid_rate=1.0`、offline eval `blocked`，阻塞点仍是 `efficiency-range` 样本缺少 `issues[0].message`。
+
+同时据此补强 wrapper 边界：schema-minimum completion 现在按 explicit `hard_field_freeze` 覆盖的 issue/action path 判定，而不只依赖本轮实际发生值变化的 injected path。这样即使模型已经输出了正确的 frozen `issue.code`，但漏掉 schema 必需的 `message / severity`，`--inject-hard-fields` 也会补齐被 freeze 触达对象的最小合法字段。该补强不改变第三轨边界：仍不重建完整 answer、citation 或 action scaffold，也不把第三轨当作 raw 能力晋级证据。下一次真实本地复跑应覆盖这项补强后的 wrapper。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

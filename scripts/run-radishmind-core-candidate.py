@@ -1551,6 +1551,7 @@ def inject_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, 
     injected = copy.deepcopy(response)
     scaffold = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
     hard_field_freeze = build_hard_field_freeze(sample, scaffold)
+    freeze_paths: list[str] = []
     injected_paths: list[str] = []
     for field in hard_field_freeze.get("fields") or []:
         if not isinstance(field, dict):
@@ -1558,9 +1559,13 @@ def inject_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, 
         path = field.get("path")
         if not isinstance(path, str):
             continue
+        freeze_paths.append(path)
         if set_json_path_value(injected, path, field.get("value")):
             injected_paths.append(path)
-    injected_paths.extend(ensure_injected_schema_minimums(injected, scaffold=scaffold, injected_paths=injected_paths))
+    schema_minimum_scope = list(dict.fromkeys([*injected_paths, *freeze_paths]))
+    injected_paths.extend(
+        ensure_injected_schema_minimums(injected, scaffold=scaffold, injected_paths=schema_minimum_scope)
+    )
     return injected, list(dict.fromkeys(injected_paths))
 
 

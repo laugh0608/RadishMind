@@ -147,6 +147,53 @@ def main() -> int:
     require("$.issues[0].severity" in efficiency_paths, "injection must complete schema-required issue severity")
     require("$.answers" not in efficiency_paths, "injection must not synthesize full answer scaffold")
 
+    efficiency_prefilled_response = {
+        **efficiency_response,
+        "status": "partial",
+        "issues": [
+            {
+                "code": "UNIT_PARAMETER_OUT_OF_RANGE",
+            }
+        ],
+        "proposed_actions": [
+            {
+                **efficiency_response["proposed_actions"][0],
+                "target": {"type": "unit", "id": "pump-3"},
+                "patch": {
+                    "parameter_updates": {
+                        "efficiency_percent": {
+                            "action": "clamp_to_review_range",
+                            "suggested_range": [65, 82],
+                        }
+                    },
+                    "preserve_topology": True,
+                },
+            }
+        ],
+        "risk_level": "medium",
+        "requires_confirmation": True,
+    }
+    injected_prefilled, prefilled_paths = runner.inject_candidate_hard_fields(
+        efficiency_prefilled_response,
+        sample=efficiency_range,
+    )
+    require(
+        injected_prefilled["issues"][0]["message"],
+        "prefilled frozen issue code must still receive schema-required issue message",
+    )
+    require(
+        injected_prefilled["issues"][0]["severity"],
+        "prefilled frozen issue code must still receive schema-required issue severity",
+    )
+    require(
+        "$.issues[0].message" in prefilled_paths,
+        "prefilled frozen issue code must report completed issue message",
+    )
+    require(
+        "$.issues[0].severity" in prefilled_paths,
+        "prefilled frozen issue code must report completed issue severity",
+    )
+
     print("radishmind core candidate hard-field injection check passed.")
     return 0
 

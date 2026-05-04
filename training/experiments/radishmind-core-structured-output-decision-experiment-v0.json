@@ -286,19 +286,27 @@
     },
     "root_cause": "The old injection wrapper wrote `$.issues[0].code` without completing the CopilotResponse schema-required `message` and `severity` fields, creating a schema-invalid issue object in the efficiency-range sample.",
     "wrapper_fix": {
-      "status": "implemented",
-      "summary": "Injection now performs schema-minimum completion only for issue/action objects touched by explicit hard-field injection paths. It does not rebuild full answers, issues, proposed_actions, or citations scaffold, and it does not overwrite an explicitly generated valid boolean value.",
+      "status": "implemented_and_strengthened_after_stale_tmp_review",
+      "summary": "Injection now performs schema-minimum completion for issue/action objects covered by explicit hard-field freeze paths, including the edge where the model already emitted the frozen value but still omitted schema-required sibling fields. It does not rebuild full answers, issues, proposed_actions, or citations scaffold, and it does not overwrite an explicitly generated valid boolean value.",
       "checks": [
         "python3 scripts/check-radishmind-core-candidate-hard-field-injection.py",
         "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-hard-field-injection-candidate-run --summary-output tmp/check-v2-hard-field-injection-candidate-summary.json --inject-hard-fields --validate-task --allow-invalid-output",
         "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/check-v2-hard-field-injection-candidate-summary.json --candidate-output-dir tmp/check-v2-hard-field-injection-candidate-run --output tmp/check-v2-hard-field-injection-offline-eval-run.json --check-output tmp/check-v2-hard-field-injection-offline-eval-run.json"
       ]
     },
-    "next_step": "Rerun the same v2 non-overlap holdout with the fixed `--inject-hard-fields` wrapper to refresh the true third-track metrics."
+    "stale_tmp_review": {
+      "reviewed_at": "2026-05-04T00:00:00Z",
+      "artifacts": [
+        "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json",
+        "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json"
+      ],
+      "finding": "The available injected third-track artifacts were written before commit `3e2b9bf`; they still show `schema_valid_rate=0.8333333333333334`, `task_valid_rate=1.0`, and offline eval `blocked` because the efficiency-range sample is missing `issues[0].message`. They must be treated as stale pre-fix artifacts, not as the corrected wrapper rerun."
+    },
+    "next_step": "Rerun the same v2 non-overlap holdout with the strengthened `--inject-hard-fields` wrapper to refresh the true third-track metrics."
   },
   "current_conclusion": {
-    "status": "hard_field_injection_wrapper_fixed_after_first_real_run",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；第三轨旧 wrapper 已把阻塞收窄到 schema-minimum completion 问题。这更支持先完善结构化输出约束和 response builder 分工，而不是应立即扩模型尺寸。",
-    "next_step": "优先在同一 v2 非重叠 holdout 上重跑修正后的 `--inject-hard-fields` 第三轨；若修正后仍改善有限，再实现 constrained/guided decoding 或进入 `minimind-v` / `3B` / `4B` 对照。"
+    "status": "hard_field_injection_rerun_required_after_strengthened_wrapper_fix",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；第三轨旧 wrapper 已把阻塞收窄到 schema-minimum completion 问题。随后读取到的 injected tmp 产物早于修正提交，不能作为修正后第三轨最终结论；当前 wrapper 已进一步覆盖 frozen value 已正确但 schema-required sibling 缺失的边界。",
+    "next_step": "优先在同一 v2 非重叠 holdout 上重跑强化后的 `--inject-hard-fields` 第三轨；若修正后仍改善有限，再实现 constrained/guided decoding 或进入 `minimind-v` / `3B` / `4B` 对照。"
   }
 }
