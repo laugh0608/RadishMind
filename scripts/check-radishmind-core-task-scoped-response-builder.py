@@ -16,7 +16,9 @@ if str(REPO_ROOT) not in sys.path:
 
 
 GHOST_AMBIGUOUS_SAMPLE = REPO_ROOT / "datasets/eval/radishflow/suggest-ghost-completion-valve-ambiguous-no-tab-001.json"
+GHOST_VAPOR_SAMPLE = REPO_ROOT / "datasets/eval/radishflow/suggest-ghost-completion-flash-vapor-outlet-001.json"
 DOCS_EVIDENCE_GAP_SAMPLE = REPO_ROOT / "datasets/eval/radish/answer-docs-question-evidence-gap-001.json"
+DOCS_SOURCE_CONFLICT_SAMPLE = REPO_ROOT / "datasets/eval/radish/answer-docs-question-docs-faq-forum-conflict-001.json"
 RESPONSE_SCHEMA = REPO_ROOT / "contracts/copilot-response.schema.json"
 
 
@@ -126,6 +128,58 @@ def main() -> int:
     )
     require("$.proposed_actions" in ghost_paths, "builder must report rebuilt ghost action scaffold")
 
+    ghost_vapor_sample = load_json(GHOST_VAPOR_SAMPLE)
+    raw_ghost_vapor_response = {
+        "schema_version": 1,
+        "status": "ok",
+        "project": "radishflow",
+        "task": "suggest_ghost_completion",
+        "summary": "根据法律候选和法规要求，建议补齐 vapor outlet。",
+        "answers": [
+            {
+                "kind": "ghost_rationale",
+                "text": "法律候选显示 vapor_outlet 可以使用。",
+                "citation_ids": [],
+            }
+        ],
+        "issues": [],
+        "proposed_actions": [
+            {
+                "kind": "ghost_completion",
+                "title": "选择法规允许的候选",
+                "target": {"type": "unit_port", "unit_id": "flash-2", "port_key": "vapor_outlet"},
+                "rationale": "法规要求选择 legal_candidate_completions 中的候选。",
+                "patch": {},
+                "preview": {"accept_key": "Tab"},
+                "apply": {"command_kind": "accept_ghost_completion", "payload": {}},
+                "risk_level": "low",
+                "requires_confirmation": False,
+                "citation_ids": [],
+            }
+        ],
+        "citations": [],
+        "confidence": 0.72,
+        "risk_level": "low",
+        "requires_confirmation": False,
+    }
+    built_ghost_vapor, ghost_vapor_paths = runner.build_task_scoped_response(
+        raw_ghost_vapor_response,
+        sample=ghost_vapor_sample,
+    )
+    assert_valid_response(runner, ghost_vapor_sample, built_ghost_vapor)
+    guarded_text = json.dumps(built_ghost_vapor, ensure_ascii=False)
+    require("法律候选" not in guarded_text and "法规" not in guarded_text, "builder must reject legal/regulation mistranslation")
+    require("$.summary" not in ghost_vapor_paths, "builder must not report rejected ghost summary as merged")
+    require("$.answers[0].text" not in ghost_vapor_paths, "builder must not report rejected ghost answer as merged")
+    require(
+        "$.proposed_actions[0].rationale" not in ghost_vapor_paths,
+        "builder must not report rejected ghost action rationale as merged",
+    )
+    require(
+        built_ghost_vapor["proposed_actions"][0]["patch"]["candidate_ref"] == "cand-flash-2-vapor-stub",
+        "builder must still rebuild the leading vapor candidate_ref",
+    )
+
     docs_sample = load_json(DOCS_EVIDENCE_GAP_SAMPLE)
     raw_docs_response = {
         "schema_version": 1,
@@ -167,6 +221,50 @@ def main() -> int:
     require(built_docs["answers"][0]["citation_ids"] == ["doc-1"], "builder must rebuild docs answer citation")
     require(built_docs["issues"][0]["citation_ids"] == ["doc-1"], "builder must rebuild docs issue citation")
     require("$.status" in docs_paths and "$.risk_level" in docs_paths, "builder must report docs status/risk paths")
+
+    docs_source_conflict_sample = load_json(DOCS_SOURCE_CONFLICT_SAMPLE)
+    raw_docs_source_conflict_response = {
+        "schema_version": 1,
+        "status": "ok",
+        "project": "radish",
+        "task": "answer_docs_question",
+        "summary": "正式 docs 仍要求优先保持 slug 稳定。",
+        "answers": [
+            {
+                "kind": "direct_answer",
+                "text": "给出可展示给用户的回答。",
+                "citation_ids": [],
+            }
+        ],
+        "issues": [],
+        "proposed_actions": [],
+        "citations": [],
+        "confidence": 0.58,
+        "risk_level": "low",
+        "requires_confirmation": False,
+    }
+    built_docs_source_conflict, docs_source_conflict_paths = runner.build_task_scoped_response(
+        raw_docs_source_conflict_response,
+        sample=docs_source_conflict_sample,
+    )
+    assert_valid_response(runner, docs_source_conflict_sample, built_docs_source_conflict)
+    require(
+        built_docs_source_conflict["summary"] == "正式 docs 仍要求优先保持 slug 稳定。",
+        "builder must still preserve acceptable docs summary",
+    )
+    require(
+        "给出可展示给用户的回答" not in built_docs_source_conflict["answers"][0]["text"],
+        "builder must reject generic docs answer placeholder",
+    )
+    require(
+        all(term in built_docs_source_conflict["answers"][0]["text"] for term in ("docs", "FAQ", "forum")),
+        "builder docs answer fallback must be task-aware and displayable",
+    )
+    require("$.summary" in docs_source_conflict_paths, "builder must report accepted docs summary as merged")
+    require(
+        "$.answers[0].text" not in docs_source_conflict_paths,
+        "builder must not report rejected docs answer placeholder as merged",
+    )
 
     print("radishmind core task-scoped response builder check passed.")
     return 0

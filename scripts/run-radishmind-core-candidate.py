@@ -669,6 +669,7 @@ def build_answer_scaffold(
     *,
     project: str,
     task: str,
+    sample: dict[str, Any],
     citation_ids: list[str],
     issues: list[dict[str, Any]],
     actions: list[dict[str, Any]],
@@ -695,6 +696,40 @@ def build_answer_scaffold(
                 "citation_ids": answer_citation_ids,
             }
         ]
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_unit = str(target.get("unit_id") or "selected unit")
+        target_port = str(patch.get("target_port_key") or target.get("port_key") or "target port")
+        stream_name = str(patch.get("ghost_stream_name") or "ghost stream")
+        candidate_ref = str(patch.get("candidate_ref") or "selected candidate")
+        return [
+            {
+                "kind": "ghost_rationale",
+                "text": (
+                    f"本地候选集中 {candidate_ref} 绑定 {target_unit}.{target_port}，"
+                    f"建议预览 {stream_name} 的 ghost completion；该建议只来自候选集，不直接写回 flowsheet。"
+                ),
+                "citation_ids": answer_citation_ids,
+            }
+        ]
+    if project == "radish" and task == "answer_docs_question":
+        evaluation = get_evaluation(sample)
+        notes = non_empty_text(evaluation.get("notes"))
+        if issues:
+            text = str(issues[0].get("message") or "当前证据不足，不能直接给出确定结论。")
+        elif notes:
+            text = notes
+        else:
+            text = "请以已检索到的官方文档证据为准回答；非官方来源只能作为补充参考。"
+        return [
+            {
+                "kind": "direct_answer",
+                "text": text,
+                "citation_ids": answer_citation_ids,
+            }
+        ]
     return [
         {
             "kind": "direct_answer",
@@ -702,6 +737,35 @@ def build_answer_scaffold(
             "citation_ids": citation_ids[:1],
         }
     ]
+
+
+def build_summary_scaffold(
+    *,
+    project: str,
+    task: str,
+    sample: dict[str, Any],
+    issues: list[dict[str, Any]],
+    actions: list[dict[str, Any]],
+) -> str:
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_id = str(target.get("id") or "selected object")
+        return f"建议为 {target_id} 生成 advisory-only flowsheet 编辑候选，并保持人工确认边界。"
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_unit = str(target.get("unit_id") or "selected unit")
+        target_port = str(patch.get("target_port_key") or target.get("port_key") or "target port")
+        stream_name = str(patch.get("ghost_stream_name") or "ghost stream")
+        return f"建议从本地候选集中预览 {target_unit}.{target_port} 的 {stream_name} ghost completion。"
+    if project == "radish" and task == "answer_docs_question":
+        if issues:
+            return str(issues[0].get("message") or "当前证据不足，回答应保持 partial。")
+        evaluation_notes = non_empty_text(get_evaluation(sample).get("notes"))
+        return evaluation_notes or "回答应以官方文档证据为主，非官方来源只作为补充参考。"
+    return "用一句话总结结论。"
 
 
 def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) -> dict[str, Any]:
@@ -714,10 +778,11 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
         "status": "ok",
         "project": project,
         "task": task,
-        "summary": "用一句话总结结论。",
+        "summary": build_summary_scaffold(project=project, task=task, sample=sample, issues=issues, actions=actions),
         "answers": build_answer_scaffold(
             project=project,
             task=task,
+            sample=sample,
             citation_ids=citation_ids,
             issues=issues,
             actions=actions,
@@ -1593,13 +1658,47 @@ def non_empty_text(value: Any) -> str:
     return str(value).strip() if isinstance(value, str) else ""
 
 
+GENERIC_NATURAL_LANGUAGE_PLACEHOLDERS = (
+    "给出可展示给用户的回答",
+    "用一句话总结结论",
+)
+
+LEGAL_CANDIDATE_MISTRANSLATION_TERMS = (
+    "法律候选",
+    "合法法律",
+    "法规",
+    "法規",
+    "合规候选",
+)
+
+
+def is_guarded_natural_language_text(
+    text: str,
+    *,
+    project: str,
+    task: str,
+) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    if any(placeholder in normalized for placeholder in GENERIC_NATURAL_LANGUAGE_PLACEHOLDERS):
+        return False
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        if any(term in normalized for term in LEGAL_CANDIDATE_MISTRANSLATION_TERMS):
+            return False
+    return True
+
+
 def merge_natural_language_fields(
     built: dict[str, Any],
     candidate: dict[str, Any],
+    *,
+    project: str,
+    task: str,
 ) -> list[str]:
     merged_paths: list[str] = []
     summary = non_empty_text(candidate.get("summary"))
-    if summary:
+    if is_guarded_natural_language_text(summary, project=project, task=task):
         built["summary"] = summary
         merged_paths.append("$.summary")
 
@@ -1607,7 +1706,7 @@ def merge_natural_language_fields(
     built_answers = built.get("answers") if isinstance(built.get("answers"), list) else []
     if candidate_answers and built_answers and isinstance(candidate_answers[0], dict) and isinstance(built_answers[0], dict):
         answer_text = non_empty_text(candidate_answers[0].get("text"))
-        if answer_text:
+        if is_guarded_natural_language_text(answer_text, project=project, task=task):
             built_answers[0]["text"] = answer_text
             merged_paths.append("$.answers[0].text")
 
@@ -1617,7 +1716,7 @@ def merge_natural_language_fields(
         if index >= len(built_issues) or not isinstance(issue, dict) or not isinstance(built_issues[index], dict):
             continue
         issue_message = non_empty_text(issue.get("message"))
-        if issue_message:
+        if is_guarded_natural_language_text(issue_message, project=project, task=task):
             built_issues[index]["message"] = issue_message
             merged_paths.append(f"$.issues[{index}].message")
 
@@ -1628,7 +1727,7 @@ def merge_natural_language_fields(
             continue
         for field in ("title", "rationale"):
             text = non_empty_text(action.get(field))
-            if text:
+            if is_guarded_natural_language_text(text, project=project, task=task):
                 built_actions[index][field] = text
                 merged_paths.append(f"$.proposed_actions[{index}].{field}")
 
@@ -1656,7 +1755,14 @@ def build_suggest_edits_response(
         "$.requires_confirmation",
     ]
     if isinstance(response, dict):
-        paths.extend(merge_natural_language_fields(built, response))
+        paths.extend(
+            merge_natural_language_fields(
+                built,
+                response,
+                project=str(sample["project"]),
+                task=str(sample["task"]),
+            )
+        )
     return built, list(dict.fromkeys(paths))
 
 
@@ -1683,7 +1789,7 @@ def build_task_scoped_response(
         "$.requires_confirmation",
     ]
     if isinstance(response, dict):
-        paths.extend(merge_natural_language_fields(built, response))
+        paths.extend(merge_natural_language_fields(built, response, project=project, task=task))
     return built, list(dict.fromkeys(paths))
 
 

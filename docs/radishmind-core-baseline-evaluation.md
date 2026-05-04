@@ -410,6 +410,8 @@ repaired 观测结论：
 
 用户随后完成真实本地 `--build-task-scoped-response` v2 轨与 offline eval。该轨 candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`task_validation_attempted=6`、`builder_output_count=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、`json_extracted_count=6`、总生成耗时约 `779.401s`、平均 `129.9s`；三组任务均为 `2/2` task-valid。offline eval 中 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `answer_docs_question` 的所有 blocking metrics 均通过，整体 `promotion_status=no_promotion_planned`。这说明 v2 结构化阻塞已经可以由 task-scoped response builder / tooling 分工消除，下一步不应直接切 `3B/4B` 或把该结果当作 raw 晋级证据。抽查也发现机器指标未覆盖的自然语言风险：`docs-faq-forum-conflict` 的 answer text 仍是通用占位句，`ghost flash vapor` 把 `legal_candidate_completions` 误写成法律/法规语义。因此该轨是强路线信号，但 production contract 前仍需要补自然语言 merge/fallback 的人工复核和 guardrail。
 
+当前已补首轮自然语言 merge/fallback guardrail：task-scoped builder 在合并模型自然语言字段前会拒绝通用占位句，以及 `suggest_ghost_completion` 中把 `legal_candidate_completions` 误译为法律/法规语义的文本；同时为 `answer_docs_question` 和 `suggest_ghost_completion` 生成任务感知 fallback，避免拒绝后回落到占位文本。`scripts/check-radishmind-core-task-scoped-response-builder.py` 已覆盖 docs source-conflict 占位 answer 与 ghost vapor 法律/法规误译两个真实风险，并保持 ambiguous ghost patch 与 docs evidence-gap status/risk 结构边界。v2 `golden_fixture` guardrail smoke 仍为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=6`，offline eval 仍为 `no_promotion_planned`。下一步需要用户在同一 v2 非重叠 holdout 上重跑真实本地 `--build-task-scoped-response` 轨，确认 guardrail 后的真实模型输出仍通过机器指标，并抽查 fallback 是否替代了坏自然语言。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

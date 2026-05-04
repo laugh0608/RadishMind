@@ -587,9 +587,42 @@
       "summary": "The same v2 holdout changed from raw/injected/suggest-only blocked surfaces to full machine pass when stable task structure was moved into a task-scoped builder. This strongly supports the response builder / tooling split as the next M4 route. It still does not promote raw model capability and still requires human review of preserved natural-language quality."
     }
   },
+  "task_scoped_natural_language_guardrail_smoke_2026_05_04": {
+    "status": "implemented_and_smoke_passed",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Adds natural-language merge/fallback guardrails to the task-scoped response builder without expanding it into raw model promotion evidence.",
+    "implemented_guardrails": [
+      "Reject generic placeholder natural-language fields such as `给出可展示给用户的回答` and `用一句话总结结论` before merging model-authored text into builder output.",
+      "Reject `suggest_ghost_completion` natural-language fields that mistranslate `legal_candidate_completions` into law/regulation wording such as `法律候选` or `法规`.",
+      "Generate task-aware fallback answer/summary text for `answer_docs_question` and `suggest_ghost_completion` so rejected natural language does not fall back to generic placeholders."
+    ],
+    "regression_check": {
+      "script": "python3 scripts/check-radishmind-core-task-scoped-response-builder.py",
+      "coverage": [
+        "ambiguous ghost action patch shape remains rebuilt",
+        "docs evidence-gap status/risk remains rebuilt",
+        "ghost vapor legal/regulation mistranslation is rejected",
+        "docs source-conflict generic answer placeholder is rejected while acceptable summary text is preserved"
+      ]
+    },
+    "smoke_commands": [
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider golden_fixture --output-dir tmp/radishmind-core-task-scoped-builder-guardrail-smoke --summary-output tmp/radishmind-core-task-scoped-builder-guardrail-smoke/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300",
+      "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-task-scoped-builder-guardrail-smoke/summary.json --candidate-output-dir tmp/radishmind-core-task-scoped-builder-guardrail-smoke --output tmp/radishmind-core-task-scoped-builder-guardrail-smoke-run.json --check-output="
+    ],
+    "smoke_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "builder_output_count": 6,
+      "offline_eval_promotion_status": "no_promotion_planned"
+    },
+    "route_decision_signal": {
+      "status": "guardrail_added_before_expanding_sample_surface",
+      "summary": "The first natural-language guardrail closes the two manually observed production-readiness gaps without changing the structural builder pass signal. The next route step can expand task-scoped builder review only after distinguishing accepted model text from fallback text in summaries."
+    }
+  },
   "current_conclusion": {
-    "status": "task_scoped_builder_machine_passed_human_review_required",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。当前真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除。",
-    "next_step": "下一步不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；应把路线收口到 task-scoped builder/tooling 方案，同时补一轮自然语言 merge/fallback 人工复核与 guardrail，处理 docs QA 通用占位 answer 和 ghost completion legal/法律误译这类机器指标未覆盖的问题。"
+    "status": "task_scoped_builder_guardrail_ready_for_local_rerun",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。当前真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除；随后已补自然语言 merge/fallback guardrail，覆盖通用占位 answer 与 ghost legal/法律误译两类人工复核风险。",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；应让用户在同一 v2 非重叠 holdout 上重跑带 guardrail 的 `--build-task-scoped-response` 本地轨，读取 summary 与 response 样本，确认机器指标仍通过，并确认被拒绝的自然语言是否被任务感知 fallback 替代。"
   }
 }
