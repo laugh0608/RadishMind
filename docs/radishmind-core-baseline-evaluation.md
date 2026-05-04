@@ -400,6 +400,8 @@ repaired 观测结论：
 
 本轮阻塞面已经不同于旧 wrapper schema-minimum bug：`cross-object-mixed-risk-reconnect-plus-pump-parameter` 样本在 `300s` 前未抽取到 JSON，injection 没有可约束对象；`efficiency-range` 样本经 injection 后已补齐 `issues[0].message / severity` 并 schema-valid，但仍因缺少必需 answer 与 citation 而 task-invalid。因此 `--inject-hard-fields` 被确认“有用但不足”：它能治理顶层硬字段、部分 action patch 和 issue schema minimum，不能单独恢复非冻结 answer/citation，也不能解决复杂 cross-object prompt 的本地 CPU timeout 成本边界。下一步应优先推进 constrained/guided decoding 或 response builder / tool 分工，而不是继续把 hard-field injection 单独扩成完整 scaffold repair。
 
+随后新增 `--build-suggest-edits-response` 作为 response builder / tool 分工窄实验。该变体只作用于 `radishflow/suggest_flowsheet_edits`，由 builder 组装稳定的 `answers / issues / proposed_actions / citations / risk_level / requires_confirmation` 结构，模型输出只保留可展示的自然语言字段和 `confidence`；`suggest_ghost_completion` 与 `answer_docs_question` 仍走原输出。当前 deterministic smoke 未运行本地模型：`scripts/check-radishmind-core-suggest-edits-response-builder.py` 已覆盖 v2 中 `cross-object-mixed-risk-reconnect-plus-pump-parameter` 与 `efficiency-range` 两条阻塞样本；v2 `golden_fixture` smoke 的 candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=2`，offline eval 为 `no_promotion_planned`。该结果只证明 wrapper/builder 路径可用，下一步仍需要用户本地重跑同一 v2 非重叠 holdout 的 `--build-suggest-edits-response` 轨，观察真实 `timeout_count`、`builder_output_count` 与 offline eval 是否从 injected 第三轨的 `blocked` 转为通过。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

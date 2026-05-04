@@ -118,6 +118,14 @@ def parse_args() -> argparse.Namespace:
             "before validation, without rebuilding the full response scaffold."
         ),
     )
+    parser.add_argument(
+        "--build-suggest-edits-response",
+        action="store_true",
+        help=(
+            "Experimental response-builder split for radishflow/suggest_flowsheet_edits: assemble the "
+            "CopilotResponse structure from the scaffold and preserve only model-authored natural-language fields."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -1569,6 +1577,81 @@ def inject_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, 
     return injected, list(dict.fromkeys(injected_paths))
 
 
+def is_suggest_edits_sample(sample: dict[str, Any]) -> bool:
+    return sample.get("project") == "radishflow" and sample.get("task") == "suggest_flowsheet_edits"
+
+
+def non_empty_text(value: Any) -> str:
+    return str(value).strip() if isinstance(value, str) else ""
+
+
+def merge_natural_language_fields(
+    built: dict[str, Any],
+    candidate: dict[str, Any],
+) -> list[str]:
+    merged_paths: list[str] = []
+    summary = non_empty_text(candidate.get("summary"))
+    if summary:
+        built["summary"] = summary
+        merged_paths.append("$.summary")
+
+    candidate_answers = candidate.get("answers") if isinstance(candidate.get("answers"), list) else []
+    built_answers = built.get("answers") if isinstance(built.get("answers"), list) else []
+    if candidate_answers and built_answers and isinstance(candidate_answers[0], dict) and isinstance(built_answers[0], dict):
+        answer_text = non_empty_text(candidate_answers[0].get("text"))
+        if answer_text:
+            built_answers[0]["text"] = answer_text
+            merged_paths.append("$.answers[0].text")
+
+    candidate_issues = candidate.get("issues") if isinstance(candidate.get("issues"), list) else []
+    built_issues = built.get("issues") if isinstance(built.get("issues"), list) else []
+    for index, issue in enumerate(candidate_issues):
+        if index >= len(built_issues) or not isinstance(issue, dict) or not isinstance(built_issues[index], dict):
+            continue
+        issue_message = non_empty_text(issue.get("message"))
+        if issue_message:
+            built_issues[index]["message"] = issue_message
+            merged_paths.append(f"$.issues[{index}].message")
+
+    candidate_actions = candidate.get("proposed_actions") if isinstance(candidate.get("proposed_actions"), list) else []
+    built_actions = built.get("proposed_actions") if isinstance(built.get("proposed_actions"), list) else []
+    for index, action in enumerate(candidate_actions):
+        if index >= len(built_actions) or not isinstance(action, dict) or not isinstance(built_actions[index], dict):
+            continue
+        for field in ("title", "rationale"):
+            text = non_empty_text(action.get(field))
+            if text:
+                built_actions[index][field] = text
+                merged_paths.append(f"$.proposed_actions[{index}].{field}")
+
+    confidence = candidate.get("confidence")
+    if isinstance(confidence, (int, float)) and not isinstance(confidence, bool):
+        built["confidence"] = max(0.0, min(1.0, float(confidence)))
+        merged_paths.append("$.confidence")
+    return merged_paths
+
+
+def build_suggest_edits_response(
+    response: dict[str, Any] | None,
+    *,
+    sample: dict[str, Any],
+) -> tuple[dict[str, Any], list[str]]:
+    require(is_suggest_edits_sample(sample), "suggest edits response builder only supports radishflow/suggest_flowsheet_edits")
+    built = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
+    paths = [
+        "$",
+        "$.answers",
+        "$.issues",
+        "$.proposed_actions",
+        "$.citations",
+        "$.risk_level",
+        "$.requires_confirmation",
+    ]
+    if isinstance(response, dict):
+        paths.extend(merge_natural_language_fields(built, response))
+    return built, list(dict.fromkeys(paths))
+
+
 def iter_selected_samples(
     source_eval_manifest: dict[str, Any],
     *,
@@ -1636,6 +1719,15 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     require(
         not (args.repair_hard_fields and args.inject_hard_fields),
         "--repair-hard-fields and --inject-hard-fields are separate experiment variants; use only one per run",
+    )
+    active_structured_variants = [
+        args.repair_hard_fields,
+        args.inject_hard_fields,
+        args.build_suggest_edits_response,
+    ]
+    require(
+        sum(1 for enabled in active_structured_variants if enabled) <= 1,
+        "--repair-hard-fields, --inject-hard-fields, and --build-suggest-edits-response are separate experiment variants; use only one per run",
     )
     source_eval_manifest_path = normalize_repo_path(str(manifest["source_eval_manifest"]))
     require(source_eval_manifest_path is not None, "source_eval_manifest path is required")
@@ -1711,6 +1803,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         validation_error: str | None = None
         generation_metrics: dict[str, Any] = {}
         postprocessed_paths: list[str] = []
+        builder_applied = False
         sample_started_at = time.perf_counter()
         print(
             f"[sample-start {sample_index}/{len(selected_samples)}] {sample_id} "
@@ -1738,17 +1831,31 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             validation_error = str(exc) or "candidate response generation failed"
             if isinstance(exc, LocalTransformersGenerationError):
                 generation_metrics = exc.generation_metrics
-            candidate_response = {
+            invalid_candidate_response = {
                 "kind": "invalid_candidate_response",
                 "sample_id": sample_id,
                 "provider_id": provider_id,
                 "error": validation_error,
             }
-            add_count(schema_failure_categories, categorize_failure(validation_error))
+            if args.build_suggest_edits_response and is_suggest_edits_sample(sample):
+                candidate_response, postprocessed_paths = build_suggest_edits_response(
+                    invalid_candidate_response,
+                    sample=sample,
+                )
+                response_valid = True
+                response_source = f"{provider_id}+suggest_edits_response_builder"
+                validation_error = None
+                builder_applied = True
+            else:
+                add_count(schema_failure_categories, categorize_failure(validation_error))
+                candidate_response = invalid_candidate_response
         if response_valid and args.repair_hard_fields:
             candidate_response, postprocessed_paths = repair_candidate_hard_fields(candidate_response, sample=sample)
         elif response_valid and args.inject_hard_fields:
             candidate_response, postprocessed_paths = inject_candidate_hard_fields(candidate_response, sample=sample)
+        elif response_valid and args.build_suggest_edits_response and is_suggest_edits_sample(sample) and not builder_applied:
+            candidate_response, postprocessed_paths = build_suggest_edits_response(candidate_response, sample=sample)
+            response_source = f"{response_source}+suggest_edits_response_builder"
         if response_valid and postprocessed_paths:
             postprocessed_output_count += 1
             for path in postprocessed_paths:
@@ -1815,8 +1922,18 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                         "postprocess": {
                             **({"repair_hard_fields": True} if args.repair_hard_fields else {}),
                             **({"inject_hard_fields": True} if args.inject_hard_fields else {}),
+                            **(
+                                {"build_suggest_edits_response": True}
+                                if args.build_suggest_edits_response and is_suggest_edits_sample(sample)
+                                else {}
+                            ),
                             **({"repaired_paths": postprocessed_paths} if args.repair_hard_fields else {}),
                             **({"injected_paths": postprocessed_paths} if args.inject_hard_fields else {}),
+                            **(
+                                {"builder_paths": postprocessed_paths}
+                                if args.build_suggest_edits_response and is_suggest_edits_sample(sample)
+                                else {}
+                            ),
                         }
                     }
                     if postprocessed_paths
@@ -1890,6 +2007,22 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 }
             }
             if args.inject_hard_fields
+            else {}
+        ),
+        **(
+            {
+                "postprocess_policy": {
+                    "build_suggest_edits_response": True,
+                    "scope": (
+                        "Experimental response-builder split for radishflow/suggest_flowsheet_edits: "
+                        "assembles scaffold-derived CopilotResponse structure and preserves only "
+                        "model-authored natural-language fields. This is not raw model capability."
+                    ),
+                    "builder_output_count": postprocessed_output_count,
+                    "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
+                }
+            }
+            if args.build_suggest_edits_response
             else {}
         ),
         "quality_gates": {
