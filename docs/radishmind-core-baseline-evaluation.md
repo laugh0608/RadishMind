@@ -376,6 +376,8 @@ repaired 观测结论：
 - prompt-time `hard_field_freeze`
 - constrained / guided decoding
 - 顶层硬字段外部注入
+- `suggest_flowsheet_edits` response builder
+- 可组合的 task-scoped response builder
 
 只有当这些更强约束后，raw 仍主要卡在复杂 reasoning 或 action planning，下一步才应进入 `minimind-v`、`3B` 或 `4B` 对照。反过来，如果更强约束已经明显改善 `status / risk_level / requires_confirmation`、citation 顺序或 action boundary，则下一步优先推进 response builder / tool 分工，而不是先扩模型尺寸。
 
@@ -403,6 +405,8 @@ repaired 观测结论：
 随后新增 `--build-suggest-edits-response` 作为 response builder / tool 分工窄实验。该变体只作用于 `radishflow/suggest_flowsheet_edits`，由 builder 组装稳定的 `answers / issues / proposed_actions / citations / risk_level / requires_confirmation` 结构，模型输出只保留可展示的自然语言字段和 `confidence`；`suggest_ghost_completion` 与 `answer_docs_question` 仍走原输出。当前 deterministic smoke 未运行本地模型：`scripts/check-radishmind-core-suggest-edits-response-builder.py` 已覆盖 v2 中 `cross-object-mixed-risk-reconnect-plus-pump-parameter` 与 `efficiency-range` 两条阻塞样本；v2 `golden_fixture` smoke 的 candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=2`，offline eval 为 `no_promotion_planned`。该结果只证明 wrapper/builder 路径可用，下一步仍需要用户本地重跑同一 v2 非重叠 holdout 的 `--build-suggest-edits-response` 轨，观察真实 `timeout_count`、`builder_output_count` 与 offline eval 是否从 injected 第三轨的 `blocked` 转为通过。
 
 用户随后完成真实本地 `--build-suggest-edits-response` v2 轨与 offline eval。该轨 candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=0.6666666666666666`、`task_validation_attempted=6`、`builder_output_count=2`、`timeout_count=0`、总生成耗时约 `844.708s`、平均 `140.785s`。`suggest_flowsheet_edits` 两条样本均 schema-valid/task-valid，offline eval 中该任务的 schema、citation、risk confirmation、high-risk confirmation 与 advisory boundary 指标全部通过；旧 injected 轨中复杂 cross-object 样本的 `300s` timeout 未复现，实际约 `272.763s` 抽取到 JSON。整体 `promotion_status` 仍为 `blocked`，但阻塞面已经转移到 builder 未覆盖的两个 raw 任务：`suggest_ghost_completion` 的 ambiguous valve 样本缺少 `patch.ghost_kind` / `patch.candidate_ref`，`answer_docs_question` 的 evidence-gap 样本漂移了 expected `status` 与 `risk_level`。因此结论不是“builder 轨整体通过”，而是“`suggest_flowsheet_edits` 已验证适合模型意图 + builder 结构化 response 分工；下一步应做可组合的 task-scoped 结构化输出策略，补齐 ghost action patch 与 docs evidence-gap status/risk 边界”，且该结果仍不得视为 raw 模型晋级证据。
+
+随后已落成 `--build-task-scoped-response` 组合实验轨。该变体对当前已有 task validator 的三类 eval task 统一使用 scaffold-derived response builder 组装 CopilotResponse 结构，模型输出只保留 `summary`、首条 answer text、issue message、action title/rationale 与 `confidence`。新增 `scripts/check-radishmind-core-task-scoped-response-builder.py` 锁定两个剩余 blocker 家族：ambiguous ghost completion 必须恢复有序 `patch.candidate_ref`、`patch.ghost_kind` 和 `manual_only` preview；docs evidence-gap 必须恢复 `status=partial`、`risk_level=medium`、空 `proposed_actions`、`INSUFFICIENT_EVIDENCE` issue 与 `doc-1` citation。v2 `golden_fixture` smoke 不运行本地模型，candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=6`，offline eval 为 `no_promotion_planned`。该 smoke 只证明组合 builder 链路可复跑；下一步需要在同一 v2 非重叠 holdout 上执行真实本地 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 轨，观察 overall 是否从 `blocked` 转为通过，以及自然语言字段是否仍可人工接受。
 
 ## 离线评测样本选择与结果记录
 

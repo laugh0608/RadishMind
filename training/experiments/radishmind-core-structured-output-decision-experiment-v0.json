@@ -76,6 +76,12 @@
       "status": "available_for_static_and_local_probe",
       "description": "只针对 `radishflow/suggest_flowsheet_edits`，由 response builder 组装稳定 CopilotResponse 结构，模型输出只保留 summary、answer text、issue message、action title/rationale、confidence 等自然语言或置信度字段。",
       "expected_signal": "若 v2 的 suggest edits 阻塞随 builder 轨消失，则说明该任务更适合“模型给意图/解释，工具层组装结构化 response”的分工，而不是继续要求小模型 raw 生成完整 CopilotResponse。"
+    },
+    {
+      "variant_id": "task_scoped_response_builder",
+      "status": "available_for_static_probe",
+      "description": "对当前已支持的 eval task 使用任务级 scaffold builder 组装完整 CopilotResponse 结构，模型输出只保留 summary、answer/issue/action 自然语言字段和 confidence。",
+      "expected_signal": "若 v2 的 ghost action patch 与 docs evidence-gap status/risk 阻塞随组合 builder 轨消失，则说明当前剩余问题更适合 task-scoped 结构化输出策略，而不是继续扩单任务 builder 或直接切模型尺寸。"
     }
   ],
   "decision_rules": {
@@ -159,6 +165,7 @@
       "prompt_time_hard_field_freeze",
       "hard_field_external_injection",
       "suggest_edits_response_builder",
+      "task_scoped_response_builder",
       "constrained_or_guided_decoding"
     ],
     "expected_exit": "若 `--inject-hard-fields` 与后续 constrained/guided decoding 仍无法明显改善 raw，则转入 `minimind-v` / `3B` / `4B` 对照；若改善明显，则优先推进 response builder / tooling track。"
@@ -168,10 +175,12 @@
     "hard_field_injection_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json --allow-invalid-output --validate-task --inject-hard-fields --sample-timeout-seconds 300",
     "repaired_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json --allow-invalid-output --validate-task --repair-hard-fields --sample-timeout-seconds 300",
     "suggest_edits_response_builder_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300/summary.json --allow-invalid-output --validate-task --build-suggest-edits-response --sample-timeout-seconds 300",
+    "task_scoped_response_builder_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300",
     "offline_eval_v2_raw": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
     "offline_eval_v2_injected": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json",
     "offline_eval_v2_repaired": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json",
-    "offline_eval_v2_suggest_edits_response_builder": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300-run.json"
+    "offline_eval_v2_suggest_edits_response_builder": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300-run.json",
+    "offline_eval_v2_task_scoped_response_builder": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300-run.json"
   },
   "available_variant_implementation": {
     "hard_field_external_injection": {
@@ -189,6 +198,14 @@
       "summary_policy": "Writes `postprocess_policy.build_suggest_edits_response=true`, `builder_output_count`, and `builder_path_counts`.",
       "boundary": "Only applies to `radishflow/suggest_flowsheet_edits`; it rebuilds scaffold-derived answers, issues, proposed_actions, citations, risk and confirmation fields, while preserving model-authored natural-language fields when present. It is not raw model capability and currently remains an experiment wrapper, not a production contract.",
       "mutual_exclusion": "Cannot be combined with `--repair-hard-fields` or `--inject-hard-fields`."
+    },
+    "task_scoped_response_builder": {
+      "status": "implemented_for_candidate_wrapper",
+      "cli_flag": "--build-task-scoped-response",
+      "check": "scripts/check-radishmind-core-task-scoped-response-builder.py",
+      "summary_policy": "Writes `postprocess_policy.build_task_scoped_response=true`, `builder_output_count`, and `builder_path_counts`.",
+      "boundary": "Applies to known eval tasks with task validators; it rebuilds scaffold-derived CopilotResponse structure for suggest edits, ghost completion and docs QA, while preserving only model-authored natural-language fields and confidence when present. It is an experiment wrapper for route decision, not raw model capability or a production contract.",
+      "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`, `--inject-hard-fields`, or `--build-suggest-edits-response`."
     }
   },
   "first_run_observation": {
@@ -470,9 +487,47 @@
       "summary": "The local builder run confirms that `suggest_flowsheet_edits` is a strong fit for the model-intent plus builder-structured-response split: the builder removes the injected track's answer/citation and cross-object timeout blockers for this task. The remaining blockers are now outside suggest edits, so the next route decision should focus on a composable task-scoped structured-output policy for ghost completion action patches and docs QA status/risk boundaries, not on expanding the suggest edits builder or treating this as raw promotion."
     }
   },
+  "task_scoped_response_builder_smoke_2026_05_04": {
+    "status": "static_smoke_passed",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Deterministic fixture/golden smoke only; no local model was run for this observation.",
+    "implementation": {
+      "cli_flag": "--build-task-scoped-response",
+      "task_scope": "Known eval tasks with task validators: `radishflow/suggest_flowsheet_edits`, `radishflow/suggest_ghost_completion`, and `radish/answer_docs_question`.",
+      "preserved_model_fields": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.issues[*].message",
+        "$.proposed_actions[*].title",
+        "$.proposed_actions[*].rationale",
+        "$.confidence"
+      ],
+      "builder_owned_focus": [
+        "ghost completion `patch.ghost_kind` / `patch.candidate_ref` / manual-only preview boundary",
+        "docs QA evidence-gap `status=partial`, `risk_level=medium`, no-action boundary, and issue/citation scaffold",
+        "suggest edits action, citation, risk and confirmation structure already covered by the narrower builder"
+      ]
+    },
+    "checks": [
+      "python3 scripts/check-radishmind-core-task-scoped-response-builder.py",
+      "python3 scripts/check-radishmind-core-suggest-edits-response-builder.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider golden_fixture --output-dir tmp/radishmind-core-task-scoped-builder-smoke --summary-output tmp/radishmind-core-task-scoped-builder-smoke/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300",
+      "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-task-scoped-builder-smoke/summary.json --candidate-output-dir tmp/radishmind-core-task-scoped-builder-smoke --output tmp/radishmind-core-task-scoped-builder-smoke-run.json --check-output="
+    ],
+    "smoke_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "builder_output_count": 6,
+      "offline_eval_promotion_status": "no_promotion_planned"
+    },
+    "route_decision_signal": {
+      "status": "ready_for_user_local_task_scoped_probe",
+      "summary": "The deterministic smoke confirms that the composable task-scoped builder can cover the two remaining v2 blocker families in static form: ghost ambiguous action patch shape and docs evidence-gap status/risk. The next evidence still requires the user to run the local `Qwen2.5-1.5B-Instruct` task-scoped builder track because the smoke does not measure latency, timeout, or model-authored natural-language quality."
+    }
+  },
   "current_conclusion": {
-    "status": "suggest_edits_builder_confirmed_but_overall_blocked_by_other_tasks",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过，但 `suggest_flowsheet_edits` 仍 blocked。当前真实本地 `--build-suggest-edits-response` 轨已确认 `suggest_flowsheet_edits` 2/2 task-valid 且 offline eval 全指标通过，cross-object timeout 也未复现；但 overall offline eval 仍 blocked，阻塞面转移到 ghost completion action patch shape 和 docs QA evidence-gap 的 status/risk 边界。",
-    "next_step": "下一步不应继续扩 `suggest_flowsheet_edits` builder 或直接切模型尺寸，而应推进可组合的 task-scoped 结构化输出策略：保留 suggest edits builder，同时补齐 ghost completion 的 action patch 组装边界和 docs QA 的 evidence-gap status/risk 约束，再跑同一 v2 非重叠 holdout 对照。"
+    "status": "task_scoped_builder_ready_for_local_v2_probe",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过，但 `suggest_flowsheet_edits` 仍 blocked。真实本地 `--build-suggest-edits-response` 轨已确认 `suggest_flowsheet_edits` 2/2 task-valid 且 offline eval 全指标通过，但 overall 阻塞面转移到 ghost completion action patch shape 和 docs QA evidence-gap status/risk。当前已实现可组合的 `--build-task-scoped-response` 实验轨，并用 v2 golden smoke 验证 6/6 schema/task-valid、offline eval `no_promotion_planned`。",
+    "next_step": "下一步应由用户在同一 v2 非重叠 holdout 上运行真实本地 `--build-task-scoped-response` 轨和 offline eval；若该组合轨通过，则路线收口到 task-scoped response builder / tooling 分工；若仍 blocked，再按剩余失败面决定 constrained/guided decoding 或 `minimind-v` / `3B` / `4B` 对照。"
   }
 }

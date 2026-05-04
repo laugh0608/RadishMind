@@ -439,6 +439,9 @@ def build_candidate_cost_budget(
             elif postprocess_policy.get("build_suggest_edits_response") is True:
                 builder_count = postprocess_policy.get("builder_output_count")
                 notes.append(f"Suggest-edits response builder was enabled; builder_output_count={builder_count}.")
+            elif postprocess_policy.get("build_task_scoped_response") is True:
+                builder_count = postprocess_policy.get("builder_output_count")
+                notes.append(f"Task-scoped response builder was enabled; builder_output_count={builder_count}.")
     return {
         "model_id": candidate_model["model_id"],
         "run_allowed": True,

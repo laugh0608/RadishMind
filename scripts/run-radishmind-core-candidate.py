@@ -126,6 +126,14 @@ def parse_args() -> argparse.Namespace:
             "CopilotResponse structure from the scaffold and preserve only model-authored natural-language fields."
         ),
     )
+    parser.add_argument(
+        "--build-task-scoped-response",
+        action="store_true",
+        help=(
+            "Experimental task-scoped response-builder split: assemble scaffold-derived structure for supported "
+            "RadishMind Core tasks and preserve only model-authored natural-language fields."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -435,6 +443,18 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
             if str(code).strip()
         ]
 
+    project = str(sample.get("project") or "")
+    task = str(sample.get("task") or "")
+    if project == "radish" and task == "answer_docs_question":
+        return [
+            {
+                "code": "INSUFFICIENT_EVIDENCE",
+                "message": notes or "当前证据不足，不能直接给出确定结论。",
+                "severity": "warning",
+                "citation_ids": citation_ids[:1],
+            }
+        ]
+
     issue_indices = expected_issue_indices(sample)
     if issue_indices:
         issues = []
@@ -461,18 +481,6 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
                 "code": str(expected_issue_fields.get("code") or "REVIEW_REQUIRED"),
                 "message": str(expected_issue_fields.get("message") or notes or "需要进一步审查输入上下文。"),
                 "severity": str(expected_issue_fields.get("severity") or "warning"),
-                "citation_ids": citation_ids[:1],
-            }
-        ]
-
-    project = str(sample.get("project") or "")
-    task = str(sample.get("task") or "")
-    if project == "radish" and task == "answer_docs_question":
-        return [
-            {
-                "code": "INSUFFICIENT_EVIDENCE",
-                "message": notes or "当前证据不足，不能直接给出确定结论。",
-                "severity": "warning",
                 "citation_ids": citation_ids[:1],
             }
         ]
@@ -1652,6 +1660,33 @@ def build_suggest_edits_response(
     return built, list(dict.fromkeys(paths))
 
 
+def build_task_scoped_response(
+    response: dict[str, Any] | None,
+    *,
+    sample: dict[str, Any],
+) -> tuple[dict[str, Any], list[str]]:
+    project = str(sample["project"])
+    task = str(sample["task"])
+    require(
+        (project, task) in TASK_RESPONSE_VALIDATORS,
+        f"task-scoped response builder only supports known eval tasks, got {project}/{task}",
+    )
+    built = build_response_scaffold(project=project, task=task, sample=sample)
+    paths = [
+        "$",
+        "$.answers",
+        "$.issues",
+        "$.proposed_actions",
+        "$.citations",
+        "$.status",
+        "$.risk_level",
+        "$.requires_confirmation",
+    ]
+    if isinstance(response, dict):
+        paths.extend(merge_natural_language_fields(built, response))
+    return built, list(dict.fromkeys(paths))
+
+
 def iter_selected_samples(
     source_eval_manifest: dict[str, Any],
     *,
@@ -1724,10 +1759,12 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         args.repair_hard_fields,
         args.inject_hard_fields,
         args.build_suggest_edits_response,
+        args.build_task_scoped_response,
     ]
     require(
         sum(1 for enabled in active_structured_variants if enabled) <= 1,
-        "--repair-hard-fields, --inject-hard-fields, and --build-suggest-edits-response are separate experiment variants; use only one per run",
+        "--repair-hard-fields, --inject-hard-fields, --build-suggest-edits-response, and "
+        "--build-task-scoped-response are separate experiment variants; use only one per run",
     )
     source_eval_manifest_path = normalize_repo_path(str(manifest["source_eval_manifest"]))
     require(source_eval_manifest_path is not None, "source_eval_manifest path is required")
@@ -1837,7 +1874,16 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 "provider_id": provider_id,
                 "error": validation_error,
             }
-            if args.build_suggest_edits_response and is_suggest_edits_sample(sample):
+            if args.build_task_scoped_response:
+                candidate_response, postprocessed_paths = build_task_scoped_response(
+                    invalid_candidate_response,
+                    sample=sample,
+                )
+                response_valid = True
+                response_source = f"{provider_id}+task_scoped_response_builder"
+                validation_error = None
+                builder_applied = True
+            elif args.build_suggest_edits_response and is_suggest_edits_sample(sample):
                 candidate_response, postprocessed_paths = build_suggest_edits_response(
                     invalid_candidate_response,
                     sample=sample,
@@ -1856,6 +1902,9 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         elif response_valid and args.build_suggest_edits_response and is_suggest_edits_sample(sample) and not builder_applied:
             candidate_response, postprocessed_paths = build_suggest_edits_response(candidate_response, sample=sample)
             response_source = f"{response_source}+suggest_edits_response_builder"
+        elif response_valid and args.build_task_scoped_response and not builder_applied:
+            candidate_response, postprocessed_paths = build_task_scoped_response(candidate_response, sample=sample)
+            response_source = f"{response_source}+task_scoped_response_builder"
         if response_valid and postprocessed_paths:
             postprocessed_output_count += 1
             for path in postprocessed_paths:
@@ -1927,6 +1976,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                                 if args.build_suggest_edits_response and is_suggest_edits_sample(sample)
                                 else {}
                             ),
+                            **({"build_task_scoped_response": True} if args.build_task_scoped_response else {}),
                             **({"repaired_paths": postprocessed_paths} if args.repair_hard_fields else {}),
                             **({"injected_paths": postprocessed_paths} if args.inject_hard_fields else {}),
                             **(
@@ -1934,6 +1984,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                                 if args.build_suggest_edits_response and is_suggest_edits_sample(sample)
                                 else {}
                             ),
+                            **({"task_scoped_builder_paths": postprocessed_paths} if args.build_task_scoped_response else {}),
                         }
                     }
                     if postprocessed_paths
@@ -2023,6 +2074,22 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 }
             }
             if args.build_suggest_edits_response
+            else {}
+        ),
+        **(
+            {
+                "postprocess_policy": {
+                    "build_task_scoped_response": True,
+                    "scope": (
+                        "Experimental task-scoped response-builder split: assembles scaffold-derived "
+                        "CopilotResponse structure for supported RadishMind Core tasks and preserves only "
+                        "model-authored natural-language fields. This is not raw model capability."
+                    ),
+                    "builder_output_count": postprocessed_output_count,
+                    "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
+                }
+            }
+            if args.build_task_scoped_response
             else {}
         ),
         "quality_gates": {
