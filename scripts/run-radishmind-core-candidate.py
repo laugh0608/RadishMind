@@ -602,13 +602,13 @@ def build_ghost_completion_scaffold(
     risk_level = get_expected_risk_level(sample, default="low")
     return {
         "kind": "ghost_completion",
-        "title": "生成合法 ghost completion 候选",
+        "title": "生成 ghost completion 候选",
         "target": {
             "type": "unit_port",
             "unit_id": target_unit_id,
             "port_key": port_key,
         },
-        "rationale": "仅从 legal_candidate_completions 中选择候选，作为可预览的编辑器 ghost。",
+        "rationale": "仅从候选补全列表中选择当前端口可预览的编辑器 ghost。",
         "patch": {
             "ghost_kind": str(candidate.get("ghost_kind") or "ghost_connection"),
             "candidate_ref": candidate_ref,
@@ -1665,10 +1665,21 @@ GENERIC_NATURAL_LANGUAGE_PLACEHOLDERS = (
 
 LEGAL_CANDIDATE_MISTRANSLATION_TERMS = (
     "法律候选",
+    "法律候选完成体",
     "合法法律",
+    "合法 ghost",
+    "合法的 ghost",
+    "合法 ghost completion",
+    "合法的 ghost completion",
+    "合法候选",
+    "合法的候选",
+    "合法候選",
+    "合法的候選",
     "法规",
     "法規",
+    "法定",
     "合规候选",
+    "合規候選",
 )
 
 

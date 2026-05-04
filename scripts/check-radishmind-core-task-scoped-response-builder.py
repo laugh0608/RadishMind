@@ -134,11 +134,11 @@ def main() -> int:
         "status": "ok",
         "project": "radishflow",
         "task": "suggest_ghost_completion",
-        "summary": "根据法律候选和法规要求，建议补齐 vapor outlet。",
+        "summary": "根据法律候选完成体选择合法的 ghost 完成体，以供用户预览并应用。",
         "answers": [
             {
                 "kind": "ghost_rationale",
-                "text": "法律候选显示 vapor_outlet 可以使用。",
+                "text": "在 legal_candidate_completions 中选择一个符合法规要求的 ghost 完成体。",
                 "citation_ids": [],
             }
         ],
@@ -146,9 +146,9 @@ def main() -> int:
         "proposed_actions": [
             {
                 "kind": "ghost_completion",
-                "title": "选择法规允许的候选",
+                "title": "生成合法 ghost completion 候选",
                 "target": {"type": "unit_port", "unit_id": "flash-2", "port_key": "vapor_outlet"},
-                "rationale": "法规要求选择 legal_candidate_completions 中的候选。",
+                "rationale": "确保所选 ghost 完成体符合法规要求，避免潜在风险。",
                 "patch": {},
                 "preview": {"accept_key": "Tab"},
                 "apply": {"command_kind": "accept_ghost_completion", "payload": {}},
@@ -168,7 +168,8 @@ def main() -> int:
     )
     assert_valid_response(runner, ghost_vapor_sample, built_ghost_vapor)
     guarded_text = json.dumps(built_ghost_vapor, ensure_ascii=False)
-    require("法律候选" not in guarded_text and "法规" not in guarded_text, "builder must reject legal/regulation mistranslation")
+    for forbidden_term in ("法律", "法规", "法規", "法定", "合法", "合规", "合規"):
+        require(forbidden_term not in guarded_text, f"builder must reject ghost mistranslation term: {forbidden_term}")
     require("$.summary" not in ghost_vapor_paths, "builder must not report rejected ghost summary as merged")
     require("$.answers[0].text" not in ghost_vapor_paths, "builder must not report rejected ghost answer as merged")
     require(

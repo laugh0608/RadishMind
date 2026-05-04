@@ -193,12 +193,12 @@
       "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
       "project": "radishflow",
       "task": "suggest_ghost_completion",
-      "total_message_chars": 7492,
+      "total_message_chars": 7466,
       "request_json_chars": 1965,
-      "output_contract_chars": 4496,
-      "scaffold_json_chars": 1458,
-      "prompt_scaffold_json_chars": 1458,
-      "response_scaffold_json_chars": 1605,
+      "output_contract_chars": 4470,
+      "scaffold_json_chars": 1432,
+      "prompt_scaffold_json_chars": 1432,
+      "response_scaffold_json_chars": 1579,
       "compact_scaffold_reduction_chars": 147,
       "compact_scaffold_copy_marker_count": 3,
       "hard_field_freeze_json_chars": 1005,
@@ -212,14 +212,14 @@
       "scaffold_payload_chars": {
         "answers": 216,
         "issues": 2,
-        "proposed_actions": 821,
+        "proposed_actions": 795,
         "action_patches": 153,
         "citations": 139
       },
       "response_scaffold_payload_chars": {
         "answers": 216,
         "issues": 2,
-        "proposed_actions": 821,
+        "proposed_actions": 795,
         "action_patches": 153,
         "citations": 139
       }
@@ -228,12 +228,12 @@
       "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
       "project": "radishflow",
       "task": "suggest_ghost_completion",
-      "total_message_chars": 9451,
+      "total_message_chars": 9399,
       "request_json_chars": 3196,
-      "output_contract_chars": 5327,
-      "scaffold_json_chars": 2289,
-      "prompt_scaffold_json_chars": 2289,
-      "response_scaffold_json_chars": 2494,
+      "output_contract_chars": 5275,
+      "scaffold_json_chars": 2237,
+      "prompt_scaffold_json_chars": 2237,
+      "response_scaffold_json_chars": 2442,
       "compact_scaffold_reduction_chars": 205,
       "compact_scaffold_copy_marker_count": 2,
       "hard_field_freeze_json_chars": 1005,
@@ -247,14 +247,14 @@
       "scaffold_payload_chars": {
         "answers": 214,
         "issues": 2,
-        "proposed_actions": 1650,
+        "proposed_actions": 1598,
         "action_patches": 301,
         "citations": 139
       },
       "response_scaffold_payload_chars": {
         "answers": 214,
         "issues": 2,
-        "proposed_actions": 1650,
+        "proposed_actions": 1598,
         "action_patches": 301,
         "citations": 139
       }

@@ -412,6 +412,8 @@ repaired 观测结论：
 
 当前已补首轮自然语言 merge/fallback guardrail：task-scoped builder 在合并模型自然语言字段前会拒绝通用占位句，以及 `suggest_ghost_completion` 中把 `legal_candidate_completions` 误译为法律/法规语义的文本；同时为 `answer_docs_question` 和 `suggest_ghost_completion` 生成任务感知 fallback，避免拒绝后回落到占位文本。`scripts/check-radishmind-core-task-scoped-response-builder.py` 已覆盖 docs source-conflict 占位 answer 与 ghost vapor 法律/法规误译两个真实风险，并保持 ambiguous ghost patch 与 docs evidence-gap status/risk 结构边界。v2 `golden_fixture` guardrail smoke 仍为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=6`，offline eval 仍为 `no_promotion_planned`。下一步需要用户在同一 v2 非重叠 holdout 上重跑真实本地 `--build-task-scoped-response` 轨，确认 guardrail 后的真实模型输出仍通过机器指标，并抽查 fallback 是否替代了坏自然语言。
 
+用户随后重跑同一 v2 非重叠 holdout 的真实本地 `--build-task-scoped-response` 轨与 offline eval。机器指标仍通过：candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`task_validation_attempted=6`、`builder_output_count=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、`json_extracted_count=6`、总生成耗时约 `779.401s`、平均 `129.9s`；offline eval 三组任务所有 blocking metrics 均为 `1.0`，整体仍是 `promotion_status=no_promotion_planned`。但人工复核目标未达成：`docs-faq-forum-conflict` 的 answer text 仍残留 `给出可展示给用户的回答。`，`ghost flash vapor` 仍残留 `法律候选完成体`、`合法 ghost completion` 与 `法规要求` 等误译。根因是首轮 guardrail 词表和回归样例过窄，且 ghost scaffold fallback 自身使用了“合法 ghost completion”措辞。当前已补强为真实失败面回归：拒绝 `法律候选完成体`、`符合法规要求`、`生成合法 ghost completion 候选` 等变体，并将 ghost scaffold fallback 改为不含法律/合法语义的候选补全描述；deterministic guardrail smoke 和 offline eval 仍通过。下一步仍需用户再跑修正后的真实本地轨，不能把本轮自然语言复核视为通过。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
