@@ -97,5 +97,6 @@ python3 scripts/build-copilot-training-samples.py \
 
 - 优先复用现有 `candidate output -> offline eval` 入口
 - 继续保留 raw / repaired 双轨、同 timeout、`tmp/` artifact 禁入仓
-- 先比较 raw baseline、prompt-time hard-field freeze、`--inject-hard-fields` 硬字段外部注入，以及后续 constrained/guided decoding 这类更强输出约束手段
-- 只有当更强约束仍不能显著改善 raw，才把下一步主线推进到 `minimind-v` / `3B` / `4B` 对照
+- 已比较 raw baseline、prompt-time hard-field freeze、`--inject-hard-fields` 硬字段外部注入、`--build-suggest-edits-response` 单任务 builder 与 `--build-task-scoped-response` 组合 builder 轨
+- 2026-05-04 的阶段结论是：hard-field injection 有用但不足，suggest edits 适合 response builder / tooling 分工，task-scoped builder 能消除当前三类 eval task 的结构化阻塞
+- 后续优先扩大 task-scoped builder 样本面，并维护自然语言 merge/fallback guardrail 与 deterministic audit；只有当 builder/tooling 路线在更大样本面或人工复核中不能成立，才把下一步主线推进到 constrained/guided decoding 或 `minimind-v` / `3B` / `4B` 对照

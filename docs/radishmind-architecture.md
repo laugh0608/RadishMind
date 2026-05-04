@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-05-01
+更新时间：2026-05-04
 
 ## 架构目标
 
@@ -181,7 +181,8 @@ artifact 引用 / 生成结果 metadata
 - `SmolVLM` 当前作为轻量本地对照组，优先承担低资源回归与部署下限比较
 - `RadishMind-Core` 的硬件友好目标应优先服务 `32GB` 级本地开发 / 小型部署机：默认 `3B` / `4B`，增强档 `7B`，不把 `14B` / `32B` 写成默认部署基线
 - 图片生成 backend 应按需加载或独立进程运行，不与较大的 VLM / Core 模型默认同时常驻
-- 当前 `Qwen2.5-1.5B-Instruct` 只作为本地 `local_transformers` 观测基座使用：raw 在 9 fixture、full holdout 与 v2 非重叠 holdout 上仍 blocked；`--repair-hard-fields` repaired 只能作为结构化后处理实验，不代表 raw 模型能力、训练准入或上层接入就绪
+- 当前 `Qwen2.5-1.5B-Instruct` 只作为本地 `local_transformers` 观测基座使用：raw 在 9 fixture、full holdout 与 v2 非重叠 holdout 上仍 blocked；`--repair-hard-fields` repaired、`--inject-hard-fields` 和 response builder 轨都只能作为结构化输出治理实验，不代表 raw 模型能力、训练准入或上层接入就绪
+- 2026-05-04 的 v2 非重叠 holdout 决策实验显示，`--build-task-scoped-response` 能在三类现有 eval task 上通过机器阻塞指标，并通过首轮自然语言 guardrail / audit smoke；这说明当前路线应优先把结构化协议边界交给 task-scoped response builder / tooling 承接，再决定是否需要扩大模型尺寸，而不是把 v2 raw 失败直接归因到模型容量
 
 ### 5. Rule Validation & Response Builder
 
@@ -199,6 +200,8 @@ artifact 引用 / 生成结果 metadata
 - 模型输出默认是建议，不直接成为最终状态
 - 高风险动作必须带 `requires_confirmation`
 - 若模型证据不足，应允许退化为检索或模板式回答
+- 对结构化 CopilotResponse，当前更稳妥的分工是：模型保留任务意图、解释文本、候选理由和置信度，response builder 负责 `status / risk_level / requires_confirmation / citations / proposed_actions / patch / issue code` 等可规则化字段
+- `--build-task-scoped-response` 当前只作为 M4 决策实验轨和 tooling 路线证据，不升级为 production contract；扩大样本面前必须继续维护自然语言 merge/fallback guardrail 和 deterministic audit，避免 schema/task 指标通过掩盖通用占位文本、误译或来源语境缺失
 
 ### 6. Data / Evaluation / Training Pipeline
 
@@ -241,7 +244,7 @@ artifact 引用 / 生成结果 metadata
 - 对 `RadishFlow suggest_flowsheet_edits`，评测管线还应把响应稳定性当作一等能力校验，而不只检查字段存在：至少需要显式覆盖 `issues`、顶层 `citations`、`issues[*].citation_ids`、`candidate_edit` 动作顺序、`candidate_edit.citation_ids` 以及 `patch` 内部多层键/数组的稳定顺序
   - 对 `RadishFlow suggest_flowsheet_edits`，除顺序回归外，当前也已允许把外部 `candidate_response_record` 回灌到同一条 audit / regression 链；仓库内除 `2026-04-12-radishflow-suggest-edits-poc-mock-v1` 这批 3 样本 mock PoC 外，还已把真实主线推进到 `v93`，并全部接入 `check-repo`。其中现有 `33/33` 条离线样本都至少已有一条真实批次覆盖，九组高价值真实扩样入口已完成阶段性收口；下一步不再以继续新增真实批次数量为主，而应把这些资产上提为服务/API 改动的验收门禁
   - 对 `RadishFlow suggest_flowsheet_edits`，task-level canonicalization 当前也已正式承接几类只在真实 teacher 输出中暴露出来的任务漂移：`flowdoc-*` fallback citation id 已收口为沿 `FlowsheetDocument` 原始对象索引稳定编号，`flow_rate` / `flow_rate_kg_h` / `mass_flow_kg_per_h` / `mass_flow_kg_h` / `mass_flow_rate_kg_h` 等近义占位会统一归一，`outlet_temperature_target_c` / `outlet_temperature_target` / `target_outlet_temperature_c` 与 `operating pressure` / `pressure target` 这类 message 线索也会回收到稳定参数名，路径式 placeholder 会回收到稳定字段名，多规格 `spec_placeholders` 会稳定收口到 `temperature_c -> pressure_kpa -> flow_rate_kg_per_h`，`STREAM_DISCONNECTED` 与 `STREAM_SPEC_MISSING` 等 error issue 的 `issues[*].citation_ids` 会与 `diag -> artifact -> snapshot` 或 `diag -> artifact -> supporting artifact -> snapshot` 正式口径对齐，reconnect patch 里的 `connection_placeholder` 会稳定补回 `retain_existing_source_binding=true`，跨对象真实样本中的 issue/action/top-level citation 交错顺序也会统一收口到 `diagnostic -> target artifact -> supporting artifact -> snapshot`；其中 connected-unit contextual warning 的并入边界也已进一步收紧为“只在同一响应仍存在其他 actionable edit 时才保留”。同时，若真实输出出现多余闭合 brace、未转义中文引号、错误 `flowdoc-*` 引用编号、warning citation 漂移、同 target warning 遗漏到首条 action citation 组、placeholder-only patch 误保留 `parameter_updates`、或 `efficiency_percent` review range 偏离既有 `[60, 85]` 正式口径，也会优先在 provider/runtime 层做窄范围修复并回收到当前样本的 canonical 输出；`apiyi_ch` 在 triad 路径上的超时治理也已收紧为样本级 `210s` override，而不是 profile 全局默认超时提升
-- 对 `RadishMind-Core` candidate 输出，评测管线当前已从单一 fixture-run 扩展到 raw / repaired 双轨、candidate-output offline eval、timeout probe、planned holdout、full holdout 与 v2 非重叠 holdout。所有真实本地候选输出继续只落到 `tmp/`；committed 资产只保留 manifest、summary、实验记录和文档。v2 非重叠 holdout 已暴露复杂跨对象参数 patch 仍是主要阻塞面，后续应优先复核 scaffold 与模型 action planning，而不是直接进入训练。
+- 对 `RadishMind-Core` candidate 输出，评测管线当前已从单一 fixture-run 扩展到 raw / repaired、hard-field injection、suggest-edits builder、task-scoped builder、candidate-output offline eval、timeout probe、planned holdout、full holdout 与 v2 非重叠 holdout。所有真实本地候选输出继续只落到 `tmp/`；committed 资产只保留 manifest、summary、实验记录和文档。2026-05-04 的结论是：raw 仍 blocked，hard-field injection 有用但不足，单任务 suggest-edits builder 能消除该任务阻塞，task-scoped builder 能消除当前三类任务的结构化阻塞；后续重点应先扩大 builder/tooling 样本面与自然语言审计，而不是直接进入训练或模型扩尺寸。
 
 ## 当前文件与脚本组织约定
 
