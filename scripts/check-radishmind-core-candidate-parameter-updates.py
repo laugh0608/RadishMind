@@ -23,6 +23,9 @@ CROSS_OBJECT_HOLDOUT_SAMPLE = (
     REPO_ROOT
     / "datasets/eval/radishflow/suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.json"
 )
+COMPRESSOR_ORDERING_HOLDOUT_SAMPLE = (
+    REPO_ROOT / "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json"
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -71,6 +74,31 @@ def main() -> int:
     require(
         parameter_updates["opening_percent"]["suggested_maximum"] == 85,
         "opening_percent suggested_maximum must preserve the declared numeric threshold",
+    )
+
+    compressor_ordering_sample = load_json(COMPRESSOR_ORDERING_HOLDOUT_SAMPLE)
+    compressor_ordering_parameter_updates = extract_ordered_parameter_updates(
+        compressor_ordering_sample,
+        action_index=0,
+        iter_must_have_path_values=iter_must_have_path_values,
+    )
+    require(
+        compressor_ordering_parameter_updates == {
+            "outlet_pressure_target_kpa": {
+                "action": "review_and_raise_margin",
+                "minimum_delta_kpa": 90,
+                "reference_stream_id": "feed-9",
+            },
+            "minimum_flow_bypass_percent": {
+                "action": "raise_to_anti_surge_review_floor",
+                "suggested_minimum": 8,
+            },
+            "efficiency_percent": {
+                "action": "clamp_to_review_range",
+                "suggested_range": [65, 85],
+            },
+        },
+        "full-holdout compressor ordering sample must preserve numeric detail values, not boolean placeholders",
     )
 
     runner = load_candidate_runner()

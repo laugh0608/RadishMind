@@ -16,7 +16,7 @@
 
 当前 `task-scoped builder` 扩样前的复核口径已经单独落到 `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json`。该文件只固定 planned review 维度、planned batch 和 acceptance policy，不声明任何真实 `reviewed_pass`，也不允许把 builder / repaired 轨误写成 raw 晋级证据。
 
-2026-05-05 已审计用户本地完成的 full-holdout-9 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 产物：candidate summary 为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`；offline eval 三个任务组 blocking metrics 全部通过且 `promotion_status=no_promotion_planned`；自然语言 audit 为 `pass`、`violation_count=0`，但记录 `warning_count=3` 与 `fallback_natural_field_rate=0.142857`。该结果强化了 task-scoped response builder / tooling 分工路线信号，但仍不是 raw 模型晋级、训练准入或 production contract 接受证据；review plan 中的人工复核仍必须继续保持 pending，尤其要复核 citation 解释质量、事实充分性、fallback 可接受度、risk/advisory 边界与 holdout leakage。
+2026-05-05 已审计用户本地完成的 full-holdout-9 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 产物：candidate summary 原为 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，自然语言 audit 为 `pass`、`violation_count=0`。但人工抽查发现 `compressor-parameter-update` 的 `minimum_delta_kpa` 与 `suggested_minimum` 仍以布尔 `true` 占位，说明旧 evaluation 只断言了 key presence/order，未断言数值事实。当前已收紧该样本的 numeric detail 断言；旧 `tmp/` full-holdout builder 产物在新断言下 offline eval 变为 `blocked`，因此上一轮 full-holdout 机器通过结论作废，必须按 tightened fixture 重跑后再进入人工 review record。
 
 ## 评估对象
 
@@ -113,7 +113,7 @@ repaired 观测结论：
 - 当前已新增 `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json`，记录 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨接入 `radishmind-core-offline-eval-run` 后的观察摘要；repaired 在当前 9 条 fixture 上达到 `schema_valid_rate=1.0` 与 `task_valid_rate=1.0`，但修复了 `8/9` 条输出，因此不得视为 raw 能力晋级
 - repaired 结果只能证明后处理链路可行，不能替代 raw 模型能力；后续晋级判断必须同时保留 raw summary、repaired summary、修复路径统计、样本覆盖说明和人工复核结论
 - task-scoped builder 的后续扩样也遵循同一原则：机器通过、自然语言 audit 通过和 planned review 口径固定，都只能证明 tooling 路线可继续观察，不能直接替代 raw 晋级或训练准入判断
-- 2026-05-05 full-holdout-9 task-scoped builder 本地轨已达到 `9/9` schema/task valid，offline eval blocking metrics 全通过，自然语言 audit `violation_count=0`；抽查同时发现 `compressor-parameter-update` 虽通过机器断言，但 `minimum_delta_kpa` 与 `suggested_minimum` 仍以布尔 `true` 占位而非 golden 数值表达，docs QA action title 也出现短标题 warning。因此该结果只能推进“机器门禁通过、人工复核待补”的 review 状态，不能标记 `reviewed_pass`
+- 2026-05-05 full-holdout-9 task-scoped builder 本地轨暴露了 eval coverage gap：旧机器门禁曾达到 `9/9` schema/task valid，但 `compressor-parameter-update` 的 `minimum_delta_kpa` 与 `suggested_minimum` 仍以布尔 `true` 占位而非 golden 数值表达。当前已补 `$...minimum_delta_kpa=90`、`$...reference_stream_id="feed-9"` 与 `$...suggested_minimum=8` 断言，并确认旧产物在 tightened fixture 下被 offline eval 阻塞；下一步必须重跑真实本地 full-holdout builder，不能沿用旧 `9/9` 结论
 - `run-radishmind-core-candidate.py` 已为 `local_transformers` 增加显式 `--sample-timeout-seconds` 单样本超时边界；timeout 会记录为 invalid candidate output、`generation_timeout` 失败分类和 generation summary 的 `timeout_count`，避免单条本地生成长时间阻塞整批评测
 
 当前 `Qwen2.5-1.5B-Instruct` 的 `local_transformers` timeout 推荐档位：

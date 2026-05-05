@@ -180,7 +180,7 @@
       "track_kind": "task_scoped_response_builder_full_holdout",
       "model": "Qwen2.5-1.5B-Instruct",
       "sample_set": "full-holdout-9",
-      "promotion_status": "no_promotion_planned",
+      "promotion_status": "blocked_after_fixture_tightening",
       "machine_metrics": {
         "schema_valid_rate": 1.0,
         "task_valid_rate": 1.0,
@@ -206,11 +206,13 @@
         "warning_count": 3,
         "fallback_natural_field_rate": 0.142857
       },
-      "human_review_status": "review_required_before_expansion_acceptance",
-      "review_followup_count": 3,
+      "human_review_status": "changes_required_and_rerun_required",
+      "review_followup_count": 5,
+      "tightened_fixture_status": "implemented_without_model_rerun",
+      "stale_artifact_promotion_status": "blocked",
       "not_raw_capability_evidence": true,
       "not_training_acceptance_evidence": true,
-      "route_signal": "broader_tooling_track_signal_strengthened_without_raw_promotion"
+      "route_signal": "broader_tooling_track_requires_tightened_full_holdout_rerun"
     }
   ],
   "repository_gates": [
@@ -237,10 +239,11 @@
     "candidate_outputs_remain_uncommitted": true,
     "next_step_is_broader_builder_review_not_model_size_jump": true,
     "full_holdout_builder_is_not_raw_promotion": true,
-    "full_holdout_human_review_remains_pending": true
+    "full_holdout_previous_artifact_is_stale": true,
+    "full_holdout_rerun_required_before_review_pass": true
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_machine_passed_with_human_review_pending",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 review plan 补齐 full-holdout-9 的人工 review records，重点复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage，特别是 `compressor-parameter-update` 的 numeric detail 值和 docs QA 短标题 warning。"
+    "status": "task_scoped_builder_full_holdout_tightened_eval_requires_rerun",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把旧 builder 结果当作 raw 模型晋级或训练准入证据；应先让用户按 full-holdout runbook 重跑 `--build-task-scoped-response` 本地轨，再重新执行 offline eval 与 natural-language audit。重跑后再补 full-holdout-9 的人工 review records，继续复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage。"
   }
 }
