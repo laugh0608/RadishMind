@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_task_scoped_builder_full_holdout_runbook",
+  "runbook_id": "radishmind-core-task-scoped-builder-full-holdout-runbook-v0",
+  "status": "planned",
+  "phase": "M4-preparation",
+  "created_for": "task-scoped-response-builder-full-holdout-review",
+  "does_not_run_models": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_review_pass": true,
+  "review_plan": "training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json",
+  "sample_set_id": "full-holdout-9",
+  "candidate_track": "--build-task-scoped-response",
+  "model": {
+    "provider": "local_transformers",
+    "model_dir": "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+    "sample_timeout_seconds": 300,
+    "does_not_download_model_artifacts": true
+  },
+  "input_manifests": {
+    "candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+    "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+    "review_plan": "training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json"
+  },
+  "artifact_paths": {
+    "candidate_output_dir": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300",
+    "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/summary.json",
+    "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-run.json",
+    "natural_language_audit": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-natural-language-audit.json"
+  },
+  "official_batch_run": {
+    "purpose": "Generate one integrated 9-sample candidate summary for offline eval and natural-language audit.",
+    "command_args": [
+      "python3",
+      "scripts/run-radishmind-core-candidate.py",
+      "--manifest",
+      "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+      "--provider",
+      "local_transformers",
+      "--model-dir",
+      "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+      "--output-dir",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300",
+      "--summary-output",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "--allow-invalid-output",
+      "--validate-task",
+      "--build-task-scoped-response",
+      "--sample-timeout-seconds",
+      "300"
+    ],
+    "sample_id": "all_full_holdout_9_samples"
+  },
+  "offline_eval": {
+    "purpose": "Read the generated candidate summary and response files without rerunning the model.",
+    "command_args": [
+      "python3",
+      "scripts/run-radishmind-core-offline-eval.py",
+      "--manifest",
+      "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+      "--candidate-summary",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "--candidate-output-dir",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300",
+      "--output",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-run.json",
+      "--check-output",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-run.json"
+    ]
+  },
+  "natural_language_audit": {
+    "purpose": "Audit generated task-scoped builder natural-language fields without rerunning the model.",
+    "command_args": [
+      "python3",
+      "scripts/audit-radishmind-core-task-scoped-natural-language.py",
+      "--manifest",
+      "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+      "--candidate-summary",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "--candidate-output-dir",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300",
+      "--output",
+      "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-natural-language-audit.json"
+    ]
+  },
+  "single_sample_locator_runs": [
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-flash-inlet-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radishflow-suggest-ghost-completion-flash-inlet-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-ghost-completion-flash-inlet-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-ghost-completion-flash-inlet-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-heater-stream-name-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radishflow-suggest-ghost-completion-heater-stream-name-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-ghost-completion-heater-stream-name-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-ghost-completion-heater-stream-name-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radishflow-suggest-ghost-completion-mixer-standard-outlet-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radish-answer-docs-question-attachment-mixed-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radish-answer-docs-question-attachment-mixed-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radish-answer-docs-question-attachment-mixed-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radish-answer-docs-question-attachment-mixed-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radish-answer-docs-question-docs-attachments-faq-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radish-answer-docs-question-docs-attachments-faq-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radish-answer-docs-question-docs-attachments-faq-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radish-answer-docs-question-docs-attachments-faq-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    },
+    {
+      "sample_id": "radish-answer-docs-question-navigation-001",
+      "command_args": [
+        "python3",
+        "scripts/run-radishmind-core-candidate.py",
+        "--manifest",
+        "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "--provider",
+        "local_transformers",
+        "--model-dir",
+        "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+        "--sample-id",
+        "radish-answer-docs-question-navigation-001",
+        "--output-dir",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radish-answer-docs-question-navigation-001",
+        "--summary-output",
+        "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-single/radish-answer-docs-question-navigation-001/summary.json",
+        "--allow-invalid-output",
+        "--validate-task",
+        "--build-task-scoped-response",
+        "--sample-timeout-seconds",
+        "300"
+      ]
+    }
+  ],
+  "review_sequence": [
+    "Run official_batch_run to produce the integrated 9-sample candidate summary.",
+    "Run offline_eval against the integrated candidate summary and response directory.",
+    "Run natural_language_audit against the same integrated candidate summary and response directory.",
+    "Inspect candidate_summary, offline_eval_run, natural_language_audit, and targeted candidate response files under tmp/.",
+    "Do not update the review plan to reviewed_pass without reviewer, reviewed_at, per-dimension results, and leakage decision."
+  ],
+  "acceptance_expectations": {
+    "candidate_summary": {
+      "sample_count": 9,
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "timeout_count": 0,
+      "builder_output_count": 9
+    },
+    "offline_eval": {
+      "promotion_status": "no_promotion_planned",
+      "blocking_metrics_must_pass": true
+    },
+    "natural_language_audit": {
+      "violation_count": 0,
+      "fallback_usage_must_be_reported": true
+    }
+  },
+  "artifact_policy": {
+    "committed_allowed": [
+      "runbook",
+      "post-run summary after explicit review"
+    ],
+    "committed_disallowed": [
+      "candidate responses",
+      "provider raw dump",
+      "large jsonl",
+      "model weights",
+      "checkpoint",
+      "adapter binary"
+    ],
+    "generated_outputs_default_location": "tmp/"
+  }
+}

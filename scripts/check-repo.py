@@ -1099,6 +1099,7 @@ def main() -> int:
     run_python_script("check-radishmind-core-suggest-edits-response-builder.py", [])
     run_python_script("check-radishmind-core-task-scoped-response-builder.py", [])
     run_python_script("check-radishmind-core-task-scoped-builder-review-plan.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-full-holdout-runbook.py", [])
     run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])

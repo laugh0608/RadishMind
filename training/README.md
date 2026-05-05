@@ -26,9 +26,11 @@
 - `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json` 固定 task-scoped builder 扩样前的 planned review 维度、批次和准入 / 阻断规则；它只做计划，不记任何真实 `reviewed_pass`
 - `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json` 是首个本地 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨离线评测观察摘要；它只记录指标、修复路径和 `tmp/` artifact 位置，不提交候选输出本体
 - `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json` 是当前 `M4` 主线的决策型实验骨架，用于固定“结构化输出约束是否足以改变路线判断”这一问题的样本面、对照变体、退出条件和本地复跑命令
+- `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json` 固定 full-holdout-9 task-scoped builder 的本地执行清单、`tmp/` 产物路径、offline eval 和自然语言 audit 顺序；它只描述计划，不声明结果
 - `scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json` 是当前轻量 holdout 观测入口，从 planned holdout split 中各取 1 条主任务样本；真实本地运行继续使用 raw / repaired 双轨、同一 `300s` timeout、`--allow-invalid-output` 和 `--validate-task`
 - `scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json` 分别固定完整 planned holdout 和 6 条非重叠 holdout probe；当前观测结论是 full holdout repaired fix3 与 2026-05-04 v2 repaired 轨都可作为后处理链路证据，但 raw 仍 blocked，因此训练准入不能只看 repaired pass
 - `scripts/check-radishmind-core-task-scoped-builder-review-plan.py` 已接入 `check-repo`，用于固定该 review plan 只保持 planned 状态，不伪造 reviewer、timestamp 或 `reviewed_pass`
+- `scripts/check-radishmind-core-task-scoped-builder-full-holdout-runbook.py` 已接入 `check-repo`，用于固定 full-holdout-9 runbook 的必需参数、样本覆盖、`tmp/` 产物边界和非 raw 晋级口径
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
 
@@ -103,3 +105,4 @@ python3 scripts/build-copilot-training-samples.py \
 - 2026-05-04 的阶段结论是：hard-field injection 有用但不足，suggest edits 适合 response builder / tooling 分工，task-scoped builder 能消除当前三类 eval task 的结构化阻塞
 - 后续优先扩大 task-scoped builder 样本面，并维护自然语言 merge/fallback guardrail 与 deterministic audit；只有当 builder/tooling 路线在更大样本面或人工复核中不能成立，才把下一步主线推进到 constrained/guided decoding 或 `minimind-v` / `3B` / `4B` 对照
 - 当前 task-scoped builder 扩样前复核口径已单独落到 `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json`，后续扩大样本面前必须先满足该 planned review 维度和阻断规则
+- full-holdout-9 的执行准备已落到 `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json`；真实本地模型命令仍由开发者在本机终端执行，AI 后续只读取 `tmp/` 下 summary、offline eval、audit 与候选 response 做审计

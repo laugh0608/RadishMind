@@ -423,6 +423,8 @@ repaired 观测结论：
 
 当前又补 `scripts/check-radishmind-core-structured-output-run-set.py` 与 `scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json`，把上述 v2 多轨真实观测从长实验记录抽成仓库级 run-set 门禁。该门禁只读取 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，不访问 `tmp/` 产物、不运行本地模型、不下载权重；它固定 raw / repaired / hard-field injection / suggest-edits builder / task-scoped builder / fixed guardrail 六条轨道的关键指标、`promotion_status`、`timeout_count`、`builder_output_count`、人工复核状态和 route signal。由此可以防止后续把 repaired 或 builder 通过误写成 raw 晋级，也防止遗漏“下一步应扩大 task-scoped builder 样本面与自然语言 review，而不是直接切 `3B/4B`”这个阶段结论。
 
+当前已进一步补 `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json` 与 `scripts/check-radishmind-core-task-scoped-builder-full-holdout-runbook.py`，把 full-holdout-9 的 task-scoped builder 本地执行清单、`tmp/` 产物路径、offline eval、自然语言 audit 和 9 条单样本定位命令固定成仓库级 planned runbook。该 runbook 不运行模型、不声明结果；真实执行仍由开发者在本机终端完成，AI 后续只读取 `tmp/` 下的 summary、offline eval run、audit 和必要 candidate response 进行审计。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。
@@ -453,6 +455,8 @@ repaired 观测结论：
 当前 planned 人工复核记录以 `training/datasets/copilot-training-review-record-v0.json` 固定模板和三组待复核批次：`golden_response` seed set、`teacher_capture` seed set 与 offline eval holdout 泄漏检查。当前 planned holdout split 以 `training/datasets/copilot-training-holdout-split-v0.json` 固定三条主任务各 3 条样本，并显式排除当前训练 seed manifest 已列入样本，避免训练 / 评测泄漏。
 
 `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json` 则单独固定 task-scoped builder 的扩样前复核维度、planned batch 和阻断规则；它只是一份 planned review 计划，不等于真实 reviewer 结论。
+
+`training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json` 则固定 full-holdout-9 的本地执行准备，确保下一轮真实 task-scoped builder 观测有统一命令、统一 `tmp/` 输出路径和统一审计顺序。
 
 这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 
