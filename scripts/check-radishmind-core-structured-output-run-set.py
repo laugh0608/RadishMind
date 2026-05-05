@@ -364,7 +364,7 @@ def build_audit_gate(experiment: dict[str, Any]) -> dict[str, Any]:
 def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
     observation = require_dict(experiment, "task_scoped_builder_full_holdout_9_post_run_review_2026_05_05")
     require(
-        observation.get("status") == "tightened_rerun_machine_and_deterministic_audit_passed_human_review_pending",
+        observation.get("status") == "tightened_rerun_reviewed_changes_required",
         "full-holdout post-run status mismatch",
     )
     require(observation.get("sample_set") == EXPECTED_FULL_HOLDOUT_SAMPLE_SET, "full-holdout sample set mismatch")
@@ -404,19 +404,42 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
 
     manual_spot_check = require_dict(observation, "manual_spot_check")
     require(
-        manual_spot_check.get("status") == "review_required_before_expansion_acceptance",
+        manual_spot_check.get("status") == "reviewed_changes_required",
         "full-holdout manual spot-check status mismatch",
     )
     checked_samples = require_list(manual_spot_check, "checked_samples")
-    require(len(checked_samples) >= 4, "full-holdout manual spot-check must record sampled responses")
+    require(len(checked_samples) == 9, "full-holdout manual spot-check must record all reviewed responses")
     followups = require_list(manual_spot_check, "review_blockers_or_followups")
     require(followups, "full-holdout manual spot-check must record review followups")
     joined_followups = "\n".join(str(item) for item in followups)
     require("boolean `true`" in joined_followups, "full-holdout review followups must preserve boolean detail caveat")
     require("blocker is closed" in joined_followups, "full-holdout review followups must close boolean blocker")
-    require("very short" in joined_followups, "full-holdout review followups must preserve short title warning")
-    require("Fallback usage" in joined_followups, "full-holdout review followups must preserve fallback caveat")
+    require("non-blocking" in joined_followups, "full-holdout review followups must accept short title warning")
+    require("formal review accepts" in joined_followups, "full-holdout review followups must preserve fallback acceptance")
     require("broad `artifact:flowsheet_document`" in joined_followups, "full-holdout review followups must preserve citation caveat")
+    require("Holdout leakage review passed" in joined_followups, "full-holdout review followups must preserve leakage decision")
+
+    human_review_records = require_dict(observation, "human_review_records")
+    require(
+        human_review_records.get("status") == "reviewed_changes_required",
+        "full-holdout human review records must require changes",
+    )
+    require(
+        human_review_records.get("record_path")
+        == "training/datasets/radishmind-core-task-scoped-builder-full-holdout-review-records-v0.json",
+        "full-holdout human review record path mismatch",
+    )
+    require(human_review_records.get("record_count") == 9, "full-holdout human review record count mismatch")
+    require(human_review_records.get("reviewed_pass_count") == 8, "full-holdout reviewed_pass count mismatch")
+    require(
+        human_review_records.get("reviewed_changes_required_count") == 1,
+        "full-holdout reviewed_changes_required count mismatch",
+    )
+    require(
+        human_review_records.get("expansion_acceptance")
+        == "blocked_until_compressor_citation_locator_is_tightened",
+        "full-holdout expansion acceptance decision mismatch",
+    )
 
     tightened_followup = require_dict(observation, "tightened_fixture_followup")
     require(tightened_followup.get("status") == "implemented_and_rerun_passed", "tightened followup status mismatch")
@@ -443,6 +466,9 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
         },
         "human_review_status": manual_spot_check.get("status"),
         "review_followup_count": len(followups),
+        "human_review_record_status": human_review_records.get("status"),
+        "reviewed_pass_count": human_review_records.get("reviewed_pass_count"),
+        "reviewed_changes_required_count": human_review_records.get("reviewed_changes_required_count"),
         "tightened_fixture_status": tightened_followup.get("status"),
         "stale_artifact_promotion_status": stale_check.get("promotion_status"),
         "tightened_rerun_promotion_status": rerun_check.get("promotion_status"),
@@ -455,14 +481,15 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
 def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     conclusion = require_dict(experiment, "current_conclusion")
     require(
-        conclusion.get("status") == "task_scoped_builder_full_holdout_tightened_rerun_machine_passed_with_human_review_pending",
+        conclusion.get("status") == "task_scoped_builder_full_holdout_reviewed_changes_required",
         "current conclusion status mismatch",
     )
     next_step = str(conclusion.get("next_step") or "")
     require("不应直接切 `3B/4B`" in next_step, "conclusion must reject direct 3B/4B switch")
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")
     require("训练准入证据" in next_step, "conclusion must reject training acceptance")
-    require("人工 review records" in next_step, "conclusion must require review records")
+    require("compressor-parameter-update" in next_step, "conclusion must require compressor followup")
+    require("broad `artifact:flowsheet_document`" in next_step, "conclusion must preserve broad citation blocker")
     return {
         "status": conclusion.get("status"),
         "next_step": conclusion.get("next_step"),
@@ -505,7 +532,8 @@ def build_summary() -> dict[str, Any]:
             "full_holdout_builder_is_not_raw_promotion": True,
             "full_holdout_previous_artifact_is_stale": True,
             "full_holdout_tightened_rerun_has_machine_pass": True,
-            "full_holdout_human_review_remains_pending": True,
+            "full_holdout_human_review_records_added": True,
+            "full_holdout_expansion_blocked_by_review": True,
         },
         "current_conclusion": conclusion,
     }
@@ -551,8 +579,13 @@ def assert_summary(summary: dict[str, Any]) -> None:
         "full-holdout builder must be separated from raw evidence",
     )
     require(
-        full_holdout.get("human_review_status") == "review_required_before_expansion_acceptance",
-        "full-holdout human review must remain pending",
+        full_holdout.get("human_review_status") == "reviewed_changes_required",
+        "full-holdout human review must require changes",
+    )
+    require(full_holdout.get("reviewed_pass_count") == 8, "full-holdout reviewed_pass_count mismatch")
+    require(
+        full_holdout.get("reviewed_changes_required_count") == 1,
+        "full-holdout reviewed_changes_required_count mismatch",
     )
     require(full_holdout.get("promotion_status") == "no_promotion_planned", "full-holdout must not promote")
     require(
