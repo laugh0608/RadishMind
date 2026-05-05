@@ -26,6 +26,7 @@
   "docs/adr/0001-branch-and-pr-governance.md",
   "docs/devlogs/README.md",
   "docs/devlogs/2026-W14.md",
+  "training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json",
   "contracts/README.md",
   "contracts/copilot-request.schema.json",
   "contracts/copilot-response.schema.json",

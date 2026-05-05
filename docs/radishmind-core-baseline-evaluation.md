@@ -14,6 +14,8 @@
 
 图片输入理解可以进入 `RadishMind-Core` 或视觉适配路线；图片像素生成不进入主模型参数目标，继续由 `RadishMind-Image Adapter` 和独立生图 backend 承接。
 
+当前 `task-scoped builder` 扩样前的复核口径已经单独落到 `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json`。该文件只固定 planned review 维度、planned batch 和 acceptance policy，不声明任何真实 `reviewed_pass`，也不允许把 builder / repaired 轨误写成 raw 晋级证据。
+
 ## 评估对象
 
 | 对象 | 角色 | 首轮定位 | 进入条件 | 退出或暂缓条件 |
@@ -108,6 +110,7 @@ repaired 观测结论：
 - 最新 1.5B repaired 生成观测为：`json_extracted_count=9`、`hit_max_new_tokens_count=0`、总输入 `16650` token、总输出 `3125` token、总生成耗时约 `656.847s`
 - 当前已新增 `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json`，记录 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨接入 `radishmind-core-offline-eval-run` 后的观察摘要；repaired 在当前 9 条 fixture 上达到 `schema_valid_rate=1.0` 与 `task_valid_rate=1.0`，但修复了 `8/9` 条输出，因此不得视为 raw 能力晋级
 - repaired 结果只能证明后处理链路可行，不能替代 raw 模型能力；后续晋级判断必须同时保留 raw summary、repaired summary、修复路径统计、样本覆盖说明和人工复核结论
+- task-scoped builder 的后续扩样也遵循同一原则：机器通过、自然语言 audit 通过和 planned review 口径固定，都只能证明 tooling 路线可继续观察，不能直接替代 raw 晋级或训练准入判断
 - `run-radishmind-core-candidate.py` 已为 `local_transformers` 增加显式 `--sample-timeout-seconds` 单样本超时边界；timeout 会记录为 invalid candidate output、`generation_timeout` 失败分类和 generation summary 的 `timeout_count`，避免单条本地生成长时间阻塞整批评测
 
 当前 `Qwen2.5-1.5B-Instruct` 的 `local_transformers` timeout 推荐档位：
@@ -448,6 +451,8 @@ repaired 观测结论：
 当前更大训练集合治理以 `training/datasets/copilot-training-dataset-governance-v0.json` 作为首个 manifest 草案，并由 `scripts/check-copilot-training-dataset-governance.py` 接入 `check-repo`。该 manifest 固定 candidate record 入选条件、分层抽样复核比例、人工复核状态、离线评测 holdout、质量门禁、artifact 禁入仓和退场条件；它不生成 JSONL、不下载模型、不启动训练。
 
 当前 planned 人工复核记录以 `training/datasets/copilot-training-review-record-v0.json` 固定模板和三组待复核批次：`golden_response` seed set、`teacher_capture` seed set 与 offline eval holdout 泄漏检查。当前 planned holdout split 以 `training/datasets/copilot-training-holdout-split-v0.json` 固定三条主任务各 3 条样本，并显式排除当前训练 seed manifest 已列入样本，避免训练 / 评测泄漏。
+
+`training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json` 则单独固定 task-scoped builder 的扩样前复核维度、planned batch 和阻断规则；它只是一份 planned review 计划，不等于真实 reviewer 结论。
 
 这些 smoke 只检查评估口径和边界是否稳定，不下载模型、不启动训练、不访问外部 provider。
 
