@@ -61,7 +61,7 @@
     "accepted_fallback_samples": [
       "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001"
     ],
-    "decision": "Do not expand the task-scoped builder sample surface yet. The tightened rerun machine gates pass, but compressor citation locator quality still requires a builder or fixture follow-up."
+    "decision": "Do not expand the task-scoped builder sample surface yet. The tightened rerun machine gates pass, and the compressor citation fixture/scaffold has now been tightened deterministically, but the local full-holdout builder artifacts have not yet been regenerated under the new citation assertions."
   },
   "records": [
     {
@@ -111,12 +111,14 @@
       "review_findings": [
         "The tightened numeric detail blocker is closed: `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` are present in the candidate action patch.",
         "Citation locator quality remains too broad: all answer, issue, and action citations point to `artifact:flowsheet_document` instead of indexed diagnostics, compressor unit config, suction stream, or latest snapshot evidence.",
+        "The source eval sample now declares indexed citation id/locator and answer/issue/action citation-order assertions, and the deterministic scaffold gate verifies `context:diagnostics[0..2]`, `artifact:flowsheet_document.units[0]`, and `context:latest_snapshot`; a new local full-holdout rerun is still required before this record can be promoted to `reviewed_pass`.",
         "The response keeps `risk_level=medium`, top-level `requires_confirmation=true`, action-level `requires_confirmation=true`, and advisory-only wording."
       ],
       "warnings": [
-        "Broad artifact citation is not acceptable as expansion evidence for this compressor sample."
+        "Broad artifact citation is not acceptable as expansion evidence for this compressor sample.",
+        "The deterministic fixture/scaffold fix is not raw promotion, training acceptance, or proof that the previous local builder artifact now satisfies citation review."
       ],
-      "exit_reason": "citation_locator_too_broad"
+      "exit_reason": "citation_fixture_tightened_pending_local_rerun"
     },
     {
       "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
@@ -308,7 +310,7 @@
     }
   ],
   "next_actions": [
-    "Tighten compressor citation scaffold so the builder can cite indexed diagnostics, the compressor unit config, suction stream evidence, and latest snapshot instead of only `artifact:flowsheet_document`.",
+    "Rerun full-holdout-9 task-scoped builder, offline eval, and natural-language audit under the tightened compressor citation fixture before changing this batch to `reviewed_pass`.",
     "Keep docs QA short-title warnings visible but non-blocking unless future UI copy review requires richer action labels.",
     "Do not use this builder run as raw model promotion, training acceptance, or production contract acceptance evidence."
   ]

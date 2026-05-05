@@ -102,6 +102,59 @@ def main() -> int:
     )
 
     runner = load_candidate_runner()
+    compressor_scaffold = runner.build_response_scaffold(
+        project=str(compressor_ordering_sample["project"]),
+        task=str(compressor_ordering_sample["task"]),
+        sample=compressor_ordering_sample,
+    )
+    compressor_citations = compressor_scaffold.get("citations")
+    require(isinstance(compressor_citations, list), "compressor scaffold citations must be a list")
+    require(
+        [citation.get("id") for citation in compressor_citations]
+        == ["diag-1", "diag-2", "diag-3", "flowdoc-stream-1", "flowdoc-unit-1", "snapshot-1"],
+        "compressor scaffold citation ids must use indexed diagnostics, suction stream, unit artifact, and snapshot",
+    )
+    require(
+        [citation.get("locator") for citation in compressor_citations]
+        == [
+            "context:diagnostics[0]",
+            "context:diagnostics[1]",
+            "context:diagnostics[2]",
+            "artifact:flowsheet_document.streams[0]",
+            "artifact:flowsheet_document.units[0]",
+            "context:latest_snapshot",
+        ],
+        "compressor scaffold citation locators must not fall back to broad artifact citation",
+    )
+    compressor_answers = compressor_scaffold.get("answers")
+    require(isinstance(compressor_answers, list) and compressor_answers, "compressor scaffold must keep answers")
+    require(
+        compressor_answers[0].get("citation_ids")
+        == ["diag-1", "diag-2", "diag-3", "flowdoc-stream-1", "flowdoc-unit-1", "snapshot-1"],
+        "compressor answer citation ids must preserve declared evidence order",
+    )
+    compressor_issues = compressor_scaffold.get("issues")
+    require(isinstance(compressor_issues, list) and len(compressor_issues) == 3, "compressor scaffold must keep three issues")
+    require(
+        [issue.get("citation_ids") for issue in compressor_issues]
+        == [
+            ["diag-1", "flowdoc-stream-1", "flowdoc-unit-1"],
+            ["diag-2", "flowdoc-unit-1"],
+            ["diag-3", "flowdoc-unit-1"],
+        ],
+        "compressor issue citation ids must stay diagnostic-first and unit-backed",
+    )
+    compressor_actions = compressor_scaffold.get("proposed_actions")
+    require(
+        isinstance(compressor_actions, list) and len(compressor_actions) == 1,
+        "compressor scaffold must keep one candidate action",
+    )
+    require(
+        compressor_actions[0].get("citation_ids")
+        == ["diag-1", "diag-2", "diag-3", "flowdoc-stream-1", "flowdoc-unit-1", "snapshot-1"],
+        "compressor action citation ids must preserve diagnostic/artifact/snapshot evidence order",
+    )
+
     scaffold = runner.build_response_scaffold(
         project=str(sample["project"]),
         task=str(sample["task"]),

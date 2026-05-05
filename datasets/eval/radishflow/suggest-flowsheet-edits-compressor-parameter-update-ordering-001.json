@@ -125,6 +125,18 @@
       "$.proposed_actions[0].patch.parameter_updates.minimum_flow_bypass_percent.suggested_minimum=8",
       "$.proposed_actions[0].patch.parameter_updates.efficiency_percent.action=\"clamp_to_review_range\"",
       "$.proposed_actions[0].patch.preserve_topology=true",
+      "$.citations[0].id=\"diag-1\"",
+      "$.citations[0].locator=\"context:diagnostics[0]\"",
+      "$.citations[1].id=\"diag-2\"",
+      "$.citations[1].locator=\"context:diagnostics[1]\"",
+      "$.citations[2].id=\"diag-3\"",
+      "$.citations[2].locator=\"context:diagnostics[2]\"",
+      "$.citations[3].id=\"flowdoc-stream-1\"",
+      "$.citations[3].locator=\"artifact:flowsheet_document.streams[0]\"",
+      "$.citations[4].id=\"flowdoc-unit-1\"",
+      "$.citations[4].locator=\"artifact:flowsheet_document.units[0]\"",
+      "$.citations[5].id=\"snapshot-1\"",
+      "$.citations[5].locator=\"context:latest_snapshot\"",
       "$.requires_confirmation=true",
       "$.risk_level=\"medium\""
     ],
@@ -179,6 +191,64 @@
         ]
       }
     ],
+    "ordered_citation_ids": [
+      "diag-1",
+      "diag-2",
+      "diag-3",
+      "flowdoc-stream-1",
+      "flowdoc-unit-1",
+      "snapshot-1"
+    ],
+    "ordered_answer_citation_sequences": [
+      {
+        "answer_index": 0,
+        "values": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
+    "ordered_issue_citation_sequences": [
+      {
+        "issue_index": 0,
+        "values": [
+          "diag-1",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "issue_index": 1,
+        "values": [
+          "diag-2",
+          "flowdoc-unit-1"
+        ]
+      },
+      {
+        "issue_index": 2,
+        "values": [
+          "diag-3",
+          "flowdoc-unit-1"
+        ]
+      }
+    ],
+    "ordered_action_citation_sequences": [
+      {
+        "action_index": 0,
+        "values": [
+          "diag-1",
+          "diag-2",
+          "diag-3",
+          "flowdoc-stream-1",
+          "flowdoc-unit-1",
+          "snapshot-1"
+        ]
+      }
+    ],
     "scoring_focus": [
       "schema_validity",
       "field_completeness",
@@ -202,6 +272,7 @@
           "diag-1",
           "diag-2",
           "diag-3",
+          "flowdoc-stream-1",
           "flowdoc-unit-1",
           "snapshot-1"
         ]
@@ -214,6 +285,7 @@
         "severity": "error",
         "citation_ids": [
           "diag-1",
+          "flowdoc-stream-1",
           "flowdoc-unit-1"
         ]
       },
@@ -272,6 +344,7 @@
           "diag-1",
           "diag-2",
           "diag-3",
+          "flowdoc-stream-1",
           "flowdoc-unit-1",
           "snapshot-1"
         ]
@@ -298,6 +371,13 @@
         "label": "诊断 UNIT_PARAMETER_OUT_OF_RANGE",
         "locator": "context:diagnostics[2]",
         "excerpt": "Booster Compressor efficiency_percent=104 is outside the recommended operating range."
+      },
+      {
+        "id": "flowdoc-stream-1",
+        "kind": "artifact",
+        "label": "FlowsheetDocument / feed-9",
+        "locator": "artifact:flowsheet_document.streams[0]",
+        "excerpt": "feed-9 是 compressor-2 的 suction stream，pressure_kpa=260。"
       },
       {
         "id": "flowdoc-unit-1",

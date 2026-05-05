@@ -207,16 +207,17 @@
         "fallback_natural_field_rate": 0.047619
       },
       "human_review_status": "reviewed_changes_required",
-      "review_followup_count": 7,
+      "review_followup_count": 8,
       "human_review_record_status": "reviewed_changes_required",
       "reviewed_pass_count": 8,
       "reviewed_changes_required_count": 1,
       "tightened_fixture_status": "implemented_and_rerun_passed",
+      "citation_fixture_status": "implemented_pending_local_rerun",
       "stale_artifact_promotion_status": "blocked",
       "tightened_rerun_promotion_status": "no_promotion_planned",
       "not_raw_capability_evidence": true,
       "not_training_acceptance_evidence": true,
-      "route_signal": "broader_tooling_track_machine_passed_review_changes_required"
+      "route_signal": "broader_tooling_track_machine_passed_citation_fixture_tightened_pending_local_rerun"
     }
   ],
   "repository_gates": [
@@ -246,10 +247,12 @@
     "full_holdout_previous_artifact_is_stale": true,
     "full_holdout_tightened_rerun_has_machine_pass": true,
     "full_holdout_human_review_records_added": true,
+    "full_holdout_compressor_citation_fixture_tightened": true,
+    "full_holdout_citation_local_rerun_pending": true,
     "full_holdout_expansion_blocked_by_review": true
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_reviewed_changes_required",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应先收紧 `compressor-parameter-update` 的 citation scaffold / fixture，让回答、issue 与 action 引用 indexed diagnostics、compressor unit config、suction stream evidence 或 latest snapshot，而不是 broad `artifact:flowsheet_document`。"
+    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_pending_local_rerun",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 citation-tightened fixture 重跑 full-holdout-9 task-scoped builder / offline eval / natural-language audit，确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document`，再把正式 review records 从 `reviewed_changes_required` 更新为通过。"
   }
 }

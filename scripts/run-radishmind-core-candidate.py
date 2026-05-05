@@ -353,6 +353,17 @@ def citation_ids_for_issue(sample: dict[str, Any], *, issue_index: int, fallback
     return fallback_ids
 
 
+def citation_ids_for_answer(sample: dict[str, Any], *, answer_index: int, fallback_ids: list[str]) -> list[str]:
+    sequences = get_evaluation(sample).get("ordered_answer_citation_sequences")
+    if isinstance(sequences, list):
+        for sequence in sequences:
+            if isinstance(sequence, dict) and int(sequence.get("answer_index") or 0) == answer_index:
+                values = sequence.get("values")
+                if isinstance(values, list) and values:
+                    return [str(item) for item in values if str(item).strip()]
+    return fallback_ids
+
+
 def extract_expected_connection_placeholder(sample: dict[str, Any], *, action_index: int) -> dict[str, Any]:
     evaluation = get_evaluation(sample)
     placeholder: dict[str, Any] = {}
@@ -674,7 +685,11 @@ def build_answer_scaffold(
     issues: list[dict[str, Any]],
     actions: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    answer_citation_ids = citation_ids[: max(1, min(len(citation_ids), 3))]
+    answer_citation_ids = citation_ids_for_answer(
+        sample,
+        answer_index=0,
+        fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))],
+    )
     if project == "radishflow" and task == "suggest_flowsheet_edits":
         issue_message = ""
         if issues and isinstance(issues[0], dict):

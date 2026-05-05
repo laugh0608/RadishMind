@@ -437,7 +437,7 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
     )
     require(
         human_review_records.get("expansion_acceptance")
-        == "blocked_until_compressor_citation_locator_is_tightened",
+        == "blocked_until_compressor_citation_local_rerun_passes",
         "full-holdout expansion acceptance decision mismatch",
     )
 
@@ -450,6 +450,23 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
     rerun_check = require_dict(tightened_followup, "tightened_rerun_check")
     require(rerun_check.get("promotion_status") == "no_promotion_planned", "tightened rerun must not promote")
     require(rerun_check.get("natural_language_violation_count") == 0, "tightened rerun audit must have no violations")
+
+    citation_followup = require_dict(observation, "citation_fixture_followup")
+    require(
+        citation_followup.get("status") == "implemented_pending_local_rerun",
+        "citation fixture followup must wait for local rerun",
+    )
+    citation_assertions = require_list(citation_followup, "new_assertions")
+    require(len(citation_assertions) == 10, "citation followup must record indexed id/locator assertions")
+    joined_citation_assertions = "\n".join(str(item) for item in citation_assertions)
+    require("context:diagnostics[0]" in joined_citation_assertions, "citation followup must include first diagnostic locator")
+    require("artifact:flowsheet_document.units[0]" in joined_citation_assertions, "citation followup must include unit artifact locator")
+    require("context:latest_snapshot" in joined_citation_assertions, "citation followup must include snapshot locator")
+    required_rerun = require_list(citation_followup, "required_local_rerun")
+    require(len(required_rerun) == 3, "citation followup must record local rerun, offline eval and audit commands")
+    boundary = str(citation_followup.get("acceptance_boundary") or "")
+    require("not raw promotion" in boundary, "citation followup must reject raw promotion")
+    require("previous local builder artifact" in boundary, "citation followup must not bless previous local artifact")
 
     return {
         "track_id": "task_scoped_builder_full_holdout_9",
@@ -470,6 +487,7 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
         "reviewed_pass_count": human_review_records.get("reviewed_pass_count"),
         "reviewed_changes_required_count": human_review_records.get("reviewed_changes_required_count"),
         "tightened_fixture_status": tightened_followup.get("status"),
+        "citation_fixture_status": citation_followup.get("status"),
         "stale_artifact_promotion_status": stale_check.get("promotion_status"),
         "tightened_rerun_promotion_status": rerun_check.get("promotion_status"),
         "not_raw_capability_evidence": True,
@@ -481,7 +499,7 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
 def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     conclusion = require_dict(experiment, "current_conclusion")
     require(
-        conclusion.get("status") == "task_scoped_builder_full_holdout_reviewed_changes_required",
+        conclusion.get("status") == "task_scoped_builder_full_holdout_citation_fixture_tightened_pending_local_rerun",
         "current conclusion status mismatch",
     )
     next_step = str(conclusion.get("next_step") or "")
@@ -490,6 +508,7 @@ def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     require("训练准入证据" in next_step, "conclusion must reject training acceptance")
     require("compressor-parameter-update" in next_step, "conclusion must require compressor followup")
     require("broad `artifact:flowsheet_document`" in next_step, "conclusion must preserve broad citation blocker")
+    require("重跑 full-holdout-9" in next_step, "conclusion must require full-holdout local rerun")
     return {
         "status": conclusion.get("status"),
         "next_step": conclusion.get("next_step"),
@@ -533,6 +552,8 @@ def build_summary() -> dict[str, Any]:
             "full_holdout_previous_artifact_is_stale": True,
             "full_holdout_tightened_rerun_has_machine_pass": True,
             "full_holdout_human_review_records_added": True,
+            "full_holdout_compressor_citation_fixture_tightened": True,
+            "full_holdout_citation_local_rerun_pending": True,
             "full_holdout_expansion_blocked_by_review": True,
         },
         "current_conclusion": conclusion,
@@ -591,6 +612,10 @@ def assert_summary(summary: dict[str, Any]) -> None:
     require(
         full_holdout.get("tightened_rerun_promotion_status") == "no_promotion_planned",
         "full-holdout tightened rerun must pass without promotion",
+    )
+    require(
+        full_holdout.get("citation_fixture_status") == "implemented_pending_local_rerun",
+        "full-holdout citation fixture status mismatch",
     )
     require(
         full_holdout.get("natural_language_audit", {}).get("violation_count") == 0,

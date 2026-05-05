@@ -173,6 +173,11 @@ def main() -> int:
     require("minimum_delta_kpa=90" in compressor_findings, "compressor numeric detail closure missing")
     require("suggested_minimum=8" in compressor_findings, "compressor suggested_minimum closure missing")
     require("artifact:flowsheet_document" in compressor_findings, "compressor broad citation finding missing")
+    require("context:diagnostics[0..2]" in compressor_findings, "compressor tightened citation fixture note missing")
+    require(
+        compressor.get("exit_reason") == "citation_fixture_tightened_pending_local_rerun",
+        "compressor exit reason must wait for local rerun after citation fixture tightening",
+    )
 
     require(
         set(warning_samples)
@@ -207,7 +212,9 @@ def main() -> int:
     require(isinstance(batch, dict), "batch_summary must be an object")
     require(batch.get("reviewed_pass_count") == 8, "batch pass count mismatch")
     require(batch.get("reviewed_changes_required_count") == 1, "batch changes-required count mismatch")
-    require("Do not expand" in str(batch.get("decision") or ""), "batch decision must block expansion")
+    batch_decision = str(batch.get("decision") or "")
+    require("Do not expand" in batch_decision, "batch decision must block expansion")
+    require("local full-holdout builder artifacts have not yet been regenerated" in batch_decision, "batch decision must require local rerun")
 
     print("radishmind core task-scoped builder human review records check passed.")
     return 0
