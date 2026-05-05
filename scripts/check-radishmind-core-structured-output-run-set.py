@@ -364,7 +364,7 @@ def build_audit_gate(experiment: dict[str, Any]) -> dict[str, Any]:
 def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
     observation = require_dict(experiment, "task_scoped_builder_full_holdout_9_post_run_review_2026_05_05")
     require(
-        observation.get("status") == "tightened_eval_blocks_previous_artifact_rerun_required",
+        observation.get("status") == "tightened_rerun_machine_and_deterministic_audit_passed_human_review_pending",
         "full-holdout post-run status mismatch",
     )
     require(observation.get("sample_set") == EXPECTED_FULL_HOLDOUT_SAMPLE_SET, "full-holdout sample set mismatch")
@@ -372,24 +372,25 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
     require_tmp_artifacts("task_scoped_builder_full_holdout_9", require_dict(observation, "local_artifacts"))
 
     summary = require_dict(observation, "candidate_summary")
-    require(summary.get("status") == "stale_after_fixture_tightening", "full-holdout summary must be stale")
+    require(summary.get("status") == "current_tightened_rerun", "full-holdout summary must be current rerun")
     require(summary.get("sample_count") == 9, "full-holdout sample_count mismatch")
     require(summary.get("schema_valid_rate") == 1.0, "full-holdout schema_valid_rate mismatch")
     require(summary.get("task_valid_rate") == 1.0, "full-holdout task_valid_rate mismatch")
     require(summary.get("builder_output_count") == 9, "full-holdout builder_output_count mismatch")
     require(summary.get("timeout_count") == 0, "full-holdout timeout_count mismatch")
     require(summary.get("hit_max_new_tokens_count") == 0, "full-holdout hit_max_new_tokens_count mismatch")
+    require(summary.get("total_generation_seconds") == 1011.84, "full-holdout generation seconds mismatch")
 
     offline_summary = require_dict(observation, "offline_eval_summary")
     require(
-        offline_summary.get("promotion_status") == "blocked_after_fixture_tightening",
+        offline_summary.get("promotion_status") == "no_promotion_planned",
         "full-holdout promotion status mismatch",
     )
     require(offline_summary.get("requires_human_review") is True, "full-holdout must require human review")
     blocking_metrics = require_dict(offline_summary, "blocking_metrics")
     require(
-        blocking_metrics.get("advisory_action_boundary_rate") == 0.6666666666666666,
-        "full-holdout advisory boundary must preserve tightened-fixture block",
+        all(value == 1.0 for value in blocking_metrics.values()),
+        "full-holdout blocking metrics must all pass after tightened rerun",
     )
 
     audit_summary = require_dict(observation, "natural_language_audit_summary")
@@ -397,13 +398,13 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
     require(audit_summary.get("violation_count") == 0, "full-holdout audit must have zero violations")
     require(audit_summary.get("warning_count") == 3, "full-holdout audit warning_count mismatch")
     require(
-        audit_summary.get("fallback_natural_field_rate") == 0.142857,
+        audit_summary.get("fallback_natural_field_rate") == 0.047619,
         "full-holdout fallback_natural_field_rate mismatch",
     )
 
     manual_spot_check = require_dict(observation, "manual_spot_check")
     require(
-        manual_spot_check.get("status") == "changes_required_and_rerun_required",
+        manual_spot_check.get("status") == "review_required_before_expansion_acceptance",
         "full-holdout manual spot-check status mismatch",
     )
     checked_samples = require_list(manual_spot_check, "checked_samples")
@@ -412,16 +413,20 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
     require(followups, "full-holdout manual spot-check must record review followups")
     joined_followups = "\n".join(str(item) for item in followups)
     require("boolean `true`" in joined_followups, "full-holdout review followups must preserve boolean detail caveat")
-    require("rerun" in joined_followups, "full-holdout review followups must require rerun")
+    require("blocker is closed" in joined_followups, "full-holdout review followups must close boolean blocker")
     require("very short" in joined_followups, "full-holdout review followups must preserve short title warning")
     require("Fallback usage" in joined_followups, "full-holdout review followups must preserve fallback caveat")
+    require("broad `artifact:flowsheet_document`" in joined_followups, "full-holdout review followups must preserve citation caveat")
 
     tightened_followup = require_dict(observation, "tightened_fixture_followup")
-    require(tightened_followup.get("status") == "implemented_without_model_rerun", "tightened followup status mismatch")
+    require(tightened_followup.get("status") == "implemented_and_rerun_passed", "tightened followup status mismatch")
     new_assertions = require_list(tightened_followup, "new_assertions")
     require(len(new_assertions) == 3, "tightened followup must record three new numeric assertions")
     stale_check = require_dict(tightened_followup, "stale_artifact_check")
     require(stale_check.get("promotion_status") == "blocked", "stale artifact check must remain blocked")
+    rerun_check = require_dict(tightened_followup, "tightened_rerun_check")
+    require(rerun_check.get("promotion_status") == "no_promotion_planned", "tightened rerun must not promote")
+    require(rerun_check.get("natural_language_violation_count") == 0, "tightened rerun audit must have no violations")
 
     return {
         "track_id": "task_scoped_builder_full_holdout_9",
@@ -440,6 +445,7 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
         "review_followup_count": len(followups),
         "tightened_fixture_status": tightened_followup.get("status"),
         "stale_artifact_promotion_status": stale_check.get("promotion_status"),
+        "tightened_rerun_promotion_status": rerun_check.get("promotion_status"),
         "not_raw_capability_evidence": True,
         "not_training_acceptance_evidence": True,
         "route_signal": require_dict(observation, "route_decision_signal").get("status"),
@@ -449,14 +455,14 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
 def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     conclusion = require_dict(experiment, "current_conclusion")
     require(
-        conclusion.get("status") == "task_scoped_builder_full_holdout_tightened_eval_requires_rerun",
+        conclusion.get("status") == "task_scoped_builder_full_holdout_tightened_rerun_machine_passed_with_human_review_pending",
         "current conclusion status mismatch",
     )
     next_step = str(conclusion.get("next_step") or "")
     require("不应直接切 `3B/4B`" in next_step, "conclusion must reject direct 3B/4B switch")
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")
     require("训练准入证据" in next_step, "conclusion must reject training acceptance")
-    require("重跑" in next_step, "conclusion must require rerun")
+    require("人工 review records" in next_step, "conclusion must require review records")
     return {
         "status": conclusion.get("status"),
         "next_step": conclusion.get("next_step"),
@@ -498,7 +504,8 @@ def build_summary() -> dict[str, Any]:
             "next_step_is_broader_builder_review_not_model_size_jump": True,
             "full_holdout_builder_is_not_raw_promotion": True,
             "full_holdout_previous_artifact_is_stale": True,
-            "full_holdout_rerun_required_before_review_pass": True,
+            "full_holdout_tightened_rerun_has_machine_pass": True,
+            "full_holdout_human_review_remains_pending": True,
         },
         "current_conclusion": conclusion,
     }
@@ -544,10 +551,14 @@ def assert_summary(summary: dict[str, Any]) -> None:
         "full-holdout builder must be separated from raw evidence",
     )
     require(
-        full_holdout.get("human_review_status") == "changes_required_and_rerun_required",
-        "full-holdout human review must require rerun",
+        full_holdout.get("human_review_status") == "review_required_before_expansion_acceptance",
+        "full-holdout human review must remain pending",
     )
-    require(full_holdout.get("promotion_status") == "blocked_after_fixture_tightening", "full-holdout must be blocked")
+    require(full_holdout.get("promotion_status") == "no_promotion_planned", "full-holdout must not promote")
+    require(
+        full_holdout.get("tightened_rerun_promotion_status") == "no_promotion_planned",
+        "full-holdout tightened rerun must pass without promotion",
+    )
     require(
         full_holdout.get("natural_language_audit", {}).get("violation_count") == 0,
         "full-holdout natural-language audit must have no violations",

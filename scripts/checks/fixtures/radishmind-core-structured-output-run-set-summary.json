@@ -180,7 +180,7 @@
       "track_kind": "task_scoped_response_builder_full_holdout",
       "model": "Qwen2.5-1.5B-Instruct",
       "sample_set": "full-holdout-9",
-      "promotion_status": "blocked_after_fixture_tightening",
+      "promotion_status": "no_promotion_planned",
       "machine_metrics": {
         "schema_valid_rate": 1.0,
         "task_valid_rate": 1.0,
@@ -188,11 +188,11 @@
         "timeout_count": 0,
         "hit_max_new_tokens_count": 0,
         "builder_output_count": 9,
-        "total_generation_seconds": 875.748,
-        "avg_generation_seconds": 97.305,
-        "total_input_tokens": 21473,
-        "total_output_tokens": 3978,
-        "avg_output_tokens": 442.0,
+        "total_generation_seconds": 1011.84,
+        "avg_generation_seconds": 112.427,
+        "total_input_tokens": 21545,
+        "total_output_tokens": 4331,
+        "avg_output_tokens": 481.222,
         "json_extracted_count": 9,
         "task_valid_counts_by_task": {
           "radishflow/suggest_flowsheet_edits": "3/3",
@@ -204,15 +204,16 @@
         "status": "pass",
         "violation_count": 0,
         "warning_count": 3,
-        "fallback_natural_field_rate": 0.142857
+        "fallback_natural_field_rate": 0.047619
       },
-      "human_review_status": "changes_required_and_rerun_required",
-      "review_followup_count": 5,
-      "tightened_fixture_status": "implemented_without_model_rerun",
+      "human_review_status": "review_required_before_expansion_acceptance",
+      "review_followup_count": 6,
+      "tightened_fixture_status": "implemented_and_rerun_passed",
       "stale_artifact_promotion_status": "blocked",
+      "tightened_rerun_promotion_status": "no_promotion_planned",
       "not_raw_capability_evidence": true,
       "not_training_acceptance_evidence": true,
-      "route_signal": "broader_tooling_track_requires_tightened_full_holdout_rerun"
+      "route_signal": "broader_tooling_track_machine_passed_with_human_review_pending"
     }
   ],
   "repository_gates": [
@@ -240,10 +241,11 @@
     "next_step_is_broader_builder_review_not_model_size_jump": true,
     "full_holdout_builder_is_not_raw_promotion": true,
     "full_holdout_previous_artifact_is_stale": true,
-    "full_holdout_rerun_required_before_review_pass": true
+    "full_holdout_tightened_rerun_has_machine_pass": true,
+    "full_holdout_human_review_remains_pending": true
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_tightened_eval_requires_rerun",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把旧 builder 结果当作 raw 模型晋级或训练准入证据；应先让用户按 full-holdout runbook 重跑 `--build-task-scoped-response` 本地轨，再重新执行 offline eval 与 natural-language audit。重跑后再补 full-holdout-9 的人工 review records，继续复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage。"
+    "status": "task_scoped_builder_full_holdout_tightened_rerun_machine_passed_with_human_review_pending",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 review plan 补齐 full-holdout-9 的人工 review records，重点复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage，特别是 `compressor-parameter-update` 的 broad artifact citation 和 docs QA 短标题 warning。"
   }
 }

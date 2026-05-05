@@ -721,17 +721,17 @@
     }
   },
   "task_scoped_builder_full_holdout_9_post_run_review_2026_05_05": {
-    "status": "tightened_eval_blocks_previous_artifact_rerun_required",
+    "status": "tightened_rerun_machine_and_deterministic_audit_passed_human_review_pending",
     "sample_set": "full-holdout-9",
     "candidate_track": "--build-task-scoped-response",
-    "scope": "Local `Qwen2.5-1.5B-Instruct` run over all 9 planned full-holdout samples with task-scoped response builder enabled. The original 2026-05-05 audit recorded post-run review evidence only; after tightening the compressor numeric detail assertions, the existing local artifact must be treated as stale and blocked until rerun.",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run over all 9 planned full-holdout samples with task-scoped response builder enabled. The original artifact exposed an eval coverage gap and is kept as stale evidence; the tightened rerun is the current machine/audit evidence and still requires human review before expansion acceptance.",
     "local_artifacts": {
-      "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/summary.json",
-      "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-run.json",
-      "natural_language_audit": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-natural-language-audit.json"
+      "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-run.json",
+      "natural_language_audit": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-natural-language-audit.json"
     },
     "candidate_summary": {
-      "status": "stale_after_fixture_tightening",
+      "status": "current_tightened_rerun",
       "sample_count": 9,
       "schema_valid_rate": 1.0,
       "task_valid_rate": 1.0,
@@ -740,11 +740,11 @@
       "timeout_count": 0,
       "hit_max_new_tokens_count": 0,
       "json_extracted_count": 9,
-      "total_generation_seconds": 875.748,
-      "avg_generation_seconds": 97.305,
-      "total_input_tokens": 21473,
-      "total_output_tokens": 3978,
-      "avg_output_tokens": 442.0,
+      "total_generation_seconds": 1011.84,
+      "avg_generation_seconds": 112.427,
+      "total_input_tokens": 21545,
+      "total_output_tokens": 4331,
+      "avg_output_tokens": 481.222,
       "task_valid_counts_by_task": {
         "radishflow/suggest_flowsheet_edits": "3/3",
         "radishflow/suggest_ghost_completion": "3/3",
@@ -752,14 +752,14 @@
       }
     },
     "offline_eval_summary": {
-      "promotion_status": "blocked_after_fixture_tightening",
+      "promotion_status": "no_promotion_planned",
       "requires_human_review": true,
       "blocking_metrics": {
         "schema_validity_rate": 1.0,
         "citation_alignment_rate": 1.0,
         "risk_confirmation_preservation_rate": 1.0,
         "high_risk_action_confirmation_rate": 1.0,
-        "advisory_action_boundary_rate": 0.6666666666666666,
+        "advisory_action_boundary_rate": 1.0,
         "retrieval_source_contract_rate": 1.0
       }
     },
@@ -768,12 +768,12 @@
       "violation_count": 0,
       "warning_count": 3,
       "natural_field_count": 42,
-      "merged_natural_field_count": 36,
-      "fallback_natural_field_count": 6,
-      "fallback_natural_field_rate": 0.142857
+      "merged_natural_field_count": 40,
+      "fallback_natural_field_count": 2,
+      "fallback_natural_field_rate": 0.047619
     },
     "manual_spot_check": {
-      "status": "changes_required_and_rerun_required",
+      "status": "review_required_before_expansion_acceptance",
       "checked_samples": [
         "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
         "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
@@ -788,13 +788,14 @@
       "review_blockers_or_followups": [
         "`compressor-parameter-update` originally passed schema/task/offline eval because task assertions only required detail key presence/order for `minimum_delta_kpa` and `suggested_minimum`; this has now been tightened with explicit `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` assertions.",
         "The existing local artifact under `tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/` now fails offline eval under the tightened fixture because it still contains boolean `true` placeholders for those numeric details.",
-        "A deterministic golden single-sample builder check confirms the scaffold can now emit `minimum_delta_kpa=90` and `suggested_minimum=8`; a real local model rerun is still required before restoring any full-holdout machine-pass claim.",
+        "The tightened local rerun restores `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` in `compressor-parameter-update`, so the previous boolean placeholder blocker is closed.",
+        "`compressor-parameter-update` still cites the broad `artifact:flowsheet_document`; this passes current machine gates but should be reviewed for citation explanation quality before expansion acceptance.",
         "Natural-language audit reported three docs QA warnings for very short `proposed_actions[0].title`; these are not deterministic violations, but should be checked under fallback acceptability and user-presentability review.",
-        "Fallback usage rose to `6/42` natural fields on full-holdout-9, mainly in suggest-edits answer/issue text; the fallback text is task-specific enough for deterministic audit but still requires reviewer acceptance."
+        "Fallback usage is now `2/42` natural fields on full-holdout-9 after the tightened rerun; the remaining fallback text is task-specific enough for deterministic audit but still requires reviewer acceptance."
       ]
     },
     "tightened_fixture_followup": {
-      "status": "implemented_without_model_rerun",
+      "status": "implemented_and_rerun_passed",
       "changed_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
       "new_assertions": [
         "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.minimum_delta_kpa=90",
@@ -809,16 +810,25 @@
         "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-tightened-run.json",
         "promotion_status": "blocked",
         "blocked_metric": "radishflow/suggest_flowsheet_edits advisory_action_boundary_rate=0.6666666666666666"
+      },
+      "tightened_rerun_check": {
+        "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300/summary.json",
+        "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-run.json",
+        "natural_language_audit": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-natural-language-audit.json",
+        "promotion_status": "no_promotion_planned",
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "natural_language_violation_count": 0
       }
     },
     "route_decision_signal": {
-      "status": "broader_tooling_track_requires_tightened_full_holdout_rerun",
-      "summary": "The full-holdout-9 review found an eval coverage gap: machine metrics passed while a numeric parameter detail was only a boolean placeholder. The fixture is now tightened, the existing local artifact is stale/blocked, and the next valid evidence must come from a real local rerun against the tightened sample."
+      "status": "broader_tooling_track_machine_passed_with_human_review_pending",
+      "summary": "The full-holdout-9 review found and closed an eval coverage gap around numeric parameter details. The tightened rerun now passes schema, task, offline eval and deterministic natural-language audit, while human review remains required for citation explanation quality, docs QA short-title warnings, fallback acceptability, risk/advisory boundaries and holdout leakage."
     }
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_tightened_eval_requires_rerun",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 task-scoped builder 组合轨已达到机器指标全绿。full-holdout-9 本地 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 真实轨原本达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，自然语言 audit 也为 `pass`；但人工抽查发现 `compressor-parameter-update` 的 `minimum_delta_kpa` 与 `suggested_minimum` 被布尔 `true` 占位。当前已把该样本补强为显式数值断言，旧 `tmp/` full-holdout builder 产物在新断言下 offline eval 变为 `blocked`，因此上一轮 full-holdout 机器通过结论作废，必须按 tightened fixture 重跑。",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把旧 builder 结果当作 raw 模型晋级或训练准入证据；应先让用户按 full-holdout runbook 重跑 `--build-task-scoped-response` 本地轨，再重新执行 offline eval 与 natural-language audit。重跑后再补 full-holdout-9 的人工 review records，继续复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage。"
+    "status": "task_scoped_builder_full_holdout_tightened_rerun_machine_passed_with_human_review_pending",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 task-scoped builder 组合轨已达到机器指标全绿。full-holdout-9 的旧本地产物曾暴露 `compressor-parameter-update` numeric detail 漏检，当前已收紧 fixture 并完成 tightened rerun：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三个任务组所有 blocking metrics 均通过且 `promotion_status=no_promotion_planned`；自然语言 audit 为 `pass`、`violation_count=0`，fallback rate 降至 `0.047619`。该结果重新建立 full-holdout task-scoped builder 的机器通过证据，但仍不是 raw 模型晋级或训练准入证据。",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 review plan 补齐 full-holdout-9 的人工 review records，重点复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage，特别是 `compressor-parameter-update` 的 broad artifact citation 和 docs QA 短标题 warning。"
   }
 }
