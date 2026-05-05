@@ -418,6 +418,8 @@ repaired 观测结论：
 
 当前已把该自然语言 review 口径落为仓库级 deterministic audit gate：新增 `scripts/audit-radishmind-core-task-scoped-natural-language.py` 与 `scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json`，并由 `scripts/check-repo.py` 重新生成 v2 `golden_fixture --build-task-scoped-response` 临时 candidate 输出后执行审计。该审计不运行模型、不下载权重，只接受 task-scoped builder summary；它会阻塞通用占位自然语言、ghost completion 的法律/法规/合法/合规误译，以及 docs source-conflict answer 中丢失 docs / FAQ / forum 来源语境的问题，同时记录 merged 与 fallback 自然语言字段比例。当前 fixture 审计结果为 `sample_count=6`、`violation_count=0`、`warning_count=0`、`natural_field_count=32`、`merged_natural_field_count=30`、`fallback_natural_field_count=2`、`fallback_natural_field_rate=0.0625`。这使下一步扩大 task-scoped builder 样本面前已有可复跑的自然语言质量门禁，但仍不能替代人工 reviewer 对引用解释质量、事实充分性和业务语义的判断。
 
+当前又补 `scripts/check-radishmind-core-structured-output-run-set.py` 与 `scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json`，把上述 v2 多轨真实观测从长实验记录抽成仓库级 run-set 门禁。该门禁只读取 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，不访问 `tmp/` 产物、不运行本地模型、不下载权重；它固定 raw / repaired / hard-field injection / suggest-edits builder / task-scoped builder / fixed guardrail 六条轨道的关键指标、`promotion_status`、`timeout_count`、`builder_output_count`、人工复核状态和 route signal。由此可以防止后续把 repaired 或 builder 通过误写成 raw 晋级，也防止遗漏“下一步应扩大 task-scoped builder 样本面与自然语言 review，而不是直接切 `3B/4B`”这个阶段结论。
+
 ## 离线评测样本选择与结果记录
 
 离线评测运行记录以 `contracts/radishmind-core-offline-eval-run.schema.json` 作为正式结构契约，并用 `scripts/checks/fixtures/radishmind-core-offline-eval-run-basic.json` 固定首版最小样本选择、候选模型、指标结果、成本预算和晋级判断字段。

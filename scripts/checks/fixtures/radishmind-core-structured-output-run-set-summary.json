@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_structured_output_run_set_summary",
+  "phase": "M4-preparation",
+  "source_experiment": "training/experiments/radishmind-core-structured-output-decision-experiment-v0.json",
+  "run_set_id": "radishmind-core-v2-structured-output-decision",
+  "sample_set": "holdout6-v2-non-overlap",
+  "model": "Qwen2.5-1.5B-Instruct",
+  "track_count": 6,
+  "tracks": [
+    {
+      "track_id": "raw_v2",
+      "track_kind": "raw",
+      "model": "Qwen2.5-1.5B-Instruct",
+      "sample_set": "holdout6-v2-non-overlap",
+      "promotion_status": "blocked",
+      "machine_metrics": {
+        "schema_valid_rate": 0.8333333333333334,
+        "task_valid_rate": 0.4,
+        "task_validation_attempted": 5,
+        "generation": {
+          "samples_measured": 6,
+          "total_generation_seconds": 761.086,
+          "avg_generation_seconds": 126.848,
+          "total_input_tokens": 15579,
+          "total_output_tokens": 3173,
+          "avg_output_tokens": 528.833,
+          "json_extracted_count": 6,
+          "hit_max_new_tokens_count": 0,
+          "timeout_count": 0
+        }
+      },
+      "blocking_task_groups": [
+        "radishflow/suggest_flowsheet_edits",
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "route_signal": "favor_structured_output_tooling_before_model_size_comparison"
+    },
+    {
+      "track_id": "repaired_v2",
+      "track_kind": "repair_hard_fields",
+      "model": "Qwen2.5-1.5B-Instruct",
+      "sample_set": "holdout6-v2-non-overlap",
+      "promotion_status": "no_promotion_planned",
+      "machine_metrics": {
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "task_validation_attempted": 6,
+        "repaired_output_count": 6,
+        "generation": {
+          "samples_measured": 6,
+          "total_generation_seconds": 761.213,
+          "avg_generation_seconds": 126.869,
+          "total_input_tokens": 15579,
+          "total_output_tokens": 3173,
+          "avg_output_tokens": 528.833,
+          "json_extracted_count": 6,
+          "hit_max_new_tokens_count": 0,
+          "timeout_count": 0
+        }
+      },
+      "repaired_path_count": 7,
+      "not_raw_capability_evidence": true,
+      "route_signal": "favor_structured_output_tooling_before_model_size_comparison"
+    },
+    {
+      "track_id": "hard_field_injection_v2_rerun",
+      "track_kind": "inject_hard_fields",
+      "model": "Qwen2.5-1.5B-Instruct",
+      "sample_set": "holdout6-v2-non-overlap",
+      "promotion_status": "blocked",
+      "machine_metrics": {
+        "schema_valid_rate": 0.8333333333333334,
+        "task_valid_rate": 0.8,
+        "task_validation_attempted": 5,
+        "timeout_count": 1,
+        "hit_max_new_tokens_count": 0,
+        "injected_output_count": 3,
+        "total_generation_seconds": 873.147,
+        "avg_generation_seconds": 145.525
+      },
+      "passed_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ],
+      "route_signal": "hard_field_injection_helpful_but_insufficient_for_suggest_edits"
+    },
+    {
+      "track_id": "suggest_edits_response_builder_v2",
+      "track_kind": "suggest_edits_response_builder",
+      "model": "Qwen2.5-1.5B-Instruct",
+      "sample_set": "holdout6-v2-non-overlap",
+      "promotion_status": "blocked",
+      "machine_metrics": {
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 0.6666666666666666,
+        "task_validation_attempted": 6,
+        "timeout_count": 0,
+        "hit_max_new_tokens_count": 0,
+        "builder_output_count": 2,
+        "total_generation_seconds": 844.708,
+        "avg_generation_seconds": 140.785,
+        "task_valid_counts_by_task": {
+          "radishflow/suggest_flowsheet_edits": "2/2",
+          "radishflow/suggest_ghost_completion": "1/2",
+          "radish/answer_docs_question": "1/2"
+        }
+      },
+      "passed_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "route_signal": "response_builder_confirmed_for_suggest_edits_but_not_sufficient_overall"
+    },
+    {
+      "track_id": "task_scoped_response_builder_v2",
+      "track_kind": "task_scoped_response_builder",
+      "model": "Qwen2.5-1.5B-Instruct",
+      "sample_set": "holdout6-v2-non-overlap",
+      "promotion_status": "no_promotion_planned",
+      "machine_metrics": {
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "task_validation_attempted": 6,
+        "timeout_count": 0,
+        "hit_max_new_tokens_count": 0,
+        "builder_output_count": 6,
+        "total_generation_seconds": 779.401,
+        "avg_generation_seconds": 129.9,
+        "total_input_tokens": 15582,
+        "total_output_tokens": 3158,
+        "avg_output_tokens": 526.333,
+        "json_extracted_count": 6,
+        "task_valid_counts_by_task": {
+          "radishflow/suggest_flowsheet_edits": "2/2",
+          "radishflow/suggest_ghost_completion": "2/2",
+          "radish/answer_docs_question": "2/2"
+        }
+      },
+      "human_review_status": "target_risks_found",
+      "human_review_observation_count": 3,
+      "route_signal": "favor_task_scoped_builder_tooling_track_before_model_size_comparison"
+    },
+    {
+      "track_id": "task_scoped_builder_guardrail_fixed_v2",
+      "track_kind": "task_scoped_response_builder_with_natural_language_guardrail",
+      "model": "Qwen2.5-1.5B-Instruct",
+      "sample_set": "holdout6-v2-non-overlap",
+      "promotion_status": "no_promotion_planned",
+      "machine_metrics": {
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "task_validation_attempted": 6,
+        "timeout_count": 0,
+        "hit_max_new_tokens_count": 0,
+        "builder_output_count": 6,
+        "total_generation_seconds": 894.117,
+        "avg_generation_seconds": 149.019,
+        "total_input_tokens": 15846,
+        "total_output_tokens": 3277,
+        "avg_output_tokens": 546.167,
+        "json_extracted_count": 6
+      },
+      "human_review_status": "target_risks_passed",
+      "target_response_review": {
+        "docs_source_conflict_placeholder_removed": true,
+        "ghost_vapor_legal_regulation_mistranslation_removed": true
+      },
+      "route_signal": "task_scoped_builder_tooling_track_ready_for_broader_review"
+    }
+  ],
+  "repository_gates": [
+    {
+      "gate_id": "task_scoped_natural_language_audit_gate",
+      "status": "repository_gate_added",
+      "script": "scripts/audit-radishmind-core-task-scoped-natural-language.py",
+      "committed_summary": "scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json",
+      "required_candidate_track": "--build-task-scoped-response",
+      "audit_summary": {
+        "status": "pass",
+        "sample_count": 6,
+        "violation_count": 0,
+        "fallback_natural_field_rate": 0.0625
+      },
+      "route_signal": "natural_language_quality_gate_before_broader_review"
+    }
+  ],
+  "decision_invariants": {
+    "raw_track_remains_blocked": true,
+    "postprocess_tracks_are_not_raw_promotion": true,
+    "task_scoped_builder_has_machine_pass": true,
+    "natural_language_review_has_separate_gate": true,
+    "candidate_outputs_remain_uncommitted": true,
+    "next_step_is_broader_builder_review_not_model_size_jump": true
+  },
+  "current_conclusion": {
+    "status": "task_scoped_builder_tooling_track_ready_for_broader_review_with_audit_gate",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；可以在保留自然语言 audit gate 的前提下扩大 task-scoped builder 样本面，并继续补充引用解释质量与事实充分性的 reviewer 口径。"
+  }
+}

@@ -1084,6 +1084,13 @@ def main() -> int:
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
+    run_python_script(
+        "check-radishmind-core-structured-output-run-set.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json",
+        ],
+    )
     run_python_script("check-radishmind-core-candidate-json-cleanup.py", [])
     run_python_script("check-radishmind-core-candidate-parameter-updates.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-policy.py", [])
