@@ -1074,6 +1074,13 @@ def main() -> int:
             "scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json",
         ],
     )
+    run_python_script(
+        "check-radishflow-service-smoke-matrix.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json",
+        ],
+    )
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
