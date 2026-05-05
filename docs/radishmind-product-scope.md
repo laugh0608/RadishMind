@@ -1,10 +1,10 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-05-01
+更新时间：2026-05-05
 
 ## 项目目标
 
-`RadishMind` 的目标不是单纯训练一个“会看图的模型”，也不是替代上层业务内核，而是构建一个能服务于 `RadishFlow` 与 `Radish` 的外部智能层仓库。
+`RadishMind` 的目标不是单纯训练一个“会看图的模型”，也不是替代上层业务内核，而是构建一个能服务于 `RadishFlow`、`Radish` 与后续 `RadishCatalyst` 的外部智能层仓库。
 
 更准确地说，`RadishMind` 的长期目标应定义为“受控 Copilot / Agent 系统 + 可替换模型能力”，而不是“单一模型项目”。模型负责理解、生成和推理；Agent 层负责上下文打包、任务路由、工具调用、规则校验、权限边界、候选动作输出和评测闭环。
 
@@ -20,12 +20,14 @@
 
 ## 基于真实上下文的统一定位
 
-在审查 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 后，第一阶段应把 `RadishMind` 定位为：
+在审查 `RadishFlow`、`Radish` 与 `RadishCatalyst` 真实上下文后，第一阶段应把 `RadishMind` 定位为：
 
-- 面向两个项目的外部智能层，而不是业务真相源
+- 面向 `Radish` 体系项目的外部智能层，而不是业务真相源
 - 默认读状态、读文档、读附件并给出结构化建议，而不是直接执行高风险写入
 - 以“协议、上下文、评测、规则”优先，而不是先锁定某个最终模型或部署形态
 - 同时支持 `Copilot`、`VLM` 和工具调用，但不要求每个任务都走图像路线
+
+`RadishCatalyst` 当前只进入文档级预留，不进入真实接线阶段。它适合复用同一套 `CopilotRequest` / `CopilotResponse` / `CopilotGatewayEnvelope` 思路，但需要额外保持游戏项目边界：模型不能成为游戏规则、存档、战斗、掉落、任务或联机权威真相源。
 
 ## Model 与 Agent 的长期定位
 
@@ -33,10 +35,10 @@
 
 - `model` 是可替换的推理能力，负责生成、理解、排序、归纳和多模态推理
 - `agent` 是受控执行层，负责选择上下文、调用模型和工具、执行 schema / 规则校验、处理风险确认和沉淀评测记录
-- `adapter` 负责把 `RadishFlow` / `Radish` 的业务状态转换为统一 `CopilotRequest`，并把结构化响应映射回各自项目
+- `adapter` 负责把 `RadishFlow` / `Radish` / `RadishCatalyst` 的业务状态转换为统一 `CopilotRequest`，并把结构化响应映射回各自项目
 - `rule validation` 负责阻止模型输出越权、高风险直写或不符合业务契约的候选动作
 
-`RadishMind-Core` 是本项目的自研主模型口径，但这里的“自研”默认指“基座适配型自研”，而不是从零预训练基础大模型。它应基于开源 `base model`，叠加 `RadishMind` 的指令数据、任务协议、`RadishFlow` / `Radish` 场景样本、风险标记和评测偏好，形成项目专属的理解、推理和结构化输出能力。
+`RadishMind-Core` 是本项目的自研主模型口径，但这里的“自研”默认指“基座适配型自研”，而不是从零预训练基础大模型。它应基于开源 `base model`，叠加 `RadishMind` 的指令数据、任务协议、`RadishFlow` / `Radish` / `RadishCatalyst` 场景样本、风险标记和评测偏好，形成项目专属的理解、推理和结构化输出能力。
 
 当前推荐目标为：
 
@@ -56,7 +58,8 @@
 - 能否把 `RadishFlow` 已存在的 `FlowsheetDocument`、选择集、诊断摘要、求解状态和控制面状态打包成稳定的 Copilot 上下文
 - 能否在不侵入 `RadishFlow` 求解热路径的前提下，输出稳定、结构化、可校验的解释和候选编辑提案
 - 能否把 `Radish` 已存在的固定文档、在线文档、论坛内容、Console 权限知识和附件协议接成可复用的问答与辅助能力
-- 能否建立统一协议、任务评测和 student 路线，而不把两个项目强行压成同一种业务抽象
+- 能否为 `RadishCatalyst` 这类游戏项目预留结构化数据、玩家知识、进度解释和内容工具口子，但不让模型进入游戏运行权威链路
+- 能否建立统一协议、任务评测和 student 路线，而不把不同项目强行压成同一种业务抽象
 
 ## 面向 `RadishFlow` 的首批高价值任务
 
@@ -113,6 +116,33 @@
 - 附件访问控制、临时访问令牌和公开资源守卫
 - 未经确认直接替代人工做治理结论、封禁、授权或数据写入
 
+## 面向 `RadishCatalyst` 的预留高价值任务
+
+`RadishCatalyst` 当前是 Godot 4.x / GDScript 的 2D / 2.5D 工业科幻 ARPG，已经具备静态数据、任务规则、存档状态、玩家 Wiki 和官方工具目录。它适合接入 `RadishMind`，但当前只预留接口口径，不真实接入。
+
+### 首批任务
+
+- 基于 `client/data/*.json`、`wiki/` 与公开设计文档的玩家知识问答
+- 基于 `world_state`、`character_state`、`quest_state`、`inventory_state` 摘要的进度解释与下一步建议
+- 基于物品、配方、设备、库存和解锁条件的生产链规划建议
+- 开发侧静态数据一致性检查，例如配方引用、任务解锁、公开等级、Wiki 可见性和官方工具反查缺口
+- Wiki、官方工具说明和设计内容的摘要、标签、缺口建议与公开等级审查
+
+### 最适合喂给 Copilot 或 VLM 的上下文
+
+- `client/data/items.json`、`recipes.json`、`buildings.json`、`equipment.json`、`enemies.json`、`regions.json`、`quests.json` 等静态数据摘要
+- `wiki/` 玩家可见知识源与 `official-tools/` 工具规划
+- 脱敏后的 `world_state`、`character_state`、`quest_state`、`inventory_state`、当前任务目标与关键解锁状态
+- 当前区域、设备、背包、任务链、公开等级和剧透策略摘要
+- 可选游戏截图或 UI 截图，作为说明和辅助理解，不替代结构化状态
+
+### 明确不能让 AI 侵入的部分
+
+- Godot 运行时热路径、战斗命中、敌人行为、掉落、任务完成、存档迁移和联机同步权威
+- `world_state`、`character_state`、`quest_state`、本地存档或专服世界状态的直接写入
+- 未经项目规则层确认直接改变配方、物品、任务、解锁、战斗数值或公开等级
+- 向玩家侧泄露 `internal` 或默认隐藏的 `spoiler` 内容
+
 ## 共享能力与项目专属能力
 
 ### 共享能力
@@ -132,6 +162,10 @@
 - `Radish`
   - 文档语义、论坛内容、Console 权限知识和附件协议
   - 内容结构化建议和运营辅助
+- `RadishCatalyst`
+  - 静态游戏数据、玩家 Wiki、官方工具、任务 / 存档摘要和进度解释
+  - 生产链规划、公开等级审查和开发侧数据一致性检查
+  - 游戏运行权威、存档写入、战斗、掉落、任务完成和联机同步继续由上层项目负责
 
 ## RadishMind-Core 与模型分工
 
@@ -151,7 +185,7 @@
 
 当前阶段不再把 `minimind-v` 仅写成“候选”；默认路线是先围绕它建立领域适配与训练承接，再由离线评测结果决定是否调整主线。图片生成能力应作为 `RadishMind` 的工具 / backend 能力交付，而不是要求 `RadishMind-Core` 同时承担 Copilot 推理、协议遵循和像素生成。
 
-由于 `RadishFlow` 与 `Radish` 暂时都还没有进入真实模型 / Agent 接入阶段，当前不把上层真实接线作为 `RadishMind` 的阻塞项。`RadishMind` 这边应先完成以下自身资产：
+由于 `RadishFlow`、`Radish` 与 `RadishCatalyst` 暂时都还没有进入真实模型 / Agent 接入阶段，当前不把上层真实接线作为 `RadishMind` 的阻塞项。`RadishMind` 这边应先完成以下自身资产：
 
 - `RadishMind-Core` 首版基座评估：先比较 `3B` / `4B` 的协议遵循、中文任务理解、结构化响应、citation 对齐和本地部署成本，再决定是否进入 `7B`
 - 训练 / 蒸馏样本格式：以 `CopilotRequest -> CopilotResponse` 为核心，保留 `project / task / artifacts / context / safety / proposed_actions / citations / requires_confirmation`
@@ -159,11 +193,12 @@
 - 离线评测与本地候选观测：当前已能把 candidate wrapper 的 raw / repaired 输出接入同一 `radishmind-core-offline-eval-run` 记录格式；本地 `Qwen2.5-1.5B-Instruct` 的 9 fixture、timeout probe、planned holdout、full holdout 与 v2 非重叠 holdout 观测均显示 raw 仍 blocked，`--repair-hard-fields` 只能作为后处理实验，不能替代 raw 能力晋级或训练准入
 - teacher / student / lightweight baseline 对照矩阵：`Qwen2.5-VL` 给出强基线和蒸馏参考，`minimind-v` 承接主线适配，`SmolVLM` 验证低资源下限
 - `RadishMind-Image Adapter` 第一版 schema 与最小评测 manifest：主模型只输出图片生成意图、约束和审查信息，Adapter 再生成 backend request，图片像素生成交给独立 backend，结果以 artifact metadata 回到 `RadishMind`；当前评测 manifest 只覆盖结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不评价图片像素质量
-- 未来接入清单：保留现有 gateway smoke、UI consumption summary 与 candidate handoff summary 作为 `RadishFlow` / `Radish` 准备好后的验收门禁
+- 未来接入清单：保留现有 gateway smoke、UI consumption summary 与 candidate handoff summary 作为 `RadishFlow` / `Radish` 准备好后的验收门禁；`RadishCatalyst` 当前只记录 context / task / safety 预留口径，等上层准备接入时再补 schema、adapter 和 smoke
 
 ## 当前仍缺的决策
 
 - `Radish` 的第一批内部落点到底先选文档、Console 还是论坛创作辅助
+- `RadishCatalyst` 的第一批真实落点到底先选玩家知识问答、进度解释、生产链规划还是开发侧数据一致性检查
 - 第一批任务的任务卡粒度和样本标注格式
 - `Qwen2.5-VL` 在当前任务集中的首选尺寸与推理预算
 - `SmolVLM` 进入默认回归矩阵的任务边界
@@ -187,10 +222,17 @@
 - 对论坛或社区场景，未来可探索自动回复建议、跟帖建议和基于上下文的运营话术草稿，但默认仍应先以“人工确认后发送”为边界
 - 更远期才评估更强的账号代操作能力，例如代发帖、代回复、代执行部分社区管理动作；若进入该方向，必须额外补强审计、权限边界、风险分级与显式确认机制
 
+### `RadishCatalyst`
+
+- 未来可探索游戏内外共用的“异星催化助手”：玩家问答、材料反查、生产链建议、区域准备清单和 Wiki 引用回答
+- 未来可探索开发侧内容 Copilot：静态数据引用检查、Wiki 条目草稿、公开等级审查、任务链说明和官方工具数据缺口提示
+- 更远期才评估基于截图的 UI / 场景理解、构筑建议或可玩性反馈；即使进入该方向，也必须保持模型只给建议，不直接改变游戏状态、存档或联机权威
+
 ## 第一阶段明确不做
 
 - 直接替代 `RadishFlow` 求解器、控制面或 CAPE-OPEN 适配层
 - 直接接管 `Radish` 的 Auth / Gateway / API / Console 业务逻辑
+- 直接替代 `RadishCatalyst` 的 Godot 运行时、存档、任务、战斗、掉落、配方、公开等级或联机权威
 - 让模型直接成为上层项目的真相源
 - 在没有评测基线前就围绕底座模型频繁换路线
 - 把 `RadishMind-Core` 定义成必须从零训练的基础大模型
@@ -205,6 +247,7 @@
 
 - `RadishFlow` 侧至少有一个基于真实状态模型的可用 Copilot 场景落地
 - `Radish` 侧至少有一个基于真实文档/内容体系的可用问答或辅助场景落地
+- `RadishCatalyst` 侧至少形成清晰的 context / task / safety 预留边界，且不把游戏运行权威提前交给模型
 - 已冻结统一输入输出协议的第一版，并允许项目专属上下文扩展
 - 已建立小规模但可重复的评测集和任务指标
 - `Radish` docs QA 已具备外部 record 回灌、负例回放与首批跨样本真实 replay，后续可以继续扩大真实坏输出批次

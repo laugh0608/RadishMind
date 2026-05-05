@@ -1,15 +1,16 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-04
+更新时间：2026-05-05
 
 ## 路线图目标
 
 本文档用于把 `RadishMind` 拆成可执行的阶段，不在一开始把任务混成“先造一个万能模型”。
 
-本路线已经基于 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 的真实上下文做过一轮调整：
+本路线已经基于 `RadishFlow`、`Radish` 与 `RadishCatalyst` 的真实上下文做过一轮调整：
 
 - `RadishFlow` 第一批能力优先走结构化状态与诊断解释，而不是截图先行
 - `Radish` 第一批能力优先走文档问答、Console/运营辅助与内容结构化建议
+- `RadishCatalyst` 只做第三项目预留：未来优先走结构化游戏数据、玩家 Wiki、官方工具、进度解释与开发侧数据一致性检查，不进入游戏运行权威链路
 - 长期目标从“做一个模型”收口为“受控 Copilot / Agent 系统 + 可替换模型能力”，模型训练、推理 provider、工具调用和规则校验都应服务于任务级 agent 编排
 - `minimind-v` 当前作为默认 `student/base` 主线，围绕评测闭环进入适配与训练阶段
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 强基线，优先承担多模态对照评测与蒸馏参考
@@ -26,7 +27,7 @@
 ### 任务
 
 - 检查 `RadishMind` 仓库现状
-- 审查 `RadishFlow` 与 `Radish` 的正式文档、关键目录与 AI 相关代码
+- 审查 `RadishFlow`、`Radish` 与 `RadishCatalyst` 的正式文档、关键目录与 AI 相关代码
 - 修正文档中与真实仓库不一致的假设
 - 冻结第一版项目定位、非目标和阶段定义
 
@@ -227,7 +228,37 @@
 - 两个项目都能复用统一网关与协议
 - 工程化策略清晰，不因支持第二个项目而出现边界漂移
 
-## M7：Agent / Model 边界拆分评估
+## M7：`RadishCatalyst` 预留接入评估
+
+### 目标
+
+在 `RadishFlow` 与 `Radish` 的共享协议、gateway、评测和训练样本口径更稳定后，再评估 `RadishCatalyst` 是否进入第一条真实 adapter / eval / smoke 接入。
+
+当前阶段先不真实接入，也不修改 `CopilotRequest.project` schema 枚举；只把第三项目的 task、context 和 safety 边界作为正式预留。
+
+### 推荐首批任务
+
+- `answer_game_knowledge_question`
+- `explain_player_progress_state`
+- `suggest_production_chain_plan`
+- `inspect_static_data_consistency`
+- `summarize_wiki_or_design_content`
+
+### 任务
+
+- 基于 `RadishCatalyst` 的 `client/data/*.json`、`wiki/`、`official-tools/` 和脱敏状态摘要设计 `radishcatalyst_context`
+- 明确 `public / spoiler / internal` 公开等级如何进入玩家侧回答、训练样本和评测
+- 冻结不写入 Godot 存档、不替代任务 / 战斗 / 掉落 / 联机权威的 safety 约束
+- 建立第一批小型 eval sample，再决定是否扩 `contracts/copilot-request.schema.json` 和 gateway route
+- 若进入实现，新增 `adapter-radishcatalyst` 时必须同时补最小 schema、request builder、gateway unsupported / supported smoke 和文档
+
+### 退出标准
+
+- 能明确判断 `RadishCatalyst` 首条真实接入应先落玩家知识、进度解释、生产链规划还是开发侧数据一致性检查
+- 第三项目加入不会破坏 `RadishFlow` / `Radish` 的统一协议和已接线任务回归
+- 模型仍只输出解释、建议或只读检查，不成为游戏运行、存档、任务、战斗、掉落或联机权威
+
+## M8：Agent / Model 边界拆分评估
 
 ### 目标
 
@@ -243,6 +274,7 @@
 满足以下多数条件时，应正式进入拆分评估：
 
 - `RadishFlow` 与 `Radish` 至少各有一个生产前稳定任务接入同一 agent runtime
+- `RadishCatalyst` 若已进入真实接入，也必须保持游戏运行权威和模型建议层解耦；若尚未接入，则至少应有不阻塞拆分评估的预留契约
 - `CopilotRequest` / `CopilotResponse`、artifact、risk、confirmation、citation 等核心协议连续多个迭代保持兼容
 - 至少有一条任务完成 teacher / student / mock 或多 provider 的可重复对照，证明模型已是可替换组件，而不是写死在任务逻辑里
 - `RadishMind-Core` / `minimind-v` 或其它 student 路线进入持续训练、蒸馏、量化、评测发布节奏，且产生不适合直接入仓的大体积权重或训练产物
@@ -264,7 +296,7 @@
 
 - 能明确判断继续单仓库、拆包不拆仓库、或拆成多个仓库的收益与成本
 - 如果拆分，协议真相源、评测入口、模型版本引用和发布节奏都有明确归属
-- 拆分后不破坏 `RadishFlow` / `Radish` 的统一协议和任务级回归
+- 拆分后不破坏 `RadishFlow` / `Radish` 的统一协议和任务级回归，也不封死 `RadishCatalyst` 的后续预留入口
 
 ## 当前推荐顺序
 
@@ -278,10 +310,11 @@
 6. `M5`
 7. `M6`
 8. `M7`
+9. `M8`
 
 不要在 `M1` 之前就直接开大规模训练，也不要在没有评测基线前频繁切换底座模型。
 不要把 `RadishMind-Core` 误收口成从零预训练的大模型项目；当前合理路线是 `3B` / `4B` 起步、`7B` 作为本地上限，并通过独立 backend 提供图片生成能力。
-不要在 `M6` 之前急于把 agent / model 拆成多仓库；在协议、adapter、评测和至少两个项目的任务接入稳定前，保持单仓库更利于收口。
+不要在 `M7` 之前急于把 agent / model 拆成多仓库；在协议、adapter、评测和至少两个项目的任务接入稳定、第三项目预留边界清楚前，保持单仓库更利于收口。
 
 ## 当前优先推进
 

@@ -1,12 +1,12 @@
 # RadishMind 文档总览
 
-更新时间：2026-05-04
+更新时间：2026-05-05
 
 ## 文档目的
 
 本目录用于沉淀 `RadishMind` 的产品定位、系统架构、阶段路线和跨项目集成边界，作为后续设计与实现的真相源入口。
 
-当前版本已经基于对 `D:\Code\RadishFlow` 与 `D:\Code\Radish` 的只读审查完成了一轮收口；当前已冻结 `Python` 主实现栈，并将首轮模型路线收口为 `RadishMind-Core` 基座适配型自研主模型、`minimind-v` 默认 `student/base` 主线、`Qwen2.5-VL` 强基线和 `SmolVLM` 轻量对照组。
+当前版本已经基于对 `RadishFlow` 与 `Radish` 真实上下文的只读审查完成了一轮收口；当前已冻结 `Python` 主实现栈，并将首轮模型路线收口为 `RadishMind-Core` 基座适配型自研主模型、`minimind-v` 默认 `student/base` 主线、`Qwen2.5-VL` 强基线和 `SmolVLM` 轻量对照组。
 当前 `RadishFlow export -> adapter -> request` 主线也已从“只有扁平 adapter fixture”推进到“存在上游导出边界、bootstrap 模板、preflight smoke validator、batch smoke 与 committed exporter edge fixtures”的状态。
 当前 `RadishFlow suggest_flowsheet_edits` 与 `suggest_ghost_completion` 都已具备真实批次、artifact summary、replay、recommended replay 与 real-derived negative 治理链；`suggest_flowsheet_edits v93` 与 `suggest_ghost_completion v25` 收口后，gateway、UI consumption 与 candidate handoff smoke 已冻结为未来上层接入验收门禁，不再继续扩展本仓库内模拟上层接线。
 当前模型规模口径为：`RadishMind-Core` 首版优先 `3B` / `4B`，长期本地部署上限 `7B`；图片生成能力不并入主模型参数目标，默认通过 `RadishMind-Image Adapter` 和独立生图 backend 提供。`RadishMind-Core` 首版基座评估矩阵、离线评测阈值与离线评测运行记录已落成可回归门禁，用于固定 `minimind-v`、`3B/4B/7B`、`Qwen2.5-VL` 与 `SmolVLM` 的首轮评估边界、阻塞指标、样本选择和结果记录格式；当前离线评测 runner 已能同时读取 committed `golden_response` fixture 和 candidate wrapper 生成的 response 文件，固定 `candidate output -> offline eval` 的仓库级门禁。真实本地模型只通过 `--provider local_transformers` 加 `--model-dir` 或 `RADISHMIND_MODEL_DIR` 显式接入，脚本使用本地文件且不自动下载权重，并已补 per-sample timeout、JSON cleanup 指标、task validator、raw / `--repair-hard-fields` repaired 双轨 summary 与 pair summary。当前已经用 WSL CPU 环境下的本地 `Qwen2.5-0.5B-Instruct` 与 `Qwen2.5-1.5B-Instruct` 完成同批 9 条 M4 fixture、timeout probe、planned holdout、full holdout 和 v2 非重叠 holdout 观测；完整 planned holdout repaired fix3 可达到 `9/9` task-valid，2026-05-04 v2 非重叠 holdout repaired 轨在同样 6 条样本与同样 `300s` timeout 下也达到 `6/6` task-valid，但 raw 仍 blocked，因此后处理结果仍不能外推为 raw 模型晋级、训练准入或更大样本面质量结论。今天的结构化输出决策实验继续验证了 `--inject-hard-fields`、`--build-suggest-edits-response` 与 `--build-task-scoped-response`：hard-field injection 有用但不足，suggest edits 适合模型意图加 builder 结构化组装，task-scoped builder 能消除当前三类 eval task 的结构化阻塞；随后补上的自然语言 guardrail / audit 又把通用占位句、ghost 法律/法规/合法误译和 docs source-conflict 来源语境缺失纳入仓库级 deterministic 门禁。当前停止线已固定：不再把继续加长同批 prompt/scaffold 作为默认主线，也不把 builder 轨通过当作 raw 晋级证据；后续本地模型实验必须回答 task-scoped builder 扩样、自然语言人工复核、constrained/guided decoding、`minimind-v` / `3B` / `4B` 对照或工具层分工这类路线决策问题。为避免这一步继续停留在聊天结论，当前已新增 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，把“结构化输出约束是否足以改变路线判断”收口成可复跑实验骨架。当前还已新增从 committed eval 样本和 audit pass candidate record 生成 `CopilotTrainingSample` 的转换入口，先固定三条主任务各 3 条 golden_response 蒸馏样本与各 3 条 teacher_capture 样本，不运行模型、不下载权重；训练 JSONL 默认作为 `tmp/` 下的本地生成产物，`training/` 只提交 manifest、summary、复核策略和实验说明。更大训练集合的首个治理草案已落到 `training/datasets/copilot-training-dataset-governance-v0.json`，用于固定 candidate record 入选、分层抽样复核、离线评测 holdout、质量门禁与退场条件；当前还补了 `copilot-training-review-record-v0.json` 与 `copilot-training-holdout-split-v0.json`，把 planned 人工复核模板和三条主任务各 3 条的非重叠 holdout split 接入仓库级检查。`RadishMind-Image Adapter` 也已从 intent schema 扩展到 backend request 与 artifact metadata 两段契约，并补首个最小图片生成评测 manifest，只评估结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不调用真实 backend、不生成图片。
@@ -29,6 +29,8 @@
 ## 当前规划原则
 
 - `RadishMind` 是独立仓库，不与业务仓库强耦合
+- 外部项目引用默认使用项目名和在线仓库 URL；需要读取本地资料时，由开发者在当次任务临时提供路径，不把个人机器路径写入长期文档
+- 当前外部项目在线仓库：`https://github.com/laugh0608/RadishFlow`、`https://github.com/laugh0608/Radish`、`https://github.com/laugh0608/RadishCatalyst`
 - 优先建设统一协议、上下文打包、评测和规则框架
 - 优先支持 `RadishFlow`，但第一批能力以结构化状态与诊断解释为主，不把截图路线写成唯一入口
 - 对 `RadishFlow` 的真实接线，优先先冻结 `export -> adapter -> request` 这条结构化链路，再考虑更重的服务编排或模型接线

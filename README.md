@@ -92,7 +92,7 @@ RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是
 - `RADISHMIND_MODEL_NAME`
 - `RADISHMIND_MODEL_API_KEY`
 
-仓库已提供 [.env.example](/home/luobo/Code/RadishMind/.env.example) 作为无敏感信息示例；真实 `.env` 只保留在本地，不提交到仓库。
+仓库已提供 [.env.example](.env.example) 作为无敏感信息示例；真实 `.env` 只保留在本地，不提交到仓库。
 
 ## 当前评测进展
 

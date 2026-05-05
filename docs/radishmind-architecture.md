@@ -1,6 +1,6 @@
 # RadishMind 系统架构草案
 
-更新时间：2026-05-04
+更新时间：2026-05-05
 
 ## 架构目标
 
@@ -47,6 +47,7 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 
 - `adapter-radishflow`
 - `adapter-radish`
+- `adapter-radishcatalyst`
 
 职责：
 
@@ -75,6 +76,11 @@ Adapter 映射回各自 UI / 日志 / 候选提案
 - `Radish`
   - 优先走知识优先打包：固定文档、在线文档、论坛/文档 Markdown、Console 权限知识、附件引用
   - 角色和权限只传最小必要摘要，不透传原始 token、cookie 或安全凭据
+- `RadishCatalyst`
+  - 当前只做文档级预留，不落真实 adapter 代码，也不扩 `CopilotRequest.project` 枚举
+  - 优先走游戏数据与状态摘要打包：静态数据、玩家 Wiki、官方工具数据源、任务 / 存档 / 背包 / 区域进度摘要
+  - 对玩家侧回答必须遵守 `public_level` / 剧透策略，不把 `internal` 或默认隐藏 `spoiler` 内容透出到玩家上下文
+  - 所有输出只作为解释、规划或开发侧检查建议，不直接写入 Godot 存档、运行时状态、静态数据或联机权威状态
 
 不负责：
 
@@ -175,7 +181,8 @@ artifact 引用 / 生成结果 metadata
 
 - `RadishFlow` 第一阶段不应把全部任务都压成截图推理；结构化状态和诊断解释优先
 - `Radish` 第一阶段以文档、内容和 Console 知识问答为主，VLM 只在附件或截图理解场景补充
-- `RadishFlow` 与 `Radish` 暂时都还没有进入真实模型 / Agent 接入阶段时，`RadishMind` 不应继续扩展本仓库内的模拟上层接线；现有 gateway smoke、UI consumption summary 与 candidate handoff summary 应冻结为未来验收门禁
+- `RadishCatalyst` 第一阶段只预留游戏知识、进度解释、生产链规划和开发侧数据一致性检查口子；游戏截图可作为辅助输入，但不替代静态数据和状态摘要
+- `RadishFlow`、`Radish` 与 `RadishCatalyst` 暂时都还没有进入真实模型 / Agent 接入阶段时，`RadishMind` 不应继续扩展本仓库内的模拟上层接线；现有 gateway smoke、UI consumption summary 与 candidate handoff summary 应冻结为未来验收门禁，`RadishCatalyst` 后续等真实接入前再补 adapter / gateway smoke
 - `minimind-v` 当前作为默认 `student/base` 主线，承接领域适配、训练实验与后续部署路线
 - `Qwen2.5-VL` 当前作为默认 `teacher` / 多模态强基线，优先承担复杂图文任务 PoC、标注参考与蒸馏输入
 - `SmolVLM` 当前作为轻量本地对照组，优先承担低资源回归与部署下限比较
@@ -219,6 +226,10 @@ artifact 引用 / 生成结果 metadata
   - 后续再补基于真实画布的截图样本
 - `Radish`
   - 基于固定文档、在线文档、论坛 Markdown、Console 文档和附件引用的样本
+- `RadishCatalyst`
+  - 当前只预留样本方向，不建立 committed eval 样本
+  - 后续首批样本应基于 `client/data/*.json`、`wiki/`、`official-tools/` 和脱敏游戏状态摘要，覆盖玩家知识问答、进度解释、生产链规划和开发侧静态数据一致性检查
+  - 玩家侧样本必须显式记录公开等级与剧透策略，避免把 `internal` 或默认隐藏 `spoiler` 内容训练成可直接回答
 - 共享指标
   - 结构合法率
   - 引用命中率
@@ -299,7 +310,7 @@ RadishMind/
 - 协议采用“通用骨架 + 项目专属上下文块”，而不是强行做一个业务超集
 - 当前主实现栈收口为 `Python`，优先统一评测、数据处理、模型适配和自动化校验工具链
 - `RadishMind` 的长期架构应按“受控 agent / copilot runtime + 可替换 model runtime”理解：agent 层负责任务路由、上下文选择、工具调用、规则校验、风险确认和响应组装，model 层只负责可替换的推理能力
-- 当前不把 agent runtime 与模型训练 / 模型服务拆成不同仓库；只有当双项目接入、协议稳定、student 训练和推理部署都进入独立节奏后，才按路线图 `M7` 评估是否拆包或拆仓库
+- 当前不把 agent runtime 与模型训练 / 模型服务拆成不同仓库；只有当多项目接入、协议稳定、student 训练和推理部署都进入独立节奏后，才按路线图 `M8` 评估是否拆包或拆仓库
 - `RadishFlow` 优先走状态优先上下文，截图是补充，不是第一阶段唯一中心
 - `Radish` 优先走知识优先上下文，重点是 Docs / Wiki / Forum / Console 语义
 - 模型输出默认是建议，不直接成为最终状态
