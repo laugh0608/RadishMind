@@ -720,9 +720,84 @@
       "summary": "The next expansion of the task-scoped builder now has a repository-level natural-language audit gate for the two observed target risks plus fallback visibility. This gate is still deterministic tooling validation, not raw model capability evidence."
     }
   },
+  "task_scoped_builder_full_holdout_9_post_run_review_2026_05_05": {
+    "status": "machine_and_deterministic_audit_passed_human_review_pending",
+    "sample_set": "full-holdout-9",
+    "candidate_track": "--build-task-scoped-response",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run over all 9 planned full-holdout samples with task-scoped response builder enabled. This records post-run review evidence only; it is not raw model promotion, training-sample acceptance, production contract acceptance, or model-size upgrade evidence.",
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-run.json",
+      "natural_language_audit": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-natural-language-audit.json"
+    },
+    "candidate_summary": {
+      "sample_count": 9,
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "builder_output_count": 9,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 9,
+      "total_generation_seconds": 875.748,
+      "avg_generation_seconds": 97.305,
+      "total_input_tokens": 21473,
+      "total_output_tokens": 3978,
+      "avg_output_tokens": 442.0,
+      "task_valid_counts_by_task": {
+        "radishflow/suggest_flowsheet_edits": "3/3",
+        "radishflow/suggest_ghost_completion": "3/3",
+        "radish/answer_docs_question": "3/3"
+      }
+    },
+    "offline_eval_summary": {
+      "promotion_status": "no_promotion_planned",
+      "requires_human_review": true,
+      "blocking_metrics": {
+        "schema_validity_rate": 1.0,
+        "citation_alignment_rate": 1.0,
+        "risk_confirmation_preservation_rate": 1.0,
+        "high_risk_action_confirmation_rate": 1.0,
+        "advisory_action_boundary_rate": 1.0,
+        "retrieval_source_contract_rate": 1.0
+      }
+    },
+    "natural_language_audit_summary": {
+      "status": "pass",
+      "violation_count": 0,
+      "warning_count": 3,
+      "natural_field_count": 42,
+      "merged_natural_field_count": 36,
+      "fallback_natural_field_count": 6,
+      "fallback_natural_field_rate": 0.142857
+    },
+    "manual_spot_check": {
+      "status": "review_required_before_expansion_acceptance",
+      "checked_samples": [
+        "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "radishflow-suggest-ghost-completion-flash-inlet-001",
+        "radish-answer-docs-question-attachment-mixed-001"
+      ],
+      "accepted_observations": [
+        "`valve-local-fix-vs-global-balance` kept `requires_confirmation=true`, local `valve-1` scope, numeric `minimum_value=10` / `suggested_maximum=85`, and indexed diagnostic / artifact citations.",
+        "`flash-inlet` kept local candidate-set preview semantics and did not reintroduce law/regulation mistranslation.",
+        "`attachment-mixed` kept low-risk read-only docs/attachment source usage."
+      ],
+      "review_blockers_or_followups": [
+        "`compressor-parameter-update` passed schema/task/offline eval, but task assertions only require detail key presence/order for `minimum_delta_kpa` and `suggested_minimum`; the candidate output still filled those details with boolean `true` instead of the golden numeric values `90` and `8`, so factual sufficiency and actionability remain pending human review.",
+        "Natural-language audit reported three docs QA warnings for very short `proposed_actions[0].title`; these are not deterministic violations, but should be checked under fallback acceptability and user-presentability review.",
+        "Fallback usage rose to `6/42` natural fields on full-holdout-9, mainly in suggest-edits answer/issue text; the fallback text is task-specific enough for deterministic audit but still requires reviewer acceptance."
+      ]
+    },
+    "route_decision_signal": {
+      "status": "broader_tooling_track_signal_strengthened_without_raw_promotion",
+      "summary": "The full-holdout-9 run strengthens the task-scoped builder / tooling split: all schema, task and offline eval blocking metrics passed, and deterministic natural-language audit found zero violations. The review plan still blocks expansion acceptance until human review records cover citation explanation quality, factual sufficiency, fallback acceptability, risk/advisory boundaries, and holdout leakage."
+    }
+  },
   "current_conclusion": {
-    "status": "task_scoped_builder_tooling_track_ready_for_broader_review_with_audit_gate",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 repaired 在同样样本和 timeout 下达到 6/6 task-valid；强化后的 `--inject-hard-fields` 第三轨让 ghost completion 与 docs QA 两组通过但 `suggest_flowsheet_edits` 仍 blocked；真实本地 `--build-suggest-edits-response` 轨让 `suggest_flowsheet_edits` 2/2 task-valid，但 overall 阻塞转移到 ghost/docs。真实本地 `--build-task-scoped-response` 组合轨已达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、offline eval `no_promotion_planned`，说明 v2 的结构化阻塞可以由 task-scoped response builder / tooling 分工消除；修正后的自然语言 guardrail 已在同一 v2 本地复跑中保持机器指标全绿，并确认通用占位 answer 与 ghost legal/法律/法规误译已被任务感知 fallback 替代。当前已进一步把自然语言 review 口径落为仓库级 deterministic audit gate，跟踪 fallback 使用比例并阻塞两类已观测坏文本回归。",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；可以在保留自然语言 audit gate 的前提下扩大 task-scoped builder 样本面，并继续补充引用解释质量与事实充分性的 reviewer 口径。"
+    "status": "task_scoped_builder_full_holdout_machine_passed_with_human_review_pending",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 task-scoped builder 组合轨已达到机器指标全绿。随后 full-holdout-9 本地 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 真实轨也达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三个任务组所有 blocking metrics 均通过且 `promotion_status=no_promotion_planned`；自然语言 audit 为 `pass`、`violation_count=0`，但记录了 `warning_count=3` 和 `fallback_natural_field_rate=0.142857`。抽查确认该结果强化了 response builder / tooling 分工路线信号，同时也暴露 `compressor-parameter-update` 仍可能用布尔占位 detail 值满足机器断言、docs QA action title 过短、fallback 接受度未完成人工复核等问题。",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 review plan 补齐 full-holdout-9 的人工 review records，重点复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage，特别是 `compressor-parameter-update` 的 numeric detail 值和 docs QA 短标题 warning。"
   }
 }

@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 EXPERIMENT_PATH = REPO_ROOT / "training/experiments/radishmind-core-structured-output-decision-experiment-v0.json"
 
 EXPECTED_SAMPLE_SET = "holdout6-v2-non-overlap"
+EXPECTED_FULL_HOLDOUT_SAMPLE_SET = "full-holdout-9"
 EXPECTED_MODEL = "Qwen2.5-1.5B-Instruct"
 
 
@@ -360,15 +361,85 @@ def build_audit_gate(experiment: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
+    observation = require_dict(experiment, "task_scoped_builder_full_holdout_9_post_run_review_2026_05_05")
+    require(
+        observation.get("status") == "machine_and_deterministic_audit_passed_human_review_pending",
+        "full-holdout post-run status mismatch",
+    )
+    require(observation.get("sample_set") == EXPECTED_FULL_HOLDOUT_SAMPLE_SET, "full-holdout sample set mismatch")
+    require(observation.get("candidate_track") == "--build-task-scoped-response", "full-holdout candidate track mismatch")
+    require_tmp_artifacts("task_scoped_builder_full_holdout_9", require_dict(observation, "local_artifacts"))
+
+    summary = require_dict(observation, "candidate_summary")
+    require(summary.get("sample_count") == 9, "full-holdout sample_count mismatch")
+    require(summary.get("schema_valid_rate") == 1.0, "full-holdout schema_valid_rate mismatch")
+    require(summary.get("task_valid_rate") == 1.0, "full-holdout task_valid_rate mismatch")
+    require(summary.get("builder_output_count") == 9, "full-holdout builder_output_count mismatch")
+    require(summary.get("timeout_count") == 0, "full-holdout timeout_count mismatch")
+    require(summary.get("hit_max_new_tokens_count") == 0, "full-holdout hit_max_new_tokens_count mismatch")
+
+    offline_summary = require_dict(observation, "offline_eval_summary")
+    require(offline_summary.get("promotion_status") == "no_promotion_planned", "full-holdout promotion status mismatch")
+    require(offline_summary.get("requires_human_review") is True, "full-holdout must require human review")
+    blocking_metrics = require_dict(offline_summary, "blocking_metrics")
+    require(all(value == 1.0 for value in blocking_metrics.values()), "full-holdout blocking metrics must all pass")
+
+    audit_summary = require_dict(observation, "natural_language_audit_summary")
+    require(audit_summary.get("status") == "pass", "full-holdout audit status mismatch")
+    require(audit_summary.get("violation_count") == 0, "full-holdout audit must have zero violations")
+    require(audit_summary.get("warning_count") == 3, "full-holdout audit warning_count mismatch")
+    require(
+        audit_summary.get("fallback_natural_field_rate") == 0.142857,
+        "full-holdout fallback_natural_field_rate mismatch",
+    )
+
+    manual_spot_check = require_dict(observation, "manual_spot_check")
+    require(
+        manual_spot_check.get("status") == "review_required_before_expansion_acceptance",
+        "full-holdout manual spot-check status mismatch",
+    )
+    checked_samples = require_list(manual_spot_check, "checked_samples")
+    require(len(checked_samples) >= 4, "full-holdout manual spot-check must record sampled responses")
+    followups = require_list(manual_spot_check, "review_blockers_or_followups")
+    require(followups, "full-holdout manual spot-check must record review followups")
+    joined_followups = "\n".join(str(item) for item in followups)
+    require("boolean `true`" in joined_followups, "full-holdout review followups must preserve boolean detail caveat")
+    require("very short" in joined_followups, "full-holdout review followups must preserve short title warning")
+    require("Fallback usage" in joined_followups, "full-holdout review followups must preserve fallback caveat")
+
+    return {
+        "track_id": "task_scoped_builder_full_holdout_9",
+        "track_kind": "task_scoped_response_builder_full_holdout",
+        "model": EXPECTED_MODEL,
+        "sample_set": observation.get("sample_set"),
+        "promotion_status": offline_summary.get("promotion_status"),
+        "machine_metrics": observed_metrics(summary, include_task_counts=True),
+        "natural_language_audit": {
+            "status": audit_summary.get("status"),
+            "violation_count": audit_summary.get("violation_count"),
+            "warning_count": audit_summary.get("warning_count"),
+            "fallback_natural_field_rate": audit_summary.get("fallback_natural_field_rate"),
+        },
+        "human_review_status": manual_spot_check.get("status"),
+        "review_followup_count": len(followups),
+        "not_raw_capability_evidence": True,
+        "not_training_acceptance_evidence": True,
+        "route_signal": require_dict(observation, "route_decision_signal").get("status"),
+    }
+
+
 def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     conclusion = require_dict(experiment, "current_conclusion")
     require(
-        conclusion.get("status") == "task_scoped_builder_tooling_track_ready_for_broader_review_with_audit_gate",
+        conclusion.get("status") == "task_scoped_builder_full_holdout_machine_passed_with_human_review_pending",
         "current conclusion status mismatch",
     )
     next_step = str(conclusion.get("next_step") or "")
     require("不应直接切 `3B/4B`" in next_step, "conclusion must reject direct 3B/4B switch")
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")
+    require("训练准入证据" in next_step, "conclusion must reject training acceptance")
+    require("compressor-parameter-update" in next_step, "conclusion must preserve compressor followup")
     return {
         "status": conclusion.get("status"),
         "next_step": conclusion.get("next_step"),
@@ -384,6 +455,7 @@ def build_summary() -> dict[str, Any]:
     tracks.append(build_injection_track(experiment))
     tracks.append(build_suggest_builder_track(experiment))
     tracks.extend(build_task_scoped_tracks(experiment))
+    tracks.append(build_full_holdout_track(experiment))
     audit_gate = build_audit_gate(experiment)
     conclusion = check_current_conclusion(experiment)
 
@@ -407,6 +479,8 @@ def build_summary() -> dict[str, Any]:
             "natural_language_review_has_separate_gate": True,
             "candidate_outputs_remain_uncommitted": True,
             "next_step_is_broader_builder_review_not_model_size_jump": True,
+            "full_holdout_builder_is_not_raw_promotion": True,
+            "full_holdout_human_review_remains_pending": True,
         },
         "current_conclusion": conclusion,
     }
@@ -426,6 +500,7 @@ def assert_summary(summary: dict[str, Any]) -> None:
         "suggest_edits_response_builder_v2",
         "task_scoped_response_builder_v2",
         "task_scoped_builder_guardrail_fixed_v2",
+        "task_scoped_builder_full_holdout_9",
     }
     missing = sorted(required_track_ids - set(by_id))
     if missing:
@@ -444,6 +519,19 @@ def assert_summary(summary: dict[str, Any]) -> None:
     require(
         by_id["task_scoped_builder_guardrail_fixed_v2"].get("human_review_status") == "target_risks_passed",
         "fixed task-scoped guardrail must preserve target human review pass",
+    )
+    full_holdout = by_id["task_scoped_builder_full_holdout_9"]
+    require(
+        full_holdout.get("not_raw_capability_evidence") is True,
+        "full-holdout builder must be separated from raw evidence",
+    )
+    require(
+        full_holdout.get("human_review_status") == "review_required_before_expansion_acceptance",
+        "full-holdout human review must remain pending",
+    )
+    require(
+        full_holdout.get("natural_language_audit", {}).get("violation_count") == 0,
+        "full-holdout natural-language audit must have no violations",
     )
     gates = summary.get("repository_gates") if isinstance(summary.get("repository_gates"), list) else []
     require(len(gates) == 1, "run-set summary must record one repository gate")

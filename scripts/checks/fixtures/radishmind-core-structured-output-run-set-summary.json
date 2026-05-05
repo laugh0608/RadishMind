@@ -6,7 +6,7 @@
   "run_set_id": "radishmind-core-v2-structured-output-decision",
   "sample_set": "holdout6-v2-non-overlap",
   "model": "Qwen2.5-1.5B-Instruct",
-  "track_count": 6,
+  "track_count": 7,
   "tracks": [
     {
       "track_id": "raw_v2",
@@ -174,6 +174,43 @@
         "ghost_vapor_legal_regulation_mistranslation_removed": true
       },
       "route_signal": "task_scoped_builder_tooling_track_ready_for_broader_review"
+    },
+    {
+      "track_id": "task_scoped_builder_full_holdout_9",
+      "track_kind": "task_scoped_response_builder_full_holdout",
+      "model": "Qwen2.5-1.5B-Instruct",
+      "sample_set": "full-holdout-9",
+      "promotion_status": "no_promotion_planned",
+      "machine_metrics": {
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "task_validation_attempted": 9,
+        "timeout_count": 0,
+        "hit_max_new_tokens_count": 0,
+        "builder_output_count": 9,
+        "total_generation_seconds": 875.748,
+        "avg_generation_seconds": 97.305,
+        "total_input_tokens": 21473,
+        "total_output_tokens": 3978,
+        "avg_output_tokens": 442.0,
+        "json_extracted_count": 9,
+        "task_valid_counts_by_task": {
+          "radishflow/suggest_flowsheet_edits": "3/3",
+          "radishflow/suggest_ghost_completion": "3/3",
+          "radish/answer_docs_question": "3/3"
+        }
+      },
+      "natural_language_audit": {
+        "status": "pass",
+        "violation_count": 0,
+        "warning_count": 3,
+        "fallback_natural_field_rate": 0.142857
+      },
+      "human_review_status": "review_required_before_expansion_acceptance",
+      "review_followup_count": 3,
+      "not_raw_capability_evidence": true,
+      "not_training_acceptance_evidence": true,
+      "route_signal": "broader_tooling_track_signal_strengthened_without_raw_promotion"
     }
   ],
   "repository_gates": [
@@ -198,10 +235,12 @@
     "task_scoped_builder_has_machine_pass": true,
     "natural_language_review_has_separate_gate": true,
     "candidate_outputs_remain_uncommitted": true,
-    "next_step_is_broader_builder_review_not_model_size_jump": true
+    "next_step_is_broader_builder_review_not_model_size_jump": true,
+    "full_holdout_builder_is_not_raw_promotion": true,
+    "full_holdout_human_review_remains_pending": true
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_tooling_track_ready_for_broader_review_with_audit_gate",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把该结果当作 raw 模型晋级；可以在保留自然语言 audit gate 的前提下扩大 task-scoped builder 样本面，并继续补充引用解释质量与事实充分性的 reviewer 口径。"
+    "status": "task_scoped_builder_full_holdout_machine_passed_with_human_review_pending",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 review plan 补齐 full-holdout-9 的人工 review records，重点复核 citation explanation quality、factual sufficiency、fallback acceptability、risk/advisory boundary 与 holdout leakage，特别是 `compressor-parameter-update` 的 numeric detail 值和 docs QA 短标题 warning。"
   }
 }
