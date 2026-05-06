@@ -22,6 +22,8 @@
 
 2026-05-06 已将 broader task-scoped builder review 的可执行样本面固定为 15 条：`full-holdout-9` 的 9 条 reviewed_pass 样本，加上 `holdout6-v2-non-overlap` 的 6 条非重叠回归样本，三类任务各 5 条。该入口落在 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`，并由 `scripts/check-radishmind-core-task-scoped-builder-broader-review-entry.py` 接入仓库级验证；它只收口下一轮 broader review 的执行面，不代表 raw 晋级、训练准入或 production contract 接受证据。
 
+同日补充 broader review runbook：`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 将 15 样本 surface 拆成 full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行清单，并明确两段各自的 candidate summary、offline eval、natural-language audit 和后续 human review record 期望。`scripts/check-radishmind-core-task-scoped-builder-broader-review-runbook.py` 负责固定该 runbook 只描述计划，不生成结果，也不提前把 broader review 伪装成 reviewed_pass。
+
 ## 评估对象
 
 | 对象 | 角色 | 首轮定位 | 进入条件 | 退出或暂缓条件 |
