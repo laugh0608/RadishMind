@@ -24,6 +24,8 @@
 
 同日补充 broader review runbook：`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 将 15 样本 surface 拆成 full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行清单，并明确两段各自的 candidate summary、offline eval、natural-language audit 和后续 human review record 期望。`scripts/check-radishmind-core-task-scoped-builder-broader-review-runbook.py` 负责固定该 runbook 只描述计划，不生成结果，也不提前把 broader review 伪装成 reviewed_pass。
 
+同日再补 pending review records 骨架：`training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 预置 broader 15 样本逐条复核入口和 `tmp/` artifact 路径，但状态保持 `pending_review`。`scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 会阻止该骨架在真实两段本地执行、offline eval、natural-language audit 和人工复核完成前被标成 `reviewed_pass`。
+
 ## 评估对象
 
 | 对象 | 角色 | 首轮定位 | 进入条件 | 退出或暂缓条件 |
