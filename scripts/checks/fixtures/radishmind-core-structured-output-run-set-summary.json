@@ -188,11 +188,11 @@
         "timeout_count": 0,
         "hit_max_new_tokens_count": 0,
         "builder_output_count": 9,
-        "total_generation_seconds": 1011.84,
-        "avg_generation_seconds": 112.427,
-        "total_input_tokens": 21545,
-        "total_output_tokens": 4331,
-        "avg_output_tokens": 481.222,
+        "total_generation_seconds": 890.533,
+        "avg_generation_seconds": 98.948,
+        "total_input_tokens": 22242,
+        "total_output_tokens": 3989,
+        "avg_output_tokens": 443.222,
         "json_extracted_count": 9,
         "task_valid_counts_by_task": {
           "radishflow/suggest_flowsheet_edits": "3/3",
@@ -204,20 +204,20 @@
         "status": "pass",
         "violation_count": 0,
         "warning_count": 3,
-        "fallback_natural_field_rate": 0.047619
+        "fallback_natural_field_rate": 0.142857
       },
-      "human_review_status": "reviewed_changes_required",
-      "review_followup_count": 8,
-      "human_review_record_status": "reviewed_changes_required",
-      "reviewed_pass_count": 8,
-      "reviewed_changes_required_count": 1,
+      "human_review_status": "reviewed_pass",
+      "review_followup_count": 5,
+      "human_review_record_status": "reviewed_pass",
+      "reviewed_pass_count": 9,
+      "reviewed_changes_required_count": 0,
       "tightened_fixture_status": "implemented_and_rerun_passed",
-      "citation_fixture_status": "implemented_pending_local_rerun",
+      "citation_fixture_status": "implemented_and_rerun_passed",
       "stale_artifact_promotion_status": "blocked",
       "tightened_rerun_promotion_status": "no_promotion_planned",
       "not_raw_capability_evidence": true,
       "not_training_acceptance_evidence": true,
-      "route_signal": "broader_tooling_track_machine_passed_citation_fixture_tightened_pending_local_rerun"
+      "route_signal": "broader_tooling_track_machine_and_review_passed_citation_fixture_tightened"
     }
   ],
   "repository_gates": [
@@ -248,11 +248,11 @@
     "full_holdout_tightened_rerun_has_machine_pass": true,
     "full_holdout_human_review_records_added": true,
     "full_holdout_compressor_citation_fixture_tightened": true,
-    "full_holdout_citation_local_rerun_pending": true,
-    "full_holdout_expansion_blocked_by_review": true
+    "full_holdout_citation_local_rerun_completed": true,
+    "full_holdout_expansion_requires_broader_review": true
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_pending_local_rerun",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 citation-tightened fixture 重跑 full-holdout-9 task-scoped builder / offline eval / natural-language audit，确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document`，再把正式 review records 从 `reviewed_changes_required` 更新为通过。"
+    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_reviewed_pass",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应先扩大 task-scoped builder 样本面，或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照，并继续保持自然语言 review gate。"
   }
 }

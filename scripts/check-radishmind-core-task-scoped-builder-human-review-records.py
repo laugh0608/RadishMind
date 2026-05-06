@@ -87,7 +87,7 @@ def main() -> int:
     require(document.get("review_batch_id") == "task-scoped-builder-full-holdout-9-full-review-v0", "batch id mismatch")
     require(document.get("sample_set_id") == "full-holdout-9", "sample_set_id mismatch")
     require(document.get("candidate_track") == "--build-task-scoped-response", "candidate_track mismatch")
-    require(document.get("status") == "reviewed_changes_required", "batch status must require changes")
+    require(document.get("status") == "reviewed_pass", "batch status must be reviewed_pass")
     require(document.get("does_not_run_models") is True, "review records must not run models")
     require(document.get("does_not_generate_jsonl") is True, "review records must not generate JSONL")
     require(document.get("does_not_mark_raw_promotion") is True, "review records must not promote raw")
@@ -109,7 +109,7 @@ def main() -> int:
     require(isinstance(audit, dict), "natural_language_audit_summary must be an object")
     require(audit.get("violation_count") == 0, "natural-language violations must be zero")
     require(audit.get("warning_count") == 3, "warning_count must preserve docs QA short-title warnings")
-    require(audit.get("fallback_natural_field_count") == 2, "fallback count mismatch")
+    require(audit.get("fallback_natural_field_count") == 6, "fallback count mismatch")
     require(audit.get("natural_field_count") == 42, "natural field count mismatch")
 
     holdout = load_json(HOLDOUT_PATH)
@@ -158,25 +158,29 @@ def main() -> int:
         if "Fallback" in findings or "fallback" in findings:
             fallback_samples.append(sample_id)
 
-    require(pass_count == 8, "exactly 8 records should be reviewed_pass")
-    require(
-        changes_required == ["radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"],
-        "compressor sample must be the only reviewed_changes_required record",
-    )
+    require(pass_count == 9, "exactly 9 records should be reviewed_pass")
+    require(not changes_required, "no records should remain reviewed_changes_required")
     compressor = by_sample["radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"]
     compressor_dimensions = compressor.get("dimension_results") or {}
     require(
-        compressor_dimensions.get("citation_explanation_quality") == "reviewed_changes_required",
-        "compressor citation quality must require changes",
+        compressor_dimensions.get("citation_explanation_quality") == "reviewed_pass",
+        "compressor citation quality must pass",
+    )
+    require(
+        compressor_dimensions.get("fallback_acceptability") == "reviewed_pass",
+        "compressor fallback acceptability must pass",
     )
     compressor_findings = "\n".join(str(item) for item in compressor.get("review_findings") or [])
     require("minimum_delta_kpa=90" in compressor_findings, "compressor numeric detail closure missing")
     require("suggested_minimum=8" in compressor_findings, "compressor suggested_minimum closure missing")
-    require("artifact:flowsheet_document" in compressor_findings, "compressor broad citation finding missing")
-    require("context:diagnostics[0..2]" in compressor_findings, "compressor tightened citation fixture note missing")
+    require("indexed to diagnostics" in compressor_findings, "compressor tightened citation fixture note missing")
     require(
-        compressor.get("exit_reason") == "citation_fixture_tightened_pending_local_rerun",
-        "compressor exit reason must wait for local rerun after citation fixture tightening",
+        "broad `artifact:flowsheet_document` blocker is closed" in compressor_findings,
+        "compressor broad citation closure missing",
+    )
+    require(
+        compressor.get("exit_reason") is None,
+        "compressor exit reason must be cleared after citation-tightened rerun passes",
     )
 
     require(
@@ -210,11 +214,11 @@ def main() -> int:
 
     batch = document.get("batch_summary")
     require(isinstance(batch, dict), "batch_summary must be an object")
-    require(batch.get("reviewed_pass_count") == 8, "batch pass count mismatch")
-    require(batch.get("reviewed_changes_required_count") == 1, "batch changes-required count mismatch")
+    require(batch.get("reviewed_pass_count") == 9, "batch pass count mismatch")
+    require(batch.get("reviewed_changes_required_count") == 0, "batch changes-required count mismatch")
     batch_decision = str(batch.get("decision") or "")
-    require("Do not expand" in batch_decision, "batch decision must block expansion")
-    require("local full-holdout builder artifacts have not yet been regenerated" in batch_decision, "batch decision must require local rerun")
+    require("broader task-scoped builder review" in batch_decision, "batch decision must allow broader review")
+    require("raw promotion" in batch_decision, "batch decision must reject raw promotion")
 
     print("radishmind core task-scoped builder human review records check passed.")
     return 0

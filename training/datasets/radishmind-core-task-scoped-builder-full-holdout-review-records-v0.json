@@ -7,8 +7,8 @@
   "sample_set_id": "full-holdout-9",
   "candidate_track": "--build-task-scoped-response",
   "model": "Qwen2.5-1.5B-Instruct",
-  "status": "reviewed_changes_required",
-  "reviewed_at": "2026-05-05T00:00:00Z",
+  "status": "reviewed_pass",
+  "reviewed_at": "2026-05-06T00:00:00Z",
   "reviewer": "repository-reviewer",
   "does_not_run_models": true,
   "does_not_generate_jsonl": true,
@@ -32,9 +32,9 @@
     "violation_count": 0,
     "warning_count": 3,
     "natural_field_count": 42,
-    "merged_natural_field_count": 40,
-    "fallback_natural_field_count": 2,
-    "fallback_natural_field_rate": 0.047619
+    "merged_natural_field_count": 36,
+    "fallback_natural_field_count": 6,
+    "fallback_natural_field_rate": 0.142857
   },
   "holdout_leakage_review": {
     "status": "reviewed_pass",
@@ -48,20 +48,19 @@
   },
   "batch_summary": {
     "record_count": 9,
-    "reviewed_pass_count": 8,
-    "reviewed_changes_required_count": 1,
-    "blocking_change_required_samples": [
-      "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"
-    ],
+    "reviewed_pass_count": 9,
+    "reviewed_changes_required_count": 0,
+    "blocking_change_required_samples": [],
     "accepted_warning_samples": [
       "radish-answer-docs-question-attachment-mixed-001",
       "radish-answer-docs-question-docs-attachments-faq-001",
       "radish-answer-docs-question-navigation-001"
     ],
     "accepted_fallback_samples": [
-      "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001"
+      "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+      "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"
     ],
-    "decision": "Do not expand the task-scoped builder sample surface yet. The tightened rerun machine gates pass, and the compressor citation fixture/scaffold has now been tightened deterministically, but the local full-holdout builder artifacts have not yet been regenerated under the new citation assertions."
+    "decision": "All 9 full-holdout records are now reviewed_pass after the citation-tightened rerun. The numeric detail blocker and the citation blocker are closed, and the batch is ready for broader task-scoped builder review without treating it as raw promotion or training acceptance evidence."
   },
   "records": [
     {
@@ -97,28 +96,25 @@
       "source_eval_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
       "candidate_response_file": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300/responses/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001.candidate-response.json",
       "natural_language_audit_case_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
-      "review_status": "reviewed_changes_required",
+      "review_status": "reviewed_pass",
       "dimension_results": {
         "machine_schema_and_task_validity": "reviewed_pass",
         "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "reviewed_changes_required",
+        "citation_explanation_quality": "reviewed_pass",
         "factual_sufficiency": "reviewed_pass",
-        "fallback_acceptability": "not_applicable",
+        "fallback_acceptability": "reviewed_pass",
         "risk_confirmation_and_advisory_boundary": "reviewed_pass",
         "training_holdout_leakage": "reviewed_pass"
       },
       "review_findings": [
         "The tightened numeric detail blocker is closed: `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` are present in the candidate action patch.",
-        "Citation locator quality remains too broad: all answer, issue, and action citations point to `artifact:flowsheet_document` instead of indexed diagnostics, compressor unit config, suction stream, or latest snapshot evidence.",
-        "The source eval sample now declares indexed citation id/locator and answer/issue/action citation-order assertions, and the deterministic scaffold gate verifies `context:diagnostics[0..2]`, `artifact:flowsheet_document.units[0]`, and `context:latest_snapshot`; a new local full-holdout rerun is still required before this record can be promoted to `reviewed_pass`.",
-        "The response keeps `risk_level=medium`, top-level `requires_confirmation=true`, action-level `requires_confirmation=true`, and advisory-only wording."
+        "Citation locators are now indexed to diagnostics, compressor unit config, suction stream evidence, and latest snapshot evidence; the broad `artifact:flowsheet_document` blocker is closed.",
+        "Fallback is limited to task-specific answer and issue text, and the review accepts it as non-blocking.",
+        "The advisory-only boundary and confirmation requirements remain intact."
       ],
-      "warnings": [
-        "Broad artifact citation is not acceptable as expansion evidence for this compressor sample.",
-        "The deterministic fixture/scaffold fix is not raw promotion, training acceptance, or proof that the previous local builder artifact now satisfies citation review."
-      ],
-      "exit_reason": "citation_fixture_tightened_pending_local_rerun"
+      "warnings": [],
+      "exit_reason": null
     },
     {
       "sample_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",

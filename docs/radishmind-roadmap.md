@@ -13,7 +13,7 @@
 近期实际推进集中在 `M3/M4`：
 
 - `M3`：把已有 gateway、service smoke、UI consumption 与 candidate handoff 保持为服务/API 接入验收门禁。
-- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped builder、citation tightened full-holdout rerun、natural-language audit 和 human review records。
+- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped builder、natural-language audit、human review records 和 broader review 口径；citation tightened full-holdout-9 已完成并收口。
 - 当前不启动训练放量，不继续默认扩同类真实 capture，不把 builder 轨通过解释成 raw 模型能力晋级。
 
 ## 阶段
@@ -46,7 +46,7 @@
 
 目标：明确 `RadishMind-Core` 的基座适配、结构化输出、response builder / tooling 分工和评测晋级标准。
 
-状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。当前下一步是完成 citation tightened full-holdout rerun、offline eval、natural-language audit 与 review records 更新。
+状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；当前下一步是评估 broader task-scoped builder 样本面，或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照。
 
 ### M5：`Radish` 首批任务接入
 
@@ -68,11 +68,10 @@
 
 ## 下一步
 
-1. 读取 citation tightened full-holdout 本地重跑产物后，更新 offline eval、natural-language audit 和 review records。
-2. 若 review 全部通过，再评估是否扩大 task-scoped builder 样本面或进入 constrained/guided decoding、`minimind-v`、`3B/4B` 对照。
-3. 继续维护服务/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
-4. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
-5. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。
+1. 评估是否扩大 task-scoped builder 样本面，或进入 constrained/guided decoding、`minimind-v`、`3B/4B` 对照。
+2. 继续维护服务/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
+3. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
+4. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。
 
 ## 停止线
 

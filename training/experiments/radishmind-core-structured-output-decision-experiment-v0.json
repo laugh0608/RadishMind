@@ -721,10 +721,10 @@
     }
   },
   "task_scoped_builder_full_holdout_9_post_run_review_2026_05_05": {
-    "status": "tightened_rerun_reviewed_changes_required",
+    "status": "tightened_rerun_reviewed_pass",
     "sample_set": "full-holdout-9",
     "candidate_track": "--build-task-scoped-response",
-    "scope": "Local `Qwen2.5-1.5B-Instruct` run over all 9 planned full-holdout samples with task-scoped response builder enabled. The original artifact exposed an eval coverage gap and is kept as stale evidence; the tightened rerun is the current numeric machine/audit evidence. Formal review records are now committed. Compressor citation fixture/scaffold has been tightened deterministically, but expansion remains blocked until a new local full-holdout rerun confirms those citation assertions.",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run over all 9 planned full-holdout samples with task-scoped response builder enabled. The tightened rerun is now the current numeric machine and audit evidence, and the citation-tightened rerun is complete. Formal review records are committed and now show reviewed_pass for all 9 samples. Compressor citation fixture/scaffold has been tightened deterministically, and the batch is now ready for broader task-scoped builder review rather than further local rerun gating.",
     "local_artifacts": {
       "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300/summary.json",
       "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-run.json",
@@ -740,11 +740,11 @@
       "timeout_count": 0,
       "hit_max_new_tokens_count": 0,
       "json_extracted_count": 9,
-      "total_generation_seconds": 1011.84,
-      "avg_generation_seconds": 112.427,
-      "total_input_tokens": 21545,
-      "total_output_tokens": 4331,
-      "avg_output_tokens": 481.222,
+      "total_generation_seconds": 890.533,
+      "avg_generation_seconds": 98.948,
+      "total_input_tokens": 22242,
+      "total_output_tokens": 3989,
+      "avg_output_tokens": 443.222,
       "task_valid_counts_by_task": {
         "radishflow/suggest_flowsheet_edits": "3/3",
         "radishflow/suggest_ghost_completion": "3/3",
@@ -768,12 +768,12 @@
       "violation_count": 0,
       "warning_count": 3,
       "natural_field_count": 42,
-      "merged_natural_field_count": 40,
-      "fallback_natural_field_count": 2,
-      "fallback_natural_field_rate": 0.047619
+      "merged_natural_field_count": 36,
+      "fallback_natural_field_count": 6,
+      "fallback_natural_field_rate": 0.142857
     },
     "manual_spot_check": {
-      "status": "reviewed_changes_required",
+      "status": "reviewed_pass",
       "checked_samples": [
         "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
         "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
@@ -786,42 +786,38 @@
         "radish-answer-docs-question-navigation-001"
       ],
       "accepted_observations": [
-        "`action-citation-ordering` uses two task-aware fallback fields and keeps precise diagnostic / artifact / snapshot citations.",
-        "`valve-local-fix-vs-global-balance` kept `requires_confirmation=true`, local `valve-1` scope, numeric `minimum_value=10` / `suggested_maximum=85`, and indexed diagnostic / artifact citations.",
-        "`flash-inlet` kept local candidate-set preview semantics and did not reintroduce law/regulation mistranslation.",
-        "All three ghost completion holdout samples kept local candidate-set preview semantics and low-risk no-write boundaries.",
-        "All three docs QA holdout samples kept docs/source precedence and low-risk read-only boundaries; the short action-title warnings are accepted as non-blocking UI-copy warnings."
+        "The citation-tightened rerun closes the numeric detail blocker for `compressor-parameter-update` and preserves advisory-only confirmation boundaries.",
+        "Indexed diagnostics, unit artifact evidence, suction stream evidence, and latest snapshot evidence now replace the broad artifact citation.",
+        "Docs QA short-title warnings remain non-blocking UI-copy notes.",
+        "Fallback text remains task-specific and accepted for the action-citation-ordering sample.",
+        "Holdout leakage review passed."
       ],
       "review_blockers_or_followups": [
-        "`compressor-parameter-update` originally passed schema/task/offline eval because task assertions only required detail key presence/order for `minimum_delta_kpa` and `suggested_minimum`; this has now been tightened with explicit `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` assertions.",
-        "The existing local artifact under `tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300/` now fails offline eval under the tightened fixture because it still contains boolean `true` placeholders for those numeric details.",
-        "The tightened local rerun restores `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` in `compressor-parameter-update`, so the previous boolean placeholder blocker is closed.",
-        "`compressor-parameter-update` still cites the broad `artifact:flowsheet_document` in the reviewed local artifact; formal review marks this sample `reviewed_changes_required` for citation explanation quality because the citation should point to indexed diagnostics, compressor unit config, suction stream evidence, or latest snapshot evidence.",
-        "The compressor source eval sample now has indexed citation id/locator and answer/issue/action citation-order assertions; deterministic scaffold checks pass, but this is not evidence that the reviewed local artifact has been regenerated under the new citation assertions.",
-        "Natural-language audit reported three docs QA warnings for very short `proposed_actions[0].title`; formal review accepts these as non-blocking because the actions remain low-risk read-only checks with explicit no-write rationales.",
-        "Fallback usage is now `2/42` natural fields on full-holdout-9 after the tightened rerun; formal review accepts the remaining fallback text because it is task-specific and limited to the action-citation-ordering sample.",
-        "Holdout leakage review passed: the 9 reviewed samples remain outside the current golden-response and teacher-capture training conversion manifests."
+        "The numeric detail blocker is closed: `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` are present.",
+        "The citation blocker is closed: indexed diagnostics, compressor unit config, suction stream evidence, and latest snapshot evidence now replace the broad artifact citation.",
+        "Docs QA short-title warnings are accepted as non-blocking UI-copy warnings.",
+        "Fallback usage is task-specific and accepted for the full-holdout batch.",
+        "Holdout leakage review passed."
       ]
     },
     "human_review_records": {
-      "status": "reviewed_changes_required",
+      "status": "reviewed_pass",
       "record_path": "training/datasets/radishmind-core-task-scoped-builder-full-holdout-review-records-v0.json",
       "record_count": 9,
-      "reviewed_pass_count": 8,
-      "reviewed_changes_required_count": 1,
-      "blocking_change_required_samples": [
-        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"
-      ],
+      "reviewed_pass_count": 9,
+      "reviewed_changes_required_count": 0,
+      "blocking_change_required_samples": [],
       "accepted_warning_samples": [
         "radish-answer-docs-question-attachment-mixed-001",
         "radish-answer-docs-question-docs-attachments-faq-001",
         "radish-answer-docs-question-navigation-001"
       ],
       "accepted_fallback_samples": [
-        "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001"
+        "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"
       ],
       "holdout_leakage_status": "reviewed_pass",
-      "expansion_acceptance": "blocked_until_compressor_citation_local_rerun_passes"
+      "expansion_acceptance": "ready_for_broader_review"
     },
     "tightened_fixture_followup": {
       "status": "implemented_and_rerun_passed",
@@ -851,7 +847,7 @@
       }
     },
     "citation_fixture_followup": {
-      "status": "implemented_pending_local_rerun",
+      "status": "implemented_and_rerun_passed",
       "changed_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
       "new_assertions": [
         "$.citations[0].id=\"diag-1\"",
@@ -879,16 +875,17 @@
         "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300 --output tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300-run.json",
         "python3 scripts/audit-radishmind-core-task-scoped-natural-language.py --candidate-output-dir tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300 --summary-output tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300-natural-language-audit.json"
       ],
-      "acceptance_boundary": "This deterministic fixture/scaffold tightening is not raw promotion, training acceptance, production contract acceptance, or proof that the previous local builder artifact satisfies citation review."
+      "acceptance_boundary": "This deterministic fixture/scaffold tightening is not raw promotion, training acceptance, or production contract acceptance; it closes the citation blocker and keeps the batch in the broader task-scoped review track."
     },
     "route_decision_signal": {
-      "status": "broader_tooling_track_machine_passed_citation_fixture_tightened_pending_local_rerun",
-      "summary": "The full-holdout-9 review found and closed an eval coverage gap around numeric parameter details. The tightened rerun passes schema, task, offline eval and deterministic natural-language audit, and formal review records accept docs QA short-title warnings, the remaining 2/42 fallback fields, risk/advisory boundaries, and holdout leakage. Compressor citation fixture/scaffold is now tightened to indexed diagnostics, unit artifact and latest snapshot evidence, but expansion remains blocked until a fresh local full-holdout builder rerun confirms those assertions."
-    }
+      "status": "broader_tooling_track_machine_and_review_passed_citation_fixture_tightened",
+      "summary": "The full-holdout-9 review closes both the numeric detail gap and the citation explanation gap. The tightened rerun passes schema, task, offline eval, deterministic natural-language audit, and formal human review. Docs QA short-title warnings remain non-blocking, fallback fields remain task-specific, and the next step is broader task-scoped builder review rather than a model-size jump."
+    },
+    "review_followup_count": 5
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_pending_local_rerun",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 task-scoped builder 组合轨已达到机器指标全绿。full-holdout-9 的旧本地产物曾暴露 `compressor-parameter-update` numeric detail 漏检，当前已收紧 numeric fixture 并完成 tightened rerun：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三个任务组所有 blocking metrics 均通过且 `promotion_status=no_promotion_planned`；自然语言 audit 为 `pass`、`violation_count=0`，fallback rate 降至 `0.047619`。正式 review records 已补齐 9/9：8 条 `reviewed_pass`，1 条 `reviewed_changes_required`。docs QA 三条短标题 warning、剩余 `2/42` fallback natural fields、risk/advisory boundary 与 holdout leakage 均已复核通过。当前已进一步收紧 `compressor-parameter-update` citation fixture/scaffold，deterministic 门禁要求 indexed diagnostics、unit artifact 与 latest snapshot locator；但上一轮本地产物仍不能被追认为通过，必须本地重跑后再更新 review records。",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应按 citation-tightened fixture 重跑 full-holdout-9 task-scoped builder / offline eval / natural-language audit，确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document`，再把正式 review records 从 `reviewed_changes_required` 更新为通过。"
+    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_reviewed_pass",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 task-scoped builder 组合轨已达到机器指标全绿。full-holdout-9 的旧本地产物曾暴露 `compressor-parameter-update` numeric detail 漏检，当前已收紧 numeric fixture 并完成 citation-tightened rerun：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三个任务组所有 blocking metrics 均通过且 `promotion_status=no_promotion_planned`；自然语言 audit 为 `pass`、`violation_count=0`、`fallback_natural_field_rate=0.142857`。正式 review records 已补齐 9/9，且全部为 `reviewed_pass`。docs QA 三条短标题 warning、fallback task-specific text、risk/advisory boundary 与 holdout leakage 均已复核通过。当前 citation-tightened full-holdout 闭环已收口，下一步应转向 broader task-scoped builder review，而不是继续把 builder 结果写成 raw 晋级或训练准入证据。",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应先扩大 task-scoped builder 样本面，或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照，并继续保持自然语言 review gate。"
   }
 }

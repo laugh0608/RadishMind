@@ -19,20 +19,18 @@
 
 ## 今天优先做什么
 
-优先任务是推进 `M4` 的 citation tightened full-holdout 闭环：
+当前 `citation tightened full-holdout-9` 已经完成并收口，今天优先任务转为 broader task-scoped builder review：
 
-1. 等用户完成 citation tightened full-holdout-9 task-scoped builder 本地重跑。
-2. 读取 `tmp/` 下新的 candidate summary、offline eval、natural-language audit 和相关产物。
-3. 更新 review records，判断 `compressor-parameter-update` 是否可以从 `reviewed_changes_required` 改为 `reviewed_pass`。
-4. 若仍未通过，先定位 citation、answer、issue、action rationale 或 fixture/scaffold 的根因。
-5. 若全部通过，再评估是否扩大 task-scoped builder 样本面，或进入 constrained/guided decoding、`minimind-v`、`3B/4B` 对照。
+1. 读取最新 `tmp/` 产物和 review records，确认 full-holdout-9 已稳定落到 `reviewed_pass`。
+2. 评估是否扩大 task-scoped builder 样本面，或进入 constrained/guided decoding、`minimind-v`、`3B/4B` 对照。
+3. 继续维持 raw / repaired / builder / audit 分离，不把 builder 结论写成 raw 晋级或训练准入。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
-- full-holdout-9 的机器门禁和 deterministic audit 曾通过，但人工复核发现 broad citation 仍未满足接受标准。
-- citation fixture/scaffold 已收紧；下一步必须用新的本地重跑产物更新结论，不能追认旧产物。
-- 在该 review 缺口关闭前，扩大样本、启动训练或切换更大模型都会提前消耗复杂度。
+- full-holdout-9 的机器门禁、deterministic audit 和 human review 现在都已通过，broad citation blocker 已收口。
+- citation fixture/scaffold 已收紧并完成本地重跑；当前不再等待补跑，而是评估是否扩大样本面。
+- 在 broader review 口径稳定前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 默认不要做
 
