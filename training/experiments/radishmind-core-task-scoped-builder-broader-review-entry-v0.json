@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_task_scoped_builder_broader_review_entry",
+  "entry_id": "radishmind-core-task-scoped-builder-broader-review-entry-v0",
+  "status": "ready_for_broader_review",
+  "phase": "M4-preparation",
+  "updated_at": "2026-05-06T00:00:00Z",
+  "candidate_track": "--build-task-scoped-response",
+  "does_not_run_models": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_review_pass": true,
+  "source_experiment": "training/experiments/radishmind-core-structured-output-decision-experiment-v0.json",
+  "source_review_plan": "training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json",
+  "source_full_holdout_review_records": "training/datasets/radishmind-core-task-scoped-builder-full-holdout-review-records-v0.json",
+  "source_run_set_summary": "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json",
+  "source_natural_language_audit": "scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json",
+  "source_sample_sets": {
+    "full_holdout_9": {
+      "sample_set_id": "full-holdout-9",
+      "candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+      "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json"
+    },
+    "holdout6_v2_non_overlap": {
+      "sample_set_id": "holdout6-v2-non-overlap",
+      "candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+      "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json"
+    }
+  },
+  "sample_surface": {
+    "surface_id": "broader-task-scoped-builder-15-sample-surface-v0",
+    "sample_set_ids": [
+      "full-holdout-9",
+      "holdout6-v2-non-overlap"
+    ],
+    "sample_count": 15,
+    "unique_sample_count": 15,
+    "task_counts": {
+      "radishflow/suggest_flowsheet_edits": 5,
+      "radishflow/suggest_ghost_completion": 5,
+      "radish/answer_docs_question": 5
+    },
+    "sample_ids_by_task": {
+      "radishflow/suggest_flowsheet_edits": [
+        "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001"
+      ],
+      "radishflow/suggest_ghost_completion": [
+        "radishflow-suggest-ghost-completion-flash-inlet-001",
+        "radishflow-suggest-ghost-completion-heater-stream-name-001",
+        "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+        "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001"
+      ],
+      "radish/answer_docs_question": [
+        "radish-answer-docs-question-attachment-mixed-001",
+        "radish-answer-docs-question-docs-attachments-faq-001",
+        "radish-answer-docs-question-navigation-001",
+        "radish-answer-docs-question-docs-faq-forum-conflict-001",
+        "radish-answer-docs-question-evidence-gap-001"
+      ]
+    },
+    "sample_ids_by_sample_set": {
+      "full-holdout-9": [
+        "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "radishflow-suggest-ghost-completion-flash-inlet-001",
+        "radishflow-suggest-ghost-completion-heater-stream-name-001",
+        "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "radish-answer-docs-question-attachment-mixed-001",
+        "radish-answer-docs-question-docs-attachments-faq-001",
+        "radish-answer-docs-question-navigation-001"
+      ],
+      "holdout6-v2-non-overlap": [
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+        "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+        "radish-answer-docs-question-docs-faq-forum-conflict-001",
+        "radish-answer-docs-question-evidence-gap-001"
+      ]
+    },
+    "overlap_detected": false
+  },
+  "evidence_summary": {
+    "full_holdout_review_status": "reviewed_pass",
+    "full_holdout_reviewed_pass_count": 9,
+    "full_holdout_route_signal": "broader_tooling_track_machine_and_review_passed_citation_fixture_tightened",
+    "v2_route_signal": "task_scoped_builder_tooling_track_ready_for_broader_review",
+    "v2_natural_language_audit_status": "pass",
+    "v2_natural_language_violation_count": 0
+  },
+  "validation_entry": {
+    "script": "scripts/check-radishmind-core-task-scoped-builder-broader-review-entry.py",
+    "check_summary": "scripts/checks/fixtures/radishmind-core-task-scoped-builder-broader-review-entry-summary.json",
+    "command_args": [
+      "python3",
+      "scripts/check-radishmind-core-task-scoped-builder-broader-review-entry.py",
+      "--summary-output",
+      "tmp/radishmind-core-task-scoped-builder-broader-review-entry-summary.json",
+      "--check-summary",
+      "scripts/checks/fixtures/radishmind-core-task-scoped-builder-broader-review-entry-summary.json"
+    ]
+  },
+  "broader_review_gate": {
+    "may_execute_when_all_true": [
+      "full_holdout_review_records_are_reviewed_pass",
+      "full_holdout_reviewed_pass_count_is_nine",
+      "v2_route_signal_ready_for_broader_review",
+      "v2_natural_language_audit_status_is_pass",
+      "sample_surface_has_15_unique_samples",
+      "candidate_outputs_remain_under_tmp",
+      "validation_entry_is_repo_local_and_non_executing"
+    ],
+    "must_not_execute_when_any_true": [
+      "raw_track_is_promoted",
+      "candidate_outputs_leave_tmp",
+      "holdout_overlap_is_detected",
+      "natural_language_audit_has_violations",
+      "reviewed_pass_is_claimed_without_the_existing_review_records",
+      "task_scoped_builder_is_recast_as_raw_promotion_evidence"
+    ]
+  },
+  "review_batch": {
+    "review_batch_id": "task-scoped-builder-broader-15-sample-review-v0",
+    "status": "planned",
+    "manual_review_ratio": 1.0,
+    "requires_offline_eval_run": true,
+    "requires_natural_language_audit": true,
+    "requires_human_reviewer": true,
+    "review_reason": "Broader review should span the already-reviewed full-holdout-9 and the holdout6-v2-non-overlap regression probe before any further sample expansion or model-size comparison."
+  },
+  "route_signal": {
+    "status": "broader_task_scoped_builder_review_entry_fixed",
+    "summary": "The broader task-scoped builder review now has a 15-sample executable surface and repository-level validation entry. It remains separated from raw promotion, training acceptance, and model-size comparison."
+  }
+}

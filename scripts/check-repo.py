@@ -1101,6 +1101,13 @@ def main() -> int:
     run_python_script("check-radishmind-core-task-scoped-builder-review-plan.py", [])
     run_python_script("check-radishmind-core-task-scoped-builder-human-review-records.py", [])
     run_python_script("check-radishmind-core-task-scoped-builder-full-holdout-runbook.py", [])
+    run_python_script(
+        "check-radishmind-core-task-scoped-builder-broader-review-entry.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishmind-core-task-scoped-builder-broader-review-entry-summary.json",
+        ],
+    )
     run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])

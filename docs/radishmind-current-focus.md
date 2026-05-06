@@ -19,17 +19,17 @@
 
 ## 今天优先做什么
 
-当前 `citation tightened full-holdout-9` 已经完成并收口，今天优先任务转为 broader task-scoped builder review：
+当前 `citation tightened full-holdout-9` 已经完成并收口，今天优先任务转为 broader task-scoped builder review entry 收口：
 
-1. 读取最新 `tmp/` 产物和 review records，确认 full-holdout-9 已稳定落到 `reviewed_pass`。
-2. 评估是否扩大 task-scoped builder 样本面，或进入 constrained/guided decoding、`minimind-v`、`3B/4B` 对照。
+1. 读取最新 `tmp/` 产物、run-set summary 和 review records，确认 full-holdout-9 已稳定落到 `reviewed_pass`，v2 non-overlap 仍指向 task-scoped builder tooling track。
+2. 把 `full-holdout-9` 与 `holdout6-v2-non-overlap` 收束为 15 样本 broader review surface，并固定实验记录与仓库级验证入口。
 3. 继续维持 raw / repaired / builder / audit 分离，不把 builder 结论写成 raw 晋级或训练准入。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
 - full-holdout-9 的机器门禁、deterministic audit 和 human review 现在都已通过，broad citation blocker 已收口。
-- citation fixture/scaffold 已收紧并完成本地重跑；当前不再等待补跑，而是评估是否扩大样本面。
+- citation fixture/scaffold 已收紧并完成本地重跑；当前不再等待补跑，而是先固定 broader review 的可执行样本面与验证入口。
 - 在 broader review 口径稳定前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 默认不要做

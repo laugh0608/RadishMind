@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-05-05
+更新时间：2026-05-06
 
 ## 文档目的
 
@@ -19,6 +19,8 @@
 2026-05-06 已完成 citation-tightened full-holdout-9 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 复跑：candidate summary 重新达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三组任务 blocking metrics 全部通过，自然语言 audit 为 `pass`、`violation_count=0`、`warning_count=3`、`fallback_natural_field_rate=0.142857`。正式 review records 已更新为 9/9 `reviewed_pass`；docs QA 三条短 action title warning、task-specific fallback text、risk/advisory boundary 与 holdout leakage 均已复核通过，`compressor-parameter-update` 的 broad citation blocker 也已关闭。当前这只恢复 builder/tooling 轨机器与人工复核通过状态，不代表 raw 晋级、训练准入或 production contract 接受证据。
 
 同一轮人工复核已确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document` citation，而是收口到 indexed diagnostics、unit config 与 latest snapshot evidence；deterministic scaffold 也已覆盖这条边界。这个修正只说明 fixture/scaffold 与人工复核口径已收紧，不追认旧本地产物为 raw 晋级证据。下一步应基于已完成的 full-holdout-9 reviewed_pass 结果评估 broader task-scoped builder review，而不是继续等待 citation.tightened 重跑。
+
+2026-05-06 已将 broader task-scoped builder review 的可执行样本面固定为 15 条：`full-holdout-9` 的 9 条 reviewed_pass 样本，加上 `holdout6-v2-non-overlap` 的 6 条非重叠回归样本，三类任务各 5 条。该入口落在 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`，并由 `scripts/check-radishmind-core-task-scoped-builder-broader-review-entry.py` 接入仓库级验证；它只收口下一轮 broader review 的执行面，不代表 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 评估对象
 
