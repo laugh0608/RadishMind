@@ -13,24 +13,24 @@
 当前主线集中在 `M3/M4`：
 
 - `M3`：维护现有 gateway、service smoke、UI consumption 与 candidate handoff，作为未来上层接入门禁。
-- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped response builder / tooling 分工、citation tightened rerun、natural-language audit 和 human review records。
+- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped response builder / tooling 分工、broader review runbook、natural-language audit 和 human review records。
 
 当前不启动训练放量，不默认扩同类真实 capture，不把 builder / repaired / injected 轨通过解释成 raw 模型能力晋级。
 
 ## 今天优先做什么
 
-当前 `citation tightened full-holdout-9` 已经完成并收口，今天优先任务转为 broader task-scoped builder review entry 收口：
+当前 `citation tightened full-holdout-9` 已经完成并收口，broader task-scoped builder review 的 15 样本 entry、两段 runbook 和 pending records 骨架也已固定。下一步优先任务是执行 broader review，而不是继续补入口文档：
 
-1. 读取最新 `tmp/` 产物、run-set summary 和 review records，确认 full-holdout-9 已稳定落到 `reviewed_pass`，v2 non-overlap 仍指向 task-scoped builder tooling track。
-2. 把 `full-holdout-9` 与 `holdout6-v2-non-overlap` 收束为 15 样本 broader review surface，并固定实验记录与仓库级验证入口。
-3. 继续维持 raw / repaired / builder / audit 分离，不把 builder 结论写成 raw 晋级或训练准入。
+1. 由开发者在本机终端按 `training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 分别执行 `full-holdout-9` 与 `holdout6-v2-non-overlap` 两段 `local_transformers --build-task-scoped-response`。
+2. 执行完成后，AI 读取两段 `tmp/` 下的 candidate summary、offline eval run、natural-language audit 和必要 candidate responses。
+3. 根据真实产物审计并更新 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`，继续维持 raw / repaired / builder / audit 分离，不把 builder 结论写成 raw 晋级或训练准入。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
 - full-holdout-9 的机器门禁、deterministic audit 和 human review 现在都已通过，broad citation blocker 已收口。
-- citation fixture/scaffold 已收紧并完成本地重跑；当前不再等待补跑，而是先固定 broader review 的可执行样本面与验证入口。
-- 在 broader review 口径稳定前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
+- broader review 的可执行样本面、执行清单和 pending review records 已经接入仓库级验证；当前不再设计新的入口，而是等待真实两段本地执行产物。
+- 在 broader review 真实产物和人工复核完成前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 默认不要做
 
