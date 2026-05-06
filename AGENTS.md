@@ -8,6 +8,7 @@
 - 默认使用中文进行讨论、说明、提交总结和规划记录
 - 代码、命令、路径、配置键、类型名、接口名保留原文
 - 新增文档默认使用中文，除非该文件天然要求英文
+- 文档语言应直接说明当前阶段、当前结论、下一步和阻塞项，避免把历史推演、长批次流水或一次性聊天结论堆进入口文档
 
 ## 协作流程
 
@@ -25,17 +26,22 @@
 
 `docs/` 是本仓库的正式文档源，当前优先级最高的文档如下：
 
-1. `docs/radishmind-product-scope.md`
-2. `docs/radishmind-architecture.md`
-3. `docs/radishmind-roadmap.md`
-4. `docs/radishmind-integration-contracts.md`
-5. `docs/adr/0001-branch-and-pr-governance.md`
-6. `docs/devlogs/README.md`
+1. `docs/radishmind-current-focus.md`
+2. `docs/radishmind-product-scope.md`
+3. `docs/radishmind-architecture.md`
+4. `docs/radishmind-roadmap.md`
+5. `docs/radishmind-integration-contracts.md`
+6. `docs/radishmind-code-standards.md`
+7. `docs/adr/0001-branch-and-pr-governance.md`
+8. `docs/devlogs/README.md`
 
 规则：
 
 - 若代码与文档冲突，先判断是代码偏离文档，还是文档已过期，再统一修正
 - 优先更新已有文档，不为一次性讨论创建大量散文档
+- 回答“今天要做什么以推进开发”时，默认先读 `docs/radishmind-current-focus.md`，长契约、长评测文档和周志细节只在需要实施具体任务时按需读取
+- `docs/README.md`、产品范围、架构和路线图等关键入口文档应尽量简约，只保留定位、最近阶段、当前进度、下一步和明确停止线
+- 历史细节、完整实验观察、长命令输出和批次流水优先放入周志、任务卡、manifest、summary 或 run record，不反复复制进入口文档
 - 周志按 `docs/devlogs/YYYY-Www.md` 命名
 - 许可条款以仓库根 `LICENSE` 文件为准；若当前尚未补齐，则应在后续基础建设阶段补上
 
@@ -199,6 +205,11 @@
 
 ## 文件与代码规范
 
+- 代码应趋近对应语言的良好和优雅实践；本仓库主实现栈为 `Python` 时，应优先使用清晰函数、显式数据结构、标准库能力和可测试边界
+- 命名必须表达真实职责和领域含义，避免 `process_data`、`handle_item`、`manager`、`helper` 这类无法说明边界的泛名
+- 禁止乱写不明意义的方法、空转 wrapper、多层转发、过度泛化 factory/manager 或晦涩抽象封装
+- 抽象只在能稳定表达职责边界、消除真实重复或明显降低复杂度时引入；不要为了“看起来通用”增加理解成本
+- 能用 schema、明确类型、标准库或直接函数解决的问题，不应写成难追踪的动态包装或隐式 fallback 链
 - 默认要求单个 `Python` 源文件与单个 committed `JSON` 文件不超过 `1500` 行；当文件逼近 `1000` 行时，应优先评估按职责拆分，而不是继续堆长
 - `Python` 拆分优先按稳定职责边界收口，例如 `shared / response / provider / checks / eval task`，避免拆成大量编号式或语义含糊的小文件
 - 体量较大的 committed `JSON` 索引或清单，优先采用“主索引 + `.parts/` 分片文件”方式控制单文件尺寸，而不是把长数组持续堆在一个文件里
