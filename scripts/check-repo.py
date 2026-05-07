@@ -190,6 +190,44 @@ def check_core_candidate_probe(
         )
 
 
+def check_core_task_scoped_natural_language_audit() -> None:
+    with tempfile.TemporaryDirectory(prefix="check-repo-core-task-scoped-nl-audit-") as temp_dir:
+        output_dir = Path(temp_dir) / "candidate-run"
+        summary_path = Path(temp_dir) / "candidate-summary.json"
+        audit_path = Path(temp_dir) / "task-scoped-natural-language-audit.json"
+        run_python_script(
+            "run-radishmind-core-candidate.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+                "--output-dir",
+                str(output_dir),
+                "--summary-output",
+                str(summary_path),
+                "--allow-invalid-output",
+                "--validate-task",
+                "--build-task-scoped-response",
+                "--sample-timeout-seconds",
+                "300",
+            ],
+        )
+        run_python_script(
+            "audit-radishmind-core-task-scoped-natural-language.py",
+            [
+                "--manifest",
+                "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+                "--candidate-summary",
+                str(summary_path),
+                "--candidate-output-dir",
+                str(output_dir),
+                "--output",
+                str(audit_path),
+                "--check-summary",
+                "scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json",
+            ],
+        )
+
+
 def check_required_files() -> None:
     for relative_path in REQUIRED_FILES:
         if not (REPO_ROOT / relative_path).is_file():
@@ -1036,11 +1074,45 @@ def main() -> int:
             "scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json",
         ],
     )
+    run_python_script(
+        "check-radishflow-service-smoke-matrix.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json",
+        ],
+    )
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
     run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
+    run_python_script(
+        "check-radishmind-core-structured-output-run-set.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json",
+        ],
+    )
     run_python_script("check-radishmind-core-candidate-json-cleanup.py", [])
     run_python_script("check-radishmind-core-candidate-parameter-updates.py", [])
+    run_python_script("check-radishmind-core-candidate-prompt-policy.py", [])
+    run_python_script("check-radishmind-core-candidate-hard-field-freeze.py", [])
+    run_python_script("check-radishmind-core-candidate-hard-field-injection.py", [])
+    run_python_script("check-radishmind-core-suggest-edits-response-builder.py", [])
+    run_python_script("check-radishmind-core-task-scoped-response-builder.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-review-plan.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-human-review-records.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-full-holdout-runbook.py", [])
+    run_python_script(
+        "check-radishmind-core-task-scoped-builder-broader-review-entry.py",
+        [
+            "--check-summary",
+            "scripts/checks/fixtures/radishmind-core-task-scoped-builder-broader-review-entry-summary.json",
+        ],
+    )
+    run_python_script("check-radishmind-core-task-scoped-builder-broader-review-runbook.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-broader-review-records.py", [])
+    run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
+    run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
+    run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
     run_python_script("run-radishmind-core-offline-eval.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-core-candidate-") as temp_dir:
         candidate_output_dir = Path(temp_dir) / "candidate-run"
@@ -1092,6 +1164,7 @@ def main() -> int:
         expected_summary="scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json",
         eval_manifest="scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
     )
+    check_core_task_scoped_natural_language_audit()
     check_core_candidate_probe(
         temp_prefix="check-repo-core-full-holdout-",
         output_dir_name="full-holdout-candidate-run",

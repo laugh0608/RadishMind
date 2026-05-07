@@ -1,136 +1,25 @@
 # RadishMind
 
-RadishMind 是 `Radish` 体系下独立演进的 AI / Copilot 项目，目标是围绕 `RadishFlow` 与 `Radish` 提供统一的结构化智能层、评测与模型实验能力。
+`RadishMind` 是 `Radish` 体系下的外部智能层仓库，负责协议、评测、工具编排与模型实验，不是上层业务真相源。
 
-当前阶段不把它定义为“替代业务内核的大模型项目”，而是定义为：
+## 入口
 
-- 一个独立维护协议、数据、评测、工具编排与模型实验的仓库
-- 一个面向 `RadishFlow` 与 `Radish` 的外部智能层
-- 一个默认输出解释、证据、结构化建议和候选动作的工程系统
-
-## 当前定位
-
-基于已审查的两个参考仓库，`RadishMind` 当前优先关注以下能力：
-
-- 面向 `RadishFlow`
-  - 基于 `FlowsheetDocument + selection + diagnostics + solve state` 的解释与建议
-  - 控制面 / entitlement / lease / package sync 状态解释
-  - 候选编辑提案生成，并保持 `requires_confirmation`
-  - 基于 canonical ports、本地合法候选集和邻近拓扑的 ghost 补全建议
-  - 画布截图理解作为补充输入，而不是第一阶段唯一主线
-
-- 面向 `Radish`
-  - 固定文档与在线文档问答
-  - Console / 权限 / 运营能力说明与流程引导
-  - 论坛 / 文档内容的结构化摘要、标签和分类建议
-  - 附件 / 截图理解与引用解释
-
-- 共享基础
-  - 统一输入输出协议
-  - 检索、工具调用、规则校验与评测链路
-  - Teacher / Student 模型实验和版本对比
-
-当前不把以下内容作为第一阶段目标：
-
-- 直接替代 `RadishFlow` 的数值求解内核、控制面或 CAPE-OPEN 适配层
-- 直接接管 `Radish` 的 Auth / Gateway / API / Console 业务真相源
-- 让模型在无校验前提下直接写入上层项目状态
-- 在第一阶段先锁定最终部署形态
-
-## 文档入口
-
-- [规划总览](docs/README.md)
+- [文档入口](docs/README.md)
+- [当前推进焦点](docs/radishmind-current-focus.md)
 - [产品范围与目标](docs/radishmind-product-scope.md)
-- [系统架构草案](docs/radishmind-architecture.md)
+- [系统架构](docs/radishmind-architecture.md)
 - [阶段路线图](docs/radishmind-roadmap.md)
-- [跨项目集成契约草案](docs/radishmind-integration-contracts.md)
+- [跨项目集成契约](docs/radishmind-integration-contracts.md)
+- [代码规范](docs/radishmind-code-standards.md)
 
-## 当前分支策略
+## 仓库约定
 
-- 常态开发分支：`dev`
+- 当前常态开发分支为 `dev`
 - `master` 仅作为稳定主线
-- 日常规划、设计与实现优先在 `dev` 上推进
+- 仓库级检查入口：Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`
+- 文本文件默认走 UTF-8 + LF，规则以 `.editorconfig` 和 `.gitattributes` 为准
+- 本地模型配置以仓库根 `.env.example` 为示例，真实 `.env` 只留本地
 
-## 当前模型路线
+## 说明
 
-当前模型路线已先收口为一条主线加两条对照线：
-
-- `minimind-v`：默认 `student/base` 主线，承担当前领域适配、蒸馏承接与后续训练实验
-- `Qwen2.5-VL`：默认 `teacher` / 多模态强基线，承担首轮高质量对照评测、标注参考和复杂图文任务 PoC
-- `SmolVLM`：默认轻量本地对照组，用于低资源环境、部署下限和小模型回归比较
-
-当前不把 `Molmo` 或其他视觉语言模型写成默认主线；如需引入，先作为补充对照或专项研究路线，再由离线评测结果决定是否升级优先级。
-
-## 开发与验证环境
-
-当前仓库同时保留 Windows / PowerShell 与 Linux / WSL 两套验证入口，并要求长期保持语义一致：
-
-- Windows / PowerShell：优先使用 `pwsh ./scripts/check-repo.ps1`
-- Linux / WSL：优先使用 `./scripts/check-repo.sh`
-
-需要注意：
-
-- 当前仓库主实现栈已收口为 `Python`
-- 评测、回归、仓库级校验与后续模型/数据工具链默认以 `Python` 为核心实现
-- Windows 侧 `.ps1` 与 Linux / WSL 侧 `.sh` 继续保留，但它们当前只作为平台入口包装，不再承载核心校验逻辑
-- 当前验证链路需要可用的 Python 环境；至少应提供 `python3` 或等价 Python 启动器，以及 `jsonschema`
-
-## 本地模型配置
-
-当前真实推理入口默认会优先读取仓库根 `.env` 中的 profile 化变量：
-
-- `RADISHMIND_MODEL_PROFILE`
-- `RADISHMIND_MODEL_PROFILE_<PROFILE>_API_STYLE`
-- `RADISHMIND_MODEL_PROFILE_<PROFILE>_BASE_URL`
-- `RADISHMIND_MODEL_PROFILE_<PROFILE>_NAME`
-- `RADISHMIND_MODEL_PROFILE_<PROFILE>_API_KEY`
-
-当前也仍兼容旧的一组单 profile 变量：
-
-- `RADISHMIND_MODEL_API_STYLE`
-- `RADISHMIND_MODEL_BASE_URL`
-- `RADISHMIND_MODEL_NAME`
-- `RADISHMIND_MODEL_API_KEY`
-
-仓库已提供 [.env.example](/home/luobo/Code/RadishMind/.env.example) 作为无敏感信息示例；真实 `.env` 只保留在本地，不提交到仓库。
-
-## 当前评测进展
-
-当前最小离线回归已覆盖：
-
-- `RadishFlow explain_diagnostics`
-- `RadishFlow suggest_flowsheet_edits`
-- `RadishFlow explain_control_plane_state`
-- `Radish answer_docs_question`
-
-其中：
-
-- `RadishFlow` 三个首批任务都已具备最小回归闭环
-- `Radish answer_docs_question` 已具备召回输入约束、`golden_response` 对照、外部 `candidate_response_record` 回灌、统一负例回放和跨样本真实 record replay，并已覆盖 `docs/wiki/attachments/forum/faq` 多源与三路冲突的最小混合召回基线
-- `Radish answer_docs_question` 已新增第二批真实 provider 回灌 `2026-04-05-radish-docs-qa-real-batch-v1`，固化为 `11 captured / 10 failed / 22 violations / 10 same-sample negatives`，并新增了“回答体缺失”和“citation / official_source_precedence 脱节”两类真实违规组
-
-当前下一步主线仍是继续扩大 `Radish answer_docs_question` 的真实 captured negative 批次，但重心已经从“先把批次接进来”转到“继续扩真实坏输出类型”，优先补更多 citation 脱节、answer 缺失和边界态误判，而不只是重复 `read_only_check` 缺失这一类模式。
-
-## 当前最小推理闭环
-
-当前仓库已经补上 `Radish answer_docs_question` 的最小推理闭环骨架：
-
-- `scripts/run-copilot-inference.py`：统一 CLI 入口
-- `services/runtime/inference.py`：最小 runtime、provider 调用、响应归一化与 raw dump 组装
-- `prompts/tasks/radish-answer-docs-question-system.md`：单任务系统提示
-
-当前 provider 形态：
-
-- `mock`：默认可用，用于打通 `request -> response -> raw dump -> record` 工程闭环
-- `openai-compatible`：当前保留原有 CLI/provider 名称以兼容既有脚本，但 profile 已同时支持两类真实传输
-  - 兼容 `/v1/chat/completions` 的聚合 provider
-  - Google Gemini 原生 `generateContent` provider
-
-示例：
-
-```bash
-python3 ./scripts/run-copilot-inference.py \
-  --sample datasets/eval/radish/answer-docs-question-direct-answer-001.json \
-  --provider mock \
-  --dump-output /tmp/radishmind-mock-dump.json
-```
+- 阶段事实、近期重点和停止线以 `docs/` 为准

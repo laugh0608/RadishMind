@@ -9,6 +9,7 @@
 - `copilot-training-dataset-governance-v0.json`
 - `copilot-training-review-record-v0.json`
 - `copilot-training-holdout-split-v0.json`
+- `radishmind-core-task-scoped-builder-review-plan-v0.json`
 
 这些 manifest 只描述训练集合治理口径，不包含生成后的训练 JSONL。它们固定以下内容：
 
@@ -18,6 +19,7 @@
 - 当前 seed set 来自 committed eval `golden_response` 与 audit pass `teacher_capture`，各 9 条
 - 当前人工复核记录仍是 `planned` 状态，不伪造已复核结论
 - 当前 holdout split 各任务保留 3 条样本，且不与现有训练 seed manifest 重叠
+- `radishmind-core-task-scoped-builder-review-plan-v0.json` 固定 task-scoped builder 扩样前的 planned review 维度、批次和准入/阻断规则；它只描述计划，不声明任何真实 `reviewed_pass`
 - 大规模 JSONL、权重、checkpoint、adapter 二进制与 provider dump 不入仓
 
 当前只允许提交：
@@ -92,6 +94,8 @@
 - offline eval holdout 泄漏检查全量复核
 
 在没有真实 reviewer、timestamp、逐维度结果和泄漏判断前，不得把这些批次标为 `reviewed_pass`。
+
+当前新增的 `radishmind-core-task-scoped-builder-review-plan-v0.json` 也保持同一口径：它只固定 planned review dimension、planned batch 和 acceptance policy，不运行模型，不生成 JSONL，不把 builder / repaired 轨写成 raw 晋级证据。
 
 ## Offline Eval Holdout
 

@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_candidate_prompt_budget_summary",
+  "phase": "M4-preparation",
+  "source_candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+  "sample_count": 6,
+  "budget_policy": {
+    "measurement": "static_prompt_character_budget",
+    "max_total_message_chars": 15000,
+    "max_request_json_chars": 4000,
+    "max_output_contract_chars": 10000,
+    "max_prompt_scaffold_json_chars": 3500,
+    "max_hard_field_freeze_field_count": 20,
+    "min_largest_prompt_compact_scaffold_reduction_chars": 2000,
+    "largest_prompt_sample_must_remain_reviewed": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "does_not_run_models": true
+  },
+  "max_observed": {
+    "total_message_chars": 14976,
+    "request_json_chars": 3632,
+    "output_contract_chars": 9664,
+    "scaffold_json_chars": 3281,
+    "prompt_scaffold_json_chars": 3281,
+    "response_scaffold_json_chars": 6004,
+    "compact_scaffold_reduction_chars": 2723,
+    "compact_scaffold_copy_marker_count": 5,
+    "hard_field_freeze_json_chars": 4351,
+    "hard_field_freeze_field_count": 17
+  },
+  "largest_prompt_sample": {
+    "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "project": "radishflow",
+    "task": "suggest_flowsheet_edits",
+    "total_message_chars": 14976,
+    "request_json_chars": 3632,
+    "output_contract_chars": 9664,
+    "scaffold_json_chars": 3281,
+    "prompt_scaffold_json_chars": 3281,
+    "response_scaffold_json_chars": 6004,
+    "compact_scaffold_reduction_chars": 2723,
+    "compact_scaffold_copy_marker_count": 5,
+    "hard_field_freeze_json_chars": 4351,
+    "hard_field_freeze_field_count": 17,
+    "scaffold_counts": {
+      "answer_count": 1,
+      "issue_count": 4,
+      "action_count": 2,
+      "citation_count": 9
+    }
+  },
+  "samples": [
+    {
+      "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "total_message_chars": 6616,
+      "request_json_chars": 1871,
+      "output_contract_chars": 3896,
+      "scaffold_json_chars": 1347,
+      "prompt_scaffold_json_chars": 1347,
+      "response_scaffold_json_chars": 1347,
+      "compact_scaffold_reduction_chars": 0,
+      "compact_scaffold_copy_marker_count": 0,
+      "hard_field_freeze_json_chars": 524,
+      "hard_field_freeze_field_count": 8,
+      "scaffold_counts": {
+        "answer_count": 1,
+        "issue_count": 0,
+        "action_count": 1,
+        "citation_count": 3
+      },
+      "scaffold_payload_chars": {
+        "answers": 194,
+        "issues": 2,
+        "proposed_actions": 210,
+        "action_patches": 0,
+        "citations": 526
+      },
+      "response_scaffold_payload_chars": {
+        "answers": 194,
+        "issues": 2,
+        "proposed_actions": 210,
+        "action_patches": 0,
+        "citations": 526
+      }
+    },
+    {
+      "sample_id": "radish-answer-docs-question-evidence-gap-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "total_message_chars": 5257,
+      "request_json_chars": 1186,
+      "output_contract_chars": 3355,
+      "scaffold_json_chars": 908,
+      "prompt_scaffold_json_chars": 908,
+      "response_scaffold_json_chars": 908,
+      "compact_scaffold_reduction_chars": 0,
+      "compact_scaffold_copy_marker_count": 0,
+      "hard_field_freeze_json_chars": 422,
+      "hard_field_freeze_field_count": 7,
+      "scaffold_counts": {
+        "answer_count": 1,
+        "issue_count": 1,
+        "action_count": 0,
+        "citation_count": 1
+      },
+      "scaffold_payload_chars": {
+        "answers": 157,
+        "issues": 195,
+        "proposed_actions": 2,
+        "action_patches": 0,
+        "citations": 172
+      },
+      "response_scaffold_payload_chars": {
+        "answers": 157,
+        "issues": 195,
+        "proposed_actions": 2,
+        "action_patches": 0,
+        "citations": 172
+      }
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "total_message_chars": 14976,
+      "request_json_chars": 3632,
+      "output_contract_chars": 9664,
+      "scaffold_json_chars": 3281,
+      "prompt_scaffold_json_chars": 3281,
+      "response_scaffold_json_chars": 6004,
+      "compact_scaffold_reduction_chars": 2723,
+      "compact_scaffold_copy_marker_count": 5,
+      "hard_field_freeze_json_chars": 4351,
+      "hard_field_freeze_field_count": 17,
+      "scaffold_counts": {
+        "answer_count": 1,
+        "issue_count": 4,
+        "action_count": 2,
+        "citation_count": 9
+      },
+      "scaffold_payload_chars": {
+        "answers": 349,
+        "issues": 1279,
+        "proposed_actions": 1484,
+        "action_patches": 508,
+        "citations": 2204
+      },
+      "response_scaffold_payload_chars": {
+        "answers": 349,
+        "issues": 1279,
+        "proposed_actions": 1484,
+        "action_patches": 508,
+        "citations": 2204
+      }
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "total_message_chars": 7387,
+      "request_json_chars": 1761,
+      "output_contract_chars": 4522,
+      "scaffold_json_chars": 1535,
+      "prompt_scaffold_json_chars": 1535,
+      "response_scaffold_json_chars": 1694,
+      "compact_scaffold_reduction_chars": 159,
+      "compact_scaffold_copy_marker_count": 2,
+      "hard_field_freeze_json_chars": 955,
+      "hard_field_freeze_field_count": 10,
+      "scaffold_counts": {
+        "answer_count": 1,
+        "issue_count": 1,
+        "action_count": 1,
+        "citation_count": 1
+      },
+      "scaffold_payload_chars": {
+        "answers": 270,
+        "issues": 236,
+        "proposed_actions": 615,
+        "action_patches": 194,
+        "citations": 139
+      },
+      "response_scaffold_payload_chars": {
+        "answers": 270,
+        "issues": 236,
+        "proposed_actions": 615,
+        "action_patches": 194,
+        "citations": 139
+      }
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "total_message_chars": 7466,
+      "request_json_chars": 1965,
+      "output_contract_chars": 4470,
+      "scaffold_json_chars": 1432,
+      "prompt_scaffold_json_chars": 1432,
+      "response_scaffold_json_chars": 1579,
+      "compact_scaffold_reduction_chars": 147,
+      "compact_scaffold_copy_marker_count": 3,
+      "hard_field_freeze_json_chars": 1005,
+      "hard_field_freeze_field_count": 10,
+      "scaffold_counts": {
+        "answer_count": 1,
+        "issue_count": 0,
+        "action_count": 1,
+        "citation_count": 1
+      },
+      "scaffold_payload_chars": {
+        "answers": 216,
+        "issues": 2,
+        "proposed_actions": 795,
+        "action_patches": 153,
+        "citations": 139
+      },
+      "response_scaffold_payload_chars": {
+        "answers": 216,
+        "issues": 2,
+        "proposed_actions": 795,
+        "action_patches": 153,
+        "citations": 139
+      }
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "total_message_chars": 9399,
+      "request_json_chars": 3196,
+      "output_contract_chars": 5275,
+      "scaffold_json_chars": 2237,
+      "prompt_scaffold_json_chars": 2237,
+      "response_scaffold_json_chars": 2442,
+      "compact_scaffold_reduction_chars": 205,
+      "compact_scaffold_copy_marker_count": 2,
+      "hard_field_freeze_json_chars": 1005,
+      "hard_field_freeze_field_count": 10,
+      "scaffold_counts": {
+        "answer_count": 1,
+        "issue_count": 0,
+        "action_count": 2,
+        "citation_count": 1
+      },
+      "scaffold_payload_chars": {
+        "answers": 214,
+        "issues": 2,
+        "proposed_actions": 1598,
+        "action_patches": 301,
+        "citations": 139
+      },
+      "response_scaffold_payload_chars": {
+        "answers": 214,
+        "issues": 2,
+        "proposed_actions": 1598,
+        "action_patches": 301,
+        "citations": 139
+      }
+    }
+  ]
+}

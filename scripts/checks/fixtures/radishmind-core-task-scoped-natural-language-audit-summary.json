@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_task_scoped_natural_language_audit",
+  "phase": "M4-preparation",
+  "audit_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+  "source_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-eval-manifest.json",
+  "candidate_summary_kind": "radishmind_core_candidate_run_summary",
+  "sample_count": 6,
+  "audit_policy": {
+    "does_not_run_models": true,
+    "checks_generic_placeholders": true,
+    "checks_ghost_legal_regulation_mistranslation": true,
+    "checks_docs_source_conflict_terms": true,
+    "tracks_fallback_natural_language_fields": true
+  },
+  "summary": {
+    "status": "pass",
+    "violation_count": 0,
+    "warning_count": 0,
+    "natural_field_count": 32,
+    "merged_natural_field_count": 30,
+    "fallback_natural_field_count": 2,
+    "fallback_natural_field_rate": 0.0625
+  },
+  "cases": [
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "natural_field_count": 10,
+      "merged_natural_field_count": 10,
+      "fallback_natural_field_count": 0,
+      "merged_paths": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.issues[0].message",
+        "$.issues[1].message",
+        "$.issues[2].message",
+        "$.issues[3].message",
+        "$.proposed_actions[0].title",
+        "$.proposed_actions[0].rationale",
+        "$.proposed_actions[1].title",
+        "$.proposed_actions[1].rationale"
+      ],
+      "fallback_paths": [],
+      "violations": [],
+      "warnings": [],
+      "status": "pass"
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "project": "radishflow",
+      "task": "suggest_flowsheet_edits",
+      "natural_field_count": 5,
+      "merged_natural_field_count": 5,
+      "fallback_natural_field_count": 0,
+      "merged_paths": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.issues[0].message",
+        "$.proposed_actions[0].title",
+        "$.proposed_actions[0].rationale"
+      ],
+      "fallback_paths": [],
+      "violations": [],
+      "warnings": [],
+      "status": "pass"
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "natural_field_count": 4,
+      "merged_natural_field_count": 3,
+      "fallback_natural_field_count": 1,
+      "merged_paths": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.proposed_actions[0].title"
+      ],
+      "fallback_paths": [
+        "$.proposed_actions[0].rationale"
+      ],
+      "violations": [],
+      "warnings": [],
+      "status": "pass"
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "project": "radishflow",
+      "task": "suggest_ghost_completion",
+      "natural_field_count": 6,
+      "merged_natural_field_count": 5,
+      "fallback_natural_field_count": 1,
+      "merged_paths": [
+        "$.answers[0].text",
+        "$.proposed_actions[0].title",
+        "$.proposed_actions[0].rationale",
+        "$.proposed_actions[1].title",
+        "$.proposed_actions[1].rationale"
+      ],
+      "fallback_paths": [
+        "$.summary"
+      ],
+      "violations": [],
+      "warnings": [],
+      "status": "pass"
+    },
+    {
+      "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "natural_field_count": 4,
+      "merged_natural_field_count": 4,
+      "fallback_natural_field_count": 0,
+      "merged_paths": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.proposed_actions[0].title",
+        "$.proposed_actions[0].rationale"
+      ],
+      "fallback_paths": [],
+      "violations": [],
+      "warnings": [],
+      "status": "pass"
+    },
+    {
+      "sample_id": "radish-answer-docs-question-evidence-gap-001",
+      "project": "radish",
+      "task": "answer_docs_question",
+      "natural_field_count": 3,
+      "merged_natural_field_count": 3,
+      "fallback_natural_field_count": 0,
+      "merged_paths": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.issues[0].message"
+      ],
+      "fallback_paths": [],
+      "violations": [],
+      "warnings": [],
+      "status": "pass"
+    }
+  ]
+}

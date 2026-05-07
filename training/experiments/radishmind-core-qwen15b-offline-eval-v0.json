@@ -925,6 +925,586 @@
       "The next useful work is to inspect the failed cross-object suggest edits family and decide whether the scaffold is intentionally insufficient or whether model output strategy needs a stronger structured action plan."
     ]
   },
+  "holdout_probe_v2_scaffold_root_cause_review_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "reviewed_sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "source_candidate_response": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.json",
+    "root_cause": "The candidate scaffold and repair path reused action_index=0 for every candidate_edit, so the second action was repaired into the first stream reconnect action instead of the pump parameter update action.",
+    "secondary_scaffold_gaps": [
+      "ordered connection_placeholder keys were not merged when the patch already contained connection_placeholder.expected_downstream_kind",
+      "minimum_reference_stream_id fell back to a boolean placeholder instead of the inferred upstream feed stream id"
+    ],
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now reads target, citation_ids, patch, connection_placeholder and parameter_updates with the current action_index",
+      "scripts/eval/core_candidate_scaffold.py now infers minimum_reference_stream_id from the same upstream stream helper used for reference_stream_id",
+      "scripts/check-radishmind-core-candidate-parameter-updates.py now locks the cross-object v2 sample's second action target, patch order, parameter_updates and citation_ids"
+    ],
+    "local_repair_recheck": {
+      "reran_model": false,
+      "repaired_paths": [
+        "$.proposed_actions"
+      ],
+      "task_validation_violations_after_repair": [],
+      "action_targets_after_repair": [
+        {
+          "type": "stream",
+          "id": "cooler-outlet-81"
+        },
+        {
+          "type": "unit",
+          "id": "pump-12"
+        }
+      ],
+      "second_action_patch_after_repair": {
+        "parameter_updates": {
+          "outlet_pressure_target_kpa": {
+            "action": "review_and_raise_above_inlet",
+            "minimum_reference_stream_id": "feed-81"
+          },
+          "efficiency_percent": {
+            "action": "clamp_to_review_range",
+            "suggested_range": [
+              60,
+              85
+            ]
+          }
+        },
+        "preserve_topology": true
+      }
+    },
+    "interpretation": [
+      "The previous v2 repaired blocker was a scaffold/repair coverage bug, not evidence that this specific sample requires a stronger model action plan.",
+      "Raw output remains blocked and still must not be promoted or used as training evidence.",
+      "A future real local_transformers rerun is optional for metric refresh, but the root-cause fix is already covered by committed dry-run and scaffold checks."
+    ]
+  },
+  "holdout_probe_v2_raw_failure_review_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "source_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+    "source_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+    "raw_metrics": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.3333333333333333,
+      "task_validation_attempted": 6,
+      "passed_raw_samples": [
+        "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+        "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001"
+      ],
+      "blocked_raw_samples": [
+        "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "radish-answer-docs-question-docs-faq-forum-conflict-001",
+        "radish-answer-docs-question-evidence-gap-001"
+      ]
+    },
+    "failure_classification": [
+      {
+        "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+        "task": "radishflow/suggest_flowsheet_edits",
+        "classification": "mixed_scaffold_and_raw_hard_field_gap",
+        "observed_raw_failure": "The output stayed schema-valid but changed status to ok, dropped answers and issues, emitted only one candidate_edit, omitted the action target, and missed the second pump parameter action.",
+        "scaffold_context": "The raw run used the pre-fix scaffold where the second candidate_edit duplicated action_index=0. This likely amplified the missing second-action failure, so this raw result should not be used alone to judge model action planning.",
+        "still_model_relevant": [
+          "raw ignored the scaffold requirement to keep status=partial",
+          "raw dropped required answers and issues arrays",
+          "raw omitted a required target field even though candidate_edit requires target"
+        ],
+        "recommended_followup": "Refresh this sample only after the action-indexed scaffold fix if a new raw metric is needed; otherwise keep it as evidence that complex suggest edits requires stronger hard-field preservation."
+      },
+      {
+        "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+        "task": "radishflow/suggest_flowsheet_edits",
+        "classification": "raw_top_level_shape_gap",
+        "observed_raw_failure": "The output preserved the core unit target and parameter_updates payload, but changed status from partial to ok and left answers empty.",
+        "scaffold_context": "The core action planning and ordered suggested_range were mostly correct, so this is not a parameter patch planning failure.",
+        "still_model_relevant": [
+          "raw weakens expected partial status",
+          "raw does not preserve required answers even for a simple one-action sample"
+        ],
+        "recommended_followup": "Treat as a hard-field/status preservation prompt or constrained-decoding candidate, not as a reason to add more training data yet."
+      },
+      {
+        "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+        "task": "radish/answer_docs_question",
+        "classification": "prompt_policy_conflict_plus_optional_action_gap",
+        "observed_raw_failure": "The answer follows the official docs over the forum suggestion, but omits the required read_only_check action.",
+        "scaffold_context": "The generic docs QA prompt says proposed_actions are usually absent, while this sample explicitly requires read_only_check. That prompt tension likely contributed to the raw omission.",
+        "still_model_relevant": [
+          "raw can follow source precedence",
+          "raw does not reliably preserve sample-specific required_action_kinds when the generic task wording points the other way"
+        ],
+        "recommended_followup": "Adjust docs QA prompt wording so sample-level required_action_kinds overrides the generic no-action default before treating this as a model capacity failure."
+      },
+      {
+        "sample_id": "radish-answer-docs-question-evidence-gap-001",
+        "task": "radish/answer_docs_question",
+        "classification": "raw_risk_status_boundary_gap",
+        "observed_raw_failure": "The output recognizes insufficient evidence and keeps issues/proposed_actions/citation shape, but changes status from partial to ok and risk_level from medium to low.",
+        "scaffold_context": "The prompt and scaffold already state partial and medium, so this is a direct raw hard-field preservation gap.",
+        "still_model_relevant": [
+          "raw weakens evidence-gap risk boundary",
+          "raw treats an authorization uncertainty as low risk even when the sample expects medium"
+        ],
+        "recommended_followup": "Keep this as a primary raw-failure probe for risk/status preservation and evaluate schema-constrained decoding or stronger hard-field freezing."
+      }
+    ],
+    "task_level_conclusions": [
+      "suggest_ghost_completion is the only v2 task group with raw pass on both non-overlapping samples.",
+      "suggest_flowsheet_edits raw failures split into one stale-scaffold-affected complex sample and one simple top-level shape preservation failure.",
+      "answer_docs_question raw failures are not retrieval-source failures; they are required-action preservation and evidence-gap risk/status preservation failures."
+    ],
+    "recommended_next_step": "Do not train from this review. First remove prompt ambiguity around sample-level required actions and consider a constrained-decoding or hard-field-freeze experiment; rerun v2 raw only after those prompt/scaffold changes if updated metrics are needed."
+  },
+  "holdout_probe_v2_prompt_policy_fix_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "source_review": "holdout_probe_v2_raw_failure_review_2026_05_02",
+    "target_failure": "radish-answer-docs-question-docs-faq-forum-conflict-001 omitted the sample-required read_only_check action while still following official source precedence.",
+    "root_cause": "The generic Radish docs QA guidance said proposed_actions are usually absent, while the sample-level expected_response_shape.required_action_kinds explicitly required read_only_check.",
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now treats required_action_kinds as a mandatory sample-level rule instead of a conditional preference.",
+      "For Radish docs QA samples with required_action_kinds, the generic no-action wording is replaced by wording that requires the corresponding proposed_actions.",
+      "scripts/check-radishmind-core-candidate-prompt-policy.py locks this policy using the v2 docs source-conflict sample and an evidence-gap no-action sample."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-prompt-policy.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-prompt-policy-candidate-run --summary-output tmp/check-v2-prompt-policy-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json"
+    ],
+    "interpretation": [
+      "This fixes a prompt-policy ambiguity; it does not prove raw model improvement until local_transformers is rerun.",
+      "The evidence-gap no-action prompt still keeps the explicit no-action rule.",
+      "The docs source-conflict prompt now names read_only_check and no longer contains the generic no-action phrase."
+    ]
+  },
+  "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02": {
+    "status": "completed_without_rerunning_local_model",
+    "source_review": "holdout_probe_v2_raw_failure_review_2026_05_02",
+    "source_prompt_policy_fix": "holdout_probe_v2_prompt_policy_fix_2026_05_02",
+    "goal": "Make hard-field preservation observable in raw candidate prompts before rerunning local_transformers.",
+    "code_changes": [
+      "scripts/eval/core_candidate_hard_field_freeze.py derives prompt-time frozen JSON path/value pairs from the candidate scaffold.",
+      "scripts/run-radishmind-core-candidate.py writes hard_field_freeze into prompt documents and renders the frozen fields in the output contract text.",
+      "scripts/check-radishmind-core-candidate-hard-field-freeze.py locks v2 evidence-gap, docs source-conflict and efficiency-range prompt freeze behavior.",
+      "scripts/audit-radishmind-core-candidate-freeze.py compares completed candidate responses against the prompt hard_field_freeze without rerunning a model."
+    ],
+    "frozen_field_scope": [
+      "Top-level schema_version, project, task, status, risk_level and requires_confirmation.",
+      "Explicit no-action samples freeze proposed_actions as an empty array.",
+      "Required action kind and read_only_check confirmation boundaries from required_action_kinds.",
+      "Action target, patch, preview and apply only when the sample has explicit JSON path assertions for those fields.",
+      "Answer, issue and citation detail fields are not frozen when they only come from generic scaffold placeholders."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-hard-field-freeze.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-freeze-audit-candidate-run --summary-output tmp/check-v2-freeze-audit-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json",
+      "python3 scripts/audit-radishmind-core-candidate-freeze.py --summary tmp/check-v2-freeze-audit-candidate-summary.json --output-dir tmp/check-v2-freeze-audit-candidate-run --audit-output tmp/check-v2-freeze-audit.json"
+    ],
+    "interpretation": [
+      "This is a prompt-time contract, not --repair-hard-fields post-decode repair.",
+      "It should make future raw/repaired reruns easier to interpret because raw outputs can be audited against explicit frozen path/value constraints.",
+      "No local model metric is updated by this record; v2 raw/repaired metrics still require a same-manifest local_transformers rerun."
+    ]
+  },
+  "holdout_probe_v2_single_evidence_gap_freeze_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_probe",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radish-answer-docs-question-evidence-gap-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-evidence-gap-raw/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-evidence-gap-raw/freeze-audit.json",
+    "execution": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "generation_seconds": 78.957,
+      "input_tokens": 1631,
+      "output_tokens": 337,
+      "timeout": false,
+      "hit_max_new_tokens": false
+    },
+    "raw_result": {
+      "schema_valid": true,
+      "task_valid": false,
+      "task_failure_categories": {
+        "risk_confirmation": 1,
+        "status_mismatch": 1
+      },
+      "task_validation_violations": [
+        "candidate_response.status does not match expected_response_shape.status",
+        "candidate_response.risk_level does not match evaluation.expected_risk_level"
+      ]
+    },
+    "freeze_audit": {
+      "audited_count": 1,
+      "passed_count": 0,
+      "failed_count": 1,
+      "violation_counts_by_path": {
+        "$.risk_level": 1,
+        "$.status": 1
+      },
+      "violations": [
+        {
+          "path": "$.status",
+          "expected": "partial",
+          "actual": "ok"
+        },
+        {
+          "path": "$.risk_level",
+          "expected": "medium",
+          "actual": "low"
+        }
+      ]
+    },
+    "interpretation": [
+      "The prompt-time hard_field_freeze contract is present and auditable, but this 1.5B raw output still violates the frozen status and risk_level paths.",
+      "The output preserved schema shape, issues, no-action boundary and citations, so the remaining blocker is specifically hard-field obedience rather than retrieval or JSON validity.",
+      "Do not treat prompt-time freeze alone as sufficient for raw promotion; continue evaluating constrained decoding or keep raw/repaired separation with explicit freeze audits."
+    ]
+  },
+  "holdout_probe_v2_single_evidence_gap_repaired_freeze_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_repaired_probe",
+    "source_raw_probe": "holdout_probe_v2_single_evidence_gap_freeze_audit_2026_05_02",
+    "sample_id": "radish-answer-docs-question-evidence-gap-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-evidence-gap-repaired/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-evidence-gap-repaired/freeze-audit.json",
+    "execution": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "repair_hard_fields": true,
+      "generation_seconds": 62.456,
+      "input_tokens": 1631,
+      "output_tokens": 337,
+      "timeout": false,
+      "hit_max_new_tokens": false
+    },
+    "repaired_result": {
+      "schema_valid": true,
+      "task_valid": true,
+      "repaired_output_count": 1,
+      "repaired_paths": [
+        "$.status",
+        "$.risk_level"
+      ],
+      "repaired_path_counts": {
+        "$.risk_level": 1,
+        "$.status": 1
+      }
+    },
+    "freeze_audit": {
+      "audited_count": 1,
+      "passed_count": 1,
+      "failed_count": 0,
+      "violation_counts_by_path": {}
+    },
+    "interpretation": [
+      "The repaired track fixes exactly the same status and risk_level paths that the raw freeze audit reported as violations.",
+      "Answers, issues, citations and the no-action boundary were already structurally usable in raw output and did not need additional repair for this sample.",
+      "This supports keeping --repair-hard-fields as an explicit post-decode engineering track while treating raw hard-field obedience as still blocked."
+    ]
+  },
+  "holdout_probe_v2_single_docs_conflict_raw_prompt_policy_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_probe",
+    "source_prompt_policy_fix": "holdout_probe_v2_prompt_policy_fix_2026_05_02",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-docs-conflict-raw/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-docs-conflict-raw/freeze-audit.json",
+    "execution": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "generation_seconds": 73.326,
+      "input_tokens": 2111,
+      "output_tokens": 327,
+      "timeout": false,
+      "hit_max_new_tokens": false
+    },
+    "raw_result": {
+      "schema_valid": true,
+      "task_valid": false,
+      "task_failure_categories": {
+        "citation_alignment": 2
+      },
+      "task_validation_violations": [
+        "missing required json path '$.citations[1]'",
+        "missing required json path '$.citations[2]'"
+      ]
+    },
+    "freeze_audit": {
+      "audited_count": 1,
+      "passed_count": 1,
+      "failed_count": 0,
+      "violation_counts_by_path": {}
+    },
+    "observed_response": {
+      "status": "ok",
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "proposed_action_kinds": [
+        "read_only_check"
+      ],
+      "citation_count": 1
+    },
+    "interpretation": [
+      "The prompt policy fix appears effective for this sample: raw now emits the sample-required read_only_check action and the freeze audit passes.",
+      "The remaining raw blocker moved to citation coverage: the model kept only the official docs citation and omitted the FAQ and forum citations required by the evaluation paths.",
+      "This should no longer be classified as a required-action preservation failure; it is now a multi-citation/source-context preservation failure."
+    ]
+  },
+  "holdout_probe_v2_single_docs_conflict_repaired_citation_scaffold_review_2026_05_02": {
+    "status": "completed_single_sample_repaired_review_with_scaffold_fix",
+    "source_raw_probe": "holdout_probe_v2_single_docs_conflict_raw_prompt_policy_audit_2026_05_02",
+    "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-docs-conflict-repaired/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-docs-conflict-repaired/freeze-audit.json",
+    "repaired_result_before_scaffold_fix": {
+      "schema_valid": true,
+      "task_valid": true,
+      "generation_seconds": 70.882,
+      "repaired_paths": [
+        "$.citations",
+        "$.answers[0]"
+      ],
+      "freeze_audit_passed": true,
+      "manual_review_caveat": "The machine-valid repaired output padded citations[1] and citations[2] with duplicate docs_page citations instead of restoring the expected FAQ and forum source-context citations."
+    },
+    "root_cause": "When must_have_json_paths required only $.citations[index] existence without explicit citation ids, build_citation_scaffold generated artifact-2/artifact-3 from the primary artifact instead of using the sample golden_response citation order.",
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now uses golden_response.citations by index when citation count is inferred from $.citations[index] path requirements.",
+      "scripts/check-radishmind-core-candidate-citation-scaffold.py locks the docs source-conflict docs/faq/forum citation id and locator order and verifies repair restores those citations.",
+      "scripts/check-repo.py now includes the citation scaffold check."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-citation-scaffold.py",
+      "python3 scripts/check-radishmind-core-candidate-hard-field-freeze.py",
+      "python3 scripts/check-radishmind-core-candidate-prompt-policy.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-citation-scaffold-candidate-run --summary-output tmp/check-v2-citation-scaffold-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json"
+    ],
+    "post_fix_repaired_rerun": {
+      "schema_valid": true,
+      "task_valid": true,
+      "generation_seconds": 104.119,
+      "input_tokens": 2087,
+      "output_tokens": 486,
+      "timeout": false,
+      "hit_max_new_tokens": false,
+      "repaired_paths": [
+        "$.answers[0]"
+      ],
+      "freeze_audit_passed": true,
+      "citation_ids": [
+        "doc-1",
+        "faq-1",
+        "forum-1"
+      ],
+      "citation_locators": [
+        "artifact:docs_page",
+        "artifact:faq_excerpt",
+        "artifact:forum_excerpt"
+      ]
+    },
+    "interpretation": [
+      "The repaired track can make the sample machine-valid, but the pre-fix repaired output was not strong enough as manual evidence because it duplicated the primary docs citation.",
+      "This is a scaffold/repair coverage bug, not a raw model improvement.",
+      "The post-fix same-sample repaired rerun restores the expected docs/FAQ/forum citations; remaining repair is limited to answers[0] citation alignment."
+    ]
+  },
+  "holdout_probe_v2_single_efficiency_range_raw_freeze_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_probe",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-efficiency-range-raw/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-efficiency-range-raw/freeze-audit.json",
+    "execution": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "generation_seconds": 70.147,
+      "input_tokens": 2182,
+      "output_tokens": 372,
+      "timeout": false,
+      "hit_max_new_tokens": false
+    },
+    "raw_result": {
+      "schema_valid": true,
+      "task_valid": false,
+      "task_failure_categories": {
+        "other": 1,
+        "status_mismatch": 1
+      },
+      "task_validation_violations": [
+        "candidate_response.status does not match expected_response_shape.status",
+        "candidate_response must contain at least 1 answer"
+      ]
+    },
+    "freeze_audit": {
+      "audited_count": 1,
+      "passed_count": 0,
+      "failed_count": 1,
+      "violation_counts_by_path": {
+        "$.status": 1
+      },
+      "violations": [
+        {
+          "path": "$.status",
+          "expected": "partial",
+          "actual": "ok"
+        }
+      ]
+    },
+    "observed_response": {
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "answer_count": 0,
+      "action_kind": "candidate_edit",
+      "action_target": {
+        "type": "unit",
+        "id": "pump-3"
+      },
+      "parameter_updates": {
+        "efficiency_percent": {
+          "action": "clamp_to_review_range",
+          "suggested_range": [
+            65,
+            82
+          ]
+        }
+      },
+      "preserve_topology": true
+    },
+    "interpretation": [
+      "The raw output preserved the important candidate_edit target, parameter_updates payload, range ordering, risk level and confirmation boundary.",
+      "The remaining raw blockers are top-level status drift from partial to ok and omission of the required answer.",
+      "This sample is therefore a hard-field/status and answer-shape preservation gap, not a parameter patch planning failure."
+    ]
+  },
+  "holdout_probe_v2_single_efficiency_range_repaired_answer_scaffold_2026_05_02": {
+    "status": "completed_single_sample_repaired_review_with_scaffold_fix",
+    "source_raw_probe": "holdout_probe_v2_single_efficiency_range_raw_freeze_audit_2026_05_02",
+    "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+    "source_candidate_summary": "tmp/radishmind-core-v2-single-efficiency-range-repaired/summary.json",
+    "source_freeze_audit": "tmp/radishmind-core-v2-single-efficiency-range-repaired/freeze-audit.json",
+    "repaired_result_before_answer_scaffold_fix": {
+      "schema_valid": true,
+      "task_valid": true,
+      "generation_seconds": 75.833,
+      "repaired_paths": [
+        "$.status",
+        "$.answers"
+      ],
+      "freeze_audit_passed": true,
+      "manual_review_caveat": "The repaired output restored status and the missing answer, but the answer text came from the generic scaffold placeholder."
+    },
+    "code_changes": [
+      "scripts/run-radishmind-core-candidate.py now builds task-aware suggest_flowsheet_edits answer scaffold entries with kind=edit_rationale.",
+      "scripts/check-radishmind-core-candidate-answer-scaffold.py locks that missing-answer repair does not restore the generic placeholder text.",
+      "scripts/check-repo.py now includes the answer scaffold check."
+    ],
+    "verification": [
+      "python3 scripts/check-radishmind-core-candidate-answer-scaffold.py",
+      "python3 scripts/check-radishmind-core-candidate-citation-scaffold.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-answer-scaffold-candidate-run --summary-output tmp/check-v2-answer-scaffold-candidate-summary.json --check-summary scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json"
+    ],
+    "interpretation": [
+      "The repaired track fixes the raw status drift and missing-answer blocker without changing the candidate_edit target or parameter update patch.",
+      "Pre-fix repaired output was machine-valid but weak manual evidence because the restored answer was a generic placeholder.",
+      "The answer scaffold fix is a postprocess/scaffold quality improvement; it is not raw model improvement."
+    ]
+  },
+  "holdout_probe_v2_single_cross_object_timeout_audit_2026_05_02": {
+    "status": "completed_single_sample_local_transformers_timeout_probe",
+    "source_scaffold_review": "holdout_probe_v2_scaffold_root_cause_review_2026_05_02",
+    "source_prompt_contract": "holdout_probe_v2_hard_field_freeze_prompt_contract_2026_05_02",
+    "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-v2-single-cross-object-raw/summary.json",
+      "raw_invalid_response": "tmp/radishmind-core-v2-single-cross-object-raw/invalid-responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.invalid.json",
+      "raw_prompt": "tmp/radishmind-core-v2-single-cross-object-raw/prompts/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.prompt.json",
+      "raw_freeze_audit": "tmp/radishmind-core-v2-single-cross-object-raw/freeze-audit.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-v2-single-cross-object-repaired/summary.json",
+      "repaired_invalid_response": "tmp/radishmind-core-v2-single-cross-object-repaired/invalid-responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.invalid.json",
+      "repaired_prompt": "tmp/radishmind-core-v2-single-cross-object-repaired/prompts/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.prompt.json",
+      "repaired_freeze_audit": "tmp/radishmind-core-v2-single-cross-object-repaired/freeze-audit.json",
+      "committed_outputs": false
+    },
+    "execution_policy": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-1.5B-Instruct",
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true
+    },
+    "prompt_observation": {
+      "input_tokens": 5010,
+      "hard_field_freeze_field_count": 17,
+      "freeze_scope_includes": [
+        "$.status=partial",
+        "$.risk_level=high",
+        "$.requires_confirmation=true",
+        "$.citations",
+        "$.issues[0..3].code",
+        "$.proposed_actions[0].target",
+        "$.proposed_actions[0].patch",
+        "$.proposed_actions[1].target",
+        "$.proposed_actions[1].patch"
+      ]
+    },
+    "raw_result": {
+      "schema_valid": false,
+      "task_valid": false,
+      "schema_failure_categories": {
+        "generation_timeout": 1
+      },
+      "generation_summary": {
+        "generation_seconds": 300.028,
+        "input_tokens": 5010,
+        "output_tokens": 0,
+        "json_extracted": false,
+        "timeout": true,
+        "timeout_count": 1,
+        "hit_max_new_tokens": false
+      },
+      "invalid_response_error": "local_transformers sample timed out after 300s"
+    },
+    "repaired_result": {
+      "schema_valid": false,
+      "task_valid": false,
+      "repair_hard_fields": true,
+      "repaired_output_count": 0,
+      "repaired_path_counts": {},
+      "schema_failure_categories": {
+        "generation_timeout": 1
+      },
+      "generation_summary": {
+        "generation_seconds": 300.021,
+        "input_tokens": 5010,
+        "output_tokens": 0,
+        "json_extracted": false,
+        "timeout": true,
+        "timeout_count": 1,
+        "hit_max_new_tokens": false
+      },
+      "invalid_response_error": "local_transformers sample timed out after 300s"
+    },
+    "freeze_audit": {
+      "raw": {
+        "audited_count": 0,
+        "skipped_count": 1,
+        "reason": "candidate_response_not_schema_valid"
+      },
+      "repaired": {
+        "audited_count": 0,
+        "skipped_count": 1,
+        "reason": "candidate_response_not_schema_valid"
+      }
+    },
+    "interpretation": [
+      "The post-fix prompt and scaffold are present, including indexed second-action target and patch freeze fields, but the local CPU 1.5B run produced no output tokens before the 300 second timeout.",
+      "This observation should be classified as a cost/timeout boundary for the complex cross-object suggest edits sample, not as task-level action planning evidence.",
+      "--repair-hard-fields cannot help when no JSON is generated, so raw and repaired both remain schema-invalid with identical timeout failure semantics.",
+      "A future quality rerun for this sample should either use a longer explicitly documented timeout probe or reduce the prompt/scaffold size first; it must still keep raw/repaired separation and tmp-only artifacts."
+    ]
+  },
   "task_metric_summary": [
     {
       "task": "radishflow/suggest_flowsheet_edits",

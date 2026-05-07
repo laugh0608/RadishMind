@@ -108,7 +108,7 @@ def extract_ordered_parameter_updates(
                 detail[detail_key] = value_sequences[(parameter_key, detail_key)]
             elif (parameter_key, detail_key) in expected_detail_values:
                 detail[detail_key] = expected_detail_values[(parameter_key, detail_key)]
-            elif detail_key == "reference_stream_id":
+            elif detail_key in {"reference_stream_id", "minimum_reference_stream_id"}:
                 detail[detail_key] = reference_stream_id
             else:
                 detail[detail_key] = True

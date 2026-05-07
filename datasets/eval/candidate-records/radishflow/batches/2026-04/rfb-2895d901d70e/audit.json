@@ -9,12 +9,12 @@
   "required_collection_batch": "2026-04-21-radishflow-suggest-edits-poc-real-v83-default-parameter-ordering",
   "required_tags": [],
   "exit_code": 0,
-  "passed_count": 4,
-  "failed_count": 0,
-  "violation_count": 0,
-  "warning_line": "",
-  "summary_line": "radishflow suggest edits regression passed.",
-  "stderr": "",
+  "passed_count": 3,
+  "failed_count": 1,
+  "violation_count": 9,
+  "warning_line": "WARNING: radishflow suggest edits regression found 9 violation(s).",
+  "summary_line": "",
+  "stderr": "WARNING: radishflow suggest edits regression found 9 violation(s).\n",
   "samples": [
     {
       "sample_file": "suggest-flowsheet-edits-compressor-parameter-placeholder-ordering-001.json",
@@ -28,8 +28,18 @@
     },
     {
       "sample_file": "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
-      "status": "pass",
-      "violations": []
+      "status": "fail",
+      "violations": [
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json: candidate_response must contain at least 6 citations for evaluation.ordered_citation_ids",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json: candidate_response issues[0].citation_ids must contain at least 3 items for ordered_issue_citation_sequences",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json: candidate_response proposed_action[0].citation_ids must contain at least 6 items for ordered_action_citation_sequences",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json:candidate_response: json path '$.citations[3].id' expected 'flowdoc-stream-1' but found 'flowdoc-unit-1'",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json:candidate_response: json path '$.citations[3].locator' expected 'artifact:flowsheet_document.streams[0]' but found 'artifact:flowsheet_document.units[0]'",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json:candidate_response: json path '$.citations[4].id' expected 'flowdoc-unit-1' but found 'snapshot-1'",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json:candidate_response: json path '$.citations[4].locator' expected 'artifact:flowsheet_document.units[0]' but found 'context:latest_snapshot'",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json:candidate_response: missing required json path '$.citations[5].id=\"snapshot-1\"'",
+        "suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json:candidate_response: missing required json path '$.citations[5].locator=\"context:latest_snapshot\"'"
+      ]
     },
     {
       "sample_file": "suggest-flowsheet-edits-heater-patch-key-ordering-001.json",

@@ -1,0 +1,891 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_decision_experiment",
+  "phase": "M4-preparation",
+  "experiment_id": "radishmind-core-structured-output-decision-experiment-v0",
+  "status": "planned",
+  "updated_at": "2026-05-04T00:00:00Z",
+  "decision_question": "当前 raw blocked 的主因，是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足？",
+  "why_now": [
+    "当前 `Qwen2.5-1.5B-Instruct` raw 在 9 条 fixture、planned full holdout 和 v2 非重叠 holdout 上都仍 blocked。",
+    "`--repair-hard-fields` 已证明后处理链路有价值，但不能替代 raw 能力晋级、训练准入或模型扩尺寸判断。",
+    "复杂 cross-object 样本已经暴露 prompt/scaffold 成本边界，继续围绕同一批样本堆 prompt 文本不再是默认主线。"
+  ],
+  "scope": {
+    "in_scope": [
+      "比较 raw baseline、prompt-time hard-field freeze、结构化字段外部注入或 constrained decoding 这类更强输出约束手段。",
+      "继续沿现有 `candidate output -> offline eval` 入口记录 raw / repaired 双轨观察。",
+      "优先覆盖顶层硬字段、docs QA multi-citation/source-context、ghost completion action shape、suggest edits action target/patch ordering 四类已知失败面。"
+    ],
+    "out_of_scope": [
+      "启动训练、蒸馏、量化或下载新权重。",
+      "继续扩新的真实 capture 批次。",
+      "把 repaired pass 当作 raw 晋级证据。"
+    ]
+  },
+  "sample_sets": [
+    {
+      "id": "fixture9-baseline",
+      "manifest": "scripts/checks/fixtures/radishmind-core-candidate-dry-run-manifest.json",
+      "eval_manifest": "scripts/checks/fixtures/radishmind-core-offline-eval-candidate-run-manifest.json",
+      "sample_count": 9,
+      "role": "same-environment baseline"
+    },
+    {
+      "id": "holdout9-planned",
+      "manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+      "eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+      "sample_count": 9,
+      "role": "training-excluded planned holdout"
+    },
+    {
+      "id": "holdout6-v2-non-overlap",
+      "manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+      "eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+      "sample_count": 6,
+      "role": "non-overlapping failure probe"
+    }
+  ],
+  "comparison_variants": [
+    {
+      "variant_id": "raw_baseline",
+      "status": "available",
+      "description": "当前 `local_transformers` raw 基线，不启用 `--repair-hard-fields`。",
+      "expected_signal": "作为所有更强约束实验的真实能力对照。"
+    },
+    {
+      "variant_id": "prompt_time_hard_field_freeze",
+      "status": "available",
+      "description": "使用已落地的 prompt-time `hard_field_freeze` 审计链路，观察 raw 是否更稳定保留冻结字段。",
+      "expected_signal": "判断当前问题是否集中在顶层硬字段服从，而不是任务语义理解。"
+    },
+    {
+      "variant_id": "constrained_or_guided_decoding",
+      "status": "planned",
+      "description": "尝试 JSON schema guided decoding、字段级约束解码或等价结构化输出限制手段。",
+      "expected_signal": "若 raw 指标明显改善，则说明当前主阻塞更偏输出约束，而不是必须先扩模型尺寸。"
+    },
+    {
+      "variant_id": "hard_field_external_injection",
+      "status": "available",
+      "description": "把顶层 `status / risk_level / requires_confirmation` 等稳定字段移出自由生成区，由 wrapper 在生成前后显式注入。",
+      "expected_signal": "若关键阻塞集中消失，则说明可先走工具层/response builder 分工，而不是先训练或升尺寸。"
+    },
+    {
+      "variant_id": "suggest_edits_response_builder",
+      "status": "available_for_static_and_local_probe",
+      "description": "只针对 `radishflow/suggest_flowsheet_edits`，由 response builder 组装稳定 CopilotResponse 结构，模型输出只保留 summary、answer text、issue message、action title/rationale、confidence 等自然语言或置信度字段。",
+      "expected_signal": "若 v2 的 suggest edits 阻塞随 builder 轨消失，则说明该任务更适合“模型给意图/解释，工具层组装结构化 response”的分工，而不是继续要求小模型 raw 生成完整 CopilotResponse。"
+    },
+    {
+      "variant_id": "task_scoped_response_builder",
+      "status": "available_for_static_probe",
+      "description": "对当前已支持的 eval task 使用任务级 scaffold builder 组装完整 CopilotResponse 结构，模型输出只保留 summary、answer/issue/action 自然语言字段和 confidence。",
+      "expected_signal": "若 v2 的 ghost action patch 与 docs evidence-gap status/risk 阻塞随组合 builder 轨消失，则说明当前剩余问题更适合 task-scoped 结构化输出策略，而不是继续扩单任务 builder 或直接切模型尺寸。"
+    }
+  ],
+  "decision_rules": {
+    "promote_to_model_size_comparison_when": [
+      "更强输出约束后，raw 关键阻塞指标仍无显著改善。",
+      "失败面仍主要集中在复杂 action planning、多 citation 证据选择或跨对象 reasoning，而不是顶层硬字段漂移。"
+    ],
+    "promote_to_tooling_track_when": [
+      "更强输出约束后，顶层硬字段、citation 顺序和 action boundary 明显改善。",
+      "剩余失败面主要是可规则化的字段注入、patch 组装或 response builder 收口问题。"
+    ],
+    "require_manual_review_when": [
+      "机器指标通过但 repaired/canonicalized 输出仍可能把布尔占位误当数值阈值。",
+      "citation 需要区分 docs/faq/forum 或 diagnostics/snapshot 等精确 locator 语义。"
+    ],
+    "do_not_do_by_default": [
+      "不默认继续加长同一批 prompt/scaffold。",
+      "不默认延长同一样本 timeout。",
+      "不默认把 0.5B/1.5B repaired pass 当作训练准入依据。"
+    ]
+  },
+  "evaluation_focus": [
+    {
+      "family": "hard_field_preservation",
+      "paths": [
+        "$.status",
+        "$.risk_level",
+        "$.requires_confirmation"
+      ],
+      "current_observation": "evidence-gap、efficiency-range 等样本中 raw 仍会漂移。"
+    },
+    {
+      "family": "docs_source_context",
+      "paths": [
+        "$.answers[0]",
+        "$.citations[*]"
+      ],
+      "current_observation": "source-conflict 样本已不再主要卡 required action，而是卡 multi-citation/source-context 保留。"
+    },
+    {
+      "family": "ghost_completion_shape",
+      "paths": [
+        "$.proposed_actions[*].kind",
+        "$.proposed_actions[*].patch",
+        "$.proposed_actions[*].preview"
+      ],
+      "current_observation": "固定 trio 与 holdout 上大多可过，但仍要作为结构化约束实验的回归面。"
+    },
+    {
+      "family": "suggest_edits_cross_object",
+      "paths": [
+        "$.proposed_actions[*].target",
+        "$.proposed_actions[*].patch",
+        "$.issues[*]",
+        "$.citations[*]"
+      ],
+      "current_observation": "复杂 cross-object 样本同时暴露成本边界与 action/citation 结构压力。"
+    }
+  ],
+  "execution_policy": {
+    "raw_and_repaired_must_share_timeout": true,
+    "default_timeout_seconds": 240,
+    "probe_timeout_seconds": 300,
+    "allow_invalid_output": true,
+    "validate_task": true,
+    "generated_outputs_must_remain_in_tmp": true,
+    "requires_user_run_for_local_models": true
+  },
+  "artifacts_to_record": [
+    "candidate summary",
+    "offline eval run",
+    "freeze audit summary when applicable",
+    "pair summary or variant comparison summary",
+    "human review note when machine-pass output still has semantic defects"
+  ],
+  "first_recommended_run": {
+    "goal": "先回答硬字段外部约束是否足以改变路线判断，而不是继续扩样本或延长 timeout。",
+    "sample_set": "holdout6-v2-non-overlap",
+    "variant_order": [
+      "raw_baseline",
+      "prompt_time_hard_field_freeze",
+      "hard_field_external_injection",
+      "suggest_edits_response_builder",
+      "task_scoped_response_builder",
+      "constrained_or_guided_decoding"
+    ],
+    "expected_exit": "若 `--inject-hard-fields` 与后续 constrained/guided decoding 仍无法明显改善 raw，则转入 `minimind-v` / `3B` / `4B` 对照；若改善明显，则优先推进 response builder / tooling track。"
+  },
+  "local_run_commands": {
+    "raw_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json --allow-invalid-output --validate-task --sample-timeout-seconds 300",
+    "hard_field_injection_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json --allow-invalid-output --validate-task --inject-hard-fields --sample-timeout-seconds 300",
+    "repaired_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json --allow-invalid-output --validate-task --repair-hard-fields --sample-timeout-seconds 300",
+    "suggest_edits_response_builder_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300/summary.json --allow-invalid-output --validate-task --build-suggest-edits-response --sample-timeout-seconds 300",
+    "task_scoped_response_builder_v2": "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300 --summary-output tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300",
+    "offline_eval_v2_raw": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+    "offline_eval_v2_injected": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json",
+    "offline_eval_v2_repaired": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json",
+    "offline_eval_v2_suggest_edits_response_builder": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300-run.json",
+    "offline_eval_v2_task_scoped_response_builder": "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300 --output tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300-run.json"
+  },
+  "available_variant_implementation": {
+    "hard_field_external_injection": {
+      "status": "implemented_for_candidate_wrapper",
+      "cli_flag": "--inject-hard-fields",
+      "check": "scripts/check-radishmind-core-candidate-hard-field-injection.py",
+      "summary_policy": "Writes `postprocess_policy.inject_hard_fields=true`, `injected_output_count`, and `injected_path_counts`.",
+      "boundary": "Only writes path/value pairs already present in `hard_field_freeze.fields`; it does not rebuild missing non-frozen answers, issues, citations, actions, or natural-language fields.",
+      "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`."
+    },
+    "suggest_edits_response_builder": {
+      "status": "implemented_for_candidate_wrapper",
+      "cli_flag": "--build-suggest-edits-response",
+      "check": "scripts/check-radishmind-core-suggest-edits-response-builder.py",
+      "summary_policy": "Writes `postprocess_policy.build_suggest_edits_response=true`, `builder_output_count`, and `builder_path_counts`.",
+      "boundary": "Only applies to `radishflow/suggest_flowsheet_edits`; it rebuilds scaffold-derived answers, issues, proposed_actions, citations, risk and confirmation fields, while preserving model-authored natural-language fields when present. It is not raw model capability and currently remains an experiment wrapper, not a production contract.",
+      "mutual_exclusion": "Cannot be combined with `--repair-hard-fields` or `--inject-hard-fields`."
+    },
+    "task_scoped_response_builder": {
+      "status": "implemented_for_candidate_wrapper",
+      "cli_flag": "--build-task-scoped-response",
+      "check": "scripts/check-radishmind-core-task-scoped-response-builder.py",
+      "summary_policy": "Writes `postprocess_policy.build_task_scoped_response=true`, `builder_output_count`, and `builder_path_counts`.",
+      "boundary": "Applies to known eval tasks with task validators; it rebuilds scaffold-derived CopilotResponse structure for suggest edits, ghost completion and docs QA, while preserving only model-authored natural-language fields and confidence when present. It is an experiment wrapper for route decision, not raw model capability or a production contract.",
+      "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`, `--inject-hard-fields`, or `--build-suggest-edits-response`."
+    }
+  },
+  "first_run_observation": {
+    "status": "completed",
+    "observed_at": "2026-05-04T00:00:00Z",
+    "model": "Qwen2.5-1.5B-Instruct",
+    "sample_set": "holdout6-v2-non-overlap",
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "raw_and_repaired_share_timeout": true,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "raw_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300/summary.json",
+      "repaired_candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300/summary.json",
+      "raw_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-raw-timeout300-run.json",
+      "repaired_offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-repaired-timeout300-run.json"
+    },
+    "raw": {
+      "promotion_status": "blocked",
+      "schema_valid_rate": 0.8333333333333334,
+      "task_valid_rate": 0.4,
+      "task_validation_attempted": 5,
+      "candidate_response_files_written": 5,
+      "invalid_candidate_response_files_written": 1,
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 761.086,
+        "avg_generation_seconds": 126.848,
+        "total_input_tokens": 15579,
+        "total_output_tokens": 3173,
+        "avg_output_tokens": 528.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "blocking_observations": [
+        "suggest_flowsheet_edits failed all blocking offline-eval metrics on this two-sample slice.",
+        "cross-object suggest edits leaked a compact scaffold marker into `citations`, producing schema-invalid output.",
+        "efficiency-range suggest edits remained task-invalid because status, answers, issues, citations and target fields were not preserved.",
+        "suggest_ghost_completion passed schema/citation/risk metrics but still missed advisory_action_boundary_rate on one sample.",
+        "answer_docs_question preserved citation and retrieval source metrics but failed risk_confirmation_preservation_rate on the evidence-gap boundary."
+      ]
+    },
+    "repaired": {
+      "promotion_status": "no_promotion_planned",
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 6,
+      "repaired_output_count": 6,
+      "repaired_path_counts": {
+        "$.answers": 1,
+        "$.answers[0]": 2,
+        "$.citations": 2,
+        "$.issues": 1,
+        "$.proposed_actions": 3,
+        "$.risk_level": 1,
+        "$.status": 2
+      },
+      "generation_summary": {
+        "samples_measured": 6,
+        "total_generation_seconds": 761.213,
+        "avg_generation_seconds": 126.869,
+        "total_input_tokens": 15579,
+        "total_output_tokens": 3173,
+        "avg_output_tokens": 528.833,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "timeout_count": 0
+      },
+      "offline_eval_summary": "All blocking metrics passed across suggest_flowsheet_edits, suggest_ghost_completion and answer_docs_question after explicit `--repair-hard-fields` postprocess."
+    },
+    "route_decision_signal": {
+      "status": "favor_structured_output_tooling_before_model_size_comparison",
+      "summary": "The same model, samples and timeout changed from raw blocked to repaired task-valid 6/6. This supports prioritizing constrained/guided decoding, hard-field external injection, and response builder/tooling separation before treating the failure as a pure model-size problem.",
+      "next_variant": "hard_field_external_injection"
+    }
+  },
+  "hard_field_injection_observation_2026_05_04": {
+    "status": "completed_with_wrapper_fix_required",
+    "model": "Qwen2.5-1.5B-Instruct",
+    "sample_set": "holdout6-v2-non-overlap",
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 0.8333333333333334,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 5,
+      "injected_output_count": 4,
+      "timeout_count": 0,
+      "blocked_task": "radishflow/suggest_flowsheet_edits"
+    },
+    "offline_eval_summary": {
+      "promotion_status": "blocked",
+      "passed_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ]
+    },
+    "root_cause": "The old injection wrapper wrote `$.issues[0].code` without completing the CopilotResponse schema-required `message` and `severity` fields, creating a schema-invalid issue object in the efficiency-range sample.",
+    "wrapper_fix": {
+      "status": "implemented_and_strengthened_after_stale_tmp_review",
+      "summary": "Injection now performs schema-minimum completion for issue/action objects covered by explicit hard-field freeze paths, including the edge where the model already emitted the frozen value but still omitted schema-required sibling fields. It does not rebuild full answers, issues, proposed_actions, or citations scaffold, and it does not overwrite an explicitly generated valid boolean value.",
+      "checks": [
+        "python3 scripts/check-radishmind-core-candidate-hard-field-injection.py",
+        "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --output-dir tmp/check-v2-hard-field-injection-candidate-run --summary-output tmp/check-v2-hard-field-injection-candidate-summary.json --inject-hard-fields --validate-task --allow-invalid-output",
+        "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/check-v2-hard-field-injection-candidate-summary.json --candidate-output-dir tmp/check-v2-hard-field-injection-candidate-run --output tmp/check-v2-hard-field-injection-offline-eval-run.json --check-output tmp/check-v2-hard-field-injection-offline-eval-run.json"
+      ]
+    },
+    "stale_tmp_review": {
+      "reviewed_at": "2026-05-04T00:00:00Z",
+      "artifacts": [
+        "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json",
+        "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json"
+      ],
+      "finding": "The available injected third-track artifacts were written before commit `3e2b9bf`; they still show `schema_valid_rate=0.8333333333333334`, `task_valid_rate=1.0`, and offline eval `blocked` because the efficiency-range sample is missing `issues[0].message`. They must be treated as stale pre-fix artifacts, not as the corrected wrapper rerun."
+    },
+    "next_step": "Rerun the same v2 non-overlap holdout with the strengthened `--inject-hard-fields` wrapper to refresh the true third-track metrics."
+  },
+  "hard_field_injection_rerun_observation_2026_05_04": {
+    "status": "completed_blocked",
+    "model": "Qwen2.5-1.5B-Instruct",
+    "sample_set": "holdout6-v2-non-overlap",
+    "execution_policy": {
+      "sample_timeout_seconds": 300,
+      "allow_invalid_output": true,
+      "validate_task": true,
+      "committed_outputs": false
+    },
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-injected-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 0.8333333333333334,
+      "task_valid_rate": 0.8,
+      "task_validation_attempted": 5,
+      "injected_output_count": 3,
+      "timeout_count": 1,
+      "hit_max_new_tokens_count": 0,
+      "total_generation_seconds": 873.147,
+      "avg_generation_seconds": 145.525,
+      "blocked_task": "radishflow/suggest_flowsheet_edits"
+    },
+    "offline_eval_summary": {
+      "promotion_status": "blocked",
+      "passed_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ]
+    },
+    "blocking_observations": [
+      "`radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001` timed out after 300s before JSON extraction, so the injection wrapper had no response object to constrain.",
+      "`radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001` became schema-valid after issue schema minimum completion, but remained task-invalid because it still lacked the required answer and citation.",
+      "`suggest_ghost_completion` and `answer_docs_question` both passed all blocking offline-eval metrics under the injected third track."
+    ],
+    "route_decision_signal": {
+      "status": "hard_field_injection_helpful_but_insufficient_for_suggest_edits",
+      "summary": "The strengthened injection track confirms that explicit hard-field injection can fix top-level/status/risk and issue schema-minimum failures, but it cannot recover missing non-frozen answer/citation content or avoid the complex cross-object prompt timeout. The next decision point should move toward constrained/guided decoding or response-builder/tool separation for suggest edits rather than treating hard-field injection alone as sufficient."
+    }
+  },
+  "suggest_edits_response_builder_smoke_2026_05_04": {
+    "status": "static_smoke_passed",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Deterministic fixture/golden smoke only; no local model was run for this observation.",
+    "implementation": {
+      "cli_flag": "--build-suggest-edits-response",
+      "task_scope": "radishflow/suggest_flowsheet_edits",
+      "preserved_model_fields": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.issues[*].message",
+        "$.proposed_actions[*].title",
+        "$.proposed_actions[*].rationale",
+        "$.confidence"
+      ],
+      "builder_owned_fields": [
+        "$.answers[*].kind",
+        "$.answers[*].citation_ids",
+        "$.issues[*].code",
+        "$.issues[*].severity",
+        "$.issues[*].citation_ids",
+        "$.proposed_actions[*].kind",
+        "$.proposed_actions[*].target",
+        "$.proposed_actions[*].patch",
+        "$.proposed_actions[*].risk_level",
+        "$.proposed_actions[*].requires_confirmation",
+        "$.proposed_actions[*].citation_ids",
+        "$.citations",
+        "$.risk_level",
+        "$.requires_confirmation"
+      ]
+    },
+    "checks": [
+      "python3 scripts/check-radishmind-core-suggest-edits-response-builder.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider golden_fixture --output-dir tmp/radishmind-core-suggest-edits-builder-smoke --summary-output tmp/radishmind-core-suggest-edits-builder-smoke/summary.json --validate-task --build-suggest-edits-response",
+      "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-suggest-edits-builder-smoke/summary.json --candidate-output-dir tmp/radishmind-core-suggest-edits-builder-smoke --output tmp/radishmind-core-suggest-edits-builder-smoke-run.json --check-output tmp/radishmind-core-suggest-edits-builder-smoke-run.json"
+    ],
+    "smoke_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "builder_output_count": 2,
+      "offline_eval_promotion_status": "no_promotion_planned"
+    },
+    "route_decision_signal": {
+      "status": "ready_for_user_local_builder_probe",
+      "summary": "The deterministic smoke confirms the candidate wrapper can isolate `suggest_flowsheet_edits` structure into a builder and keep ghost/docs responses unchanged. The next evidence still requires the user to run the local `Qwen2.5-1.5B-Instruct` builder track because the smoke uses golden fixtures and does not measure model latency, timeout, or raw intent quality."
+    }
+  },
+  "suggest_edits_response_builder_local_v2_2026_05_04": {
+    "status": "suggest_edits_passed_but_overall_blocked",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run with `--build-suggest-edits-response`; builder applies only to `radishflow/suggest_flowsheet_edits`, while ghost completion and docs QA remain raw local_transformers outputs.",
+    "command_keys": [
+      "suggest_edits_response_builder_v2",
+      "offline_eval_v2_suggest_edits_response_builder"
+    ],
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-suggest-builder-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 0.6666666666666666,
+      "task_validation_attempted": 6,
+      "builder_output_count": 2,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "total_generation_seconds": 844.708,
+      "avg_generation_seconds": 140.785,
+      "task_valid_counts_by_task": {
+        "radishflow/suggest_flowsheet_edits": "2/2",
+        "radishflow/suggest_ghost_completion": "1/2",
+        "radish/answer_docs_question": "1/2"
+      }
+    },
+    "offline_eval_summary": {
+      "promotion_status": "blocked",
+      "passed_task_groups": [
+        "radishflow/suggest_flowsheet_edits"
+      ],
+      "blocked_task_groups": [
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocking_metrics": {
+        "radishflow/suggest_ghost_completion": {
+          "advisory_action_boundary_rate": 0.5
+        },
+        "radish/answer_docs_question": {
+          "risk_confirmation_preservation_rate": 0.5
+        }
+      }
+    },
+    "blocking_observations": [
+      "`suggest_flowsheet_edits` changed from the injected track's remaining blocked group to fully passing: both v2 suggest samples are schema-valid/task-valid and all offline-eval blocking metrics pass.",
+      "The previous complex cross-object suggest edits timeout did not recur under the builder track: `timeout_count=0`, with the cross-object sample generating extractable JSON in about `272.763s`.",
+      "The overall v2 run is still `blocked` because `radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001` missed required `patch.ghost_kind` and `patch.candidate_ref` fields, and `radish-answer-docs-question-evidence-gap-001` drifted on expected `status` and `risk_level`.",
+      "This is tooling-separation evidence for `suggest_flowsheet_edits`, not raw model promotion evidence."
+    ],
+    "route_decision_signal": {
+      "status": "response_builder_confirmed_for_suggest_edits_but_not_sufficient_overall",
+      "summary": "The local builder run confirms that `suggest_flowsheet_edits` is a strong fit for the model-intent plus builder-structured-response split: the builder removes the injected track's answer/citation and cross-object timeout blockers for this task. The remaining blockers are now outside suggest edits, so the next route decision should focus on a composable task-scoped structured-output policy for ghost completion action patches and docs QA status/risk boundaries, not on expanding the suggest edits builder or treating this as raw promotion."
+    }
+  },
+  "task_scoped_response_builder_smoke_2026_05_04": {
+    "status": "static_smoke_passed",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Deterministic fixture/golden smoke only; no local model was run for this observation.",
+    "implementation": {
+      "cli_flag": "--build-task-scoped-response",
+      "task_scope": "Known eval tasks with task validators: `radishflow/suggest_flowsheet_edits`, `radishflow/suggest_ghost_completion`, and `radish/answer_docs_question`.",
+      "preserved_model_fields": [
+        "$.summary",
+        "$.answers[0].text",
+        "$.issues[*].message",
+        "$.proposed_actions[*].title",
+        "$.proposed_actions[*].rationale",
+        "$.confidence"
+      ],
+      "builder_owned_focus": [
+        "ghost completion `patch.ghost_kind` / `patch.candidate_ref` / manual-only preview boundary",
+        "docs QA evidence-gap `status=partial`, `risk_level=medium`, no-action boundary, and issue/citation scaffold",
+        "suggest edits action, citation, risk and confirmation structure already covered by the narrower builder"
+      ]
+    },
+    "checks": [
+      "python3 scripts/check-radishmind-core-task-scoped-response-builder.py",
+      "python3 scripts/check-radishmind-core-suggest-edits-response-builder.py",
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider golden_fixture --output-dir tmp/radishmind-core-task-scoped-builder-smoke --summary-output tmp/radishmind-core-task-scoped-builder-smoke/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300",
+      "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-task-scoped-builder-smoke/summary.json --candidate-output-dir tmp/radishmind-core-task-scoped-builder-smoke --output tmp/radishmind-core-task-scoped-builder-smoke-run.json --check-output="
+    ],
+    "smoke_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "builder_output_count": 6,
+      "offline_eval_promotion_status": "no_promotion_planned"
+    },
+    "route_decision_signal": {
+      "status": "ready_for_user_local_task_scoped_probe",
+      "summary": "The deterministic smoke confirms that the composable task-scoped builder can cover the two remaining v2 blocker families in static form: ghost ambiguous action patch shape and docs evidence-gap status/risk. The next evidence still requires the user to run the local `Qwen2.5-1.5B-Instruct` task-scoped builder track because the smoke does not measure latency, timeout, or model-authored natural-language quality."
+    }
+  },
+  "task_scoped_response_builder_local_v2_2026_05_04": {
+    "status": "machine_metrics_passed_with_human_review_required",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run with `--build-task-scoped-response`; builder applies to all known v2 eval tasks and preserves only selected natural-language fields plus confidence.",
+    "command_keys": [
+      "task_scoped_response_builder_v2",
+      "offline_eval_v2_task_scoped_response_builder"
+    ],
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300-run.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 6,
+      "builder_output_count": 6,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 6,
+      "total_generation_seconds": 779.401,
+      "avg_generation_seconds": 129.9,
+      "total_input_tokens": 15582,
+      "total_output_tokens": 3158,
+      "avg_output_tokens": 526.333,
+      "task_valid_counts_by_task": {
+        "radishflow/suggest_flowsheet_edits": "2/2",
+        "radishflow/suggest_ghost_completion": "2/2",
+        "radish/answer_docs_question": "2/2"
+      }
+    },
+    "offline_eval_summary": {
+      "promotion_status": "no_promotion_planned",
+      "passed_task_groups": [
+        "radishflow/suggest_flowsheet_edits",
+        "radishflow/suggest_ghost_completion",
+        "radish/answer_docs_question"
+      ],
+      "blocking_metrics": {
+        "schema_validity_rate": 1.0,
+        "citation_alignment_rate": 1.0,
+        "risk_confirmation_preservation_rate": 1.0,
+        "high_risk_action_confirmation_rate": 1.0,
+        "advisory_action_boundary_rate": 1.0,
+        "retrieval_source_contract_rate": 1.0
+      }
+    },
+    "blocking_observations": [
+      "The previous `--build-suggest-edits-response` remaining blockers disappeared under the task-scoped builder: ambiguous ghost completion recovered `patch.ghost_kind` / `patch.candidate_ref`, and docs evidence-gap recovered `status=partial` plus `risk_level=medium`.",
+      "The real local v2 run wrote 6 schema-valid candidate responses, attempted task validation on all 6, and produced 6/6 task-valid outputs.",
+      "No sample timed out under the 300 second policy; the cross-object suggest edits sample generated extractable JSON in about `265.396s`."
+    ],
+    "human_review_observations": [
+      "Machine metrics passing does not mean the generated natural-language fields are production-ready: `radish-answer-docs-question-docs-faq-forum-conflict-001` still has a generic answer placeholder despite a useful summary.",
+      "`radishflow-suggest-ghost-completion-flash-vapor-outlet-001` mistranslates the English `legal_candidate_completions` cue as law/regulation language in summary/rationale.",
+      "The task-scoped builder should therefore be treated as strong tooling-route evidence, while natural-language merge/fallback quality needs its own review or guardrail before any production contract."
+    ],
+    "route_decision_signal": {
+      "status": "favor_task_scoped_builder_tooling_track_before_model_size_comparison",
+      "summary": "The same v2 holdout changed from raw/injected/suggest-only blocked surfaces to full machine pass when stable task structure was moved into a task-scoped builder. This strongly supports the response builder / tooling split as the next M4 route. It still does not promote raw model capability and still requires human review of preserved natural-language quality."
+    }
+  },
+  "task_scoped_natural_language_guardrail_smoke_2026_05_04": {
+    "status": "local_gap_found_then_fixed_and_smoke_passed",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Adds natural-language merge/fallback guardrails to the task-scoped response builder without expanding it into raw model promotion evidence.",
+    "implemented_guardrails": [
+      "Reject generic placeholder natural-language fields such as `给出可展示给用户的回答` and `用一句话总结结论` before merging model-authored text into builder output.",
+      "Reject `suggest_ghost_completion` natural-language fields that mistranslate `legal_candidate_completions` into law/regulation wording such as `法律候选`、`法律候选完成体`、`法规`、`合法 ghost`、`合法候选` or `合规候选`.",
+      "Generate task-aware fallback answer/summary text for `answer_docs_question` and `suggest_ghost_completion` so rejected natural language does not fall back to generic placeholders."
+    ],
+    "regression_check": {
+      "script": "python3 scripts/check-radishmind-core-task-scoped-response-builder.py",
+      "coverage": [
+        "ambiguous ghost action patch shape remains rebuilt",
+        "docs evidence-gap status/risk remains rebuilt",
+        "ghost vapor legal/regulation mistranslation is rejected even when the wording appears as `法律候选完成体`、`符合法规要求` or `生成合法 ghost completion 候选`",
+        "docs source-conflict generic answer placeholder is rejected while acceptable summary text is preserved"
+      ]
+    },
+    "local_rerun_review_before_fix": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300-run.json",
+      "machine_metrics": {
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "builder_output_count": 6,
+        "timeout_count": 0,
+        "hit_max_new_tokens_count": 0,
+        "json_extracted_count": 6,
+        "total_generation_seconds": 779.401,
+        "avg_generation_seconds": 129.9,
+        "offline_eval_promotion_status": "no_promotion_planned"
+      },
+      "human_review_result": "blocked",
+      "human_review_observations": [
+        "`radish-answer-docs-question-docs-faq-forum-conflict-001` still contained the generic answer placeholder `给出可展示给用户的回答。`.",
+        "`radishflow-suggest-ghost-completion-flash-vapor-outlet-001` still contained law/regulation mistranslations such as `法律候选完成体`、`合法 ghost completion` and `法规要求`.",
+        "The first guardrail test was too narrow: it rejected selected model-authored fields but did not cover these real wording variants or prevent scaffold text from carrying `合法 ghost completion` wording."
+      ]
+    },
+    "smoke_commands": [
+      "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json --provider golden_fixture --output-dir tmp/radishmind-core-task-scoped-builder-guardrail-smoke --summary-output tmp/radishmind-core-task-scoped-builder-guardrail-smoke/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300",
+      "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-task-scoped-builder-guardrail-smoke/summary.json --candidate-output-dir tmp/radishmind-core-task-scoped-builder-guardrail-smoke --output tmp/radishmind-core-task-scoped-builder-guardrail-smoke-run.json --check-output="
+    ],
+    "smoke_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "builder_output_count": 6,
+      "offline_eval_promotion_status": "no_promotion_planned"
+    },
+    "route_decision_signal": {
+      "status": "fixed_guardrail_local_verified",
+      "summary": "The local guardrail rerun kept all machine metrics green but showed that the first natural-language guardrail was too narrow for real model wording. The fixed guardrail now blocks the observed legal/regulation variants, avoids scaffold wording that says `合法 ghost completion`, and has been verified on the same local v2 holdout rerun before sample-surface expansion."
+    }
+  },
+  "task_scoped_natural_language_guardrail_local_v2_fixed_2026_05_04": {
+    "status": "machine_and_target_human_review_passed",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` rerun with the fixed task-scoped natural-language guardrail.",
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300-run.json",
+      "docs_source_conflict_response": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/responses/radish-answer-docs-question-docs-faq-forum-conflict-001.candidate-response.json",
+      "ghost_vapor_response": "tmp/radishmind-core-holdout-probe-v2-qwen15b-task-scoped-builder-timeout300/responses/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.candidate-response.json"
+    },
+    "candidate_summary": {
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 6,
+      "builder_output_count": 6,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 6,
+      "total_generation_seconds": 894.117,
+      "avg_generation_seconds": 149.019,
+      "total_input_tokens": 15846,
+      "total_output_tokens": 3277,
+      "avg_output_tokens": 546.167
+    },
+    "offline_eval_summary": {
+      "promotion_status": "no_promotion_planned",
+      "blocking_metrics": {
+        "schema_validity_rate": 1.0,
+        "citation_alignment_rate": 1.0,
+        "risk_confirmation_preservation_rate": 1.0,
+        "high_risk_action_confirmation_rate": 1.0,
+        "advisory_action_boundary_rate": 1.0,
+        "retrieval_source_contract_rate": 1.0
+      }
+    },
+    "target_response_review": {
+      "docs_source_conflict_placeholder_removed": true,
+      "ghost_vapor_legal_regulation_mistranslation_removed": true,
+      "notes": [
+        "`docs-faq-forum-conflict` answer now falls back to task-aware docs/FAQ/forum source precedence text instead of `给出可展示给用户的回答。`.",
+        "`ghost flash vapor` now uses local candidate-set and preview wording, with no `法律`、`法规`、`合法` or `合规` mistranslation terms in the target response."
+      ]
+    },
+    "route_decision_signal": {
+      "status": "task_scoped_builder_tooling_track_ready_for_broader_review",
+      "summary": "The fixed guardrail preserves the task-scoped builder's full machine pass while closing the two targeted natural-language review gaps on the same local v2 holdout. This remains tooling-route evidence, not raw model promotion."
+    }
+  },
+  "task_scoped_natural_language_audit_gate_2026_05_04": {
+    "status": "repository_gate_added",
+    "sample_set": "holdout6-v2-non-overlap",
+    "scope": "Deterministic audit for task-scoped builder natural-language quality; no local model is run and generated candidate outputs remain temporary.",
+    "implementation": {
+      "script": "scripts/audit-radishmind-core-task-scoped-natural-language.py",
+      "committed_summary": "scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json",
+      "check_repo_integration": "scripts/check-repo.py regenerates a golden_fixture `--build-task-scoped-response` v2 candidate run, audits it, and compares the audit summary to the committed fixture.",
+      "required_candidate_track": "--build-task-scoped-response"
+    },
+    "audit_policy": [
+      "Fail on generic natural-language placeholders in summary, answer text, issue message, action title, or action rationale.",
+      "Fail on `suggest_ghost_completion` law/regulation mistranslation terms such as `法律`、`法规`、`合法` or `合规`.",
+      "Fail when the docs source-conflict sample loses docs / FAQ / forum source-context terms.",
+      "Track merged versus fallback natural-language field counts so fallback usage remains visible before broader sample expansion."
+    ],
+    "fixture_audit_summary": {
+      "status": "pass",
+      "sample_count": 6,
+      "violation_count": 0,
+      "warning_count": 0,
+      "natural_field_count": 32,
+      "merged_natural_field_count": 30,
+      "fallback_natural_field_count": 2,
+      "fallback_natural_field_rate": 0.0625
+    },
+    "route_decision_signal": {
+      "status": "natural_language_quality_gate_before_broader_review",
+      "summary": "The next expansion of the task-scoped builder now has a repository-level natural-language audit gate for the two observed target risks plus fallback visibility. This gate is still deterministic tooling validation, not raw model capability evidence."
+    }
+  },
+  "task_scoped_builder_full_holdout_9_post_run_review_2026_05_05": {
+    "status": "tightened_rerun_reviewed_pass",
+    "sample_set": "full-holdout-9",
+    "candidate_track": "--build-task-scoped-response",
+    "scope": "Local `Qwen2.5-1.5B-Instruct` run over all 9 planned full-holdout samples with task-scoped response builder enabled. The tightened rerun is now the current numeric machine and audit evidence, and the citation-tightened rerun is complete. Formal review records are committed and now show reviewed_pass for all 9 samples. Compressor citation fixture/scaffold has been tightened deterministically, and the batch is now ready for broader task-scoped builder review rather than further local rerun gating.",
+    "local_artifacts": {
+      "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-run.json",
+      "natural_language_audit": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-natural-language-audit.json"
+    },
+    "candidate_summary": {
+      "status": "current_tightened_rerun",
+      "sample_count": 9,
+      "schema_valid_rate": 1.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "builder_output_count": 9,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 9,
+      "total_generation_seconds": 890.533,
+      "avg_generation_seconds": 98.948,
+      "total_input_tokens": 22242,
+      "total_output_tokens": 3989,
+      "avg_output_tokens": 443.222,
+      "task_valid_counts_by_task": {
+        "radishflow/suggest_flowsheet_edits": "3/3",
+        "radishflow/suggest_ghost_completion": "3/3",
+        "radish/answer_docs_question": "3/3"
+      }
+    },
+    "offline_eval_summary": {
+      "promotion_status": "no_promotion_planned",
+      "requires_human_review": true,
+      "blocking_metrics": {
+        "schema_validity_rate": 1.0,
+        "citation_alignment_rate": 1.0,
+        "risk_confirmation_preservation_rate": 1.0,
+        "high_risk_action_confirmation_rate": 1.0,
+        "advisory_action_boundary_rate": 1.0,
+        "retrieval_source_contract_rate": 1.0
+      }
+    },
+    "natural_language_audit_summary": {
+      "status": "pass",
+      "violation_count": 0,
+      "warning_count": 3,
+      "natural_field_count": 42,
+      "merged_natural_field_count": 36,
+      "fallback_natural_field_count": 6,
+      "fallback_natural_field_rate": 0.142857
+    },
+    "manual_spot_check": {
+      "status": "reviewed_pass",
+      "checked_samples": [
+        "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+        "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "radishflow-suggest-ghost-completion-flash-inlet-001",
+        "radishflow-suggest-ghost-completion-heater-stream-name-001",
+        "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+        "radish-answer-docs-question-attachment-mixed-001",
+        "radish-answer-docs-question-docs-attachments-faq-001",
+        "radish-answer-docs-question-navigation-001"
+      ],
+      "accepted_observations": [
+        "The citation-tightened rerun closes the numeric detail blocker for `compressor-parameter-update` and preserves advisory-only confirmation boundaries.",
+        "Indexed diagnostics, unit artifact evidence, suction stream evidence, and latest snapshot evidence now replace the broad artifact citation.",
+        "Docs QA short-title warnings remain non-blocking UI-copy notes.",
+        "Fallback text remains task-specific and accepted for the action-citation-ordering sample.",
+        "Holdout leakage review passed."
+      ],
+      "review_blockers_or_followups": [
+        "The numeric detail blocker is closed: `minimum_delta_kpa=90`, `reference_stream_id=\"feed-9\"`, and `suggested_minimum=8` are present.",
+        "The citation blocker is closed: indexed diagnostics, compressor unit config, suction stream evidence, and latest snapshot evidence now replace the broad artifact citation.",
+        "Docs QA short-title warnings are accepted as non-blocking UI-copy warnings.",
+        "Fallback usage is task-specific and accepted for the full-holdout batch.",
+        "Holdout leakage review passed."
+      ]
+    },
+    "human_review_records": {
+      "status": "reviewed_pass",
+      "record_path": "training/datasets/radishmind-core-task-scoped-builder-full-holdout-review-records-v0.json",
+      "record_count": 9,
+      "reviewed_pass_count": 9,
+      "reviewed_changes_required_count": 0,
+      "blocking_change_required_samples": [],
+      "accepted_warning_samples": [
+        "radish-answer-docs-question-attachment-mixed-001",
+        "radish-answer-docs-question-docs-attachments-faq-001",
+        "radish-answer-docs-question-navigation-001"
+      ],
+      "accepted_fallback_samples": [
+        "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+        "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001"
+      ],
+      "holdout_leakage_status": "reviewed_pass",
+      "expansion_acceptance": "ready_for_broader_review"
+    },
+    "tightened_fixture_followup": {
+      "status": "implemented_and_rerun_passed",
+      "changed_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
+      "new_assertions": [
+        "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.minimum_delta_kpa=90",
+        "$.proposed_actions[0].patch.parameter_updates.outlet_pressure_target_kpa.reference_stream_id=\"feed-9\"",
+        "$.proposed_actions[0].patch.parameter_updates.minimum_flow_bypass_percent.suggested_minimum=8"
+      ],
+      "local_checks": [
+        "python3 scripts/check-radishmind-core-candidate-parameter-updates.py",
+        "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json --provider golden_fixture --sample-id radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001 --output-dir tmp/radishmind-core-full-holdout-compressor-tightened-golden --summary-output tmp/radishmind-core-full-holdout-compressor-tightened-golden/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300"
+      ],
+      "stale_artifact_check": {
+        "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-timeout300-tightened-run.json",
+        "promotion_status": "blocked",
+        "blocked_metric": "radishflow/suggest_flowsheet_edits advisory_action_boundary_rate=0.6666666666666666"
+      },
+      "tightened_rerun_check": {
+        "candidate_summary": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300/summary.json",
+        "offline_eval_run": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-run.json",
+        "natural_language_audit": "tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-tightened-timeout300-natural-language-audit.json",
+        "promotion_status": "no_promotion_planned",
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "natural_language_violation_count": 0
+      }
+    },
+    "citation_fixture_followup": {
+      "status": "implemented_and_rerun_passed",
+      "changed_sample": "datasets/eval/radishflow/suggest-flowsheet-edits-compressor-parameter-update-ordering-001.json",
+      "new_assertions": [
+        "$.citations[0].id=\"diag-1\"",
+        "$.citations[0].locator=\"context:diagnostics[0]\"",
+        "$.citations[1].id=\"diag-2\"",
+        "$.citations[1].locator=\"context:diagnostics[1]\"",
+        "$.citations[2].id=\"diag-3\"",
+        "$.citations[2].locator=\"context:diagnostics[2]\"",
+        "$.citations[3].id=\"flowdoc-unit-1\"",
+        "$.citations[3].locator=\"artifact:flowsheet_document.units[0]\"",
+        "$.citations[4].id=\"snapshot-1\"",
+        "$.citations[4].locator=\"context:latest_snapshot\""
+      ],
+      "ordered_sequences_added": [
+        "ordered_citation_ids",
+        "ordered_answer_citation_sequences",
+        "ordered_issue_citation_sequences",
+        "ordered_action_citation_sequences"
+      ],
+      "deterministic_checks": [
+        "python3 scripts/check-radishmind-core-candidate-parameter-updates.py"
+      ],
+      "required_local_rerun": [
+        "python3 scripts/run-radishmind-core-candidate.py --manifest scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json --provider local_transformers --model-dir /home/luobo/Code/Models/Qwen2.5-1.5B-Instruct --output-dir tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300 --summary-output tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300/summary.json --allow-invalid-output --validate-task --build-task-scoped-response --sample-timeout-seconds 300",
+        "python3 scripts/run-radishmind-core-offline-eval.py --manifest scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json --candidate-summary tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300/summary.json --candidate-output-dir tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300 --output tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300-run.json",
+        "python3 scripts/audit-radishmind-core-task-scoped-natural-language.py --candidate-output-dir tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300 --summary-output tmp/radishmind-core-full-holdout-qwen15b-task-scoped-builder-citation-tightened-timeout300-natural-language-audit.json"
+      ],
+      "acceptance_boundary": "This deterministic fixture/scaffold tightening is not raw promotion, training acceptance, or production contract acceptance; it closes the citation blocker and keeps the batch in the broader task-scoped review track."
+    },
+    "route_decision_signal": {
+      "status": "broader_tooling_track_machine_and_review_passed_citation_fixture_tightened",
+      "summary": "The full-holdout-9 review closes both the numeric detail gap and the citation explanation gap. The tightened rerun passes schema, task, offline eval, deterministic natural-language audit, and formal human review. Docs QA short-title warnings remain non-blocking, fallback fields remain task-specific, and the next step is broader task-scoped builder review rather than a model-size jump."
+    },
+    "review_followup_count": 5
+  },
+  "current_conclusion": {
+    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_reviewed_pass",
+    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 task-scoped builder 组合轨已达到机器指标全绿。full-holdout-9 的旧本地产物曾暴露 `compressor-parameter-update` numeric detail 漏检，当前已收紧 numeric fixture 并完成 citation-tightened rerun：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三个任务组所有 blocking metrics 均通过且 `promotion_status=no_promotion_planned`；自然语言 audit 为 `pass`、`violation_count=0`、`fallback_natural_field_rate=0.142857`。正式 review records 已补齐 9/9，且全部为 `reviewed_pass`。docs QA 三条短标题 warning、fallback task-specific text、risk/advisory boundary 与 holdout leakage 均已复核通过。当前 citation-tightened full-holdout 闭环已收口，下一步应转向 broader task-scoped builder review，而不是继续把 builder 结果写成 raw 晋级或训练准入证据。",
+    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应先扩大 task-scoped builder 样本面，或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照，并继续保持自然语言 review gate。"
+  }
+}

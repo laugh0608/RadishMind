@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_task_scoped_builder_review_plan",
+  "review_plan_id": "radishmind-core-task-scoped-builder-review-plan-v0",
+  "status": "planned",
+  "phase": "M4-preparation",
+  "created_for": "task-scoped-response-builder-sample-expansion",
+  "does_not_run_models": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_review_pass": true,
+  "source_run_set_summary": "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json",
+  "source_audit_summary": "scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json",
+  "source_experiment": "training/experiments/radishmind-core-structured-output-decision-experiment-v0.json",
+  "review_scope": {
+    "candidate_track": "--build-task-scoped-response",
+    "current_observed_sample_set": "holdout6-v2-non-overlap",
+    "next_expansion_sample_sets": [
+      {
+        "sample_set_id": "full-holdout-9",
+        "candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+        "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+        "expected_summary": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-summary.json",
+        "minimum_sample_count": 9,
+        "review_mode": "full_review",
+        "reason": "First broader task-scoped builder review must cover all planned full-holdout samples before any partial sampling policy is used."
+      },
+      {
+        "sample_set_id": "holdout6-v2-non-overlap",
+        "candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+        "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+        "expected_summary": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-summary.json",
+        "minimum_sample_count": 6,
+        "review_mode": "targeted_regression_review",
+        "reason": "Keep the v2 non-overlap probe as regression coverage for raw/repaired/builder route-decision blockers."
+      }
+    ],
+    "must_remain_separate_from": [
+      "raw_model_promotion",
+      "training_sample_acceptance",
+      "production_contract_acceptance",
+      "model_size_upgrade_decision"
+    ]
+  },
+  "review_dimensions": [
+    {
+      "id": "machine_schema_and_task_validity",
+      "category": "machine_gate",
+      "required_for": [
+        "all_samples"
+      ],
+      "evidence": [
+        "candidate_summary.schema_valid_rate",
+        "candidate_summary.task_valid_rate",
+        "offline_eval_run.decision.promotion_status"
+      ],
+      "pass_rule": "schema_valid_rate=1.0, task_valid_rate=1.0, and offline eval has no blocking metric failures for the reviewed sample set."
+    },
+    {
+      "id": "natural_language_placeholder_absence",
+      "category": "deterministic_audit",
+      "required_for": [
+        "all_samples"
+      ],
+      "evidence": [
+        "scripts/audit-radishmind-core-task-scoped-natural-language.py",
+        "natural_language_audit.summary.violation_count"
+      ],
+      "pass_rule": "No generic placeholder text may appear in summary, answer text, issue message, action title, or action rationale."
+    },
+    {
+      "id": "ghost_candidate_semantics",
+      "category": "deterministic_audit",
+      "required_for": [
+        "radishflow/suggest_ghost_completion"
+      ],
+      "evidence": [
+        "natural_language_audit.cases",
+        "candidate_response.proposed_actions"
+      ],
+      "pass_rule": "Ghost completion text must describe local candidate-set and preview semantics, and must not translate legal_candidate_completions into law, regulation, legality, or compliance wording."
+    },
+    {
+      "id": "citation_explanation_quality",
+      "category": "human_review",
+      "required_for": [
+        "radishflow/suggest_flowsheet_edits",
+        "radish/answer_docs_question"
+      ],
+      "evidence": [
+        "candidate_response.answers[*].citation_ids",
+        "candidate_response.citations",
+        "sample.input_request.artifacts"
+      ],
+      "pass_rule": "Reviewer confirms cited sources are relevant, cited ids exist, answer/action text explains why the citations support the conclusion, and source precedence is preserved."
+    },
+    {
+      "id": "factual_sufficiency",
+      "category": "human_review",
+      "required_for": [
+        "all_samples"
+      ],
+      "evidence": [
+        "sample.input_request",
+        "candidate_response.summary",
+        "candidate_response.answers",
+        "candidate_response.issues",
+        "candidate_response.proposed_actions"
+      ],
+      "pass_rule": "Reviewer confirms the response does not invent unavailable facts, does not overstate evidence, and clearly marks partial/evidence-gap cases."
+    },
+    {
+      "id": "fallback_acceptability",
+      "category": "human_review",
+      "required_for": [
+        "samples_with_fallback_natural_language"
+      ],
+      "evidence": [
+        "natural_language_audit.cases[*].fallback_paths",
+        "candidate_summary.outputs[*].postprocess.task_scoped_builder_paths"
+      ],
+      "pass_rule": "Reviewer confirms fallback text is task-specific, user-presentable, and not merely a generic scaffold placeholder."
+    },
+    {
+      "id": "risk_confirmation_and_advisory_boundary",
+      "category": "machine_and_human_review",
+      "required_for": [
+        "all_samples"
+      ],
+      "evidence": [
+        "candidate_response.risk_level",
+        "candidate_response.requires_confirmation",
+        "candidate_response.proposed_actions[*].requires_confirmation",
+        "offline_eval_run.result_records"
+      ],
+      "pass_rule": "High-risk or candidate edit outputs preserve requires_confirmation=true, remain advisory-only, and never claim to write back business truth sources."
+    },
+    {
+      "id": "training_holdout_leakage",
+      "category": "governance_review",
+      "required_for": [
+        "all_expansion_sample_sets"
+      ],
+      "evidence": [
+        "training/datasets/copilot-training-holdout-split-v0.json",
+        "scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json",
+        "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json"
+      ],
+      "pass_rule": "Reviewed samples must not be accepted into a training split while also serving as offline eval holdout for the same experiment line."
+    }
+  ],
+  "review_record_template": {
+    "sample_id": "required",
+    "project": "required",
+    "task": "required",
+    "sample_set_id": "required",
+    "candidate_track": "--build-task-scoped-response",
+    "candidate_response_file": "tmp/<candidate-run>/responses/<sample>.candidate-response.json",
+    "offline_eval_run": "tmp/<candidate-run>-offline-eval-run.json",
+    "natural_language_audit_case_id": "required",
+    "reviewer": "required_before_reviewed_pass",
+    "reviewed_at": "required_before_reviewed_pass",
+    "review_status": "pending_review",
+    "dimension_results": {
+      "machine_schema_and_task_validity": "pending",
+      "natural_language_placeholder_absence": "pending",
+      "ghost_candidate_semantics": "pending_or_not_applicable",
+      "citation_explanation_quality": "pending_or_not_applicable",
+      "factual_sufficiency": "pending",
+      "fallback_acceptability": "pending_or_not_applicable",
+      "risk_confirmation_and_advisory_boundary": "pending",
+      "training_holdout_leakage": "pending"
+    },
+    "review_notes": [],
+    "exit_reason": null
+  },
+  "planned_review_batches": [
+    {
+      "review_batch_id": "task-scoped-builder-full-holdout-9-full-review-v0",
+      "sample_set_id": "full-holdout-9",
+      "review_status": "pending_review",
+      "manual_review_ratio": 1.0,
+      "minimum_reviewed_records": 9,
+      "requires_offline_eval_run": true,
+      "requires_natural_language_audit": true,
+      "requires_human_reviewer": true,
+      "review_reason": "First broader sample surface must be fully reviewed before task-scoped builder is treated as a stable tooling route."
+    },
+    {
+      "review_batch_id": "task-scoped-builder-v2-targeted-regression-review-v0",
+      "sample_set_id": "holdout6-v2-non-overlap",
+      "review_status": "pending_review",
+      "manual_review_ratio": 1.0,
+      "minimum_reviewed_records": 2,
+      "targeted_samples": [
+        "radish-answer-docs-question-docs-faq-forum-conflict-001",
+        "radishflow-suggest-ghost-completion-flash-vapor-outlet-001"
+      ],
+      "requires_offline_eval_run": true,
+      "requires_natural_language_audit": true,
+      "requires_human_reviewer": true,
+      "review_reason": "Keep the two previously observed natural-language risk samples under explicit target review after guardrail changes."
+    }
+  ],
+  "acceptance_policy": {
+    "may_expand_task_scoped_builder_when_all_true": [
+      "run_set_summary_keeps_raw_track_blocked",
+      "candidate_outputs_remain_under_tmp",
+      "offline_eval_run_has_no_blocking_metric_failures",
+      "natural_language_audit_violation_count_is_zero",
+      "fallback_usage_is_reported",
+      "required_human_review_records_are_reviewed_pass",
+      "citation_explanation_quality_reviewed_pass",
+      "factual_sufficiency_reviewed_pass",
+      "risk_confirmation_and_advisory_boundary_reviewed_pass",
+      "training_holdout_leakage_reviewed_pass"
+    ],
+    "must_not_expand_when_any_true": [
+      "raw_track_is_marked_as_promoted",
+      "builder_or_repaired_track_is_used_as_raw_promotion_evidence",
+      "candidate_outputs_are_committed_outside_tmp",
+      "natural_language_audit_has_violations",
+      "generic_placeholder_or_legal_regulation_mistranslation_reappears",
+      "citation_explanation_quality_pending_or_failed",
+      "factual_sufficiency_pending_or_failed",
+      "fallback_acceptability_pending_or_failed_for_fallback_samples",
+      "requires_confirmation_or_advisory_boundary_weakened",
+      "review_batch_marked_pass_without_reviewer_and_timestamp",
+      "holdout_leakage_detected"
+    ]
+  },
+  "artifact_policy": {
+    "committed_allowed": [
+      "review_plan",
+      "review_summary",
+      "review_record_template",
+      "deterministic_audit_summary"
+    ],
+    "committed_disallowed": [
+      "local_model_candidate_responses",
+      "provider_raw_dump",
+      "large_jsonl",
+      "model_weights",
+      "checkpoint",
+      "adapter_binary"
+    ],
+    "generated_outputs_default_location": "tmp/"
+  }
+}

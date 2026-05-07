@@ -429,8 +429,19 @@ def build_candidate_cost_budget(
                 f"avg_output_tokens={generation_summary.get('avg_output_tokens')}."
             )
         if candidate_summary and candidate_summary.get("postprocess_policy"):
-            repaired_count = candidate_summary["postprocess_policy"].get("repaired_output_count")
-            notes.append(f"Postprocess repair was enabled; repaired_output_count={repaired_count}.")
+            postprocess_policy = candidate_summary["postprocess_policy"]
+            if postprocess_policy.get("repair_hard_fields") is True:
+                repaired_count = postprocess_policy.get("repaired_output_count")
+                notes.append(f"Postprocess repair was enabled; repaired_output_count={repaired_count}.")
+            elif postprocess_policy.get("inject_hard_fields") is True:
+                injected_count = postprocess_policy.get("injected_output_count")
+                notes.append(f"Hard-field injection was enabled; injected_output_count={injected_count}.")
+            elif postprocess_policy.get("build_suggest_edits_response") is True:
+                builder_count = postprocess_policy.get("builder_output_count")
+                notes.append(f"Suggest-edits response builder was enabled; builder_output_count={builder_count}.")
+            elif postprocess_policy.get("build_task_scoped_response") is True:
+                builder_count = postprocess_policy.get("builder_output_count")
+                notes.append(f"Task-scoped response builder was enabled; builder_output_count={builder_count}.")
     return {
         "model_id": candidate_model["model_id"],
         "run_allowed": True,

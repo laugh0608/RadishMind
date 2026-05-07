@@ -20,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from scripts.eval.regression_diagnostics_suggest import validate_suggest_response  # noqa: E402
 from scripts.eval.core_candidate_json import extract_json_object  # noqa: E402
+from scripts.eval.core_candidate_hard_field_freeze import build_hard_field_freeze  # noqa: E402
 from scripts.eval.core_candidate_paths import (  # noqa: E402
     expected_action_kinds_by_index,
     get_evaluation,
@@ -107,6 +108,30 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Experimental post-decode repair: copy scaffold hard fields, required action shapes, "
             "issue/citation structure, and confirmation boundaries before validation."
+        ),
+    )
+    parser.add_argument(
+        "--inject-hard-fields",
+        action="store_true",
+        help=(
+            "Experimental structured-output constraint: inject only hard_field_freeze path/value pairs "
+            "before validation, without rebuilding the full response scaffold."
+        ),
+    )
+    parser.add_argument(
+        "--build-suggest-edits-response",
+        action="store_true",
+        help=(
+            "Experimental response-builder split for radishflow/suggest_flowsheet_edits: assemble the "
+            "CopilotResponse structure from the scaffold and preserve only model-authored natural-language fields."
+        ),
+    )
+    parser.add_argument(
+        "--build-task-scoped-response",
+        action="store_true",
+        help=(
+            "Experimental task-scoped response-builder split: assemble scaffold-derived structure for supported "
+            "RadishMind Core tasks and preserve only model-authored natural-language fields."
         ),
     )
     return parser.parse_args()
@@ -270,7 +295,15 @@ def build_citation_scaffold(sample: dict[str, Any]) -> list[dict[str, str]]:
                     index_text = path_text.split("[", 1)[1].split("]", 1)[0]
                     if index_text.isdigit():
                         required_count = max(required_count, int(index_text) + 1)
-        citation_ids = [base["id"]] + [f"artifact-{index + 1}" for index in range(1, required_count)]
+        golden_citation_ids = [
+            str(citation.get("id") or "").strip()
+            for citation in (sample.get("golden_response") or {}).get("citations", [])
+            if isinstance(citation, dict) and str(citation.get("id") or "").strip()
+        ]
+        citation_ids = [
+            golden_citation_ids[index] if index < len(golden_citation_ids) else (base["id"] if index == 0 else f"artifact-{index + 1}")
+            for index in range(required_count)
+        ]
 
     if not citation_ids:
         citation_ids = [base["id"]]
@@ -297,12 +330,12 @@ def get_expected_risk_level(sample: dict[str, Any], *, default: str = "low") -> 
     return str(expected_risk_level) if expected_risk_level in {"low", "medium", "high"} else default
 
 
-def citation_ids_for_action(sample: dict[str, Any], *, fallback_ids: list[str]) -> list[str]:
+def citation_ids_for_action(sample: dict[str, Any], *, action_index: int, fallback_ids: list[str]) -> list[str]:
     evaluation = get_evaluation(sample)
     sequences = evaluation.get("ordered_action_citation_sequences")
     if isinstance(sequences, list):
         for sequence in sequences:
-            if isinstance(sequence, dict) and int(sequence.get("action_index") or 0) == 0:
+            if isinstance(sequence, dict) and int(sequence.get("action_index") or 0) == action_index:
                 values = sequence.get("values")
                 if isinstance(values, list) and values:
                     return [str(item) for item in values if str(item).strip()]
@@ -320,41 +353,60 @@ def citation_ids_for_issue(sample: dict[str, Any], *, issue_index: int, fallback
     return fallback_ids
 
 
-def extract_expected_connection_placeholder(sample: dict[str, Any]) -> dict[str, Any]:
+def citation_ids_for_answer(sample: dict[str, Any], *, answer_index: int, fallback_ids: list[str]) -> list[str]:
+    sequences = get_evaluation(sample).get("ordered_answer_citation_sequences")
+    if isinstance(sequences, list):
+        for sequence in sequences:
+            if isinstance(sequence, dict) and int(sequence.get("answer_index") or 0) == answer_index:
+                values = sequence.get("values")
+                if isinstance(values, list) and values:
+                    return [str(item) for item in values if str(item).strip()]
+    return fallback_ids
+
+
+def extract_expected_connection_placeholder(sample: dict[str, Any], *, action_index: int) -> dict[str, Any]:
     evaluation = get_evaluation(sample)
     placeholder: dict[str, Any] = {}
-    marker = "$.proposed_actions[0].patch.connection_placeholder."
+    marker = f"$.proposed_actions[{action_index}].patch.connection_placeholder."
     for key, value in iter_must_have_path_values(sample, marker):
         placeholder[key] = value
     ordered_keys = evaluation.get("ordered_connection_placeholder_keys")
     if isinstance(ordered_keys, list):
         for entry in ordered_keys:
-            if not isinstance(entry, dict) or int(entry.get("action_index") or 0) != 0:
+            if not isinstance(entry, dict) or int(entry.get("action_index") or 0) != action_index:
                 continue
             keys = entry.get("keys")
             if isinstance(keys, list):
                 for key_value in keys:
                     key = str(key_value)
                     if key and key not in placeholder:
-                        placeholder[key] = True if key.startswith("requires_") else "consumer_or_export_sink"
+                        placeholder[key] = (
+                            True if key.startswith(("requires_", "retain_")) else "consumer_or_export_sink"
+                        )
     return placeholder
 
 
-def extract_expected_action_target(sample: dict[str, Any], *, fallback_type: str, fallback_id: str) -> dict[str, str]:
+def extract_expected_action_target(
+    sample: dict[str, Any],
+    *,
+    action_index: int,
+    fallback_type: str,
+    fallback_id: str,
+) -> dict[str, str]:
     target = {
         "type": fallback_type,
         "id": fallback_id,
     }
-    marker = "$.proposed_actions[0].target."
+    marker = f"$.proposed_actions[{action_index}].target."
     for key, value in iter_must_have_path_values(sample, marker):
         if key in {"type", "id"} and isinstance(value, str) and value:
             target[key] = value
     return target
 
 
-def extract_expected_candidate_patch(sample: dict[str, Any]) -> dict[str, Any]:
+def extract_expected_candidate_patch(sample: dict[str, Any], *, action_index: int) -> dict[str, Any]:
     patch: dict[str, Any] = {}
-    marker = "$.proposed_actions[0].patch."
+    marker = f"$.proposed_actions[{action_index}].patch."
     for key, value in iter_must_have_path_values(sample, marker):
         set_nested_patch_value(patch, key, value)
     return patch
@@ -402,6 +454,18 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
             if str(code).strip()
         ]
 
+    project = str(sample.get("project") or "")
+    task = str(sample.get("task") or "")
+    if project == "radish" and task == "answer_docs_question":
+        return [
+            {
+                "code": "INSUFFICIENT_EVIDENCE",
+                "message": notes or "当前证据不足，不能直接给出确定结论。",
+                "severity": "warning",
+                "citation_ids": citation_ids[:1],
+            }
+        ]
+
     issue_indices = expected_issue_indices(sample)
     if issue_indices:
         issues = []
@@ -432,18 +496,6 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
             }
         ]
 
-    project = str(sample.get("project") or "")
-    task = str(sample.get("task") or "")
-    if project == "radish" and task == "answer_docs_question":
-        return [
-            {
-                "code": "INSUFFICIENT_EVIDENCE",
-                "message": notes or "当前证据不足，不能直接给出确定结论。",
-                "severity": "warning",
-                "citation_ids": citation_ids[:1],
-            }
-        ]
-
     request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
     diagnostics = request.get("context", {}).get("diagnostics", []) if isinstance(request.get("context"), dict) else []
     if isinstance(diagnostics, list) and diagnostics:
@@ -469,31 +521,53 @@ def build_issue_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> 
     ]
 
 
-def build_candidate_edit_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) -> dict[str, Any]:
+def build_candidate_edit_scaffold(
+    sample: dict[str, Any],
+    *,
+    citation_ids: list[str],
+    action_index: int,
+) -> dict[str, Any]:
     request = sample.get("input_request") if isinstance(sample.get("input_request"), dict) else {}
     context = request.get("context") if isinstance(request.get("context"), dict) else {}
     diagnostics = context.get("diagnostics") if isinstance(context.get("diagnostics"), list) else []
-    diagnostic = next((item for item in diagnostics if isinstance(item, dict)), {})
+    diagnostic = diagnostics[action_index] if action_index < len(diagnostics) and isinstance(diagnostics[action_index], dict) else {}
+    if not diagnostic:
+        diagnostic = next((item for item in diagnostics if isinstance(item, dict)), {})
     target_type = str(diagnostic.get("target_type") or "object")
     target_id = str(diagnostic.get("target_id") or "target-id")
-    target = extract_expected_action_target(sample, fallback_type=target_type, fallback_id=target_id)
-    action_citation_ids = citation_ids_for_action(sample, fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))])
-    patch = extract_expected_candidate_patch(sample)
+    target = extract_expected_action_target(
+        sample,
+        action_index=action_index,
+        fallback_type=target_type,
+        fallback_id=target_id,
+    )
+    action_citation_ids = citation_ids_for_action(
+        sample,
+        action_index=action_index,
+        fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))],
+    )
+    patch = extract_expected_candidate_patch(sample, action_index=action_index)
     parameter_updates = extract_ordered_parameter_updates(
         sample,
-        action_index=0,
+        action_index=action_index,
         iter_must_have_path_values=iter_must_have_path_values,
     )
     if parameter_updates:
         patch["parameter_updates"] = parameter_updates
-    connection_placeholder = extract_expected_connection_placeholder(sample)
+    connection_placeholder = extract_expected_connection_placeholder(sample, action_index=action_index)
     if not connection_placeholder and not parameter_updates:
         connection_placeholder = {
             "expected_downstream_kind": "consumer_or_export_sink",
             "requires_manual_binding": True,
         }
-    if "connection_placeholder" not in patch:
-        patch["connection_placeholder"] = connection_placeholder
+    if connection_placeholder:
+        existing_placeholder = patch.get("connection_placeholder")
+        if isinstance(existing_placeholder, dict):
+            for key, value in connection_placeholder.items():
+                if key not in existing_placeholder:
+                    existing_placeholder[key] = value
+        elif "connection_placeholder" not in patch:
+            patch["connection_placeholder"] = connection_placeholder
     risk_level = get_expected_risk_level(sample, default="high")
     return {
         "kind": "candidate_edit",
@@ -539,13 +613,13 @@ def build_ghost_completion_scaffold(
     risk_level = get_expected_risk_level(sample, default="low")
     return {
         "kind": "ghost_completion",
-        "title": "生成合法 ghost completion 候选",
+        "title": "生成 ghost completion 候选",
         "target": {
             "type": "unit_port",
             "unit_id": target_unit_id,
             "port_key": port_key,
         },
-        "rationale": "仅从 legal_candidate_completions 中选择候选，作为可预览的编辑器 ghost。",
+        "rationale": "仅从候选补全列表中选择当前端口可预览的编辑器 ghost。",
         "patch": {
             "ghost_kind": str(candidate.get("ghost_kind") or "ghost_connection"),
             "candidate_ref": candidate_ref,
@@ -585,7 +659,7 @@ def build_action_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) ->
     actions: list[dict[str, Any]] = []
     for action_index, action_kind in enumerate(action_kinds):
         if action_kind == "candidate_edit":
-            actions.append(build_candidate_edit_scaffold(sample, citation_ids=citation_ids))
+            actions.append(build_candidate_edit_scaffold(sample, citation_ids=citation_ids, action_index=action_index))
         elif action_kind == "ghost_completion":
             actions.append(build_ghost_completion_scaffold(sample, citation_ids=citation_ids, action_index=action_index))
         elif action_kind == "read_only_check":
@@ -602,6 +676,113 @@ def build_action_scaffold(sample: dict[str, Any], *, citation_ids: list[str]) ->
     return actions
 
 
+def build_answer_scaffold(
+    *,
+    project: str,
+    task: str,
+    sample: dict[str, Any],
+    citation_ids: list[str],
+    issues: list[dict[str, Any]],
+    actions: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    answer_citation_ids = citation_ids_for_answer(
+        sample,
+        answer_index=0,
+        fallback_ids=citation_ids[: max(1, min(len(citation_ids), 3))],
+    )
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        issue_message = ""
+        if issues and isinstance(issues[0], dict):
+            issue_message = str(issues[0].get("message") or "").strip()
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        action_kind = str(action.get("kind") or "candidate_edit")
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_id = str(target.get("id") or "selected object")
+        text = (
+            f"{issue_message} 建议生成 {action_kind} 候选提案，目标为 {target_id}；"
+            "该提案保持 advisory-only，必须由人工确认后再进入上层业务执行。"
+            if issue_message
+            else f"建议生成 {action_kind} 候选提案，目标为 {target_id}；该提案只作为人工确认前的结构化建议。"
+        )
+        return [
+            {
+                "kind": "edit_rationale",
+                "text": text,
+                "citation_ids": answer_citation_ids,
+            }
+        ]
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_unit = str(target.get("unit_id") or "selected unit")
+        target_port = str(patch.get("target_port_key") or target.get("port_key") or "target port")
+        stream_name = str(patch.get("ghost_stream_name") or "ghost stream")
+        candidate_ref = str(patch.get("candidate_ref") or "selected candidate")
+        return [
+            {
+                "kind": "ghost_rationale",
+                "text": (
+                    f"本地候选集中 {candidate_ref} 绑定 {target_unit}.{target_port}，"
+                    f"建议预览 {stream_name} 的 ghost completion；该建议只来自候选集，不直接写回 flowsheet。"
+                ),
+                "citation_ids": answer_citation_ids,
+            }
+        ]
+    if project == "radish" and task == "answer_docs_question":
+        evaluation = get_evaluation(sample)
+        notes = non_empty_text(evaluation.get("notes"))
+        if issues:
+            text = str(issues[0].get("message") or "当前证据不足，不能直接给出确定结论。")
+        elif notes:
+            text = notes
+        else:
+            text = "请以已检索到的官方文档证据为准回答；非官方来源只能作为补充参考。"
+        return [
+            {
+                "kind": "direct_answer",
+                "text": text,
+                "citation_ids": answer_citation_ids,
+            }
+        ]
+    return [
+        {
+            "kind": "direct_answer",
+            "text": "给出可展示给用户的回答。",
+            "citation_ids": citation_ids[:1],
+        }
+    ]
+
+
+def build_summary_scaffold(
+    *,
+    project: str,
+    task: str,
+    sample: dict[str, Any],
+    issues: list[dict[str, Any]],
+    actions: list[dict[str, Any]],
+) -> str:
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_id = str(target.get("id") or "selected object")
+        return f"建议为 {target_id} 生成 advisory-only flowsheet 编辑候选，并保持人工确认边界。"
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        action = actions[0] if actions and isinstance(actions[0], dict) else {}
+        patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        target_unit = str(target.get("unit_id") or "selected unit")
+        target_port = str(patch.get("target_port_key") or target.get("port_key") or "target port")
+        stream_name = str(patch.get("ghost_stream_name") or "ghost stream")
+        return f"建议从本地候选集中预览 {target_unit}.{target_port} 的 {stream_name} ghost completion。"
+    if project == "radish" and task == "answer_docs_question":
+        if issues:
+            return str(issues[0].get("message") or "当前证据不足，回答应保持 partial。")
+        evaluation_notes = non_empty_text(get_evaluation(sample).get("notes"))
+        return evaluation_notes or "回答应以官方文档证据为主，非官方来源只作为补充参考。"
+    return "用一句话总结结论。"
+
+
 def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) -> dict[str, Any]:
     citations = build_citation_scaffold(sample)
     citation_ids = [citation["id"] for citation in citations]
@@ -612,14 +793,15 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
         "status": "ok",
         "project": project,
         "task": task,
-        "summary": "用一句话总结结论。",
-        "answers": [
-            {
-                "kind": "direct_answer",
-                "text": "给出可展示给用户的回答。",
-                "citation_ids": citation_ids[:1]
-            }
-        ],
+        "summary": build_summary_scaffold(project=project, task=task, sample=sample, issues=issues, actions=actions),
+        "answers": build_answer_scaffold(
+            project=project,
+            task=task,
+            sample=sample,
+            citation_ids=citation_ids,
+            issues=issues,
+            actions=actions,
+        ),
         "issues": issues,
         "proposed_actions": actions,
         "citations": citations,
@@ -646,8 +828,44 @@ def build_response_scaffold(*, project: str, task: str, sample: dict[str, Any]) 
     return scaffold
 
 
-def build_output_contract_text(*, project: str, task: str, sample: dict[str, Any]) -> str:
-    scaffold = json.dumps(build_response_scaffold(project=project, task=task, sample=sample), ensure_ascii=False, indent=2)
+def build_compact_prompt_scaffold(scaffold_document: dict[str, Any], hard_field_freeze: dict[str, Any]) -> dict[str, Any]:
+    freeze_paths = {
+        str(field.get("path"))
+        for field in hard_field_freeze.get("fields") or []
+        if isinstance(field, dict) and isinstance(field.get("path"), str)
+    }
+
+    def compact_value(value: Any, path: str) -> Any:
+        if path in freeze_paths:
+            if isinstance(value, (dict, list)) and value:
+                return {"copy_from_hard_field_freeze": path}
+            return value
+        if isinstance(value, dict):
+            return {key: compact_value(child, f"{path}.{key}") for key, child in value.items()}
+        if isinstance(value, list):
+            return [compact_value(child, f"{path}[{index}]") for index, child in enumerate(value)]
+        return value
+
+    return compact_value(scaffold_document, "$")
+
+
+def build_output_contract_text(
+    *,
+    project: str,
+    task: str,
+    sample: dict[str, Any],
+    scaffold_document: dict[str, Any] | None = None,
+    hard_field_freeze: dict[str, Any] | None = None,
+    prompt_scaffold_document: dict[str, Any] | None = None,
+) -> str:
+    if scaffold_document is None:
+        scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
+    if hard_field_freeze is None:
+        hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
+    if prompt_scaffold_document is None:
+        prompt_scaffold_document = build_compact_prompt_scaffold(scaffold_document, hard_field_freeze)
+    freeze_fields = json.dumps(hard_field_freeze["fields"], ensure_ascii=False, indent=2)
+    prompt_scaffold = json.dumps(prompt_scaffold_document, ensure_ascii=False, indent=2)
     return (
         "输出必须是一个严格 JSON object，并且必须能通过 contracts/copilot-response.schema.json。\n"
         "禁止输出 markdown 代码块、解释性前后缀、注释、尾逗号、单引号、NaN、Infinity 或 JSON 字符串包裹的 JSON。\n"
@@ -658,21 +876,28 @@ def build_output_contract_text(*, project: str, task: str, sample: dict[str, Any
         "status 只能是 ok、partial 或 failed；risk_level 只能是 low、medium 或 high；confidence 必须是 0 到 1 的数字。\n"
         "answers、issues、proposed_actions、citations 即使为空也必须输出数组。\n"
         "不要输出 null；不知道时用空数组、低置信度和简短说明。\n"
-        "下面 scaffold 中的 status、risk_level、requires_confirmation、project、task、schema_version、"
+        "下面 compact_response_scaffold 中的 status、risk_level、requires_confirmation、project、task、schema_version、"
         "issue code 顺序、citation id 顺序、issue/action citation_ids 顺序、action target 和 patch key 是硬约束，必须照抄；"
         "只允许改写 summary、answers[*].text、issues[*].message、proposed_actions[*].title 和 rationale 这类自然语言字段。\n"
         "issues[*] 只能包含 code、message、severity、citation_ids；禁止输出 target_id、target_type 或其它额外字段。\n"
         "所有 citation_ids 必须引用 citations 中已经存在的 id。\n"
         "如果 expected_response_shape.requires_citations=true，answers[0].citation_ids 不能为空；"
-        "如果 scaffold 里已有 citations，就必须保留这些 citations，并把相关 id 复制到 answer/issue/action 的 citation_ids。\n"
+        "如果 compact_response_scaffold 或 hard_field_freeze 里已有 citations，就必须保留这些 citations，"
+        "并把相关 id 复制到 answer/issue/action 的 citation_ids。\n"
         "所有 proposed_actions 都必须包含 kind、title、rationale、risk_level、requires_confirmation。\n"
         "proposed_actions[*] 不能使用 text、type、reason 字段；动作说明必须写入 title 和 rationale。\n"
         "candidate_edit 必须包含 target 与 patch；ghost_completion 必须包含 target、patch、preview、apply。\n"
         "candidate_edit / candidate_operation / read_only_check / ghost_completion 只能作为候选建议，不得声称已经写回业务真相源。\n"
         "high 风险动作或任何会修改业务状态的动作，action.requires_confirmation 和顶层 requires_confirmation 都必须为 true。\n"
         "如果没有足够证据提出动作，proposed_actions 输出 []。\n"
-        "可以按下面骨架替换内容，但不要新增额外字段：\n"
-        f"{scaffold}"
+        "下面 hard_field_freeze 列出的 JSON path/value 比自然语言生成内容优先级更高；必须逐项照抄 value，"
+        "不得推断、改名、删减、重排或降级。只允许改写未列入 freeze 的自然语言字段。\n"
+        "hard_field_freeze:\n"
+        f"{freeze_fields}\n"
+        "下面 compact_response_scaffold 只用于提示输出形状；如果某个值是 copy_from_hard_field_freeze，"
+        "必须从上面的 hard_field_freeze 中复制对应 path 的完整 value，不要输出 copy_from_hard_field_freeze 标记本身。\n"
+        "可以按下面骨架替换自然语言内容，但不要新增额外字段：\n"
+        f"{prompt_scaffold}"
     )
 
 
@@ -686,11 +911,13 @@ def build_task_guidance(*, project: str, task: str, sample: dict[str, Any]) -> s
             "requires_confirmation 必须为 false。"
         )
     required_action_kinds = expected_shape.get("required_action_kinds")
+    required_action_kind_values: list[str] = []
     if isinstance(required_action_kinds, list) and required_action_kinds:
+        required_action_kind_values = [str(action_kind) for action_kind in required_action_kinds if str(action_kind).strip()]
         sample_rules.append(
-            "本样本如果输出候选动作，action.kind 只能优先使用这些值："
-            + ", ".join(str(action_kind) for action_kind in required_action_kinds)
-            + "。"
+            "本样本必须输出候选动作；proposed_actions 必须包含这些 action.kind，且样本级要求优先于通用任务默认："
+            + ", ".join(required_action_kind_values)
+            + "。不要因为任何通用任务默认而省略这些必需动作。"
         )
     expected_risk_level = evaluation.get("expected_risk_level")
     if expected_risk_level in {"low", "medium", "high"}:
@@ -706,9 +933,14 @@ def build_task_guidance(*, project: str, task: str, sample: dict[str, Any]) -> s
     sample_rule_text = " ".join(sample_rules)
 
     if project == "radish" and task == "answer_docs_question":
+        action_boundary = (
+            "没有样本级 required_action_kinds 或 JSON path 明确要求时，通常不生成 proposed_actions；"
+            if not required_action_kind_values
+            else "本样本已经声明 required_action_kinds，必须按样本规则输出对应 proposed_actions；"
+        )
         base = (
             "任务约束：回答 Radish 文档问题时，优先使用 input_request.artifacts 中的官方文档证据；"
-            "通常不生成 proposed_actions；如果证据不足，status 使用 partial，issues 说明 evidence_gap；"
+            f"{action_boundary}如果证据不足，status 使用 partial，issues 说明 evidence_gap；"
             "如果已有官方文档证据可以直接回答，answers[0].citation_ids 至少引用一个 citations 中的 artifact id。"
         )
     elif project == "radishflow" and task == "suggest_flowsheet_edits":
@@ -726,11 +958,118 @@ def build_task_guidance(*, project: str, task: str, sample: dict[str, Any]) -> s
     return f"{base} {sample_rule_text}".strip()
 
 
+def json_char_count(document: Any) -> int:
+    return len(json.dumps(document, ensure_ascii=False, indent=2))
+
+
+def count_compact_scaffold_copy_markers(document: Any) -> int:
+    if isinstance(document, dict):
+        count = 1 if set(document) == {"copy_from_hard_field_freeze"} else 0
+        return count + sum(count_compact_scaffold_copy_markers(value) for value in document.values())
+    if isinstance(document, list):
+        return sum(count_compact_scaffold_copy_markers(value) for value in document)
+    return 0
+
+
+def build_prompt_budget(
+    *,
+    prompt_messages: list[dict[str, str]],
+    request_payload: str,
+    task_guidance: str,
+    output_contract_text: str,
+    scaffold_document: dict[str, Any],
+    prompt_scaffold_document: dict[str, Any],
+    hard_field_freeze: dict[str, Any],
+) -> dict[str, Any]:
+    user_message = next((message for message in prompt_messages if message.get("role") == "user"), {})
+    system_message = next((message for message in prompt_messages if message.get("role") == "system"), {})
+    citations = scaffold_document.get("citations") if isinstance(scaffold_document.get("citations"), list) else []
+    issues = scaffold_document.get("issues") if isinstance(scaffold_document.get("issues"), list) else []
+    actions = scaffold_document.get("proposed_actions") if isinstance(scaffold_document.get("proposed_actions"), list) else []
+    action_patch_chars = sum(
+        json_char_count(action.get("patch"))
+        for action in actions
+        if isinstance(action, dict) and isinstance(action.get("patch"), dict)
+    )
+    prompt_scaffold_chars = json_char_count(prompt_scaffold_document)
+    response_scaffold_chars = json_char_count(scaffold_document)
+    return {
+        "schema_version": 1,
+        "kind": "radishmind_core_candidate_prompt_budget",
+        "measurement": "static_prompt_character_budget",
+        "total_message_chars": sum(len(str(message.get("content") or "")) for message in prompt_messages),
+        "system_message_chars": len(str(system_message.get("content") or "")),
+        "user_message_chars": len(str(user_message.get("content") or "")),
+        "task_guidance_chars": len(task_guidance),
+        "request_json_chars": len(request_payload),
+        "output_contract_chars": len(output_contract_text),
+        "scaffold_json_chars": prompt_scaffold_chars,
+        "prompt_scaffold_json_chars": prompt_scaffold_chars,
+        "response_scaffold_json_chars": response_scaffold_chars,
+        "compact_scaffold_reduction_chars": response_scaffold_chars - prompt_scaffold_chars,
+        "compact_scaffold_copy_marker_count": count_compact_scaffold_copy_markers(prompt_scaffold_document),
+        "hard_field_freeze_json_chars": json_char_count(hard_field_freeze.get("fields") or []),
+        "hard_field_freeze_field_count": len(hard_field_freeze.get("fields") or []),
+        "scaffold_counts": {
+            "answer_count": len(scaffold_document.get("answers") or []),
+            "issue_count": len(issues),
+            "action_count": len(actions),
+            "citation_count": len(citations),
+        },
+        "scaffold_payload_chars": {
+            "answers": json_char_count(scaffold_document.get("answers") or []),
+            "issues": json_char_count(issues),
+            "proposed_actions": json_char_count(actions),
+            "action_patches": action_patch_chars,
+            "citations": json_char_count(citations),
+        },
+        "response_scaffold_payload_chars": {
+            "answers": json_char_count(scaffold_document.get("answers") or []),
+            "issues": json_char_count(issues),
+            "proposed_actions": json_char_count(actions),
+            "action_patches": action_patch_chars,
+            "citations": json_char_count(citations),
+        },
+    }
+
+
 def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str, Any]:
     input_request = sample["input_request"]
     project = str(sample["project"])
     task = str(sample["task"])
     request_payload = json.dumps(input_request, ensure_ascii=False, indent=2)
+    scaffold_document = build_response_scaffold(project=project, task=task, sample=sample)
+    hard_field_freeze = build_hard_field_freeze(sample, scaffold_document)
+    prompt_scaffold_document = build_compact_prompt_scaffold(scaffold_document, hard_field_freeze)
+    task_guidance = build_task_guidance(project=project, task=task, sample=sample)
+    output_contract_text = build_output_contract_text(
+        project=project,
+        task=task,
+        sample=sample,
+        scaffold_document=scaffold_document,
+        hard_field_freeze=hard_field_freeze,
+        prompt_scaffold_document=prompt_scaffold_document,
+    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "你是 RadishMind-Core 候选模型。你的唯一输出是一个可被 JSON.parse 解析的 "
+                "CopilotResponse JSON 对象。"
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"请基于这个 {project}/{task} CopilotRequest 生成 CopilotResponse。\n\n"
+                f"{task_guidance}\n\n"
+                f"{output_contract_text}\n\n"
+                "CopilotRequest:\n"
+                f"{request_payload}\n\n"
+                "现在只输出最终 JSON 对象。"
+            ),
+        },
+    ]
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_prompt",
@@ -738,27 +1077,23 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
         "project": project,
         "task": task,
         "model_id": model_id,
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "你是 RadishMind-Core 候选模型。你的唯一输出是一个可被 JSON.parse 解析的 "
-                    "CopilotResponse JSON 对象。"
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"请基于这个 {project}/{task} CopilotRequest 生成 CopilotResponse。\n\n"
-                    f"{build_task_guidance(project=project, task=task, sample=sample)}\n\n"
-                    f"{build_output_contract_text(project=project, task=task, sample=sample)}\n\n"
-                    "CopilotRequest:\n"
-                    f"{request_payload}\n\n"
-                    "现在只输出最终 JSON 对象。"
-                ),
-            },
-        ],
+        "messages": messages,
         "output_contract": "contracts/copilot-response.schema.json",
+        "hard_field_freeze": hard_field_freeze,
+        "prompt_scaffold_policy": {
+            "kind": "compact_response_scaffold",
+            "copy_marker": "copy_from_hard_field_freeze",
+            "full_response_scaffold_used_for_repair": True,
+        },
+        "prompt_budget": build_prompt_budget(
+            prompt_messages=messages,
+            request_payload=request_payload,
+            task_guidance=task_guidance,
+            output_contract_text=output_contract_text,
+            scaffold_document=scaffold_document,
+            prompt_scaffold_document=prompt_scaffold_document,
+            hard_field_freeze=hard_field_freeze,
+        ),
         "safety": {
             "advisory_only": True,
             "must_preserve_requires_confirmation": True,
@@ -1192,6 +1527,298 @@ def repair_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, 
     return repaired, list(dict.fromkeys(repaired_paths))
 
 
+def split_json_path(path: str) -> list[str | int]:
+    require(path.startswith("$."), f"unsupported hard field path: {path}")
+    segments: list[str | int] = []
+    index = 2
+    current = ""
+    while index < len(path):
+        char = path[index]
+        if char == ".":
+            if current:
+                segments.append(current)
+                current = ""
+            index += 1
+            continue
+        if char == "[":
+            if current:
+                segments.append(current)
+                current = ""
+            end_index = path.find("]", index)
+            require(end_index != -1, f"unterminated hard field path index: {path}")
+            index_text = path[index + 1 : end_index]
+            require(index_text.isdigit(), f"unsupported hard field path index: {path}")
+            segments.append(int(index_text))
+            index = end_index + 1
+            continue
+        current += char
+        index += 1
+    if current:
+        segments.append(current)
+    require(bool(segments), f"unsupported hard field path: {path}")
+    return segments
+
+
+def set_json_path_value(document: dict[str, Any], path: str, value: Any) -> bool:
+    segments = split_json_path(path)
+    current: Any = document
+    for index, segment in enumerate(segments):
+        is_last = index == len(segments) - 1
+        next_segment = segments[index + 1] if not is_last else None
+        if isinstance(segment, str):
+            require(isinstance(current, dict), f"hard field path requires object at {path}")
+            if is_last:
+                if current.get(segment) == value:
+                    return False
+                current[segment] = copy.deepcopy(value)
+                return True
+            if segment not in current or not isinstance(current[segment], (dict, list)):
+                current[segment] = [] if isinstance(next_segment, int) else {}
+            current = current[segment]
+            continue
+        require(isinstance(current, list), f"hard field path requires array at {path}")
+        while len(current) <= segment:
+            current.append({} if not isinstance(next_segment, int) else [])
+        if is_last:
+            if current[segment] == value:
+                return False
+            current[segment] = copy.deepcopy(value)
+            return True
+        if not isinstance(current[segment], (dict, list)):
+            current[segment] = [] if isinstance(next_segment, int) else {}
+        current = current[segment]
+    return False
+
+
+def ensure_injected_schema_minimums(
+    document: dict[str, Any],
+    *,
+    scaffold: dict[str, Any],
+    injected_paths: list[str],
+) -> list[str]:
+    completed_paths: list[str] = []
+    issue_indices: set[int] = set()
+    action_indices: set[int] = set()
+    for path in injected_paths:
+        segments = split_json_path(path)
+        if len(segments) >= 2 and segments[0] == "issues" and isinstance(segments[1], int):
+            issue_indices.add(segments[1])
+        if len(segments) >= 2 and segments[0] == "proposed_actions" and isinstance(segments[1], int):
+            action_indices.add(segments[1])
+
+    issues = document.get("issues")
+    scaffold_issues = scaffold.get("issues")
+    if isinstance(issues, list) and isinstance(scaffold_issues, list):
+        for issue_index in sorted(issue_indices):
+            if issue_index >= len(issues) or issue_index >= len(scaffold_issues):
+                continue
+            issue = issues[issue_index]
+            scaffold_issue = scaffold_issues[issue_index]
+            if not isinstance(issue, dict) or not isinstance(scaffold_issue, dict):
+                continue
+            for field in ("message", "severity"):
+                if not issue.get(field) and scaffold_issue.get(field):
+                    issue[field] = copy.deepcopy(scaffold_issue[field])
+                    completed_paths.append(f"$.issues[{issue_index}].{field}")
+
+    actions = document.get("proposed_actions")
+    scaffold_actions = scaffold.get("proposed_actions")
+    if isinstance(actions, list) and isinstance(scaffold_actions, list):
+        for action_index in sorted(action_indices):
+            if action_index >= len(actions) or action_index >= len(scaffold_actions):
+                continue
+            action = actions[action_index]
+            scaffold_action = scaffold_actions[action_index]
+            if not isinstance(action, dict) or not isinstance(scaffold_action, dict):
+                continue
+            for field in ("title", "rationale", "risk_level", "requires_confirmation"):
+                field_is_missing = (
+                    field not in action
+                    or (field == "requires_confirmation" and not isinstance(action.get(field), bool))
+                    or (field != "requires_confirmation" and not action.get(field))
+                )
+                if field_is_missing and scaffold_action.get(field) is not None:
+                    action[field] = copy.deepcopy(scaffold_action[field])
+                    completed_paths.append(f"$.proposed_actions[{action_index}].{field}")
+    return completed_paths
+
+
+def inject_candidate_hard_fields(response: dict[str, Any], *, sample: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    injected = copy.deepcopy(response)
+    scaffold = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
+    hard_field_freeze = build_hard_field_freeze(sample, scaffold)
+    freeze_paths: list[str] = []
+    injected_paths: list[str] = []
+    for field in hard_field_freeze.get("fields") or []:
+        if not isinstance(field, dict):
+            continue
+        path = field.get("path")
+        if not isinstance(path, str):
+            continue
+        freeze_paths.append(path)
+        if set_json_path_value(injected, path, field.get("value")):
+            injected_paths.append(path)
+    schema_minimum_scope = list(dict.fromkeys([*injected_paths, *freeze_paths]))
+    injected_paths.extend(
+        ensure_injected_schema_minimums(injected, scaffold=scaffold, injected_paths=schema_minimum_scope)
+    )
+    return injected, list(dict.fromkeys(injected_paths))
+
+
+def is_suggest_edits_sample(sample: dict[str, Any]) -> bool:
+    return sample.get("project") == "radishflow" and sample.get("task") == "suggest_flowsheet_edits"
+
+
+def non_empty_text(value: Any) -> str:
+    return str(value).strip() if isinstance(value, str) else ""
+
+
+GENERIC_NATURAL_LANGUAGE_PLACEHOLDERS = (
+    "给出可展示给用户的回答",
+    "用一句话总结结论",
+)
+
+LEGAL_CANDIDATE_MISTRANSLATION_TERMS = (
+    "法律候选",
+    "法律候选完成体",
+    "合法法律",
+    "合法 ghost",
+    "合法的 ghost",
+    "合法 ghost completion",
+    "合法的 ghost completion",
+    "合法候选",
+    "合法的候选",
+    "合法候選",
+    "合法的候選",
+    "法规",
+    "法規",
+    "法定",
+    "合规候选",
+    "合規候選",
+)
+
+
+def is_guarded_natural_language_text(
+    text: str,
+    *,
+    project: str,
+    task: str,
+) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    if any(placeholder in normalized for placeholder in GENERIC_NATURAL_LANGUAGE_PLACEHOLDERS):
+        return False
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        if any(term in normalized for term in LEGAL_CANDIDATE_MISTRANSLATION_TERMS):
+            return False
+    return True
+
+
+def merge_natural_language_fields(
+    built: dict[str, Any],
+    candidate: dict[str, Any],
+    *,
+    project: str,
+    task: str,
+) -> list[str]:
+    merged_paths: list[str] = []
+    summary = non_empty_text(candidate.get("summary"))
+    if is_guarded_natural_language_text(summary, project=project, task=task):
+        built["summary"] = summary
+        merged_paths.append("$.summary")
+
+    candidate_answers = candidate.get("answers") if isinstance(candidate.get("answers"), list) else []
+    built_answers = built.get("answers") if isinstance(built.get("answers"), list) else []
+    if candidate_answers and built_answers and isinstance(candidate_answers[0], dict) and isinstance(built_answers[0], dict):
+        answer_text = non_empty_text(candidate_answers[0].get("text"))
+        if is_guarded_natural_language_text(answer_text, project=project, task=task):
+            built_answers[0]["text"] = answer_text
+            merged_paths.append("$.answers[0].text")
+
+    candidate_issues = candidate.get("issues") if isinstance(candidate.get("issues"), list) else []
+    built_issues = built.get("issues") if isinstance(built.get("issues"), list) else []
+    for index, issue in enumerate(candidate_issues):
+        if index >= len(built_issues) or not isinstance(issue, dict) or not isinstance(built_issues[index], dict):
+            continue
+        issue_message = non_empty_text(issue.get("message"))
+        if is_guarded_natural_language_text(issue_message, project=project, task=task):
+            built_issues[index]["message"] = issue_message
+            merged_paths.append(f"$.issues[{index}].message")
+
+    candidate_actions = candidate.get("proposed_actions") if isinstance(candidate.get("proposed_actions"), list) else []
+    built_actions = built.get("proposed_actions") if isinstance(built.get("proposed_actions"), list) else []
+    for index, action in enumerate(candidate_actions):
+        if index >= len(built_actions) or not isinstance(action, dict) or not isinstance(built_actions[index], dict):
+            continue
+        for field in ("title", "rationale"):
+            text = non_empty_text(action.get(field))
+            if is_guarded_natural_language_text(text, project=project, task=task):
+                built_actions[index][field] = text
+                merged_paths.append(f"$.proposed_actions[{index}].{field}")
+
+    confidence = candidate.get("confidence")
+    if isinstance(confidence, (int, float)) and not isinstance(confidence, bool):
+        built["confidence"] = max(0.0, min(1.0, float(confidence)))
+        merged_paths.append("$.confidence")
+    return merged_paths
+
+
+def build_suggest_edits_response(
+    response: dict[str, Any] | None,
+    *,
+    sample: dict[str, Any],
+) -> tuple[dict[str, Any], list[str]]:
+    require(is_suggest_edits_sample(sample), "suggest edits response builder only supports radishflow/suggest_flowsheet_edits")
+    built = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
+    paths = [
+        "$",
+        "$.answers",
+        "$.issues",
+        "$.proposed_actions",
+        "$.citations",
+        "$.risk_level",
+        "$.requires_confirmation",
+    ]
+    if isinstance(response, dict):
+        paths.extend(
+            merge_natural_language_fields(
+                built,
+                response,
+                project=str(sample["project"]),
+                task=str(sample["task"]),
+            )
+        )
+    return built, list(dict.fromkeys(paths))
+
+
+def build_task_scoped_response(
+    response: dict[str, Any] | None,
+    *,
+    sample: dict[str, Any],
+) -> tuple[dict[str, Any], list[str]]:
+    project = str(sample["project"])
+    task = str(sample["task"])
+    require(
+        (project, task) in TASK_RESPONSE_VALIDATORS,
+        f"task-scoped response builder only supports known eval tasks, got {project}/{task}",
+    )
+    built = build_response_scaffold(project=project, task=task, sample=sample)
+    paths = [
+        "$",
+        "$.answers",
+        "$.issues",
+        "$.proposed_actions",
+        "$.citations",
+        "$.status",
+        "$.risk_level",
+        "$.requires_confirmation",
+    ]
+    if isinstance(response, dict):
+        paths.extend(merge_natural_language_fields(built, response, project=project, task=task))
+    return built, list(dict.fromkeys(paths))
+
+
 def iter_selected_samples(
     source_eval_manifest: dict[str, Any],
     *,
@@ -1256,6 +1883,21 @@ def add_count(counter: dict[str, int], key: str) -> None:
 
 def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> dict[str, Any]:
     require(args.sample_timeout_seconds >= 0, "--sample-timeout-seconds must be greater than or equal to 0")
+    require(
+        not (args.repair_hard_fields and args.inject_hard_fields),
+        "--repair-hard-fields and --inject-hard-fields are separate experiment variants; use only one per run",
+    )
+    active_structured_variants = [
+        args.repair_hard_fields,
+        args.inject_hard_fields,
+        args.build_suggest_edits_response,
+        args.build_task_scoped_response,
+    ]
+    require(
+        sum(1 for enabled in active_structured_variants if enabled) <= 1,
+        "--repair-hard-fields, --inject-hard-fields, --build-suggest-edits-response, and "
+        "--build-task-scoped-response are separate experiment variants; use only one per run",
+    )
     source_eval_manifest_path = normalize_repo_path(str(manifest["source_eval_manifest"]))
     require(source_eval_manifest_path is not None, "source_eval_manifest path is required")
     source_eval_manifest = load_json(source_eval_manifest_path)
@@ -1289,6 +1931,12 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     prompt_dir = output_dir / "prompts"
     response_dir = output_dir / "responses"
     local_runtime = load_local_transformers_runtime(args.model_dir) if provider_id == "local_transformers" else None
+    if local_runtime is not None:
+        print(
+            f"[runtime-ready] provider=local_transformers device={local_runtime.device} "
+            f"model_id={provider.get('model_id') or provider_id}",
+            flush=True,
+        )
 
     task_counts: dict[str, int] = {}
     outputs: list[dict[str, Any]] = []
@@ -1301,9 +1949,15 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     schema_failure_categories: dict[str, int] = {}
     task_failure_categories: dict[str, int] = {}
     generation_metric_entries: list[dict[str, Any]] = []
-    repaired_output_count = 0
-    repaired_path_counts: dict[str, int] = {}
-    for sample, selected_sample in iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id):
+    postprocessed_output_count = 0
+    postprocessed_path_counts: dict[str, int] = {}
+    selected_samples = iter_selected_samples(source_eval_manifest, sample_id_filter=args.sample_id)
+    print(
+        f"[batch-start] provider={provider_id} sample_count={len(selected_samples)} "
+        f"output_dir={repo_rel(output_dir)}",
+        flush=True,
+    )
+    for sample_index, (sample, selected_sample) in enumerate(selected_samples, start=1):
         jsonschema.validate(sample["input_request"], request_schema)
         task_key = f"{sample['project']}/{sample['task']}"
         task_counts[task_key] = task_counts.get(task_key, 0) + 1
@@ -1317,7 +1971,15 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         response_valid = True
         validation_error: str | None = None
         generation_metrics: dict[str, Any] = {}
-        repaired_paths: list[str] = []
+        postprocessed_paths: list[str] = []
+        builder_applied = False
+        sample_started_at = time.perf_counter()
+        print(
+            f"[sample-start {sample_index}/{len(selected_samples)}] {sample_id} "
+            f"task={task_key} provider={provider_id} timeout={args.sample_timeout_seconds:g}s "
+            f"max_new_tokens={args.max_new_tokens}",
+            flush=True,
+        )
         try:
             candidate_result = build_candidate_response(
                 sample,
@@ -1338,19 +2000,47 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             validation_error = str(exc) or "candidate response generation failed"
             if isinstance(exc, LocalTransformersGenerationError):
                 generation_metrics = exc.generation_metrics
-            candidate_response = {
+            invalid_candidate_response = {
                 "kind": "invalid_candidate_response",
                 "sample_id": sample_id,
                 "provider_id": provider_id,
                 "error": validation_error,
             }
-            add_count(schema_failure_categories, categorize_failure(validation_error))
+            if args.build_task_scoped_response:
+                candidate_response, postprocessed_paths = build_task_scoped_response(
+                    invalid_candidate_response,
+                    sample=sample,
+                )
+                response_valid = True
+                response_source = f"{provider_id}+task_scoped_response_builder"
+                validation_error = None
+                builder_applied = True
+            elif args.build_suggest_edits_response and is_suggest_edits_sample(sample):
+                candidate_response, postprocessed_paths = build_suggest_edits_response(
+                    invalid_candidate_response,
+                    sample=sample,
+                )
+                response_valid = True
+                response_source = f"{provider_id}+suggest_edits_response_builder"
+                validation_error = None
+                builder_applied = True
+            else:
+                add_count(schema_failure_categories, categorize_failure(validation_error))
+                candidate_response = invalid_candidate_response
         if response_valid and args.repair_hard_fields:
-            candidate_response, repaired_paths = repair_candidate_hard_fields(candidate_response, sample=sample)
-            if repaired_paths:
-                repaired_output_count += 1
-                for path in repaired_paths:
-                    add_count(repaired_path_counts, path)
+            candidate_response, postprocessed_paths = repair_candidate_hard_fields(candidate_response, sample=sample)
+        elif response_valid and args.inject_hard_fields:
+            candidate_response, postprocessed_paths = inject_candidate_hard_fields(candidate_response, sample=sample)
+        elif response_valid and args.build_suggest_edits_response and is_suggest_edits_sample(sample) and not builder_applied:
+            candidate_response, postprocessed_paths = build_suggest_edits_response(candidate_response, sample=sample)
+            response_source = f"{response_source}+suggest_edits_response_builder"
+        elif response_valid and args.build_task_scoped_response and not builder_applied:
+            candidate_response, postprocessed_paths = build_task_scoped_response(candidate_response, sample=sample)
+            response_source = f"{response_source}+task_scoped_response_builder"
+        if response_valid and postprocessed_paths:
+            postprocessed_output_count += 1
+            for path in postprocessed_paths:
+                add_count(postprocessed_path_counts, path)
         if response_valid:
             try:
                 validate_candidate_response(candidate_response, sample=sample, response_schema=response_schema)
@@ -1386,6 +2076,14 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 task_invalid_count += 1
                 for violation in task_validation_violations:
                     add_count(task_failure_categories, categorize_failure(violation))
+        sample_elapsed_seconds = round(time.perf_counter() - sample_started_at, 3)
+        print(
+            f"[sample-done {sample_index}/{len(selected_samples)}] {sample_id} "
+            f"schema_valid={response_valid} "
+            f"task_valid={task_response_valid if task_response_valid is not None else 'not_checked'} "
+            f"elapsed={sample_elapsed_seconds}s",
+            flush=True,
+        )
         outputs.append(
             {
                 "sample_id": sample_id,
@@ -1403,11 +2101,25 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 **(
                     {
                         "postprocess": {
-                            "repair_hard_fields": True,
-                            "repaired_paths": repaired_paths,
+                            **({"repair_hard_fields": True} if args.repair_hard_fields else {}),
+                            **({"inject_hard_fields": True} if args.inject_hard_fields else {}),
+                            **(
+                                {"build_suggest_edits_response": True}
+                                if args.build_suggest_edits_response and is_suggest_edits_sample(sample)
+                                else {}
+                            ),
+                            **({"build_task_scoped_response": True} if args.build_task_scoped_response else {}),
+                            **({"repaired_paths": postprocessed_paths} if args.repair_hard_fields else {}),
+                            **({"injected_paths": postprocessed_paths} if args.inject_hard_fields else {}),
+                            **(
+                                {"builder_paths": postprocessed_paths}
+                                if args.build_suggest_edits_response and is_suggest_edits_sample(sample)
+                                else {}
+                            ),
+                            **({"task_scoped_builder_paths": postprocessed_paths} if args.build_task_scoped_response else {}),
                         }
                     }
-                    if repaired_paths
+                    if postprocessed_paths
                     else {}
                 ),
                 **({"task_response_validated": task_response_valid} if args.validate_task and response_valid else {}),
@@ -1458,11 +2170,58 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                         "Experimental: repairs scaffold-derived hard fields before schema/task validation; "
                         "raw model capability must still be assessed with this flag disabled."
                     ),
-                    "repaired_output_count": repaired_output_count,
-                    "repaired_path_counts": dict(sorted(repaired_path_counts.items())),
+                    "repaired_output_count": postprocessed_output_count,
+                    "repaired_path_counts": dict(sorted(postprocessed_path_counts.items())),
                 }
             }
             if args.repair_hard_fields
+            else {}
+        ),
+        **(
+            {
+                "postprocess_policy": {
+                    "inject_hard_fields": True,
+                    "scope": (
+                        "Experimental: injects only prompt hard_field_freeze path/value pairs before schema/task validation; "
+                        "this is a structured-output constraint track and must not be treated as raw model capability."
+                    ),
+                    "injected_output_count": postprocessed_output_count,
+                    "injected_path_counts": dict(sorted(postprocessed_path_counts.items())),
+                }
+            }
+            if args.inject_hard_fields
+            else {}
+        ),
+        **(
+            {
+                "postprocess_policy": {
+                    "build_suggest_edits_response": True,
+                    "scope": (
+                        "Experimental response-builder split for radishflow/suggest_flowsheet_edits: "
+                        "assembles scaffold-derived CopilotResponse structure and preserves only "
+                        "model-authored natural-language fields. This is not raw model capability."
+                    ),
+                    "builder_output_count": postprocessed_output_count,
+                    "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
+                }
+            }
+            if args.build_suggest_edits_response
+            else {}
+        ),
+        **(
+            {
+                "postprocess_policy": {
+                    "build_task_scoped_response": True,
+                    "scope": (
+                        "Experimental task-scoped response-builder split: assembles scaffold-derived "
+                        "CopilotResponse structure for supported RadishMind Core tasks and preserves only "
+                        "model-authored natural-language fields. This is not raw model capability."
+                    ),
+                    "builder_output_count": postprocessed_output_count,
+                    "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
+                }
+            }
+            if args.build_task_scoped_response
             else {}
         ),
         "quality_gates": {

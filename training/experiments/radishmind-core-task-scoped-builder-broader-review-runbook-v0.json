@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_task_scoped_builder_broader_review_runbook",
+  "runbook_id": "radishmind-core-task-scoped-builder-broader-review-runbook-v0",
+  "status": "planned",
+  "phase": "M4-preparation",
+  "created_for": "task-scoped-response-builder-broader-15-review",
+  "does_not_run_models": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_review_pass": true,
+  "review_entry": "training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json",
+  "review_plan": "training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json",
+  "review_batch_id": "task-scoped-builder-broader-15-sample-review-v0",
+  "candidate_track": "--build-task-scoped-response",
+  "model": {
+    "provider": "local_transformers",
+    "model_dir": "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+    "sample_timeout_seconds": 300,
+    "does_not_download_model_artifacts": true
+  },
+  "sample_surface": {
+    "surface_id": "broader-task-scoped-builder-15-sample-surface-v0",
+    "sample_count": 15,
+    "sample_set_ids": [
+      "full-holdout-9",
+      "holdout6-v2-non-overlap"
+    ],
+    "task_counts": {
+      "radishflow/suggest_flowsheet_edits": 5,
+      "radishflow/suggest_ghost_completion": 5,
+      "radish/answer_docs_question": 5
+    }
+  },
+  "execution_segments": [
+    {
+      "segment_id": "full-holdout-9",
+      "sample_count": 9,
+      "candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+      "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+      "artifact_paths": {
+        "candidate_output_dir": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300",
+        "candidate_summary": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/summary.json",
+        "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
+        "natural_language_audit": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-natural-language-audit.json"
+      },
+      "official_batch_run": {
+        "purpose": "Generate the full-holdout-9 segment for broader task-scoped builder review.",
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-candidate.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+          "--provider",
+          "local_transformers",
+          "--model-dir",
+          "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+          "--output-dir",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300",
+          "--summary-output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/summary.json",
+          "--allow-invalid-output",
+          "--validate-task",
+          "--build-task-scoped-response",
+          "--sample-timeout-seconds",
+          "300"
+        ]
+      },
+      "offline_eval": {
+        "purpose": "Read the full-holdout-9 candidate segment without rerunning the model.",
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-offline-eval.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+          "--candidate-summary",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/summary.json",
+          "--candidate-output-dir",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300",
+          "--output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
+          "--check-output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json"
+        ]
+      },
+      "natural_language_audit": {
+        "purpose": "Audit the full-holdout-9 task-scoped builder natural-language fields.",
+        "command_args": [
+          "python3",
+          "scripts/audit-radishmind-core-task-scoped-natural-language.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+          "--candidate-summary",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/summary.json",
+          "--candidate-output-dir",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300",
+          "--output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-natural-language-audit.json"
+        ]
+      },
+      "acceptance_expectations": {
+        "candidate_summary": {
+          "sample_count": 9,
+          "schema_valid_rate": 1.0,
+          "task_valid_rate": 1.0,
+          "builder_output_count": 9,
+          "timeout_count": 0
+        },
+        "offline_eval_promotion_status": "no_promotion_planned",
+        "natural_language_audit_status": "pass",
+        "natural_language_violation_count": 0
+      }
+    },
+    {
+      "segment_id": "holdout6-v2-non-overlap",
+      "sample_count": 6,
+      "candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+      "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+      "artifact_paths": {
+        "candidate_output_dir": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300",
+        "candidate_summary": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/summary.json",
+        "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
+        "natural_language_audit": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-natural-language-audit.json"
+      },
+      "official_batch_run": {
+        "purpose": "Generate the holdout6-v2-non-overlap segment for broader task-scoped builder review.",
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-candidate.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+          "--provider",
+          "local_transformers",
+          "--model-dir",
+          "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+          "--output-dir",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300",
+          "--summary-output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/summary.json",
+          "--allow-invalid-output",
+          "--validate-task",
+          "--build-task-scoped-response",
+          "--sample-timeout-seconds",
+          "300"
+        ]
+      },
+      "offline_eval": {
+        "purpose": "Read the holdout6-v2-non-overlap candidate segment without rerunning the model.",
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-offline-eval.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+          "--candidate-summary",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/summary.json",
+          "--candidate-output-dir",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300",
+          "--output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
+          "--check-output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json"
+        ]
+      },
+      "natural_language_audit": {
+        "purpose": "Audit the holdout6-v2-non-overlap task-scoped builder natural-language fields.",
+        "command_args": [
+          "python3",
+          "scripts/audit-radishmind-core-task-scoped-natural-language.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+          "--candidate-summary",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/summary.json",
+          "--candidate-output-dir",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300",
+          "--output",
+          "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-natural-language-audit.json"
+        ]
+      },
+      "acceptance_expectations": {
+        "candidate_summary": {
+          "sample_count": 6,
+          "schema_valid_rate": 1.0,
+          "task_valid_rate": 1.0,
+          "builder_output_count": 6,
+          "timeout_count": 0
+        },
+        "offline_eval_promotion_status": "no_promotion_planned",
+        "natural_language_audit_status": "pass",
+        "natural_language_violation_count": 0
+      }
+    }
+  ],
+  "post_run_review_record_expectation": {
+    "future_record_path": "training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json",
+    "kind": "radishmind_core_task_scoped_builder_broader_review_records",
+    "review_batch_id": "task-scoped-builder-broader-15-sample-review-v0",
+    "status_before_review": "pending_review",
+    "minimum_record_count": 15,
+    "must_include_segments": [
+      "full-holdout-9",
+      "holdout6-v2-non-overlap"
+    ],
+    "required_dimensions": [
+      "machine_schema_and_task_validity",
+      "natural_language_placeholder_absence",
+      "ghost_candidate_semantics",
+      "citation_explanation_quality",
+      "factual_sufficiency",
+      "fallback_acceptability",
+      "risk_confirmation_and_advisory_boundary",
+      "training_holdout_leakage"
+    ],
+    "completion_rule": "Do not mark the broader review records as reviewed_pass until both execution segments pass machine gate and natural-language audit, every selected sample has reviewer, reviewed_at, per-dimension results, and holdout leakage remains reviewed_pass."
+  },
+  "artifact_policy": {
+    "generated_outputs_default_location": "tmp/",
+    "committed_allowed": [
+      "runbook",
+      "review_entry",
+      "small review summary",
+      "human review records after reviewer completion"
+    ],
+    "committed_disallowed": [
+      "candidate responses",
+      "provider raw dump",
+      "large jsonl",
+      "model weights",
+      "checkpoint",
+      "adapter binary"
+    ]
+  },
+  "operator_notes": [
+    "Run the two execution segments separately; do not create a new committed combined candidate manifest for this broader review.",
+    "After local execution, provide the two candidate summaries, two offline eval runs, two natural-language audits, and any candidate responses needed for human review from tmp/.",
+    "Passing this runbook is still tooling-route evidence only; it is not raw promotion, training acceptance, or production contract acceptance."
+  ]
+}

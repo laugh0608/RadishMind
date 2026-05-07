@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "matrix_id": "radishflow-suggest-flowsheet-edits-service-smoke",
+  "route": "radishflow/suggest_flowsheet_edits",
+  "project": "radishflow",
+  "task": "suggest_flowsheet_edits",
+  "provider": "mock",
+  "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+  "request_id": "rf-suggest-edit-reconnect-outlet-001",
+  "purpose": "service_api_gate",
+  "surfaces": {
+    "cli_runtime": {
+      "entrypoint": "scripts/run-copilot-inference.py",
+      "call_mode": "cli_runtime",
+      "sample": "datasets/eval/radishflow/suggest-flowsheet-edits-reconnect-outlet-001.json",
+      "request_id": "rf-suggest-edit-reconnect-outlet-001",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "provider": "mock",
+      "response_status": "partial",
+      "requires_confirmation": true,
+      "candidate_edit_count": 1,
+      "target": {
+        "type": "stream",
+        "id": "stream-out-1"
+      },
+      "patch_keys": [
+        "connection_placeholder"
+      ]
+    },
+    "gateway_api": {
+      "entrypoint": "scripts/check-gateway-service-smoke.py",
+      "call_mode": "in_process_python",
+      "summary_fixture": "scripts/checks/fixtures/gateway-service-smoke-summary.json",
+      "success_case_id": "successful_radishflow_suggest_edits",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "provider": "mock",
+      "advisory_only": true,
+      "request_validated": true,
+      "response_validated": true,
+      "requires_confirmation": true,
+      "error_cases": [
+        {
+          "case_id": "unsupported_valid_route",
+          "error_code": "UNSUPPORTED_TASK"
+        },
+        {
+          "case_id": "schema_invalid_request",
+          "error_code": "REQUEST_SCHEMA_INVALID"
+        }
+      ]
+    },
+    "gateway_demo": {
+      "entrypoint": "scripts/run-radishflow-gateway-demo.py",
+      "call_mode": "export_adapter_request_gateway",
+      "summary_fixture": "scripts/checks/fixtures/radishflow-gateway-demo-summary.json",
+      "manifest_fixture": "scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json",
+      "fixture_count": 3,
+      "route": "radishflow/suggest_flowsheet_edits",
+      "provider": "mock",
+      "advisory_only": true,
+      "request_validated": true,
+      "response_validated": true,
+      "requires_confirmation": true,
+      "request_ids": [
+        "rf-suggest-edit-reconnect-outlet-001",
+        "rf-suggest-edit-multi-selection-single-actionable-target-001",
+        "rf-suggest-edit-three-step-priority-chain-001"
+      ]
+    },
+    "ui_consumption": {
+      "entrypoint": "scripts/check-radishflow-gateway-ui-consumption.py",
+      "call_mode": "gateway_envelope_to_ui_consumption",
+      "summary_fixture": "scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json",
+      "ui_surface": "radishflow_suggest_flowsheet_edits_panel",
+      "proposal_case_id": "proposal_ready",
+      "display_state": "proposal_ready",
+      "route": "radishflow/suggest_flowsheet_edits",
+      "provider": "mock",
+      "confirmation_required": true,
+      "candidate_card_count": 1,
+      "target": {
+        "type": "stream",
+        "id": "stream-out-1"
+      },
+      "patch_keys": [
+        "connection_placeholder"
+      ],
+      "can_write_flowsheet_document": false,
+      "error_cases": [
+        {
+          "case_id": "unsupported_route",
+          "display_state": "gateway_failed",
+          "can_write_flowsheet_document": false
+        },
+        {
+          "case_id": "schema_invalid",
+          "display_state": "gateway_failed",
+          "can_write_flowsheet_document": false
+        }
+      ]
+    },
+    "candidate_handoff": {
+      "entrypoint": "scripts/check-radishflow-candidate-edit-handoff.py",
+      "call_mode": "ui_confirmed_candidate_to_command_handoff",
+      "summary_fixture": "scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json",
+      "handoff_surface": "radishflow_candidate_edit_confirmation",
+      "confirmed_case_id": "confirmed_candidate_edit",
+      "source_route": "radishflow/suggest_flowsheet_edits",
+      "eligible_action_count": 1,
+      "handoff_blocked": false,
+      "can_execute_any": false,
+      "command_candidate": {
+        "handoff_kind": "radishflow_candidate_edit_proposal",
+        "target": {
+          "type": "stream",
+          "id": "stream-out-1"
+        },
+        "patch_keys": [
+          "connection_placeholder"
+        ],
+        "risk_level": "high",
+        "requires_human_confirmation": true,
+        "can_execute": false
+      },
+      "blocked_case_count": 2
+    }
+  },
+  "contract": {
+    "route_consistent": true,
+    "provider_consistent": true,
+    "advisory_only": true,
+    "requires_confirmation_preserved": true,
+    "ui_does_not_write_flowsheet_document": true,
+    "handoff_is_non_executing": true
+  }
+}
