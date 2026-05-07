@@ -66,6 +66,28 @@ EXPECTED_SEGMENT_SUMMARIES = {
         "audit_fallback_natural_field_rate": 0.0625,
     },
 }
+REVIEWED_CHANGES_REQUIRED = {
+    "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+    "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+    "radish-answer-docs-question-attachment-mixed-001",
+    "radish-answer-docs-question-docs-attachments-faq-001",
+    "radish-answer-docs-question-navigation-001",
+    "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+    "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+    "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+    "radish-answer-docs-question-docs-faq-forum-conflict-001",
+    "radish-answer-docs-question-evidence-gap-001",
+}
+REVIEWED_PASS = {
+    "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+    "radishflow-suggest-ghost-completion-flash-inlet-001",
+    "radishflow-suggest-ghost-completion-heater-stream-name-001",
+    "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
+    "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+}
+PENDING_REVIEW_EXPECTED = 0
+REVIEWED_PASS_EXPECTED = 5
+REVIEWED_CHANGES_REQUIRED_EXPECTED = 10
 
 
 def require(condition: bool, message: str) -> None:
@@ -108,6 +130,11 @@ def require_all_result_records_pass(run_document: dict[str, Any], *, segment_id:
         for metric in metric_results:
             require(isinstance(metric, dict), f"{segment_id} metric result must be an object")
             require(metric.get("passed") is True, f"{segment_id} offline eval metric must pass")
+
+
+def require_review_status(condition: bool, message: str) -> None:
+    if not condition:
+        raise SystemExit(message)
 
 
 def validate_segment_artifacts(
@@ -224,9 +251,9 @@ def main() -> int:
     )
     require(document.get("phase") == "M4-preparation", "phase mismatch")
     require(document.get("review_batch_id") == "task-scoped-builder-broader-15-sample-review-v0", "batch id mismatch")
-    require(document.get("status") == "pending_review", "broader records must remain pending_review")
-    require(document.get("reviewer") is None, "pending broader batch must not have a reviewer")
-    require(document.get("reviewed_at") is None, "pending broader batch must not have reviewed_at")
+    require(document.get("status") == "reviewed_changes_required", "broader records must be reviewed_changes_required")
+    require(document.get("reviewer") == "repository-reviewer", "broader batch reviewer mismatch")
+    require(document.get("reviewed_at") == "2026-05-07T00:00:00Z", "broader batch reviewed_at mismatch")
     require(document.get("candidate_track") == "--build-task-scoped-response", "candidate_track mismatch")
     require(document.get("does_not_run_models") is True, "records must not run models")
     require(document.get("does_not_generate_jsonl") is True, "records must not generate JSONL")
@@ -256,15 +283,15 @@ def main() -> int:
     execution_gate = document.get("execution_gate_summary")
     require(isinstance(execution_gate, dict), "execution_gate_summary must be an object")
     require(
-        execution_gate.get("machine_gate_status") == "passed_pending_human_review",
-        "machine_gate_status must record passed_pending_human_review",
+        execution_gate.get("machine_gate_status") == "passed",
+        "machine_gate_status must record passed",
     )
     require(
-        execution_gate.get("natural_language_audit_status") == "passed_pending_human_review",
-        "natural_language_audit_status must record passed_pending_human_review",
+        execution_gate.get("natural_language_audit_status") == "passed",
+        "natural_language_audit_status must record passed",
     )
-    require(execution_gate.get("human_review_status") == "pending_review", "human_review_status must remain pending_review")
-    require(execution_gate.get("holdout_leakage_status") == "pending_review", "holdout_leakage_status must remain pending_review")
+    require(execution_gate.get("human_review_status") == "reviewed_changes_required", "human_review_status must record reviewed_changes_required")
+    require(execution_gate.get("holdout_leakage_status") == "reviewed_pass", "holdout_leakage_status must record reviewed_pass")
     overlap_policy = str(execution_gate.get("training_manifest_overlap_policy") or "")
     require("full-holdout-9 must remain excluded" in overlap_policy, "overlap policy must protect full-holdout")
     require("holdout6-v2-non-overlap is retained as a regression surface" in overlap_policy, "overlap policy must scope v2")
@@ -275,7 +302,7 @@ def main() -> int:
         validate_segment_artifacts(segment_id, source_artifacts[segment_id], execution_gate)
 
     records = document.get("records")
-    require(isinstance(records, list) and len(records) == 15, "records must contain 15 pending records")
+    require(isinstance(records, list) and len(records) == 15, "records must contain 15 review records")
     by_sample = {
         str(record.get("sample_id") or ""): record
         for record in records
@@ -285,6 +312,9 @@ def main() -> int:
 
     task_counts = {task: 0 for task in EXPECTED_TASK_COUNTS}
     pending_count = 0
+    reviewed_pass_count = 0
+    reviewed_changes_required_count = 0
+    blocking_change_required_samples: list[str] = []
     source_eval_paths_by_set: dict[str, set[str]] = {segment_id: set() for segment_id in SEGMENT_OUTPUT_DIRS}
     sample_ids_by_source_path: dict[str, str] = {}
     for sample_id, record in by_sample.items():
@@ -293,10 +323,20 @@ def main() -> int:
         task = f"{record.get('project')}/{record.get('task')}"
         require(task in task_counts, f"unexpected task for {sample_id}: {task}")
         task_counts[task] += 1
-        require(record.get("reviewer") is None, f"pending record must not have reviewer: {sample_id}")
-        require(record.get("reviewed_at") is None, f"pending record must not have reviewed_at: {sample_id}")
-        require(record.get("review_status") == "pending_review", f"record must remain pending_review: {sample_id}")
-        pending_count += 1
+        review_status = str(record.get("review_status") or "")
+        if sample_id in REVIEWED_CHANGES_REQUIRED:
+            require_review_status(review_status == "reviewed_changes_required", f"record must be reviewed_changes_required: {sample_id}")
+            require(record.get("reviewer") == "repository-reviewer", f"reviewed record reviewer mismatch: {sample_id}")
+            require(record.get("reviewed_at") == "2026-05-07T00:00:00Z", f"reviewed_at mismatch: {sample_id}")
+            reviewed_changes_required_count += 1
+            blocking_change_required_samples.append(sample_id)
+        elif sample_id in REVIEWED_PASS:
+            require_review_status(review_status == "reviewed_pass", f"record must be reviewed_pass: {sample_id}")
+            require(record.get("reviewer") == "repository-reviewer", f"reviewed record reviewer mismatch: {sample_id}")
+            require(record.get("reviewed_at") == "2026-05-07T00:00:00Z", f"reviewed_at mismatch: {sample_id}")
+            reviewed_pass_count += 1
+        else:
+            raise SystemExit(f"sample missing expected review bucket: {sample_id}")
 
         source_eval_sample = str(record.get("source_eval_sample") or "")
         require((REPO_ROOT / source_eval_sample).is_file(), f"missing source eval sample: {sample_id}")
@@ -314,15 +354,55 @@ def main() -> int:
         dimensions = record.get("dimension_results")
         require(isinstance(dimensions, dict), f"dimension_results must be an object: {sample_id}")
         require(set(dimensions) == REQUIRED_DIMENSIONS, f"dimension set mismatch: {sample_id}")
-        require("reviewed_pass" not in set(dimensions.values()), f"pending record must not include reviewed_pass: {sample_id}")
-        require(dimensions.get("machine_schema_and_task_validity") == "pending", f"machine gate must be pending: {sample_id}")
-        require(dimensions.get("training_holdout_leakage") == "pending", f"holdout leakage must be pending: {sample_id}")
-        if task == "radishflow/suggest_ghost_completion":
-            require(dimensions.get("ghost_candidate_semantics") == "pending", f"ghost semantics must be pending: {sample_id}")
-            require(dimensions.get("citation_explanation_quality") == "not_applicable", f"ghost citation review must be n/a: {sample_id}")
+        if sample_id in REVIEWED_CHANGES_REQUIRED:
+            require(dimensions.get("machine_schema_and_task_validity") == "reviewed_pass", f"machine gate must pass after review: {sample_id}")
+            require(dimensions.get("training_holdout_leakage") == "reviewed_pass", f"holdout leakage must pass after review: {sample_id}")
+            require(
+                dimensions.get("risk_confirmation_and_advisory_boundary") == "reviewed_pass",
+                f"risk boundary must pass after review: {sample_id}",
+            )
+            review_notes = record.get("review_notes")
+            require(isinstance(review_notes, list) and review_notes, f"review_notes must be populated for reviewed record: {sample_id}")
+            require(record.get("exit_reason"), f"reviewed_changes_required record must include exit_reason: {sample_id}")
+            if sample_id == "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001":
+                require(
+                    dimensions.get("citation_explanation_quality") == "reviewed_changes_required",
+                    "efficiency range citation quality must require changes",
+                )
+                require(
+                    dimensions.get("fallback_acceptability") == "reviewed_changes_required",
+                    "efficiency range fallback acceptability must require changes",
+                )
+            if task == "radishflow/suggest_ghost_completion":
+                require(
+                    dimensions.get("ghost_candidate_semantics") == "reviewed_changes_required",
+                    f"ghost blocker must mark ghost_candidate_semantics as reviewed_changes_required: {sample_id}",
+                )
+                require(
+                    dimensions.get("natural_language_placeholder_absence") == "reviewed_changes_required",
+                    f"ghost blocker must mark natural-language quality as reviewed_changes_required: {sample_id}",
+                )
+            else:
+                require(dimensions.get("ghost_candidate_semantics") == "not_applicable", f"non-ghost semantics must be n/a: {sample_id}")
         else:
-            require(dimensions.get("ghost_candidate_semantics") == "not_applicable", f"non-ghost semantics must be n/a: {sample_id}")
-            require(dimensions.get("citation_explanation_quality") == "pending", f"citation review must be pending: {sample_id}")
+            require(record.get("review_notes"), f"reviewed_pass record must include review notes: {sample_id}")
+            require(record.get("exit_reason") is None, f"reviewed_pass record must not include exit_reason: {sample_id}")
+            require("pending" not in set(dimensions.values()), f"reviewed_pass record must not include pending dimensions: {sample_id}")
+            require("reviewed_changes_required" not in set(dimensions.values()), f"reviewed_pass record must not include reviewed_changes_required dimensions: {sample_id}")
+            require(dimensions.get("machine_schema_and_task_validity") == "reviewed_pass", f"machine gate must pass after review: {sample_id}")
+            require(dimensions.get("training_holdout_leakage") == "reviewed_pass", f"holdout leakage must pass after review: {sample_id}")
+            require(
+                dimensions.get("risk_confirmation_and_advisory_boundary") == "reviewed_pass",
+                f"risk boundary must pass after review: {sample_id}",
+            )
+            if task == "radishflow/suggest_ghost_completion":
+                require(dimensions.get("ghost_candidate_semantics") == "reviewed_pass", f"ghost semantics must be reviewed_pass: {sample_id}")
+                require(dimensions.get("citation_explanation_quality") == "not_applicable", f"ghost citation review must be n/a: {sample_id}")
+                require(dimensions.get("fallback_acceptability") == "not_applicable", f"ghost fallback must be n/a: {sample_id}")
+            else:
+                require(dimensions.get("ghost_candidate_semantics") == "not_applicable", f"non-ghost semantics must be n/a: {sample_id}")
+                require(dimensions.get("citation_explanation_quality") == "reviewed_pass", f"citation review must be reviewed_pass: {sample_id}")
+                require(dimensions.get("factual_sufficiency") == "reviewed_pass", f"factual sufficiency must be reviewed_pass: {sample_id}")
 
     require(task_counts == EXPECTED_TASK_COUNTS, "broader review task counts mismatch")
     training_paths: set[str] = set()
@@ -340,11 +420,17 @@ def main() -> int:
     require(isinstance(batch, dict), "batch_summary must be an object")
     require(batch.get("record_count") == 15, "batch record count mismatch")
     require(batch.get("pending_review_count") == pending_count, "batch pending count mismatch")
-    require(batch.get("reviewed_pass_count") == 0, "batch pass count must remain zero")
-    require(batch.get("reviewed_changes_required_count") == 0, "batch changes-required count must remain zero")
+    require(batch.get("reviewed_pass_count") == reviewed_pass_count, "batch reviewed_pass_count mismatch")
+    require(pending_count == PENDING_REVIEW_EXPECTED, "unexpected pending review count")
+    require(reviewed_pass_count == REVIEWED_PASS_EXPECTED, "unexpected reviewed_pass count")
+    require(reviewed_changes_required_count == REVIEWED_CHANGES_REQUIRED_EXPECTED, "unexpected reviewed_changes_required count")
+    require(batch.get("reviewed_changes_required_count") == reviewed_changes_required_count, "batch changes-required count mismatch")
+    require(batch.get("blocking_change_required_samples") == blocking_change_required_samples, "blocking_change_required_samples mismatch")
     decision = str(batch.get("decision") or "")
     require("completed machine gate" in decision, "batch decision must mention completed machine gate evidence")
-    require("pending review surface" in decision, "batch decision must preserve pending review scope")
+    require("full human review evidence" in decision, "batch decision must mention completed human review evidence")
+    require("reviewed_changes_required" in decision, "batch decision must mention reviewed_changes_required blockers")
+    require("reviewed_pass" in decision, "batch decision must mention reviewed_pass subset")
     require("raw promotion" in decision and "training acceptance" in decision, "batch decision must reject promotion/acceptance")
 
     print("radishmind core task-scoped builder broader review records check passed.")
