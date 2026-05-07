@@ -5,6 +5,7 @@ import argparse
 import copy
 import json
 import os
+import re
 import signal
 import sys
 import time
@@ -1673,6 +1674,10 @@ def non_empty_text(value: Any) -> str:
     return str(value).strip() if isinstance(value, str) else ""
 
 
+def list_value(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else []
+
+
 GENERIC_NATURAL_LANGUAGE_PLACEHOLDERS = (
     "给出可展示给用户的回答",
     "用一句话总结结论",
@@ -1697,6 +1702,40 @@ LEGAL_CANDIDATE_MISTRANSLATION_TERMS = (
     "合規候選",
 )
 
+EVALUATION_META_TERMS = (
+    "这条样本",
+    "本样本",
+    "用来冻结",
+    "组合稳定性",
+    "task-scoped",
+    "response builder",
+    "builder 输出",
+)
+
+GENERIC_TASK_SCOPED_ACTION_TITLES = {
+    "生成待人工确认的 flowsheet 编辑提案",
+    "生成 ghost completion 候选",
+}
+
+GENERIC_TASK_SCOPED_ACTION_RATIONALES = {
+    "仅从候选补全列表中选择当前端口可预览的编辑器 ghost。",
+}
+
+DOCS_INSTRUCTIONAL_PREFIXES = (
+    "回答应",
+    "应明确说明",
+)
+
+PARAMETER_LABELS = {
+    "outlet_pressure_target_kpa": "目标压力",
+    "operating_pressure_kpa": "操作压力",
+    "outlet_temperature_c": "出口温度",
+    "efficiency_percent": "效率范围",
+    "pressure_ratio": "压比",
+    "duty_kw": "负荷",
+    "reflux_ratio": "回流比",
+}
+
 
 def is_guarded_natural_language_text(
     text: str,
@@ -1715,16 +1754,534 @@ def is_guarded_natural_language_text(
     return True
 
 
+def sample_request(sample: dict[str, Any]) -> dict[str, Any]:
+    request = sample.get("input_request")
+    return request if isinstance(request, dict) else {}
+
+
+def sample_context(sample: dict[str, Any]) -> dict[str, Any]:
+    context = sample_request(sample).get("context")
+    return context if isinstance(context, dict) else {}
+
+
+def sample_diagnostics(sample: dict[str, Any]) -> list[dict[str, Any]]:
+    return [item for item in (sample_context(sample).get("diagnostics") or []) if isinstance(item, dict)]
+
+
+def sample_primary_artifact(sample: dict[str, Any]) -> dict[str, Any]:
+    artifacts = sample_request(sample).get("artifacts")
+    if not isinstance(artifacts, list):
+        return {}
+    for artifact in artifacts:
+        if isinstance(artifact, dict) and artifact.get("role") == "primary":
+            return artifact
+    return {}
+
+
+def primary_artifact_excerpt(sample: dict[str, Any]) -> str:
+    artifact = sample_primary_artifact(sample)
+    content = artifact.get("content")
+    if isinstance(content, str):
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        non_heading = [line.lstrip("# ").strip() for line in lines if not line.lstrip().startswith("#")]
+        excerpt = " ".join(non_heading or [line.lstrip("# ").strip() for line in lines])
+        return excerpt[:240].strip()
+    return ""
+
+
+def join_cn_list(items: list[str]) -> str:
+    cleaned = [item for item in items if item]
+    if not cleaned:
+        return ""
+    if len(cleaned) == 1:
+        return cleaned[0]
+    if len(cleaned) == 2:
+        return f"{cleaned[0]} 与 {cleaned[1]}"
+    return "、".join(cleaned[:-1]) + f" 与 {cleaned[-1]}"
+
+
+def normalize_severity(value: Any, *, default: str = "warning") -> str:
+    normalized = str(value or "").strip().lower()
+    return normalized if normalized in {"info", "warning", "error"} else default
+
+
+def expected_action_targets(sample: dict[str, Any]) -> list[dict[str, str]]:
+    targets: list[dict[str, str]] = []
+    for entry in list_value(get_evaluation(sample).get("ordered_action_targets")):
+        if not isinstance(entry, dict):
+            continue
+        target_type = str(entry.get("type") or "").strip()
+        target_id = str(entry.get("id") or "").strip()
+        if target_type and target_id:
+            targets.append({"type": target_type, "id": target_id})
+    return targets
+
+
+def supports_multi_action_summary(sample: dict[str, Any]) -> bool:
+    return len(expected_action_targets(sample)) > 1
+
+
+def mentions_multi_action_scope(text: str, sample: dict[str, Any]) -> bool:
+    expected_targets = expected_action_targets(sample)
+    if len(expected_targets) <= 1:
+        return True
+    target_ids = [target["id"] for target in expected_targets]
+    if any(target_id in text for target_id in target_ids[1:]):
+        return True
+    return any(marker in text for marker in ("同时", "多条", "两个", "两条", "多个", "拆成"))
+
+
+def ambiguous_ghost_candidates(sample: dict[str, Any]) -> bool:
+    context = sample_context(sample)
+    candidates = [item for item in list_value(context.get("legal_candidate_completions")) if isinstance(item, dict)]
+    if len(candidates) < 2:
+        return False
+    return not any(
+        candidate.get("is_tab_default") is True
+        and candidate.get("is_high_confidence") is True
+        and not [flag for flag in list_value(candidate.get("conflict_flags")) if str(flag).strip()]
+        for candidate in candidates
+    )
+
+
+def mentions_ghost_ambiguity(text: str) -> bool:
+    return any(marker in text for marker in ("两个", "多个", "两条", "候选")) and any(
+        marker in text for marker in ("不默认", "不能默认", "不应默认", "Tab", "手动")
+    )
+
+
+def action_index_from_path(path: str) -> int | None:
+    match = re.search(r"\.proposed_actions\[(\d+)\]\.", path)
+    return int(match.group(1)) if match else None
+
+
+def ghost_candidate_for_action_index(sample: dict[str, Any], action_index: int) -> dict[str, Any]:
+    candidates = [item for item in list_value(sample_context(sample).get("legal_candidate_completions")) if isinstance(item, dict)]
+    if 0 <= action_index < len(candidates):
+        return candidates[action_index]
+    return {}
+
+
+def mentions_ghost_action_surface(text: str, *, sample: dict[str, Any], path: str) -> bool:
+    action_index = action_index_from_path(path)
+    if action_index is None:
+        return True
+    candidate = ghost_candidate_for_action_index(sample, action_index)
+    downstream_id = ghost_candidate_downstream_id(candidate)
+    if path.endswith(".title"):
+        return downstream_id in text and any(marker in text for marker in ("ghost", "候选", "补全", "可见"))
+    if path.endswith(".rationale"):
+        return downstream_id in text and any(marker in text for marker in ("手动", "Tab", "默认", "领先", "差距", "合法"))
+    return True
+
+
+def mentions_docs_evidence_gap(text: str) -> bool:
+    return any(marker in text for marker in ("证据不足", "不能据此确认", "不能直接", "未说明", "授权", "权限", "不足以确认"))
+
+
+def diagnostic_message_set(sample: dict[str, Any]) -> set[str]:
+    return {
+        str(diagnostic.get("message") or "").strip()
+        for diagnostic in sample_diagnostics(sample)
+        if str(diagnostic.get("message") or "").strip()
+    }
+
+
+def should_accept_natural_language_text(
+    text: str,
+    *,
+    sample: dict[str, Any],
+    path: str,
+) -> bool:
+    project = str(sample.get("project") or "")
+    task = str(sample.get("task") or "")
+    if not is_guarded_natural_language_text(text, project=project, task=task):
+        return False
+    if any(term in text for term in EVALUATION_META_TERMS):
+        return False
+    if project == "radish" and task == "answer_docs_question":
+        if any(text.startswith(prefix) for prefix in DOCS_INSTRUCTIONAL_PREFIXES):
+            return False
+        if str(get_expected_shape(sample).get("status") or "") == "partial" and path in {"$.summary", "$.answers[0].text"} and not mentions_docs_evidence_gap(text):
+            return False
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        if path == "$.summary" and supports_multi_action_summary(sample) and not mentions_multi_action_scope(text, sample):
+            return False
+        if path.endswith(".rationale") and text in diagnostic_message_set(sample):
+            return False
+    if project == "radishflow" and task == "suggest_ghost_completion":
+        if path in {"$.summary", "$.answers[0].text"} and ambiguous_ghost_candidates(sample) and not mentions_ghost_ambiguity(text):
+            return False
+        if path.startswith("$.proposed_actions[") and ambiguous_ghost_candidates(sample) and not mentions_ghost_action_surface(
+            text,
+            sample=sample,
+            path=path,
+        ):
+            return False
+    if path.endswith(".title") and text in GENERIC_TASK_SCOPED_ACTION_TITLES:
+        return False
+    if path.endswith(".rationale") and text in GENERIC_TASK_SCOPED_ACTION_RATIONALES:
+        return False
+    return True
+
+
+def sample_flowdoc_objects(sample: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+    artifact = sample_primary_artifact(sample)
+    content = artifact.get("content")
+    if not isinstance(content, dict):
+        return {}, {}
+    units = {
+        str(unit.get("id") or "").strip(): unit
+        for unit in list_value(content.get("units"))
+        if isinstance(unit, dict) and str(unit.get("id") or "").strip()
+    }
+    streams = {
+        str(stream.get("id") or "").strip(): stream
+        for stream in list_value(content.get("streams"))
+        if isinstance(stream, dict) and str(stream.get("id") or "").strip()
+    }
+    return units, streams
+
+
+def citation_object_id(citation: dict[str, Any]) -> str:
+    locator = str(citation.get("locator") or "").strip()
+    match = re.search(r"artifact:flowsheet_document\.(?:streams|units)\[(\d+)\]", locator)
+    if match:
+        label = str(citation.get("label") or "")
+        if "/" in label:
+            return label.split("/")[-1].strip()
+    return ""
+
+
+def supporting_object_ids_for_action(action: dict[str, Any], citations: list[dict[str, Any]]) -> list[str]:
+    target = action.get("target") if isinstance(action.get("target"), dict) else {}
+    target_id = str(target.get("id") or "").strip()
+    citations_by_id = {
+        str(citation.get("id") or "").strip(): citation for citation in citations if isinstance(citation, dict)
+    }
+    supporting: list[str] = []
+    for citation_id in list_value(action.get("citation_ids")):
+        citation = citations_by_id.get(str(citation_id))
+        if not isinstance(citation, dict):
+            continue
+        object_id = citation_object_id(citation)
+        if object_id and object_id != target_id and object_id not in supporting:
+            supporting.append(object_id)
+    return supporting
+
+
+def extract_assignment_value(message: str, key: str) -> str:
+    match = re.search(rf"{re.escape(key)}=([^\s,.;]+)", message)
+    return str(match.group(1)).strip() if match else ""
+
+
+def suggest_issue_message_from_diagnostic(diagnostic: dict[str, Any]) -> str:
+    code = str(diagnostic.get("code") or "").strip()
+    message = str(diagnostic.get("message") or "").strip()
+    target_id = str(diagnostic.get("target_id") or "当前对象").strip() or "当前对象"
+    if code == "STREAM_DISCONNECTED":
+        return f"{target_id} 当前没有任何 downstream consumer 或 export sink 绑定，需要先停留在待确认的重连占位层。"
+    if code == "PUMP_OUTLET_PRESSURE_TARGET_INVALID":
+        return f"{target_id} 的 outlet_pressure_target_kpa 低于入口压力，当前参数设置与泵升压方向不一致。"
+    if code == "UNIT_PARAMETER_OUT_OF_RANGE":
+        efficiency_value = extract_assignment_value(message, "efficiency_percent")
+        if efficiency_value:
+            return f"{target_id} 的 efficiency_percent={efficiency_value} 超出了当前建议运行区间。"
+        return f"{target_id} 存在超出建议范围的参数，当前应先停留在待确认的局部参数复核。"
+    if code == "COOLER_OUTLET_EFFECT_UNCONFIRMED":
+        return f"{target_id} 的出口状态仍可能在恢复 downstream sink 后变化，因此当前不应给 cooler 侧额外生成第二条 unit patch。"
+    if code == "STREAM_SPEC_MISSING":
+        return f"{target_id} 仍缺少必要规格，当前更合适的是补局部规格占位，而不是直接猜测具体数值。"
+    if code == "UNIT_PARAMETER_INCOMPLETE":
+        return f"{target_id} 仍缺少关键参数，当前更合适的是补局部参数占位并等待人工复核。"
+    return message if re.search(r"[\u4e00-\u9fff]", message) else f"{target_id} 存在需要人工复核的诊断问题。"
+
+
+def candidate_edit_action_risk(action: dict[str, Any], *, fallback: str) -> str:
+    patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+    if "connection_placeholder" in patch:
+        return "high"
+    if "parameter_updates" in patch or "spec_placeholders" in patch:
+        return "medium"
+    return fallback
+
+
+def candidate_edit_action_title(action: dict[str, Any]) -> str:
+    target = action.get("target") if isinstance(action.get("target"), dict) else {}
+    target_id = str(target.get("id") or "当前对象").strip() or "当前对象"
+    patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+    if "connection_placeholder" in patch:
+        return f"为 {target_id} 预留下游重连占位"
+    parameter_updates = patch.get("parameter_updates")
+    if isinstance(parameter_updates, dict) and parameter_updates:
+        parameter_keys = list(parameter_updates)
+        if "outlet_pressure_target_kpa" in parameter_keys and "efficiency_percent" in parameter_keys:
+            return f"复核 {target_id} 的目标压力与效率范围"
+        if len(parameter_keys) == 1:
+            parameter_label = PARAMETER_LABELS.get(parameter_keys[0], parameter_keys[0])
+            return f"复核 {target_id} 的{parameter_label}"
+        return f"复核 {target_id} 的局部参数设置"
+    if patch.get("spec_placeholders"):
+        return f"为 {target_id} 补充缺失规格占位"
+    return f"复核 {target_id} 的局部编辑提案"
+
+
+def candidate_edit_action_rationale(action: dict[str, Any], citations: list[dict[str, Any]]) -> str:
+    target = action.get("target") if isinstance(action.get("target"), dict) else {}
+    target_id = str(target.get("id") or "当前对象").strip() or "当前对象"
+    patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+    if "connection_placeholder" in patch:
+        supporting = supporting_object_ids_for_action(action, citations)
+        if supporting:
+            return (
+                f"当前最直接且高风险的修改面仍是为 {target_id} 生成待人工确认的 downstream binding 占位，"
+                f"并明确带上 {join_cn_list(supporting)} 作为跨对象 supporting context。"
+            )
+        return f"当前最直接且高风险的修改面仍是为 {target_id} 生成待人工确认的 downstream binding 占位，并保持现有 source binding 不变。"
+    parameter_updates = patch.get("parameter_updates")
+    if isinstance(parameter_updates, dict) and parameter_updates:
+        if len(parameter_updates) > 1:
+            return f"{target_id} 的多项参数问题都集中在同一对象上，因此更合适的是把它们收口成单一局部参数 patch，并保持拓扑不变。"
+        parameter_key = next(iter(parameter_updates))
+        parameter_label = PARAMETER_LABELS.get(parameter_key, parameter_key)
+        return f"{target_id} 的 {parameter_label} 当前仍需要局部复核，因此更合适的是保留可审查的单对象参数 patch。"
+    if patch.get("spec_placeholders"):
+        return f"{target_id} 当前缺少必要规格，因此更稳妥的是只补待确认的局部规格占位，而不是直接推断具体数值。"
+    return f"{target_id} 当前仍需要人工复核，因此更合适的是保留局部 candidate_edit。"
+
+
+def apply_suggest_edits_builder_fields(built: dict[str, Any], *, sample: dict[str, Any]) -> None:
+    diagnostics_by_code = {
+        str(diagnostic.get("code") or "").strip(): diagnostic
+        for diagnostic in sample_diagnostics(sample)
+        if str(diagnostic.get("code") or "").strip()
+    }
+    issues = built.get("issues") if isinstance(built.get("issues"), list) else []
+    for issue in issues:
+        if not isinstance(issue, dict):
+            continue
+        diagnostic = diagnostics_by_code.get(str(issue.get("code") or "").strip())
+        if not isinstance(diagnostic, dict):
+            continue
+        issue["message"] = suggest_issue_message_from_diagnostic(diagnostic)
+        issue["severity"] = normalize_severity(diagnostic.get("severity"), default=str(issue.get("severity") or "warning"))
+
+    actions = built.get("proposed_actions") if isinstance(built.get("proposed_actions"), list) else []
+    citations = built.get("citations") if isinstance(built.get("citations"), list) else []
+    for action in actions:
+        if not isinstance(action, dict):
+            continue
+        action["risk_level"] = candidate_edit_action_risk(action, fallback=str(action.get("risk_level") or "medium"))
+        action["title"] = candidate_edit_action_title(action)
+        action["rationale"] = candidate_edit_action_rationale(action, citations)
+
+    if actions:
+        built["risk_level"] = "high" if any(action.get("risk_level") == "high" for action in actions) else "medium"
+        built["requires_confirmation"] = True
+
+    answers = built.get("answers") if isinstance(built.get("answers"), list) else []
+    answer = answers[0] if answers and isinstance(answers[0], dict) else None
+    action_target_ids = [
+        str((action.get("target") or {}).get("id") or "").strip()
+        for action in actions
+        if isinstance(action, dict) and isinstance(action.get("target"), dict)
+    ]
+    warning_only_targets: list[str] = []
+    for diagnostic in sample_diagnostics(sample):
+        target_id = str(diagnostic.get("target_id") or "").strip()
+        if not target_id or target_id in action_target_ids or target_id in warning_only_targets:
+            continue
+        if normalize_severity(diagnostic.get("severity"), default="warning") in {"warning", "info"}:
+            warning_only_targets.append(target_id)
+
+    if len(actions) > 1:
+        first_target = action_target_ids[0] if action_target_ids else "当前对象"
+        second_target = action_target_ids[1] if len(action_target_ids) > 1 else "另一个对象"
+        if warning_only_targets:
+            built["summary"] = (
+                f"当前更合适的是把 {first_target} 的重连占位与 {second_target} 的局部参数复核拆成两条 candidate_edit，"
+                f"并把 {join_cn_list(warning_only_targets)} 继续保留在 warning 与解释层。"
+            )
+        else:
+            built["summary"] = (
+                f"当前更合适的是把 {first_target} 与 {second_target} 的编辑问题拆成多条局部 candidate_edit，"
+                "避免把不同风险层级的修改混成单一大 patch。"
+            )
+        if answer is not None:
+            answer["text"] = (
+                "这组提案同时混合了高风险连接修复与局部参数复核，因此顶层说明应先列直接诊断，"
+                "再列两个可行动对象，最后再保留 supporting context 与 snapshot。"
+            )
+            answer["citation_ids"] = [
+                str(citation.get("id") or "").strip()
+                for citation in citations
+                if isinstance(citation, dict) and str(citation.get("id") or "").strip()
+            ]
+    elif len(actions) == 1:
+        target_id = action_target_ids[0] if action_target_ids else "当前对象"
+        action = actions[0]
+        patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+        if "connection_placeholder" in patch:
+            built["summary"] = f"当前更合适的是围绕 {target_id} 输出待确认的下游重连占位，并保持人工确认边界。"
+            if answer is not None:
+                answer["text"] = f"{target_id} 当前首先需要解决连接边界，因此更合适的是输出待确认的局部重连候选，而不是直接写回拓扑。"
+        elif "parameter_updates" in patch:
+            built["summary"] = f"当前更合适的是围绕 {target_id} 输出局部参数复核提案，并保持拓扑不变。"
+            if answer is not None:
+                answer["text"] = f"{target_id} 的问题集中在局部参数层，因此更合适的是保留单对象 parameter patch 供人工复核。"
+
+
+def ghost_candidate_by_ref(sample: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    candidates: dict[str, dict[str, Any]] = {}
+    for candidate in list_value(sample_context(sample).get("legal_candidate_completions")):
+        if not isinstance(candidate, dict):
+            continue
+        candidate_ref = str(candidate.get("candidate_ref") or "").strip()
+        if candidate_ref:
+            candidates[candidate_ref] = candidate
+    return candidates
+
+
+def ghost_candidate_downstream_id(candidate: dict[str, Any]) -> str:
+    target_node_id = str(candidate.get("target_node_id") or "").strip()
+    if "." in target_node_id:
+        return target_node_id.split(".", 1)[0].strip()
+    return target_node_id or str(candidate.get("candidate_ref") or "").strip()
+
+
+def apply_ghost_builder_fields(built: dict[str, Any], *, sample: dict[str, Any]) -> None:
+    actions = built.get("proposed_actions") if isinstance(built.get("proposed_actions"), list) else []
+    answers = built.get("answers") if isinstance(built.get("answers"), list) else []
+    answer = answers[0] if answers and isinstance(answers[0], dict) else None
+    candidates_by_ref = ghost_candidate_by_ref(sample)
+    selected_unit_id = str((sample_context(sample).get("selected_unit") or {}).get("id") or "").strip() or str(
+        ((sample_context(sample).get("selected_unit_ids") or [""])[0] or "")
+    ).strip()
+    ambiguous = len(actions) >= 2 and all(
+        isinstance(action, dict) and str(((action.get("preview") or {}).get("accept_key") or "")).strip() == "manual_only"
+        for action in actions
+    )
+    downstream_ids: list[str] = []
+    for index, action in enumerate(actions):
+        if not isinstance(action, dict):
+            continue
+        patch = action.get("patch") if isinstance(action.get("patch"), dict) else {}
+        preview = action.get("preview") if isinstance(action.get("preview"), dict) else {}
+        target = action.get("target") if isinstance(action.get("target"), dict) else {}
+        candidate = candidates_by_ref.get(str(patch.get("candidate_ref") or "").strip(), {})
+        port_key = str(patch.get("target_port_key") or target.get("port_key") or "target_port").strip() or "target_port"
+        downstream_id = ghost_candidate_downstream_id(candidate)
+        if downstream_id:
+            downstream_ids.append(downstream_id)
+        preview["render_priority"] = index + 1
+        accept_key = str(preview.get("accept_key") or "").strip()
+        if accept_key == "Tab":
+            action["title"] = f"补全 {selected_unit_id or '当前单元'} 的 {port_key} ghost 连线"
+            action["rationale"] = "该候选当前已被本地规则层标记为默认高置信 ghost，因此可作为首个建议。"
+            continue
+        action["title"] = f"将 {downstream_id or '下游端口'} 作为 {selected_unit_id or '当前单元'} {port_key} 的可见 ghost 候选"
+        if ambiguous and downstream_id:
+            if index == 0:
+                action["rationale"] = (
+                    f"通往 {downstream_id} 的路径更靠前，但领先幅度不足以成为默认 Tab 建议，因此只保留为手动可选 ghost。"
+                )
+            else:
+                leading_id = downstream_ids[0] if downstream_ids else "首个候选"
+                action["rationale"] = (
+                    f"通往 {downstream_id} 的候选同样合法，且与 {leading_id} 差距不足以被直接排除，因此作为第二条可见 ghost 保留。"
+                )
+        else:
+            action["rationale"] = "该候选当前仍然合法，但不满足默认 Tab 条件，因此仅保留为手动可选 ghost。"
+
+    if not actions:
+        return
+
+    first_action = actions[0] if isinstance(actions[0], dict) else {}
+    first_patch = first_action.get("patch") if isinstance(first_action.get("patch"), dict) else {}
+    first_target = first_action.get("target") if isinstance(first_action.get("target"), dict) else {}
+    port_key = str(first_patch.get("target_port_key") or first_target.get("port_key") or "target_port").strip() or "target_port"
+    stream_name = str(first_patch.get("ghost_stream_name") or "ghost stream").strip() or "ghost stream"
+    if ambiguous:
+        multiple_label = "两个" if len(actions) == 2 else "多个"
+        built["summary"] = (
+            f"{selected_unit_id or '当前单元'} 的 {port_key} 当前存在{multiple_label}接近的可行下游，因此可以显示{multiple_label} ghost 备选，"
+            "但不应默认把其中任何一个绑定到 Tab。"
+        )
+        if answer is not None and len(downstream_ids) >= 2:
+            answer["text"] = (
+                f"{downstream_ids[0]} 和 {downstream_ids[1]} 都是合法下游，但距离与对齐评分非常接近，"
+                "当前证据不足以让某一条候选显著领先，因此只返回可见 ghost 而不默认接受。"
+            )
+    elif str(((first_action.get("preview") or {}).get("accept_key") or "")).strip() == "Tab":
+        built["summary"] = f"{selected_unit_id or '当前单元'} 当前最适合作为默认 ghost 的是 {port_key}，建议先渲染 {stream_name} 的 ghost 占位。"
+        if answer is not None:
+            answer["text"] = f"本地候选集中 {port_key} 当前已被标记为默认高置信候选，因此它应排在第一位。"
+    else:
+        built["summary"] = f"{selected_unit_id or '当前单元'} 当前只存在手动可选的 ghost 候选，因此不应直接绑定默认 Tab。"
+        if answer is not None:
+            answer["text"] = "当前候选仍未形成足够明确的领先者，因此只应返回手动可见 ghost。"
+
+
+def apply_docs_builder_fields(built: dict[str, Any], *, sample: dict[str, Any]) -> None:
+    if str(built.get("status") or "") != "partial":
+        return
+    excerpt = primary_artifact_excerpt(sample)
+    if "未说明" not in excerpt and "只说明" not in excerpt and "仅说明" not in excerpt:
+        return
+    answers = built.get("answers") if isinstance(built.get("answers"), list) else []
+    issues = built.get("issues") if isinstance(built.get("issues"), list) else []
+    answer = answers[0] if answers and isinstance(answers[0], dict) else None
+    issue = issues[0] if issues and isinstance(issues[0], dict) else None
+    citations = built.get("citations") if isinstance(built.get("citations"), list) else []
+    citation_id = str(((citations[0] if citations else {}) or {}).get("id") or "").strip()
+    if "查看任务状态" in excerpt and "重试或删除任务" in excerpt:
+        built["summary"] = "当前文档只说明可以查看 Hangfire 任务状态，不能据此确认谁有权重试或删除任务。"
+        if answer is not None:
+            answer["kind"] = "evidence_limited_answer"
+            answer["text"] = "现有文档只覆盖查看能力，没有给出重试或删除任务的授权口径，因此不能直接下权限结论。"
+            if citation_id:
+                answer["citation_ids"] = [citation_id]
+        if issue is not None:
+            issue["code"] = "INSUFFICIENT_EVIDENCE"
+            issue["message"] = "当前证据不足以确认是否允许重试或删除 Hangfire 任务。"
+            issue["severity"] = "warning"
+            if citation_id:
+                issue["citation_ids"] = [citation_id]
+        return
+    built["summary"] = "当前文档只覆盖已明确写出的规则，不能据此补出未说明的授权或操作边界。"
+    if answer is not None:
+        answer["kind"] = "evidence_limited_answer"
+        answer["text"] = "现有文档只说明了已写出的边界，未提供足以确认该操作权限的正式口径，因此不能直接下结论。"
+        if citation_id:
+            answer["citation_ids"] = [citation_id]
+    if issue is not None:
+        issue["code"] = "INSUFFICIENT_EVIDENCE"
+        issue["message"] = "当前证据不足以确认文档未明确写出的授权或操作边界。"
+        issue["severity"] = "warning"
+        if citation_id:
+            issue["citation_ids"] = [citation_id]
+
+
+def apply_task_grounded_builder_fields(built: dict[str, Any], *, sample: dict[str, Any]) -> None:
+    project = str(sample.get("project") or "")
+    task = str(sample.get("task") or "")
+    if project == "radishflow" and task == "suggest_flowsheet_edits":
+        apply_suggest_edits_builder_fields(built, sample=sample)
+    elif project == "radishflow" and task == "suggest_ghost_completion":
+        apply_ghost_builder_fields(built, sample=sample)
+    elif project == "radish" and task == "answer_docs_question":
+        apply_docs_builder_fields(built, sample=sample)
+
+
 def merge_natural_language_fields(
     built: dict[str, Any],
     candidate: dict[str, Any],
     *,
-    project: str,
-    task: str,
+    sample: dict[str, Any],
 ) -> list[str]:
     merged_paths: list[str] = []
     summary = non_empty_text(candidate.get("summary"))
-    if is_guarded_natural_language_text(summary, project=project, task=task):
+    if should_accept_natural_language_text(summary, sample=sample, path="$.summary"):
         built["summary"] = summary
         merged_paths.append("$.summary")
 
@@ -1732,7 +2289,7 @@ def merge_natural_language_fields(
     built_answers = built.get("answers") if isinstance(built.get("answers"), list) else []
     if candidate_answers and built_answers and isinstance(candidate_answers[0], dict) and isinstance(built_answers[0], dict):
         answer_text = non_empty_text(candidate_answers[0].get("text"))
-        if is_guarded_natural_language_text(answer_text, project=project, task=task):
+        if should_accept_natural_language_text(answer_text, sample=sample, path="$.answers[0].text"):
             built_answers[0]["text"] = answer_text
             merged_paths.append("$.answers[0].text")
 
@@ -1742,7 +2299,7 @@ def merge_natural_language_fields(
         if index >= len(built_issues) or not isinstance(issue, dict) or not isinstance(built_issues[index], dict):
             continue
         issue_message = non_empty_text(issue.get("message"))
-        if is_guarded_natural_language_text(issue_message, project=project, task=task):
+        if should_accept_natural_language_text(issue_message, sample=sample, path=f"$.issues[{index}].message"):
             built_issues[index]["message"] = issue_message
             merged_paths.append(f"$.issues[{index}].message")
 
@@ -1753,7 +2310,7 @@ def merge_natural_language_fields(
             continue
         for field in ("title", "rationale"):
             text = non_empty_text(action.get(field))
-            if is_guarded_natural_language_text(text, project=project, task=task):
+            if should_accept_natural_language_text(text, sample=sample, path=f"$.proposed_actions[{index}].{field}"):
                 built_actions[index][field] = text
                 merged_paths.append(f"$.proposed_actions[{index}].{field}")
 
@@ -1771,6 +2328,7 @@ def build_suggest_edits_response(
 ) -> tuple[dict[str, Any], list[str]]:
     require(is_suggest_edits_sample(sample), "suggest edits response builder only supports radishflow/suggest_flowsheet_edits")
     built = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
+    apply_task_grounded_builder_fields(built, sample=sample)
     paths = [
         "$",
         "$.answers",
@@ -1781,14 +2339,7 @@ def build_suggest_edits_response(
         "$.requires_confirmation",
     ]
     if isinstance(response, dict):
-        paths.extend(
-            merge_natural_language_fields(
-                built,
-                response,
-                project=str(sample["project"]),
-                task=str(sample["task"]),
-            )
-        )
+        paths.extend(merge_natural_language_fields(built, response, sample=sample))
     return built, list(dict.fromkeys(paths))
 
 
@@ -1804,6 +2355,7 @@ def build_task_scoped_response(
         f"task-scoped response builder only supports known eval tasks, got {project}/{task}",
     )
     built = build_response_scaffold(project=project, task=task, sample=sample)
+    apply_task_grounded_builder_fields(built, sample=sample)
     paths = [
         "$",
         "$.answers",
@@ -1815,7 +2367,7 @@ def build_task_scoped_response(
         "$.requires_confirmation",
     ]
     if isinstance(response, dict):
-        paths.extend(merge_natural_language_fields(built, response, project=project, task=task))
+        paths.extend(merge_natural_language_fields(built, response, sample=sample))
     return built, list(dict.fromkeys(paths))
 
 
