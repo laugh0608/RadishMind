@@ -19,8 +19,9 @@
 - `RadishFlow` 的 `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 已具备 committed eval、真实 candidate record、audit、replay 与服务 smoke 基线；当前不再默认扩同类真实 capture。
 - `Radish` 已优先落在 docs QA、文档检索增强和结构化问答评测上；真实上层接入仍等待。
 - `RadishCatalyst` 仍只做文档级预留，不扩真实 schema、adapter 或 gateway smoke。
-- `RadishMind-Core` 当前重点不是训练放量，而是验证 raw、repair、hard-field injection、task-scoped builder、自然语言 audit 和人工 review 的分工边界。
+- `RadishMind-Core` 当前重点不是训练放量，而是先收口 broader task-scoped builder review 的 blocked 样本，并继续验证 raw、repair、hard-field injection、task-scoped builder、自然语言 audit 和人工 review 的分工边界。
 - `RadishMind-Core` broader task-scoped builder review 已完成两段本地执行、审计与 15 条样本人工复核；full-holdout-9 和 holdout6-v2-non-overlap 的 machine gate / offline eval / natural-language audit 均通过，但该记录集当前结论为 `reviewed_changes_required`，仍未进入 `reviewed_pass`。
+- `2026-05-08` 的首要动作是按既定 runbook 重跑 `full-holdout-9` 与 `holdout6-v2-non-overlap` 两段 `--build-task-scoped-response`，读取 `tmp/` 下的 candidate summary、offline eval run 与 natural-language audit 后，再决定 broader review records 是否可更新。
 - 图片生成能力由 `RadishMind-Image Adapter` 与独立 backend 承接；主模型只输出结构化意图、约束、审查和 artifact metadata。
 
 ## 文档约束

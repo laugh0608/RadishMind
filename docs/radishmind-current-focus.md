@@ -17,21 +17,32 @@
 
 当前不启动训练放量，不默认扩同类真实 capture，不把 builder / repaired / injected 轨通过解释成 raw 模型能力晋级。
 
-## 今天优先做什么
+## 当前优先做什么
 
-当前 broader task-scoped builder review 的两段本地执行和 15 条样本人工复核都已经完成。当前结论是该批 records 收口为 `reviewed_changes_required`：5 条样本可接受，10 条样本仍卡在 task-grounded natural-language、citation explanation、evidence-gap wording 与 ambiguity/no-tab ghost explanation；不要把这次 builder 结果写成 raw 晋级或训练准入。
+当前 broader task-scoped builder review 的两段本地执行和 15 条样本人工复核都已经完成。今天已把 10 条 blocked 样本对应的 deterministic builder 收口和回归断言补齐，但 broader review records 仍停留在 `reviewed_changes_required`：5 条样本可接受，10 条样本仍待用新一轮 `tmp/` 产物复核；不要把这次 builder 结果写成 raw 晋级或训练准入。
 
-1. 围绕 10 条 `reviewed_changes_required` broader review 样本收口修复面，重点治理 task-grounded natural-language、citation explanation、evidence-gap wording 与 ambiguity/no-tab ghost explanation。
-2. 把修复后的 blocked 样本按同一 runbook 重跑，并回填 broader review records，确认它们是否能推进到 `reviewed_pass`。
-3. 保持 broader review records 为 `reviewed_changes_required`，在 blocked 样本修复前不写 `reviewed_pass`。
-4. 继续维护 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
+1. `2026-05-08` 先按原 runbook 重跑 `full-holdout-9` 的 `--build-task-scoped-response` broader review 段。
+2. 再重跑 `holdout6-v2-non-overlap` 同一轨段，并继续保持 `--sample-timeout-seconds 300`。
+3. 读取两段新的 `candidate summary / offline eval run / natural-language audit`，重点复核 `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/` 与 `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/` 下产物。
+4. 只有在 blocked 样本的新产物通过人工复核后，才更新 broader review records；在此之前继续保持 `reviewed_changes_required`。
+5. 继续维护 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
-- full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行都已完成，machine gate / offline eval / natural-language audit 均通过；15 条样本人工复核也已完成，但 broader review records 当前结论是 `reviewed_changes_required`，不能把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
-- broader review 的可执行样本面、执行清单和 review records 已经接入仓库级验证；当前重点是围绕 10 条 blocked 样本收口修复，而不是继续设计新的入口。
+- 今天已经补齐 10 条 `reviewed_changes_required` 样本的 deterministic builder 收口与回归断言，但 broader review records 仍对应重跑前的真实 `tmp/` 产物，不能直接手改成 `reviewed_pass`。
+- full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行都已完成，machine gate / offline eval / natural-language audit 均通过；15 条样本人工复核也已完成，但当前下一步必须先重跑两段 broader review，而不是继续设计新的入口。
 - 在 broader review blocked 样本修复并复核通过前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
+
+## 2026-05-08 先看这些产物
+
+- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/summary.json`
+- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json`
+- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-natural-language-audit.json`
+- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/summary.json`
+- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json`
+- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-natural-language-audit.json`
+- `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`
 
 ## 默认不要做
 

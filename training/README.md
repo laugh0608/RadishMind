@@ -1,6 +1,6 @@
 # RadishMind 训练目录
 
-更新时间：2026-05-06
+更新时间：2026-05-07
 
 ## 目录目标
 
@@ -29,12 +29,12 @@
 - `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json` 固定 full-holdout-9 task-scoped builder 的本地执行清单、`tmp/` 产物路径、offline eval 和自然语言 audit 顺序；它只描述计划，不声明结果
 - `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json` 固定 broader task-scoped builder review 的 15 样本 surface、现有证据来源和验证入口；它不运行模型、不生成 JSONL、不声明新的 `reviewed_pass`
 - `training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 固定 broader task-scoped builder review 的两段本地执行清单、`tmp/` 产物路径、offline eval、自然语言 audit 和后续 review record 口径；它只描述计划，不声明结果
-- `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 是 broader 15 样本 review records；当前已写实两段本地 machine gate、offline eval 与 natural-language audit 结论，但在人工逐条复核完成前必须保持 `pending_review`，不得填 reviewer、timestamp 或 `reviewed_pass`
+- `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 是 broader 15 样本 review records；当前已写实两段本地 machine gate、offline eval、natural-language audit 与 15 条人工复核结论，整批状态为 `reviewed_changes_required`，其中 `5` 条 `reviewed_pass`、`10` 条 `reviewed_changes_required`；在按原 runbook 重跑 blocked 样本并复核通过前，不得改写为 `reviewed_pass`
 - `scripts/checks/fixtures/radishmind-core-holdout-probe-candidate-manifest.json` 是当前轻量 holdout 观测入口，从 planned holdout split 中各取 1 条主任务样本；真实本地运行继续使用 raw / repaired 双轨、同一 `300s` timeout、`--allow-invalid-output` 和 `--validate-task`
 - `scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json` 与 `scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json` 分别固定完整 planned holdout 和 6 条非重叠 holdout probe；当前观测结论是 full holdout repaired fix3 与 2026-05-04 v2 repaired 轨都可作为后处理链路证据，但 raw 仍 blocked，因此训练准入不能只看 repaired pass
 - `scripts/check-radishmind-core-task-scoped-builder-review-plan.py` 已接入 `check-repo`，用于固定该 review plan 只保持 planned 状态，不伪造 reviewer、timestamp 或 `reviewed_pass`
 - `scripts/check-radishmind-core-task-scoped-builder-full-holdout-runbook.py` 已接入 `check-repo`，用于固定 full-holdout-9 runbook 的必需参数、样本覆盖、`tmp/` 产物边界和非 raw 晋级口径
-- `scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 已接入 `check-repo`，用于固定 broader review records 的 15 样本覆盖、`tmp/` 产物路径、pending 状态和非 raw / 非训练准入口径
+- `scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 已接入 `check-repo`，用于固定 broader review records 的 15 样本覆盖、`tmp/` 产物路径、批次级 `reviewed_changes_required` / `reviewed_pass` 计数和非 raw / 非训练准入口径
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
 
@@ -106,7 +106,7 @@ python3 scripts/build-copilot-training-samples.py \
 - 优先复用现有 `candidate output -> offline eval` 入口
 - 继续保留 raw / repaired 双轨、同 timeout、`tmp/` artifact 禁入仓
 - 已比较 raw baseline、prompt-time hard-field freeze、`--inject-hard-fields` 硬字段外部注入、`--build-suggest-edits-response` 单任务 builder 与 `--build-task-scoped-response` 组合 builder 轨
-- 2026-05-04 的阶段结论是：hard-field injection 有用但不足，suggest edits 适合 response builder / tooling 分工，task-scoped builder 能消除当前三类 eval task 的结构化阻塞
-- 后续优先扩大 task-scoped builder 样本面，并维护自然语言 merge/fallback guardrail 与 deterministic audit；只有当 builder/tooling 路线在更大样本面或人工复核中不能成立，才把下一步主线推进到 constrained/guided decoding 或 `minimind-v` / `3B` / `4B` 对照
+- 2026-05-07 的阶段结论是：broader 15 样本 review 的 machine gate、offline eval、natural-language audit 和人工复核都已完成，但 records 仍为 `reviewed_changes_required`，不能当作 raw 晋级或训练准入证据
+- 今天已补齐 10 条 blocked 样本的 deterministic builder 收口和回归断言；当前下一步不是继续扩样，而是按既定 runbook 重跑 `full-holdout-9` 与 `holdout6-v2-non-overlap` 两段本地 `--build-task-scoped-response`
 - 当前 task-scoped builder 扩样前复核口径已单独落到 `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json`，后续扩大样本面前必须先满足该 planned review 维度和阻断规则
-- full-holdout-9 的执行准备已落到 `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json`，broader review 的 15 样本入口、两段执行清单和 pending records 骨架分别落到 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`、`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 和 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`；真实本地模型命令仍由开发者在本机终端执行，AI 后续只读取 `tmp/` 下 summary、offline eval、audit 与候选 response 做审计
+- full-holdout-9 的执行准备已落到 `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json`，broader review 的 15 样本入口、两段执行清单和 review records 分别落到 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`、`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 和 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`；下一步先读取 `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/` 与 `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/` 下的 summary、offline eval、audit 与必要 candidate response，再判断 blocked 样本是否可从 `reviewed_changes_required` 推进到 `reviewed_pass`
