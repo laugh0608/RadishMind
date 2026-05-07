@@ -8,7 +8,7 @@
 - 默认使用中文进行讨论、说明、提交总结和规划记录
 - 代码、命令、路径、配置键、类型名、接口名保留原文
 - 新增文档默认使用中文，除非该文件天然要求英文
-- 文档语言应直接说明当前阶段、当前结论、下一步和阻塞项，避免把历史推演、长批次流水或一次性聊天结论堆进入口文档
+- 文档语言应直接说明结论、下一步和阻塞项；阶段事实、推进顺序和停止线统一写入 `docs/`
 
 ## 协作流程
 
@@ -19,12 +19,12 @@
 - 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题
 - 修改规则、架构、协议、目录职责、阶段范围或协作文档时，优先保持与 `docs/` 中现有正式文档一致
 - 文档中提到 `Radish`、`RadishFlow`、`RadishCatalyst` 外部项目时，默认使用项目名和在线仓库 URL，不写开发者本机绝对路径或相对路径；如需读取本地资料，应要求开发者在当次任务临时提供路径，不把该临时路径写入长期文档
-- 每做完一个可分割子步骤，都应进行最小验证；当前阶段的默认验证基线应优先使用当前环境的原生入口：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`，Linux / WSL 用 `./scripts/check-repo.sh`
+- 每做完一个可分割子步骤，都应进行最小验证；仓库级默认验证入口优先使用当前环境的原生入口：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`，Linux / WSL 用 `./scripts/check-repo.sh`
 - 重要阶段性决策除了改代码，还应同步更新对应文档；如果属于本周重要推进，追加到周志
 
 ## 文档真相源
 
-`docs/` 是本仓库的正式文档源，当前优先级最高的文档如下：
+`docs/` 是本仓库的正式文档源，优先级最高的文档如下：
 
 1. `docs/radishmind-current-focus.md`
 2. `docs/radishmind-product-scope.md`
@@ -52,64 +52,30 @@
 - 若某个同类协作文件更新了通用协作规则、执行边界、验证基线或阶段约束，其余同类文件也应尽快同步
 - 同类协作文件只允许保留极少量与入口名称直接相关的表述差异，不应借此分叉实际协作规范
 
-## 快速认知
+## 项目边界与外部引用
 
+- `RadishMind` 是 `Radish` 体系下的外部智能层，不是业务真相源。
+- 面向上层项目只输出解释、诊断、结构化建议和候选动作。
+- 高风险动作必须要求人工确认或规则层复核。
+- 阶段事实、近期重点、推进顺序和停止线统一维护在 `docs/` 中；需要判断当前推进焦点时，先读 `docs/radishmind-current-focus.md`，再按需读 `docs/radishmind-product-scope.md`、`docs/radishmind-roadmap.md`、`docs/radishmind-architecture.md`、`docs/radishmind-integration-contracts.md` 和 `docs/radishmind-code-standards.md`。
+- 优先支持 `RadishFlow`，再逐步扩展到 `Radish`。
+- `RadishCatalyst` 仅保留文档级预留，不在未明确任务前扩真实 schema、adapter、gateway smoke 或模型接线。
+- `RadishMind-Core` 是基座适配型自研主模型，不是从零预训练基础大模型。
+- 图片生成能力默认由独立 `RadishMind-Image Adapter` 与生图 backend 承接，主模型只负责理解、规划、约束、审查和结构化意图输出。
 - 产品定位：`Radish` 体系下的 AI / Copilot / 模型服务独立仓库
-- 当前目标：围绕 `RadishFlow` 与 `Radish` 提供统一的多模态理解、结构化建议、问答与评测能力，并为 `RadishCatalyst` 预留游戏知识、进度解释、生产链规划和开发侧数据一致性检查口子
-- 当前阶段：`M0/M1` 之间，重点是把仓库治理、协议、评测与服务骨架规划清楚
-- 当前工作区：只在当前仓库工作区内工作
+- 工作区：只在本仓库工作区内工作
 - 外部参考默认使用在线仓库：`https://github.com/laugh0608/RadishFlow`、`https://github.com/laugh0608/Radish`、`https://github.com/laugh0608/RadishCatalyst`
 - 如需读取本地外部项目资料，应要求开发者在当次任务临时提供具体路径；该路径只作为临时输入，不写入正式文档
 
-## 当前阶段产品边界
-
-- `RadishMind` 是外部智能层，不是业务真相源
-- 面向上层项目只输出解释、诊断、结构化建议和候选动作
-- 高风险动作必须要求人工确认或规则层复核
-- 优先支持 `RadishFlow`，再逐步扩展到 `Radish`
-- `RadishCatalyst` 当前只做文档级预留，不真实接入，不让模型成为 Godot 运行时、存档、任务、战斗、掉落、配方、公开等级或联机权威
-- 当前不让模型替代 `RadishFlow` 的求解热路径
-- 当前不把模型服务和上层业务控制面混为同一个系统
-- Teacher / Student 模型、工具调用、检索增强和规则校验应保持解耦
-- `RadishMind-Core` 是基座适配型自研主模型，不是从零预训练基础大模型；当前建议 `3B/4B` 起步，长期本地部署上限 `7B`
-- 图片生成能力默认由独立 `RadishMind-Image Adapter` 与生图 backend 承接，主模型只负责理解、规划、约束、审查和结构化意图输出
-
-## 当前阶段优先项
-
-当前阶段先不以模型训练和功能堆叠为最高优先级，而以“地基建设”类工作为最高优先级：
-
-- 仓库规范
-- 代码与文档格式规范
-- 分支与 PR 规则
-- CI 基线
-- 协议与集成边界
-- 数据集与评测规划
-- 服务与目录架构规划
-
-只有当这些基础项达到可持续协作标准后，再恢复更深入的模型训练与服务实现推进。
-
-## 当前分支约定
+## 分支与合并规则
 
 - 当前常态开发分支为 `dev`
 - `master` 仅作为稳定主线
 - 非特殊情况不直接在 `master` 上开发
 - `master` 只通过 Pull Request 合并
-- `master` 当前允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`
-- 当前阶段不要求保护 `dev`
+- `master` 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`
+- 默认不要求保护 `dev`
 - 管理员如需绕过规则，也应通过 PR 合并，而不是直接 push 到 `master`
-
-## 当前推荐开发顺序
-
-按以下顺序推进，不要跳步扩张范围：
-
-1. 仓库治理与协作文档
-2. 统一 `Copilot` 协议
-3. `RadishFlow` 首个 PoC 场景定义
-4. 数据集与评测基线
-5. `minimind-v` 底座适配与 student 路线验证
-6. `Radish` 侧适配与双项目抽象
-7. `RadishCatalyst` 侧预留接入评估
-8. 更完整的服务编排与部署形态
 
 ## 仓库结构速记
 
@@ -128,7 +94,7 @@
 - `prompts/`: 系统提示词、任务模板与评测提示
 - `experiments/`: 原型实验与阶段性结果
 
-当前阶段上述目录不要求一次性全部落地，但应优先保证命名与职责口径稳定。
+上述目录不要求一次性全部落地，但应优先保证命名与职责口径稳定。
 
 ## AI 执行边界
 
@@ -156,36 +122,35 @@
 - 用户执行完成后，AI 负责读取和审计生成在 `tmp/` 下的 `summary.json`、candidate response、prompt、audit 或 offline eval 结果，并据此更新结论、文档和必要提交
 - 若脚本执行卡住、超时、被用户中断或只完成部分样本，AI 应优先检查已有 `tmp/` 产物和终端输出，先判断是模型推理耗时、timeout 机制、单样本失败还是脚本可观测性问题，再决定是否修改脚本或要求用户重跑
 
-### 当前默认不做
+### 默认不做
 
 - 跨工作区编辑 `RadishFlow`、`Radish` 或 `RadishCatalyst` 本地工作区
 - 未经明确要求下载大模型、数据集或权重文件
 - 在没有评测基线前频繁切换底座模型
 - 未经明确要求执行破坏性 Git 操作
 
-### 当前工具异常说明
+### 工具异常说明
 
-- 当前在 Codex Windows 桌面端中，`apply_patch` 对本仓库的 `contracts/` 与 `datasets/` 目录偶发且高频触发沙箱刷新故障
-- 若再次出现 `windows sandbox: setup refresh failed`，优先视为工具层异常，而不是仓库规则或文件内容本身的问题
+- 如遇 `windows sandbox: setup refresh failed`，优先按工具层异常处理
 - 在该异常未修复前，可继续优先对 `docs/`、`scripts/` 和根目录使用 `apply_patch`
 - 若必须修改 `contracts/` 或 `datasets/` 下文件，可退回使用 shell 精准写入，但仍应保持最小改动、LF 行尾和 UTF-8 文本卫生
 
-## 当前验证基线
+## 仓库验证入口
 
-当前阶段以规划与仓库治理为主，验证入口按“当前环境优先”执行：
+验证入口按所在环境优先执行：
 
 1. Windows / PowerShell：`pwsh ./scripts/check-repo.ps1`
 2. Linux / WSL：`./scripts/check-repo.sh`
 
 补充说明：
 
-- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 当前是正式仓库级验证入口，需长期保持双端可用与语义一致
-- 当前仓库主实现栈为 `Python`；评测、回归与仓库级校验统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
-- 当前环境执行验证链路时，应提供可用的 Python 启动器与 `jsonschema`
-- 当前阶段的基线重点是文本文件卫生、治理文件齐备性和 GitHub 规则/工作流口径一致性
-- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并优先执行当前环境对应的仓库级验证入口
+- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致
+- 仓库主实现栈为 `Python`；评测、回归与仓库级校验统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
+- 执行验证链路时，应提供可用的 Python 启动器与 `jsonschema`
+- 基线重点是文本文件卫生、治理文件齐备性和 GitHub 规则/工作流口径一致性
+- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并执行对应仓库级验证入口
 
-## 当前实现约定
+## 实现约定
 
 - 协议优先采用结构化 JSON，不让不同项目各自发散
 - 模型输出默认是建议，不直接写入上层项目真相源
@@ -193,7 +158,7 @@
 - 能规则化或工具化的逻辑，不强行压给模型
 - 训练数据优先从自有项目与可合成样本中生成
 - 优先建立评测，再扩大训练规模
-- `RadishMind-Core` 默认采用“开源基座 + RadishMind 数据 / 协议 / 评测偏好适配”的自研路线，不把 `14B/32B` 作为当前默认自研主模型目标
+- `RadishMind-Core` 默认采用“开源基座 + RadishMind 数据 / 协议 / 评测偏好适配”的自研路线，不把 `14B/32B` 作为默认自研主模型目标
 - 图片输入理解可以进入主模型或视觉适配路线；图片像素生成不应并入主模型参数目标，优先通过独立 adapter / backend 和 artifact 返回链路实现
 - committed 的物理路径只承载稳定短键与必要结构层级，`RadishFlow` 与 `Radish` 都不得重复编码 `collection_batch`、长 sample slug、provider/profile 标签或其它长自然语言语义
 - 需要保留的长语义应回收到 `manifest`、`record`、fixture 或其它结构化元数据中，而不是继续拉长目录名和文件名
@@ -214,11 +179,11 @@
 - `Python` 拆分优先按稳定职责边界收口，例如 `shared / response / provider / checks / eval task`，避免拆成大量编号式或语义含糊的小文件
 - 体量较大的 committed `JSON` 索引或清单，优先采用“主索引 + `.parts/` 分片文件”方式控制单文件尺寸，而不是把长数组持续堆在一个文件里
 - `scripts/` 根目录优先只保留稳定入口、跨平台包装脚本和少量高频直达命令；较长实现、内部 helper 与静态 fixture 应优先放入浅层分类子目录
-- 当前 `scripts/` 目录的推荐浅层分组为：`scripts/checks/`、`scripts/eval/`，后续如需继续扩展，可按项目或任务新增同层级分组，但不建议把层级拉深到三层以上
+- `scripts/` 目录的推荐浅层分组为：`scripts/checks/`、`scripts/eval/`，后续如需继续扩展，可按项目或任务新增同层级分组，但不建议把层级拉深到三层以上
 - 新增脚本时，若只是被其他脚本导入的内部模块，不应再直接堆到 `scripts/` 根目录
 - committed 相对路径默认不得超过 `180` 个字符；若接近该预算，应优先缩短目录语义、提炼短键或把长描述迁回结构化元数据
 - `datasets/eval/candidate-records/radishflow/` 下的 committed 文件路径默认不得超过 `120` 个字符，且根目录只允许保留 `README.md`、`batches/` 与 `dry-run-check/`
-- `datasets/eval/candidate-records/radish/` 当前处于旧布局过渡期，committed 文件路径不得超过 `178` 个字符；新增批次不得继续消耗这 3 个字符的剩余余量，应优先迁到短键布局
+- `datasets/eval/candidate-records/radish/` 新增批次应直接使用短键布局；旧长路径仅保留历史兼容，不继续扩张
 - 设计批次、评测或导出资产目录时，优先固定“短目录 + manifest 元数据”的治理口径，而不是引入更深层级或更长文件名
 
 ## 常见偏航点
@@ -264,11 +229,11 @@ chore(PR): establish branch and pr conventions
 - 每周重要推进应记录到对应周志
 - 周志记录应包含：本周目标、完成情况、关键决策、风险与未完成项、下周建议
 
-## 当前阶段判断标准
+## 判断标准
 
 如果一个改动同时满足以下条件，则方向通常是正确的：
 
 - 边界更清晰
 - 协议、文档和阶段目标三者一致
 - 治理、检查和协作规则更稳定
-- 没有把后续实现复杂度提前压进当前阶段
+- 没有把后续实现复杂度提前压进本次范围
