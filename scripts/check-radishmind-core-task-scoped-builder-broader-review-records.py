@@ -40,6 +40,32 @@ EXPECTED_V2_TRAINING_OVERLAP = {
     "radish-answer-docs-question-docs-faq-forum-conflict-001",
     "radish-answer-docs-question-evidence-gap-001",
 }
+EXPECTED_SEGMENT_SUMMARIES = {
+    "full-holdout-9": {
+        "sample_count": 9,
+        "builder_output_count": 9,
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "timeout_count": 0,
+        "audit_warning_count": 3,
+        "audit_natural_field_count": 42,
+        "audit_merged_natural_field_count": 36,
+        "audit_fallback_natural_field_count": 6,
+        "audit_fallback_natural_field_rate": 0.142857,
+    },
+    "holdout6-v2-non-overlap": {
+        "sample_count": 6,
+        "builder_output_count": 6,
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "timeout_count": 0,
+        "audit_warning_count": 1,
+        "audit_natural_field_count": 32,
+        "audit_merged_natural_field_count": 30,
+        "audit_fallback_natural_field_count": 2,
+        "audit_fallback_natural_field_rate": 0.0625,
+    },
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -69,6 +95,102 @@ def collect_manifest_paths(document: Any) -> set[str]:
 
 def require_tmp_path(path_value: str, *, field_name: str) -> None:
     require(path_value.startswith("tmp/"), f"{field_name} must stay under tmp/: {path_value}")
+
+
+def require_all_result_records_pass(run_document: dict[str, Any], *, segment_id: str) -> None:
+    result_records = run_document.get("result_records")
+    require(isinstance(result_records, list) and result_records, f"{segment_id} offline eval result_records must be present")
+    for record in result_records:
+        require(isinstance(record, dict), f"{segment_id} offline eval result record must be an object")
+        require(record.get("status") == "completed", f"{segment_id} offline eval record must be completed")
+        metric_results = record.get("metric_results")
+        require(isinstance(metric_results, list) and metric_results, f"{segment_id} offline eval metric_results must be present")
+        for metric in metric_results:
+            require(isinstance(metric, dict), f"{segment_id} metric result must be an object")
+            require(metric.get("passed") is True, f"{segment_id} offline eval metric must pass")
+
+
+def validate_segment_artifacts(
+    segment_id: str,
+    artifacts: dict[str, Any],
+    execution_gate: dict[str, Any],
+) -> None:
+    expected = EXPECTED_SEGMENT_SUMMARIES[segment_id]
+    summary_document = load_json(REPO_ROOT / str(artifacts.get("candidate_summary")))
+    require(isinstance(summary_document, dict), f"{segment_id} candidate summary must be an object")
+    require(summary_document.get("sample_count") == expected["sample_count"], f"{segment_id} sample_count mismatch")
+    observation = summary_document.get("observation_summary")
+    require(isinstance(observation, dict), f"{segment_id} observation_summary must be an object")
+    require(observation.get("schema_valid_rate") == expected["schema_valid_rate"], f"{segment_id} schema_valid_rate mismatch")
+    require(observation.get("task_valid_rate") == expected["task_valid_rate"], f"{segment_id} task_valid_rate mismatch")
+    generation = observation.get("generation_summary")
+    require(isinstance(generation, dict), f"{segment_id} generation_summary must be an object")
+    require(generation.get("timeout_count") == expected["timeout_count"], f"{segment_id} timeout_count mismatch")
+    postprocess = summary_document.get("postprocess_policy")
+    require(isinstance(postprocess, dict), f"{segment_id} postprocess_policy must be an object")
+    require(postprocess.get("build_task_scoped_response") is True, f"{segment_id} build_task_scoped_response must be true")
+    require(postprocess.get("builder_output_count") == expected["builder_output_count"], f"{segment_id} builder_output_count mismatch")
+
+    run_document = load_json(REPO_ROOT / str(artifacts.get("offline_eval_run")))
+    require(isinstance(run_document, dict), f"{segment_id} offline eval run must be an object")
+    execution = run_document.get("execution")
+    require(isinstance(execution, dict), f"{segment_id} execution must be an object")
+    require(execution.get("run_status") == "completed", f"{segment_id} offline eval run_status mismatch")
+    decision = run_document.get("decision")
+    require(isinstance(decision, dict), f"{segment_id} decision must be an object")
+    require(decision.get("promotion_status") == "no_promotion_planned", f"{segment_id} promotion_status mismatch")
+    require_all_result_records_pass(run_document, segment_id=segment_id)
+
+    audit_document = load_json(REPO_ROOT / str(artifacts.get("natural_language_audit")))
+    require(isinstance(audit_document, dict), f"{segment_id} natural-language audit must be an object")
+    audit_summary = audit_document.get("summary")
+    require(isinstance(audit_summary, dict), f"{segment_id} audit summary must be an object")
+    require(audit_summary.get("status") == "pass", f"{segment_id} audit status mismatch")
+    require(audit_summary.get("violation_count") == 0, f"{segment_id} audit violation_count mismatch")
+    require(audit_summary.get("warning_count") == expected["audit_warning_count"], f"{segment_id} audit warning_count mismatch")
+    require(
+        audit_summary.get("natural_field_count") == expected["audit_natural_field_count"],
+        f"{segment_id} audit natural_field_count mismatch",
+    )
+    require(
+        audit_summary.get("merged_natural_field_count") == expected["audit_merged_natural_field_count"],
+        f"{segment_id} audit merged_natural_field_count mismatch",
+    )
+    require(
+        audit_summary.get("fallback_natural_field_count") == expected["audit_fallback_natural_field_count"],
+        f"{segment_id} audit fallback_natural_field_count mismatch",
+    )
+    require(
+        audit_summary.get("fallback_natural_field_rate") == expected["audit_fallback_natural_field_rate"],
+        f"{segment_id} audit fallback_natural_field_rate mismatch",
+    )
+
+    segments = execution_gate.get("segments")
+    require(isinstance(segments, dict), "execution_gate_summary.segments must be an object")
+    segment_summary = segments.get(segment_id)
+    require(isinstance(segment_summary, dict), f"execution_gate_summary.segments.{segment_id} must be an object")
+    machine_gate_summary = segment_summary.get("machine_gate_summary")
+    require(isinstance(machine_gate_summary, dict), f"{segment_id} machine_gate_summary must be an object")
+    require(machine_gate_summary.get("schema_valid_rate") == expected["schema_valid_rate"], f"{segment_id} machine gate schema_valid_rate mismatch")
+    require(machine_gate_summary.get("task_valid_rate") == expected["task_valid_rate"], f"{segment_id} machine gate task_valid_rate mismatch")
+    require(machine_gate_summary.get("builder_output_count") == expected["builder_output_count"], f"{segment_id} machine gate builder_output_count mismatch")
+    require(machine_gate_summary.get("timeout_count") == expected["timeout_count"], f"{segment_id} machine gate timeout_count mismatch")
+
+    offline_eval_summary = segment_summary.get("offline_eval_summary")
+    require(isinstance(offline_eval_summary, dict), f"{segment_id} offline_eval_summary must be an object")
+    require(offline_eval_summary.get("run_status") == "completed", f"{segment_id} offline eval summary run_status mismatch")
+    require(
+        offline_eval_summary.get("promotion_status") == "no_promotion_planned",
+        f"{segment_id} offline eval summary promotion_status mismatch",
+    )
+    require(
+        offline_eval_summary.get("all_result_records_passed") is True,
+        f"{segment_id} offline eval summary must record all_result_records_passed",
+    )
+
+    audit_summary_record = segment_summary.get("natural_language_audit_summary")
+    require(isinstance(audit_summary_record, dict), f"{segment_id} natural_language_audit_summary must be an object")
+    require(audit_summary_record == audit_summary, f"{segment_id} audit summary must match recorded summary")
 
 
 def expected_sample_sets(entry: dict[str, Any]) -> dict[str, str]:
@@ -131,16 +253,26 @@ def main() -> int:
         for key, value in artifacts.items():
             require_tmp_path(str(value or ""), field_name=f"source_artifacts.{segment_id}.{key}")
 
-    pending_gate = document.get("pending_gate_summary")
-    require(isinstance(pending_gate, dict), "pending_gate_summary must be an object")
-    for key in ("machine_gate_status", "natural_language_audit_status"):
-        require(str(pending_gate.get(key) or "").startswith("pending_"), f"{key} must remain pending")
-    overlap_policy = str(pending_gate.get("training_manifest_overlap_policy") or "")
+    execution_gate = document.get("execution_gate_summary")
+    require(isinstance(execution_gate, dict), "execution_gate_summary must be an object")
+    require(
+        execution_gate.get("machine_gate_status") == "passed_pending_human_review",
+        "machine_gate_status must record passed_pending_human_review",
+    )
+    require(
+        execution_gate.get("natural_language_audit_status") == "passed_pending_human_review",
+        "natural_language_audit_status must record passed_pending_human_review",
+    )
+    require(execution_gate.get("human_review_status") == "pending_review", "human_review_status must remain pending_review")
+    require(execution_gate.get("holdout_leakage_status") == "pending_review", "holdout_leakage_status must remain pending_review")
+    overlap_policy = str(execution_gate.get("training_manifest_overlap_policy") or "")
     require("full-holdout-9 must remain excluded" in overlap_policy, "overlap policy must protect full-holdout")
     require("holdout6-v2-non-overlap is retained as a regression surface" in overlap_policy, "overlap policy must scope v2")
     require("must not mark training acceptance" in overlap_policy, "overlap policy must reject training acceptance")
-    completion_rule = str(pending_gate.get("completion_rule") or "")
+    completion_rule = str(execution_gate.get("completion_rule") or "")
     require("reviewed_pass" in completion_rule and "both execution segments" in completion_rule, "completion rule mismatch")
+    for segment_id in SEGMENT_OUTPUT_DIRS:
+        validate_segment_artifacts(segment_id, source_artifacts[segment_id], execution_gate)
 
     records = document.get("records")
     require(isinstance(records, list) and len(records) == 15, "records must contain 15 pending records")
@@ -211,7 +343,8 @@ def main() -> int:
     require(batch.get("reviewed_pass_count") == 0, "batch pass count must remain zero")
     require(batch.get("reviewed_changes_required_count") == 0, "batch changes-required count must remain zero")
     decision = str(batch.get("decision") or "")
-    require("pending review surface only" in decision, "batch decision must state pending-only scope")
+    require("completed machine gate" in decision, "batch decision must mention completed machine gate evidence")
+    require("pending review surface" in decision, "batch decision must preserve pending review scope")
     require("raw promotion" in decision and "training acceptance" in decision, "batch decision must reject promotion/acceptance")
 
     print("radishmind core task-scoped builder broader review records check passed.")

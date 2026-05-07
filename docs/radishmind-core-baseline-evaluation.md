@@ -24,9 +24,9 @@
 
 同日补充 broader review runbook：`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 将 15 样本 surface 拆成 full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行清单，并明确两段各自的 candidate summary、offline eval、natural-language audit 和后续 human review record 期望。`scripts/check-radishmind-core-task-scoped-builder-broader-review-runbook.py` 负责固定该 runbook 只描述计划，不生成结果，也不提前把 broader review 伪装成 reviewed_pass。
 
-同日再补 pending review records 骨架：`training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 预置 broader 15 样本逐条复核入口和 `tmp/` artifact 路径，但状态保持 `pending_review`。`scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 会阻止该骨架在真实两段本地执行、offline eval、natural-language audit 和人工复核完成前被标成 `reviewed_pass`。
+同日再补 pending review records 骨架：`training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 预置 broader 15 样本逐条复核入口和 `tmp/` artifact 路径，但状态保持 `pending_review`。`scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 会阻止该记录集在真实两段本地执行、offline eval、natural-language audit 和人工复核完成前被标成 `reviewed_pass`。
 
-2026-05-07 已按 runbook 完成两段 broader review 本地执行：full-holdout-9 与 holdout6-v2-non-overlap 的 candidate summary 均达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`，offline eval 与 natural-language audit 均为 pass；full-holdout-9 仅保留 3 条 docs QA short-title warning，v2 仅保留 1 条 warning，均无 violation。由于 broader review records 仍按治理要求保持 `pending_review`，这批产物只能作为 tooling-route evidence，不应写成 `reviewed_pass`、raw 晋级或训练准入证据。
+2026-05-07 已按 runbook 完成两段 broader review 本地执行：full-holdout-9 与 holdout6-v2-non-overlap 的 candidate summary 均达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`，offline eval 与 natural-language audit 均为 pass；full-holdout-9 仅保留 3 条 docs QA short-title warning，v2 仅保留 1 条 warning，均无 violation。当前 broader review records 已把这两段 machine gate、offline eval 与 natural-language audit 的真实结论写实到批次级 summary，但由于样本级人工复核仍未完成，记录集继续保持 `pending_review`；这批产物只能作为 tooling-route evidence，不应写成 `reviewed_pass`、raw 晋级或训练准入证据。
 
 ## 评估对象
 

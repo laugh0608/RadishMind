@@ -19,16 +19,17 @@
 
 ## 今天优先做什么
 
-当前 broader task-scoped builder review 的两段本地执行已经完成，full-holdout-9 与 holdout6-v2-non-overlap 的 summary、offline eval 和 natural-language audit 也都已读完。今天的收口工作是整理这批真实产物的审计结论，并保持 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 为 `pending_review`，等人工复核后再考虑状态变化；不要把这次 builder 结果写成 raw 晋级或训练准入。
+当前 broader task-scoped builder review 的两段本地执行已经完成，full-holdout-9 与 holdout6-v2-non-overlap 的 summary、offline eval 和 natural-language audit 也都已读完。今天的收口工作是把这批真实 machine gate / offline eval / natural-language audit 结论固化进 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`，并继续保持该记录集为 `pending_review`，随后进入 15 条样本的逐条人工复核；不要把这次 builder 结果写成 raw 晋级或训练准入。
 
-1. 收口两段 `tmp/` 产物的 machine gate、offline eval 和 natural-language audit 结论。
-2. 保持 broader review records 为 `pending_review`，不提前写 `reviewed_pass`。
-3. 继续维护 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
+1. 把两段 `tmp/` 产物的 machine gate、offline eval 和 natural-language audit 结论写实到 broader review records。
+2. 启动 15 条样本的逐条人工复核，优先覆盖 citation explanation、factual sufficiency、fallback acceptability 和 risk/advisory boundary。
+3. 保持 broader review records 为 `pending_review`，不提前写 `reviewed_pass`。
+4. 继续维护 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
-- full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行都已完成，machine gate / natural-language audit 均通过；broader review records 仍保持 `pending_review`，因此不能把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
+- full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行都已完成，machine gate / offline eval / natural-language audit 均通过；当前缺口已经从“是否完成本地执行”收口为“15 条样本是否逐条人工复核完成”，因此 broader review records 仍保持 `pending_review`，不能把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 - broader review 的可执行样本面、执行清单和 pending review records 已经接入仓库级验证；当前重点是收口 evidence，而不是继续设计新的入口。
 - 在 broader review 真实产物和人工复核完成前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 

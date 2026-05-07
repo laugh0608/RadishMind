@@ -28,11 +28,57 @@
       "natural_language_audit": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-natural-language-audit.json"
     }
   },
-  "pending_gate_summary": {
-    "machine_gate_status": "pending_local_execution",
-    "natural_language_audit_status": "pending_local_execution",
+  "execution_gate_summary": {
+    "machine_gate_status": "passed_pending_human_review",
+    "natural_language_audit_status": "passed_pending_human_review",
     "human_review_status": "pending_review",
     "holdout_leakage_status": "pending_review",
+    "segments": {
+      "full-holdout-9": {
+        "machine_gate_summary": {
+          "schema_valid_rate": 1.0,
+          "task_valid_rate": 1.0,
+          "builder_output_count": 9,
+          "timeout_count": 0
+        },
+        "offline_eval_summary": {
+          "run_status": "completed",
+          "promotion_status": "no_promotion_planned",
+          "all_result_records_passed": true
+        },
+        "natural_language_audit_summary": {
+          "status": "pass",
+          "violation_count": 0,
+          "warning_count": 3,
+          "natural_field_count": 42,
+          "merged_natural_field_count": 36,
+          "fallback_natural_field_count": 6,
+          "fallback_natural_field_rate": 0.142857
+        }
+      },
+      "holdout6-v2-non-overlap": {
+        "machine_gate_summary": {
+          "schema_valid_rate": 1.0,
+          "task_valid_rate": 1.0,
+          "builder_output_count": 6,
+          "timeout_count": 0
+        },
+        "offline_eval_summary": {
+          "run_status": "completed",
+          "promotion_status": "no_promotion_planned",
+          "all_result_records_passed": true
+        },
+        "natural_language_audit_summary": {
+          "status": "pass",
+          "violation_count": 0,
+          "warning_count": 1,
+          "natural_field_count": 32,
+          "merged_natural_field_count": 30,
+          "fallback_natural_field_count": 2,
+          "fallback_natural_field_rate": 0.0625
+        }
+      }
+    },
     "training_manifest_overlap_policy": "full-holdout-9 must remain excluded from the current training conversion manifests; holdout6-v2-non-overlap is retained as a regression surface and may include existing training conversion samples, but broader review still must not mark training acceptance.",
     "completion_rule": "Do not change this broader record set to reviewed_pass until both execution segments pass machine gate and natural-language audit, every sample has reviewer, reviewed_at, per-dimension results, and holdout leakage remains reviewed_pass."
   },
@@ -42,7 +88,7 @@
     "reviewed_pass_count": 0,
     "reviewed_changes_required_count": 0,
     "blocking_change_required_samples": [],
-    "decision": "Broader task-scoped builder review records are initialized as a pending review surface only. They do not claim machine pass, human pass, raw promotion, training acceptance, or production contract acceptance."
+    "decision": "Broader task-scoped builder review records now capture completed machine gate, offline eval, and natural-language audit evidence for both execution segments, but the batch remains a pending review surface until every sample is manually reviewed. They do not claim human pass, raw promotion, training acceptance, or production contract acceptance."
   },
   "records": [
     {

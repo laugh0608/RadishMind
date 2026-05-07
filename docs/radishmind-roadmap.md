@@ -13,7 +13,7 @@
 近期实际推进集中在 `M3/M4`：
 
 - `M3`：把已有 gateway、service smoke、UI consumption 与 candidate handoff 保持为服务/API 接入验收门禁。
-- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped builder、natural-language audit、human review records 和 broader review 执行；broader 15 样本两段本地执行已完成，full-holdout-9 与 holdout6-v2-non-overlap 的 machine gate / natural-language audit 均通过，但 records 仍保持 `pending_review`。
+- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped builder、natural-language audit、human review records 和 broader review 执行；broader 15 样本两段本地执行已完成，full-holdout-9 与 holdout6-v2-non-overlap 的 machine gate / offline eval / natural-language audit 均通过，但 records 仍保持 `pending_review`。
 - 当前不启动训练放量，不继续默认扩同类真实 capture，不把 builder 轨通过解释成 raw 模型能力晋级。
 
 ## 阶段
@@ -46,7 +46,7 @@
 
 目标：明确 `RadishMind-Core` 的基座适配、结构化输出、response builder / tooling 分工和评测晋级标准。
 
-状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 pending review records 骨架已接入仓库级验证，且两段本地执行现已完成。当前下一步是收口两段真实 `tmp/` 产物与人工复核边界，而不是继续扩样或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照。
+状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 pending review records 已接入仓库级验证，且两段本地执行现已完成并写实到 records。当前下一步是做 15 条样本的逐条人工复核，而不是继续扩样或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照。
 
 ### M5：`Radish` 首批任务接入
 
@@ -68,7 +68,7 @@
 
 ## 下一步
 
-1. 收口 broader review records 口径：两段本地执行已完成，candidate summary、offline eval 和 natural-language audit 都已通过，但 records 仍保持 `pending_review`，等待人工复核后再考虑状态变化。
+1. 推进 broader review 的 15 条逐条人工复核：两段本地执行、candidate summary、offline eval 和 natural-language audit 都已通过并写实到 records，但 records 仍保持 `pending_review`，等待样本级人工结论后再考虑状态变化。
 2. 继续维护服务/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 3. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
 4. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。
