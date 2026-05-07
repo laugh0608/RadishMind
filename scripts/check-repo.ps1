@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [switch]$SkipTextFiles
+    [switch]$SkipTextFiles,
+    [switch]$Fast
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,6 +33,10 @@ $arguments += $scriptPath
 
 if ($SkipTextFiles) {
     $arguments += "--skip-text-files"
+}
+
+if ($Fast) {
+    $arguments += "--fast"
 }
 
 & $pythonLauncher @arguments

@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-05-06
+更新时间：2026-05-07
 
 ## 文档目的
 
@@ -18,13 +18,15 @@
 
 2026-05-06 已完成 citation-tightened full-holdout-9 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 复跑：candidate summary 重新达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三组任务 blocking metrics 全部通过，自然语言 audit 为 `pass`、`violation_count=0`、`warning_count=3`、`fallback_natural_field_rate=0.142857`。正式 review records 已更新为 9/9 `reviewed_pass`；docs QA 三条短 action title warning、task-specific fallback text、risk/advisory boundary 与 holdout leakage 均已复核通过，`compressor-parameter-update` 的 broad citation blocker 也已关闭。当前这只恢复 builder/tooling 轨机器与人工复核通过状态，不代表 raw 晋级、训练准入或 production contract 接受证据。
 
-同一轮人工复核已确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document` citation，而是收口到 indexed diagnostics、unit config 与 latest snapshot evidence；deterministic scaffold 也已覆盖这条边界。这个修正只说明 fixture/scaffold 与人工复核口径已收紧，不追认旧本地产物为 raw 晋级证据。broader task-scoped builder review 的 15 样本 entry、两段 runbook 和 pending records 骨架已经固定；下一步应按 runbook 执行两段本地 broader review 并审计 `tmp/` 产物，而不是继续等待 citation.tightened 重跑或提前写 `reviewed_pass`。
+同一轮人工复核已确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document` citation，而是收口到 indexed diagnostics、unit config 与 latest snapshot evidence；deterministic scaffold 也已覆盖这条边界。这个修正只说明 fixture/scaffold 与人工复核口径已收紧，不追认旧本地产物为 raw 晋级证据。broader task-scoped builder review 的 15 样本 entry、两段 runbook 和 pending records 骨架已经固定；2026-05-07 已按 runbook 完成两段本地 broader review 并审计 `tmp/` 产物，但 records 仍保持 `pending_review`，不能提前写 `reviewed_pass`。
 
 2026-05-06 已将 broader task-scoped builder review 的可执行样本面固定为 15 条：`full-holdout-9` 的 9 条 reviewed_pass 样本，加上 `holdout6-v2-non-overlap` 的 6 条非重叠回归样本，三类任务各 5 条。该入口落在 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`，并由 `scripts/check-radishmind-core-task-scoped-builder-broader-review-entry.py` 接入仓库级验证；它只收口下一轮 broader review 的执行面，不代表 raw 晋级、训练准入或 production contract 接受证据。
 
 同日补充 broader review runbook：`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 将 15 样本 surface 拆成 full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行清单，并明确两段各自的 candidate summary、offline eval、natural-language audit 和后续 human review record 期望。`scripts/check-radishmind-core-task-scoped-builder-broader-review-runbook.py` 负责固定该 runbook 只描述计划，不生成结果，也不提前把 broader review 伪装成 reviewed_pass。
 
 同日再补 pending review records 骨架：`training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 预置 broader 15 样本逐条复核入口和 `tmp/` artifact 路径，但状态保持 `pending_review`。`scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 会阻止该骨架在真实两段本地执行、offline eval、natural-language audit 和人工复核完成前被标成 `reviewed_pass`。
+
+2026-05-07 已按 runbook 完成两段 broader review 本地执行：full-holdout-9 与 holdout6-v2-non-overlap 的 candidate summary 均达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`，offline eval 与 natural-language audit 均为 pass；full-holdout-9 仅保留 3 条 docs QA short-title warning，v2 仅保留 1 条 warning，均无 violation。由于 broader review records 仍按治理要求保持 `pending_review`，这批产物只能作为 tooling-route evidence，不应写成 `reviewed_pass`、raw 晋级或训练准入证据。
 
 ## 评估对象
 

@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-05-06
+更新时间：2026-05-07
 
 ## 阅读原则
 
@@ -20,7 +20,7 @@
 - `Radish` 已优先落在 docs QA、文档检索增强和结构化问答评测上；真实上层接入仍等待。
 - `RadishCatalyst` 仍只做文档级预留，不扩真实 schema、adapter 或 gateway smoke。
 - `RadishMind-Core` 当前重点不是训练放量，而是验证 raw、repair、hard-field injection、task-scoped builder、自然语言 audit 和人工 review 的分工边界。
-- `RadishMind-Core` broader task-scoped builder review 已固定 15 样本 entry、两段本地 runbook 和 pending records 骨架；下一步等待本地 `tmp/` 产物审计，不提前标记 `reviewed_pass`。
+- `RadishMind-Core` broader task-scoped builder review 已完成两段本地执行与审计；full-holdout-9 和 holdout6-v2-non-overlap 的 machine gate / natural-language audit 均通过，但 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 仍保持 `pending_review`，未进入 `reviewed_pass`。
 - 图片生成能力由 `RadishMind-Image Adapter` 与独立 backend 承接；主模型只输出结构化意图、约束、审查和 artifact metadata。
 
 ## 文档约束

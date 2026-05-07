@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-06
+更新时间：2026-05-07
 
 ## 文档目的
 
@@ -19,17 +19,17 @@
 
 ## 今天优先做什么
 
-当前 `citation tightened full-holdout-9` 已经完成并收口，broader task-scoped builder review 的 15 样本 entry、两段 runbook 和 pending records 骨架也已固定。下一步优先任务是执行 broader review，而不是继续补入口文档：
+当前 broader task-scoped builder review 的两段本地执行已经完成，full-holdout-9 与 holdout6-v2-non-overlap 的 summary、offline eval 和 natural-language audit 也都已读完。今天的收口工作是整理这批真实产物的审计结论，并保持 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 为 `pending_review`，等人工复核后再考虑状态变化；不要把这次 builder 结果写成 raw 晋级或训练准入。
 
-1. 由开发者在本机终端按 `training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 分别执行 `full-holdout-9` 与 `holdout6-v2-non-overlap` 两段 `local_transformers --build-task-scoped-response`。
-2. 执行完成后，AI 读取两段 `tmp/` 下的 candidate summary、offline eval run、natural-language audit 和必要 candidate responses。
-3. 根据真实产物审计并更新 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`，继续维持 raw / repaired / builder / audit 分离，不把 builder 结论写成 raw 晋级或训练准入。
+1. 收口两段 `tmp/` 产物的 machine gate、offline eval 和 natural-language audit 结论。
+2. 保持 broader review records 为 `pending_review`，不提前写 `reviewed_pass`。
+3. 继续维护 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
-- full-holdout-9 的机器门禁、deterministic audit 和 human review 现在都已通过，broad citation blocker 已收口。
-- broader review 的可执行样本面、执行清单和 pending review records 已经接入仓库级验证；当前不再设计新的入口，而是等待真实两段本地执行产物。
+- full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行都已完成，machine gate / natural-language audit 均通过；broader review records 仍保持 `pending_review`，因此不能把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
+- broader review 的可执行样本面、执行清单和 pending review records 已经接入仓库级验证；当前重点是收口 evidence，而不是继续设计新的入口。
 - 在 broader review 真实产物和人工复核完成前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 默认不要做
