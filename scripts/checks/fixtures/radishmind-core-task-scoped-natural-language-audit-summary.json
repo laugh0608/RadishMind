@@ -18,9 +18,9 @@
     "violation_count": 0,
     "warning_count": 0,
     "natural_field_count": 32,
-    "merged_natural_field_count": 30,
-    "fallback_natural_field_count": 2,
-    "fallback_natural_field_rate": 0.0625
+    "merged_natural_field_count": 27,
+    "fallback_natural_field_count": 5,
+    "fallback_natural_field_rate": 0.15625
   },
   "cases": [
     {
@@ -28,8 +28,8 @@
       "project": "radishflow",
       "task": "suggest_flowsheet_edits",
       "natural_field_count": 10,
-      "merged_natural_field_count": 10,
-      "fallback_natural_field_count": 0,
+      "merged_natural_field_count": 8,
+      "fallback_natural_field_count": 2,
       "merged_paths": [
         "$.summary",
         "$.answers[0].text",
@@ -38,11 +38,12 @@
         "$.issues[2].message",
         "$.issues[3].message",
         "$.proposed_actions[0].title",
+        "$.proposed_actions[1].title"
+      ],
+      "fallback_paths": [
         "$.proposed_actions[0].rationale",
-        "$.proposed_actions[1].title",
         "$.proposed_actions[1].rationale"
       ],
-      "fallback_paths": [],
       "violations": [],
       "warnings": [],
       "status": "pass"
@@ -52,16 +53,17 @@
       "project": "radishflow",
       "task": "suggest_flowsheet_edits",
       "natural_field_count": 5,
-      "merged_natural_field_count": 5,
-      "fallback_natural_field_count": 0,
+      "merged_natural_field_count": 4,
+      "fallback_natural_field_count": 1,
       "merged_paths": [
         "$.summary",
         "$.answers[0].text",
         "$.issues[0].message",
-        "$.proposed_actions[0].title",
+        "$.proposed_actions[0].title"
+      ],
+      "fallback_paths": [
         "$.proposed_actions[0].rationale"
       ],
-      "fallback_paths": [],
       "violations": [],
       "warnings": [],
       "status": "pass"

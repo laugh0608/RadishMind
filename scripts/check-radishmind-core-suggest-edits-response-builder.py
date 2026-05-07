@@ -129,22 +129,27 @@ def main() -> int:
         sample=efficiency_range,
     )
     assert_valid_response(runner, efficiency_range, built_efficiency)
-    require(built_efficiency["summary"] == "raw model summary about pump efficiency", "builder must preserve raw summary")
     require(
-        built_efficiency["answers"][0]["text"] == "raw model rationale text",
-        "builder must preserve raw answer text while rebuilding answer citations",
+        built_efficiency["summary"] == "当前更合适的是围绕 pump-3 输出局部效率复核提案，并保持 suggested_range 继续按下界到上界的顺序表达。",
+        "builder must keep efficiency summary task-grounded instead of preserving misleading raw summary",
     )
     require(
-        built_efficiency["issues"][0]["message"] == "raw model issue message",
-        "builder must preserve raw issue message while rebuilding issue code/severity/citations",
+        built_efficiency["answers"][0]["text"]
+        == "pump-3 的 efficiency_percent 当前已超出建议运行区间，因此更合适的是保留单对象参数 patch；同时 suggested_range 应继续保持 65 到 82 这种下界在前、上界在后的可审查表达。",
+        "builder must keep efficiency answer task-grounded while rebuilding answer citations",
     )
     require(
-        built_efficiency["proposed_actions"][0]["title"] == "raw model title",
-        "builder must preserve raw action title",
+        built_efficiency["issues"][0]["message"] == "pump-3 的 efficiency_percent=109 超出了当前建议运行区间。",
+        "builder must keep efficiency issue message task-grounded while rebuilding code/severity/citations",
     )
     require(
-        built_efficiency["proposed_actions"][0]["rationale"] == "raw model action rationale",
-        "builder must preserve raw action rationale",
+        built_efficiency["proposed_actions"][0]["title"] == "复核 pump-3 的效率建议区间",
+        "builder must keep efficiency action title task-grounded",
+    )
+    require(
+        built_efficiency["proposed_actions"][0]["rationale"]
+        == "pump-3 的效率参数当前仍需要局部复核，因此更合适的是保留带 suggested_range 的单对象参数 patch 供人工审查。",
+        "builder must keep efficiency action rationale task-grounded",
     )
     require(built_efficiency["confidence"] == 0.42, "builder must preserve bounded raw confidence")
     require(
@@ -164,8 +169,13 @@ def main() -> int:
         },
         "builder must rebuild the stable parameter update patch",
     )
-    require("$.answers[0].text" in efficiency_paths, "builder must report preserved answer text")
-    require("$.proposed_actions[0].title" in efficiency_paths, "builder must report preserved action title")
+    require(
+        [citation.get("id") for citation in built_efficiency["citations"]] == ["diag-1", "flowdoc-unit-1", "snapshot-1"],
+        "builder must keep efficiency citations aligned with diagnostic, unit, and snapshot evidence",
+    )
+    require("$.summary" not in efficiency_paths, "builder must reject misleading raw efficiency summary merge")
+    require("$.answers[0].text" not in efficiency_paths, "builder must reject misleading raw efficiency answer merge")
+    require("$.proposed_actions[0].title" not in efficiency_paths, "builder must reject misleading raw efficiency action title")
 
     print("radishmind core suggest edits response builder check passed.")
     return 0
