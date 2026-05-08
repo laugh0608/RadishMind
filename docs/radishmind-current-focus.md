@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-07
+更新时间：2026-05-08
 
 ## 文档目的
 
@@ -19,22 +19,21 @@
 
 ## 当前优先做什么
 
-当前 broader task-scoped builder review 的两段本地执行和 15 条样本人工复核都已经完成。今天已把 10 条 blocked 样本对应的 deterministic builder 收口和回归断言补齐，但 broader review records 仍停留在 `reviewed_changes_required`：5 条样本可接受，10 条样本仍待用新一轮 `tmp/` 产物复核；不要把这次 builder 结果写成 raw 晋级或训练准入。
+当前 broader task-scoped builder review 的两段本地执行、6 份 `tmp/` 产物读取和 15 条样本人工复核都已经完成，records 现已更新为 15/15 `reviewed_pass`。这说明 task-scoped response builder / tooling 分工在 broader 15 样本面上已经有稳定 tooling-route evidence；但仍不要把这次 builder 结果写成 raw 晋级或训练准入。
 
-1. `2026-05-08` 先按原 runbook 重跑 `full-holdout-9` 的 `--build-task-scoped-response` broader review 段。
-2. 再重跑 `holdout6-v2-non-overlap` 同一轨段，并继续保持 `--sample-timeout-seconds 300`。
-3. 读取两段新的 `candidate summary / offline eval run / natural-language audit`，重点复核 `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/` 与 `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/` 下产物。
-4. 只有在 blocked 样本的新产物通过人工复核后，才更新 broader review records；在此之前继续保持 `reviewed_changes_required`。
-5. 继续维护 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
+1. 继续维护 `M3` 的 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
+2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据，而不是继续补同一批 blocked 样本。
+3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，整理是否进入下一轮更大样本面、constrained/guided decoding，或 `3B/4B` 对照。
+4. 若没有新的非重复 drift 假设，不继续扩 `RadishFlow` 同类真实 capture。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
-- 今天已经补齐 10 条 `reviewed_changes_required` 样本的 deterministic builder 收口与回归断言，但 broader review records 仍对应重跑前的真实 `tmp/` 产物，不能直接手改成 `reviewed_pass`。
-- full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行都已完成，machine gate / offline eval / natural-language audit 均通过；15 条样本人工复核也已完成，但当前下一步必须先重跑两段 broader review，而不是继续设计新的入口。
-- 在 broader review blocked 样本修复并复核通过前，仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
+- broader 15 样本现在已经完成 machine gate、offline eval、natural-language audit 和人工复核，且当前 records 为 15/15 `reviewed_pass`；这意味着继续停留在“重跑同一批 broader review”已不再是最高价值动作。
+- 当前更高价值的是利用这批 broader `reviewed_pass` 结果稳定路线口径，并继续维护服务/API 门禁，而不是重新回到同一批 blocked 样本修复循环。
+- 即便 broader review 已通过，也仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
-## 2026-05-08 先看这些产物
+## 2026-05-08 已确认这些产物
 
 - `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/summary.json`
 - `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json`
