@@ -36,7 +36,7 @@
 - `scripts/check-radishmind-core-task-scoped-builder-review-plan.py` 已接入 `check-repo`，用于固定该 review plan 只保持 planned 状态，不伪造 reviewer、timestamp 或 `reviewed_pass`
 - `scripts/check-radishmind-core-task-scoped-builder-full-holdout-runbook.py` 已接入 `check-repo`，用于固定 full-holdout-9 runbook 的必需参数、样本覆盖、`tmp/` 产物边界和非 raw 晋级口径
 - `scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 已接入 `check-repo`，用于固定 broader review records 的 15 样本覆盖、`tmp/` 产物路径、批次级 `reviewed_pass` 结论、accepted warning / fallback 样本和非 raw / 非训练准入口径
-- `scripts/check-radishmind-core-constrained-guided-decoding-runbook.py` 已接入 `check-repo`，用于固定 guided/constrained 下一轮 runbook 已完成 wrapper/provider 契约接线、保持 `holdout6-v2-non-overlap` + `300s` 的同边界对照，并且在本机 `transformers` runtime 真正具备 guided-decoding hook 前不要求用户执行本地模型命令
+- `scripts/check-radishmind-core-constrained-guided-decoding-runbook.py` 已接入 `check-repo`，用于固定 guided/constrained 下一轮 runbook 已完成 wrapper/provider 契约接线、保持 `holdout6-v2-non-overlap` + `300s` 的同边界对照，并明确当前 runtime 可通过原生 `GenerationConfig.guided_decoding` 或 `custom_generate` scaffold-slot shim 执行 guided 轨
 - `scripts/check-radishmind-core-guided-decoding-contract.py` 已接入 `check-repo`，用于固定 `--guided-decoding json_schema` CLI、互斥边界、summary policy 和 runtime-support failure boundary；该检查不运行本地模型
 - `tmp/` 用于本地生成的临时 JSONL、探测输出和一次性中间产物，默认不提交
 - 后续若需要提交小型 JSONL fixture，必须先写清楚样本数、用途、来源、复核状态和退场条件
@@ -110,6 +110,6 @@ python3 scripts/build-copilot-training-samples.py \
 - 继续保留 raw / repaired 双轨、同 timeout、`tmp/` artifact 禁入仓
 - 已比较 raw baseline、prompt-time hard-field freeze、`--inject-hard-fields` 硬字段外部注入、`--build-suggest-edits-response` 单任务 builder 与 `--build-task-scoped-response` 组合 builder 轨
 - 2026-05-08 的阶段结论是：broader 15 样本 review 的 machine gate、offline eval、natural-language audit 和人工复核都已完成，records 现为 15/15 `reviewed_pass`；这能作为 builder/tooling 路线的更强人工复核证据，但仍不能当作 raw 晋级或训练准入证据
-- 当前下一步不是继续重跑同一批 broader review，而是先确认本机 `local_transformers` runtime 是否支持 guided-decoding hook，再把 constrained/guided decoding 作为下一轮正式主线；只有在这条轨仍不能明显改善 raw 后，才决定是否扩大样本面或做 `minimind-v` / `3B/4B` 对照
+- 当前下一步不是继续重跑同一批 broader review，而是直接在当前 `local_transformers` runtime 上跑 constrained/guided decoding：若原生 `GenerationConfig.guided_decoding` hook 缺失，则回退到 `custom_generate` scaffold-slot shim；只有在这条轨仍不能明显改善 raw 后，才决定是否扩大样本面或做 `minimind-v` / `3B/4B` 对照
 - 当前 task-scoped builder 扩样前复核口径已单独落到 `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json`，后续扩大样本面前必须先满足该 planned review 维度和阻断规则
 - full-holdout-9 的执行准备已落到 `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json`，broader review 的 15 样本入口、两段执行清单和 review records 分别落到 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`、`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 和 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`；当前这批 broader review records 已完成从 `reviewed_changes_required` 到 15/15 `reviewed_pass` 的推进，下一步应基于这批通过结果稳定 builder/tooling 路线，而不是重新回到同一批 blocked 样本修复循环

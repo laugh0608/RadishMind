@@ -208,11 +208,11 @@
       "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`, `--inject-hard-fields`, or `--build-suggest-edits-response`."
     },
     "constrained_or_guided_decoding": {
-      "status": "wrapper_and_contract_landed_runtime_support_pending_verification",
+      "status": "runtime_backend_landed_waiting_for_local_batch_result",
       "cli_flag": "--guided-decoding json_schema",
       "check": "scripts/check-radishmind-core-guided-decoding-contract.py",
       "summary_policy": "Writes `candidate_track=raw_guided_json_schema` and `postprocess_policy.guided_decoding=json_schema`, while keeping the same raw sample/timeout/provider boundary.",
-      "boundary": "Only supports `local_transformers`, is mutually exclusive with repair/injection/response-builder tracks, and fails fast unless the installed transformers runtime exposes `GenerationConfig.guided_decoding` support. It remains a constrained-decoder experiment track, not raw free-generation capability or a production contract.",
+      "boundary": "Only supports `local_transformers`, is mutually exclusive with repair/injection/response-builder tracks, and runs through either a native `GenerationConfig.guided_decoding` hook or the local `custom_generate` scaffold-slot shim. It remains a constrained-decoder experiment track, not raw free-generation capability or a production contract.",
       "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`, `--inject-hard-fields`, `--build-suggest-edits-response`, or `--build-task-scoped-response`."
     }
   },
@@ -893,9 +893,9 @@
   },
   "current_conclusion": {
     "status": "broader_review_pass_prioritize_constrained_guided_decoding",
-    "summary": "当前 broader task-scoped builder review 已完成 15/15 `reviewed_pass`，这说明 builder/tooling 路线已经有足够强的 machine gate、natural-language audit 和人工复核证据，但它仍不是 raw 晋级或训练准入证据。与此同时，committed structured-output run-set 仍显示 `raw_v2` blocked、`--inject-hard-fields` 有帮助但不足、而 task-scoped builder 已经把 tooling-route 证据补齐。因此下一步最有价值的未回答问题不再是继续重跑 builder broader review，也不是立刻扩大样本面或直接切 `3B/4B`，而是先验证 constrained/guided decoding 这种更强 raw 输出约束，看看同一 v2 非重叠 holdout、同一 300 秒边界下能否比 raw baseline 更接近可接受的结构化输出表现。",
+    "summary": "当前 broader task-scoped builder review 已完成 15/15 `reviewed_pass`，这说明 builder/tooling 路线已经有足够强的 machine gate、natural-language audit 和人工复核证据，但它仍不是 raw 晋级或训练准入证据。与此同时，committed structured-output run-set 仍显示 `raw_v2` blocked、`--inject-hard-fields` 有帮助但不足、而 task-scoped builder 已经把 tooling-route 证据补齐。因此下一步最有价值的未回答问题不再是继续重跑 builder broader review，也不是立刻扩大样本面或直接切 `3B/4B`，而是先验证 constrained/guided decoding 这种更强 raw 输出约束，看看同一 v2 非重叠 holdout、同一 300 秒边界下能否比 raw baseline 更接近可接受的结构化输出表现。当前 runtime 已新增 `custom_generate` scaffold-slot shim，因此同机 guided 轨不再被 `GenerationConfig.guided_decoding` 缺失阻塞。",
     "next_priority": "constrained_guided_decoding_holdout6_v2_before_model_size_comparison",
     "priority_runbook": "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
-    "next_step": "下一步先在用户本机确认 constrained/guided decoding 所需的 local transformers guided-decoding hook 可用，然后在 `holdout6-v2-non-overlap` 上跑同样 `300s`、同样 raw 边界的 guided-decoding 轨；当前不应直接切 `3B/4B`，只有在这条轨仍不能明显改善 raw 后，才转入更大样本面或 `minimind-v` / `3B/4B` 对照。builder 结果仍不得写成 raw 模型晋级或训练准入证据。"
+    "next_step": "下一步先在用户本机直接跑 constrained/guided decoding 轨：如果当前 runtime 具备 native `GenerationConfig.guided_decoding` hook 就走原生路径，否则走 `custom_generate` scaffold-slot shim；随后在 `holdout6-v2-non-overlap` 上保持同样 `300s`、同样 raw 边界对照 raw baseline。当前不应直接切 `3B/4B`，只有在这条轨仍不能明显改善 raw 后，才转入更大样本面或 `minimind-v` / `3B/4B` 对照。builder 结果仍不得写成 raw 模型晋级或训练准入证据。"
   }
 }

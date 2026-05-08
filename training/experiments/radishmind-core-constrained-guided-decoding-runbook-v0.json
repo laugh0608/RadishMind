@@ -9,7 +9,7 @@
   "does_not_generate_jsonl": true,
   "does_not_mark_raw_promotion": true,
   "does_not_mark_training_acceptance": true,
-  "implementation_status": "wrapper_and_contract_landed_runtime_support_pending_verification",
+  "implementation_status": "wrapper_contract_and_runtime_backend_landed_waiting_for_local_batch_result",
   "decision_experiment": "training/experiments/radishmind-core-structured-output-decision-experiment-v0.json",
   "structured_output_run_set_summary": "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json",
   "broader_review_records": "training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json",
@@ -39,10 +39,10 @@
     "must_share_timeout_with_raw_baseline": true
   },
   "implementation_gap": {
-    "status": "wrapper_and_contract_ready_waiting_for_local_runtime_support_verification",
+    "status": "native_hook_optional_custom_generate_shim_ready_waiting_for_local_batch_result",
     "blocked_components": [
-      "The guided-decoding track now exists in scripts/run-radishmind-core-candidate.py, but real local execution still depends on an installed transformers runtime exposing GenerationConfig.guided_decoding support.",
-      "services/runtime/inference_provider.py now defines the provider-agnostic JSON schema guided decoding contract, but this repository still does not commit or install any guided-decoding backend dependency by default."
+      "The guided-decoding track now exists in scripts/run-radishmind-core-candidate.py, and the runtime can now execute it either through a native `GenerationConfig.guided_decoding` hook or through the local `custom_generate` scaffold-slot shim.",
+      "services/runtime/inference_provider.py and services/runtime/guided_decoding.py now define the provider-agnostic JSON schema request contract plus the local scaffold-slot shim, but the route still needs a same-boundary local batch result before any route decision update."
     ],
     "must_land_before_user_run": [
       "Keep the explicit candidate-wrapper CLI flag and mutual-exclusion boundary fixed before requesting any local model run.",
@@ -67,7 +67,7 @@
     "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300-run.json"
   },
   "planned_local_run": {
-    "purpose": "Once the flag exists, rerun the non-overlap v2 holdout with schema-guided decoding before any sample expansion or model-size comparison.",
+    "purpose": "Rerun the non-overlap v2 holdout with schema-guided decoding before any sample expansion or model-size comparison.",
     "command_args": [
       "python3",
       "scripts/run-radishmind-core-candidate.py",
@@ -126,7 +126,7 @@
     }
   ],
   "operator_notes": [
-    "Do not ask the user to run the planned guided-decoding command until the local transformers runtime actually exposes the required guided-decoding hook.",
+    "The current local transformers runtime may satisfy this route through either a native guided-decoding hook or the custom_generate scaffold-slot shim; keep the run on the same machine and keep outputs under tmp/.",
     "Keep this runbook on the same `holdout6-v2-non-overlap`, the same `300s` timeout, and the same raw boundary so the result is comparable to raw_v2 and hard-field injection.",
     "Even if guided decoding improves machine metrics, it is still not raw promotion, training acceptance, or production contract acceptance without separate review and route-decision updates."
   ]
