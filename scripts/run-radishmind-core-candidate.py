@@ -36,6 +36,13 @@ from scripts.eval.core_candidate_scaffold import (  # noqa: E402
 from scripts.eval.regression_docs import validate_radish_docs_response  # noqa: E402
 from scripts.eval.regression_ghost import validate_ghost_completion_response  # noqa: E402
 from scripts.eval.regression_shared import TASK_CONFIG, test_document_against_schema  # noqa: E402
+from services.runtime.inference_provider import (  # noqa: E402
+    GUIDED_DECODING_MODE_JSON_SCHEMA,
+    build_guided_decoding_request,
+    build_local_transformers_guided_decoding_payload,
+    describe_guided_decoding_request,
+    resolve_local_transformers_guided_decoding_support,
+)
 
 COPILOT_REQUEST_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-request.schema.json"
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
@@ -57,6 +64,7 @@ class LocalTransformersRuntime(NamedTuple):
     tokenizer: Any
     model: Any
     device: str
+    transformers_module: Any
 
 class CandidateResult(NamedTuple):
     response: dict[str, Any]
@@ -71,6 +79,9 @@ class LocalTransformersGenerationError(RuntimeError):
 
 class LocalTransformersTimeoutError(TimeoutError):
     pass
+
+
+GUIDED_DECODING_CHOICES = [GUIDED_DECODING_MODE_JSON_SCHEMA]
 
 
 def raise_local_transformers_timeout(_signum: int, _frame: Any) -> None:
@@ -133,6 +144,15 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Experimental task-scoped response-builder split: assemble scaffold-derived structure for supported "
             "RadishMind Core tasks and preserve only model-authored natural-language fields."
+        ),
+    )
+    parser.add_argument(
+        "--guided-decoding",
+        choices=GUIDED_DECODING_CHOICES,
+        help=(
+            "Experimental constrained decoding track for local_transformers. "
+            "Currently only `json_schema` is recognized, and the run fails fast unless the installed "
+            "transformers runtime exposes explicit guided-decoding support."
         ),
     )
     return parser.parse_args()
@@ -204,6 +224,20 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     output_policy = manifest.get("output_policy")
     require(isinstance(output_policy, dict), "candidate dry-run manifest output_policy must be an object")
     require(output_policy.get("commit_candidate_outputs") is False, "candidate outputs must remain local generated artifacts")
+
+
+def active_structured_variant_name(args: argparse.Namespace) -> str | None:
+    if args.repair_hard_fields:
+        return "repair_hard_fields"
+    if args.inject_hard_fields:
+        return "inject_hard_fields"
+    if args.build_suggest_edits_response:
+        return "build_suggest_edits_response"
+    if args.build_task_scoped_response:
+        return "build_task_scoped_response"
+    if args.guided_decoding:
+        return "raw_guided_json_schema"
+    return None
 
 
 def validate_source_eval_manifest(source_eval_manifest: dict[str, Any]) -> None:
@@ -1185,6 +1219,7 @@ def load_local_transformers_runtime(model_dir: str | None) -> LocalTransformersR
     require(model_path.is_dir(), f"local model directory does not exist: {model_path}")
     try:
         import torch
+        import transformers
         from transformers import AutoModelForCausalLM, AutoTokenizer
     except Exception as exc:
         raise SystemExit(
@@ -1197,7 +1232,12 @@ def load_local_transformers_runtime(model_dir: str | None) -> LocalTransformersR
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
     model.eval()
-    return LocalTransformersRuntime(tokenizer=tokenizer, model=model, device=device)
+    return LocalTransformersRuntime(
+        tokenizer=tokenizer,
+        model=model,
+        device=device,
+        transformers_module=transformers,
+    )
 
 
 def run_local_transformers(
@@ -1206,13 +1246,37 @@ def run_local_transformers(
     runtime: LocalTransformersRuntime,
     max_new_tokens: int,
     sample_timeout_seconds: float,
+    guided_decoding_request: dict[str, Any] | None,
 ) -> CandidateResult:
     tokenizer = runtime.tokenizer
     model = runtime.model
     device = runtime.device
+    transformers_module = runtime.transformers_module
     started_at = time.perf_counter()
     inputs = render_local_transformers_inputs(tokenizer, prompt_document, device)
     input_token_count = int(inputs["input_ids"].shape[-1])
+    guided_support: dict[str, Any] | None = None
+    generate_kwargs: dict[str, Any] = {
+        **inputs,
+        "max_new_tokens": max_new_tokens,
+        "do_sample": False,
+        "pad_token_id": tokenizer.eos_token_id,
+    }
+    if guided_decoding_request is not None:
+        guided_support = resolve_local_transformers_guided_decoding_support(
+            transformers_module=transformers_module,
+            guided_decoding_request=guided_decoding_request,
+        )
+        require(
+            guided_support.get("supported") is True,
+            "guided decoding experiment track was requested, but local_transformers does not expose "
+            f"the required runtime hook: {guided_support.get('reason') or 'unsupported runtime'}",
+        )
+        generation_config = copy.deepcopy(model.generation_config)
+        generation_config.guided_decoding = build_local_transformers_guided_decoding_payload(
+            guided_decoding_request=guided_decoding_request
+        )
+        generate_kwargs["generation_config"] = generation_config
     try:
         if sample_timeout_seconds > 0:
             require(
@@ -1223,22 +1287,12 @@ def run_local_transformers(
             signal.signal(signal.SIGALRM, raise_local_transformers_timeout)
             signal.setitimer(signal.ITIMER_REAL, sample_timeout_seconds)
             try:
-                output_ids = model.generate(
-                    **inputs,
-                    max_new_tokens=max_new_tokens,
-                    do_sample=False,
-                    pad_token_id=tokenizer.eos_token_id,
-                )
+                output_ids = model.generate(**generate_kwargs)
             finally:
                 signal.setitimer(signal.ITIMER_REAL, 0)
                 signal.signal(signal.SIGALRM, previous_handler)
         else:
-            output_ids = model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=False,
-                pad_token_id=tokenizer.eos_token_id,
-            )
+            output_ids = model.generate(**generate_kwargs)
     except LocalTransformersTimeoutError as exc:
         generation_seconds = round(time.perf_counter() - started_at, 3)
         metrics = {
@@ -1253,6 +1307,14 @@ def run_local_transformers(
             "json_extracted": False,
             "timeout": True,
             "timeout_seconds": sample_timeout_seconds,
+            **(
+                {
+                    "guided_decoding": describe_guided_decoding_request(guided_decoding_request),
+                    "guided_decoding_runtime_hook": guided_support.get("hook"),
+                }
+                if guided_decoding_request is not None and guided_support is not None
+                else {}
+            ),
         }
         raise LocalTransformersGenerationError(
             f"local_transformers sample timed out after {sample_timeout_seconds:g}s",
@@ -1271,6 +1333,14 @@ def run_local_transformers(
         "hit_max_new_tokens": output_token_count >= max_new_tokens,
         "generated_text_chars": len(generated_text),
         "generation_seconds": generation_seconds,
+        **(
+            {
+                "guided_decoding": describe_guided_decoding_request(guided_decoding_request),
+                "guided_decoding_runtime_hook": guided_support.get("hook"),
+            }
+            if guided_decoding_request is not None and guided_support is not None
+            else {}
+        ),
     }
     try:
         extracted = extract_json_object(generated_text)
@@ -1306,6 +1376,7 @@ def build_candidate_response(
     local_runtime: LocalTransformersRuntime | None,
     max_new_tokens: int,
     sample_timeout_seconds: float,
+    guided_decoding_request: dict[str, Any] | None,
 ) -> CandidateResult:
     if provider_id == "golden_fixture":
         response = sample.get("golden_response")
@@ -1320,6 +1391,7 @@ def build_candidate_response(
             runtime=local_runtime,
             max_new_tokens=max_new_tokens,
             sample_timeout_seconds=sample_timeout_seconds,
+            guided_decoding_request=guided_decoding_request,
         )
     raise SystemExit(f"unsupported provider: {provider_id}")
 
@@ -2672,22 +2744,91 @@ def add_count(counter: dict[str, int], key: str) -> None:
     counter[key] = counter.get(key, 0) + 1
 
 
+def build_postprocess_policy(
+    *,
+    args: argparse.Namespace,
+    guided_decoding_request: dict[str, Any] | None,
+    postprocessed_output_count: int,
+    postprocessed_path_counts: dict[str, int],
+) -> dict[str, Any] | None:
+    if guided_decoding_request is not None:
+        return {
+            "guided_decoding": describe_guided_decoding_request(guided_decoding_request),
+            "candidate_track": "raw_guided_json_schema",
+            "scope": (
+                "Experimental constrained decoding track for local_transformers. "
+                "It requests JSON schema guided decoding from the runtime and must not be treated "
+                "as raw free-generation capability."
+            ),
+            "requires_runtime_support": True,
+            "raw_boundary": (
+                "Keep the same sample set, timeout, provider and local model boundary as raw_v2; "
+                "only the decoder constraint changes."
+            ),
+        }
+    if args.repair_hard_fields:
+        return {
+            "repair_hard_fields": True,
+            "scope": (
+                "Experimental: repairs scaffold-derived hard fields before schema/task validation; "
+                "raw model capability must still be assessed with this flag disabled."
+            ),
+            "repaired_output_count": postprocessed_output_count,
+            "repaired_path_counts": dict(sorted(postprocessed_path_counts.items())),
+        }
+    if args.inject_hard_fields:
+        return {
+            "inject_hard_fields": True,
+            "scope": (
+                "Experimental: injects only prompt hard_field_freeze path/value pairs before schema/task validation; "
+                "this is a structured-output constraint track and must not be treated as raw model capability."
+            ),
+            "injected_output_count": postprocessed_output_count,
+            "injected_path_counts": dict(sorted(postprocessed_path_counts.items())),
+        }
+    if args.build_suggest_edits_response:
+        return {
+            "build_suggest_edits_response": True,
+            "scope": (
+                "Experimental response-builder split for radishflow/suggest_flowsheet_edits: "
+                "assembles scaffold-derived CopilotResponse structure and preserves only "
+                "model-authored natural-language fields. This is not raw model capability."
+            ),
+            "builder_output_count": postprocessed_output_count,
+            "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
+        }
+    if args.build_task_scoped_response:
+        return {
+            "build_task_scoped_response": True,
+            "scope": (
+                "Experimental task-scoped response-builder split: assembles scaffold-derived "
+                "CopilotResponse structure for supported RadishMind Core tasks and preserves only "
+                "model-authored natural-language fields. This is not raw model capability."
+            ),
+            "builder_output_count": postprocessed_output_count,
+            "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
+        }
+    return None
+
+
 def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> dict[str, Any]:
     require(args.sample_timeout_seconds >= 0, "--sample-timeout-seconds must be greater than or equal to 0")
-    require(
-        not (args.repair_hard_fields and args.inject_hard_fields),
-        "--repair-hard-fields and --inject-hard-fields are separate experiment variants; use only one per run",
-    )
     active_structured_variants = [
         args.repair_hard_fields,
         args.inject_hard_fields,
         args.build_suggest_edits_response,
         args.build_task_scoped_response,
+        bool(args.guided_decoding),
     ]
     require(
         sum(1 for enabled in active_structured_variants if enabled) <= 1,
-        "--repair-hard-fields, --inject-hard-fields, --build-suggest-edits-response, and "
-        "--build-task-scoped-response are separate experiment variants; use only one per run",
+        "--repair-hard-fields, --inject-hard-fields, --build-suggest-edits-response, "
+        "--build-task-scoped-response, and --guided-decoding are separate experiment variants; "
+        "use only one per run",
+    )
+    require(
+        not args.guided_decoding or (args.provider or str(manifest["provider"]["provider_id"])) == "local_transformers",
+        "--guided-decoding is only supported with --provider local_transformers",
     )
     source_eval_manifest_path = normalize_repo_path(str(manifest["source_eval_manifest"]))
     require(source_eval_manifest_path is not None, "source_eval_manifest path is required")
@@ -2699,6 +2840,11 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
     response_schema = load_schema(COPILOT_RESPONSE_SCHEMA_PATH)
     provider = dict(manifest["provider"])
     provider_id = args.provider or str(provider["provider_id"])
+    guided_decoding_request = (
+        build_guided_decoding_request(mode=args.guided_decoding, json_schema=response_schema)
+        if args.guided_decoding
+        else None
+    )
     if args.provider:
         provider.update(
             {
@@ -2714,6 +2860,13 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 "does_not_run_models": provider_id != "local_transformers",
                 "provider_access": "local_only" if provider_id == "local_transformers" else "none",
                 "model_artifacts_downloaded": False,
+                **(
+                    {
+                        "guided_decoding": describe_guided_decoding_request(guided_decoding_request),
+                    }
+                    if guided_decoding_request is not None
+                    else {}
+                ),
             }
         )
 
@@ -2728,8 +2881,19 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             f"model_id={provider.get('model_id') or provider_id}",
             flush=True,
         )
+        if guided_decoding_request is not None:
+            guided_support = resolve_local_transformers_guided_decoding_support(
+                transformers_module=local_runtime.transformers_module,
+                guided_decoding_request=guided_decoding_request,
+            )
+            require(
+                guided_support.get("supported") is True,
+                "guided decoding experiment track was requested, but local_transformers does not expose "
+                f"the required runtime hook: {guided_support.get('reason') or 'unsupported runtime'}",
+            )
 
     task_counts: dict[str, int] = {}
+    active_variant = active_structured_variant_name(args)
     outputs: list[dict[str, Any]] = []
     valid_response_count = 0
     invalid_response_count = 0
@@ -2779,6 +2943,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 local_runtime=local_runtime,
                 max_new_tokens=args.max_new_tokens,
                 sample_timeout_seconds=args.sample_timeout_seconds if provider_id == "local_transformers" else 0.0,
+                guided_decoding_request=guided_decoding_request if provider_id == "local_transformers" else None,
             )
             candidate_response = candidate_result.response
             response_source = candidate_result.response_source
@@ -2891,6 +3056,13 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                 **({"generation_metrics": generation_metrics} if generation_metrics else {}),
                 **(
                     {
+                        "candidate_track": "raw_guided_json_schema",
+                    }
+                    if args.guided_decoding == GUIDED_DECODING_MODE_JSON_SCHEMA
+                    else {}
+                ),
+                **(
+                    {
                         "postprocess": {
                             **({"repair_hard_fields": True} if args.repair_hard_fields else {}),
                             **({"inject_hard_fields": True} if args.inject_hard_fields else {}),
@@ -2908,9 +3080,14 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
                                 else {}
                             ),
                             **({"task_scoped_builder_paths": postprocessed_paths} if args.build_task_scoped_response else {}),
+                            **(
+                                {"guided_decoding": describe_guided_decoding_request(guided_decoding_request)}
+                                if guided_decoding_request is not None
+                                else {}
+                            ),
                         }
                     }
-                    if postprocessed_paths
+                    if postprocessed_paths or guided_decoding_request is not None
                     else {}
                 ),
                 **({"task_response_validated": task_response_valid} if args.validate_task and response_valid else {}),
@@ -2937,6 +3114,12 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         "json_extracted_count": sum(1 for entry in generation_metric_entries if entry.get("json_extracted") is True),
         "timeout_count": sum(1 for entry in generation_metric_entries if entry.get("timeout") is True),
     }
+    postprocess_policy = build_postprocess_policy(
+        args=args,
+        guided_decoding_request=guided_decoding_request,
+        postprocessed_output_count=postprocessed_output_count,
+        postprocessed_path_counts=postprocessed_path_counts,
+    )
     return {
         "schema_version": 1,
         "kind": "radishmind_core_candidate_run_summary",
@@ -2944,6 +3127,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
         "run_id": manifest["run_id"],
         "source_eval_manifest": repo_rel(source_eval_manifest_path),
         "provider": provider,
+        **({"candidate_track": active_variant} if active_variant else {}),
         "sample_count": sample_count,
         "task_counts": dict(sorted(task_counts.items())),
         "output_policy": {
@@ -2953,68 +3137,7 @@ def build_candidate_run(args: argparse.Namespace, manifest: dict[str, Any]) -> d
             "invalid_candidate_response_files_written": invalid_response_count,
             "commit_candidate_outputs": False,
         },
-        **(
-            {
-                "postprocess_policy": {
-                    "repair_hard_fields": True,
-                    "scope": (
-                        "Experimental: repairs scaffold-derived hard fields before schema/task validation; "
-                        "raw model capability must still be assessed with this flag disabled."
-                    ),
-                    "repaired_output_count": postprocessed_output_count,
-                    "repaired_path_counts": dict(sorted(postprocessed_path_counts.items())),
-                }
-            }
-            if args.repair_hard_fields
-            else {}
-        ),
-        **(
-            {
-                "postprocess_policy": {
-                    "inject_hard_fields": True,
-                    "scope": (
-                        "Experimental: injects only prompt hard_field_freeze path/value pairs before schema/task validation; "
-                        "this is a structured-output constraint track and must not be treated as raw model capability."
-                    ),
-                    "injected_output_count": postprocessed_output_count,
-                    "injected_path_counts": dict(sorted(postprocessed_path_counts.items())),
-                }
-            }
-            if args.inject_hard_fields
-            else {}
-        ),
-        **(
-            {
-                "postprocess_policy": {
-                    "build_suggest_edits_response": True,
-                    "scope": (
-                        "Experimental response-builder split for radishflow/suggest_flowsheet_edits: "
-                        "assembles scaffold-derived CopilotResponse structure and preserves only "
-                        "model-authored natural-language fields. This is not raw model capability."
-                    ),
-                    "builder_output_count": postprocessed_output_count,
-                    "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
-                }
-            }
-            if args.build_suggest_edits_response
-            else {}
-        ),
-        **(
-            {
-                "postprocess_policy": {
-                    "build_task_scoped_response": True,
-                    "scope": (
-                        "Experimental task-scoped response-builder split: assembles scaffold-derived "
-                        "CopilotResponse structure for supported RadishMind Core tasks and preserves only "
-                        "model-authored natural-language fields. This is not raw model capability."
-                    ),
-                    "builder_output_count": postprocessed_output_count,
-                    "builder_path_counts": dict(sorted(postprocessed_path_counts.items())),
-                }
-            }
-            if args.build_task_scoped_response
-            else {}
-        ),
+        **({"postprocess_policy": postprocess_policy} if postprocess_policy is not None else {}),
         "quality_gates": {
             "copilot_request_schema_validated": sample_count,
             "copilot_response_schema_validated": valid_response_count,

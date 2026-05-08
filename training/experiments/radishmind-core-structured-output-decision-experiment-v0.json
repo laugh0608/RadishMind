@@ -4,7 +4,7 @@
   "phase": "M4-preparation",
   "experiment_id": "radishmind-core-structured-output-decision-experiment-v0",
   "status": "planned",
-  "updated_at": "2026-05-04T00:00:00Z",
+  "updated_at": "2026-05-08T00:00:00Z",
   "decision_question": "当前 raw blocked 的主因，是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足？",
   "why_now": [
     "当前 `Qwen2.5-1.5B-Instruct` raw 在 9 条 fixture、planned full holdout 和 v2 非重叠 holdout 上都仍 blocked。",
@@ -206,6 +206,14 @@
       "summary_policy": "Writes `postprocess_policy.build_task_scoped_response=true`, `builder_output_count`, and `builder_path_counts`.",
       "boundary": "Applies to known eval tasks with task validators; it rebuilds scaffold-derived CopilotResponse structure for suggest edits, ghost completion and docs QA, while preserving only model-authored natural-language fields and confidence when present. It is an experiment wrapper for route decision, not raw model capability or a production contract.",
       "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`, `--inject-hard-fields`, or `--build-suggest-edits-response`."
+    },
+    "constrained_or_guided_decoding": {
+      "status": "wrapper_and_contract_landed_runtime_support_pending_verification",
+      "cli_flag": "--guided-decoding json_schema",
+      "check": "scripts/check-radishmind-core-guided-decoding-contract.py",
+      "summary_policy": "Writes `candidate_track=raw_guided_json_schema` and `postprocess_policy.guided_decoding=json_schema`, while keeping the same raw sample/timeout/provider boundary.",
+      "boundary": "Only supports `local_transformers`, is mutually exclusive with repair/injection/response-builder tracks, and fails fast unless the installed transformers runtime exposes `GenerationConfig.guided_decoding` support. It remains a constrained-decoder experiment track, not raw free-generation capability or a production contract.",
+      "mutual_exclusion": "Cannot be combined with `--repair-hard-fields`, `--inject-hard-fields`, `--build-suggest-edits-response`, or `--build-task-scoped-response`."
     }
   },
   "first_run_observation": {
@@ -884,8 +892,10 @@
     "review_followup_count": 5
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_reviewed_pass",
-    "summary": "首轮 v2 非重叠 holdout 结果显示 raw 仍 blocked，但 task-scoped builder 组合轨已达到机器指标全绿。full-holdout-9 的旧本地产物曾暴露 `compressor-parameter-update` numeric detail 漏检，当前已收紧 numeric fixture 并完成 citation-tightened rerun：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三个任务组所有 blocking metrics 均通过且 `promotion_status=no_promotion_planned`；自然语言 audit 为 `pass`、`violation_count=0`、`fallback_natural_field_rate=0.142857`。正式 review records 已补齐 9/9，且全部为 `reviewed_pass`。docs QA 三条短标题 warning、fallback task-specific text、risk/advisory boundary 与 holdout leakage 均已复核通过。当前 citation-tightened full-holdout 闭环已收口，下一步应转向 broader task-scoped builder review，而不是继续把 builder 结果写成 raw 晋级或训练准入证据。",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应先扩大 task-scoped builder 样本面，或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照，并继续保持自然语言 review gate。"
+    "status": "broader_review_pass_prioritize_constrained_guided_decoding",
+    "summary": "当前 broader task-scoped builder review 已完成 15/15 `reviewed_pass`，这说明 builder/tooling 路线已经有足够强的 machine gate、natural-language audit 和人工复核证据，但它仍不是 raw 晋级或训练准入证据。与此同时，committed structured-output run-set 仍显示 `raw_v2` blocked、`--inject-hard-fields` 有帮助但不足、而 task-scoped builder 已经把 tooling-route 证据补齐。因此下一步最有价值的未回答问题不再是继续重跑 builder broader review，也不是立刻扩大样本面或直接切 `3B/4B`，而是先验证 constrained/guided decoding 这种更强 raw 输出约束，看看同一 v2 非重叠 holdout、同一 300 秒边界下能否比 raw baseline 更接近可接受的结构化输出表现。",
+    "next_priority": "constrained_guided_decoding_holdout6_v2_before_model_size_comparison",
+    "priority_runbook": "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
+    "next_step": "下一步先在用户本机确认 constrained/guided decoding 所需的 local transformers guided-decoding hook 可用，然后在 `holdout6-v2-non-overlap` 上跑同样 `300s`、同样 raw 边界的 guided-decoding 轨；当前不应直接切 `3B/4B`，只有在这条轨仍不能明显改善 raw 后，才转入更大样本面或 `minimind-v` / `3B/4B` 对照。builder 结果仍不得写成 raw 模型晋级或训练准入证据。"
   }
 }

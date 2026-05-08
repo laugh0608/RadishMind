@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import http.client
 import json
 import re
@@ -27,6 +28,8 @@ from .inference_support import (
     validate_request_document,
     validate_response_document,
 )
+
+GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
 
 
 def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> dict[str, Any]:
@@ -201,6 +204,78 @@ def extract_provider_message_content(payload: dict[str, Any]) -> str:
     if content.strip():
         return content
     return extract_anthropic_message_content(payload)
+
+
+def build_guided_decoding_request(*, mode: str, json_schema: dict[str, Any]) -> dict[str, Any]:
+    normalized_mode = str(mode or "").strip()
+    if normalized_mode != GUIDED_DECODING_MODE_JSON_SCHEMA:
+        raise ValueError(f"unsupported guided decoding mode: {normalized_mode or '<empty>'}")
+    if not isinstance(json_schema, dict) or not json_schema:
+        raise ValueError("guided decoding json_schema must be a non-empty object")
+    return {
+        "mode": normalized_mode,
+        "json_schema": copy.deepcopy(json_schema),
+    }
+
+
+def describe_guided_decoding_request(guided_decoding_request: dict[str, Any]) -> str:
+    mode = str(guided_decoding_request.get("mode") or "").strip()
+    return mode or "unknown"
+
+
+def resolve_local_transformers_guided_decoding_support(
+    *,
+    transformers_module: Any,
+    guided_decoding_request: dict[str, Any],
+) -> dict[str, Any]:
+    request_document = build_guided_decoding_request(
+        mode=str(guided_decoding_request.get("mode") or ""),
+        json_schema=guided_decoding_request.get("json_schema"),
+    )
+    generation_config_cls = getattr(transformers_module, "GenerationConfig", None)
+    if generation_config_cls is None:
+        return {
+            "supported": False,
+            "provider": "local_transformers",
+            "mode": request_document["mode"],
+            "reason": "installed transformers runtime does not expose GenerationConfig",
+        }
+    try:
+        generation_config = generation_config_cls()
+    except Exception as exc:
+        return {
+            "supported": False,
+            "provider": "local_transformers",
+            "mode": request_document["mode"],
+            "reason": f"installed transformers runtime could not initialize GenerationConfig: {exc}",
+        }
+    if not hasattr(generation_config, "guided_decoding"):
+        return {
+            "supported": False,
+            "provider": "local_transformers",
+            "mode": request_document["mode"],
+            "reason": (
+                "local_transformers guided decoding currently requires an installed transformers build "
+                "with explicit `GenerationConfig.guided_decoding` support for JSON schema constrained decoding"
+            ),
+        }
+    return {
+        "supported": True,
+        "provider": "local_transformers",
+        "mode": request_document["mode"],
+        "hook": "GenerationConfig.guided_decoding",
+    }
+
+
+def build_local_transformers_guided_decoding_payload(*, guided_decoding_request: dict[str, Any]) -> dict[str, Any]:
+    request_document = build_guided_decoding_request(
+        mode=str(guided_decoding_request.get("mode") or ""),
+        json_schema=guided_decoding_request.get("json_schema"),
+    )
+    return {
+        "type": GUIDED_DECODING_MODE_JSON_SCHEMA,
+        "json_schema": copy.deepcopy(request_document["json_schema"]),
+    }
 
 
 def post_json_request(

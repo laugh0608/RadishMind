@@ -488,16 +488,31 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
 
 def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     conclusion = require_dict(experiment, "current_conclusion")
-    require(conclusion.get("status") == "task_scoped_builder_full_holdout_citation_fixture_tightened_reviewed_pass", "current conclusion status mismatch")
+    require(
+        conclusion.get("status") == "broader_review_pass_prioritize_constrained_guided_decoding",
+        "current conclusion status mismatch",
+    )
+    require(
+        conclusion.get("next_priority") == "constrained_guided_decoding_holdout6_v2_before_model_size_comparison",
+        "current conclusion next_priority mismatch",
+    )
+    require(
+        conclusion.get("priority_runbook")
+        == "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
+        "current conclusion priority_runbook mismatch",
+    )
     next_step = str(conclusion.get("next_step") or "")
+    require("local transformers guided-decoding hook" in next_step, "conclusion must require runtime hook verification first")
+    require("holdout6-v2-non-overlap" in next_step, "conclusion must keep the v2 non-overlap holdout as the next slice")
     require("不应直接切 `3B/4B`" in next_step, "conclusion must reject direct 3B/4B switch")
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")
     require("训练准入证据" in next_step, "conclusion must reject training acceptance")
-    require("扩大 task-scoped builder 样本面" in next_step, "conclusion must require broader builder review")
     require("constrained/guided decoding" in next_step, "conclusion must mention constrained decoding")
-    require("raw 模型晋级" in next_step, "conclusion must still reject raw promotion")
+    require("更大样本面" in next_step, "conclusion must defer larger sample expansion")
     return {
         "status": conclusion.get("status"),
+        "next_priority": conclusion.get("next_priority"),
+        "priority_runbook": conclusion.get("priority_runbook"),
         "next_step": conclusion.get("next_step"),
     }
 

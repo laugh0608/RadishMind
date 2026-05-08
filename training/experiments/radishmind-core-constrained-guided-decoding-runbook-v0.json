@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_constrained_guided_decoding_runbook",
+  "runbook_id": "radishmind-core-constrained-guided-decoding-runbook-v0",
+  "status": "planned",
+  "phase": "M4-preparation",
+  "created_for": "next-route-decision-after-broader-task-scoped-builder-review",
+  "does_not_run_models": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_raw_promotion": true,
+  "does_not_mark_training_acceptance": true,
+  "implementation_status": "wrapper_and_contract_landed_runtime_support_pending_verification",
+  "decision_experiment": "training/experiments/radishmind-core-structured-output-decision-experiment-v0.json",
+  "structured_output_run_set_summary": "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json",
+  "broader_review_records": "training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json",
+  "priority_reasoning": [
+    "The committed structured-output run-set still shows `raw_v2` blocked across all three task groups on `holdout6-v2-non-overlap`.",
+    "The strengthened `--inject-hard-fields` track improved top-level hard-field preservation but remained blocked on `radishflow/suggest_flowsheet_edits` and still preserved one timeout.",
+    "The broader task-scoped builder batch is now 15/15 `reviewed_pass`, so the next unanswered route question is whether stronger raw output constraints can recover part of the v2 holdout before any sample expansion or model-size comparison."
+  ],
+  "sample_surface": {
+    "sample_set_id": "holdout6-v2-non-overlap",
+    "sample_count": 6,
+    "candidate_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+    "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+    "task_counts": {
+      "radishflow/suggest_flowsheet_edits": 2,
+      "radishflow/suggest_ghost_completion": 2,
+      "radish/answer_docs_question": 2
+    }
+  },
+  "execution_policy": {
+    "provider": "local_transformers",
+    "model_dir": "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+    "sample_timeout_seconds": 300,
+    "allow_invalid_output": true,
+    "validate_task": true,
+    "generated_outputs_default_location": "tmp/",
+    "must_share_timeout_with_raw_baseline": true
+  },
+  "implementation_gap": {
+    "status": "wrapper_and_contract_ready_waiting_for_local_runtime_support_verification",
+    "blocked_components": [
+      "The guided-decoding track now exists in scripts/run-radishmind-core-candidate.py, but real local execution still depends on an installed transformers runtime exposing GenerationConfig.guided_decoding support.",
+      "services/runtime/inference_provider.py now defines the provider-agnostic JSON schema guided decoding contract, but this repository still does not commit or install any guided-decoding backend dependency by default."
+    ],
+    "must_land_before_user_run": [
+      "Keep the explicit candidate-wrapper CLI flag and mutual-exclusion boundary fixed before requesting any local model run.",
+      "Keep at least one deterministic repository check that fixes the flag name, summary policy, runtime-support failure boundary, and output-dir policy before any local model run is requested from the user."
+    ]
+  },
+  "planned_variant": {
+    "variant_id": "constrained_or_guided_decoding",
+    "proposed_cli_flag": "--guided-decoding",
+    "proposed_cli_value": "json_schema",
+    "candidate_track": "raw_guided_json_schema",
+    "mutual_exclusion_with": [
+      "--repair-hard-fields",
+      "--inject-hard-fields",
+      "--build-suggest-edits-response",
+      "--build-task-scoped-response"
+    ]
+  },
+  "planned_artifact_paths": {
+    "candidate_output_dir": "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300",
+    "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300/summary.json",
+    "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300-run.json"
+  },
+  "planned_local_run": {
+    "purpose": "Once the flag exists, rerun the non-overlap v2 holdout with schema-guided decoding before any sample expansion or model-size comparison.",
+    "command_args": [
+      "python3",
+      "scripts/run-radishmind-core-candidate.py",
+      "--manifest",
+      "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+      "--provider",
+      "local_transformers",
+      "--model-dir",
+      "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+      "--output-dir",
+      "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300",
+      "--summary-output",
+      "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300/summary.json",
+      "--allow-invalid-output",
+      "--validate-task",
+      "--guided-decoding",
+      "json_schema",
+      "--sample-timeout-seconds",
+      "300"
+    ]
+  },
+  "planned_offline_eval": {
+    "purpose": "Read the guided-decoding candidate outputs without rerunning the model.",
+    "command_args": [
+      "python3",
+      "scripts/run-radishmind-core-offline-eval.py",
+      "--manifest",
+      "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+      "--candidate-summary",
+      "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300/summary.json",
+      "--candidate-output-dir",
+      "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300",
+      "--output",
+      "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300-run.json",
+      "--check-output",
+      "tmp/radishmind-core-holdout-probe-v2-qwen15b-guided-timeout300-run.json"
+    ]
+  },
+  "decision_branches": [
+    {
+      "branch_id": "guided_decoding_helpful",
+      "enter_when": [
+        "schema_valid_rate improves beyond the committed raw_v2 baseline of 0.8333333333333334",
+        "task_valid_rate improves beyond the committed raw_v2 baseline of 0.4",
+        "timeout_count stays at 0 on the same 300 second policy"
+      ],
+      "next_step": "If guided decoding is clearly helpful, keep the same model and decide whether to expand this raw constrained route to full-holdout-9 before any `3B/4B` comparison."
+    },
+    {
+      "branch_id": "guided_decoding_insufficient",
+      "enter_when": [
+        "schema_valid_rate does not improve beyond 0.8333333333333334, or task_valid_rate does not improve beyond 0.4",
+        "radishflow/suggest_flowsheet_edits remains the blocked task group, or timeout_count is still non-zero"
+      ],
+      "next_step": "If guided decoding stays blocked on the same v2 slice, stop extending wrapper-level output-constraint work and move to `minimind-v` / `3B/4B` comparison rather than expanding sample count first."
+    }
+  ],
+  "operator_notes": [
+    "Do not ask the user to run the planned guided-decoding command until the local transformers runtime actually exposes the required guided-decoding hook.",
+    "Keep this runbook on the same `holdout6-v2-non-overlap`, the same `300s` timeout, and the same raw boundary so the result is comparable to raw_v2 and hard-field injection.",
+    "Even if guided decoding improves machine metrics, it is still not raw promotion, training acceptance, or production contract acceptance without separate review and route-decision updates."
+  ]
+}

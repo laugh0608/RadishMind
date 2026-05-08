@@ -23,14 +23,15 @@
 
 1. 继续维护 `M3` 的 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据，而不是继续补同一批 blocked 样本。
-3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，整理是否进入下一轮更大样本面、constrained/guided decoding，或 `3B/4B` 对照。
-4. 若没有新的非重复 drift 假设，不继续扩 `RadishFlow` 同类真实 capture。
+3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，先固定 constrained/guided decoding 为下一轮正式执行主线，并保持 `holdout6-v2-non-overlap` + `300s` 的同边界对照。
+4. 仅在 guided/constrained 轨仍不能明显改善 raw 后，再决定是否进入更大样本面或 `3B/4B` 对照。
+5. 若没有新的非重复 drift 假设，不继续扩 `RadishFlow` 同类真实 capture。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
 - broader 15 样本现在已经完成 machine gate、offline eval、natural-language audit 和人工复核，且当前 records 为 15/15 `reviewed_pass`；这意味着继续停留在“重跑同一批 broader review”已不再是最高价值动作。
-- 当前更高价值的是利用这批 broader `reviewed_pass` 结果稳定路线口径，并继续维护服务/API 门禁，而不是重新回到同一批 blocked 样本修复循环。
+- 当前更高价值的是利用这批 broader `reviewed_pass` 结果稳定路线口径，并先回答“更强 raw 输出约束是否足以改变路线判断”这个仍未收口的问题。
 - 即便 broader review 已通过，也仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 2026-05-08 已确认这些产物

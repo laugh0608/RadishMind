@@ -252,7 +252,9 @@
     "full_holdout_expansion_requires_broader_review": true
   },
   "current_conclusion": {
-    "status": "task_scoped_builder_full_holdout_citation_fixture_tightened_reviewed_pass",
-    "next_step": "下一步仍不应直接切 `3B/4B`，也不应把 builder 结果当作 raw 模型晋级或训练准入证据；应先扩大 task-scoped builder 样本面，或进入 constrained/guided decoding 与 `minimind-v` / `3B/4B` 对照，并继续保持自然语言 review gate。"
+    "status": "broader_review_pass_prioritize_constrained_guided_decoding",
+    "next_priority": "constrained_guided_decoding_holdout6_v2_before_model_size_comparison",
+    "priority_runbook": "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
+    "next_step": "下一步先在用户本机确认 constrained/guided decoding 所需的 local transformers guided-decoding hook 可用，然后在 `holdout6-v2-non-overlap` 上跑同样 `300s`、同样 raw 边界的 guided-decoding 轨；当前不应直接切 `3B/4B`，只有在这条轨仍不能明显改善 raw 后，才转入更大样本面或 `minimind-v` / `3B/4B` 对照。builder 结果仍不得写成 raw 模型晋级或训练准入证据。"
   }
 }

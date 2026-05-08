@@ -1040,11 +1040,13 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-prompt-policy.py", [])
     run_python_script("check-radishmind-core-candidate-hard-field-freeze.py", [])
     run_python_script("check-radishmind-core-candidate-hard-field-injection.py", [])
+    run_python_script("check-radishmind-core-guided-decoding-contract.py", [])
     run_python_script("check-radishmind-core-suggest-edits-response-builder.py", [])
     run_python_script("check-radishmind-core-task-scoped-response-builder.py", [])
     run_python_script("check-radishmind-core-task-scoped-builder-review-plan.py", [])
     run_python_script("check-radishmind-core-task-scoped-builder-human-review-records.py", [])
     run_python_script("check-radishmind-core-task-scoped-builder-full-holdout-runbook.py", [])
+    run_python_script("check-radishmind-core-constrained-guided-decoding-runbook.py", [])
     run_python_script(
         "check-radishmind-core-task-scoped-builder-broader-review-entry.py",
         ["--check-summary", "scripts/checks/fixtures/radishmind-core-task-scoped-builder-broader-review-entry-summary.json"],
