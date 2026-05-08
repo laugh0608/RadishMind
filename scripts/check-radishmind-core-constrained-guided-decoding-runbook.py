@@ -76,7 +76,7 @@ def main() -> int:
     require(document.get("does_not_mark_raw_promotion") is True, "runbook must not mark raw promotion")
     require(document.get("does_not_mark_training_acceptance") is True, "runbook must not mark training acceptance")
     require(
-        document.get("implementation_status") == "wrapper_and_contract_landed_runtime_support_pending_verification",
+        document.get("implementation_status") == "wrapper_contract_and_runtime_backend_landed_waiting_for_local_batch_result",
         "implementation_status mismatch",
     )
 
@@ -118,15 +118,19 @@ def main() -> int:
 
     implementation_gap = require_dict(document, "implementation_gap")
     require(
-        implementation_gap.get("status") == "wrapper_and_contract_ready_waiting_for_local_runtime_support_verification",
+        implementation_gap.get("status") == "native_hook_optional_custom_generate_shim_ready_waiting_for_local_batch_result",
         "implementation_gap status mismatch",
     )
     blocked_components = implementation_gap.get("blocked_components")
     require(isinstance(blocked_components, list) and len(blocked_components) == 2, "blocked_components must include two blockers")
     joined_blockers = "\n".join(str(item) for item in blocked_components)
     require("scripts/run-radishmind-core-candidate.py" in joined_blockers, "blocked_components must mention candidate wrapper")
-    require("GenerationConfig.guided_decoding" in joined_blockers, "blocked_components must mention runtime guided-decoding hook")
+    require(
+        "GenerationConfig.guided_decoding" in joined_blockers or "custom_generate" in joined_blockers,
+        "blocked_components must mention the guided decoding backend",
+    )
     require("services/runtime/inference_provider.py" in joined_blockers, "blocked_components must mention provider contract")
+    require("services/runtime/guided_decoding.py" in joined_blockers, "blocked_components must mention guided runtime shim")
     prereqs = implementation_gap.get("must_land_before_user_run")
     require(isinstance(prereqs, list) and len(prereqs) == 2, "must_land_before_user_run must include two prerequisites")
     joined_prereqs = "\n".join(str(item) for item in prereqs)
@@ -212,8 +216,11 @@ def main() -> int:
     operator_notes = document.get("operator_notes")
     require(isinstance(operator_notes, list) and len(operator_notes) == 3, "operator_notes must include three notes")
     joined_notes = "\n".join(str(item) for item in operator_notes)
-    require("Do not ask the user to run" in joined_notes, "operator_notes must preserve no-user-run-before-runtime-support boundary")
-    require("guided-decoding hook" in joined_notes, "operator_notes must mention runtime guided-decoding hook")
+    require("current local transformers runtime" in joined_notes, "operator_notes must mention the current runtime boundary")
+    require(
+        "guided-decoding hook" in joined_notes or "custom_generate scaffold-slot shim" in joined_notes,
+        "operator_notes must mention the guided decoding backend",
+    )
     require("300s" in joined_notes, "operator_notes must preserve the shared timeout boundary")
     require("not raw promotion" in joined_notes, "operator_notes must reject raw promotion")
 

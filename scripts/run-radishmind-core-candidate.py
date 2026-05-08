@@ -36,6 +36,10 @@ from scripts.eval.core_candidate_scaffold import (  # noqa: E402
 from scripts.eval.regression_docs import validate_radish_docs_response  # noqa: E402
 from scripts.eval.regression_ghost import validate_ghost_completion_response  # noqa: E402
 from scripts.eval.regression_shared import TASK_CONFIG, test_document_against_schema  # noqa: E402
+from services.runtime.guided_decoding import (  # noqa: E402
+    GuidedJsonSchemaCustomGenerator,
+    build_guided_json_schema_plan,
+)
 from services.runtime.inference_provider import (  # noqa: E402
     GUIDED_DECODING_MODE_JSON_SCHEMA,
     build_guided_decoding_request,
@@ -1153,6 +1157,43 @@ def build_prompt_document(sample: dict[str, Any], *, model_id: str) -> dict[str,
     }
 
 
+def guided_text_slot_spec(path: str) -> dict[str, int] | None:
+    if path == "$.summary":
+        return {"min_non_space_chars": 6, "max_chars": 180}
+    if path == "$.answers[0].text":
+        return {"min_non_space_chars": 8, "max_chars": 360}
+    if path.endswith(".message"):
+        return {"min_non_space_chars": 6, "max_chars": 220}
+    if path.endswith(".title"):
+        return {"min_non_space_chars": 4, "max_chars": 120}
+    if path.endswith(".rationale"):
+        return {"min_non_space_chars": 8, "max_chars": 260}
+    return None
+
+
+def collect_guided_text_slot_specs(document: Any, *, path: str = "$") -> dict[str, dict[str, int]]:
+    if isinstance(document, dict):
+        specs: dict[str, dict[str, int]] = {}
+        for key, value in document.items():
+            specs.update(collect_guided_text_slot_specs(value, path=f"{path}.{key}"))
+        return specs
+    if isinstance(document, list):
+        specs: dict[str, dict[str, int]] = {}
+        for index, value in enumerate(document):
+            specs.update(collect_guided_text_slot_specs(value, path=f"{path}[{index}]"))
+        return specs
+    if isinstance(document, str):
+        slot_spec = guided_text_slot_spec(path)
+        return {path: slot_spec} if slot_spec is not None else {}
+    return {}
+
+
+def build_guided_json_schema_scaffold_plan(sample: dict[str, Any]) -> list[dict[str, Any]]:
+    scaffold = build_response_scaffold(project=str(sample["project"]), task=str(sample["task"]), sample=sample)
+    slot_specs = collect_guided_text_slot_specs(scaffold)
+    return build_guided_json_schema_plan(scaffold, slot_specs=slot_specs)
+
+
 def build_echo_response(sample: dict[str, Any]) -> dict[str, Any]:
     request = sample["input_request"]
     request_id = str(request.get("request_id") or sample["sample_id"])
@@ -1241,6 +1282,7 @@ def load_local_transformers_runtime(model_dir: str | None) -> LocalTransformersR
 
 
 def run_local_transformers(
+    sample: dict[str, Any],
     prompt_document: dict[str, Any],
     *,
     runtime: LocalTransformersRuntime,
@@ -1262,6 +1304,7 @@ def run_local_transformers(
         "do_sample": False,
         "pad_token_id": tokenizer.eos_token_id,
     }
+    guided_custom_generator: GuidedJsonSchemaCustomGenerator | None = None
     if guided_decoding_request is not None:
         guided_support = resolve_local_transformers_guided_decoding_support(
             transformers_module=transformers_module,
@@ -1272,11 +1315,21 @@ def run_local_transformers(
             "guided decoding experiment track was requested, but local_transformers does not expose "
             f"the required runtime hook: {guided_support.get('reason') or 'unsupported runtime'}",
         )
-        generation_config = copy.deepcopy(model.generation_config)
-        generation_config.guided_decoding = build_local_transformers_guided_decoding_payload(
-            guided_decoding_request=guided_decoding_request
-        )
-        generate_kwargs["generation_config"] = generation_config
+        guided_backend = str(guided_support.get("backend") or "").strip()
+        if guided_backend == "generation_config_guided_decoding":
+            generation_config = copy.deepcopy(model.generation_config)
+            generation_config.guided_decoding = build_local_transformers_guided_decoding_payload(
+                guided_decoding_request=guided_decoding_request
+            )
+            generate_kwargs["generation_config"] = generation_config
+        elif guided_backend == "custom_generate_callable":
+            guided_custom_generator = GuidedJsonSchemaCustomGenerator(
+                tokenizer=tokenizer,
+                plan=build_guided_json_schema_scaffold_plan(sample),
+            )
+            generate_kwargs["custom_generate"] = guided_custom_generator
+        else:
+            raise RuntimeError(f"unsupported guided decoding backend: {guided_backend or '<empty>'}")
     try:
         if sample_timeout_seconds > 0:
             require(
@@ -1311,10 +1364,12 @@ def run_local_transformers(
                 {
                     "guided_decoding": describe_guided_decoding_request(guided_decoding_request),
                     "guided_decoding_runtime_hook": guided_support.get("hook"),
+                    "guided_decoding_backend": guided_support.get("backend"),
                 }
                 if guided_decoding_request is not None and guided_support is not None
                 else {}
             ),
+            **(guided_custom_generator.last_report if guided_custom_generator is not None else {}),
         }
         raise LocalTransformersGenerationError(
             f"local_transformers sample timed out after {sample_timeout_seconds:g}s",
@@ -1337,10 +1392,12 @@ def run_local_transformers(
             {
                 "guided_decoding": describe_guided_decoding_request(guided_decoding_request),
                 "guided_decoding_runtime_hook": guided_support.get("hook"),
+                "guided_decoding_backend": guided_support.get("backend"),
             }
             if guided_decoding_request is not None and guided_support is not None
             else {}
         ),
+        **(guided_custom_generator.last_report if guided_custom_generator is not None else {}),
     }
     try:
         extracted = extract_json_object(generated_text)
@@ -1387,6 +1444,7 @@ def build_candidate_response(
     if provider_id == "local_transformers":
         require(local_runtime is not None, "local_transformers runtime was not initialized")
         return run_local_transformers(
+            sample,
             prompt_document,
             runtime=local_runtime,
             max_new_tokens=max_new_tokens,

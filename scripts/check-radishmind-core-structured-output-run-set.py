@@ -502,7 +502,10 @@ def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
         "current conclusion priority_runbook mismatch",
     )
     next_step = str(conclusion.get("next_step") or "")
-    require("local transformers guided-decoding hook" in next_step, "conclusion must require runtime hook verification first")
+    require(
+        "GenerationConfig.guided_decoding" in next_step or "custom_generate" in next_step,
+        "conclusion must mention the guided decoding runtime backend",
+    )
     require("holdout6-v2-non-overlap" in next_step, "conclusion must keep the v2 non-overlap holdout as the next slice")
     require("不应直接切 `3B/4B`" in next_step, "conclusion must reject direct 3B/4B switch")
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")

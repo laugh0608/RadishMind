@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import http.client
+import inspect
 import json
 import re
 from typing import Any
@@ -232,38 +233,57 @@ def resolve_local_transformers_guided_decoding_support(
         mode=str(guided_decoding_request.get("mode") or ""),
         json_schema=guided_decoding_request.get("json_schema"),
     )
+    native_runtime_reason = ""
     generation_config_cls = getattr(transformers_module, "GenerationConfig", None)
     if generation_config_cls is None:
-        return {
-            "supported": False,
-            "provider": "local_transformers",
-            "mode": request_document["mode"],
-            "reason": "installed transformers runtime does not expose GenerationConfig",
-        }
-    try:
-        generation_config = generation_config_cls()
-    except Exception as exc:
-        return {
-            "supported": False,
-            "provider": "local_transformers",
-            "mode": request_document["mode"],
-            "reason": f"installed transformers runtime could not initialize GenerationConfig: {exc}",
-        }
-    if not hasattr(generation_config, "guided_decoding"):
-        return {
-            "supported": False,
-            "provider": "local_transformers",
-            "mode": request_document["mode"],
-            "reason": (
-                "local_transformers guided decoding currently requires an installed transformers build "
-                "with explicit `GenerationConfig.guided_decoding` support for JSON schema constrained decoding"
-            ),
-        }
+        native_runtime_reason = "installed transformers runtime does not expose GenerationConfig"
+    else:
+        try:
+            generation_config = generation_config_cls()
+        except Exception as exc:
+            native_runtime_reason = f"installed transformers runtime could not initialize GenerationConfig: {exc}"
+        else:
+            if hasattr(generation_config, "guided_decoding"):
+                return {
+                    "supported": True,
+                    "provider": "local_transformers",
+                    "mode": request_document["mode"],
+                    "hook": "GenerationConfig.guided_decoding",
+                    "backend": "generation_config_guided_decoding",
+                }
+            native_runtime_reason = (
+                "installed transformers runtime does not expose GenerationConfig.guided_decoding"
+            )
+
+    generation_mixin_cls = getattr(transformers_module, "GenerationMixin", None)
+    generate_method = getattr(generation_mixin_cls, "generate", None) if generation_mixin_cls is not None else None
+    custom_generate_reason = ""
+    if generate_method is None or not callable(generate_method):
+        custom_generate_reason = "installed transformers runtime does not expose GenerationMixin.generate"
+    else:
+        try:
+            generate_parameters = inspect.signature(generate_method).parameters
+        except Exception as exc:
+            custom_generate_reason = f"installed transformers runtime could not inspect GenerationMixin.generate: {exc}"
+        else:
+            if "custom_generate" in generate_parameters:
+                return {
+                    "supported": True,
+                    "provider": "local_transformers",
+                    "mode": request_document["mode"],
+                    "hook": "GenerationMixin.generate(custom_generate=callable)",
+                    "backend": "custom_generate_callable",
+                }
+            custom_generate_reason = (
+                "installed transformers runtime does not expose GenerationMixin.generate(custom_generate=...)"
+            )
+
+    combined_reason = "; ".join(reason for reason in (native_runtime_reason, custom_generate_reason) if reason)
     return {
-        "supported": True,
+        "supported": False,
         "provider": "local_transformers",
         "mode": request_document["mode"],
-        "hook": "GenerationConfig.guided_decoding",
+        "reason": combined_reason or "unsupported local_transformers guided decoding runtime",
     }
 
 

@@ -55,6 +55,16 @@ class _UnsupportedTransformers:
     GenerationConfig = _MissingHookGenerationConfig
 
 
+class _CustomGenerateGenerationMixin:
+    def generate(self, *args: Any, custom_generate: Any | None = None, **kwargs: Any) -> Any:
+        return None
+
+
+class _CustomGenerateTransformers:
+    GenerationConfig = _MissingHookGenerationConfig
+    GenerationMixin = _CustomGenerateGenerationMixin
+
+
 def main() -> int:
     runner = load_module("radishmind_core_candidate_runner", "scripts/run-radishmind-core-candidate.py")
     from services.runtime import inference_provider as runtime_provider
@@ -99,6 +109,10 @@ def main() -> int:
         supported.get("hook") == "GenerationConfig.guided_decoding",
         "supported transformers stub must report guided_decoding hook",
     )
+    require(
+        supported.get("backend") == "generation_config_guided_decoding",
+        "supported transformers stub must report native guided decoding backend",
+    )
 
     unsupported = runtime_provider.resolve_local_transformers_guided_decoding_support(
         transformers_module=_UnsupportedTransformers(),
@@ -108,6 +122,27 @@ def main() -> int:
     require(
         "GenerationConfig.guided_decoding" in str(unsupported.get("reason") or ""),
         "unsupported transformers reason must mention missing GenerationConfig.guided_decoding support",
+    )
+    require(
+        "GenerationMixin.generate" in str(unsupported.get("reason") or ""),
+        "unsupported transformers reason must mention missing custom_generate fallback support",
+    )
+
+    custom_generate_supported = runtime_provider.resolve_local_transformers_guided_decoding_support(
+        transformers_module=_CustomGenerateTransformers(),
+        guided_decoding_request=guided_request,
+    )
+    require(
+        custom_generate_supported.get("supported") is True,
+        "custom_generate transformers stub must pass guided decoding support check",
+    )
+    require(
+        custom_generate_supported.get("backend") == "custom_generate_callable",
+        "custom_generate transformers stub must report custom_generate backend",
+    )
+    require(
+        custom_generate_supported.get("hook") == "GenerationMixin.generate(custom_generate=callable)",
+        "custom_generate transformers stub must report custom_generate hook",
     )
 
     args = type(
@@ -124,6 +159,21 @@ def main() -> int:
     require(
         runner.active_structured_variant_name(args) == "raw_guided_json_schema",
         "guided decoding variant name mismatch",
+    )
+
+    source_eval_manifest = load_json(REPO_ROOT / str(manifest.get("source_eval_manifest") or ""))
+    selected_samples = runner.iter_selected_samples(source_eval_manifest, sample_id_filter=None)
+    require(selected_samples, "source eval manifest must expose at least one sample")
+    sample, _selected_sample = selected_samples[0]
+    guided_plan = runner.build_guided_json_schema_scaffold_plan(sample)
+    require(isinstance(guided_plan, list) and guided_plan, "guided plan must be a non-empty list")
+    require(
+        any(isinstance(segment, dict) and segment.get("kind") == "text_slot" for segment in guided_plan),
+        "guided plan must expose at least one text slot",
+    )
+    require(
+        any(isinstance(segment, dict) and segment.get("kind") == "static" for segment in guided_plan),
+        "guided plan must expose static scaffold segments",
     )
 
     guided_policy = runner.build_postprocess_policy(
