@@ -19,6 +19,7 @@
 - `RadishFlow` 的 `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 已具备 committed eval、真实 candidate record、audit、replay 与服务 smoke 基线；当前不再默认扩同类真实 capture。
 - `Radish` 已优先落在 docs QA、文档检索增强和结构化问答评测上；真实上层接入仍等待。
 - `RadishCatalyst` 仍只做文档级预留，不扩真实 schema、adapter 或 gateway smoke。
+- 当前正式仓库边界仍是“四仓独立 + 协议接入”；不在 `RadishMind` 与 `RadishFlow` / `Radish` / `RadishCatalyst` 之间默认采用双向 `git submodule`。
 - `RadishMind-Core` 当前重点不是训练放量，而是先收口 broader task-scoped builder review 的 blocked 样本，并继续验证 raw、repair、hard-field injection、task-scoped builder、自然语言 audit 和人工 review 的分工边界。
 - `RadishMind-Core` broader task-scoped builder review 已完成两段本地执行、审计与 15 条样本人工复核；full-holdout-9 和 holdout6-v2-non-overlap 的 machine gate / offline eval / natural-language audit 均通过，但该记录集当前结论为 `reviewed_changes_required`，仍未进入 `reviewed_pass`。
 - `2026-05-08` 的首要动作是按既定 runbook 重跑 `full-holdout-9` 与 `holdout6-v2-non-overlap` 两段 `--build-task-scoped-response`，读取 `tmp/` 下的 candidate summary、offline eval run 与 natural-language audit 后，再决定 broader review records 是否可更新。
@@ -48,6 +49,7 @@
 - [阶段路线图](radishmind-roadmap.md)
 - [代码规范](radishmind-code-standards.md)
 - [跨项目集成契约](radishmind-integration-contracts.md)
+- [ADR 0002: 仓库集成边界](adr/0002-repository-integration-boundary.md)
 - [RadishMind-Core 首版基座评估](radishmind-core-baseline-evaluation.md)
 - [ADR 0001: 分支与 PR 治理](adr/0001-branch-and-pr-governance.md)
 - [开发日志说明](devlogs/README.md)
