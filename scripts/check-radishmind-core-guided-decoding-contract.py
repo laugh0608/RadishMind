@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
 import sys
 import tempfile
@@ -60,6 +61,29 @@ class _CustomGenerateGenerationMixin:
         return None
 
 
+class _SampleSignatureGenerationMixin:
+    def _sample(
+        self,
+        input_ids: Any,
+        logits_processor: Any,
+        stopping_criteria: Any,
+        generation_config: Any,
+        synced_gpus: bool = False,
+        streamer: Any | None = None,
+        **model_kwargs: Any,
+    ) -> Any:
+        del (
+            input_ids,
+            logits_processor,
+            stopping_criteria,
+            generation_config,
+            synced_gpus,
+            streamer,
+            model_kwargs,
+        )
+        return None
+
+
 class _CustomGenerateTransformers:
     GenerationConfig = _MissingHookGenerationConfig
     GenerationMixin = _CustomGenerateGenerationMixin
@@ -68,6 +92,7 @@ class _CustomGenerateTransformers:
 def main() -> int:
     runner = load_module("radishmind_core_candidate_runner", "scripts/run-radishmind-core-candidate.py")
     from services.runtime import inference_provider as runtime_provider
+    from services.runtime.guided_decoding import GuidedJsonSchemaCustomGenerator
 
     manifest = load_json(DRY_RUN_MANIFEST)
     response_schema = load_json(RESPONSE_SCHEMA)
@@ -143,6 +168,245 @@ def main() -> int:
     require(
         custom_generate_supported.get("hook") == "GenerationMixin.generate(custom_generate=callable)",
         "custom_generate transformers stub must report custom_generate hook",
+    )
+
+    class _TokenizerStub:
+        all_special_ids = [0]
+
+        def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+            del add_special_tokens
+            if text == '"':
+                return [1]
+            return [2]
+
+        def decode(
+            self,
+            token_ids: list[int],
+            skip_special_tokens: bool = False,
+            clean_up_tokenization_spaces: bool = False,
+        ) -> str:
+            del skip_special_tokens, clean_up_tokenization_spaces
+            return "".join('"' if token_id == 1 else "x" for token_id in token_ids)
+
+    custom_generator = GuidedJsonSchemaCustomGenerator(
+        tokenizer=_TokenizerStub(),
+        plan=[{"kind": "static", "text": "{}"}],
+    )
+    usual_mode_kwargs = set(inspect.signature(_SampleSignatureGenerationMixin._sample).parameters.keys())
+    custom_generate_kwargs = set(inspect.signature(custom_generator).parameters.keys())
+    require(
+        custom_generate_kwargs - usual_mode_kwargs == {"model"},
+        "guided decoding custom_generate callable must not expose custom-only kwargs beyond model",
+    )
+    require(
+        "attention_mask" not in custom_generate_kwargs,
+        "guided decoding custom_generate callable must read attention_mask from **model_kwargs",
+    )
+
+    class _FakeIds:
+        ndim = 2
+        shape = (1, 1)
+
+        def clone(self) -> "_FakeIds":
+            return self
+
+        def new_ones(self, _shape: Any) -> "_FakeIds":
+            return self
+
+    class _GenerationConfigStub:
+        max_new_tokens = 2
+
+    class _ReserveClosingQuoteGenerator(GuidedJsonSchemaCustomGenerator):
+        def __init__(self) -> None:
+            super().__init__(
+                tokenizer=_TokenizerStub(),
+                plan=[
+                    {
+                        "kind": "text_slot",
+                        "path": "$.summary",
+                        "fallback_text": "x",
+                        "min_non_space_chars": 1,
+                        "max_chars": 8,
+                    }
+                ],
+            )
+            self.appended_token_ids: list[int] = []
+
+        def _prime_model(
+            self,
+            model: Any,
+            *,
+            input_ids: Any,
+            attention_mask: Any,
+        ) -> tuple[Any, Any]:
+            del model, input_ids, attention_mask
+            return None, object()
+
+        def _append_chunk(
+            self,
+            model: Any,
+            *,
+            current_ids: Any,
+            attention_mask: Any,
+            past_key_values: Any,
+            token_ids: list[int],
+        ) -> tuple[Any, Any, Any, Any]:
+            next_attention_mask = attention_mask
+            del model, past_key_values
+            self.appended_token_ids.extend(token_ids)
+            return current_ids, next_attention_mask, None, object()
+
+        def _pick_slot_token(
+            self,
+            logits: Any,
+            *,
+            slot_text: str,
+            min_non_space_chars: int,
+            max_chars: int,
+            require_non_space_progress: bool = False,
+        ) -> tuple[str, int | None, str | None] | None:
+            del logits, slot_text, min_non_space_chars, max_chars, require_non_space_progress
+            return ("token", 2, "x")
+
+    reserve_quote_generator = _ReserveClosingQuoteGenerator()
+    reserve_quote_generator(
+        model=object(),
+        input_ids=_FakeIds(),
+        logits_processor=None,
+        stopping_criteria=None,
+        generation_config=_GenerationConfigStub(),
+    )
+    require(
+        reserve_quote_generator.appended_token_ids == [2, reserve_quote_generator.quote_token_id],
+        "guided decoding custom_generate callable must reserve the last token for closing the current JSON string slot",
+    )
+
+    class _CharTokenizer:
+        all_special_ids = [0]
+
+        def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+            del add_special_tokens
+            if text == '"':
+                return [1]
+            return [1000 + ord(character) for character in text]
+
+        def decode(
+            self,
+            token_ids: list[int],
+            skip_special_tokens: bool = False,
+            clean_up_tokenization_spaces: bool = False,
+        ) -> str:
+            del skip_special_tokens, clean_up_tokenization_spaces
+            pieces: list[str] = []
+            for token_id in token_ids:
+                if token_id == 1:
+                    pieces.append('"')
+                elif token_id == 2001:
+                    pieces.append("zzzz")
+                elif token_id >= 1000:
+                    pieces.append(chr(token_id - 1000))
+                else:
+                    pieces.append("x")
+            return "".join(pieces)
+
+    class _BudgetAwareGenerator(GuidedJsonSchemaCustomGenerator):
+        def __init__(self) -> None:
+            super().__init__(
+                tokenizer=_CharTokenizer(),
+                plan=[
+                    {"kind": "static", "text": '"'},
+                    {
+                        "kind": "text_slot",
+                        "path": "$.summary",
+                        "fallback_text": "fallback-summary-text",
+                        "min_non_space_chars": 2,
+                        "max_chars": 8,
+                    },
+                    {"kind": "static", "text": ',"'},
+                    {
+                        "kind": "text_slot",
+                        "path": "$.issues[0].message",
+                        "fallback_text": "fallback-message-text",
+                        "min_non_space_chars": 2,
+                        "max_chars": 8,
+                    },
+                ],
+            )
+            self.appended_token_ids: list[int] = []
+
+        @staticmethod
+        def _compact_fallback_text(*, slot_path: str) -> str:
+            if slot_path == "$.summary":
+                return "请复核。"
+            if slot_path == "$.issues[0].message":
+                return "请复核。"
+            return ""
+
+        def _prime_model(
+            self,
+            model: Any,
+            *,
+            input_ids: Any,
+            attention_mask: Any,
+        ) -> tuple[Any, Any]:
+            del model, input_ids, attention_mask
+            return None, object()
+
+        def _append_chunk(
+            self,
+            model: Any,
+            *,
+            current_ids: Any,
+            attention_mask: Any,
+            past_key_values: Any,
+            token_ids: list[int],
+        ) -> tuple[Any, Any, Any, Any]:
+            del model, past_key_values
+            self.appended_token_ids.extend(token_ids)
+            return current_ids, attention_mask, None, object()
+
+        def _pick_slot_token(
+            self,
+            logits: Any,
+            *,
+            slot_text: str,
+            min_non_space_chars: int,
+            max_chars: int,
+            require_non_space_progress: bool = False,
+        ) -> tuple[str, int | None, str | None] | None:
+            del logits, max_chars, require_non_space_progress
+            if len(slot_text) < min_non_space_chars:
+                return ("token", 2001, "zzzz")
+            return ("end", self.quote_token_id, None)
+
+    budget_aware_generator = _BudgetAwareGenerator()
+    minimum_budget = 0
+    for segment in budget_aware_generator.plan:
+        if segment.get("kind") == "static":
+            minimum_budget += len(budget_aware_generator._encode_static_text(str(segment.get("text") or "")))
+        else:
+            minimum_budget += budget_aware_generator._minimum_slot_completion_tokens(
+                slot_path=str(segment.get("path") or ""),
+                fallback_text=str(segment.get("fallback_text") or ""),
+            )
+
+    class _BudgetAwareGenerationConfig:
+        max_new_tokens = minimum_budget
+
+    budget_aware_generator(
+        model=object(),
+        input_ids=_FakeIds(),
+        logits_processor=None,
+        stopping_criteria=None,
+        generation_config=_BudgetAwareGenerationConfig(),
+    )
+    require(
+        budget_aware_generator.last_report.get("guided_empty_slot_count") == 0,
+        "guided decoding custom_generate shim must not collapse future text slots into empty strings when only the minimum budget remains",
+    )
+    require(
+        budget_aware_generator.last_report.get("guided_compact_fallback_paths") == ["$.summary", "$.issues[0].message"],
+        "guided decoding custom_generate shim must reserve enough budget for later slots and use compact non-empty fallbacks when the budget is tight",
     )
 
     args = type(

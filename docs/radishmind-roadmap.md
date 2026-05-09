@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-08
+更新时间：2026-05-09
 
 ## 路线图原则
 
@@ -46,7 +46,7 @@
 
 目标：明确 `RadishMind-Core` 的基座适配、结构化输出、response builder / tooling 分工和评测晋级标准。
 
-状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 review records 已接入仓库级验证，且 broader 15 样本现已完成 machine gate、offline eval、natural-language audit 和人工复核，records 当前为 15/15 `reviewed_pass`。当前下一步不再是重跑同一批 broader review，而是先在同一 `holdout6-v2-non-overlap` + `300s` 边界上推进 constrained/guided decoding，再根据该轨结果决定是否进入更大样本面或 `minimind-v` / `3B/4B` 对照。
+状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 review records 已接入仓库级验证，且 broader 15 样本现已完成 machine gate、offline eval、natural-language audit 和人工复核，records 当前为 15/15 `reviewed_pass`。当前下一步已经从“是否直接切 `3B/4B`”收口为“先审计 constrained/guided decoding 结果，再决定是否需要更大模型下载或更大样本面对照”。
 
 ### M5：`Radish` 首批任务接入
 
@@ -71,7 +71,7 @@
 1. 继续维护服务/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据。
 3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，先补 constrained/guided decoding 的执行前置与 runbook，并在 `holdout6-v2-non-overlap` 上完成同边界对照。
-4. 仅在 guided/constrained 轨仍不能明显改善 raw 后，再决定是否进入更大样本面或 `minimind-v` / `3B/4B` 对照。
+4. 先审计 2026-05-09 的 guided/constrained 结果，再决定是否进入更大样本面或 `minimind-v` / `3B/4B` 对照；今天不把模型下载当作默认动作。
 5. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
 6. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。
 

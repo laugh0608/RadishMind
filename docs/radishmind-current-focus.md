@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-08
+更新时间：2026-05-09
 
 ## 文档目的
 
@@ -25,9 +25,9 @@
 2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据，而不是继续补同一批 blocked 样本。
 3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，先固定 constrained/guided decoding 为下一轮正式执行主线，并保持 `holdout6-v2-non-overlap` + `300s` 的同边界对照。
 4. 当前 `.venv` 的 `transformers 5.7.0` 已通过 `custom_generate` scaffold-slot shim 接入 guided-decoding runtime，不再要求本机先暴露 `GenerationConfig.guided_decoding` 才能开始 guided 轨。
-5. 明天第一事项先跑 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap`；如果这轮仍不能明显改善 raw，就开始准备更大模型下载和 `3B/4B` 对照。
-6. 当前机器只发现 `Qwen2.5-0.5B-Instruct` 和 `Qwen2.5-1.5B-Instruct` 两个本地模型目录，没有可直接复用的 `3B/4B` 路径；因此 3B/4B 对照暂时不是这台机器上的下一条本地实验。
-7. 若没有新的非重复 drift 假设，不继续扩 `RadishFlow` 同类真实 capture。
+5. 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 已完成，6/6 通过；今天先不安排更大模型下载，先审计 `tmp/` 产物并回写实验结论。
+6. 当前机器只发现 `Qwen2.5-0.5B-Instruct` 和 `Qwen2.5-1.5B-Instruct` 两个本地模型目录；`3B/4B` 对照继续保留为后续备选，不是今天的推进项。
+7. 若后续在更大样本面或新 drift 假设上再次 blocked，再决定是否下载更大模型或继续扩 `RadishFlow` 同类真实 capture。
 
 ## 为什么是这个任务
 

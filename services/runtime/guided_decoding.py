@@ -166,6 +166,53 @@ class GuidedJsonSchemaCustomGenerator:
         fallback_ids = self._encode_static_text(fallback_text)
         return [*fallback_ids, self.quote_token_id]
 
+    def _slot_completion_options(
+        self,
+        *,
+        slot_path: str,
+        fallback_text: str,
+    ) -> list[tuple[str, list[int]]]:
+        options: list[tuple[str, list[int]]] = []
+        if fallback_text:
+            options.append(("fallback", self._fallback_slot_tokens(fallback_text)))
+        compact_fallback_text = self._compact_fallback_text(slot_path=slot_path)
+        if compact_fallback_text:
+            options.append(("compact_fallback", self._fallback_slot_tokens(compact_fallback_text)))
+        if not options:
+            options.append(("empty", [self.quote_token_id]))
+        return options
+
+    def _minimum_slot_completion_tokens(
+        self,
+        *,
+        slot_path: str,
+        fallback_text: str,
+    ) -> int:
+        options = self._slot_completion_options(slot_path=slot_path, fallback_text=fallback_text)
+        option_kind, token_ids = min(
+            options,
+            key=lambda item: (
+                len(item[1]),
+                0 if item[0] == "compact_fallback" else 1 if item[0] == "fallback" else 2,
+            ),
+        )
+        del option_kind
+        return len(token_ids)
+
+    @staticmethod
+    def _compact_fallback_text(*, slot_path: str) -> str:
+        if slot_path == "$.summary":
+            return "请按诊断复核。"
+        if slot_path == "$.answers[0].text":
+            return "请按诊断与引用复核。"
+        if slot_path.endswith(".message"):
+            return "请复核当前项。"
+        if slot_path.endswith(".title"):
+            return "请复核"
+        if slot_path.endswith(".rationale"):
+            return "建议人工确认后处理。"
+        return ""
+
     def _pick_slot_token(
         self,
         logits: Any,
@@ -173,6 +220,7 @@ class GuidedJsonSchemaCustomGenerator:
         slot_text: str,
         min_non_space_chars: int,
         max_chars: int,
+        require_non_space_progress: bool = False,
     ) -> tuple[str, int | None, str | None] | None:
         import torch
 
@@ -197,6 +245,8 @@ class GuidedJsonSchemaCustomGenerator:
             piece = self._decode_token(token_id)
             if not self._is_valid_slot_piece(piece):
                 continue
+            if require_non_space_progress and self._non_space_char_count(piece) <= 0:
+                continue
             if len(slot_text) + len(piece) > max_chars:
                 continue
             return ("token", token_id, piece)
@@ -205,18 +255,21 @@ class GuidedJsonSchemaCustomGenerator:
     def __call__(
         self,
         model: Any,
-        input_ids: Any | None = None,
-        generation_config: Any | None = None,
-        attention_mask: Any | None = None,
-        **_kwargs: Any,
+        input_ids: Any,
+        logits_processor: Any,
+        stopping_criteria: Any,
+        generation_config: Any,
+        synced_gpus: bool = False,
+        streamer: Any | None = None,
+        **model_kwargs: Any,
     ) -> Any:
-        if input_ids is None:
-            raise ValueError("guided decoding custom_generate shim requires input_ids")
+        del logits_processor, stopping_criteria, synced_gpus, streamer
         if input_ids.ndim != 2 or int(input_ids.shape[0]) != 1:
             raise ValueError("guided decoding custom_generate shim currently supports batch_size=1 only")
         max_new_tokens = int(getattr(generation_config, "max_new_tokens", 0) or 0)
         if max_new_tokens <= 0:
             raise ValueError("guided decoding custom_generate shim requires generation_config.max_new_tokens > 0")
+        attention_mask = model_kwargs.get("attention_mask")
         current_ids = input_ids.clone()
         current_attention_mask = (
             attention_mask.clone() if attention_mask is not None else self._build_attention_mask_like(current_ids)
@@ -231,11 +284,33 @@ class GuidedJsonSchemaCustomGenerator:
         static_token_count = 0
         slot_count = 0
         fallback_paths: list[str] = []
+        compact_fallback_paths: list[str] = []
+        empty_slot_paths: list[str] = []
+        relaxed_close_paths: list[str] = []
 
-        for segment in self.plan:
+        suffix_min_required_tokens = [0] * (len(self.plan) + 1)
+        for index in range(len(self.plan) - 1, -1, -1):
+            segment = self.plan[index]
+            kind = str(segment.get("kind") or "").strip()
+            if kind == GUIDED_SEGMENT_KIND_STATIC:
+                token_count = len(self._encode_static_text(str(segment.get("text") or "")))
+            elif kind == GUIDED_SEGMENT_KIND_TEXT_SLOT:
+                slot_path = str(segment.get("path") or "")
+                fallback_text = str(segment.get("fallback_text") or "")
+                token_count = self._minimum_slot_completion_tokens(
+                    slot_path=slot_path,
+                    fallback_text=fallback_text,
+                )
+            else:
+                raise ValueError(f"unsupported guided segment kind: {kind or '<empty>'}")
+            suffix_min_required_tokens[index] = suffix_min_required_tokens[index + 1] + token_count
+
+        for segment_index, segment in enumerate(self.plan):
             kind = str(segment.get("kind") or "").strip()
             if kind == GUIDED_SEGMENT_KIND_STATIC:
                 token_ids = self._encode_static_text(str(segment.get("text") or ""))
+                if generated_token_count + len(token_ids) + suffix_min_required_tokens[segment_index + 1] > max_new_tokens:
+                    raise ValueError("guided decoding custom_generate shim exceeded max_new_tokens while writing fixed scaffold")
                 if generated_token_count + len(token_ids) > max_new_tokens:
                     raise ValueError("guided decoding custom_generate shim exceeded max_new_tokens while writing fixed scaffold")
                 if token_ids:
@@ -257,6 +332,41 @@ class GuidedJsonSchemaCustomGenerator:
             fallback_text = str(segment.get("fallback_text") or "")
             min_non_space_chars = int(segment.get("min_non_space_chars") or 1)
             max_chars = int(segment.get("max_chars") or 240)
+            remaining_min_tokens_after_slot = suffix_min_required_tokens[segment_index + 1]
+            minimum_slot_completion_tokens = self._minimum_slot_completion_tokens(
+                slot_path=slot_path,
+                fallback_text=fallback_text,
+            )
+            if generated_token_count + minimum_slot_completion_tokens + remaining_min_tokens_after_slot > max_new_tokens:
+                raise ValueError(
+                    f"guided decoding custom_generate shim could not fit fallback text for slot {slot_path} within max_new_tokens"
+                )
+            if generated_token_count + minimum_slot_completion_tokens + remaining_min_tokens_after_slot == max_new_tokens:
+                for fallback_kind, fallback_token_ids in self._slot_completion_options(
+                    slot_path=slot_path,
+                    fallback_text=fallback_text,
+                ):
+                    if generated_token_count + len(fallback_token_ids) + remaining_min_tokens_after_slot <= max_new_tokens:
+                        current_ids, current_attention_mask, past_key_values, next_logits = self._append_chunk(
+                            model,
+                            current_ids=current_ids,
+                            attention_mask=current_attention_mask,
+                            past_key_values=past_key_values,
+                            token_ids=fallback_token_ids,
+                        )
+                        generated_token_count += len(fallback_token_ids)
+                        if fallback_kind == "fallback":
+                            fallback_paths.append(slot_path)
+                        elif fallback_kind == "compact_fallback":
+                            compact_fallback_paths.append(slot_path)
+                        else:
+                            empty_slot_paths.append(slot_path)
+                        break
+                else:
+                    raise ValueError(
+                        f"guided decoding custom_generate shim could not fit fallback text for slot {slot_path} within max_new_tokens"
+                    )
+                continue
             slot_text = ""
             slot_started = False
             slot_closed = False
@@ -266,6 +376,7 @@ class GuidedJsonSchemaCustomGenerator:
                     slot_text=slot_text,
                     min_non_space_chars=min_non_space_chars,
                     max_chars=max_chars,
+                    require_non_space_progress=self._non_space_char_count(slot_text) < min_non_space_chars,
                 )
                 if choice is None:
                     break
@@ -283,6 +394,23 @@ class GuidedJsonSchemaCustomGenerator:
                     break
                 if token_id is None or piece is None:
                     break
+                piece_non_space_chars = self._non_space_char_count(piece)
+                # Always leave room to close the current JSON string slot and to
+                # finish the remaining fixed scaffold. When budget gets tight, the
+                # slot will be shortened instead of corrupting the whole response.
+                remaining_required_non_space_chars = max(
+                    0,
+                    min_non_space_chars - self._non_space_char_count(slot_text) - piece_non_space_chars,
+                )
+                if (
+                    generated_token_count
+                    + 1
+                    + 1
+                    + remaining_required_non_space_chars
+                    + remaining_min_tokens_after_slot
+                    > max_new_tokens
+                ):
+                    break
                 slot_started = True
                 current_ids, current_attention_mask, past_key_values, next_logits = self._append_chunk(
                     model,
@@ -296,23 +424,39 @@ class GuidedJsonSchemaCustomGenerator:
                 if len(slot_text) >= max_chars:
                     break
             if not slot_started:
-                fallback_token_ids = self._fallback_slot_tokens(fallback_text)
-                if generated_token_count + len(fallback_token_ids) > max_new_tokens:
-                    raise ValueError(
-                        f"guided decoding custom_generate shim could not fit fallback text for slot {slot_path} within max_new_tokens"
-                    )
-                current_ids, current_attention_mask, past_key_values, next_logits = self._append_chunk(
-                    model,
-                    current_ids=current_ids,
-                    attention_mask=current_attention_mask,
-                    past_key_values=past_key_values,
-                    token_ids=fallback_token_ids,
+                appended_fallback = False
+                for fallback_kind, fallback_token_ids in self._slot_completion_options(
+                    slot_path=slot_path,
+                    fallback_text=fallback_text,
+                ):
+                    if generated_token_count + len(fallback_token_ids) + remaining_min_tokens_after_slot <= max_new_tokens:
+                        current_ids, current_attention_mask, past_key_values, next_logits = self._append_chunk(
+                            model,
+                            current_ids=current_ids,
+                            attention_mask=current_attention_mask,
+                            past_key_values=past_key_values,
+                            token_ids=fallback_token_ids,
+                        )
+                        generated_token_count += len(fallback_token_ids)
+                        appended_fallback = True
+                        if fallback_kind == "fallback":
+                            fallback_paths.append(slot_path)
+                        elif fallback_kind == "compact_fallback":
+                            compact_fallback_paths.append(slot_path)
+                        else:
+                            empty_slot_paths.append(slot_path)
+                        break
+                if appended_fallback:
+                    continue
+                raise ValueError(
+                    f"guided decoding custom_generate shim could not fit fallback text for slot {slot_path} within max_new_tokens"
                 )
-                generated_token_count += len(fallback_token_ids)
-                fallback_paths.append(slot_path)
-                continue
             if not slot_closed:
-                if generated_token_count >= max_new_tokens:
+                if self._non_space_char_count(slot_text) <= 0:
+                    raise ValueError(
+                        f"guided decoding custom_generate shim exhausted max_new_tokens before opening slot {slot_path}"
+                    )
+                if generated_token_count + 1 + remaining_min_tokens_after_slot > max_new_tokens:
                     raise ValueError(
                         f"guided decoding custom_generate shim exhausted max_new_tokens before closing slot {slot_path}"
                     )
@@ -324,6 +468,8 @@ class GuidedJsonSchemaCustomGenerator:
                     token_ids=[self.quote_token_id],
                 )
                 generated_token_count += 1
+                if self._non_space_char_count(slot_text) < min_non_space_chars:
+                    relaxed_close_paths.append(slot_path)
 
         self.last_report = {
             "backend": "custom_generate_scaffold_slots",
@@ -332,5 +478,11 @@ class GuidedJsonSchemaCustomGenerator:
             "guided_slot_count": slot_count,
             "guided_fallback_slot_count": len(fallback_paths),
             "guided_fallback_paths": fallback_paths,
+            "guided_compact_fallback_slot_count": len(compact_fallback_paths),
+            "guided_compact_fallback_paths": compact_fallback_paths,
+            "guided_empty_slot_count": len(empty_slot_paths),
+            "guided_empty_slot_paths": empty_slot_paths,
+            "guided_relaxed_close_slot_count": len(relaxed_close_paths),
+            "guided_relaxed_close_slot_paths": relaxed_close_paths,
         }
         return current_ids
