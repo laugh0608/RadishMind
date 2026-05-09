@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-05-08
+更新时间：2026-05-09
 
 ## 阅读原则
 
@@ -9,9 +9,10 @@
 新会话优先按以下顺序读取：
 
 1. 本文件
-2. [当前推进焦点](radishmind-current-focus.md)
-3. [阶段路线图](radishmind-roadmap.md)
-4. 与当次任务直接相关的产品、架构、代码规范、契约、任务卡、评测或周志
+2. [项目总览与使用指南](radishmind-project-guide.md)
+3. [当前推进焦点](radishmind-current-focus.md)
+4. [阶段路线图](radishmind-roadmap.md)
+5. 与当次任务直接相关的产品、架构、代码规范、契约、任务卡、评测或周志
 
 ## 当前状态
 
@@ -44,6 +45,7 @@
 ## 关键文档
 
 - [当前推进焦点](radishmind-current-focus.md)
+- [项目总览与使用指南](radishmind-project-guide.md)
 - [产品范围与目标](radishmind-product-scope.md)
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
