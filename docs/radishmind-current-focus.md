@@ -23,17 +23,17 @@
 
 1. 继续维护 `M3` 的 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据，而不是继续补同一批 blocked 样本。
-3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，先固定 constrained/guided decoding 为下一轮正式执行主线，并保持 `holdout6-v2-non-overlap` + `300s` 的同边界对照。
+3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，继续保留 constrained/guided decoding 为已验证的同边界改善信号，并把 `holdout6-v2-non-overlap` + `300s` 的对照结论写实到实验记录。
 4. 当前 `.venv` 的 `transformers 5.7.0` 已通过 `custom_generate` scaffold-slot shim 接入 guided-decoding runtime，不再要求本机先暴露 `GenerationConfig.guided_decoding` 才能开始 guided 轨。
-5. 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 已完成，6/6 通过；今天先不安排更大模型下载，先审计 `tmp/` 产物并回写实验结论。
-6. 当前机器只发现 `Qwen2.5-0.5B-Instruct` 和 `Qwen2.5-1.5B-Instruct` 两个本地模型目录；`3B/4B` 对照继续保留为后续备选，不是今天的推进项。
-7. 若后续在更大样本面或新 drift 假设上再次 blocked，再决定是否下载更大模型或继续扩 `RadishFlow` 同类真实 capture。
+5. 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 已完成，candidate summary 与 offline eval 均为 6/6 通过；但 candidate responses 里仍有自然语言退化、重复和 `max_new_tokens` 打满样本，因此该结果只说明结构化约束有效，不等于路线已经收口。
+6. 鉴于当前开发机资源可承受、且现在更需要更清晰的容量对比信号，下一步优先准备 `3B/4B` 对照，而不是先扩大同一 1.5B guided 样本面。
+7. 更大样本面继续保留为下一层验证：若 `3B/4B` 仍不能改善同类自然语言退化、复杂 cross-object 文案质量或 citation 解释质量，再决定是扩样、继续约束解码，还是调整基座候选。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
 - broader 15 样本现在已经完成 machine gate、offline eval、natural-language audit 和人工复核，且当前 records 为 15/15 `reviewed_pass`；这意味着继续停留在“重跑同一批 broader review”已不再是最高价值动作。
-- 当前更高价值的是利用这批 broader `reviewed_pass` 结果稳定路线口径，并先回答“更强 raw 输出约束是否足以改变路线判断”这个仍未收口的问题。
+- 当前更高价值的是利用这批 broader `reviewed_pass` 结果和这次 guided 6/6 机器通过，进入更清晰的模型容量对照，而不是继续停留在“1.5B guided 是否还能再扩一点样本”这类局部问题。
 - 即便 broader review 已通过，也仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 2026-05-08 已确认这些产物
@@ -51,7 +51,7 @@
 - 不继续加长同一批 prompt/scaffold 当作默认推进。
 - 不扩 `RadishFlow` 同类真实 capture，除非先写清楚非重复 drift 假设。
 - 不把 `RadishCatalyst` 从文档预留提前扩成真实 schema、adapter 或 gateway smoke。
-- 不下载模型、数据集或权重。
+- 不默认下载大于当前决策所需范围的模型、数据集或权重。
 - 不把真实模型输出、训练 JSONL 或大体积实验产物提交入仓。
 - 不直接修改 `RadishFlow`、`Radish` 或 `RadishCatalyst` 外部工作区。
 

@@ -46,7 +46,7 @@
 
 目标：明确 `RadishMind-Core` 的基座适配、结构化输出、response builder / tooling 分工和评测晋级标准。
 
-状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 review records 已接入仓库级验证，且 broader 15 样本现已完成 machine gate、offline eval、natural-language audit 和人工复核，records 当前为 15/15 `reviewed_pass`。当前下一步已经从“是否直接切 `3B/4B`”收口为“先审计 constrained/guided decoding 结果，再决定是否需要更大模型下载或更大样本面对照”。
+状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 review records 已接入仓库级验证，且 broader 15 样本现已完成 machine gate、offline eval、natural-language audit 和人工复核，records 当前为 15/15 `reviewed_pass`。2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 也已完成 6/6 机器通过，但自然语言字段仍暴露退化与打满 token 的迹象；因此当前下一步改为优先准备 `3B/4B` 对照，用同边界结果判断容量提升是否能改善这类非纯结构化问题。
 
 ### M5：`Radish` 首批任务接入
 
@@ -70,10 +70,11 @@
 
 1. 继续维护服务/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据。
-3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，先补 constrained/guided decoding 的执行前置与 runbook，并在 `holdout6-v2-non-overlap` 上完成同边界对照。
-4. 先审计 2026-05-09 的 guided/constrained 结果，再决定是否进入更大样本面或 `minimind-v` / `3B/4B` 对照；今天不把模型下载当作默认动作。
-5. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
-6. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。
+3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，保留 constrained/guided decoding 已在 `holdout6-v2-non-overlap` 上给出的同边界改善信号，并把该事实写实到实验记录。
+4. 下一步优先准备 `minimind-v` / `3B/4B` 对照，复用同一类 task、同一 offline eval 入口和同一人工审计口径，判断更大模型是否能改善当前 1.5B guided 仍存在的自然语言退化与复杂样本解释质量问题。
+5. 更大样本面不取消，但放到模型尺寸对照之后或与之并列为第二优先级，不再把“先扩样再看要不要 3B/4B”作为默认顺序。
+6. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
+7. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。
 
 ## 停止线
 

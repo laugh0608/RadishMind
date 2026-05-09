@@ -489,11 +489,11 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
 def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     conclusion = require_dict(experiment, "current_conclusion")
     require(
-        conclusion.get("status") == "broader_review_pass_prioritize_constrained_guided_decoding",
+        conclusion.get("status") == "guided_holdout6_v2_pass_prioritize_3b_4b_comparison",
         "current conclusion status mismatch",
     )
     require(
-        conclusion.get("next_priority") == "constrained_guided_decoding_holdout6_v2_before_model_size_comparison",
+        conclusion.get("next_priority") == "prepare_3b_4b_comparison_before_larger_sample_expansion",
         "current conclusion next_priority mismatch",
     )
     require(
@@ -503,15 +503,15 @@ def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     )
     next_step = str(conclusion.get("next_step") or "")
     require(
-        "GenerationConfig.guided_decoding" in next_step or "custom_generate" in next_step,
-        "conclusion must mention the guided decoding runtime backend",
+        "3B/4B" in next_step,
+        "conclusion must mention 3B/4B comparison",
     )
-    require("holdout6-v2-non-overlap" in next_step, "conclusion must keep the v2 non-overlap holdout as the next slice")
-    require("不应直接切 `3B/4B`" in next_step, "conclusion must reject direct 3B/4B switch")
+    require("holdout6-v2-non-overlap" in next_step, "conclusion must keep the v2 non-overlap holdout evidence")
+    require("offline eval" in next_step, "conclusion must preserve offline eval as the comparison gate")
+    require("自然语言退化" in next_step or "复杂解释质量" in next_step, "conclusion must explain why model-size comparison is needed")
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")
     require("训练准入证据" in next_step, "conclusion must reject training acceptance")
-    require("constrained/guided decoding" in next_step, "conclusion must mention constrained decoding")
-    require("更大样本面" in next_step, "conclusion must defer larger sample expansion")
+    require("更大样本面" in next_step, "conclusion must still mention larger sample expansion ordering")
     return {
         "status": conclusion.get("status"),
         "next_priority": conclusion.get("next_priority"),

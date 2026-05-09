@@ -4,7 +4,7 @@
   "phase": "M4-preparation",
   "experiment_id": "radishmind-core-structured-output-decision-experiment-v0",
   "status": "planned",
-  "updated_at": "2026-05-08T00:00:00Z",
+  "updated_at": "2026-05-09T00:00:00Z",
   "decision_question": "当前 raw blocked 的主因，是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足？",
   "why_now": [
     "当前 `Qwen2.5-1.5B-Instruct` raw 在 9 条 fixture、planned full holdout 和 v2 非重叠 holdout 上都仍 blocked。",
@@ -892,10 +892,10 @@
     "review_followup_count": 5
   },
   "current_conclusion": {
-    "status": "guided_holdout6_v2_pass_model_size_comparison_deferred",
-    "summary": "当前 broader task-scoped builder review 已完成 15/15 `reviewed_pass`，而 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 也已经 6/6 通过，说明 constrained/guided decoding 在同一 raw 边界上已经给出可用的结构化输出信号。它仍然不是 raw 晋级或训练准入证据，但现在也没有必要立即下载更大的模型来做默认对照；更合理的动作是先审计这轮 guided 产物并更新路线判断，再决定是否需要更大样本面或 `3B/4B` 对照。",
-    "next_priority": "audit_guided_holdout6_v2_before_model_size_comparison",
+    "status": "guided_holdout6_v2_pass_prioritize_3b_4b_comparison",
+    "summary": "当前 broader task-scoped builder review 已完成 15/15 `reviewed_pass`，而 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 也已经在 candidate summary 与 offline eval 上 6/6 通过，说明 constrained/guided decoding 在同一 raw 边界上已经显著改善结构化输出。但 candidate responses 仍暴露自然语言重复、泛化、复杂 cross-object 样本打满 `max_new_tokens` 与 action title/rationale 退化，因此下一步更有价值的是进入 `3B/4B` 对照，判断这些残余问题是否主要来自模型容量。",
+    "next_priority": "prepare_3b_4b_comparison_before_larger_sample_expansion",
     "priority_runbook": "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
-    "next_step": "下一步先审计 2026-05-09 guided smoke / `holdout6-v2-non-overlap` 的 summary、candidate responses 和 offline 结果；如果这轮已经能稳定通过，就先不下载更大模型，只有在更大样本面再次 blocked 后才考虑 `minimind-v` / `3B/4B` 对照。builder 结果仍不得写成 raw 模型晋级或训练准入证据。"
+    "next_step": "下一步先把 2026-05-09 guided smoke / `holdout6-v2-non-overlap` 的机器通过和 candidate-response 审计结论固定下来，然后优先准备 `minimind-v` / `3B/4B` 对照，复用同类 task、同一 offline eval 入口和同一人工审计口径，判断容量提升是否能改善当前 1.5B guided 仍存在的自然语言退化与复杂解释质量问题。builder 结果仍不得写成 raw 模型晋级或训练准入证据；更大样本面继续保留在模型尺寸对照之后。"
   }
 }

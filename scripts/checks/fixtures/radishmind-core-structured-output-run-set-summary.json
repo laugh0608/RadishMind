@@ -252,9 +252,9 @@
     "full_holdout_expansion_requires_broader_review": true
   },
   "current_conclusion": {
-    "status": "broader_review_pass_prioritize_constrained_guided_decoding",
-    "next_priority": "constrained_guided_decoding_holdout6_v2_before_model_size_comparison",
+    "status": "guided_holdout6_v2_pass_prioritize_3b_4b_comparison",
+    "next_priority": "prepare_3b_4b_comparison_before_larger_sample_expansion",
     "priority_runbook": "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
-    "next_step": "下一步先在用户本机直接跑 constrained/guided decoding 轨：如果当前 runtime 具备 native `GenerationConfig.guided_decoding` hook 就走原生路径，否则走 `custom_generate` scaffold-slot shim；随后在 `holdout6-v2-non-overlap` 上保持同样 `300s`、同样 raw 边界对照 raw baseline。当前不应直接切 `3B/4B`，只有在这条轨仍不能明显改善 raw 后，才转入更大样本面或 `minimind-v` / `3B/4B` 对照。builder 结果仍不得写成 raw 模型晋级或训练准入证据。"
+    "next_step": "下一步先把 2026-05-09 guided smoke / `holdout6-v2-non-overlap` 的机器通过和 candidate-response 审计结论固定下来，然后优先准备 `minimind-v` / `3B/4B` 对照，复用同类 task、同一 offline eval 入口和同一人工审计口径，判断容量提升是否能改善当前 1.5B guided 仍存在的自然语言退化与复杂解释质量问题。builder 结果仍不得写成 raw 模型晋级或训练准入证据；更大样本面继续保留在模型尺寸对照之后。"
   }
 }
