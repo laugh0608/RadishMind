@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-09
+更新时间：2026-05-10
 
 ## 文档目的
 
@@ -26,8 +26,8 @@
 3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，继续保留 constrained/guided decoding 为已验证的同边界改善信号，并把 `holdout6-v2-non-overlap` + `300s` 的对照结论写实到实验记录。
 4. 当前 `.venv` 的 `transformers 5.7.0` 已通过 `custom_generate` scaffold-slot shim 接入 guided-decoding runtime，不再要求本机先暴露 `GenerationConfig.guided_decoding` 才能开始 guided 轨。
 5. 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 已完成，candidate summary 与 offline eval 均为 6/6 通过；但 candidate responses 里仍有自然语言退化、重复和 `max_new_tokens` 打满样本，因此该结果只说明结构化约束有效，不等于路线已经收口。
-6. 鉴于当前开发机资源可承受、且现在更需要更清晰的容量对比信号，下一步优先准备 `3B/4B` 对照，而不是先扩大同一 1.5B guided 样本面。
-7. 更大样本面继续保留为下一层验证：若 `3B/4B` 仍不能改善同类自然语言退化、复杂 cross-object 文案质量或 citation 解释质量，再决定是扩样、继续约束解码，还是调整基座候选。
+6. 2026-05-10 的 `Qwen3-4B-Instruct-2507` raw / guided 也已完成：raw 在同一 holdout 上仍被两条复杂样本卡住；guided 虽然 6/6 机器通过、`timeout_count=0`，但 candidate responses 里仍能看到 summary 泄漏、泛化 title/rationale 和跨对象语义退化。
+7. 因此当前优先级仍是 `3B/4B` 对照，但现在已经有 4B 先行证据，下一步应补 3B 同口径结果来判断容量提升是否真的能改善这些自然语言问题。
 
 ## 为什么是这个任务
 

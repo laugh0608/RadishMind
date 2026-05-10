@@ -19,9 +19,9 @@
 - 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题
 - 修改规则、架构、协议、目录职责、阶段范围或协作文档时，优先保持与 `docs/` 中现有正式文档一致
 - 文档中提到 `Radish`、`RadishFlow`、`RadishCatalyst` 外部项目时，默认使用项目名和在线仓库 URL，不写开发者本机绝对路径或相对路径；如需读取本地资料，应要求开发者在当次任务临时提供路径，不把该临时路径写入长期文档
-- 每做完一个可分割子步骤，都应进行最小验证；仓库级默认验证入口优先使用当前环境的原生入口：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`，Linux / WSL 用 `./scripts/check-repo.sh`
-- 日常小改动可优先用快速模式：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1 -Fast`，Linux / WSL 用 `./scripts/check-repo.sh --fast` 或 `./scripts/check-repo-fast.sh`
-- 发布前或影响评测/治理口径的改动，仍应跑全量 `check-repo`，不要把 fast mode 当成最终门禁
+- 每做完一个可分割子步骤，都应进行最小验证；仓库级默认验证入口优先使用快速模式：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1 -Fast`，Linux / WSL 用 `./scripts/check-repo.sh --fast` 或 `./scripts/check-repo-fast.sh`
+- 只有改动较大、发布前，或影响评测/治理口径、协议、架构、阶段边界与文档真相源时，才补跑全量 `check-repo`
+- 不要把 fast mode 当成最终门禁
 - 重要阶段性决策除了改代码，还应同步更新对应文档；如果属于本周重要推进，追加到周志
 
 ## 文档真相源
@@ -105,10 +105,10 @@
 - 文档读取、文档修改、脚本修改
 - 本仓库内的代码与配置修改
 - `git status`、`git diff`、`git log` 等只读 Git 操作
-- `pwsh ./scripts/check-repo.ps1`
-- `./scripts/check-repo.sh`
 - `pwsh ./scripts/check-repo.ps1 -Fast`
 - `./scripts/check-repo.sh --fast`
+- `pwsh ./scripts/check-repo-fast.ps1`
+- `./scripts/check-repo-fast.sh`
 - 简洁明确的提交操作
 
 ### 需要先告知用户再执行
@@ -143,18 +143,20 @@
 
 验证入口按所在环境优先执行：
 
-1. Windows / PowerShell：`pwsh ./scripts/check-repo.ps1`
-2. Linux / WSL：`./scripts/check-repo.sh`
-3. 快速模式：`pwsh ./scripts/check-repo.ps1 -Fast` 或 `./scripts/check-repo.sh --fast`
+1. Windows / PowerShell：`pwsh ./scripts/check-repo.ps1 -Fast`
+2. Linux / WSL：`./scripts/check-repo.sh --fast`
+3. 快速 wrapper：`pwsh ./scripts/check-repo-fast.ps1` 或 `./scripts/check-repo-fast.sh`
+4. 全量模式：`pwsh ./scripts/check-repo.ps1` 或 `./scripts/check-repo.sh`
 
 补充说明：
 
-- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致
+- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致；日常协作默认走它们的快速参数或对应 fast wrapper
+- `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
 - `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
 - 仓库主实现栈为 `Python`；评测、回归与仓库级校验统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
 - 执行验证链路时，应提供可用的 Python 启动器与 `jsonschema`
 - 基线重点是文本文件卫生、治理文件齐备性和 GitHub 规则/工作流口径一致性
-- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并执行对应仓库级验证入口
+- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并执行快速验证入口；只有文档改动触及治理口径、阶段边界或真相源时，再补跑全量入口
 
 ## 实现约定
 

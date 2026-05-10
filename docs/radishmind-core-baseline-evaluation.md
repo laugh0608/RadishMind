@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-05-08
+更新时间：2026-05-10
 
 ## 文档目的
 
@@ -127,6 +127,7 @@ repaired 观测结论：
 - 当前已新增 `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json`，记录 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨接入 `radishmind-core-offline-eval-run` 后的观察摘要；repaired 在当前 9 条 fixture 上达到 `schema_valid_rate=1.0` 与 `task_valid_rate=1.0`，但修复了 `8/9` 条输出，因此不得视为 raw 能力晋级
 - repaired 结果只能证明后处理链路可行，不能替代 raw 模型能力；后续晋级判断必须同时保留 raw summary、repaired summary、修复路径统计、样本覆盖说明和人工复核结论
 - task-scoped builder 的后续扩样也遵循同一原则：机器通过、自然语言 audit 通过和 planned review 口径固定，都只能证明 tooling 路线可继续观察，不能直接替代 raw 晋级或训练准入判断
+- 2026-05-10 的 `Qwen3-4B-Instruct-2507` raw / guided 观测也已经完成：raw 在 `holdout6-v2-non-overlap` 上 `schema_valid_rate=0.6666666666666666`、`task_valid_rate=1.0`、`timeout_count=2`，主要卡在 `suggest_flowsheet_edits` 和 `suggest_ghost_completion` 两条复杂边界；guided 在同一 holdout 上达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`、`hit_max_new_tokens_count=1`，但 candidate responses 仍能看到 summary 泄漏、泛化 title/rationale 和跨对象语义退化。这个结果说明 4B 已把结构化门禁再往前推了一步，但还没有把自然语言质量完全收口。
 - 2026-05-06 citation-tightened full-holdout-9 复跑已完成：同一批 9 条样本重新达到 `9/9` schema/task valid、offline eval 全绿与自然语言 audit `violation_count=0`，并且 review records 现在已推进为 9/9 `reviewed_pass`。`compressor-parameter-update` 的 numeric detail 断言与 citation locator 断言都已通过；该结果只恢复 builder/tooling 轨机器与人工复核通过状态，仍需把它和 raw 晋级、训练准入严格分开。
 - `run-radishmind-core-candidate.py` 已为 `local_transformers` 增加显式 `--sample-timeout-seconds` 单样本超时边界；timeout 会记录为 invalid candidate output、`generation_timeout` 失败分类和 generation summary 的 `timeout_count`，避免单条本地生成长时间阻塞整批评测
 
