@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-09
+更新时间：2026-05-10
 
 ## 这份文档讲什么
 
@@ -95,6 +95,16 @@ python3 scripts/run-radishmind-core-candidate.py \
 - `--sample-timeout-seconds`：限制单样本超时
 
 其它实验轨按需叠加，例如 `--repair-hard-fields`、`--inject-hard-fields`、`--build-task-scoped-response`、`--guided-decoding json_schema`。这些开关按实验轨选择，通常不要混用。
+
+### 模型下载
+
+如果 `hf download` 在代理环境里卡在 `transfer.xethub.hf.co`，优先用这个：
+
+```bash
+HF_HUB_DISABLE_XET=1 hf download Qwen/Qwen2.5-3B-Instruct \
+  --local-dir /home/luobo/Code/Models/Qwen2.5-3B-Instruct \
+  --max-workers 1
+```
 
 ### 训练样本转换
 

@@ -255,6 +255,6 @@
     "status": "guided_holdout6_v2_pass_prioritize_3b_4b_comparison",
     "next_priority": "prepare_3b_4b_comparison_before_larger_sample_expansion",
     "priority_runbook": "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
-    "next_step": "下一步先把 2026-05-10 的 `Qwen3-4B-Instruct-2507` raw / guided 机器通过和 candidate-response 审计结论固定下来，然后补 `3B/4B` 同口径对照，复用同类 task、同一 offline eval 入口和同一人工审计口径，判断 4B guided 在 `holdout6-v2-non-overlap` 上已经证明的结构化稳健性是否还能继续改善当前自然语言退化与复杂解释质量问题。builder 结果仍不得写成 raw 模型晋级或训练准入证据；更大样本面继续保留在模型尺寸对照之后。"
+    "next_step": "下一步先把 `Qwen2.5-3B-Instruct` 和 `Qwen3-4B-Instruct-2507` 在 `holdout6-v2-non-overlap` 上的机器结果和 candidate-response 审计结论一并固定，然后继续复用同类 task、同一 offline eval 入口和同一人工审计口径，把 3B/4B 收口成容量-质量曲线，因为当前两档仍保留自然语言退化和复杂解释质量问题。builder 结果仍不得写成 raw 模型晋级或训练准入证据；更大样本面继续保留在模型尺寸对照之后，并以 offline eval 作为比较门槛。"
   }
 }

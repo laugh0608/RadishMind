@@ -23,7 +23,7 @@
 - 当前正式仓库边界仍是“四仓独立 + 协议接入”；不在 `RadishMind` 与 `RadishFlow` / `Radish` / `RadishCatalyst` 之间默认采用双向 `git submodule`。
 - `RadishMind-Core` 当前重点不是训练放量，而是继续验证 raw、repair、hard-field injection、task-scoped builder、自然语言 audit 和人工 review 的分工边界，并把 broader task-scoped builder review 的通过结论收口为稳定路线信号。
 - `RadishMind-Core` broader task-scoped builder review 已完成两段本地执行、审计与 15 条样本人工复核；full-holdout-9 和 holdout6-v2-non-overlap 的 machine gate / offline eval / natural-language audit 均通过，当前记录集已更新为 15/15 `reviewed_pass`。
-- 当前首要动作不再是重跑 broader review，而是继续维护 service/API smoke 矩阵；`Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 已完成 6/6 机器通过，`Qwen3-4B-Instruct-2507` raw / guided 也已完成且仍然表明复杂样本上的自然语言质量没有完全收口，因此当前路线仍是做 `3B/4B` 同口径对照，而不是继续扩同一 1.5B guided 样本面。
+- 当前首要动作不再是重跑 broader review，而是继续维护 service/API smoke 矩阵；`Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 已完成 6/6 机器通过，`Qwen2.5-3B-Instruct` raw / guided 也已完成并补齐了 `3B` 下界证据，但 raw 仍 blocked、guided 仍保留 summary 泄漏与自然语言退化，因此当前路线仍是把 `3B/4B` 同口径对照写实成容量-质量结论，而不是继续扩同一 1.5B guided 样本面。
 - 图片生成能力由 `RadishMind-Image Adapter` 与独立 backend 承接；主模型只输出结构化意图、约束、审查和 artifact metadata。
 
 ## 文档约束
