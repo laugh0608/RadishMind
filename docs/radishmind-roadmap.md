@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已先落最小服务启动、`/healthz`、`/v1/models` 与 `/v1/chat/completions` 路由壳，但真正的 canonical protocol bridge、`HuggingFace / Ollama` 服务接入、northbound `/v1/chat/completions` / `/v1/responses` / `/v1/messages` / `/v1/models` 完整兼容面、正式长驻服务配置分层和部署 runbook 仍未完成。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models` 与 `/v1/chat/completions` bridge，但第一版 northbound 仍是窄切片：非流式文本消息先固定映射到 `radish/answer_docs_question`，真正的 canonical protocol 仍由 Python gateway/runtime 持有；后续还要继续补 `/v1/responses`、`/v1/messages`、更完整的 provider 选择、流式转发、`HuggingFace / Ollama` 服务接入、正式长驻服务配置分层和部署 runbook。
 
-下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，优先把 `/v1/chat/completions` 与 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope` 打通，再补 `/v1/models` 的动态发现与 `/v1/responses`、`/v1/messages`、`HuggingFace`、`Ollama`。
+下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，继续把 `/v1/chat/completions` 的 provider 选择、路由显式化、`/v1/responses`、`/v1/messages`、`HuggingFace`、`Ollama` 与长驻部署壳补齐，再把 `GET /v1/models` 从 provider 目录推进到更完整的动态发现。
 
 ### 2. `Conversation & Session`
 

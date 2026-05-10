@@ -6,6 +6,7 @@
 
 - 启动最小本地 `HTTP` 服务
 - 承载 northbound `API` / `gateway` 入口
+- 通过 Python bridge 调用 canonical `CopilotGatewayEnvelope`
 - 提供观测、部署壳和后续鉴权 / 流式转发落点
 
 当前明确不做：
@@ -20,4 +21,12 @@
 - `GET /v1/models`
 - `POST /v1/chat/completions`
 
-其中 `/v1/chat/completions` 目前只提供占位响应，用于固定服务层边界；真正的 canonical request / response 翻译与 Python runtime bridge 仍是下一步实现项。
+其中 `/v1/chat/completions` 已接到最小 canonical bridge：`Go` 只负责 OpenAI 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
+
+当前第一版 bridge 仍是窄切片：
+
+- 只支持非流式文本消息
+- 当前只把最后一条文本用户消息映射到 `radish/answer_docs_question`
+- 返回内容当前优先取 canonical `summary`，必要时回退首条 `answer`
+
+`GET /v1/models` 目前通过 Python provider registry 输出可用 provider 目录，作为 northbound discoverability 的第一版收口；它当前还不是完整的 model/profile inventory。

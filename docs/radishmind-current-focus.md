@@ -20,7 +20,7 @@
 
 ## 当前优先做什么
 
-1. `Runtime Service`：在现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/platform/` 和 `RadishFlow` service smoke gate 之上，继续把已落地的最小 `provider registry` 与 `Go` service bootstrap 骨架扩到协议兼容层、本地启动、配置、调用和部署入口。
+1. `Runtime Service`：在现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/platform/` 和 `RadishFlow` service smoke gate 之上，继续把已落地的最小 `provider registry` 与 `Go` service bootstrap 骨架扩到协议兼容层、本地启动、配置、调用和部署入口。当前第一版 `Go -> Python` bridge 已接通 `/v1/chat/completions` 与 `/v1/models`，但仍是窄切片：非流式文本消息先固定映射到 `radish/answer_docs_question`，下一步继续补 `/v1/responses`、`/v1/messages` 和更完整的 provider 选择 / 流式转发。
 2. `Conversation & Session`：补齐会话标识、历史压缩、恢复和审计边界，不再只停留在 `conversation_id` 透传。
 3. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式工具契约、registry、timeout/retry/policy。
 4. `Evaluation & Governance`：把已有 schema、offline eval、service smoke 扩展到 runtime、session、tooling 和 deployment 门禁。
@@ -32,6 +32,7 @@
 - 仓库里已经有 runtime、gateway、adapter、eval 和 governance 资产，可以先把平台骨架做完整。
 - `provider registry` 最小骨架已经把 CLI runtime、进程内 gateway 和 southbound provider 选择收口到同一条真相源，接下来更适合继续补 northbound 协议兼容和本地 service bootstrap。
 - 平台表层语言边界已固定为：`UI` 用 `React + Vite + TypeScript`，平台服务层用 `Go`，模型侧继续保留 `Python`，所有层只共享 `contracts/` 里的 canonical protocol。
+- 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/models` 与 `/v1/chat/completions` bridge，后续只补协议兼容面，不再回头把模型逻辑写回 `Go`。
 - 如果平台既不能稳定接外部模型，也不能对外暴露常见协议接口，就还不能算真正可用的模型平台。
 - 如果在 service、session、tooling 边界还没稳定前继续深挖模型实验，容易再次陷入局部优化。
 

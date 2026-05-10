@@ -16,9 +16,9 @@
 ### 1. `Runtime Service`
 
 - 负责启动、配置、provider/profile 选择、route 识别、gateway 封装、协议兼容和部署边界。
-- 当前实现核心在 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py` 与 `services/platform/`。
+- 当前实现核心在 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py` 与 `services/platform/`。
 - 当前 southbound 已开始由统一 `provider registry` 收口：现有 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流都归到同一条 provider truth；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
-- 当前 northbound 对外形态优先是 CLI runtime 和进程内 Python API，不是正式 HTTP 服务；正式 `HTTP` / 长驻 `gateway` / `service` 层可按职责用 `Go` 承载，避免把平台服务层锁死在 `Python`。
+- 当前 northbound 对外形态已经开始由 `Go` 承载最小正式 `HTTP` 服务壳；`Python` 继续保留 CLI runtime 和 canonical gateway 语义，`Go` 只做协议兼容与进程调度，避免把平台服务层锁死在 `Python`。
 - `UI` 层默认 `React + Vite + TypeScript`，通过北向协议消费平台能力，不直接承载模型实现逻辑。
 
 ### 2. `Conversation & Session`
@@ -43,7 +43,7 @@
 
 ## 请求视角
 
-当前还有一层必须补齐、但尚未正式落地的协议翻译边界：
+当前还有一层必须继续补齐、但已经开始正式落地的协议翻译边界：
 
 - 北向：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 等兼容接口如何映射到 canonical `CopilotRequest`
 - 南向：`RadishMind-Core`、`HuggingFace`、`Ollama`、OpenAI-compatible、Gemini、Anthropic 等 provider 如何被统一调度
@@ -97,7 +97,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 - 统一校验请求、识别任务、选择 provider/profile，并返回 `CopilotGatewayEnvelope`。
 - 当前 `SUPPORTED_ROUTES` 仍然有限，说明平台还在先做骨架而不是全量铺开任务面。
-- 后续 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 也必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
+- 当前 `Go` 平台服务层已经通过 Python bridge 接到 `/v1/chat/completions` 与 `/v1/models` 的第一版兼容层；这条 bridge 目前仍是窄切片，先把非流式文本消息固定映射到 `radish/answer_docs_question`，后续 `/v1/responses`、`/v1/messages` 也必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
 - 服务/API smoke 当前锁定 advisory-only、schema validation、route metadata、error envelope 和 handoff 不执行这些不变量。
 
 ### 3. Retrieval & Tool Layer
@@ -128,8 +128,8 @@ Protocol Compatibility Layer 翻译回 northbound response
 ## 当前架构映射
 
 - `Frontend UI`：`React + Vite + TypeScript`
-- `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`
-- `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳
+- `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py`
+- `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound
 - `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`
 - `Conversation & Session`：`adapters/radishflow/request_builder.py` 中的 `conversation_id` 与 snapshot 会话语义
 - `Tooling Framework`：`adapters/`、`scripts/build-radishflow-ghost-request.py`、各类 deterministic builder/check
@@ -138,8 +138,8 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 ## 当前缺口
 
-- 没有正式长驻服务或官方 HTTP API
-- 没有正式 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 兼容接口
+- 只有最小 `Go` 长驻服务壳和 bridge-backed `HTTP API`
+- 只有最小 northbound `/v1/chat/completions` 与 `/v1/models` 兼容接口，`/v1/responses` 与 `/v1/messages` 还未正式落地
 - 没有正式 `HuggingFace` 与 `Ollama` southbound 服务接入
 - 没有正式 session contract、history policy、恢复和会话级门禁
 - 没有通用 tool registry、tool calling contract 和 tool audit

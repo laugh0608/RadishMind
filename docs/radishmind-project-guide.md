@@ -113,7 +113,7 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 - `GET /healthz`
 - `GET /v1/models` 与 `POST /v1/chat/completions` 的 northbound 路由壳
 
-其中 `/v1/chat/completions` 目前仍返回 `not implemented`，因为 canonical protocol bridge 还没接到现有 Python runtime。
+其中 `/v1/chat/completions` 现在已经接到第一版 bridge，但它仍然是窄切片：只接非流式文本消息，并先固定映射到 `radish/answer_docs_question`；`GET /v1/models` 也只是 provider 目录，不是完整 model/profile inventory。
 
 ### 4. 跑本地候选模型输出
 
@@ -140,21 +140,21 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向还没有完成：还没有正式 HTTP server，也没有 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 对外兼容接口
+- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳和第一版 bridge，但 `/v1/chat/completions` 仍是窄切片，`/v1/responses`、`/v1/messages` 还没正式落地，`/v1/models` 也还不是完整 inventory
 
 ## 今天还不能算完成的能力
 
 当前仓库还没有这些正式能力：
 
 - 官方长驻服务进程
-- 正式 HTTP API 包装
+- 完整的正式 HTTP API 包装
 - `HuggingFace` 与 `Ollama` 的正式服务级接入
-- `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 对外兼容接口
+- `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口
 - session store / history policy / recovery runbook
 - 通用 tool registry 和 tool calling contract
 - 官方 deployment runbook 或可发布部署包
 
-所以如果你问“现在怎么部署”，准确答案是：当前只有本地 CLI runtime、进程内 gateway 和 smoke/demo 链路，还没有正式部署面。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、最小 Go HTTP 壳和 smoke/demo 链路，但还没有完整正式部署面。
 
 ## 读文档顺序
 
