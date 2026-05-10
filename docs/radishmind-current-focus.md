@@ -20,7 +20,7 @@
 
 ## 当前优先做什么
 
-1. `Runtime Service`：把现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py` 和 `RadishFlow` service smoke gate 收口为更清晰的 provider registry、协议兼容层、本地启动、配置、调用和部署入口。
+1. `Runtime Service`：在现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py` 和 `RadishFlow` service smoke gate 之上，继续把已落地的最小 `provider registry` 骨架扩到协议兼容层、本地启动、配置、调用和部署入口。
 2. `Conversation & Session`：补齐会话标识、历史压缩、恢复和审计边界，不再只停留在 `conversation_id` 透传。
 3. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式工具契约、registry、timeout/retry/policy。
 4. `Evaluation & Governance`：把已有 schema、offline eval、service smoke 扩展到 runtime、session、tooling 和 deployment 门禁。
@@ -30,6 +30,7 @@
 
 - 上层项目目前没有真实挂载点、确认流和命令承接接口，继续细化接线设计收益很低。
 - 仓库里已经有 runtime、gateway、adapter、eval 和 governance 资产，可以先把平台骨架做完整。
+- `provider registry` 最小骨架已经把 CLI runtime、进程内 gateway 和 southbound provider 选择收口到同一条真相源，接下来更适合继续补 northbound 协议兼容和本地 service bootstrap。
 - 如果平台既不能稳定接外部模型，也不能对外暴露常见协议接口，就还不能算真正可用的模型平台。
 - 如果在 service、session、tooling 边界还没稳定前继续深挖模型实验，容易再次陷入局部优化。
 

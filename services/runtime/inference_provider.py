@@ -29,6 +29,7 @@ from .inference_support import (
     validate_request_document,
     validate_response_document,
 )
+from .provider_registry import MOCK_PROVIDER_ID, OPENAI_COMPATIBLE_PROVIDER_ID, get_provider_spec
 
 GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
 
@@ -522,10 +523,11 @@ def run_inference(
 ) -> dict[str, Any]:
     load_env_file(ENV_FILE_PATH)
     validate_request_document(copilot_request)
+    provider_spec = get_provider_spec(provider)
     project = str(copilot_request.get("project") or "").strip()
     task = str(copilot_request.get("task") or "").strip()
 
-    if provider == "mock":
+    if provider == MOCK_PROVIDER_ID:
         if project == "radish" and task == "answer_docs_question":
             response_document = make_mock_docs_qa_response(copilot_request)
         elif project == "radishflow" and task == "suggest_flowsheet_edits":
@@ -536,21 +538,21 @@ def run_inference(
             raise ValueError(f"mock provider does not support {project} / {task}")
         validate_response_document(response_document)
         return {
-            "provider": "mock",
+            "provider": MOCK_PROVIDER_ID,
             "model": model or f"radishmind-mock-{project}-{task}-v1",
             "messages": build_messages(copilot_request),
             "raw_request": {
-                "provider": "mock",
+                "provider": MOCK_PROVIDER_ID,
                 "mode": "deterministic-rule-based",
             },
             "raw_response": {
-                "provider": "mock",
+                "provider": MOCK_PROVIDER_ID,
                 "response_preview": response_document["summary"],
             },
             "response": response_document,
         }
 
-    if provider == "openai-compatible":
+    if provider == OPENAI_COMPATIBLE_PROVIDER_ID:
         resolved = resolve_openai_compatible_config(
             provider_profile=provider_profile,
             model=model,
@@ -569,7 +571,7 @@ def run_inference(
         profile_name_key = profile_env_key(resolved_profile, "NAME")
         profile_base_url_key = profile_env_key(resolved_profile, "BASE_URL")
         profile_api_key_key = profile_env_key(resolved_profile, "API_KEY")
-        if resolved_api_style not in {"openai-compatible", "gemini-native", "anthropic-messages"}:
+        if resolved_api_style not in provider_spec.supported_api_styles:
             raise ValueError(
                 "provider=openai-compatible requires a supported api style via "
                 f"{profile_api_style_key} or RADISHMIND_MODEL_API_STYLE"
@@ -625,7 +627,7 @@ def run_inference(
             raw_request["api_style"] = resolved_api_style
         return result
 
-    raise ValueError(f"unsupported provider: {provider}")
+    raise AssertionError(f"provider dispatch is missing for {provider_spec.provider_id}")
 
 
 def build_candidate_response_dump(
@@ -642,8 +644,8 @@ def build_candidate_response_dump(
     notes: str | None = None,
 ) -> dict[str, Any]:
     request_id = str(copilot_request.get("request_id") or "").strip() or f"{copilot_request['task']}-request"
-    source = "simulated_candidate_response" if inference_result["provider"] == "mock" else "captured_candidate_response"
-    default_capture_origin = "manual_fixture" if inference_result["provider"] == "mock" else "adapter_debug_dump"
+    source = "simulated_candidate_response" if inference_result["provider"] == MOCK_PROVIDER_ID else "captured_candidate_response"
+    default_capture_origin = "manual_fixture" if inference_result["provider"] == MOCK_PROVIDER_ID else "adapter_debug_dump"
     project = str(copilot_request.get("project") or "").strip()
     task = str(copilot_request.get("task") or "").strip()
     merged_tags: list[str] = [f"{project}_{task}", inference_result["provider"]]

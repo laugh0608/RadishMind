@@ -9,6 +9,7 @@ import jsonschema
 
 from services.runtime.inference import run_inference, validate_request_document, validate_response_document
 from services.runtime.inference_support import load_schema, make_failed_response, utc_now_iso
+from services.runtime.provider_registry import is_supported_provider
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -134,6 +135,23 @@ def handle_copilot_request(
         )
 
     project, task = route_key(copilot_request)
+    if not is_supported_provider(gateway_options.provider):
+        message = f"unsupported provider: {gateway_options.provider or '<empty>'}"
+        response = failed_copilot_response(copilot_request, code="UNSUPPORTED_PROVIDER", message=message)
+        return validated_gateway_envelope(
+            started_at=started_at,
+            copilot_request=copilot_request,
+            options=gateway_options,
+            status="failed",
+            response=response,
+            error={
+                "code": "UNSUPPORTED_PROVIDER",
+                "message": message,
+            },
+            request_validated=True,
+            response_validated=True,
+        )
+
     if (project, task) not in SUPPORTED_ROUTES:
         message = f"unsupported copilot route: {project} / {task}"
         response = failed_copilot_response(copilot_request, code="UNSUPPORTED_TASK", message=message)

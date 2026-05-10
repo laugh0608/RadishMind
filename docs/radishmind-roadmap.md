@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已有 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages`，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。但目前还没有正式的 `HuggingFace / Ollama` 服务接入、northbound `/v1/chat/completions` / `/v1/responses` / `/v1/messages` / `/v1/models` 兼容面、正式长驻服务、配置分层和部署 runbook。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。但目前还没有正式的 `HuggingFace / Ollama` 服务接入、northbound `/v1/chat/completions` / `/v1/responses` / `/v1/messages` / `/v1/models` 兼容面、正式长驻服务、配置分层和部署 runbook。
 
-下一步：先完成 provider registry、协议翻译真相源和最小本地 service bootstrap；在此基础上优先补 `/v1/chat/completions` 与 `/v1/models`，再补 `/v1/responses`、`/v1/messages`、`HuggingFace` 和 `Ollama`。
+下一步：在现有 provider registry 骨架上先完成协议翻译真相源和最小本地 service bootstrap；在此基础上优先补 `/v1/chat/completions` 与 `/v1/models`，再补 `/v1/responses`、`/v1/messages`、`HuggingFace` 和 `Ollama`。
 
 ### 2. `Conversation & Session`
 
@@ -89,7 +89,7 @@
 
 目标：收口最小本地 service bootstrap、provider registry、northbound/southbound 协议兼容、配置、调用和 smoke 路径。
 
-状态：这是当前默认第一实现项。
+状态：这是当前默认第一实现项；provider registry 最小骨架已落地，下一步继续补协议兼容层和本地 service bootstrap。
 
 ### `P2`：Session & Tooling Foundation
 

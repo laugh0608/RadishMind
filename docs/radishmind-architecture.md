@@ -17,7 +17,7 @@
 
 - 负责启动、配置、provider/profile 选择、route 识别、gateway 封装、协议兼容和部署边界。
 - 当前实现核心在 `scripts/run-copilot-inference.py` 与 `services/gateway/copilot_gateway.py`。
-- 当前 southbound 已有一层初步 provider 分流：`openai-compatible chat`、`gemini-native`、`anthropic-messages`；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
+- 当前 southbound 已开始由统一 `provider registry` 收口：现有 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流都归到同一条 provider truth；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
 - 当前 northbound 对外形态优先是 CLI runtime 和进程内 Python API，不是正式 HTTP 服务。
 
 ### 2. `Conversation & Session`
@@ -126,7 +126,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 ## 当前架构映射
 
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`
-- `Southbound Provider Layer`：`services/runtime/inference_provider.py`
+- `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`
 - `Conversation & Session`：`adapters/radishflow/request_builder.py` 中的 `conversation_id` 与 snapshot 会话语义
 - `Tooling Framework`：`adapters/`、`scripts/build-radishflow-ghost-request.py`、各类 deterministic builder/check
 - `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records
