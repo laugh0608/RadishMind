@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
 )
 
@@ -16,6 +17,8 @@ type Options struct {
 type Server struct {
 	httpServer *http.Server
 	options    Options
+	bridge     *bridge.Client
+	config     config.Config
 }
 
 type errorDocument struct {
@@ -32,6 +35,8 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux := http.NewServeMux()
 	server := &Server{
 		options: options,
+		bridge:  bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
+		config:  cfg,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -61,20 +66,7 @@ func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request
 }
 
 func (s *Server) handleModels(writer http.ResponseWriter, _ *http.Request) {
-	writeJSON(writer, http.StatusOK, map[string]any{
-		"object": "list",
-		"data":   []any{},
-	})
-}
-
-func (s *Server) handleChatCompletions(writer http.ResponseWriter, _ *http.Request) {
-	writeJSON(writer, http.StatusNotImplemented, errorDocument{
-		Error: errorBody{
-			Message: "openai /v1/chat/completions bridge is not implemented yet; canonical Copilot protocol remains the runtime truth source",
-			Type:    "not_implemented",
-			Code:    "CHAT_COMPLETIONS_BRIDGE_NOT_IMPLEMENTED",
-		},
-	})
+	handleModels(writer, s)
 }
 
 func writeJSON(writer http.ResponseWriter, statusCode int, document any) {
@@ -83,4 +75,14 @@ func writeJSON(writer http.ResponseWriter, statusCode int, document any) {
 	encoder := json.NewEncoder(writer)
 	encoder.SetEscapeHTML(false)
 	_ = encoder.Encode(document)
+}
+
+func writeOpenAIError(writer http.ResponseWriter, statusCode int, code string, message string) {
+	writeJSON(writer, statusCode, map[string]any{
+		"error": map[string]any{
+			"message": message,
+			"type":    "invalid_request_error",
+			"code":    code,
+		},
+	})
 }
