@@ -31,6 +31,7 @@
 - 上层项目目前没有真实挂载点、确认流和命令承接接口，继续细化接线设计收益很低。
 - 仓库里已经有 runtime、gateway、adapter、eval 和 governance 资产，可以先把平台骨架做完整。
 - `provider registry` 最小骨架已经把 CLI runtime、进程内 gateway 和 southbound provider 选择收口到同一条真相源，接下来更适合继续补 northbound 协议兼容和本地 service bootstrap。
+- 平台表层语言边界已固定为：`UI` 用 `React + Vite + TypeScript`，平台服务层用 `Go`，模型侧继续保留 `Python`，所有层只共享 `contracts/` 里的 canonical protocol。
 - 如果平台既不能稳定接外部模型，也不能对外暴露常见协议接口，就还不能算真正可用的模型平台。
 - 如果在 service、session、tooling 边界还没稳定前继续深挖模型实验，容易再次陷入局部优化。
 

@@ -36,6 +36,8 @@
 
 也仍然必须遵循“兼容层只做翻译，不另起第二套真相源”的规则。
 
+实现语言可以分布在 `Go`、`Python` 和 `TypeScript`，但都必须从 `contracts/` 读取同一套 schema 和 canonical contract，不得各自重新定义业务真相源。
+
 当前目标口径应固定为：
 
 - 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`

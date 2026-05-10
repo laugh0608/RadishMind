@@ -23,6 +23,7 @@
 - 当前仓库主线不再只是等待其他项目真实接入；接下来可以独立推进五条平台主线：`Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Middleware / AI Runtime`，核心价值是把多模型、多协议、多任务收口成可控产品能力。
 - 平台后续必须同时具备两类兼容能力：南向接入自研模型与外部模型，北向对外提供常见 AI 协议接口；当前仓库已落地最小 `provider registry` 骨架，并由同一 southbound 入口收口 `openai-compatible / gemini-native / anthropic-messages` 调用基础，但还没有正式的 `HuggingFace / Ollama` 服务接入与 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 对外兼容面。
+- 平台表层实现分工已固定为：`UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`，并且所有层都只消费 `contracts/` 里的 canonical protocol。
 - 既有 `M3` service/API smoke matrix 与 `M4` broader review、`3B/4B` capacity review 继续保留为冻结证据和门禁；它们不再是当前唯一主线，也不再默认继续深挖同一批样本。
 - `RadishFlow` 仍是第一优先应用面，但当前只冻结 gateway、UI consumption 和 candidate handoff 门禁；上层尚未具备真实接入能力前，不继续细化假想接线。
 - `Radish` 当前保留 docs QA、文档检索增强和结构化问答资产；真实上层接入仍等待。
@@ -39,7 +40,7 @@
 
 ## 语言与实现约束
 
-- 代码应趋近对应语言的惯用、清晰和可维护实践；本仓库当前主实现栈为 `Python`。
+- 代码应趋近对应语言的惯用、清晰和可维护实践；本仓库按职责分层：模型训练、评测和脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` 可按职责采用 `Go`。
 - 命名必须表达真实职责和领域含义，避免 `process_data`、`handle_item`、`manager`、`helper` 这类无法说明边界的泛名。
 - 抽象只在能稳定表达职责边界、消除真实重复或收敛复杂度时引入；禁止为了“看起来通用”增加晦涩封装、空转方法或多层转发。
 - 能用语言标准库、结构化 schema、明确数据类型和小而直接的函数解决的问题，不应写成难追踪的动态包装或隐式 fallback 链。

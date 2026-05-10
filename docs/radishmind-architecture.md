@@ -18,7 +18,8 @@
 - 负责启动、配置、provider/profile 选择、route 识别、gateway 封装、协议兼容和部署边界。
 - 当前实现核心在 `scripts/run-copilot-inference.py` 与 `services/gateway/copilot_gateway.py`。
 - 当前 southbound 已开始由统一 `provider registry` 收口：现有 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流都归到同一条 provider truth；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
-- 当前 northbound 对外形态优先是 CLI runtime 和进程内 Python API，不是正式 HTTP 服务。
+- 当前 northbound 对外形态优先是 CLI runtime 和进程内 Python API，不是正式 HTTP 服务；正式 `HTTP` / 长驻 `gateway` / `service` 层可按职责用 `Go` 承载，避免把平台服务层锁死在 `Python`。
+- `UI` 层默认 `React + Vite + TypeScript`，通过北向协议消费平台能力，不直接承载模型实现逻辑。
 
 ### 2. `Conversation & Session`
 
@@ -89,6 +90,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - 将上层状态转换为统一 `CopilotRequest`。
 - 裁剪、脱敏或摘要敏感字段。
 - 将 `CopilotResponse` 映射回 UI、日志或候选提案。
+- 前端 UI 默认使用 `React + Vite + TypeScript`，通过协议对接后端，不直接依赖模型实现语言。
 - 当前 `RadishFlow` 优先维护 `export -> adapter -> request` 链路；`Radish` 优先维护文档和内容上下文；`RadishCatalyst` 暂不落真实 adapter。
 
 ### 2. Copilot Gateway / Task Router
@@ -125,7 +127,9 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 ## 当前架构映射
 
+- `Frontend UI`：`React + Vite + TypeScript`
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`
+- `Platform Service Layer`：`Go`，用于 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳
 - `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`
 - `Conversation & Session`：`adapters/radishflow/request_builder.py` 中的 `conversation_id` 与 snapshot 会话语义
 - `Tooling Framework`：`adapters/`、`scripts/build-radishflow-ghost-request.py`、各类 deterministic builder/check

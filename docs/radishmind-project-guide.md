@@ -30,9 +30,16 @@
 - 输出解释、诊断、结构化建议和候选动作
 - 维护统一协议、评测门禁、审计记录和训练治理
 
+## 实现分工
+
+- `UI`：`React + Vite + TypeScript`
+- `平台服务层`：`Go`，覆盖 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳
+- `模型侧`：`Python`，覆盖训练、评测、`prompt / builder`、离线推理和校验逻辑
+- `contracts/`：唯一 canonical protocol 真相源，所有语言只能消费，不得各自重新定义业务协议
+
 ## 当前五条主线
 
-1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础。
+1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础；表层实现按职责可落到 `Go`，模型侧仍保留 `Python`。
 2. `Conversation & Session`：会话标识、历史压缩、恢复和审计边界。
 3. `Tooling Framework`：检索、附件解析、候选生成、builder、tool policy 和 audit。
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate。
