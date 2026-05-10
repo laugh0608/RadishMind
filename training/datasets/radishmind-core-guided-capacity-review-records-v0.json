@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_guided_capacity_review_records",
+  "phase": "M4-preparation",
+  "review_batch_id": "qwen3-4b-guided-vs-qwen25-3b-holdout6-review-v0",
+  "status": "reviewed_changes_required",
+  "reviewer": "repository-reviewer",
+  "reviewed_at": "2026-05-10T00:00:00Z",
+  "comparison_scope": {
+    "sample_set_id": "holdout6-v2-non-overlap",
+    "baseline_model": "Qwen2.5-3B-Instruct",
+    "challenger_model": "Qwen3-4B-Instruct-2507",
+    "candidate_track": "raw_guided_json_schema",
+    "sample_count": 6
+  },
+  "does_not_run_models": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_raw_promotion": true,
+  "does_not_mark_training_acceptance": true,
+  "source_artifacts": {
+    "baseline": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300-run.json",
+      "candidate_output_dir": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/responses"
+    },
+    "challenger": {
+      "candidate_summary": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300-run.json",
+      "candidate_output_dir": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/responses"
+    }
+  },
+  "comparison_dimensions": {
+    "summary_leakage": {
+      "status": "reviewed_changes_required",
+      "findings": [
+        "3B guided summary fields do not contain the inline `','answers':[...` fragment.",
+        "4B guided summary fields all contain the inline `','answers':[...` fragment."
+      ]
+    },
+    "title_rationale_generalization": {
+      "status": "reviewed_changes_required",
+      "findings": [
+        "4B guided still keeps generic `请复核` titles and `建议人工确认后处理` rationales on the cross-object flowsheet edit sample.",
+        "The extra capacity does not turn the cross-object action text into a more specific semantic answer."
+      ]
+    },
+    "cross_object_semantics": {
+      "status": "reviewed_changes_required",
+      "findings": [
+        "4B guided keeps the cross-object sample on the same advisory-only boundary and still leaves the ambiguity explanation coarse.",
+        "The cross-object sample remains confirmation-bound, but the semantic explanation is not materially cleaner than the 3B baseline."
+      ]
+    },
+    "ghost_docs_noise": {
+      "status": "reviewed_changes_required",
+      "findings": [
+        "4B guided reduces repeated filler in docs and ghost samples relative to 3B guided.",
+        "The noise reduction is real, but it does not outweigh the summary leak and the unchanged hard-sample semantics."
+      ]
+    }
+  },
+  "sample_reviews": [
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "task": "suggest_flowsheet_edits",
+      "focus": "cross_object_semantics",
+      "baseline_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.json",
+      "challenger_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.json",
+      "comparison_result": "reviewed_changes_required",
+      "notes": [
+        "3B guided keeps generic `请复核当前项。` issue text and repeated `请复核` / `建议人工确认后处理` action text.",
+        "4B guided is cleaner but still keeps `请复核` / `建议人工确认后处理` and does not turn the sample into a more specific cross-object explanation."
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "task": "suggest_flowsheet_edits",
+      "focus": "ghost_docs_noise",
+      "baseline_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/responses/radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001.candidate-response.json",
+      "challenger_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/responses/radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001.candidate-response.json",
+      "comparison_result": "reviewed_changes_required",
+      "notes": [
+        "3B guided repeats `如有疑问，请咨询专业人员` inside the answer and issue text.",
+        "4B guided removes that repeated filler, but the sample still sits in the same guided compare surface and does not resolve the broader summary-leak problem."
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
+      "task": "suggest_ghost_completion",
+      "focus": "ghost_docs_noise",
+      "baseline_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/responses/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.candidate-response.json",
+      "challenger_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/responses/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.candidate-response.json",
+      "comparison_result": "reviewed_changes_required",
+      "notes": [
+        "3B guided repeats `基于候选集中的` and keeps the ghost explanation noisy.",
+        "4B guided is shorter, but the challenger summary now leaks an inline JSON fragment, so the cleaner ghost text is not enough to make this a pass."
+      ]
+    },
+    {
+      "sample_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "task": "answer_docs_question",
+      "focus": "ghost_docs_noise",
+      "baseline_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/responses/radish-answer-docs-question-docs-faq-forum-conflict-001.candidate-response.json",
+      "challenger_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/responses/radish-answer-docs-question-docs-faq-forum-conflict-001.candidate-response.json",
+      "comparison_result": "reviewed_changes_required",
+      "notes": [
+        "3B guided repeats `支持团队` filler in both answer and action text.",
+        "4B guided removes that noise, but the summary leak appears in the challenger output and the docs QA answer remains only partially improved."
+      ]
+    },
+    {
+      "sample_id": "radish-answer-docs-question-evidence-gap-001",
+      "task": "answer_docs_question",
+      "focus": "summary_leakage",
+      "baseline_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/responses/radish-answer-docs-question-evidence-gap-001.candidate-response.json",
+      "challenger_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/responses/radish-answer-docs-question-evidence-gap-001.candidate-response.json",
+      "comparison_result": "reviewed_changes_required",
+      "notes": [
+        "3B guided keeps the evidence-gap answer succinct and does not leak the JSON `answers` scaffold into the summary field.",
+        "4B guided leaks the `','answers':[...` fragment in the summary, which is a stronger regression than the 3B output."
+      ]
+    },
+    {
+      "sample_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
+      "task": "suggest_ghost_completion",
+      "focus": "cross_object_semantics",
+      "baseline_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen25-3b-guided-timeout300/responses/radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001.candidate-response.json",
+      "challenger_response_file": "tmp/radishmind-core-holdout-probe-v2-qwen34b-guided-timeout300/responses/radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001.candidate-response.json",
+      "comparison_result": "reviewed_changes_required",
+      "notes": [
+        "3B guided repeats `请联系工程师` and `如有需要，可手动确认` filler around the no-tab comparison.",
+        "4B guided removes the filler, but the ambiguity explanation is still not explicit enough to count as a full semantic fix."
+      ]
+    }
+  ],
+  "batch_summary": {
+    "sample_count": 6,
+    "comparison_pass_sample_count": 0,
+    "comparison_changes_required_sample_count": 6,
+    "comparison_dimension_pass_count": 0,
+    "comparison_dimension_changes_required_count": 4,
+      "decision": "4B guided is only a partial cleanup over 3B guided, not a natural-language quality promotion. It lowers some simple repetition/noise, but worsens summary leakage / summary 泄漏 and does not resolve cross-object or ambiguity semantics."
+  }
+}

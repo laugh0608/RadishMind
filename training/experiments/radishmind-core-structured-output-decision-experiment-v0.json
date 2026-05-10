@@ -893,9 +893,22 @@
   },
   "current_conclusion": {
     "status": "guided_holdout6_v2_pass_prioritize_3b_4b_comparison",
-    "summary": "当前 broader task-scoped builder review 已完成 15/15 `reviewed_pass`，而 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap`、2026-05-10 的 `Qwen2.5-3B-Instruct` raw / guided 以及 `Qwen3-4B-Instruct-2507` raw / guided 也都已完成。三档结果一起表明：3B raw 仍在 `suggest_flowsheet_edits` 上 blocked 且保留超时，3B guided 只把结构化门禁拉回通过但仍有自然语言退化；4B raw 仍在复杂样本上 blocked，guided 虽然 6/6 机器通过、`timeout_count=0`，candidate responses 仍保留 summary 泄漏、泛化 title/rationale 和跨对象语义退化。因此下一步应把 `3B/4B` 收口成容量-质量曲线，而不是继续扩同一 1.5B guided 样本面。",
+    "summary": "当前 broader task-scoped builder review 已完成 15/15 `reviewed_pass`，而 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap`、2026-05-10 的 `Qwen2.5-3B-Instruct` raw / guided 以及 `Qwen3-4B-Instruct-2507` raw / guided 也都已完成。三档结果一起表明：3B raw 仍在 `suggest_flowsheet_edits` 上 blocked 且保留超时，3B guided 只把结构化门禁拉回通过但仍有自然语言退化；4B raw 仍在复杂样本上 blocked，guided 虽然 6/6 机器通过、`timeout_count=0`，但只在较简单的 docs/ghost 样本上减少了重复 filler 与 support-team / engineer 污染，同时又引入了更系统性的 `summary` JSON 片段泄漏，并且没有把 cross-object `title/rationale` 泛化、`no-tab` 歧义解释和跨对象 issue/action 语义退化真正收口。因此下一步应把 `3B/4B` 收口成容量-质量曲线，而不是继续扩同一 1.5B guided 样本面。",
     "next_priority": "prepare_3b_4b_comparison_before_larger_sample_expansion",
     "priority_runbook": "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
+    "guided_capacity_audit": {
+      "review_record_path": "training/datasets/radishmind-core-guided-capacity-review-records-v0.json",
+      "review_status": "reviewed_changes_required",
+      "sample_set": "holdout6-v2-non-overlap",
+      "machine_gate": "Both `Qwen2.5-3B-Instruct` guided and `Qwen3-4B-Instruct-2507` guided reached `schema_valid_rate=1.0`, `task_valid_rate=1.0`, and `timeout_count=0` on the same 6-sample boundary.",
+      "manual_findings": [
+        "`4B guided` reduces the long repeated filler seen in `3B guided` on `docs-faq-forum-conflict`、`evidence-gap`、`flash-vapor-outlet` and `efficiency-range`, so simple ghost/docs pollution is partially improved.",
+        "`4B guided` also introduces a new systematic regression: all 6 inspected `summary` fields leak an inline JSON fragment shaped like `','answers':[...`, which is a stronger and more repeatable summary-leak pattern than the `3B guided` outputs.",
+        "The hard samples did not materially improve with extra capacity alone: `cross-object-mixed-risk-reconnect-plus-pump-parameter-001` still keeps generic `请复核` / `建议人工确认后处理`, preserves the `PUMP_OUTLET_PRESSURE_TARGET_INVALID` severity drift, and still truncates one cross-object warning explanation.",
+        "`valve-ambiguous-no-tab-001` remains semantically under-explained in `4B guided`: the output no longer repeats engineer filler, but it still fails to explicitly state that both candidates are visible and neither should default to `Tab`, so this is not a clean no-tab explanation improvement."
+      ],
+      "decision": "`4B guided` is only a partial cleanup over `3B guided`, not a natural-language quality promotion. It lowers some simple repetition/noise, but worsens summary leakage / summary 泄漏 and does not resolve cross-object or ambiguity semantics."
+    },
     "next_step": "下一步先把 `Qwen2.5-3B-Instruct` 和 `Qwen3-4B-Instruct-2507` 在 `holdout6-v2-non-overlap` 上的机器结果和 candidate-response 审计结论一并固定，然后继续复用同类 task、同一 offline eval 入口和同一人工审计口径，把 3B/4B 收口成容量-质量曲线，因为当前两档仍保留自然语言退化和复杂解释质量问题。builder 结果仍不得写成 raw 模型晋级或训练准入证据；更大样本面继续保留在模型尺寸对照之后，并以 offline eval 作为比较门槛。"
   }
 }

@@ -26,14 +26,14 @@
 3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，继续保留 constrained/guided decoding 为已验证的同边界改善信号，并把 `holdout6-v2-non-overlap` + `300s` 的对照结论写实到实验记录。
 4. 当前 `.venv` 的 `transformers 5.7.0` 已通过 `custom_generate` scaffold-slot shim 接入 guided-decoding runtime，不再要求本机先暴露 `GenerationConfig.guided_decoding` 才能开始 guided 轨。
 5. 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 已完成，candidate summary 与 offline eval 均为 6/6 通过；但 candidate responses 里仍有自然语言退化、重复和 `max_new_tokens` 打满样本，因此该结果只说明结构化约束有效，不等于路线已经收口。
-6. 2026-05-10 的 `Qwen3-4B-Instruct-2507` raw / guided 也已完成：raw 在同一 holdout 上仍被两条复杂样本卡住；guided 虽然 6/6 机器通过、`timeout_count=0`，但 candidate responses 里仍能看到 summary 泄漏、泛化 title/rationale 和跨对象语义退化。
-7. 2026-05-10 的 `Qwen2.5-3B-Instruct` raw / guided 也已完成：raw 在 `suggest_flowsheet_edits` 上仍 blocked，且保留 1 条超时与 `advisory_action_boundary_rate=0.5`；guided 虽然把结构化指标拉回到 6/6 机器通过，但仍保留跨对象与 ghost/docs 的自然语言退化。当前优先级仍是 `3B/4B` 对照，但现在已经有 3B 和 4B 两端证据，下一步应把它们收口成容量-质量曲线，而不是继续扩同一 1.5B guided 样本面。
+6. 2026-05-10 的 `Qwen3-4B-Instruct-2507` raw / guided 也已完成：raw 在同一 holdout 上仍被两条复杂样本卡住；guided 虽然 6/6 机器通过、`timeout_count=0`，并在较简单的 docs/ghost 样本上减少了 `3B guided` 的重复 filler，但 6 条 inspected `summary` 都泄漏了 `','answers':[...` 形态的 JSON 片段，且 cross-object / no-tab 语义没有真正收口。
+7. 2026-05-10 的 `Qwen2.5-3B-Instruct` raw / guided 也已完成：raw 在 `suggest_flowsheet_edits` 上仍 blocked，且保留 1 条超时与 `advisory_action_boundary_rate=0.5`；guided 虽然把结构化指标拉回到 6/6 机器通过，但仍保留跨对象与 ghost/docs 的自然语言退化。当前优先级仍是 `3B/4B` 对照，但现在已经有 3B 和 4B 两端证据，而且当前结论是“4B guided 只有局部去噪改善，并未形成质量晋级”，所以下一步应把它们收口成容量-质量曲线，而不是继续扩同一 1.5B guided 样本面。
 
 ## 为什么是这个任务
 
 - 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
 - broader 15 样本现在已经完成 machine gate、offline eval、natural-language audit 和人工复核，且当前 records 为 15/15 `reviewed_pass`；这意味着继续停留在“重跑同一批 broader review”已不再是最高价值动作。
-- 当前更高价值的是利用这批 broader `reviewed_pass` 结果和 3B/4B guided 机器通过结果，进入更清晰的模型容量对照，而不是继续停留在“1.5B guided 是否还能再扩一点样本”这类局部问题。
+- 当前更高价值的是利用这批 broader `reviewed_pass` 结果和 3B/4B guided 机器通过结果，进入更清晰的模型容量对照；其中 `4B guided` 已证明“简单去重改善”和“系统性 summary 泄漏”可以同时存在，因此不能只看 machine pass 就把它写成质量晋级。
 - 即便 broader review 已通过，也仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
 
 ## 2026-05-08 已确认这些产物

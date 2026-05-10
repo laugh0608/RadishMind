@@ -13,7 +13,7 @@
 近期实际推进集中在 `M3/M4`：
 
 - `M3`：把已有 gateway、service smoke、UI consumption 与 candidate handoff 保持为服务/API 接入验收门禁。
-- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped builder、natural-language audit、human review records 和 broader review 执行；broader 15 样本两段本地执行与人工复核现已完成并更新为 15/15 `reviewed_pass`，而 `Qwen3-4B-Instruct-2507` 的 raw / guided 观测以及 `Qwen2.5-3B-Instruct` 的 raw / guided 观测也已补齐：3B raw 仍在 `suggest_flowsheet_edits` 上 blocked 且保留 1 条超时，3B guided 只是把结构化门禁拉回通过但仍有自然语言退化；4B raw 仍在两条复杂样本上 blocked，guided 则在同一 holdout 上 6/6 机器通过但仍保留 summary 泄漏、泛化 title/rationale 和跨对象语义退化。下一步应利用这批 broader 通过结果和 3B/4B 两端证据来稳定容量-质量对照，而不是继续重跑同一批样本。
+- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped builder、natural-language audit、human review records 和 broader review 执行；broader 15 样本两段本地执行与人工复核现已完成并更新为 15/15 `reviewed_pass`，而 `Qwen3-4B-Instruct-2507` 的 raw / guided 观测以及 `Qwen2.5-3B-Instruct` 的 raw / guided 观测也已补齐：3B raw 仍在 `suggest_flowsheet_edits` 上 blocked 且保留 1 条超时，3B guided 只是把结构化门禁拉回通过但仍有自然语言退化；4B raw 仍在两条复杂样本上 blocked，guided 虽然在同一 holdout 上 6/6 机器通过、并在简单 docs/ghost 样本上减少了重复 filler，但同时引入了更系统性的 `summary` 泄漏，且跨对象语义和 `no-tab` 解释仍未收口。下一步应利用这批 broader 通过结果和 3B/4B 两端证据来稳定容量-质量对照，而不是继续重跑同一批样本。
 - 当前不启动训练放量，不继续默认扩同类真实 capture，不把 builder 轨通过解释成 raw 模型能力晋级。
 
 ## 阶段
@@ -46,7 +46,7 @@
 
 目标：明确 `RadishMind-Core` 的基座适配、结构化输出、response builder / tooling 分工和评测晋级标准。
 
-状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 review records 已接入仓库级验证，且 broader 15 样本现已完成 machine gate、offline eval、natural-language audit 和人工复核，records 当前为 15/15 `reviewed_pass`。2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 也已完成 6/6 机器通过，但自然语言字段仍暴露退化与打满 token 的迹象；因此当前下一步改为优先准备 `3B/4B` 对照，用同边界结果判断容量提升是否能改善这类非纯结构化问题。
+状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 review records 已接入仓库级验证，且 broader 15 样本现已完成 machine gate、offline eval、natural-language audit 和人工复核，records 当前为 15/15 `reviewed_pass`。2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 也已完成 6/6 机器通过，但自然语言字段仍暴露退化与打满 token 的迹象；而 2026-05-10 的 `3B/4B` guided 对照又进一步说明，容量提升并没有直接带来质量晋级，`4B guided` 只对简单去重有局部改善，却引入了更系统性的 `summary` 泄漏并保留复杂语义退化。因此当前下一步改为优先准备 `3B/4B` 对照结论，用同边界结果判断容量提升是否真能改善这类非纯结构化问题。
 
 ### M5：`Radish` 首批任务接入
 
@@ -71,7 +71,7 @@
 1. 继续维护服务/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
 2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据。
 3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，保留 constrained/guided decoding 已在 `holdout6-v2-non-overlap` 上给出的同边界改善信号，并把该事实写实到实验记录。
-4. 下一步优先把 `Qwen2.5-3B-Instruct` 与 `Qwen3-4B-Instruct-2507` 的结果合并成 `3B/4B` 容量-质量对照，复用同一类 task、同一 offline eval 入口和同一人工审计口径，判断更大模型是否能改善当前 1.5B / 3B / 4B guided 仍存在的自然语言退化与复杂样本解释质量问题。
+4. 下一步优先把 `Qwen2.5-3B-Instruct` 与 `Qwen3-4B-Instruct-2507` 的结果合并成 `3B/4B` 容量-质量对照，复用同一类 task、同一 offline eval 入口和同一人工审计口径，判断更大模型是否能改善当前 1.5B / 3B / 4B guided 仍存在的自然语言退化与复杂样本解释质量问题；当前已知结论是 `4B guided` 并未形成质量晋级，只是把简单去重改善与更强的 `summary` 泄漏同时带了进来。
 5. 更大样本面不取消，但放到模型尺寸对照之后或与之并列为第二优先级，不再把“先扩样再看要不要 3B/4B”作为默认顺序。
 6. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
 7. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。

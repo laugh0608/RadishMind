@@ -512,11 +512,36 @@ def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")
     require("训练准入证据" in next_step, "conclusion must reject training acceptance")
     require("更大样本面" in next_step, "conclusion must still mention larger sample expansion ordering")
+    guided_capacity_audit = require_dict(conclusion, "guided_capacity_audit")
+    require(
+        guided_capacity_audit.get("review_record_path")
+        == "training/datasets/radishmind-core-guided-capacity-review-records-v0.json",
+        "guided capacity review record path mismatch",
+    )
+    require(
+        guided_capacity_audit.get("review_status") == "reviewed_changes_required",
+        "guided capacity review status mismatch",
+    )
+    require(guided_capacity_audit.get("sample_set") == "holdout6-v2-non-overlap", "guided capacity sample set mismatch")
+    require(guided_capacity_audit.get("machine_gate").startswith("Both `Qwen2.5-3B-Instruct` guided"), "guided capacity machine gate mismatch")
+    require(
+        "summary` JSON 片段泄漏" in str(guided_capacity_audit.get("decision") or "")
+        or "summary 泄漏" in str(guided_capacity_audit.get("decision") or ""),
+        "guided capacity audit decision mismatch",
+    )
     return {
         "status": conclusion.get("status"),
         "next_priority": conclusion.get("next_priority"),
         "priority_runbook": conclusion.get("priority_runbook"),
         "next_step": conclusion.get("next_step"),
+        "guided_capacity_audit": {
+            "review_record_path": guided_capacity_audit.get("review_record_path"),
+            "review_status": guided_capacity_audit.get("review_status"),
+            "sample_set": guided_capacity_audit.get("sample_set"),
+            "machine_gate": guided_capacity_audit.get("machine_gate"),
+            "manual_findings": guided_capacity_audit.get("manual_findings"),
+            "decision": guided_capacity_audit.get("decision"),
+        },
     }
 
 
