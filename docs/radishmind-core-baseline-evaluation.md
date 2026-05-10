@@ -385,7 +385,7 @@ repaired 观测结论：
 
 ## 今日主线
 
-基于当前阶段判断，今天的主线已经从“继续补观测”收口为“先把决策型实验落成可复跑入口”。当前优先实验记录固定为 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，它明确回答以下问题：
+基于当前阶段判断，今天的主线已经从“继续补观测”收口为“回到 `M3` 的 service/API smoke 维护，并把 `M4` 的 3B/4B 收口证据保留为正式记录”。当前优先实验记录固定为 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，它明确回答以下问题：
 
 - 当前 raw blocked，主因是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足
 
@@ -404,14 +404,14 @@ repaired 观测结论：
 - `suggest_flowsheet_edits` response builder
 - 可组合的 task-scoped response builder
 
-只有当这些更强约束后，raw 仍主要卡在复杂 reasoning 或 action planning，下一步才应进入 `minimind-v`、`3B` 或 `4B` 对照。反过来，如果更强约束已经明显改善 `status / risk_level / requires_confirmation`、citation 顺序或 action boundary，则下一步优先推进 response builder / tool 分工，而不是先扩模型尺寸。
+只有当这些更强约束后，raw 仍主要卡在复杂 reasoning 或 action planning，下一步才应进入新的模型尺寸对照。反过来，如果更强约束已经明显改善 `status / risk_level / requires_confirmation`、citation 顺序或 action boundary，则下一步优先推进 response builder / tool 分工，而不是继续扩同一批样本面。
 
 2026-05-04 首轮 v2 非重叠 holdout raw / repaired 双轨已经完成。两轨都使用本地 `Qwen2.5-1.5B-Instruct`、同一 6 条样本、同一 `300s` timeout、`--allow-invalid-output` 与 `--validate-task`；repaired 轨额外启用 `--repair-hard-fields`。随后 offline eval runner 只读取 `tmp/` candidate outputs 生成本地 run record，不重跑模型、不下载权重。
 
 - raw：`schema_valid_rate=0.8333333333333334`、`task_valid_rate=0.4`、`timeout_count=0`，offline eval 决策仍为 `blocked`
 - repaired：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`，但决策仍为 `no_promotion_planned`，因为它是显式后处理工程轨
 
-该结果强化当前路线判断：同样模型、同样样本和同样 timeout 下，raw blocked 到 repaired `6/6` task-valid 的差异更支持先验证 constrained / guided decoding、硬字段外部注入和 response builder / tooling 分工，而不是直接把失败归因到模型容量并进入 `3B/4B` 对照。
+该结果强化当前路线判断：同样模型、同样样本和同样 timeout 下，raw blocked 到 repaired `6/6` task-valid 的差异更支持先验证 constrained / guided decoding、硬字段外部注入和 response builder / tooling 分工，而不是直接把失败归因到模型容量并进入新的模型尺寸对照。
 
 当前已先落成硬字段外部注入的最小 candidate wrapper 变体：`--inject-hard-fields`。它只写回 prompt document 中 `hard_field_freeze.fields` 明确声明的 JSON path/value，并在 summary 中记录 `postprocess_policy.inject_hard_fields`、`injected_output_count` 与 `injected_path_counts`；它不会像 `--repair-hard-fields` 那样重建完整 response scaffold，因此可以作为 raw 与 repaired 之间的第三轨对照。下一步应优先让用户在同一 v2 非重叠 holdout 上运行该第三轨，再判断“只注入稳定硬字段”是否足以改善 raw 阻塞指标。
 
