@@ -4,34 +4,36 @@
 
 ## 阅读原则
 
-`docs/` 是 RadishMind 的正式文档源。关键入口文档只保留项目定位、当前阶段、最近进度、下一步和阻塞项；历史推演、批次细节、长实验观察和一次性讨论应沉淀到 `docs/devlogs/`、任务卡、manifest 或 run record 中。
+`docs/` 是 RadishMind 的正式文档源。关键入口文档只保留项目定位、当前阶段、最近进度、下一步和停止线；历史推演、批次细节、长实验观察和一次性讨论应沉淀到 `docs/devlogs/`、任务卡、manifest 或 run record 中。
 
 新会话优先按以下顺序读取：
 
 1. 本文件
 2. [项目总览与使用指南](radishmind-project-guide.md)
 3. [当前推进焦点](radishmind-current-focus.md)
-4. [阶段路线图](radishmind-roadmap.md)
-5. 与当次任务直接相关的产品、架构、代码规范、契约、任务卡、评测或周志
+4. [产品范围与目标](radishmind-product-scope.md)
+5. [战略定义](radishmind-strategy.md)
+6. [能力矩阵](radishmind-capability-matrix.md)
+7. [阶段路线图](radishmind-roadmap.md)
+8. 与当次任务直接相关的架构、契约、任务卡、评测或周志
 
 ## 当前状态
 
-- 近期主线集中在 `M3/M4` 收口：`M3` 维持现有服务/API smoke 作为未来上层接入门禁；`M4` 的 `3B/4B` guided capacity review 已收口为正式记录，当前不再继续扩同一批样本面。
-- `RadishFlow` 的 `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 已具备 committed eval、真实 candidate record、audit、replay 与服务 smoke 基线；当前不再默认扩同类真实 capture。
-- `Radish` 已优先落在 docs QA、文档检索增强和结构化问答评测上；真实上层接入仍等待。
-- `RadishCatalyst` 仍只做文档级预留，不扩真实 schema、adapter 或 gateway smoke。
-- 当前正式仓库边界仍是“四仓独立 + 协议接入”；不在 `RadishMind` 与 `RadishFlow` / `Radish` / `RadishCatalyst` 之间默认采用双向 `git submodule`。
-- `RadishMind-Core` 当前重点不是训练放量，而是继续验证 raw、repair、hard-field injection、task-scoped builder、自然语言 audit 和人工 review 的分工边界，并把 broader task-scoped builder review 的通过结论收口为稳定路线信号。
-- `RadishMind-Core` broader task-scoped builder review 已完成两段本地执行、审计与 15 条样本人工复核；full-holdout-9 和 holdout6-v2-non-overlap 的 machine gate / offline eval / natural-language audit 均通过，当前记录集已更新为 15/15 `reviewed_pass`。
-- 当前首要动作回到 service/API smoke 矩阵维护；`Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap`、`Qwen2.5-3B-Instruct` 与 `Qwen3-4B-Instruct-2507` 的 raw / guided 已分别收口为正式记录，不再继续扩同一 1.5B guided 样本面。
-- `training/datasets/radishmind-core-guided-capacity-review-records-v0.json` 已固定这份 `3B guided` vs `4B guided` 6 样本对照的正式 review 记录；它收口为 `reviewed_changes_required`，并明确 `4B guided` 只是局部去噪，不是质量晋级。
-- 图片生成能力由 `RadishMind-Image Adapter` 与独立 backend 承接；主模型只输出结构化意图、约束、审查和 artifact metadata。
+- `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为“协议驱动、可审计、可本地部署、可工具化的 Copilot / Agent runtime platform”。
+- 当前仓库主线不再只是等待其他项目真实接入；接下来可以独立推进五条平台主线：`Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
+- 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Middleware / AI Runtime`，核心价值是把多模型、多协议、多任务收口成可控产品能力。
+- 平台后续必须同时具备两类兼容能力：南向接入自研模型与外部模型，北向对外提供常见 AI 协议接口；当前仓库已有 `openai-compatible / gemini-native / anthropic-messages` 调用基础，但还没有正式的 `HuggingFace / Ollama` 服务接入与 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 对外兼容面。
+- 既有 `M3` service/API smoke matrix 与 `M4` broader review、`3B/4B` capacity review 继续保留为冻结证据和门禁；它们不再是当前唯一主线，也不再默认继续深挖同一批样本。
+- `RadishFlow` 仍是第一优先应用面，但当前只冻结 gateway、UI consumption 和 candidate handoff 门禁；上层尚未具备真实接入能力前，不继续细化假想接线。
+- `Radish` 当前保留 docs QA、文档检索增强和结构化问答资产；真实上层接入仍等待。
+- `RadishCatalyst` 仍只做文档级预留，不扩真实 schema、adapter、gateway smoke 或模型接线。
+- 图片生成能力继续由 `RadishMind-Image Adapter` 与独立 backend 承接；主模型只负责结构化 intent、约束、审查和 artifact metadata。
 
 ## 文档约束
 
-- 入口文档必须简短，优先描述“现在是什么、下一步做什么、什么不能做”。
+- 入口文档必须简短，优先描述“项目是什么、现在能推进什么、哪些边界不能越”。
 - 不在入口文档重复长批次流水、历史失败细节或完整命令输出；这些内容放入周志、实验记录、summary 或 task card。
-- 回答“今天要做什么”这类问题时，默认读 [当前推进焦点](radishmind-current-focus.md)，不要默认展开长契约或长评测文档。
+- 回答“今天要做什么”这类问题时，默认读 [当前推进焦点](radishmind-current-focus.md) 与 [能力矩阵](radishmind-capability-matrix.md)，不要默认展开长契约或长评测文档。
 - 新增或更新文档时，优先更新既有正式文档；只有当内容有长期复用价值且无法自然归入现有文档时，才新增文档。
 - 文档中提到外部项目时，默认使用项目名和在线仓库 URL，不写个人机器路径。
 
@@ -48,6 +50,8 @@
 - [当前推进焦点](radishmind-current-focus.md)
 - [项目总览与使用指南](radishmind-project-guide.md)
 - [产品范围与目标](radishmind-product-scope.md)
+- [战略定义](radishmind-strategy.md)
+- [能力矩阵](radishmind-capability-matrix.md)
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
 - [代码规范](radishmind-code-standards.md)

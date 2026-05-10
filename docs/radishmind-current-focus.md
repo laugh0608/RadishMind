@@ -10,47 +10,45 @@
 
 ## 当前阶段
 
-当前主线集中在 `M3/M4`：
+当前已经从“M3/M4 收口后的被动等待”切换到“平台重定义后的 `P1` 启动期”：
 
-- `M3`：维护现有 gateway、service smoke、UI consumption 与 candidate handoff，作为未来上层接入门禁。
-- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped response builder / tooling 分工、broader review runbook、natural-language audit 和 human review records。
+- `M3` 的 gateway、service smoke、UI consumption 与 candidate handoff 继续作为冻结门禁保留。
+- `M4` 的 broader 15/15 `reviewed_pass` 与 `3B/4B` guided capacity review 继续作为路线证据保留。
+- 当前不继续扩同一批 `M4` 实验，不提前设计不存在的上层真实接线。
 
-当前不启动训练放量，不默认扩同类真实 capture，不把 builder / repaired / injected 轨通过解释成 raw 模型能力晋级。
+如果今天开始写代码，默认先做 `Runtime Service` 主线里的“provider / protocol compatibility”，而不是继续重跑模型或补想象中的接入细节。
 
 ## 当前优先做什么
 
-当前 broader task-scoped builder review 的两段本地执行、6 份 `tmp/` 产物读取和 15 条样本人工复核都已经完成，records 现已更新为 15/15 `reviewed_pass`。这说明 task-scoped response builder / tooling 分工在 broader 15 样本面上已经有稳定 tooling-route evidence；但仍不要把这次 builder 结果写成 raw 晋级或训练准入。
+1. `Runtime Service`：把现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py` 和 `RadishFlow` service smoke gate 收口为更清晰的 provider registry、协议兼容层、本地启动、配置、调用和部署入口。
+2. `Conversation & Session`：补齐会话标识、历史压缩、恢复和审计边界，不再只停留在 `conversation_id` 透传。
+3. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式工具契约、registry、timeout/retry/policy。
+4. `Evaluation & Governance`：把已有 schema、offline eval、service smoke 扩展到 runtime、session、tooling 和 deployment 门禁。
+5. `Model Adaptation`：在前四项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
 
-1. 继续维护 `M3` 的 service/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
-2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据，而不是继续补同一批 blocked 样本。
-3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，继续保留 constrained/guided decoding 为已验证的同边界改善信号，并把 `holdout6-v2-non-overlap` + `300s` 的对照结论写实到实验记录。
-4. 当前 `.venv` 的 `transformers 5.7.0` 已通过 `custom_generate` scaffold-slot shim 接入 guided-decoding runtime，不再要求本机先暴露 `GenerationConfig.guided_decoding` 才能开始 guided 轨。
-5. 2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided smoke / `holdout6-v2-non-overlap` 已完成，candidate summary 与 offline eval 均为 6/6 通过；但 candidate responses 里仍有自然语言退化、重复和 `max_new_tokens` 打满样本，因此该结果只说明结构化约束有效，不等于路线已经收口。
-6. 2026-05-10 的 `Qwen3-4B-Instruct-2507` raw / guided 也已完成：raw 在同一 holdout 上仍被两条复杂样本卡住；guided 虽然 6/6 机器通过、`timeout_count=0`，并在较简单的 docs/ghost 样本上减少了 `3B guided` 的重复 filler，但 6 条 inspected `summary` 都泄漏了 `','answers':[...` 形态的 JSON 片段，且 cross-object / no-tab 语义没有真正收口。
-7. 2026-05-10 的 `Qwen2.5-3B-Instruct` raw / guided 也已完成：raw 在 `suggest_flowsheet_edits` 上仍 blocked，且保留 1 条超时与 `advisory_action_boundary_rate=0.5`；guided 虽然把结构化指标拉回到 6/6 机器通过，但仍保留跨对象与 ghost/docs 的自然语言退化。`3B/4B` 对照已经正式收口，因此下一步回到 `M3` service/API smoke 矩阵；后续 `M4` 只在出现新假设时再开新对照。
+## 为什么是这些任务
 
-## 为什么是这个任务
+- 上层项目目前没有真实挂载点、确认流和命令承接接口，继续细化接线设计收益很低。
+- 仓库里已经有 runtime、gateway、adapter、eval 和 governance 资产，可以先把平台骨架做完整。
+- 如果平台既不能稳定接外部模型，也不能对外暴露常见协议接口，就还不能算真正可用的模型平台。
+- 如果在 service、session、tooling 边界还没稳定前继续深挖模型实验，容易再次陷入局部优化。
 
-- 当前 raw 小模型仍 blocked，后处理和 builder 轨只能作为 tooling 分工证据。
-- broader 15 样本现在已经完成 machine gate、offline eval、natural-language audit 和人工复核，且当前 records 为 15/15 `reviewed_pass`；这意味着继续停留在“重跑同一批 broader review”已不再是最高价值动作。
-- 当前更高价值的是把这批 broader `reviewed_pass` 结果和 `3B/4B` guided 对照一起作为已收口证据，然后把主要精力切回 `M3` service/API smoke 维护。
-- 即便 broader review 已通过，也仍不要把 builder 结果写成 raw 晋级、训练准入或 production contract 接受证据。
+## 当前已有可直接利用的基础
 
-## 2026-05-08 已确认这些产物
-
-- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/summary.json`
-- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json`
-- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-natural-language-audit.json`
-- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/summary.json`
-- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json`
-- `tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-natural-language-audit.json`
-- `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`
+- `scripts/run-copilot-inference.py`
+- `services/gateway/copilot_gateway.py`
+- `scripts/check-radishflow-service-smoke-matrix.py`
+- `services/runtime/inference_provider.py`
+- `scripts/run-radishflow-gateway-demo.py`
+- `scripts/run-radishmind-core-candidate.py`
+- `scripts/build-copilot-training-samples.py`
 
 ## 默认不要做
 
 - 不继续加长同一批 prompt/scaffold 当作默认推进。
 - 不扩 `RadishFlow` 同类真实 capture，除非先写清楚非重复 drift 假设。
 - 不把 `RadishCatalyst` 从文档预留提前扩成真实 schema、adapter 或 gateway smoke。
+- 不在 runtime、session、tooling 契约还没稳定前启动训练放量。
 - 不默认下载大于当前决策所需范围的模型、数据集或权重。
 - 不把真实模型输出、训练 JSONL 或大体积实验产物提交入仓。
 - 不直接修改 `RadishFlow`、`Radish` 或 `RadishCatalyst` 外部工作区。
@@ -62,7 +60,8 @@
 1. `AGENTS.md` 或 `CLAUDE.md`
 2. `docs/README.md`
 3. `docs/radishmind-current-focus.md`
-4. 必要时读取 `docs/radishmind-roadmap.md`
+4. `docs/radishmind-capability-matrix.md`
+5. 必要时读取 `docs/radishmind-roadmap.md`
 
 ## 按需读取
 
@@ -78,11 +77,11 @@
 文档或治理改动完成后，优先执行：
 
 ```bash
-./scripts/check-repo.sh
+./scripts/check-repo.sh --fast
 ```
 
 Windows / PowerShell 环境使用：
 
 ```powershell
-pwsh ./scripts/check-repo.ps1
+pwsh ./scripts/check-repo.ps1 -Fast
 ```

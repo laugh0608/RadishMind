@@ -1,10 +1,55 @@
 # RadishMind 系统架构
 
-更新时间：2026-05-06
+更新时间：2026-05-10
 
 ## 架构目标
 
-`RadishMind` 的目标架构固定为六层：
+`RadishMind` 的正式架构目标不再只是“把单次模型推理接上去”，而是建设一个可本地运行、可审计、可工具化的 Copilot / Agent runtime platform。
+
+这套平台当前从两个视角理解：
+
+- 平台视角：看五条主线怎么协同
+- 请求视角：看单次 `CopilotRequest -> CopilotResponse` 是怎么流动的
+
+## 平台视角
+
+### 1. `Runtime Service`
+
+- 负责启动、配置、provider/profile 选择、route 识别、gateway 封装、协议兼容和部署边界。
+- 当前实现核心在 `scripts/run-copilot-inference.py` 与 `services/gateway/copilot_gateway.py`。
+- 当前 southbound 已有一层初步 provider 分流：`openai-compatible chat`、`gemini-native`、`anthropic-messages`；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
+- 当前 northbound 对外形态优先是 CLI runtime 和进程内 Python API，不是正式 HTTP 服务。
+
+### 2. `Conversation & Session`
+
+- 负责 `conversation_id`、会话历史、恢复、压缩和审计边界。
+- 当前只具备透传和局部 snapshot 语义，还没有正式 session store、history policy 或 recovery record。
+
+### 3. `Tooling Framework`
+
+- 负责检索、附件解析、项目语义转换、本地候选生成、response builder 和工具策略。
+- 当前很多能力仍是 task-local、deterministic 的局部实现；后续要逐步收口为正式 tool contract 与 registry。
+
+### 4. `Model Runtime`
+
+- 负责模型推理、候选文本生成、结构化约束、guided/runtime 协同和图片理解。
+- `RadishMind-Core` 属于这一层，但不是整个平台本身。
+
+### 5. `Evaluation & Governance`
+
+- 负责 schema、smoke、offline eval、candidate record、review、promotion gate 与仓库级检查。
+- 这一层保证平台不是“能跑一次”，而是“能长期复跑并解释为什么通过或不通过”。
+
+## 请求视角
+
+当前还有一层必须补齐、但尚未正式落地的协议翻译边界：
+
+- 北向：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 等兼容接口如何映射到 canonical `CopilotRequest`
+- 南向：`RadishMind-Core`、`HuggingFace`、`Ollama`、OpenAI-compatible、Gemini、Anthropic 等 provider 如何被统一调度
+
+平台内部真相源仍应保持 `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`，兼容接口只做翻译层，不另起第二套真相源。
+
+当前单次请求的主流程仍保持六层：
 
 1. Client Adapters & Context Packers
 2. Copilot Gateway / Task Router
@@ -18,7 +63,9 @@
 ## 请求流程
 
 ```text
-上层项目状态 / 文档 / 附件 / 图像
+外部客户端协议 / 上层项目状态 / 文档 / 附件 / 图像
+        ↓
+Protocol Compatibility Layer 归一到 canonical request
         ↓
 Adapter 打包为 CopilotRequest
         ↓
@@ -30,7 +77,9 @@ Model Runtime 生成解释、问题和候选意图
         ↓
 Rule Validation / Response Builder 收口结构和风险
         ↓
-CopilotResponse / GatewayEnvelope 返回给上层
+CopilotResponse / GatewayEnvelope
+        ↓
+Protocol Compatibility Layer 翻译回 northbound response
 ```
 
 ## 分层职责
@@ -45,8 +94,9 @@ CopilotResponse / GatewayEnvelope 返回给上层
 ### 2. Copilot Gateway / Task Router
 
 - 统一校验请求、识别任务、选择 provider/profile，并返回 `CopilotGatewayEnvelope`。
-- 当前对外形态优先是进程内 Python API；HTTP JSON 只作为后续包装形态。
-- 服务/API smoke 继续锁定 advisory-only、schema validation、route metadata、error envelope 和 handoff 不执行这些不变量。
+- 当前 `SUPPORTED_ROUTES` 仍然有限，说明平台还在先做骨架而不是全量铺开任务面。
+- 后续 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 也必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
+- 服务/API smoke 当前锁定 advisory-only、schema validation、route metadata、error envelope 和 handoff 不执行这些不变量。
 
 ### 3. Retrieval & Tool Layer
 
@@ -65,7 +115,7 @@ CopilotResponse / GatewayEnvelope 返回给上层
 
 - 校验响应结构、目标对象、风险等级、确认要求、citation 和 action shape。
 - 对可规则化字段保持确定性，例如 `status / risk_level / requires_confirmation / proposed_actions / patch / issue code`。
-- 当前 `task-scoped response builder` 是 `M4` 决策实验和 tooling 分工证据，不是 raw 模型晋级或 production contract。
+- 当前 `task-scoped response builder` 仍是 `M4` 决策实验和 tooling 分工证据，不是 raw 模型晋级或 production contract。
 
 ### 6. Data / Evaluation / Training Pipeline
 
@@ -73,12 +123,32 @@ CopilotResponse / GatewayEnvelope 返回给上层
 - 真实模型输出、生成 JSONL 和大体积实验产物默认留在 `tmp/`。
 - 训练、蒸馏和模型晋级必须同时看 raw 输出、后处理轨、离线评测、自然语言 audit、人工 review 和 holdout 泄漏边界。
 
+## 当前架构映射
+
+- `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`
+- `Southbound Provider Layer`：`services/runtime/inference_provider.py`
+- `Conversation & Session`：`adapters/radishflow/request_builder.py` 中的 `conversation_id` 与 snapshot 会话语义
+- `Tooling Framework`：`adapters/`、`scripts/build-radishflow-ghost-request.py`、各类 deterministic builder/check
+- `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records
+- `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`
+
+## 当前缺口
+
+- 没有正式长驻服务或官方 HTTP API
+- 没有正式 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 兼容接口
+- 没有正式 `HuggingFace` 与 `Ollama` southbound 服务接入
+- 没有正式 session contract、history policy、恢复和会话级门禁
+- 没有通用 tool registry、tool calling contract 和 tool audit
+- 没有正式 deployment runbook、启动包装和平台级 ops smoke
+
+这些缺口说明：当前最应该做的是把平台骨架补完整，而不是继续围绕同一批模型实验或假想接线打转。
+
 ## 当前进度
 
 - `contracts/` 已具备 Copilot request / response / gateway envelope / training sample / image generation intent / backend request / artifact schema。
-- `RadishFlow` 的 gateway demo、service smoke matrix、UI consumption 和 candidate edit handoff 已作为未来接入门禁保留。
+- `RadishFlow` 的 gateway demo、service smoke matrix、UI consumption 和 candidate edit handoff 已作为未来接入门禁保留；在上层项目尚未具备真实接入能力前，当前只收口前置条件与阻塞项，不继续细化新的接线设计或模拟接入 summary。
 - `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 的真实 candidate record、audit、replay 和治理链已阶段性收口；新增真实 capture 需要先说明非重复 drift 假设。
-- `RadishMind-Core` 本地小模型观测显示 raw 仍 blocked；当前优先验证 task-scoped builder / tooling 分工、citation tightened rerun 和 human review records。
+- `RadishMind-Core` 本地小模型观测显示 raw 仍 blocked；broader review 的 15/15 `reviewed_pass` 与 `3B/4B` guided capacity review 当前只保留为路线证据，在没有新假设前不再默认继续扩 `M4` 实验面。
 - `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata 与最小评测 manifest；暂不调用真实生图 backend。
 
 ## 工程约束

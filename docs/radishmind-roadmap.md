@@ -6,80 +6,128 @@
 
 路线图只记录阶段目标、当前进度、下一步和停止线。批次细节、历史失败、完整实验输出和长命令不放在本入口文档中，应进入周志、实验 manifest、run record 或任务卡。
 
-当前长期目标保持不变：`RadishMind` 是受控 Copilot / Agent 系统 + 可替换模型能力，不是单一万能模型。
+当前长期目标保持不变：`RadishMind` 是受控 Copilot / Agent runtime platform + 可替换模型能力，不是单一万能模型。
 
-## 当前主线
+若要理解“为什么路线这样排”，先读 [战略定义](radishmind-strategy.md)。
 
-近期实际推进集中在 `M3/M4`：
+## 当前路线切换
 
-- `M3`：把已有 gateway、service smoke、UI consumption 与 candidate handoff 保持为服务/API 接入验收门禁。
-- `M4`：继续验证 `RadishMind-Core` 的结构化输出路线，重点是 task-scoped builder、natural-language audit、human review records 和 broader review 执行；broader 15 样本两段本地执行与人工复核现已完成并更新为 15/15 `reviewed_pass`，而 `Qwen3-4B-Instruct-2507` 的 raw / guided 观测以及 `Qwen2.5-3B-Instruct` 的 raw / guided 观测也已补齐：3B raw 仍在 `suggest_flowsheet_edits` 上 blocked 且保留 1 条超时，3B guided 只是把结构化门禁拉回通过但仍有自然语言退化；4B raw 仍在两条复杂样本上 blocked，guided 虽然在同一 holdout 上 6/6 机器通过、并在简单 docs/ghost 样本上减少了重复 filler，但同时引入了更系统性的 `summary` 泄漏，且跨对象语义和 `no-tab` 解释仍未收口。`3B/4B` 对照已经收口为正式审计记录，当前主线回到 `M3` 的服务/API smoke 维护，`M4` 仅在出现新假设时再开新对照。
-- 当前不启动训练放量，不继续默认扩同类真实 capture，不把 builder 轨通过解释成 raw 模型能力晋级。
+从 2026-05-10 开始，仓库主线正式从“围绕 `M3/M4` 收口继续做局部维护”切换为“基于已收口证据继续建设平台本体”。
 
-## 阶段
+当前已经冻结的历史证据：
 
-### M0：真实上下文审查与规划冻结
+- `M3`：gateway、service smoke、UI consumption 与 candidate handoff 已收口为服务/API 门禁。
+- `M4`：broader 15 样本人工复核为 15/15 `reviewed_pass`，`3B/4B` guided capacity review 已收口为正式审计记录。
 
-目标：建立文档真相源，收口产品定位、边界和任务矩阵。
+这些资产继续保留，但不再等同于当前唯一主线。
 
-状态：已完成基础定位和跨项目边界；后续只在边界变化时更新。
+## 五条主线
 
-### M1：统一协议与上下文打包
+### 1. `Runtime Service`
 
-目标：建立 `CopilotRequest` / `CopilotResponse`、artifact、citation、风险分级和 `requires_confirmation`。
+目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：核心 schema 和 `RadishFlow export -> adapter -> request` 链路已具备仓库级回归；继续保持短路径、manifest 元数据和 schema 校验口径。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已有 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages`，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。但目前还没有正式的 `HuggingFace / Ollama` 服务接入、northbound `/v1/chat/completions` / `/v1/responses` / `/v1/messages` / `/v1/models` 兼容面、正式长驻服务、配置分层和部署 runbook。
 
-### M2：`RadishFlow` 首个 PoC
+下一步：先完成 provider registry、协议翻译真相源和最小本地 service bootstrap；在此基础上优先补 `/v1/chat/completions` 与 `/v1/models`，再补 `/v1/responses`、`/v1/messages`、`HuggingFace` 和 `Ollama`。
 
-目标：证明结构化 flowsheet 状态、诊断摘要、控制面状态和 ghost completion 可以形成稳定 Copilot 任务。
+### 2. `Conversation & Session`
 
-状态：`suggest_flowsheet_edits` 与 `suggest_ghost_completion` 已具备 committed eval、真实 capture、audit、replay 和治理资产；当前不再默认扩同类真实样本。
+目标：让多轮对话、历史压缩、恢复和审计成为平台能力，而不是各任务自己拼上下文。
 
-### M3：服务/API 收口
+状态：当前只有 `conversation_id` 透传和局部 snapshot 语义，还没有正式 session schema、history policy、recovery record 或跨轮 smoke。
 
-目标：把 runtime、gateway、UI consumption 和 candidate handoff 统一成可复跑服务切片。
+下一步：补 session contract、fixture 和最小 smoke，再决定状态落点和缓存策略。
 
-状态：进程内 Python gateway、service smoke matrix、RadishFlow gateway demo、UI consumption 与 candidate edit handoff 已作为未来上层接入门禁；HTTP server 暂不作为当前默认推进项。
+### 3. `Tooling Framework`
 
-### M4：模型路线与评测闭环
+目标：把检索、局部规则、候选生成和 builder 经验收口为正式工具契约、registry、policy 和 audit。
 
-目标：明确 `RadishMind-Core` 的基座适配、结构化输出、response builder / tooling 分工和评测晋级标准。
+状态：当前已有 task-local 的 deterministic tooling 与 builder 资产，但还没有通用工具注册、调用轨、timeout/retry/policy 和 tool audit。
 
-状态：本地小模型 raw 仍 blocked；repair、hard-field injection 与 task-scoped builder 已提供路线信号，但不能替代 raw 晋级。citation tightened full-holdout-9 已完成并通过 review；broader task-scoped builder 的 15 样本 review entry、两段本地执行 runbook 和 review records 已接入仓库级验证，且 broader 15 样本现已完成 machine gate、offline eval、natural-language audit 和人工复核，records 当前为 15/15 `reviewed_pass`。2026-05-09 的 `Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 也已完成 6/6 机器通过，但自然语言字段仍暴露退化与打满 token 的迹象；而 2026-05-10 的 `3B/4B` guided 对照又进一步说明，容量提升并没有直接带来质量晋级，`4B guided` 只对简单去重有局部改善，却引入了更系统性的 `summary` 泄漏并保留复杂语义退化。因此当前下一步改为优先准备 `3B/4B` 对照结论，用同边界结果判断容量提升是否真能改善这类非纯结构化问题。
+下一步：先定义最小 tool contract 和 registry 原型，避免继续把工具能力散落在 adapter 与脚本里。
 
-### M5：`Radish` 首批任务接入
+### 4. `Evaluation & Governance`
 
-目标：在共享协议和评测基线上扩展 `Radish` 文档问答、Console/运营辅助、内容结构化和附件解释。
+目标：让 runtime、session、tooling、deployment 和 model adaptation 都有统一门禁，而不是只校验模型输出。
 
-状态：docs QA 与训练样本转换已有基础资产；真实上层接入仍等待，不提前扩自动治理或权限写回。
+状态：schema、offline eval、candidate record、review record、`check-repo` 和 service smoke 已具备基础，但平台级 smoke 仍主要集中在 `RadishFlow` 任务面。
 
-### M6：双项目工程化收口
+下一步：把 smoke gate 扩展到 runtime、session、tooling 和部署边界，并维持 advisory-only、confirmation、route、citation 和 handoff 不执行这些不变量。
 
-目标：在 `RadishFlow` 和 `Radish` 都有可用场景后，再收口多项目路由、审计、缓存、部署和 provider 策略。
+### 5. `Model Adaptation`
 
-状态：暂不提前压入当前阶段。
+目标：在平台契约稳定后，再定义首版基座、蒸馏和训练升级路径。
 
-### M7：`RadishCatalyst` 预留评估
+状态：raw、repair、injection、guided、task-scoped builder、offline eval 和 training sample conversion 已有资产，但当前还不具备“直接扩大训练规模”的时机。
 
-目标：未来在首个真实任务明确后，评估玩家知识问答、进度解释、生产链规划或开发侧静态数据一致性检查。
+下一步：先以平台契约为前提锁定 v1 训练目标，再决定新的实验或蒸馏路线；没有新能力假设前，不继续重跑同一批 `M4` 实验。
 
-状态：当前只保留文档级口径，不扩 schema、adapter、eval 或 gateway smoke。
+## 辅助支线
+
+### `Image Path`
+
+状态：intent、backend request、artifact schema 与最小评测 manifest 已具备；真实 backend 仍未接入。
+
+下一步：继续收口 image adapter handshake、safety gate 和 artifact 返回链路，不下载模型、不生成图片。
+
+### 上层项目接入
+
+状态：`RadishFlow` 门禁已冻结，`Radish` docs QA 资产已具备，`RadishCatalyst` 仍只做文档预留；三个上层项目当前都不具备真实接入能力。
+
+下一步：先推进平台本体；待上层具备真实挂载点、确认流和命令承接接口后，再只选一个切片真实接入。
+
+## 阶段顺序
+
+### `P0`：项目重定义与能力盘点
+
+目标：把“项目到底是什么、有哪些主线、哪些能力缺口最关键”写成正式文档和能力矩阵。
+
+状态：当前正在完成。
+
+### `P1`：Runtime Foundation
+
+目标：收口最小本地 service bootstrap、provider registry、northbound/southbound 协议兼容、配置、调用和 smoke 路径。
+
+状态：这是当前默认第一实现项。
+
+### `P2`：Session & Tooling Foundation
+
+目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
+
+状态：紧随 `P1`，不提前空转架构。
+
+### `P3`：Local Deployment & Ops Governance
+
+目标：让本地长驻服务、启动脚本、观测、故障边界和 deployment smoke 具备正式口径。
+
+状态：当前尚未开始。
+
+### `P4`：Model Adaptation & Training
+
+目标：在平台边界稳定后，定义首版基座、蒸馏和训练升级计划。
+
+状态：当前不提前放量。
+
+### `P5`：Real Upstream Integration
+
+目标：在上层项目具备真实挂载点后，选择首个切片完成真正接入。
+
+状态：当前等待上层条件成熟。
 
 ## 下一步
 
-1. 继续维护服务/API smoke 矩阵，不新增散落 UI / 命令层模拟 summary。
-2. 把 broader 15 样本 `reviewed_pass` 结果作为当前 builder/tooling 路线的正式人工复核依据。
-3. 在不把 builder 结果写成 raw 晋级或训练准入的前提下，保留 constrained/guided decoding 已在 `holdout6-v2-non-overlap` 上给出的同边界改善信号，并把该事实写实到实验记录。
-4. `3B/4B` 容量-质量对照已收口为正式记录，不再继续扩同一批 guided 样本面；后续若要继续 `M4`，必须提出新的能力假设并单独立项。
-5. 更大样本面不取消，但放到新的假设验证之后或与之并列为第二优先级，不再把“先扩样再看要不要 3B/4B”作为默认顺序。
-6. 训练数据继续只提交治理 manifest、summary、复核记录和实验说明；JSONL 默认输出到 `tmp/`。
-7. 图片生成继续沿 intent、backend request、artifact metadata 和 safety gate 推进，不下载模型、不生成图片。
+1. 先推进 `Runtime Service`，把 provider registry、外部模型接入和对外协议兼容收口成正式平台能力。
+2. 再补 `Conversation & Session` 与 `Tooling Framework` 的最小契约，不再只靠 task-local 透传和脚本散落逻辑。
+3. 把 `Evaluation & Governance` 从“任务输出门禁”扩展为“平台能力门禁”。
+4. 只有在前述平台边界稳定后，才定义新的训练 / 蒸馏主线。
+5. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
 
 ## 停止线
 
-- 不把 repaired、injected 或 builder 轨通过写成 raw 模型能力通过。
+- 不把 repaired、injected、guided 或 builder 轨通过写成 raw 模型能力通过。
 - 不把机器指标通过写成人工可接受度通过。
-- 不在没有非重复 drift 假设时继续扩真实 capture。
+- 不在没有非重复能力假设时继续扩同一批 `M4` 实验。
+- 不在上层项目没有真实挂载点时继续细化假想接线设计。
 - 不让模型直接写上层业务真相源。
 - 不用晦涩抽象、空泛 helper 或多层 fallback 掩盖代码职责不清。
