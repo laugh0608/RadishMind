@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。但目前还没有正式的 `HuggingFace / Ollama` 服务接入、northbound `/v1/chat/completions` / `/v1/responses` / `/v1/messages` / `/v1/models` 兼容面、正式长驻服务、配置分层和部署 runbook。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已先落最小服务启动、`/healthz`、`/v1/models` 与 `/v1/chat/completions` 路由壳，但真正的 canonical protocol bridge、`HuggingFace / Ollama` 服务接入、northbound `/v1/chat/completions` / `/v1/responses` / `/v1/messages` / `/v1/models` 完整兼容面、正式长驻服务配置分层和部署 runbook 仍未完成。
 
-下一步：在现有 provider registry 骨架上先完成协议翻译真相源和最小本地 service bootstrap；在此基础上优先补 `/v1/chat/completions` 与 `/v1/models`，再补 `/v1/responses`、`/v1/messages`、`HuggingFace` 和 `Ollama`，并把 `Go` 平台服务层与 `React + Vite + TypeScript` UI 的分层骨架纳入 `P1/P3` 推进顺序。
+下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，优先把 `/v1/chat/completions` 与 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope` 打通，再补 `/v1/models` 的动态发现与 `/v1/responses`、`/v1/messages`、`HuggingFace`、`Ollama`。
 
 ### 2. `Conversation & Session`
 

@@ -103,6 +103,18 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 
 它现在是仓库里最接近“服务切片验收”的正式门禁。
 
+### 3.5 查看 Go 平台服务层骨架
+
+当前 `Go` 平台服务层骨架已落在 `services/platform/`，用于承载后续 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳。
+
+当前它只固定三件事：
+
+- 最小服务启动入口
+- `GET /healthz`
+- `GET /v1/models` 与 `POST /v1/chat/completions` 的 northbound 路由壳
+
+其中 `/v1/chat/completions` 目前仍返回 `not implemented`，因为 canonical protocol bridge 还没接到现有 Python runtime。
+
 ### 4. 跑本地候选模型输出
 
 如果你要继续看 `RadishMind-Core` 本地候选输出，入口仍是：

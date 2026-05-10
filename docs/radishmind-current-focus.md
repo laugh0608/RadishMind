@@ -20,7 +20,7 @@
 
 ## 当前优先做什么
 
-1. `Runtime Service`：在现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py` 和 `RadishFlow` service smoke gate 之上，继续把已落地的最小 `provider registry` 骨架扩到协议兼容层、本地启动、配置、调用和部署入口。
+1. `Runtime Service`：在现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/platform/` 和 `RadishFlow` service smoke gate 之上，继续把已落地的最小 `provider registry` 与 `Go` service bootstrap 骨架扩到协议兼容层、本地启动、配置、调用和部署入口。
 2. `Conversation & Session`：补齐会话标识、历史压缩、恢复和审计边界，不再只停留在 `conversation_id` 透传。
 3. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式工具契约、registry、timeout/retry/policy。
 4. `Evaluation & Governance`：把已有 schema、offline eval、service smoke 扩展到 runtime、session、tooling 和 deployment 门禁。

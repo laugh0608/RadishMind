@@ -46,6 +46,7 @@
 当前真实状态是：
 
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`
+- `services/platform/` 已具备最小 `Go` 服务壳，先固定 `HTTP` 服务启动、`/healthz`、`/v1/models` 与 `/v1/chat/completions` 路由，但还没有把 northbound 请求正式翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
 - `HuggingFace` 服务级接入、`Ollama` adapter、northbound `/v1/chat/completions` / `/v1/responses` / `/v1/messages` / `/v1/models` 仍未正式落地
 
