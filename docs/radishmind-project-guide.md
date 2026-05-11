@@ -156,7 +156,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 - `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口仍在补齐流式和更广 provider 覆盖细节
 - session store / history policy / recovery runbook
 - 通用 tool registry 和 tool calling contract
-- 官方 deployment runbook 或可发布部署包
+- 官方 deployment runbook、平台级 `ops smoke` 或可发布部署包
 
 所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、最小 Go HTTP 壳和 smoke/demo 链路，但还没有完整正式部署面。
 

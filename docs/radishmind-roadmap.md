@@ -29,7 +29,7 @@
 
 状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，但第一版 northbound 仍是窄切片：更广 provider/profile discoverability、正式长驻服务配置分层和部署 runbook 还需要继续补齐。
 
-下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，继续把更广 provider/profile discoverability 与长驻部署壳补齐，再把现有 bridge 增量流式转发扩展到更多 northbound / southbound 组合。
+下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，继续把更广 provider/profile discoverability、长驻部署壳和平台级 `ops smoke` 补齐，再把现有 bridge 增量流式转发扩展到更多 northbound / southbound 组合。
 
 ### 2. `Conversation & Session`
 
@@ -51,9 +51,9 @@
 
 目标：让 runtime、session、tooling、deployment 和 model adaptation 都有统一门禁，而不是只校验模型输出。
 
-状态：schema、offline eval、candidate record、review record、`check-repo` 和 service smoke 已具备基础，但平台级 smoke 仍主要集中在 `RadishFlow` 任务面。
+状态：schema、offline eval、candidate record、review record、`check-repo`、service smoke 和 runtime provider dispatch smoke 已具备基础，但平台级 smoke 仍主要集中在 `RadishFlow` 任务面。
 
-下一步：把 smoke gate 扩展到 runtime、session、tooling 和部署边界，并维持 advisory-only、confirmation、route、citation 和 handoff 不执行这些不变量。
+下一步：把 smoke gate 扩展到 runtime provider dispatch、session、tooling 和部署边界，并维持 advisory-only、confirmation、route、citation 和 handoff 不执行这些不变量。
 
 ### 5. `Model Adaptation`
 

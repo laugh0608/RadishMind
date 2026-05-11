@@ -48,7 +48,7 @@
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
 - `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
-- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 也已开始暴露 provider-qualified profile inventory，但更广 profile discoverability、统一 auth/config 分层和正式部署壳仍未完全落地
+- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 也已开始暴露 provider-qualified profile inventory，但更广 profile discoverability、统一 auth/config 分层、正式部署壳和平台级 `ops smoke` 仍未完全落地
 
 当前第一版 `Go -> Python` bridge 的 northbound 切片仍然很窄：
 
