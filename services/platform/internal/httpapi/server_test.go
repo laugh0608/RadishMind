@@ -410,6 +410,25 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("model detail provider alias", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/provider:mock", nil)
+		req.SetPathValue("id", "provider:mock")
+		rec := httptest.NewRecorder()
+
+		server.handleModel(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response openAIModelObject
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response.ID != "mock" {
+			t.Fatalf("unexpected model id: %s", response.ID)
+		}
+	})
+
 	t.Run("model detail profile", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/v1/models/profile:anyrouter", nil)
 		req.SetPathValue("id", "profile:anyrouter")
@@ -432,6 +451,26 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if response.Metadata["resolved_model"] != "deepseek-chat" {
 			t.Fatalf("unexpected resolved model: %#v", response.Metadata["resolved_model"])
+		}
+	})
+
+	t.Run("model detail profile alias", func(t *testing.T) {
+		alias := "provider:openai-compatible:profile:anyrouter"
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/"+alias, nil)
+		req.SetPathValue("id", alias)
+		rec := httptest.NewRecorder()
+
+		server.handleModel(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response openAIModelObject
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response.ID != "profile:anyrouter" {
+			t.Fatalf("unexpected model id: %s", response.ID)
 		}
 	})
 

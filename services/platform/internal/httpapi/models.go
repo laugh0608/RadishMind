@@ -24,8 +24,9 @@ type openAIModelObject struct {
 }
 
 type northboundModelCatalog struct {
-	list openAIModelListResponse
-	byID map[string]openAIModelObject
+	list    openAIModelListResponse
+	byID    map[string]openAIModelObject
+	aliases map[string]string
 }
 
 func handleModels(writer http.ResponseWriter, server *Server) {
@@ -59,7 +60,7 @@ func handleModel(writer http.ResponseWriter, request *http.Request, server *Serv
 	}
 
 	catalog := buildNorthboundModelCatalog(server, inventory)
-	model, ok := catalog.byID[modelID]
+	model, ok := catalog.lookup(modelID)
 	if !ok {
 		writeOpenAIError(writer, http.StatusNotFound, "MODEL_NOT_FOUND", fmt.Sprintf("model not found: %s", modelID))
 		return
@@ -72,8 +73,24 @@ func buildNorthboundModelCatalog(server *Server, inventory bridge.ProviderInvent
 	now := time.Now().Unix()
 	models := make([]openAIModelObject, 0, len(inventory.Providers)+len(inventory.Profiles)+1)
 	byID := make(map[string]openAIModelObject, cap(models))
+	aliases := make(map[string]string, cap(models))
 
-	appendModel := func(model openAIModelObject) {
+	registerAlias := func(alias string, modelID string) {
+		normalizedAlias := strings.TrimSpace(alias)
+		normalizedModelID := strings.TrimSpace(modelID)
+		if normalizedAlias == "" || normalizedModelID == "" || normalizedAlias == normalizedModelID {
+			return
+		}
+		if _, seen := byID[normalizedAlias]; seen {
+			return
+		}
+		if _, seen := aliases[normalizedAlias]; seen {
+			return
+		}
+		aliases[normalizedAlias] = normalizedModelID
+	}
+
+	appendModel := func(model openAIModelObject, modelAliases ...string) {
 		modelID := strings.TrimSpace(model.ID)
 		if modelID == "" {
 			return
@@ -83,16 +100,19 @@ func buildNorthboundModelCatalog(server *Server, inventory bridge.ProviderInvent
 		}
 		byID[modelID] = model
 		models = append(models, model)
+		for _, alias := range modelAliases {
+			registerAlias(alias, modelID)
+		}
 	}
 
 	if configuredModel := strings.TrimSpace(server.config.Model); configuredModel != "" {
-		appendModel(buildNorthboundConfiguredModel(now, server, configuredModel, inventory))
+		appendModel(buildNorthboundConfiguredModel(now, server, configuredModel, inventory), buildNorthboundConfiguredModelAliases(server, configuredModel)...)
 	}
 	for _, provider := range inventory.Providers {
-		appendModel(buildNorthboundProviderModel(now, provider))
+		appendModel(buildNorthboundProviderModel(now, provider), buildNorthboundProviderModelAliases(provider)...)
 	}
 	for _, profile := range inventory.Profiles {
-		appendModel(buildNorthboundProfileModel(now, profile))
+		appendModel(buildNorthboundProfileModel(now, profile), buildNorthboundProfileModelAliases(profile)...)
 	}
 
 	return northboundModelCatalog{
@@ -100,8 +120,24 @@ func buildNorthboundModelCatalog(server *Server, inventory bridge.ProviderInvent
 			Object: "list",
 			Data:   models,
 		},
-		byID: byID,
+		byID:    byID,
+		aliases: aliases,
 	}
+}
+
+func (catalog northboundModelCatalog) lookup(modelID string) (openAIModelObject, bool) {
+	normalizedModelID := strings.TrimSpace(modelID)
+	if normalizedModelID == "" {
+		return openAIModelObject{}, false
+	}
+	if model, ok := catalog.byID[normalizedModelID]; ok {
+		return model, true
+	}
+	if aliasTargetID, ok := catalog.aliases[normalizedModelID]; ok {
+		model, ok := catalog.byID[aliasTargetID]
+		return model, ok
+	}
+	return openAIModelObject{}, false
 }
 
 func buildNorthboundConfiguredModel(
@@ -132,6 +168,14 @@ func buildNorthboundConfiguredModel(
 	}
 }
 
+func buildNorthboundConfiguredModelAliases(server *Server, configuredModel string) []string {
+	aliases := make([]string, 0, 1)
+	if providerProfile := strings.TrimSpace(server.config.ProviderProfile); providerProfile != "" {
+		aliases = append(aliases, "configured_provider_profile:"+providerProfile)
+	}
+	return aliases
+}
+
 func buildNorthboundProviderModel(now int64, provider bridge.ProviderDescription) openAIModelObject {
 	return openAIModelObject{
 		ID:      strings.TrimSpace(provider.ProviderID),
@@ -147,8 +191,17 @@ func buildNorthboundProviderModel(now int64, provider bridge.ProviderDescription
 			"profile_driven":       provider.ProfileDriven,
 			"northbound_routes":    []string{"/v1/chat/completions", "/v1/responses", "/v1/messages", "/v1/models"},
 			"capabilities":         provider.Capabilities,
+			"lookup_aliases":       buildNorthboundProviderModelAliases(provider),
 		},
 	}
+}
+
+func buildNorthboundProviderModelAliases(provider bridge.ProviderDescription) []string {
+	providerID := strings.TrimSpace(provider.ProviderID)
+	if providerID == "" {
+		return nil
+	}
+	return []string{"provider:" + providerID}
 }
 
 func buildNorthboundProfileModel(now int64, profile bridge.ProviderProfileDescription) openAIModelObject {
@@ -174,8 +227,18 @@ func buildNorthboundProfileModel(now int64, profile bridge.ProviderProfileDescri
 			"request_timeout_seconds": profile.RequestTimeoutSeconds,
 			"northbound_routes":       []string{"/v1/chat/completions", "/v1/responses", "/v1/messages", "/v1/models"},
 			"selection_summary":       buildNorthboundSelectionSummary(profile.ProviderID, profile.Profile, profile.ResolvedModel),
+			"lookup_aliases":          buildNorthboundProfileModelAliases(profile),
 		},
 	}
+}
+
+func buildNorthboundProfileModelAliases(profile bridge.ProviderProfileDescription) []string {
+	providerID := strings.TrimSpace(profile.ProviderID)
+	profileName := strings.TrimSpace(profile.Profile)
+	if providerID == "" || profileName == "" {
+		return nil
+	}
+	return []string{"provider:" + providerID + ":profile:" + profileName}
 }
 
 func buildNorthboundSelectionSummary(provider string, providerProfile string, model string) map[string]any {
