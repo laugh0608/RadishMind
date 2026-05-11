@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -14,10 +15,15 @@ type Options struct {
 	BuildVersion string
 }
 
+type bridgeClient interface {
+	DescribeProviders(ctx context.Context) ([]bridge.ProviderDescription, error)
+	HandleEnvelope(ctx context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error)
+}
+
 type Server struct {
 	httpServer *http.Server
 	options    Options
-	bridge     *bridge.Client
+	bridge     bridgeClient
 	config     config.Config
 }
 
@@ -42,6 +48,8 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
 	mux.HandleFunc("GET /v1/models", server.handleModels)
 	mux.HandleFunc("POST /v1/chat/completions", server.handleChatCompletions)
+	mux.HandleFunc("POST /v1/responses", server.handleResponses)
+	mux.HandleFunc("POST /v1/messages", server.handleMessages)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
@@ -77,17 +76,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		locale = strings.TrimSpace(chatRequest.RadishMind.Locale)
 	}
 
-	provider := s.config.Provider
-	if chatRequest.RadishMind != nil && strings.TrimSpace(chatRequest.RadishMind.Provider) != "" {
-		provider = strings.TrimSpace(chatRequest.RadishMind.Provider)
-	} else if modelProvider := s.resolveKnownProvider(ctx, chatRequest.Model); modelProvider != "" {
-		provider = modelProvider
-	}
-
-	providerProfile := s.config.ProviderProfile
-	if chatRequest.RadishMind != nil && strings.TrimSpace(chatRequest.RadishMind.ProviderProfile) != "" {
-		providerProfile = strings.TrimSpace(chatRequest.RadishMind.ProviderProfile)
-	}
+	selection := s.resolveNorthboundSelection(ctx, chatRequest.Model, chatRequest.RadishMind)
 
 	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale)
 	if err != nil {
@@ -99,9 +88,9 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		ctx,
 		canonicalRequest,
 		bridge.EnvelopeOptions{
-			Provider:        provider,
-			ProviderProfile: providerProfile,
-			Model:           s.config.Model,
+			Provider:        selection.provider,
+			ProviderProfile: selection.providerProfile,
+			Model:           selection.model,
 			BaseURL:         s.config.BaseURL,
 			APIKey:          s.config.APIKey,
 			Temperature:     effectiveTemperature(chatRequest.Temperature, s.config.Temperature),
@@ -117,11 +106,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		return
 	}
 
-	responseModel := provider
-	if responseModel == "" {
-		responseModel = s.config.Provider
-	}
-	openAIResponse, err := buildOpenAIChatCompletionResponse(envelope, responseModel)
+	openAIResponse, err := buildOpenAIChatCompletionResponse(envelope, selection.model)
 	if err != nil {
 		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_RESPONSE_INVALID", err.Error())
 		return
@@ -152,41 +137,27 @@ func buildChatCanonicalRequest(chatRequest chatCompletionRequest, locale string)
 	if err != nil {
 		return nil, err
 	}
-
-	canonicalRequest := map[string]any{
-		"schema_version": 1,
-		"project":        "radish",
-		"task":           "answer_docs_question",
-		"locale":         locale,
-		"artifacts": []map[string]any{
-			{
-				"kind":      "text",
-				"role":      "primary",
-				"name":      "chat_prompt",
-				"mime_type": "text/plain",
-				"content":   promptText,
-			},
-		},
-		"context": map[string]any{
-			"current_app": "radishmind-platform",
-			"route":       "/v1/chat/completions",
-			"resource": map[string]any{
-				"kind":  "chat_completion",
-				"slug":  "openai-chat-completion",
-				"title": truncateForTitle(promptText),
-			},
-		},
-		"tool_hints": map[string]any{
-			"allow_retrieval":       false,
-			"allow_tool_calls":      false,
-			"allow_image_reasoning": false,
-		},
-		"safety": map[string]any{
-			"mode":                              "advisory",
-			"requires_confirmation_for_actions": false,
-		},
+	northboundFields := map[string]any{
+		"request_kind":    "chat_completion",
+		"requested_model": chatRequest.Model,
+		"message_count":   len(chatRequest.Messages),
+		"stream":          chatRequest.Stream,
 	}
-	return json.Marshal(canonicalRequest)
+	if chatRequest.RadishMind != nil {
+		northboundFields["locale"] = strings.TrimSpace(chatRequest.RadishMind.Locale)
+		northboundFields["provider"] = strings.TrimSpace(chatRequest.RadishMind.Provider)
+		northboundFields["provider_profile"] = strings.TrimSpace(chatRequest.RadishMind.ProviderProfile)
+	}
+	if len(chatRequest.Metadata) > 0 {
+		northboundFields["metadata"] = chatRequest.Metadata
+	}
+	return buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
+		route:            "/v1/chat/completions",
+		protocol:         northboundProtocolChatCompletions,
+		locale:           locale,
+		promptText:       promptText,
+		northboundFields: northboundFields,
+	})
 }
 
 func buildPromptFromMessages(messages []chatCompletionMessage) (string, error) {
@@ -292,30 +263,14 @@ func buildOpenAIChatCompletionResponse(envelope bridge.GatewayEnvelope, model st
 		return openAIChatCompletionResponse{}, fmt.Errorf("gateway envelope is missing response payload")
 	}
 
-	content := strings.TrimSpace(normalizeAnyText(envelope.Response["summary"]))
-	if content == "" {
-		if answers, ok := envelope.Response["answers"].([]any); ok && len(answers) > 0 {
-			if firstAnswer, ok := answers[0].(map[string]any); ok {
-				content = strings.TrimSpace(normalizeAnyText(firstAnswer["text"]))
-			}
-		}
-	}
-	if content == "" {
-		content = "RadishMind platform bridge returned an empty response."
-	}
+	content := buildNorthboundResponseContent(envelope)
 
-	responseID := envelope.RequestID
-	if responseID == "" {
-		responseID = fmt.Sprintf("%d", time.Now().UnixNano())
-	}
-	if !strings.HasPrefix(responseID, "chatcmpl-") {
-		responseID = "chatcmpl-" + responseID
-	}
+	responseID := buildNorthboundResponseID("chatcmpl-", envelope.RequestID)
 
 	return openAIChatCompletionResponse{
 		ID:      responseID,
 		Object:  "chat.completion",
-		Created: time.Now().Unix(),
+		Created: timeNowUnix(),
 		Model:   model,
 		Choices: []openAIChatCompletionChoice{
 			{

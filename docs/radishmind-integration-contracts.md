@@ -46,15 +46,15 @@
 当前真实状态是：
 
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`
-- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/models` 与 `/v1/chat/completions`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
+- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
-- `HuggingFace` 服务级接入、`Ollama` adapter、northbound `/v1/responses` / `/v1/messages` 仍未正式落地，`/v1/models` 已先做 bridge-backed discoverability
+- `HuggingFace` 服务级接入、`Ollama` adapter 仍未正式落地，`/v1/models` 已先做 bridge-backed discoverability，并开始带 route metadata 的 model inventory
 
 当前第一版 `Go -> Python` bridge 的 northbound 切片仍然很窄：
 
 - 只接非流式文本消息
 - 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- 目前 `GET /v1/models` 只输出 provider 目录，不是完整 model/profile inventory
+- `GET /v1/models` 还不是完整的动态 model/profile inventory，流式转发和 provider/profile 路由细节也还在补齐中
 
 ## 当前服务/API 接入切片
 

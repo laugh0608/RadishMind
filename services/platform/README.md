@@ -20,8 +20,10 @@
 - `GET /healthz`
 - `GET /v1/models`
 - `POST /v1/chat/completions`
+- `POST /v1/responses`
+- `POST /v1/messages`
 
-其中 `/v1/chat/completions` 已接到最小 canonical bridge：`Go` 只负责 OpenAI 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
+其中 `/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 已接到最小 canonical bridge：`Go` 只负责 northbound 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
 
 当前第一版 bridge 仍是窄切片：
 
@@ -29,4 +31,4 @@
 - 当前只把最后一条文本用户消息映射到 `radish/answer_docs_question`
 - 返回内容当前优先取 canonical `summary`，必要时回退首条 `answer`
 
-`GET /v1/models` 目前通过 Python provider registry 输出可用 provider 目录，作为 northbound discoverability 的第一版收口；它当前还不是完整的 model/profile inventory。
+`GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前还不是完整的动态 provider/profile discovery。

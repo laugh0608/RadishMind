@@ -71,7 +71,7 @@ python3 scripts/run-copilot-inference.py \
   --response-output tmp/rf-suggest-edit.response.json
 ```
 
-如果后续要接真实 provider，再显式传 `--provider openai-compatible`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议，但还没有把 `HuggingFace`、`Ollama`、`/v1/responses` 或 `/v1/models` 收口为正式服务能力。
+如果后续要接真实 provider，再显式传 `--provider openai-compatible`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议，并且 `services/platform/` 已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 收口为第一版桥接能力，但还没有把 `HuggingFace`、`Ollama` 变成正式服务级接入。
 
 ### 2. 跑进程内 gateway demo
 
@@ -140,7 +140,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳和第一版 bridge，但 `/v1/chat/completions` 仍是窄切片，`/v1/responses`、`/v1/messages` 还没正式落地，`/v1/models` 也还不是完整 inventory
+- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳和第一版 bridge，但流式转发、更完整的 provider 选择和动态 model/profile inventory 还没正式落地
 
 ## 今天还不能算完成的能力
 
@@ -149,7 +149,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 - 官方长驻服务进程
 - 完整的正式 HTTP API 包装
 - `HuggingFace` 与 `Ollama` 的正式服务级接入
-- `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口
+- `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口仍在补齐流式和 model/profile inventory 细节
 - session store / history policy / recovery runbook
 - 通用 tool registry 和 tool calling contract
 - 官方 deployment runbook 或可发布部署包
