@@ -23,13 +23,22 @@ from .inference_support import (
     make_mock_suggest_edits_response,
     make_mock_ghost_completion_response,
     normalize_text,
+    provider_env_key,
+    provider_profile_env_key,
     profile_env_key,
     resolve_openai_compatible_config,
+    resolve_provider_config,
     utc_now_iso,
     validate_request_document,
     validate_response_document,
 )
-from .provider_registry import MOCK_PROVIDER_ID, OPENAI_COMPATIBLE_PROVIDER_ID, get_provider_spec
+from .provider_registry import (
+    HUGGINGFACE_PROVIDER_ID,
+    MOCK_PROVIDER_ID,
+    OLLAMA_PROVIDER_ID,
+    OPENAI_COMPATIBLE_PROVIDER_ID,
+    get_provider_spec,
+)
 
 GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
 StreamHandler = Callable[[dict[str, Any]], None]
@@ -132,6 +141,21 @@ def resolve_chat_endpoint(base_url: str) -> str:
     if trimmed.endswith("/v1"):
         return trimmed + "/chat/completions"
     return trimmed + "/v1/chat/completions"
+
+
+def build_chat_completion_transport(provider_id: str) -> str:
+    normalized_provider_id = str(provider_id or "").strip()
+    if normalized_provider_id == OPENAI_COMPATIBLE_PROVIDER_ID:
+        return "openai-chat-completions"
+    return f"{normalized_provider_id}-chat-completions"
+
+
+def build_chat_completion_headers(api_key: str) -> dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    normalized_api_key = str(api_key or "").strip()
+    if normalized_api_key:
+        headers["Authorization"] = f"Bearer {normalized_api_key}"
+    return headers
 
 
 def resolve_gemini_generate_content_endpoint(base_url: str, model: str) -> str:
@@ -364,9 +388,10 @@ def emit_buffered_stream_response(
     stream_handler({"type": "completed", "response": response_document})
 
 
-def call_openai_compatible_stream(
+def call_chat_completion_stream(
     copilot_request: dict[str, Any],
     *,
+    provider_id: str,
     model: str,
     base_url: str,
     api_key: str,
@@ -376,6 +401,7 @@ def call_openai_compatible_stream(
 ) -> dict[str, Any]:
     messages = build_messages(copilot_request)
     endpoint = resolve_chat_endpoint(base_url)
+    transport = build_chat_completion_transport(provider_id)
     payload = {
         "model": model,
         "temperature": temperature,
@@ -385,16 +411,13 @@ def call_openai_compatible_stream(
     raw_request = {
         "endpoint": endpoint,
         "payload": payload,
-        "transport": "openai-chat-completions",
+        "transport": transport,
         "stream": True,
     }
     http_request = request.Request(
         endpoint,
         data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
+        headers=build_chat_completion_headers(api_key),
         method="POST",
     )
 
@@ -424,7 +447,7 @@ def call_openai_compatible_stream(
     if stream_handler is not None:
         stream_handler({"type": "completed", "response": response_document})
     return {
-        "provider": "openai-compatible",
+        "provider": provider_id,
         "model": model,
         "messages": messages,
         "raw_request": raw_request,
@@ -436,9 +459,10 @@ def call_openai_compatible_stream(
     }
 
 
-def call_openai_compatible(
+def call_chat_completion(
     copilot_request: dict[str, Any],
     *,
+    provider_id: str,
     model: str,
     base_url: str,
     api_key: str,
@@ -447,6 +471,7 @@ def call_openai_compatible(
 ) -> dict[str, Any]:
     messages = build_messages(copilot_request)
     endpoint = resolve_chat_endpoint(base_url)
+    transport = build_chat_completion_transport(provider_id)
     payload = {
         "model": model,
         "temperature": temperature,
@@ -455,22 +480,19 @@ def call_openai_compatible(
     raw_request = {
         "endpoint": endpoint,
         "payload": payload,
-        "transport": "openai-chat-completions",
+        "transport": transport,
     }
     raw_response = post_json_request(
         endpoint=endpoint,
         payload=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
+        headers=build_chat_completion_headers(api_key),
         request_timeout_seconds=request_timeout_seconds,
     )
     content = extract_openai_message_content(raw_response)
     response_document = normalize_openai_content(content, copilot_request)
     validate_response_document(response_document)
     return {
-        "provider": "openai-compatible",
+        "provider": provider_id,
         "model": model,
         "messages": messages,
         "raw_request": raw_request,
@@ -622,6 +644,125 @@ def call_anthropic_messages(
     }
 
 
+def run_chat_completion_provider(
+    copilot_request: dict[str, Any],
+    *,
+    provider_id: str,
+    provider_spec,
+    provider_profile: str | None = None,
+    model: str | None = None,
+    base_url: str | None = None,
+    api_key: str | None = None,
+    temperature: float = 0.0,
+    request_timeout_seconds: float | None = None,
+    default_base_url: str = "",
+    require_api_key: bool = True,
+    stream_handler: StreamHandler | None = None,
+) -> dict[str, Any]:
+    if provider_id == OPENAI_COMPATIBLE_PROVIDER_ID:
+        resolved = resolve_openai_compatible_config(
+            provider_profile=provider_profile,
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+            request_timeout_seconds=request_timeout_seconds,
+            default_api_style=provider_spec.default_api_style,
+        )
+    else:
+        resolved = resolve_provider_config(
+            provider=provider_id,
+            provider_profile=provider_profile,
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+            request_timeout_seconds=request_timeout_seconds,
+            default_api_style=provider_spec.default_api_style,
+            default_base_url=default_base_url,
+        )
+
+    resolved_profile = str(resolved["profile"])
+    normalized_profile = str(resolved["normalized_profile"])
+    resolved_api_style = str(resolved["api_style"] or "").strip() or infer_profile_api_style(
+        str(resolved["base_url"]),
+        default_api_style=provider_spec.default_api_style,
+    )
+    resolved_model = str(resolved["model"])
+    resolved_base_url = str(resolved["base_url"])
+    resolved_api_key = str(resolved["api_key"])
+    resolved_request_timeout_seconds = float(resolved["request_timeout_seconds"])
+
+    if provider_id == OPENAI_COMPATIBLE_PROVIDER_ID:
+        profile_name_key = profile_env_key(resolved_profile, "NAME")
+        profile_base_url_key = profile_env_key(resolved_profile, "BASE_URL")
+        profile_api_key_key = profile_env_key(resolved_profile, "API_KEY")
+        profile_api_style_key = profile_env_key(resolved_profile, "API_STYLE")
+    else:
+        profile_name_key = (
+            provider_profile_env_key(provider_id, resolved_profile, "NAME")
+            if resolved_profile
+            else provider_env_key(provider_id, "NAME")
+        )
+        profile_base_url_key = (
+            provider_profile_env_key(provider_id, resolved_profile, "BASE_URL")
+            if resolved_profile
+            else provider_env_key(provider_id, "BASE_URL")
+        )
+        profile_api_key_key = (
+            provider_profile_env_key(provider_id, resolved_profile, "API_KEY")
+            if resolved_profile
+            else provider_env_key(provider_id, "API_KEY")
+        )
+        profile_api_style_key = (
+            provider_profile_env_key(provider_id, resolved_profile, "API_STYLE")
+            if resolved_profile
+            else provider_env_key(provider_id, "API_STYLE")
+        )
+
+    if resolved_api_style not in provider_spec.supported_api_styles:
+        raise ValueError(
+            f"provider={provider_id} requires a supported api style via "
+            f"{profile_api_style_key}"
+        )
+    if not resolved_model:
+        raise ValueError(f"provider={provider_id} requires --model, {profile_name_key}")
+    if not resolved_base_url:
+        raise ValueError(f"provider={provider_id} requires --base-url, {profile_base_url_key}")
+    if require_api_key and not resolved_api_key:
+        raise ValueError(f"provider={provider_id} requires --api-key or {profile_api_key_key}")
+    if resolved_request_timeout_seconds <= 0:
+        raise ValueError(f"provider={provider_id} requires a positive request timeout")
+
+    transport = build_chat_completion_transport(provider_id)
+    if stream_handler is not None:
+        result = call_chat_completion_stream(
+            copilot_request,
+            provider_id=provider_id,
+            model=resolved_model,
+            base_url=resolved_base_url,
+            api_key=resolved_api_key,
+            temperature=temperature,
+            request_timeout_seconds=resolved_request_timeout_seconds,
+            stream_handler=stream_handler,
+        )
+    else:
+        result = call_chat_completion(
+            copilot_request,
+            provider_id=provider_id,
+            model=resolved_model,
+            base_url=resolved_base_url,
+            api_key=resolved_api_key,
+            temperature=temperature,
+            request_timeout_seconds=resolved_request_timeout_seconds,
+        )
+    raw_request = result.get("raw_request")
+    if isinstance(raw_request, dict):
+        raw_request["provider_profile"] = resolved_profile
+        raw_request["provider_profile_env"] = normalized_profile
+        raw_request["api_style"] = resolved_api_style
+        raw_request["transport"] = transport
+    return result
+
+
 def run_inference(
     copilot_request: dict[str, Any],
     *,
@@ -676,7 +817,10 @@ def run_inference(
         )
         resolved_profile = str(resolved["profile"])
         normalized_profile = str(resolved["normalized_profile"])
-        resolved_api_style = str(resolved["api_style"] or "").strip() or infer_profile_api_style(str(resolved["base_url"]))
+        resolved_api_style = str(resolved["api_style"] or "").strip() or infer_profile_api_style(
+            str(resolved["base_url"]),
+            default_api_style=provider_spec.default_api_style,
+        )
         resolved_model = str(resolved["model"])
         resolved_base_url = str(resolved["base_url"])
         resolved_api_key = str(resolved["api_key"])
@@ -729,8 +873,9 @@ def run_inference(
             emit_buffered_stream_response(result["response"], stream_handler=stream_handler)
         else:
             if stream_handler is not None:
-                result = call_openai_compatible_stream(
+                result = call_chat_completion_stream(
                     copilot_request,
+                    provider_id=provider,
                     model=resolved_model,
                     base_url=resolved_base_url,
                     api_key=resolved_api_key,
@@ -739,8 +884,9 @@ def run_inference(
                     stream_handler=stream_handler,
                 )
             else:
-                result = call_openai_compatible(
+                result = call_chat_completion(
                     copilot_request,
+                    provider_id=provider,
                     model=resolved_model,
                     base_url=resolved_base_url,
                     api_key=resolved_api_key,
@@ -753,6 +899,38 @@ def run_inference(
             raw_request["provider_profile_env"] = normalized_profile
             raw_request["api_style"] = resolved_api_style
         return result
+
+    if provider == HUGGINGFACE_PROVIDER_ID:
+        return run_chat_completion_provider(
+            copilot_request,
+            provider_id=provider,
+            provider_spec=provider_spec,
+            provider_profile=provider_profile,
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+            temperature=temperature,
+            request_timeout_seconds=request_timeout_seconds,
+            default_base_url="",
+            require_api_key=True,
+            stream_handler=stream_handler,
+        )
+
+    if provider == OLLAMA_PROVIDER_ID:
+        return run_chat_completion_provider(
+            copilot_request,
+            provider_id=provider,
+            provider_spec=provider_spec,
+            provider_profile=provider_profile,
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+            temperature=temperature,
+            request_timeout_seconds=request_timeout_seconds,
+            default_base_url="http://localhost:11434",
+            require_api_key=False,
+            stream_handler=stream_handler,
+        )
 
     raise AssertionError(f"provider dispatch is missing for {provider_spec.provider_id}")
 

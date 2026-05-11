@@ -32,52 +32,207 @@ type northboundCanonicalRequestOptions struct {
 	northboundFields map[string]any
 }
 
-func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel string, extension *chatCompletionExtension) northboundSelection {
-	requestedModel = strings.TrimSpace(requestedModel)
-	selection := northboundSelection{
-		provider:        strings.TrimSpace(s.config.Provider),
-		providerProfile: strings.TrimSpace(s.config.ProviderProfile),
-		model:           requestedModel,
-		upstreamModel:   strings.TrimSpace(s.config.Model),
-		source:          "configured_default",
-	}
-	if selection.provider == "" {
-		selection.provider = "mock"
-	}
-	if selection.model == "" {
-		selection.model = selection.provider
-	}
-	if selection.upstreamModel == "" {
-		selection.upstreamModel = selection.model
-	}
+type northboundInventoryLookup struct {
+	providers                map[string]bridge.ProviderDescription
+	profilesByModelID        map[string]bridge.ProviderProfileDescription
+	profilesByQualifiedAlias map[string]bridge.ProviderProfileDescription
+	profilesByPlainName      map[string]bridge.ProviderProfileDescription
+	activeProfileByProvider  map[string]string
+}
 
-	inventory, err := s.bridge.DescribeInventory(ctx)
-	if err != nil {
-		return selection
+func buildNorthboundInventoryLookup(inventory bridge.ProviderInventory) northboundInventoryLookup {
+	lookup := northboundInventoryLookup{
+		providers:                make(map[string]bridge.ProviderDescription, len(inventory.Providers)),
+		profilesByModelID:        make(map[string]bridge.ProviderProfileDescription, len(inventory.Profiles)),
+		profilesByQualifiedAlias: make(map[string]bridge.ProviderProfileDescription, len(inventory.Profiles)),
+		profilesByPlainName:      make(map[string]bridge.ProviderProfileDescription, len(inventory.Profiles)),
+		activeProfileByProvider:  make(map[string]string, len(inventory.Profiles)),
 	}
-
-	providers := make(map[string]bridge.ProviderDescription, len(inventory.Providers))
+	fallbackProfileByProvider := make(map[string]string, len(inventory.Profiles))
 	for _, provider := range inventory.Providers {
 		normalizedProviderID := strings.TrimSpace(provider.ProviderID)
 		if normalizedProviderID == "" {
 			continue
 		}
-		providers[normalizedProviderID] = provider
+		lookup.providers[normalizedProviderID] = provider
+	}
+	for _, profile := range inventory.Profiles {
+		providerID := strings.TrimSpace(profile.ProviderID)
+		profileName := strings.TrimSpace(profile.Profile)
+		if providerID == "" || profileName == "" {
+			continue
+		}
+		modelID := buildNorthboundProfileModelID(providerID, profileName)
+		lookup.profilesByModelID[modelID] = profile
+		lookup.profilesByQualifiedAlias["provider:"+providerID+":profile:"+profileName] = profile
+		if existing, ok := lookup.profilesByPlainName[profileName]; !ok {
+			lookup.profilesByPlainName[profileName] = profile
+		} else if existing.ProviderID == "openai-compatible" {
+			lookup.profilesByPlainName[profileName] = existing
+		} else if providerID == "openai-compatible" {
+			lookup.profilesByPlainName[profileName] = profile
+		} else if existing.ProviderID != providerID {
+			delete(lookup.profilesByPlainName, profileName)
+		}
+		if _, ok := fallbackProfileByProvider[providerID]; !ok {
+			fallbackProfileByProvider[providerID] = profileName
+		}
+		if profile.Active {
+			lookup.activeProfileByProvider[providerID] = profileName
+		}
+	}
+	for providerID, profileName := range fallbackProfileByProvider {
+		if _, ok := lookup.activeProfileByProvider[providerID]; !ok {
+			lookup.activeProfileByProvider[providerID] = profileName
+		}
+	}
+	return lookup
+}
+
+func parseNorthboundProviderProfileModel(model string) (string, string, bool) {
+	normalizedModel := strings.TrimSpace(model)
+	if !strings.HasPrefix(normalizedModel, "provider:") {
+		return "", "", false
+	}
+	rest := strings.TrimPrefix(normalizedModel, "provider:")
+	parts := strings.SplitN(rest, ":profile:", 2)
+	if len(parts) != 2 {
+		return "", "", false
+	}
+	providerID := strings.TrimSpace(parts[0])
+	profileName := strings.TrimSpace(parts[1])
+	if providerID == "" || profileName == "" {
+		return "", "", false
+	}
+	return providerID, profileName, true
+}
+
+func parseNorthboundProviderAlias(model string) (string, bool) {
+	normalizedModel := strings.TrimSpace(model)
+	if !strings.HasPrefix(normalizedModel, "provider:") {
+		return "", false
+	}
+	if _, _, ok := parseNorthboundProviderProfileModel(normalizedModel); ok {
+		return "", false
+	}
+	providerID := strings.TrimSpace(strings.TrimPrefix(normalizedModel, "provider:"))
+	if providerID == "" {
+		return "", false
+	}
+	return providerID, true
+}
+
+func lookupNorthboundProfile(lookup northboundInventoryLookup, model string) (bridge.ProviderProfileDescription, bool) {
+	normalizedModel := strings.TrimSpace(model)
+	if normalizedModel == "" {
+		return bridge.ProviderProfileDescription{}, false
+	}
+	if profile, ok := lookup.profilesByModelID[normalizedModel]; ok {
+		return profile, true
+	}
+	if profile, ok := lookup.profilesByQualifiedAlias[normalizedModel]; ok {
+		return profile, true
+	}
+	if strings.HasPrefix(normalizedModel, "profile:") {
+		profileName := strings.TrimPrefix(normalizedModel, "profile:")
+		if profile, ok := lookup.profilesByPlainName[profileName]; ok {
+			return profile, true
+		}
+	}
+	return bridge.ProviderProfileDescription{}, false
+}
+
+func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel string, extension *chatCompletionExtension) northboundSelection {
+	requestedModel = strings.TrimSpace(requestedModel)
+	configuredProvider := strings.TrimSpace(s.config.Provider)
+	if configuredProvider == "" {
+		configuredProvider = "mock"
+	}
+	configuredProfile := strings.TrimSpace(s.config.ProviderProfile)
+	configuredModel := strings.TrimSpace(s.config.Model)
+	selection := northboundSelection{
+		provider:        configuredProvider,
+		providerProfile: configuredProfile,
+		model:           configuredModel,
+		upstreamModel:   configuredModel,
+		source:          "configured_default",
+	}
+	if selection.model == "" {
+		if selection.providerProfile != "" {
+			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
+		} else {
+			selection.model = selection.provider
+		}
 	}
 
-	profiles := make(map[string]bridge.ProviderProfileDescription, len(inventory.Profiles))
-	activeProfile := ""
-	for _, profile := range inventory.Profiles {
-		normalizedProfile := strings.TrimSpace(profile.Profile)
-		if normalizedProfile != "" {
-			profiles[normalizedProfile] = profile
-		}
-		if activeProfile == "" && profile.Active {
-			activeProfile = normalizedProfile
-		}
+	inventory, err := s.bridge.DescribeInventory(ctx)
+	inventoryLookup := northboundInventoryLookup{}
+	if err == nil {
+		inventoryLookup = buildNorthboundInventoryLookup(inventory)
 	}
-	if activeProfile == "" && len(inventory.ActiveProfileChain) > 0 {
-		activeProfile = strings.TrimSpace(inventory.ActiveProfileChain[0])
+
+	requestedConcreteModel := requestedModel != ""
+	requestedProfileMatched := false
+	requestedProviderAlias := ""
+	if requestedModel != "" {
+		if providerID, profileName, ok := parseNorthboundProviderProfileModel(requestedModel); ok {
+			requestedConcreteModel = false
+			requestedProfileMatched = true
+			selection.provider = providerID
+			selection.providerProfile = profileName
+			selection.model = requestedModel
+			selection.source = "requested_provider_profile_model"
+			if profile, ok := lookupNorthboundProfile(inventoryLookup, requestedModel); ok {
+				selection.provider = strings.TrimSpace(profile.ProviderID)
+				selection.providerProfile = strings.TrimSpace(profile.Profile)
+				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+				selection.source = "requested_provider_profile_model+inventory"
+			}
+		} else if profile, ok := lookupNorthboundProfile(inventoryLookup, requestedModel); ok {
+			requestedConcreteModel = false
+			requestedProfileMatched = true
+			selection.provider = strings.TrimSpace(profile.ProviderID)
+			selection.providerProfile = strings.TrimSpace(profile.Profile)
+			selection.model = requestedModel
+			selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+			selection.source = "requested_profile_model"
+		} else if providerID, ok := parseNorthboundProviderAlias(requestedModel); ok {
+			requestedConcreteModel = false
+			requestedProviderAlias = providerID
+			selection.provider = providerID
+			selection.providerProfile = ""
+			selection.model = requestedModel
+			selection.upstreamModel = ""
+			selection.source = "requested_provider_model"
+			if activeProfile, ok := inventoryLookup.activeProfileByProvider[providerID]; ok && activeProfile != "" {
+				selection.providerProfile = activeProfile
+				selection.model = buildNorthboundProfileModelID(providerID, activeProfile)
+				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+				}
+				selection.source = "requested_provider_model+inventory"
+			}
+		} else if _, ok := inventoryLookup.providers[requestedModel]; ok {
+			requestedConcreteModel = false
+			requestedProviderAlias = requestedModel
+			selection.provider = requestedModel
+			selection.providerProfile = ""
+			selection.model = requestedModel
+			selection.upstreamModel = ""
+			selection.source = "requested_provider_model"
+			if activeProfile, ok := inventoryLookup.activeProfileByProvider[requestedModel]; ok && activeProfile != "" {
+				selection.providerProfile = activeProfile
+				selection.model = buildNorthboundProfileModelID(requestedModel, activeProfile)
+				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+				}
+				selection.source = "requested_provider_model+inventory"
+			}
+		} else {
+			selection.model = requestedModel
+			selection.upstreamModel = requestedModel
+			selection.source = "requested_concrete_model"
+		}
 	}
 
 	explicitProvider := ""
@@ -95,67 +250,93 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 		}
 	}
 
-	if explicitProfile != "" {
-		if profile, ok := profiles[explicitProfile]; ok {
-			selection.provider = strings.TrimSpace(profile.ProviderID)
-			selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
-			selection.source = "radishmind.provider_profile+inventory"
+	if explicitProvider != "" {
+		selection.provider = explicitProvider
+		selection.source = "radishmind.provider"
+		if explicitProfile == "" {
+			selection.providerProfile = ""
 		}
-	}
-	if explicitProvider != "" && explicitProfile == "" && selection.provider != "openai-compatible" {
-		selection.providerProfile = ""
-	}
-
-	if explicitProvider == "" && explicitProfile == "" {
-		if requestedProfile := strings.TrimPrefix(requestedModel, "profile:"); requestedProfile != requestedModel && requestedProfile != "" {
-			if profile, ok := profiles[requestedProfile]; ok {
-				selection.provider = strings.TrimSpace(profile.ProviderID)
-				selection.providerProfile = strings.TrimSpace(profile.Profile)
-				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
-				selection.model = requestedModel
-				selection.source = "requested_profile_model"
-			}
-		}
-	}
-
-	if selection.providerProfile != "" && (selection.provider == "openai-compatible" || explicitProfile != "") {
-		if profile, ok := profiles[selection.providerProfile]; ok {
-			selection.provider = strings.TrimSpace(profile.ProviderID)
-			if selection.upstreamModel == "" || selection.upstreamModel == selection.model {
-				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
-			}
-		}
-	}
-
-	if explicitProvider == "" && explicitProfile == "" {
-		if _, ok := providers[selection.model]; ok {
-			selection.provider = selection.model
-			selection.source = "requested_provider_model"
-			if selection.providerProfile == "" && selection.provider == "openai-compatible" {
-				if activeProfile != "" {
-					selection.providerProfile = activeProfile
+		if !requestedConcreteModel {
+			if activeProfile, ok := inventoryLookup.activeProfileByProvider[explicitProvider]; ok && activeProfile != "" {
+				selection.providerProfile = activeProfile
+				selection.model = buildNorthboundProfileModelID(explicitProvider, activeProfile)
+				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 				}
+			} else if selection.providerProfile == "" {
+				selection.model = explicitProvider
 			}
 		}
-	}
-	if explicitProfile == "" && selection.provider != "openai-compatible" {
-		selection.providerProfile = ""
 	}
 
-	if selection.provider == "openai-compatible" && selection.providerProfile == "" {
-		if activeProfile != "" {
-			selection.providerProfile = activeProfile
+	if explicitProfile != "" {
+		selection.providerProfile = explicitProfile
+		selection.source = "radishmind.provider_profile"
+		if profile, ok := lookupNorthboundProfile(inventoryLookup, buildNorthboundProfileModelID(selection.provider, explicitProfile)); ok {
+			selection.provider = strings.TrimSpace(profile.ProviderID)
+			selection.providerProfile = strings.TrimSpace(profile.Profile)
+			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
+			if !requestedConcreteModel {
+				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+			}
+			selection.source = "radishmind.provider_profile+inventory"
+		} else if profile, ok := lookupNorthboundProfile(inventoryLookup, "profile:"+explicitProfile); ok {
+			selection.provider = strings.TrimSpace(profile.ProviderID)
+			selection.providerProfile = strings.TrimSpace(profile.Profile)
+			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
+			if !requestedConcreteModel {
+				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+			}
+			selection.source = "radishmind.provider_profile+inventory"
+		} else if selection.model == "" || selection.model == selection.provider {
+			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
 		}
 	}
+
+	if explicitProvider == "" && explicitProfile == "" && !requestedProfileMatched && requestedProviderAlias == "" && requestedModel == "" {
+		if selection.providerProfile == "" {
+			if activeProfile, ok := inventoryLookup.activeProfileByProvider[selection.provider]; ok && activeProfile != "" {
+				selection.providerProfile = activeProfile
+				selection.model = buildNorthboundProfileModelID(selection.provider, activeProfile)
+				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+				}
+			} else if selection.model == "" {
+				selection.model = selection.provider
+			}
+		} else if selection.provider == "openai-compatible" {
+			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
+		}
+	}
+
 	if selection.providerProfile != "" {
-		if profile, ok := profiles[selection.providerProfile]; ok {
-			if selection.upstreamModel == "" || selection.upstreamModel == selection.model {
+		if profile, ok := lookupNorthboundProfile(inventoryLookup, buildNorthboundProfileModelID(selection.provider, selection.providerProfile)); ok {
+			selection.provider = strings.TrimSpace(profile.ProviderID)
+			if !requestedConcreteModel {
 				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+			}
+			if selection.model == "" || selection.model == selection.provider {
+				selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
 			}
 		}
 	}
+
 	if selection.upstreamModel == "" {
-		selection.upstreamModel = selection.model
+		if requestedConcreteModel {
+			selection.upstreamModel = requestedModel
+		} else if selection.provider == configuredProvider && selection.providerProfile == configuredProfile && configuredModel != "" {
+			selection.upstreamModel = configuredModel
+		} else if profile, ok := lookupNorthboundProfile(inventoryLookup, buildNorthboundProfileModelID(selection.provider, selection.providerProfile)); ok {
+			selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+		}
+	}
+
+	if selection.model == "" {
+		if selection.providerProfile != "" {
+			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
+		} else {
+			selection.model = selection.provider
+		}
 	}
 
 	return selection
@@ -330,6 +511,30 @@ func firstNonEmptyString(document map[string]any, keys ...string) string {
 		}
 	}
 	return ""
+}
+
+func (s *Server) buildBridgeEnvelopeOptions(selection northboundSelection, temperature float64) bridge.EnvelopeOptions {
+	options := bridge.EnvelopeOptions{
+		Provider:        strings.TrimSpace(selection.provider),
+		ProviderProfile: strings.TrimSpace(selection.providerProfile),
+		Model:           strings.TrimSpace(selection.upstreamModel),
+		Temperature:     temperature,
+		RequestTimeout:  s.config.BridgeTimeout,
+	}
+
+	configuredProvider := strings.TrimSpace(s.config.Provider)
+	if configuredProvider == "" {
+		configuredProvider = "mock"
+	}
+	configuredProfile := strings.TrimSpace(s.config.ProviderProfile)
+	if options.Provider == configuredProvider && (configuredProvider != "openai-compatible" || options.ProviderProfile == configuredProfile) {
+		options.BaseURL = strings.TrimSpace(s.config.BaseURL)
+		options.APIKey = strings.TrimSpace(s.config.APIKey)
+		if options.Model == "" {
+			options.Model = strings.TrimSpace(s.config.Model)
+		}
+	}
+	return options
 }
 
 func buildNorthboundResponseContent(envelope bridge.GatewayEnvelope) string {

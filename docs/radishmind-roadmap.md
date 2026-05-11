@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，但第一版 northbound 仍是窄切片：`HuggingFace / Ollama` 服务接入、正式长驻服务配置分层和部署 runbook 还需要继续补齐。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，但第一版 northbound 仍是窄切片：更广 provider/profile discoverability、正式长驻服务配置分层和部署 runbook 还需要继续补齐。
 
-下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，继续把 `HuggingFace`、`Ollama` 与长驻部署壳补齐，再把当前 bridge-backed provider/profile inventory 继续推进到更广 provider 覆盖，并把现有 bridge 增量流式转发扩展到更多 northbound / southbound 组合。
+下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，继续把更广 provider/profile discoverability 与长驻部署壳补齐，再把现有 bridge 增量流式转发扩展到更多 northbound / southbound 组合。
 
 ### 2. `Conversation & Session`
 

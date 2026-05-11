@@ -6,6 +6,8 @@ from typing import Any
 
 MOCK_PROVIDER_ID = "mock"
 OPENAI_COMPATIBLE_PROVIDER_ID = "openai-compatible"
+HUGGINGFACE_PROVIDER_ID = "huggingface"
+OLLAMA_PROVIDER_ID = "ollama"
 OPENAI_COMPATIBLE_API_STYLES = (
     "openai-compatible",
     "gemini-native",
@@ -87,7 +89,7 @@ def _build_openai_compatible_provider_spec() -> ProviderSpec:
             responses=False,
             messages=False,
             models_list=False,
-            streaming=False,
+            streaming=True,
             json_schema_output=False,
             tool_calling=False,
             image_input=False,
@@ -104,11 +106,73 @@ def _build_openai_compatible_provider_spec() -> ProviderSpec:
     )
 
 
+def _build_huggingface_provider_spec() -> ProviderSpec:
+    return ProviderSpec(
+        provider_id=HUGGINGFACE_PROVIDER_ID,
+        display_name="Hugging Face chat-completions provider",
+        default_api_style="huggingface-chat-completions",
+        supported_api_styles=("huggingface-chat-completions",),
+        capabilities=ProviderCapability(
+            transport="huggingface-chat-completions",
+            local_or_remote="remote",
+            chat=True,
+            responses=False,
+            messages=False,
+            models_list=False,
+            streaming=True,
+            json_schema_output=False,
+            tool_calling=False,
+            image_input=False,
+            image_output=False,
+            auth_mode="profile",
+            timeout_policy="per-request",
+            retry_policy="caller-managed",
+            cost_profile="provider-defined",
+            latency_profile="provider-defined",
+            deployment_mode="remote_api",
+        ),
+        profile_driven=True,
+        notes="Provider-specific chat-completions transport for Hugging Face hosted endpoints.",
+    )
+
+
+def _build_ollama_provider_spec() -> ProviderSpec:
+    return ProviderSpec(
+        provider_id=OLLAMA_PROVIDER_ID,
+        display_name="Ollama chat-completions provider",
+        default_api_style="ollama-chat-completions",
+        supported_api_styles=("ollama-chat-completions",),
+        capabilities=ProviderCapability(
+            transport="ollama-chat-completions",
+            local_or_remote="local",
+            chat=True,
+            responses=False,
+            messages=False,
+            models_list=False,
+            streaming=True,
+            json_schema_output=False,
+            tool_calling=False,
+            image_input=False,
+            image_output=False,
+            auth_mode="optional",
+            timeout_policy="per-request",
+            retry_policy="caller-managed",
+            cost_profile="local",
+            latency_profile="local_daemon",
+            deployment_mode="local_daemon",
+        ),
+        profile_driven=True,
+        notes="Provider-specific chat-completions transport for local Ollama deployments.",
+    )
+
+
 PROVIDER_REGISTRY: dict[str, ProviderSpec] = {
     spec.provider_id: spec
     for spec in (
         _build_mock_provider_spec(),
         _build_openai_compatible_provider_spec(),
+        _build_huggingface_provider_spec(),
+        _build_ollama_provider_spec(),
     )
 }
 
@@ -155,8 +219,10 @@ def describe_provider_registry() -> list[dict[str, Any]]:
 
 __all__ = [
     "MOCK_PROVIDER_ID",
+    "HUGGINGFACE_PROVIDER_ID",
     "OPENAI_COMPATIBLE_API_STYLES",
     "OPENAI_COMPATIBLE_PROVIDER_ID",
+    "OLLAMA_PROVIDER_ID",
     "PROVIDER_REGISTRY",
     "ProviderCapability",
     "ProviderSpec",

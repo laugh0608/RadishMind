@@ -71,7 +71,7 @@ python3 scripts/run-copilot-inference.py \
   --response-output tmp/rf-suggest-edit.response.json
 ```
 
-如果后续要接真实 provider，再显式传 `--provider openai-compatible`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议，并且 `services/platform/` 已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 收口为第一版桥接能力，但还没有把 `HuggingFace`、`Ollama` 变成正式服务级接入。
+如果后续要接真实 provider，再显式传 `--provider openai-compatible|huggingface|ollama`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议，并且 `services/platform/` 已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 收口为第一版桥接能力，同时 `HuggingFace`、`Ollama` 已有第一版 provider coverage，但更广 discoverability 和长驻部署壳还在补齐。
 
 ### 2. 跑进程内 gateway demo
 
@@ -143,7 +143,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 
 当前真实状态是：
 
-- 南向已有一部分：`openai-compatible` 主入口、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
+- 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
 - 北向还没有完成：虽然已经有最小 `Go HTTP` 壳、第一版 bridge、SSE 兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发、把 `/v1/models` 推进到列表 + 精确 lookup，但更广 provider 覆盖还没正式落地
 
 ## 今天还不能算完成的能力
@@ -152,7 +152,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 
 - 官方长驻服务进程
 - 完整的正式 HTTP API 包装
-- `HuggingFace` 与 `Ollama` 的正式服务级接入
+- `HuggingFace` 与 `Ollama` 的更广 discoverability、profile inventory 和正式部署壳
 - `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口仍在补齐流式和更广 provider 覆盖细节
 - session store / history policy / recovery runbook
 - 通用 tool registry 和 tool calling contract

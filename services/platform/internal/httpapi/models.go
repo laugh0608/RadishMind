@@ -205,7 +205,7 @@ func buildNorthboundProviderModelAliases(provider bridge.ProviderDescription) []
 }
 
 func buildNorthboundProfileModel(now int64, profile bridge.ProviderProfileDescription) openAIModelObject {
-	modelID := buildNorthboundProfileModelID(profile.Profile)
+	modelID := buildNorthboundProfileModelID(profile.ProviderID, profile.Profile)
 	return openAIModelObject{
 		ID:      modelID,
 		Object:  "model",
@@ -238,7 +238,11 @@ func buildNorthboundProfileModelAliases(profile bridge.ProviderProfileDescriptio
 	if providerID == "" || profileName == "" {
 		return nil
 	}
-	return []string{"provider:" + providerID + ":profile:" + profileName}
+	aliases := []string{"provider:" + providerID + ":profile:" + profileName}
+	if providerID == "openai-compatible" {
+		aliases = append(aliases, "profile:"+profileName)
+	}
+	return aliases
 }
 
 func buildNorthboundSelectionSummary(provider string, providerProfile string, model string) map[string]any {
@@ -249,10 +253,23 @@ func buildNorthboundSelectionSummary(provider string, providerProfile string, mo
 	}
 }
 
-func buildNorthboundProfileModelID(profile string) string {
+func buildNorthboundProfileModelID(providerID string, profile string) string {
 	trimmedProfile := strings.TrimSpace(profile)
-	if trimmedProfile == "" {
-		return "profile:default"
+	trimmedProviderID := strings.TrimSpace(providerID)
+	if trimmedProviderID == "openai-compatible" {
+		if trimmedProfile == "" {
+			return "profile:default"
+		}
+		return "profile:" + trimmedProfile
 	}
-	return "profile:" + trimmedProfile
+	if trimmedProviderID == "" {
+		if trimmedProfile == "" {
+			return "profile:default"
+		}
+		return "profile:" + trimmedProfile
+	}
+	if trimmedProfile == "" {
+		trimmedProfile = "default"
+	}
+	return "provider:" + trimmedProviderID + ":profile:" + trimmedProfile
 }

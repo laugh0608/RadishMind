@@ -96,6 +96,11 @@ def normalize_provider_profile_name(profile: str | None) -> str:
     return normalized
 
 
+def normalize_provider_identifier_name(provider: str | None) -> str:
+    normalized = re.sub(r"[^A-Za-z0-9]+", "_", str(provider or "").strip()).strip("_").upper()
+    return normalized
+
+
 def profile_env_key(profile: str, suffix: str) -> str:
     normalized_profile = normalize_provider_profile_name(profile)
     return f"RADISHMIND_MODEL_PROFILE_{normalized_profile}_{suffix}"
@@ -106,6 +111,55 @@ def profile_env_value(profile: str, suffix: str) -> str:
     if not normalized_profile:
         return ""
     return getenv_stripped(profile_env_key(profile, suffix))
+
+
+def provider_env_key(provider: str, suffix: str) -> str:
+    normalized_provider = normalize_provider_identifier_name(provider)
+    return f"RADISHMIND_{normalized_provider}_{suffix}"
+
+
+def provider_env_value(provider: str, suffix: str) -> str:
+    normalized_provider = normalize_provider_identifier_name(provider)
+    if not normalized_provider:
+        return ""
+    return getenv_stripped(provider_env_key(provider, suffix))
+
+
+def provider_profile_env_key(provider: str, profile: str, suffix: str) -> str:
+    normalized_provider = normalize_provider_identifier_name(provider)
+    normalized_profile = normalize_provider_profile_name(profile)
+    return f"RADISHMIND_{normalized_provider}_PROFILE_{normalized_profile}_{suffix}"
+
+
+def provider_profile_env_value(provider: str, profile: str, suffix: str) -> str:
+    normalized_provider = normalize_provider_identifier_name(provider)
+    normalized_profile = normalize_provider_profile_name(profile)
+    if not normalized_provider or not normalized_profile:
+        return ""
+    return getenv_stripped(provider_profile_env_key(provider, profile, suffix))
+
+
+def resolve_provider_profile(provider: str, provider_profile: str | None) -> str:
+    return str(provider_profile or provider_env_value(provider, "PROFILE") or "").strip()
+
+
+def resolve_provider_profile_chain(provider: str, provider_profile: str | None) -> list[str]:
+    explicit_profile = str(provider_profile or "").strip()
+    if explicit_profile:
+        return [explicit_profile]
+
+    configured_profiles = [
+        str(item).strip()
+        for item in provider_env_value(provider, "PROFILE_FALLBACKS").split(",")
+        if str(item).strip()
+    ]
+    default_profile = resolve_provider_profile(provider, None)
+
+    ordered_profiles: list[str] = []
+    for profile in [*configured_profiles, default_profile]:
+        if profile and profile not in ordered_profiles:
+            ordered_profiles.append(profile)
+    return ordered_profiles
 
 
 def resolve_openai_compatible_profile(provider_profile: str | None) -> str:
@@ -131,11 +185,11 @@ def resolve_openai_compatible_profile_chain(provider_profile: str | None) -> lis
     return ordered_profiles or [default_profile]
 
 
-def infer_profile_api_style(base_url: str) -> str:
+def infer_profile_api_style(base_url: str, *, default_api_style: str = "openai-compatible") -> str:
     normalized_base_url = str(base_url or "").strip().lower()
     if "generativelanguage.googleapis.com" in normalized_base_url:
         return "gemini-native"
-    return "openai-compatible"
+    return default_api_style
 
 
 def resolve_openai_compatible_config(
@@ -145,6 +199,7 @@ def resolve_openai_compatible_config(
     base_url: str | None,
     api_key: str | None,
     request_timeout_seconds: float | None,
+    default_api_style: str = "openai-compatible",
 ) -> dict[str, Any]:
     resolved_profile = resolve_openai_compatible_profile(provider_profile)
     normalized_profile = normalize_provider_profile_name(resolved_profile)
@@ -154,7 +209,7 @@ def resolve_openai_compatible_config(
     resolved_api_style = (
         profile_env_value(resolved_profile, "API_STYLE")
         or getenv_stripped("RADISHMIND_MODEL_API_STYLE")
-        or infer_profile_api_style(resolved_base_url)
+        or infer_profile_api_style(resolved_base_url, default_api_style=default_api_style)
     )
     if request_timeout_seconds is None:
         timeout_env_value = (
@@ -175,42 +230,166 @@ def resolve_openai_compatible_config(
     }
 
 
+def resolve_provider_config(
+    *,
+    provider: str,
+    provider_profile: str | None,
+    model: str | None,
+    base_url: str | None,
+    api_key: str | None,
+    request_timeout_seconds: float | None,
+    default_api_style: str,
+    default_base_url: str = "",
+) -> dict[str, Any]:
+    resolved_profile = resolve_provider_profile(provider, provider_profile)
+    normalized_profile = normalize_provider_profile_name(resolved_profile)
+    resolved_model = (
+        model
+        or provider_profile_env_value(provider, resolved_profile, "NAME")
+        or provider_env_value(provider, "NAME")
+    )
+    resolved_base_url = (
+        base_url
+        or provider_profile_env_value(provider, resolved_profile, "BASE_URL")
+        or provider_env_value(provider, "BASE_URL")
+        or default_base_url
+    )
+    resolved_api_key = (
+        api_key
+        or provider_profile_env_value(provider, resolved_profile, "API_KEY")
+        or provider_env_value(provider, "API_KEY")
+    )
+    resolved_api_style = (
+        provider_profile_env_value(provider, resolved_profile, "API_STYLE")
+        or provider_env_value(provider, "API_STYLE")
+        or infer_profile_api_style(resolved_base_url, default_api_style=default_api_style)
+    )
+    if request_timeout_seconds is None:
+        timeout_env_value = (
+            provider_profile_env_value(provider, resolved_profile, "REQUEST_TIMEOUT_SECONDS")
+            or provider_env_value(provider, "REQUEST_TIMEOUT_SECONDS")
+        )
+        resolved_request_timeout_seconds = float(timeout_env_value) if timeout_env_value else 120.0
+    else:
+        resolved_request_timeout_seconds = float(request_timeout_seconds)
+    return {
+        "profile": resolved_profile,
+        "normalized_profile": normalized_profile,
+        "api_style": resolved_api_style,
+        "model": resolved_model,
+        "base_url": resolved_base_url,
+        "api_key": resolved_api_key,
+        "request_timeout_seconds": resolved_request_timeout_seconds,
+    }
+
+
+def provider_default_base_url(provider: str) -> str:
+    normalized_provider = normalize_provider_identifier_name(provider)
+    if normalized_provider == "OLLAMA":
+        return "http://localhost:11434"
+    return ""
+
+
+def build_provider_profile_inventory_model_id(provider: str, profile: str) -> str:
+    normalized_provider = str(provider or "").strip()
+    normalized_profile = str(profile or "").strip()
+    if normalized_provider == "openai-compatible":
+        return f"profile:{normalized_profile or 'default'}"
+    if normalized_provider and normalized_profile:
+        return f"provider:{normalized_provider}:profile:{normalized_profile}"
+    if normalized_profile:
+        return f"profile:{normalized_profile}"
+    if normalized_provider:
+        return f"provider:{normalized_provider}:profile:default"
+    return "profile:default"
+
+
+def _has_provider_level_profile_config(provider: str) -> bool:
+    return any(
+        (
+            provider_env_value(provider, "PROFILE"),
+            provider_env_value(provider, "PROFILE_FALLBACKS"),
+            provider_env_value(provider, "NAME"),
+            provider_env_value(provider, "BASE_URL"),
+            provider_env_value(provider, "API_KEY"),
+            provider_env_value(provider, "API_STYLE"),
+            provider_env_value(provider, "REQUEST_TIMEOUT_SECONDS"),
+        )
+    )
+
+
+def resolve_provider_profile_chain_for_inventory(provider: str) -> list[str]:
+    if provider == "openai-compatible":
+        return resolve_openai_compatible_profile_chain(None)
+
+    resolved_chain = resolve_provider_profile_chain(provider, None)
+    if resolved_chain:
+        return resolved_chain
+    if _has_provider_level_profile_config(provider):
+        return ["default"]
+    return []
+
+
 def describe_provider_inventory() -> dict[str, Any]:
-    from .provider_registry import OPENAI_COMPATIBLE_PROVIDER_ID, describe_provider_registry
+    from .provider_registry import build_provider_registry, describe_provider_registry
 
     load_env_file(ENV_FILE_PATH)
     providers = describe_provider_registry()
-    profile_chain = resolve_openai_compatible_profile_chain(None)
+    provider_specs = build_provider_registry()
 
     profiles: list[dict[str, Any]] = []
-    for index, profile in enumerate(profile_chain):
-        resolved = resolve_openai_compatible_config(
-            provider_profile=profile,
-            model=None,
-            base_url=None,
-            api_key=None,
-            request_timeout_seconds=None,
-        )
-        profiles.append(
-            {
-                "profile": resolved["profile"],
-                "normalized_profile": resolved["normalized_profile"],
-                "provider_id": OPENAI_COMPATIBLE_PROVIDER_ID,
-                "resolved_model": resolved["model"],
-                "api_style": resolved["api_style"],
-                "has_base_url": bool(str(resolved["base_url"]).strip()),
-                "has_api_key": bool(str(resolved["api_key"]).strip()),
-                "request_timeout_seconds": resolved["request_timeout_seconds"],
-                "active": index == 0,
-                "fallback": index > 0,
-                "chain_index": index,
-            }
-        )
+    active_profile_chain: list[str] = []
+    for provider in providers:
+        provider_id = str(provider.get("provider_id") or "").strip()
+        provider_spec = provider_specs.get(provider_id)
+        if provider_spec is None or not provider_spec.profile_driven:
+            continue
+
+        profile_chain = resolve_provider_profile_chain_for_inventory(provider_id)
+        for index, profile in enumerate(profile_chain):
+            if provider_id == "openai-compatible":
+                resolved = resolve_openai_compatible_config(
+                    provider_profile=profile,
+                    model=None,
+                    base_url=None,
+                    api_key=None,
+                    request_timeout_seconds=None,
+                )
+            else:
+                resolved = resolve_provider_config(
+                    provider=provider_id,
+                    provider_profile=profile,
+                    model=None,
+                    base_url=None,
+                    api_key=None,
+                    request_timeout_seconds=None,
+                    default_api_style=provider_spec.default_api_style,
+                    default_base_url=provider_default_base_url(provider_id),
+                )
+            resolved_profile = str(resolved["profile"]).strip() or str(profile or "").strip() or "default"
+            profile_model_id = build_provider_profile_inventory_model_id(provider_id, resolved_profile)
+            if index == 0:
+                active_profile_chain.append(profile_model_id)
+            profiles.append(
+                {
+                    "profile": resolved_profile,
+                    "normalized_profile": resolved["normalized_profile"],
+                    "provider_id": provider_id,
+                    "resolved_model": resolved["model"],
+                    "api_style": resolved["api_style"],
+                    "has_base_url": bool(str(resolved["base_url"]).strip()),
+                    "has_api_key": bool(str(resolved["api_key"]).strip()),
+                    "request_timeout_seconds": resolved["request_timeout_seconds"],
+                    "active": index == 0,
+                    "fallback": index > 0,
+                    "chain_index": index,
+                }
+            )
 
     return {
         "providers": providers,
         "profiles": profiles,
-        "active_profile_chain": profile_chain,
+        "active_profile_chain": active_profile_chain,
     }
 
 

@@ -45,16 +45,17 @@
 
 当前真实状态是：
 
-- `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`
+- `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
 - `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
-- `HuggingFace` 服务级接入、`Ollama` adapter 仍未正式落地，`/v1/models` 已先做 bridge-backed discoverability，并开始带 route metadata 的 model inventory 与单模型精确 lookup
+- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 也已开始暴露 provider-qualified profile inventory，但更广 profile discoverability、统一 auth/config 分层和正式部署壳仍未完全落地
 
 当前第一版 `Go -> Python` bridge 的 northbound 切片仍然很窄：
 
 - 只接非流式文本消息
 - 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup；`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；但更广 provider 覆盖还在补齐中
+- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup；`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；但更广 provider/profile discoverability 仍在补齐中
+- 当前 northbound `model` 选择已经开始支持 configured default、provider id、legacy `profile:<name>` 与 provider-qualified `provider:<provider>:profile:<profile>`；同时 `radishmind.provider` / `radishmind.provider_profile` 扩展字段已具备显式覆盖能力
 
 ## 当前服务/API 接入切片
 

@@ -63,31 +63,59 @@ func (f *fakeBridge) StreamEnvelope(_ context.Context, canonicalRequest []byte, 
 	return nil
 }
 
+func findNorthboundModel(data []openAIModelObject, modelID string) (openAIModelObject, bool) {
+	for _, model := range data {
+		if model.ID == modelID {
+			return model, true
+		}
+	}
+	return openAIModelObject{}, false
+}
+
 func TestPlatformNorthboundRoutes(t *testing.T) {
-	fb := &fakeBridge{
-		providers: []bridge.ProviderDescription{
-			{
-				ProviderID:         "mock",
-				DisplayName:        "Mock provider",
-				DefaultAPIStyle:    "mock",
-				SupportedAPIStyles: []string{"mock"},
-				ProfileDriven:      false,
-				Notes:              "test provider",
-				Capabilities:       map[string]any{"chat": false},
-			},
+	providerDescriptions := []bridge.ProviderDescription{
+		{
+			ProviderID:         "mock",
+			DisplayName:        "Mock provider",
+			DefaultAPIStyle:    "mock",
+			SupportedAPIStyles: []string{"mock"},
+			ProfileDriven:      false,
+			Notes:              "test provider",
+			Capabilities:       map[string]any{"chat": false, "streaming": false},
 		},
+		{
+			ProviderID:         "openai-compatible",
+			DisplayName:        "OpenAI-compatible provider family",
+			DefaultAPIStyle:    "openai-compatible",
+			SupportedAPIStyles: []string{"openai-compatible", "gemini-native", "anthropic-messages"},
+			ProfileDriven:      true,
+			Notes:              "test provider",
+			Capabilities:       map[string]any{"chat": true, "streaming": true},
+		},
+		{
+			ProviderID:         "huggingface",
+			DisplayName:        "Hugging Face chat-completions provider",
+			DefaultAPIStyle:    "huggingface-chat-completions",
+			SupportedAPIStyles: []string{"huggingface-chat-completions"},
+			ProfileDriven:      true,
+			Notes:              "test provider",
+			Capabilities:       map[string]any{"chat": true, "streaming": true},
+		},
+		{
+			ProviderID:         "ollama",
+			DisplayName:        "Ollama chat-completions provider",
+			DefaultAPIStyle:    "ollama-chat-completions",
+			SupportedAPIStyles: []string{"ollama-chat-completions"},
+			ProfileDriven:      true,
+			Notes:              "test provider",
+			Capabilities:       map[string]any{"chat": true, "streaming": true},
+		},
+	}
+
+	fb := &fakeBridge{
+		providers: providerDescriptions,
 		inventory: bridge.ProviderInventory{
-			Providers: []bridge.ProviderDescription{
-				{
-					ProviderID:         "mock",
-					DisplayName:        "Mock provider",
-					DefaultAPIStyle:    "mock",
-					SupportedAPIStyles: []string{"mock"},
-					ProfileDriven:      false,
-					Notes:              "test provider",
-					Capabilities:       map[string]any{"chat": false},
-				},
-			},
+			Providers: providerDescriptions,
 			Profiles: []bridge.ProviderProfileDescription{
 				{
 					Profile:               "anyrouter",
@@ -102,8 +130,38 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 					Fallback:              false,
 					ChainIndex:            0,
 				},
+				{
+					Profile:               "hf-chat",
+					NormalizedProfile:     "HF_CHAT",
+					ProviderID:            "huggingface",
+					ResolvedModel:         "meta-llama/Meta-Llama-3.1-8B-Instruct",
+					APIStyle:              "huggingface-chat-completions",
+					HasBaseURL:            true,
+					HasAPIKey:             true,
+					RequestTimeoutSeconds: 90,
+					Active:                true,
+					Fallback:              false,
+					ChainIndex:            0,
+				},
+				{
+					Profile:               "local",
+					NormalizedProfile:     "LOCAL",
+					ProviderID:            "ollama",
+					ResolvedModel:         "qwen2.5:7b-instruct",
+					APIStyle:              "ollama-chat-completions",
+					HasBaseURL:            true,
+					HasAPIKey:             false,
+					RequestTimeoutSeconds: 90,
+					Active:                true,
+					Fallback:              false,
+					ChainIndex:            0,
+				},
 			},
-			ActiveProfileChain: []string{"anyrouter"},
+			ActiveProfileChain: []string{
+				"profile:anyrouter",
+				"provider:huggingface:profile:hf-chat",
+				"provider:ollama:profile:local",
+			},
 		},
 		envelope: bridge.GatewayEnvelope{
 			SchemaVersion: 1,
@@ -125,6 +183,8 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			Provider:        "mock",
 			ProviderProfile: "default",
 			Model:           "platform-model",
+			BaseURL:         "https://configured.example/v1",
+			APIKey:          "configured-key",
 		},
 		options: Options{BuildVersion: "test"},
 	}
@@ -325,6 +385,99 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("chat provider profile selection", func(t *testing.T) {
+		body := `{"model":"provider:huggingface:profile:hf-chat","messages":[{"role":"user","content":"hello"}]}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if fb.lastOptions.Provider != "huggingface" {
+			t.Fatalf("unexpected bridge provider: %s", fb.lastOptions.Provider)
+		}
+		if fb.lastOptions.ProviderProfile != "hf-chat" {
+			t.Fatalf("unexpected bridge provider profile: %s", fb.lastOptions.ProviderProfile)
+		}
+		if fb.lastOptions.Model != "meta-llama/Meta-Llama-3.1-8B-Instruct" {
+			t.Fatalf("unexpected bridge model: %s", fb.lastOptions.Model)
+		}
+	})
+
+	t.Run("chat concrete model override", func(t *testing.T) {
+		body := `{"model":"custom-runtime-model","messages":[{"role":"user","content":"hello"}]}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if fb.lastOptions.Provider != "mock" {
+			t.Fatalf("unexpected bridge provider: %s", fb.lastOptions.Provider)
+		}
+		if fb.lastOptions.Model != "custom-runtime-model" {
+			t.Fatalf("unexpected bridge model: %s", fb.lastOptions.Model)
+		}
+		if fb.lastOptions.BaseURL != "https://configured.example/v1" {
+			t.Fatalf("unexpected forwarded base url: %s", fb.lastOptions.BaseURL)
+		}
+		if fb.lastOptions.APIKey != "configured-key" {
+			t.Fatalf("unexpected forwarded api key: %s", fb.lastOptions.APIKey)
+		}
+	})
+
+	t.Run("chat explicit provider isolation", func(t *testing.T) {
+		body := `{"model":"qwen3:8b","messages":[{"role":"user","content":"hello"}],"radishmind":{"provider":"ollama"}}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if fb.lastOptions.Provider != "ollama" {
+			t.Fatalf("unexpected bridge provider: %s", fb.lastOptions.Provider)
+		}
+		if fb.lastOptions.ProviderProfile != "" {
+			t.Fatalf("unexpected bridge provider profile: %s", fb.lastOptions.ProviderProfile)
+		}
+		if fb.lastOptions.Model != "qwen3:8b" {
+			t.Fatalf("unexpected bridge model: %s", fb.lastOptions.Model)
+		}
+		if fb.lastOptions.BaseURL != "" {
+			t.Fatalf("expected provider-specific base url lookup, got %s", fb.lastOptions.BaseURL)
+		}
+		if fb.lastOptions.APIKey != "" {
+			t.Fatalf("expected provider-specific api key lookup, got %s", fb.lastOptions.APIKey)
+		}
+	})
+
+	t.Run("chat explicit provider profile selection", func(t *testing.T) {
+		body := `{"messages":[{"role":"user","content":"hello"}],"radishmind":{"provider":"huggingface","provider_profile":"hf-chat"}}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if fb.lastOptions.Provider != "huggingface" {
+			t.Fatalf("unexpected bridge provider: %s", fb.lastOptions.Provider)
+		}
+		if fb.lastOptions.ProviderProfile != "hf-chat" {
+			t.Fatalf("unexpected bridge provider profile: %s", fb.lastOptions.ProviderProfile)
+		}
+		if fb.lastOptions.Model != "meta-llama/Meta-Llama-3.1-8B-Instruct" {
+			t.Fatalf("unexpected bridge model: %s", fb.lastOptions.Model)
+		}
+	})
+
 	t.Run("models", func(t *testing.T) {
 		rec := httptest.NewRecorder()
 
@@ -343,26 +496,39 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if len(response.Data) == 0 {
 			t.Fatalf("expected model inventory")
 		}
-		if response.Data[0].ID != "platform-model" {
-			t.Fatalf("unexpected first model id: %s", response.Data[0].ID)
+		defaultModel, ok := findNorthboundModel(response.Data, "platform-model")
+		if !ok {
+			t.Fatalf("missing configured default model: %#v", response.Data)
 		}
-		if response.Data[0].Metadata["source"] != "configured_default" {
-			t.Fatalf("unexpected metadata source: %#v", response.Data[0].Metadata["source"])
+		if defaultModel.Metadata["source"] != "configured_default" {
+			t.Fatalf("unexpected metadata source: %#v", defaultModel.Metadata["source"])
 		}
-		if got, ok := response.Data[0].Metadata["profile_inventory_count"].(float64); !ok || got != 1 {
-			t.Fatalf("unexpected profile inventory count: %#v", response.Data[0].Metadata["profile_inventory_count"])
+		if got, ok := defaultModel.Metadata["profile_inventory_count"].(float64); !ok || got != 3 {
+			t.Fatalf("unexpected profile inventory count: %#v", defaultModel.Metadata["profile_inventory_count"])
 		}
-		if got := response.Data[0].Metadata["active_profile_chain"]; got == nil {
+		if got := defaultModel.Metadata["active_profile_chain"]; got == nil {
 			t.Fatalf("expected active profile chain metadata")
 		}
-		if len(response.Data) < 3 {
-			t.Fatalf("expected provider and profile inventory entries: %#v", response.Data)
+
+		if _, ok := findNorthboundModel(response.Data, "huggingface"); !ok {
+			t.Fatalf("missing huggingface provider model: %#v", response.Data)
 		}
-		if response.Data[2].ID != "profile:anyrouter" {
-			t.Fatalf("unexpected profile model id: %s", response.Data[2].ID)
+		if _, ok := findNorthboundModel(response.Data, "ollama"); !ok {
+			t.Fatalf("missing ollama provider model: %#v", response.Data)
 		}
-		if response.Data[2].Metadata["source"] != "provider_profile_inventory" {
-			t.Fatalf("unexpected profile inventory source: %#v", response.Data[2].Metadata["source"])
+		if _, ok := findNorthboundModel(response.Data, "provider:huggingface:profile:hf-chat"); !ok {
+			t.Fatalf("missing huggingface profile model: %#v", response.Data)
+		}
+		if _, ok := findNorthboundModel(response.Data, "provider:ollama:profile:local"); !ok {
+			t.Fatalf("missing ollama profile model: %#v", response.Data)
+		}
+
+		profileModel, ok := findNorthboundModel(response.Data, "profile:anyrouter")
+		if !ok {
+			t.Fatalf("missing profile inventory model: %#v", response.Data)
+		}
+		if profileModel.Metadata["source"] != "provider_profile_inventory" {
+			t.Fatalf("unexpected profile inventory source: %#v", profileModel.Metadata["source"])
 		}
 	})
 
@@ -471,6 +637,31 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if response.ID != "profile:anyrouter" {
 			t.Fatalf("unexpected model id: %s", response.ID)
+		}
+	})
+
+	t.Run("model detail provider profile", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/provider:huggingface:profile:hf-chat", nil)
+		req.SetPathValue("id", "provider:huggingface:profile:hf-chat")
+		rec := httptest.NewRecorder()
+
+		server.handleModel(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response openAIModelObject
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response.ID != "provider:huggingface:profile:hf-chat" {
+			t.Fatalf("unexpected model id: %s", response.ID)
+		}
+		if response.Metadata["provider_id"] != "huggingface" {
+			t.Fatalf("unexpected provider id: %#v", response.Metadata["provider_id"])
+		}
+		if response.Metadata["provider_profile"] != "hf-chat" {
+			t.Fatalf("unexpected provider profile: %#v", response.Metadata["provider_profile"])
 		}
 	})
 

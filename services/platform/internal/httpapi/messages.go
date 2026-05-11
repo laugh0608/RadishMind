@@ -116,15 +116,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	envelope, err := s.bridge.HandleEnvelope(
 		ctx,
 		canonicalRequest,
-		bridge.EnvelopeOptions{
-			Provider:        selection.provider,
-			ProviderProfile: selection.providerProfile,
-			Model:           selection.upstreamModel,
-			BaseURL:         s.config.BaseURL,
-			APIKey:          s.config.APIKey,
-			Temperature:     effectiveTemperature(messageRequest.Temperature, s.config.Temperature),
-			RequestTimeout:  s.config.BridgeTimeout,
-		},
+		s.buildBridgeEnvelopeOptions(selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature)),
 	)
 	if err != nil {
 		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
@@ -262,15 +254,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 	err := s.bridge.StreamEnvelope(
 		ctx,
 		canonicalRequest,
-		bridge.EnvelopeOptions{
-			Provider:        selection.provider,
-			ProviderProfile: selection.providerProfile,
-			Model:           selection.upstreamModel,
-			BaseURL:         s.config.BaseURL,
-			APIKey:          s.config.APIKey,
-			Temperature:     temperature,
-			RequestTimeout:  s.config.BridgeTimeout,
-		},
+		s.buildBridgeEnvelopeOptions(selection, temperature),
 		func(event bridge.StreamEvent) error {
 			switch strings.TrimSpace(event.Type) {
 			case "delta":

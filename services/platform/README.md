@@ -28,8 +28,8 @@
 
 当前第一版 bridge 仍是窄切片：
 
-- 只支持非流式文本消息
+- 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
 - 当前只把最后一条文本用户消息映射到 `radish/answer_docs_question`
 - 返回内容当前优先取 canonical `summary`，必要时回退首条 `answer`
 
-`GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前已支持列表和 `/v1/models/{id}` 精确 lookup，但还不是完整的动态 provider/profile discovery。
+`GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前已支持列表和 `/v1/models/{id}` 精确 lookup，并带出第一版 provider-qualified profile inventory，但还不是完整的动态 provider/profile discovery。
