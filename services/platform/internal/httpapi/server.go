@@ -17,6 +17,7 @@ type Options struct {
 
 type bridgeClient interface {
 	DescribeProviders(ctx context.Context) ([]bridge.ProviderDescription, error)
+	DescribeInventory(ctx context.Context) (bridge.ProviderInventory, error)
 	HandleEnvelope(ctx context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error)
 }
 

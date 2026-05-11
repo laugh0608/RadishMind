@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-10
+更新时间：2026-05-11
 
 ## 这份文档讲什么
 
@@ -113,7 +113,7 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 - `GET /healthz`
 - `GET /v1/models` 与 `POST /v1/chat/completions` 的 northbound 路由壳
 
-其中 `/v1/chat/completions` 现在已经接到第一版 bridge，但它仍然是窄切片：只接非流式文本消息，并先固定映射到 `radish/answer_docs_question`；`GET /v1/models` 也只是 provider 目录，不是完整 model/profile inventory。
+其中 `/v1/chat/completions` 现在已经接到第一版 bridge，但它仍然是窄切片：只接非流式文本消息，并先固定映射到 `radish/answer_docs_question`；`GET /v1/models` 则已从 provider 目录推进到 bridge-backed provider/profile inventory，但还不是更细粒度的完整 model discovery。
 
 ### 4. 跑本地候选模型输出
 
@@ -140,7 +140,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳和第一版 bridge，但流式转发、更完整的 provider 选择和动态 model/profile inventory 还没正式落地
+- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳、第一版 bridge、SSE 兼容骨架和 bridge-backed provider/profile inventory，但真正的 request-side provider 选择、更细粒度的 model discovery 和 upstream token 级流式转发还没正式落地
 
 ## 今天还不能算完成的能力
 

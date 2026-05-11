@@ -15,6 +15,7 @@ import (
 
 type fakeBridge struct {
 	providers   []bridge.ProviderDescription
+	inventory   bridge.ProviderInventory
 	envelope    bridge.GatewayEnvelope
 	lastRequest []byte
 	lastOptions bridge.EnvelopeOptions
@@ -22,6 +23,10 @@ type fakeBridge struct {
 
 func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
 	return f.providers, nil
+}
+
+func (f *fakeBridge) DescribeInventory(context.Context) (bridge.ProviderInventory, error) {
+	return f.inventory, nil
 }
 
 func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {
@@ -42,6 +47,35 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 				Notes:              "test provider",
 				Capabilities:       map[string]any{"chat": false},
 			},
+		},
+		inventory: bridge.ProviderInventory{
+			Providers: []bridge.ProviderDescription{
+				{
+					ProviderID:         "mock",
+					DisplayName:        "Mock provider",
+					DefaultAPIStyle:    "mock",
+					SupportedAPIStyles: []string{"mock"},
+					ProfileDriven:      false,
+					Notes:              "test provider",
+					Capabilities:       map[string]any{"chat": false},
+				},
+			},
+			Profiles: []bridge.ProviderProfileDescription{
+				{
+					Profile:               "anyrouter",
+					NormalizedProfile:     "ANYROUTER",
+					ProviderID:            "openai-compatible",
+					ResolvedModel:         "deepseek-chat",
+					APIStyle:              "openai-compatible",
+					HasBaseURL:            true,
+					HasAPIKey:             true,
+					RequestTimeoutSeconds: 120,
+					Active:                true,
+					Fallback:              false,
+					ChainIndex:            0,
+				},
+			},
+			ActiveProfileChain: []string{"anyrouter"},
 		},
 		envelope: bridge.GatewayEnvelope{
 			SchemaVersion: 1,
@@ -235,6 +269,21 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if response.Data[0].Metadata["source"] != "configured_default" {
 			t.Fatalf("unexpected metadata source: %#v", response.Data[0].Metadata["source"])
+		}
+		if got, ok := response.Data[0].Metadata["profile_inventory_count"].(float64); !ok || got != 1 {
+			t.Fatalf("unexpected profile inventory count: %#v", response.Data[0].Metadata["profile_inventory_count"])
+		}
+		if got := response.Data[0].Metadata["active_profile_chain"]; got == nil {
+			t.Fatalf("expected active profile chain metadata")
+		}
+		if len(response.Data) < 3 {
+			t.Fatalf("expected provider and profile inventory entries: %#v", response.Data)
+		}
+		if response.Data[2].ID != "profile:anyrouter" {
+			t.Fatalf("unexpected profile model id: %s", response.Data[2].ID)
+		}
+		if response.Data[2].Metadata["source"] != "provider_profile_inventory" {
+			t.Fatalf("unexpected profile inventory source: %#v", response.Data[2].Metadata["source"])
 		}
 	})
 }

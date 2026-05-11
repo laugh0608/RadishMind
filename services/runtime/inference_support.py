@@ -175,6 +175,45 @@ def resolve_openai_compatible_config(
     }
 
 
+def describe_provider_inventory() -> dict[str, Any]:
+    from .provider_registry import OPENAI_COMPATIBLE_PROVIDER_ID, describe_provider_registry
+
+    load_env_file(ENV_FILE_PATH)
+    providers = describe_provider_registry()
+    profile_chain = resolve_openai_compatible_profile_chain(None)
+
+    profiles: list[dict[str, Any]] = []
+    for index, profile in enumerate(profile_chain):
+        resolved = resolve_openai_compatible_config(
+            provider_profile=profile,
+            model=None,
+            base_url=None,
+            api_key=None,
+            request_timeout_seconds=None,
+        )
+        profiles.append(
+            {
+                "profile": resolved["profile"],
+                "normalized_profile": resolved["normalized_profile"],
+                "provider_id": OPENAI_COMPATIBLE_PROVIDER_ID,
+                "resolved_model": resolved["model"],
+                "api_style": resolved["api_style"],
+                "has_base_url": bool(str(resolved["base_url"]).strip()),
+                "has_api_key": bool(str(resolved["api_key"]).strip()),
+                "request_timeout_seconds": resolved["request_timeout_seconds"],
+                "active": index == 0,
+                "fallback": index > 0,
+                "chain_index": index,
+            }
+        )
+
+    return {
+        "providers": providers,
+        "profiles": profiles,
+        "active_profile_chain": profile_chain,
+    }
+
+
 def validate_request_document(document: Any) -> None:
     jsonschema.validate(document, load_schema(REQUEST_SCHEMA_PATH))
 

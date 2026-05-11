@@ -12,6 +12,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from services.gateway import GatewayOptions, handle_copilot_request  # noqa: E402
+from services.runtime.inference_support import describe_provider_inventory  # noqa: E402
 from services.runtime.provider_registry import describe_provider_registry  # noqa: E402
 
 
@@ -30,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     envelope_parser.add_argument("--request-timeout-seconds", type=float, default=120.0)
 
     subparsers.add_parser("providers", help="Emit the canonical provider registry description.")
+    subparsers.add_parser("inventory", help="Emit the canonical provider and profile inventory.")
     return parser.parse_args()
 
 
@@ -64,12 +66,20 @@ def run_providers() -> int:
     return 0
 
 
+def run_inventory() -> int:
+    json.dump(describe_provider_inventory(), sys.stdout, ensure_ascii=False, indent=2)
+    sys.stdout.write("\n")
+    return 0
+
+
 def main() -> int:
     args = parse_args()
     if args.command == "envelope":
         return run_envelope(args)
     if args.command == "providers":
         return run_providers()
+    if args.command == "inventory":
+        return run_inventory()
     raise SystemExit(f"unsupported command: {args.command}")
 
 

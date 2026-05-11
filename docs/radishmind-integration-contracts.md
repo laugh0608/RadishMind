@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约草案
 
-更新时间：2026-05-10
+更新时间：2026-05-11
 
 ## 文档目的
 
@@ -54,7 +54,7 @@
 
 - 只接非流式文本消息
 - 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- `GET /v1/models` 还不是完整的动态 model/profile inventory，SSE 流式骨架和 provider/profile 路由细节也还在补齐中
+- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，但 request-side provider/profile 路由细节、更细粒度的 model discovery 和 upstream token 级流式转发也还在补齐中
 
 ## 当前服务/API 接入切片
 

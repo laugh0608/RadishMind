@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-10
+更新时间：2026-05-11
 
 ## 路线图原则
 
@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架，但第一版 northbound 仍是窄切片：非流式文本消息先固定映射到 `radish/answer_docs_question`，真正的 canonical protocol 仍由 Python gateway/runtime 持有；后续还要继续补更完整的 provider 选择、upstream token 级流式转发、动态 model/profile inventory、`HuggingFace / Ollama` 服务接入、正式长驻服务配置分层和部署 runbook。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，但第一版 northbound 仍是窄切片：非流式文本消息先固定映射到 `radish/answer_docs_question`，真正的 canonical protocol 仍由 Python gateway/runtime 持有；后续还要继续补 request 侧更完整的 provider 选择、更细粒度的 model discovery、upstream token 级流式转发、`HuggingFace / Ollama` 服务接入、正式长驻服务配置分层和部署 runbook。
 
-下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，继续把 `/v1/chat/completions` 的 provider 选择、路由显式化、`HuggingFace`、`Ollama` 与长驻部署壳补齐，再把 `GET /v1/models` 从 provider 目录推进到更完整的动态 model/profile inventory，并把 stream 路径从 SSE 骨架推进到真正的 upstream token 级转发。
+下一步：在现有 provider registry 骨架和 `Go` service bootstrap 之上，继续把 `/v1/chat/completions` 的 request-side provider 选择、路由显式化、`HuggingFace`、`Ollama` 与长驻部署壳补齐，再把当前 bridge-backed provider/profile inventory 继续推进到更细粒度的 model discovery，并把 stream 路径从 SSE 骨架推进到真正的 upstream token 级转发。
 
 ### 2. `Conversation & Session`
 

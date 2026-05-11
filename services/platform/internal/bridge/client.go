@@ -37,6 +37,26 @@ type ProviderDescription struct {
 	Capabilities       map[string]any `json:"capabilities"`
 }
 
+type ProviderProfileDescription struct {
+	Profile               string  `json:"profile"`
+	NormalizedProfile     string  `json:"normalized_profile"`
+	ProviderID            string  `json:"provider_id"`
+	ResolvedModel         string  `json:"resolved_model"`
+	APIStyle              string  `json:"api_style"`
+	HasBaseURL            bool    `json:"has_base_url"`
+	HasAPIKey             bool    `json:"has_api_key"`
+	RequestTimeoutSeconds float64 `json:"request_timeout_seconds"`
+	Active                bool    `json:"active"`
+	Fallback              bool    `json:"fallback"`
+	ChainIndex            int     `json:"chain_index"`
+}
+
+type ProviderInventory struct {
+	Providers          []ProviderDescription        `json:"providers"`
+	Profiles           []ProviderProfileDescription `json:"profiles"`
+	ActiveProfileChain []string                     `json:"active_profile_chain"`
+}
+
 type GatewayEnvelope struct {
 	SchemaVersion int            `json:"schema_version"`
 	Status        string         `json:"status"`
@@ -83,6 +103,18 @@ func (c *Client) DescribeProviders(ctx context.Context) ([]ProviderDescription, 
 		return nil, fmt.Errorf("decode provider registry: %w", err)
 	}
 	return descriptions, nil
+}
+
+func (c *Client) DescribeInventory(ctx context.Context) (ProviderInventory, error) {
+	stdout, err := c.run(ctx, []string{"inventory"}, nil)
+	if err != nil {
+		return ProviderInventory{}, err
+	}
+	var inventory ProviderInventory
+	if err := json.Unmarshal(stdout, &inventory); err != nil {
+		return ProviderInventory{}, fmt.Errorf("decode provider inventory: %w", err)
+	}
+	return inventory, nil
 }
 
 func (c *Client) HandleEnvelope(
