@@ -20,6 +20,8 @@ type northboundSelection struct {
 	provider        string
 	providerProfile string
 	model           string
+	upstreamModel   string
+	source          string
 }
 
 type northboundCanonicalRequestOptions struct {
@@ -31,41 +33,132 @@ type northboundCanonicalRequestOptions struct {
 }
 
 func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel string, extension *chatCompletionExtension) northboundSelection {
-	provider := strings.TrimSpace(s.config.Provider)
-	providerProfile := strings.TrimSpace(s.config.ProviderProfile)
+	requestedModel = strings.TrimSpace(requestedModel)
+	selection := northboundSelection{
+		provider:        strings.TrimSpace(s.config.Provider),
+		providerProfile: strings.TrimSpace(s.config.ProviderProfile),
+		model:           requestedModel,
+		upstreamModel:   strings.TrimSpace(s.config.Model),
+		source:          "configured_default",
+	}
+	if selection.provider == "" {
+		selection.provider = "mock"
+	}
+	if selection.model == "" {
+		selection.model = selection.provider
+	}
+	if selection.upstreamModel == "" {
+		selection.upstreamModel = selection.model
+	}
+
+	inventory, err := s.bridge.DescribeInventory(ctx)
+	if err != nil {
+		return selection
+	}
+
+	providers := make(map[string]bridge.ProviderDescription, len(inventory.Providers))
+	for _, provider := range inventory.Providers {
+		normalizedProviderID := strings.TrimSpace(provider.ProviderID)
+		if normalizedProviderID == "" {
+			continue
+		}
+		providers[normalizedProviderID] = provider
+	}
+
+	profiles := make(map[string]bridge.ProviderProfileDescription, len(inventory.Profiles))
+	activeProfile := ""
+	for _, profile := range inventory.Profiles {
+		normalizedProfile := strings.TrimSpace(profile.Profile)
+		if normalizedProfile != "" {
+			profiles[normalizedProfile] = profile
+		}
+		if activeProfile == "" && profile.Active {
+			activeProfile = normalizedProfile
+		}
+	}
+	if activeProfile == "" && len(inventory.ActiveProfileChain) > 0 {
+		activeProfile = strings.TrimSpace(inventory.ActiveProfileChain[0])
+	}
+
+	explicitProvider := ""
+	explicitProfile := ""
 	if extension != nil {
-		if explicitProvider := strings.TrimSpace(extension.Provider); explicitProvider != "" {
-			provider = explicitProvider
+		explicitProvider = strings.TrimSpace(extension.Provider)
+		explicitProfile = strings.TrimSpace(extension.ProviderProfile)
+		if explicitProvider != "" {
+			selection.provider = explicitProvider
+			selection.source = "radishmind.provider"
 		}
-		if explicitProviderProfile := strings.TrimSpace(extension.ProviderProfile); explicitProviderProfile != "" {
-			providerProfile = explicitProviderProfile
-		}
-	}
-	if provider == "" {
-		provider = "mock"
-	}
-	if extension == nil || strings.TrimSpace(extension.Provider) == "" {
-		if resolvedProvider := s.resolveKnownProvider(ctx, requestedModel); resolvedProvider != "" {
-			provider = resolvedProvider
+		if explicitProfile != "" {
+			selection.providerProfile = explicitProfile
+			selection.source = "radishmind.provider_profile"
 		}
 	}
 
-	model := strings.TrimSpace(requestedModel)
-	if model == "" {
-		model = strings.TrimSpace(s.config.Model)
+	if explicitProfile != "" {
+		if profile, ok := profiles[explicitProfile]; ok {
+			selection.provider = strings.TrimSpace(profile.ProviderID)
+			selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+			selection.source = "radishmind.provider_profile+inventory"
+		}
 	}
-	if model == "" {
-		model = provider
-	}
-	if model == "" {
-		model = serviceName
+	if explicitProvider != "" && explicitProfile == "" && selection.provider != "openai-compatible" {
+		selection.providerProfile = ""
 	}
 
-	return northboundSelection{
-		provider:        provider,
-		providerProfile: providerProfile,
-		model:           model,
+	if explicitProvider == "" && explicitProfile == "" {
+		if requestedProfile := strings.TrimPrefix(requestedModel, "profile:"); requestedProfile != requestedModel && requestedProfile != "" {
+			if profile, ok := profiles[requestedProfile]; ok {
+				selection.provider = strings.TrimSpace(profile.ProviderID)
+				selection.providerProfile = strings.TrimSpace(profile.Profile)
+				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+				selection.model = requestedModel
+				selection.source = "requested_profile_model"
+			}
+		}
 	}
+
+	if selection.providerProfile != "" && (selection.provider == "openai-compatible" || explicitProfile != "") {
+		if profile, ok := profiles[selection.providerProfile]; ok {
+			selection.provider = strings.TrimSpace(profile.ProviderID)
+			if selection.upstreamModel == "" || selection.upstreamModel == selection.model {
+				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+			}
+		}
+	}
+
+	if explicitProvider == "" && explicitProfile == "" {
+		if _, ok := providers[selection.model]; ok {
+			selection.provider = selection.model
+			selection.source = "requested_provider_model"
+			if selection.providerProfile == "" && selection.provider == "openai-compatible" {
+				if activeProfile != "" {
+					selection.providerProfile = activeProfile
+				}
+			}
+		}
+	}
+	if explicitProfile == "" && selection.provider != "openai-compatible" {
+		selection.providerProfile = ""
+	}
+
+	if selection.provider == "openai-compatible" && selection.providerProfile == "" {
+		if activeProfile != "" {
+			selection.providerProfile = activeProfile
+		}
+	}
+	if selection.providerProfile != "" {
+		if profile, ok := profiles[selection.providerProfile]; ok {
+			if selection.upstreamModel == "" || selection.upstreamModel == selection.model {
+				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
+			}
+		}
+	}
+	if selection.upstreamModel == "" {
+		selection.upstreamModel = selection.model
+	}
+
+	return selection
 }
 
 func buildNorthboundCanonicalRequest(options northboundCanonicalRequestOptions) ([]byte, error) {
@@ -114,6 +207,36 @@ func buildNorthboundCanonicalRequest(options northboundCanonicalRequestOptions) 
 		},
 	}
 	return json.Marshal(canonicalRequest)
+}
+
+func buildNorthboundSelectionFields(
+	requestedModel string,
+	selection northboundSelection,
+	extension *chatCompletionExtension,
+) map[string]any {
+	fields := map[string]any{
+		"requested_model":           strings.TrimSpace(requestedModel),
+		"selected_provider":         strings.TrimSpace(selection.provider),
+		"selected_provider_profile": strings.TrimSpace(selection.providerProfile),
+		"selected_model":            strings.TrimSpace(selection.model),
+		"upstream_model":            strings.TrimSpace(selection.upstreamModel),
+		"selection_source":          strings.TrimSpace(selection.source),
+	}
+	if extension != nil {
+		if provider := strings.TrimSpace(extension.Provider); provider != "" {
+			fields["requested_provider"] = provider
+		}
+		if providerProfile := strings.TrimSpace(extension.ProviderProfile); providerProfile != "" {
+			fields["requested_provider_profile"] = providerProfile
+		}
+		if locale := strings.TrimSpace(extension.Locale); locale != "" {
+			fields["locale"] = locale
+		}
+		if conversationID := strings.TrimSpace(extension.ConversationID); conversationID != "" {
+			fields["conversation_id"] = conversationID
+		}
+	}
+	return fields
 }
 
 func buildNorthboundPromptText(sections ...string) string {

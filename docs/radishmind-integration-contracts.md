@@ -54,7 +54,7 @@
 
 - 只接非流式文本消息
 - 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，但 request-side provider/profile 路由细节、更细粒度的 model discovery 和 upstream token 级流式转发也还在补齐中
+- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；但更细粒度的 model discovery 和更广 provider 覆盖还在补齐中
 
 ## 当前服务/API 接入切片
 

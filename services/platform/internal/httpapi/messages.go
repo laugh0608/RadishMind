@@ -86,7 +86,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	defer cancel()
 
 	selection := s.resolveNorthboundSelection(ctx, messageRequest.Model, messageRequest.RadishMind)
-	promptText, northboundFields, err := buildMessagesPromptText(messageRequest)
+	promptText, northboundFields, err := buildMessagesPromptText(messageRequest, selection)
 	if err != nil {
 		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_MESSAGES_REQUEST", err.Error())
 		return
@@ -110,7 +110,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		bridge.EnvelopeOptions{
 			Provider:        selection.provider,
 			ProviderProfile: selection.providerProfile,
-			Model:           selection.model,
+			Model:           selection.upstreamModel,
 			BaseURL:         s.config.BaseURL,
 			APIKey:          s.config.APIKey,
 			Temperature:     effectiveTemperature(messageRequest.Temperature, s.config.Temperature),
@@ -141,7 +141,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	writeJSON(writer, http.StatusOK, responseDocument)
 }
 
-func buildMessagesPromptText(request anthropicMessagesRequest) (string, map[string]any, error) {
+func buildMessagesPromptText(request anthropicMessagesRequest, selection northboundSelection) (string, map[string]any, error) {
 	sections := make([]string, 0, 4)
 
 	if systemText := strings.TrimSpace(buildNorthboundTextFromValue(request.System)); systemText != "" {
@@ -159,16 +159,13 @@ func buildMessagesPromptText(request anthropicMessagesRequest) (string, map[stri
 	}
 
 	northboundFields := map[string]any{
-		"request_kind":    "anthropic_messages",
-		"requested_model": request.Model,
-		"message_count":   len(request.Messages),
-		"max_tokens":      request.MaxTokens,
-		"stream":          request.Stream,
+		"request_kind":  "anthropic_messages",
+		"message_count": len(request.Messages),
+		"max_tokens":    request.MaxTokens,
+		"stream":        request.Stream,
 	}
-	if request.RadishMind != nil {
-		northboundFields["provider"] = strings.TrimSpace(request.RadishMind.Provider)
-		northboundFields["provider_profile"] = strings.TrimSpace(request.RadishMind.ProviderProfile)
-		northboundFields["locale"] = strings.TrimSpace(request.RadishMind.Locale)
+	for key, value := range buildNorthboundSelectionFields(request.Model, selection, request.RadishMind) {
+		northboundFields[key] = value
 	}
 	if len(request.Metadata) > 0 {
 		northboundFields["metadata"] = request.Metadata

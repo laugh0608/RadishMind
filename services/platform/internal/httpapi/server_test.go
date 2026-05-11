@@ -19,6 +19,7 @@ type fakeBridge struct {
 	envelope    bridge.GatewayEnvelope
 	lastRequest []byte
 	lastOptions bridge.EnvelopeOptions
+	streamErr   error
 }
 
 func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
@@ -33,6 +34,31 @@ func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, 
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
 	return f.envelope, nil
+}
+
+func (f *fakeBridge) StreamEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions, handleEvent func(bridge.StreamEvent) error) error {
+	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
+	f.lastOptions = options
+	if f.streamErr != nil {
+		return f.streamErr
+	}
+	if handleEvent != nil {
+		summary := ""
+		if f.envelope.Response != nil {
+			if rawSummary, ok := f.envelope.Response["summary"].(string); ok {
+				summary = rawSummary
+			}
+		}
+		if summary != "" {
+			if err := handleEvent(bridge.StreamEvent{Type: "delta", Delta: summary}); err != nil {
+				return err
+			}
+		}
+		if err := handleEvent(bridge.StreamEvent{Type: "completed", Envelope: &f.envelope}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func TestPlatformNorthboundRoutes(t *testing.T) {
@@ -243,6 +269,49 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		streamBody := rec.Body.String()
 		if !strings.Contains(streamBody, "chat.completion.chunk") || !strings.Contains(streamBody, "data: [DONE]") {
 			t.Fatalf("missing chat completion stream markers: %s", streamBody)
+		}
+	})
+
+	t.Run("chat profile selection", func(t *testing.T) {
+		body := `{"model":"profile:anyrouter","messages":[{"role":"user","content":"hello"}]}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if fb.lastOptions.Provider != "openai-compatible" {
+			t.Fatalf("unexpected bridge provider: %s", fb.lastOptions.Provider)
+		}
+		if fb.lastOptions.ProviderProfile != "anyrouter" {
+			t.Fatalf("unexpected bridge provider profile: %s", fb.lastOptions.ProviderProfile)
+		}
+		if fb.lastOptions.Model != "deepseek-chat" {
+			t.Fatalf("unexpected bridge model: %s", fb.lastOptions.Model)
+		}
+
+		var canonicalRequest map[string]any
+		if err := json.Unmarshal(fb.lastRequest, &canonicalRequest); err != nil {
+			t.Fatalf("decode canonical request: %v", err)
+		}
+		contextBlock, ok := canonicalRequest["context"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing context block: %#v", canonicalRequest["context"])
+		}
+		northbound, ok := contextBlock["northbound"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing northbound context: %#v", contextBlock["northbound"])
+		}
+		if northbound["selected_provider"] != "openai-compatible" {
+			t.Fatalf("unexpected selected provider: %#v", northbound["selected_provider"])
+		}
+		if northbound["selected_provider_profile"] != "anyrouter" {
+			t.Fatalf("unexpected selected provider profile: %#v", northbound["selected_provider_profile"])
+		}
+		if northbound["upstream_model"] != "deepseek-chat" {
+			t.Fatalf("unexpected upstream model: %#v", northbound["upstream_model"])
 		}
 	})
 

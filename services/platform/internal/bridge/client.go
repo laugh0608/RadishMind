@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -73,6 +74,13 @@ type GatewayError struct {
 	Message string `json:"message"`
 }
 
+type StreamEvent struct {
+	Type     string           `json:"type"`
+	Delta    string           `json:"delta,omitempty"`
+	Envelope *GatewayEnvelope `json:"envelope,omitempty"`
+	Error    *GatewayError    `json:"error,omitempty"`
+}
+
 type Client struct {
 	pythonBinary string
 	scriptPath   string
@@ -122,8 +130,30 @@ func (c *Client) HandleEnvelope(
 	canonicalRequest []byte,
 	options EnvelopeOptions,
 ) (GatewayEnvelope, error) {
+	args := c.buildEnvelopeArgs("envelope", options)
+	stdout, err := c.run(ctx, args, canonicalRequest)
+	if err != nil {
+		return GatewayEnvelope{}, err
+	}
+	var envelope GatewayEnvelope
+	if err := json.Unmarshal(stdout, &envelope); err != nil {
+		return GatewayEnvelope{}, fmt.Errorf("decode gateway envelope: %w", err)
+	}
+	return envelope, nil
+}
+
+func (c *Client) StreamEnvelope(
+	ctx context.Context,
+	canonicalRequest []byte,
+	options EnvelopeOptions,
+	handleEvent func(StreamEvent) error,
+) error {
+	return c.runStream(ctx, c.buildEnvelopeArgs("stream", options), canonicalRequest, handleEvent)
+}
+
+func (c *Client) buildEnvelopeArgs(command string, options EnvelopeOptions) []string {
 	args := []string{
-		"envelope",
+		command,
 		"--provider", strings.TrimSpace(options.Provider),
 		"--provider-profile", strings.TrimSpace(options.ProviderProfile),
 		"--model", strings.TrimSpace(options.Model),
@@ -138,15 +168,7 @@ func (c *Client) HandleEnvelope(
 			strconv.FormatFloat(options.RequestTimeout.Seconds(), 'f', -1, 64),
 		)
 	}
-	stdout, err := c.run(ctx, args, canonicalRequest)
-	if err != nil {
-		return GatewayEnvelope{}, err
-	}
-	var envelope GatewayEnvelope
-	if err := json.Unmarshal(stdout, &envelope); err != nil {
-		return GatewayEnvelope{}, fmt.Errorf("decode gateway envelope: %w", err)
-	}
-	return envelope, nil
+	return args
 }
 
 func (c *Client) run(ctx context.Context, args []string, stdin []byte) ([]byte, error) {
@@ -178,4 +200,72 @@ func (c *Client) run(ctx context.Context, args []string, stdin []byte) ([]byte, 
 		return nil, fmt.Errorf("python bridge failed: %w", err)
 	}
 	return stdout.Bytes(), nil
+}
+
+func (c *Client) runStream(
+	ctx context.Context,
+	args []string,
+	stdin []byte,
+	handleEvent func(StreamEvent) error,
+) error {
+	scriptPath := c.scriptPath
+	if !filepath.IsAbs(scriptPath) {
+		resolvedPath, err := filepath.Abs(scriptPath)
+		if err != nil {
+			return fmt.Errorf("resolve bridge script path: %w", err)
+		}
+		scriptPath = resolvedPath
+	}
+
+	commandArgs := append([]string{scriptPath}, args...)
+	command := exec.CommandContext(ctx, c.pythonBinary, commandArgs...)
+	if len(stdin) > 0 {
+		command.Stdin = bytes.NewReader(stdin)
+	}
+
+	stdout, err := command.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("open bridge stdout pipe: %w", err)
+	}
+	var stderr bytes.Buffer
+	command.Stderr = &stderr
+
+	if err := command.Start(); err != nil {
+		return fmt.Errorf("start bridge stream: %w", err)
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 0, 1024), 1024*1024)
+	for scanner.Scan() {
+		rawLine := strings.TrimSpace(scanner.Text())
+		if rawLine == "" {
+			continue
+		}
+		var event StreamEvent
+		if err := json.Unmarshal([]byte(rawLine), &event); err != nil {
+			_ = command.Process.Kill()
+			_ = command.Wait()
+			return fmt.Errorf("decode bridge stream event: %w", err)
+		}
+		if handleEvent != nil {
+			if err := handleEvent(event); err != nil {
+				_ = command.Process.Kill()
+				_ = command.Wait()
+				return err
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		_ = command.Process.Kill()
+		_ = command.Wait()
+		return fmt.Errorf("read bridge stream: %w", err)
+	}
+	if err := command.Wait(); err != nil {
+		stderrText := strings.TrimSpace(stderr.String())
+		if stderrText != "" {
+			return fmt.Errorf("python bridge stream failed: %w: %s", err, stderrText)
+		}
+		return fmt.Errorf("python bridge stream failed: %w", err)
+	}
+	return nil
 }

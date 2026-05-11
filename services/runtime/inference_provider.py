@@ -5,7 +5,7 @@ import http.client
 import inspect
 import json
 import re
-from typing import Any
+from typing import Any, Callable
 from urllib import error, request
 
 from .inference_response import coerce_response_document
@@ -32,6 +32,7 @@ from .inference_support import (
 from .provider_registry import MOCK_PROVIDER_ID, OPENAI_COMPATIBLE_PROVIDER_ID, get_provider_spec
 
 GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
+StreamHandler = Callable[[dict[str, Any]], None]
 
 
 def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> dict[str, Any]:
@@ -324,6 +325,117 @@ def post_json_request(
     return json.loads(raw_body)
 
 
+def iter_sse_data_payloads(response_obj: Any) -> list[dict[str, Any]]:
+    payloads: list[dict[str, Any]] = []
+    for raw_line in response_obj:
+        line = raw_line.decode("utf-8", errors="replace").strip()
+        if not line or not line.startswith("data:"):
+            continue
+        data = line[5:].strip()
+        if data == "[DONE]":
+            break
+        payloads.append(json.loads(data))
+    return payloads
+
+
+def extract_openai_stream_delta(payload: dict[str, Any]) -> str:
+    choices = payload.get("choices") or []
+    if not choices:
+        return ""
+    first_choice = choices[0] if isinstance(choices[0], dict) else {}
+    delta = first_choice.get("delta") or {}
+    if isinstance(delta, dict):
+        content = delta.get("content")
+        if isinstance(content, str):
+            return content
+    return ""
+
+
+def emit_buffered_stream_response(
+    response_document: dict[str, Any],
+    *,
+    stream_handler: StreamHandler | None,
+) -> None:
+    if stream_handler is None:
+        return
+    summary = str(response_document.get("summary") or "").strip()
+    if summary:
+        stream_handler({"type": "delta", "delta": summary})
+    stream_handler({"type": "completed", "response": response_document})
+
+
+def call_openai_compatible_stream(
+    copilot_request: dict[str, Any],
+    *,
+    model: str,
+    base_url: str,
+    api_key: str,
+    temperature: float,
+    request_timeout_seconds: float,
+    stream_handler: StreamHandler | None,
+) -> dict[str, Any]:
+    messages = build_messages(copilot_request)
+    endpoint = resolve_chat_endpoint(base_url)
+    payload = {
+        "model": model,
+        "temperature": temperature,
+        "messages": messages,
+        "stream": True,
+    }
+    raw_request = {
+        "endpoint": endpoint,
+        "payload": payload,
+        "transport": "openai-chat-completions",
+        "stream": True,
+    }
+    http_request = request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+
+    raw_response_chunks: list[dict[str, Any]] = []
+    content_parts: list[str] = []
+    try:
+        with request.urlopen(http_request, timeout=request_timeout_seconds) as response_obj:
+            for chunk_payload in iter_sse_data_payloads(response_obj):
+                raw_response_chunks.append(chunk_payload)
+                delta_text = extract_openai_stream_delta(chunk_payload)
+                if delta_text:
+                    content_parts.append(delta_text)
+                    if stream_handler is not None:
+                        stream_handler({"type": "delta", "delta": delta_text})
+    except error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"provider request failed with HTTP {exc.code}: {error_body}") from exc
+    except (error.URLError, TimeoutError, http.client.RemoteDisconnected, http.client.IncompleteRead) as exc:
+        raise RuntimeError(f"provider request failed: {exc}") from exc
+
+    content = "".join(content_parts)
+    if not content.strip():
+        raise RuntimeError("provider stream returned no assistant content")
+
+    response_document = normalize_openai_content(content, copilot_request)
+    validate_response_document(response_document)
+    if stream_handler is not None:
+        stream_handler({"type": "completed", "response": response_document})
+    return {
+        "provider": "openai-compatible",
+        "model": model,
+        "messages": messages,
+        "raw_request": raw_request,
+        "raw_response": {
+            "stream": True,
+            "chunks": raw_response_chunks,
+        },
+        "response": response_document,
+    }
+
+
 def call_openai_compatible(
     copilot_request: dict[str, Any],
     *,
@@ -520,6 +632,7 @@ def run_inference(
     api_key: str | None = None,
     temperature: float = 0.0,
     request_timeout_seconds: float | None = None,
+    stream_handler: StreamHandler | None = None,
 ) -> dict[str, Any]:
     load_env_file(ENV_FILE_PATH)
     validate_request_document(copilot_request)
@@ -537,6 +650,7 @@ def run_inference(
         else:
             raise ValueError(f"mock provider does not support {project} / {task}")
         validate_response_document(response_document)
+        emit_buffered_stream_response(response_document, stream_handler=stream_handler)
         return {
             "provider": MOCK_PROVIDER_ID,
             "model": model or f"radishmind-mock-{project}-{task}-v1",
@@ -602,6 +716,7 @@ def run_inference(
                 temperature=temperature,
                 request_timeout_seconds=resolved_request_timeout_seconds,
             )
+            emit_buffered_stream_response(result["response"], stream_handler=stream_handler)
         elif resolved_api_style == "anthropic-messages":
             result = call_anthropic_messages(
                 copilot_request,
@@ -611,15 +726,27 @@ def run_inference(
                 temperature=temperature,
                 request_timeout_seconds=resolved_request_timeout_seconds,
             )
+            emit_buffered_stream_response(result["response"], stream_handler=stream_handler)
         else:
-            result = call_openai_compatible(
-                copilot_request,
-                model=resolved_model,
-                base_url=resolved_base_url,
-                api_key=resolved_api_key,
-                temperature=temperature,
-                request_timeout_seconds=resolved_request_timeout_seconds,
-            )
+            if stream_handler is not None:
+                result = call_openai_compatible_stream(
+                    copilot_request,
+                    model=resolved_model,
+                    base_url=resolved_base_url,
+                    api_key=resolved_api_key,
+                    temperature=temperature,
+                    request_timeout_seconds=resolved_request_timeout_seconds,
+                    stream_handler=stream_handler,
+                )
+            else:
+                result = call_openai_compatible(
+                    copilot_request,
+                    model=resolved_model,
+                    base_url=resolved_base_url,
+                    api_key=resolved_api_key,
+                    temperature=temperature,
+                    request_timeout_seconds=resolved_request_timeout_seconds,
+                )
         raw_request = result.get("raw_request")
         if isinstance(raw_request, dict):
             raw_request["provider_profile"] = resolved_profile

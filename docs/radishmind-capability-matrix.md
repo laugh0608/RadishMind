@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-05-10
+更新时间：2026-05-11
 
 本文档用于回答三件事：
 
@@ -14,7 +14,7 @@
 | --- | --- | --- | --- | --- |
 | `Runtime Service` | `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`RadishFlow` gateway demo、service smoke matrix | 长驻服务、HTTP/worker 包装、配置分层、启动 runbook、部署 smoke | 不承诺正式 production deployment，不接外部认证系统，不直接写回上层真相源 | 先收口本地 service bootstrap、配置约定和最小调用路径 |
 | `Southbound Model Access` | `services/runtime/provider_registry.py` 已落地最小 `provider registry` 骨架，并收口当前 `mock`、`openai-compatible` 与 `openai-compatible chat / gemini-native / anthropic-messages` 分流；`run-radishmind-core-candidate.py` 已具备 `local_transformers` 本地模型实验入口 | 正式 `HuggingFace` 服务接入、`Ollama` adapter、更完整的 provider capability discovery、统一 auth/config 分层 | 不把单一 provider 或单一模型绑定成平台唯一方向，不把实验 wrapper 直接当正式服务能力 | 在现有 registry 骨架上先补 northbound 兼容与 `HuggingFace` / `Ollama` |
-| `Northbound API Compatibility` | internal canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`、进程内 gateway、CLI runtime、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 第一版 bridge、SSE 兼容骨架、bridge-backed provider/profile inventory | request-side provider 选择、更细粒度的 model discovery、兼容性 smoke 的路由覆盖与协议细节收敛 | 不让兼容层演化成第二套业务真相源，不为每个协议单独复制一套核心业务逻辑 | 继续补 upstream token 级流式转发、request-side provider 选择和更细粒度 model discovery |
+| `Northbound API Compatibility` | internal canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`、进程内 gateway、CLI runtime、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 第一版 bridge、SSE 兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、bridge 增量流式转发 | 更细粒度的 model discovery、兼容性 smoke 的路由覆盖与协议细节收敛、更广 provider 覆盖 | 不让兼容层演化成第二套业务真相源，不为每个协议单独复制一套核心业务逻辑 | 继续补更细粒度 model discovery 和更广 provider 覆盖 |
 | `Conversation & Session` | request 已支持 `conversation_id`，`RadishFlow` snapshot 带局部会话语义 | session schema、history policy、恢复记录、跨轮审计、会话级 smoke | 不做共享长期记忆，不做隐式自治规划循环 | 先定义 session contract、fixture 和最小恢复/审计边界 |
 | `Tooling Framework` | task-local 的检索、合法候选生成、deterministic builder、`tool_hints` | 通用 tool contract、registry、timeout/retry/policy、tool audit | 不做 unrestricted tool calling，不把所有逻辑塞进模型提示词 | 先做本地 tool contract 与 registry 原型 |
 | `Evaluation & Governance` | schema、offline eval、candidate record、review record、`check-repo`、service smoke | runtime/session/tooling/deployment 级门禁、平台级 promotion checklist | 不用纯机器指标决定晋级，不把真实大产物直接提交入仓 | 先扩展 smoke gate 到 runtime、session、tooling 主线 |

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
@@ -92,10 +93,18 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	}
 
 	selection := s.resolveNorthboundSelection(ctx, chatRequest.Model, chatRequest.RadishMind)
+	temperature := effectiveTemperature(chatRequest.Temperature, s.config.Temperature)
 
-	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale)
+	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection)
 	if err != nil {
 		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_CHAT_MESSAGES", err.Error())
+		return
+	}
+
+	if chatRequest.Stream {
+		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature); err != nil {
+			writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+		}
 		return
 	}
 
@@ -105,10 +114,10 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		bridge.EnvelopeOptions{
 			Provider:        selection.provider,
 			ProviderProfile: selection.providerProfile,
-			Model:           selection.model,
+			Model:           selection.upstreamModel,
 			BaseURL:         s.config.BaseURL,
 			APIKey:          s.config.APIKey,
-			Temperature:     effectiveTemperature(chatRequest.Temperature, s.config.Temperature),
+			Temperature:     temperature,
 			RequestTimeout:  s.config.BridgeTimeout,
 		},
 	)
@@ -118,11 +127,6 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
 		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
-		return
-	}
-
-	if chatRequest.Stream {
-		_ = streamOpenAIChatCompletionResponse(writer, envelope, selection.model)
 		return
 	}
 
@@ -152,21 +156,22 @@ func (s *Server) resolveKnownProvider(ctx context.Context, requestedModel string
 	return ""
 }
 
-func buildChatCanonicalRequest(chatRequest chatCompletionRequest, locale string) ([]byte, error) {
+func buildChatCanonicalRequest(
+	chatRequest chatCompletionRequest,
+	locale string,
+	selection northboundSelection,
+) ([]byte, error) {
 	promptText, err := buildPromptFromMessages(chatRequest.Messages)
 	if err != nil {
 		return nil, err
 	}
 	northboundFields := map[string]any{
-		"request_kind":    "chat_completion",
-		"requested_model": chatRequest.Model,
-		"message_count":   len(chatRequest.Messages),
-		"stream":          chatRequest.Stream,
+		"request_kind":  "chat_completion",
+		"message_count": len(chatRequest.Messages),
+		"stream":        chatRequest.Stream,
 	}
-	if chatRequest.RadishMind != nil {
-		northboundFields["locale"] = strings.TrimSpace(chatRequest.RadishMind.Locale)
-		northboundFields["provider"] = strings.TrimSpace(chatRequest.RadishMind.Provider)
-		northboundFields["provider_profile"] = strings.TrimSpace(chatRequest.RadishMind.ProviderProfile)
+	for key, value := range buildNorthboundSelectionFields(chatRequest.Model, selection, chatRequest.RadishMind) {
+		northboundFields[key] = value
 	}
 	if len(chatRequest.Metadata) > 0 {
 		northboundFields["metadata"] = chatRequest.Metadata
@@ -305,53 +310,97 @@ func buildOpenAIChatCompletionResponse(envelope bridge.GatewayEnvelope, model st
 	}, nil
 }
 
-func streamOpenAIChatCompletionResponse(
+func (s *Server) streamOpenAIChatCompletionResponse(
+	ctx context.Context,
 	writer http.ResponseWriter,
-	envelope bridge.GatewayEnvelope,
-	model string,
+	canonicalRequest []byte,
+	selection northboundSelection,
+	temperature float64,
 ) error {
-	if envelope.Response == nil {
-		return fmt.Errorf("gateway envelope is missing response payload")
-	}
-
-	content := buildNorthboundResponseContent(envelope)
-	responseID := buildNorthboundResponseID("chatcmpl-", envelope.RequestID)
+	responseID := buildNorthboundResponseID("chatcmpl-", fmt.Sprintf("%d", time.Now().UnixNano()))
 	createdAt := timeNowUnix()
+	streamStarted := false
+	streamCompleted := false
+	emittedContent := false
 
-	prepareSSEHeaders(writer)
-	if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
-		ID:      responseID,
-		Object:  "chat.completion.chunk",
-		Created: createdAt,
-		Model:   model,
-		Choices: []openAIChatCompletionStreamChoice{
-			{
-				Index: 0,
-				Delta: openAIChatCompletionDelta{Role: "assistant"},
-			},
-		},
-	}); err != nil {
-		return err
-	}
-
-	for _, chunkText := range splitTextForStreaming(content, 96) {
-		if chunkText == "" {
-			continue
+	startStream := func() error {
+		if streamStarted {
+			return nil
 		}
+		prepareSSEHeaders(writer)
 		if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
 			ID:      responseID,
 			Object:  "chat.completion.chunk",
 			Created: createdAt,
-			Model:   model,
+			Model:   selection.model,
 			Choices: []openAIChatCompletionStreamChoice{
 				{
 					Index: 0,
-					Delta: openAIChatCompletionDelta{Content: chunkText},
+					Delta: openAIChatCompletionDelta{Role: "assistant"},
 				},
 			},
 		}); err != nil {
 			return err
 		}
+		streamStarted = true
+		return nil
+	}
+
+	err := s.bridge.StreamEnvelope(
+		ctx,
+		canonicalRequest,
+		bridge.EnvelopeOptions{
+			Provider:        selection.provider,
+			ProviderProfile: selection.providerProfile,
+			Model:           selection.upstreamModel,
+			BaseURL:         s.config.BaseURL,
+			APIKey:          s.config.APIKey,
+			Temperature:     temperature,
+			RequestTimeout:  s.config.BridgeTimeout,
+		},
+		func(event bridge.StreamEvent) error {
+			switch strings.TrimSpace(event.Type) {
+			case "delta":
+				if event.Delta == "" {
+					return nil
+				}
+				if err := startStream(); err != nil {
+					return err
+				}
+				emittedContent = true
+				return writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
+					ID:      responseID,
+					Object:  "chat.completion.chunk",
+					Created: createdAt,
+					Model:   selection.model,
+					Choices: []openAIChatCompletionStreamChoice{
+						{
+							Index: 0,
+							Delta: openAIChatCompletionDelta{Content: event.Delta},
+						},
+					},
+				})
+			case "completed":
+				streamCompleted = true
+				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
+					return fmt.Errorf(gatewayErrorMessage(event.Envelope.Error))
+				}
+				return nil
+			case "error":
+				return fmt.Errorf(gatewayErrorMessage(event.Error))
+			default:
+				return nil
+			}
+		},
+	)
+	if err != nil {
+		return err
+	}
+	if !streamCompleted {
+		return fmt.Errorf("platform bridge stream ended without completion event")
+	}
+	if err := startStream(); err != nil {
+		return err
 	}
 
 	finishReason := "stop"
@@ -359,7 +408,7 @@ func streamOpenAIChatCompletionResponse(
 		ID:      responseID,
 		Object:  "chat.completion.chunk",
 		Created: createdAt,
-		Model:   model,
+		Model:   selection.model,
 		Choices: []openAIChatCompletionStreamChoice{
 			{
 				Index:        0,

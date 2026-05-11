@@ -19,6 +19,7 @@ type bridgeClient interface {
 	DescribeProviders(ctx context.Context) ([]bridge.ProviderDescription, error)
 	DescribeInventory(ctx context.Context) (bridge.ProviderInventory, error)
 	HandleEnvelope(ctx context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error)
+	StreamEnvelope(ctx context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions, handleEvent func(bridge.StreamEvent) error) error
 }
 
 type Server struct {

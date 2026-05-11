@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import jsonschema
 
@@ -115,6 +115,7 @@ def handle_copilot_request(
     copilot_request: dict[str, Any],
     *,
     options: GatewayOptions | None = None,
+    stream_handler: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     gateway_options = options or GatewayOptions()
     started_at = time.perf_counter()
@@ -179,6 +180,7 @@ def handle_copilot_request(
             api_key=gateway_options.api_key or None,
             temperature=gateway_options.temperature,
             request_timeout_seconds=gateway_options.request_timeout_seconds,
+            stream_handler=stream_handler,
         )
         response = inference_result["response"]
         validate_response_document(response)

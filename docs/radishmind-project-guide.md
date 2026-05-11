@@ -140,7 +140,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳、第一版 bridge、SSE 兼容骨架和 bridge-backed provider/profile inventory，但真正的 request-side provider 选择、更细粒度的 model discovery 和 upstream token 级流式转发还没正式落地
+- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳、第一版 bridge、SSE 兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发，但更细粒度的 model discovery 和更广 provider 覆盖还没正式落地
 
 ## 今天还不能算完成的能力
 

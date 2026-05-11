@@ -73,7 +73,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	defer cancel()
 
 	selection := s.resolveNorthboundSelection(ctx, responseRequest.Model, responseRequest.RadishMind)
-	promptText, northboundFields, err := buildResponsesPromptText(responseRequest)
+	promptText, northboundFields, err := buildResponsesPromptText(responseRequest, selection)
 	if err != nil {
 		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_RESPONSES_REQUEST", err.Error())
 		return
@@ -97,7 +97,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		bridge.EnvelopeOptions{
 			Provider:        selection.provider,
 			ProviderProfile: selection.providerProfile,
-			Model:           selection.model,
+			Model:           selection.upstreamModel,
 			BaseURL:         s.config.BaseURL,
 			APIKey:          s.config.APIKey,
 			Temperature:     effectiveTemperature(responseRequest.Temperature, s.config.Temperature),
@@ -128,7 +128,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	writeJSON(writer, http.StatusOK, responseDocument)
 }
 
-func buildResponsesPromptText(request openAIResponsesRequest) (string, map[string]any, error) {
+func buildResponsesPromptText(request openAIResponsesRequest, selection northboundSelection) (string, map[string]any, error) {
 	sections := make([]string, 0, 4)
 
 	if instructions := strings.TrimSpace(buildNorthboundTextFromValue(request.Instructions)); instructions != "" {
@@ -153,16 +153,13 @@ func buildResponsesPromptText(request openAIResponsesRequest) (string, map[strin
 	}
 
 	northboundFields := map[string]any{
-		"request_kind":    "responses",
-		"requested_model": request.Model,
-		"input_kind":      describeNorthboundInputKind(request.Input),
-		"message_count":   len(request.Messages),
-		"stream":          request.Stream,
+		"request_kind":  "responses",
+		"input_kind":    describeNorthboundInputKind(request.Input),
+		"message_count": len(request.Messages),
+		"stream":        request.Stream,
 	}
-	if request.RadishMind != nil {
-		northboundFields["provider"] = strings.TrimSpace(request.RadishMind.Provider)
-		northboundFields["provider_profile"] = strings.TrimSpace(request.RadishMind.ProviderProfile)
-		northboundFields["locale"] = strings.TrimSpace(request.RadishMind.Locale)
+	for key, value := range buildNorthboundSelectionFields(request.Model, selection, request.RadishMind) {
+		northboundFields[key] = value
 	}
 	if len(request.Metadata) > 0 {
 		northboundFields["metadata"] = request.Metadata
