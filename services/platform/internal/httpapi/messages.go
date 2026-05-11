@@ -42,16 +42,39 @@ type anthropicMessagesUsage struct {
 	OutputTokens int `json:"output_tokens"`
 }
 
+type anthropicMessageStartEvent struct {
+	Type    string                    `json:"type"`
+	Message anthropicMessagesResponse `json:"message"`
+}
+
+type anthropicContentBlockEvent struct {
+	Type         string                  `json:"type"`
+	Index        int                     `json:"index"`
+	ContentBlock anthropicMessageContent `json:"content_block,omitempty"`
+	Delta        anthropicContentDelta   `json:"delta,omitempty"`
+}
+
+type anthropicContentDelta struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+type anthropicMessageDeltaEvent struct {
+	Type  string                 `json:"type"`
+	Delta anthropicStopDelta     `json:"delta"`
+	Usage anthropicMessagesUsage `json:"usage"`
+}
+
+type anthropicStopDelta struct {
+	StopReason   string `json:"stop_reason"`
+	StopSequence any    `json:"stop_sequence"`
+}
+
 func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Request) {
 	var messageRequest anthropicMessagesRequest
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&messageRequest); err != nil {
 		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_JSON", fmt.Sprintf("invalid messages request: %v", err))
-		return
-	}
-
-	if messageRequest.Stream {
-		writeOpenAIError(writer, http.StatusNotImplemented, "STREAMING_NOT_IMPLEMENTED", "streaming messages are not implemented yet")
 		return
 	}
 	if len(messageRequest.Messages) == 0 {
@@ -100,6 +123,13 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
 		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
+		return
+	}
+
+	if messageRequest.Stream {
+		if err := streamAnthropicMessagesResponse(writer, envelope, selection.model); err != nil {
+			return
+		}
 		return
 	}
 
@@ -172,4 +202,71 @@ func buildAnthropicMessagesResponse(envelope bridge.GatewayEnvelope, model strin
 			OutputTokens: 0,
 		},
 	}, nil
+}
+
+func streamAnthropicMessagesResponse(
+	writer http.ResponseWriter,
+	envelope bridge.GatewayEnvelope,
+	model string,
+) error {
+	responseDocument, err := buildAnthropicMessagesResponse(envelope, model)
+	if err != nil {
+		return err
+	}
+	contentText := ""
+	if len(responseDocument.Content) > 0 {
+		contentText = responseDocument.Content[0].Text
+	}
+
+	prepareSSEHeaders(writer)
+	if err := writeSSEEvent(writer, "message_start", anthropicMessageStartEvent{
+		Type:    "message_start",
+		Message: responseDocument,
+	}); err != nil {
+		return err
+	}
+	if err := writeSSEEvent(writer, "content_block_start", anthropicContentBlockEvent{
+		Type:  "content_block_start",
+		Index: 0,
+		ContentBlock: anthropicMessageContent{
+			Type: "text",
+			Text: "",
+		},
+	}); err != nil {
+		return err
+	}
+	for _, chunkText := range splitTextForStreaming(contentText, 96) {
+		if chunkText == "" {
+			continue
+		}
+		if err := writeSSEEvent(writer, "content_block_delta", anthropicContentBlockEvent{
+			Type:  "content_block_delta",
+			Index: 0,
+			Delta: anthropicContentDelta{
+				Type: "text_delta",
+				Text: chunkText,
+			},
+		}); err != nil {
+			return err
+		}
+	}
+	if err := writeSSEEvent(writer, "content_block_stop", anthropicContentBlockEvent{
+		Type:  "content_block_stop",
+		Index: 0,
+	}); err != nil {
+		return err
+	}
+	if err := writeSSEEvent(writer, "message_delta", anthropicMessageDeltaEvent{
+		Type:  "message_delta",
+		Delta: anthropicStopDelta{StopReason: responseDocument.StopReason, StopSequence: responseDocument.StopSequence},
+		Usage: responseDocument.Usage,
+	}); err != nil {
+		return err
+	}
+	if err := writeSSEEvent(writer, "message_stop", map[string]string{
+		"type": "message_stop",
+	}); err != nil {
+		return err
+	}
+	return writeSSEEvent(writer, "", "[DONE]")
 }

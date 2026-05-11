@@ -52,16 +52,20 @@ type openAIResponsesUsage struct {
 	TotalTokens  int `json:"total_tokens"`
 }
 
+type openAIResponsesStreamEvent struct {
+	Type         string                   `json:"type"`
+	ResponseID   string                   `json:"response_id,omitempty"`
+	OutputIndex  int                      `json:"output_index,omitempty"`
+	ContentIndex int                      `json:"content_index,omitempty"`
+	Delta        string                   `json:"delta,omitempty"`
+	Response     *openAIResponsesResponse `json:"response,omitempty"`
+}
+
 func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Request) {
 	var responseRequest openAIResponsesRequest
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&responseRequest); err != nil {
 		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_JSON", fmt.Sprintf("invalid responses request: %v", err))
-		return
-	}
-
-	if responseRequest.Stream {
-		writeOpenAIError(writer, http.StatusNotImplemented, "STREAMING_NOT_IMPLEMENTED", "streaming responses are not implemented yet")
 		return
 	}
 
@@ -106,6 +110,13 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
 		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
+		return
+	}
+
+	if responseRequest.Stream {
+		if err := streamOpenAIResponsesResponse(writer, envelope, selection.model); err != nil {
+			return
+		}
 		return
 	}
 
@@ -213,4 +224,62 @@ func describeNorthboundInputKind(value any) string {
 	default:
 		return "structured"
 	}
+}
+
+func streamOpenAIResponsesResponse(
+	writer http.ResponseWriter,
+	envelope bridge.GatewayEnvelope,
+	model string,
+) error {
+	responseDocument, err := buildOpenAIResponsesResponse(envelope, model)
+	if err != nil {
+		return err
+	}
+
+	prepareSSEHeaders(writer)
+	if err := writeSSEEvent(writer, "response.created", openAIResponsesStreamEvent{
+		Type:       "response.created",
+		ResponseID: responseDocument.ID,
+		Response: &openAIResponsesResponse{
+			ID:        responseDocument.ID,
+			Object:    responseDocument.Object,
+			CreatedAt: responseDocument.CreatedAt,
+			Model:     responseDocument.Model,
+			Status:    "in_progress",
+		},
+	}); err != nil {
+		return err
+	}
+
+	for _, chunkText := range splitTextForStreaming(responseDocument.OutputText, 96) {
+		if chunkText == "" {
+			continue
+		}
+		if err := writeSSEEvent(writer, "response.output_text.delta", openAIResponsesStreamEvent{
+			Type:         "response.output_text.delta",
+			ResponseID:   responseDocument.ID,
+			OutputIndex:  0,
+			ContentIndex: 0,
+			Delta:        chunkText,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if err := writeSSEEvent(writer, "response.output_text.done", openAIResponsesStreamEvent{
+		Type:         "response.output_text.done",
+		ResponseID:   responseDocument.ID,
+		OutputIndex:  0,
+		ContentIndex: 0,
+	}); err != nil {
+		return err
+	}
+	if err := writeSSEEvent(writer, "response.completed", openAIResponsesStreamEvent{
+		Type:       "response.completed",
+		ResponseID: responseDocument.ID,
+		Response:   &responseDocument,
+	}); err != nil {
+		return err
+	}
+	return writeSSEEvent(writer, "", "[DONE]")
 }

@@ -40,10 +40,29 @@ type openAIChatCompletionResponse struct {
 	Choices []openAIChatCompletionChoice `json:"choices"`
 }
 
+type openAIChatCompletionStreamChunk struct {
+	ID      string                             `json:"id"`
+	Object  string                             `json:"object"`
+	Created int64                              `json:"created"`
+	Model   string                             `json:"model"`
+	Choices []openAIChatCompletionStreamChoice `json:"choices"`
+}
+
 type openAIChatCompletionChoice struct {
 	Index        int               `json:"index"`
 	Message      openAIChatMessage `json:"message"`
 	FinishReason string            `json:"finish_reason"`
+}
+
+type openAIChatCompletionStreamChoice struct {
+	Index        int                       `json:"index"`
+	Delta        openAIChatCompletionDelta `json:"delta"`
+	FinishReason *string                   `json:"finish_reason"`
+}
+
+type openAIChatCompletionDelta struct {
+	Role    string `json:"role,omitempty"`
+	Content string `json:"content,omitempty"`
 }
 
 type openAIChatMessage struct {
@@ -59,10 +78,6 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		return
 	}
 
-	if chatRequest.Stream {
-		writeOpenAIError(writer, http.StatusNotImplemented, "STREAMING_NOT_IMPLEMENTED", "streaming chat completions are not implemented yet")
-		return
-	}
 	if len(chatRequest.Messages) == 0 {
 		writeOpenAIError(writer, http.StatusBadRequest, "MISSING_MESSAGES", "messages must contain at least one item")
 		return
@@ -103,6 +118,11 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
 		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
+		return
+	}
+
+	if chatRequest.Stream {
+		_ = streamOpenAIChatCompletionResponse(writer, envelope, selection.model)
 		return
 	}
 
@@ -283,6 +303,75 @@ func buildOpenAIChatCompletionResponse(envelope bridge.GatewayEnvelope, model st
 			},
 		},
 	}, nil
+}
+
+func streamOpenAIChatCompletionResponse(
+	writer http.ResponseWriter,
+	envelope bridge.GatewayEnvelope,
+	model string,
+) error {
+	if envelope.Response == nil {
+		return fmt.Errorf("gateway envelope is missing response payload")
+	}
+
+	content := buildNorthboundResponseContent(envelope)
+	responseID := buildNorthboundResponseID("chatcmpl-", envelope.RequestID)
+	createdAt := timeNowUnix()
+
+	prepareSSEHeaders(writer)
+	if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
+		ID:      responseID,
+		Object:  "chat.completion.chunk",
+		Created: createdAt,
+		Model:   model,
+		Choices: []openAIChatCompletionStreamChoice{
+			{
+				Index: 0,
+				Delta: openAIChatCompletionDelta{Role: "assistant"},
+			},
+		},
+	}); err != nil {
+		return err
+	}
+
+	for _, chunkText := range splitTextForStreaming(content, 96) {
+		if chunkText == "" {
+			continue
+		}
+		if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
+			ID:      responseID,
+			Object:  "chat.completion.chunk",
+			Created: createdAt,
+			Model:   model,
+			Choices: []openAIChatCompletionStreamChoice{
+				{
+					Index: 0,
+					Delta: openAIChatCompletionDelta{Content: chunkText},
+				},
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
+	finishReason := "stop"
+	if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
+		ID:      responseID,
+		Object:  "chat.completion.chunk",
+		Created: createdAt,
+		Model:   model,
+		Choices: []openAIChatCompletionStreamChoice{
+			{
+				Index:        0,
+				Delta:        openAIChatCompletionDelta{},
+				FinishReason: &finishReason,
+			},
+		},
+	}); err != nil {
+		return err
+	}
+
+	return writeSSEEvent(writer, "", "[DONE]")
 }
 
 func effectiveTemperature(requestTemperature *float64, fallback float64) float64 {

@@ -114,6 +114,25 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("responses stream", func(t *testing.T) {
+		body := `{"model":"platform-model","input":"Please answer this","stream":true}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleResponses(rec, req)
+
+		if got := rec.Header().Get("Content-Type"); !strings.HasPrefix(got, "text/event-stream") {
+			t.Fatalf("unexpected content type: %s", got)
+		}
+		streamBody := rec.Body.String()
+		if !strings.Contains(streamBody, "event: response.output_text.delta") {
+			t.Fatalf("missing response delta event: %s", streamBody)
+		}
+		if !strings.Contains(streamBody, "event: response.completed") || !strings.Contains(streamBody, "data: [DONE]") {
+			t.Fatalf("missing response completion markers: %s", streamBody)
+		}
+	})
+
 	t.Run("messages", func(t *testing.T) {
 		body := `{"model":"platform-model","system":"You are helpful","messages":[{"role":"user","content":"你好"}]}`
 		req := httptest.NewRequest(http.MethodPost, "/v1/messages", strings.NewReader(body))
@@ -155,6 +174,41 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if northbound["request_kind"] != "anthropic_messages" {
 			t.Fatalf("unexpected request kind: %#v", northbound["request_kind"])
+		}
+	})
+
+	t.Run("messages stream", func(t *testing.T) {
+		body := `{"model":"platform-model","system":"You are helpful","messages":[{"role":"user","content":"你好"}],"stream":true}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/messages", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleMessages(rec, req)
+
+		if got := rec.Header().Get("Content-Type"); !strings.HasPrefix(got, "text/event-stream") {
+			t.Fatalf("unexpected content type: %s", got)
+		}
+		streamBody := rec.Body.String()
+		if !strings.Contains(streamBody, "event: message_start") || !strings.Contains(streamBody, "event: message_stop") {
+			t.Fatalf("missing anthropic lifecycle events: %s", streamBody)
+		}
+		if !strings.Contains(streamBody, "event: content_block_delta") || !strings.Contains(streamBody, "data: [DONE]") {
+			t.Fatalf("missing anthropic delta markers: %s", streamBody)
+		}
+	})
+
+	t.Run("chat stream", func(t *testing.T) {
+		body := `{"model":"platform-model","messages":[{"role":"user","content":"hello"}],"stream":true}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if got := rec.Header().Get("Content-Type"); !strings.HasPrefix(got, "text/event-stream") {
+			t.Fatalf("unexpected content type: %s", got)
+		}
+		streamBody := rec.Body.String()
+		if !strings.Contains(streamBody, "chat.completion.chunk") || !strings.Contains(streamBody, "data: [DONE]") {
+			t.Fatalf("missing chat completion stream markers: %s", streamBody)
 		}
 	})
 

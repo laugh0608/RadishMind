@@ -54,7 +54,7 @@
 
 - 只接非流式文本消息
 - 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- `GET /v1/models` 还不是完整的动态 model/profile inventory，流式转发和 provider/profile 路由细节也还在补齐中
+- `GET /v1/models` 还不是完整的动态 model/profile inventory，SSE 流式骨架和 provider/profile 路由细节也还在补齐中
 
 ## 当前服务/API 接入切片
 
