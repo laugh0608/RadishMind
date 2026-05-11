@@ -14,12 +14,13 @@ import (
 )
 
 type fakeBridge struct {
-	providers   []bridge.ProviderDescription
-	inventory   bridge.ProviderInventory
-	envelope    bridge.GatewayEnvelope
-	lastRequest []byte
-	lastOptions bridge.EnvelopeOptions
-	streamErr   error
+	providers    []bridge.ProviderDescription
+	inventory    bridge.ProviderInventory
+	envelope     bridge.GatewayEnvelope
+	lastRequest  []byte
+	lastOptions  bridge.EnvelopeOptions
+	streamCalled bool
+	streamErr    error
 }
 
 func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
@@ -39,6 +40,7 @@ func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, 
 func (f *fakeBridge) StreamEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions, handleEvent func(bridge.StreamEvent) error) error {
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
+	f.streamCalled = true
 	if f.streamErr != nil {
 		return f.streamErr
 	}
@@ -175,6 +177,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 	})
 
 	t.Run("responses stream", func(t *testing.T) {
+		fb.streamCalled = false
 		body := `{"model":"platform-model","input":"Please answer this","stream":true}`
 		req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(body))
 		rec := httptest.NewRecorder()
@@ -183,6 +186,9 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 
 		if got := rec.Header().Get("Content-Type"); !strings.HasPrefix(got, "text/event-stream") {
 			t.Fatalf("unexpected content type: %s", got)
+		}
+		if !fb.streamCalled {
+			t.Fatalf("expected bridge stream path")
 		}
 		streamBody := rec.Body.String()
 		if !strings.Contains(streamBody, "event: response.output_text.delta") {
@@ -238,6 +244,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 	})
 
 	t.Run("messages stream", func(t *testing.T) {
+		fb.streamCalled = false
 		body := `{"model":"platform-model","system":"You are helpful","messages":[{"role":"user","content":"你好"}],"stream":true}`
 		req := httptest.NewRequest(http.MethodPost, "/v1/messages", strings.NewReader(body))
 		rec := httptest.NewRecorder()
@@ -246,6 +253,9 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 
 		if got := rec.Header().Get("Content-Type"); !strings.HasPrefix(got, "text/event-stream") {
 			t.Fatalf("unexpected content type: %s", got)
+		}
+		if !fb.streamCalled {
+			t.Fatalf("expected bridge stream path")
 		}
 		streamBody := rec.Body.String()
 		if !strings.Contains(streamBody, "event: message_start") || !strings.Contains(streamBody, "event: message_stop") {

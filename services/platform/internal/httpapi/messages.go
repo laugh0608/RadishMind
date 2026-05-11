@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
@@ -104,6 +105,14 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
+	if messageRequest.Stream {
+		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature)); err != nil {
+			writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+			return
+		}
+		return
+	}
+
 	envelope, err := s.bridge.HandleEnvelope(
 		ctx,
 		canonicalRequest,
@@ -123,13 +132,6 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
 		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
-		return
-	}
-
-	if messageRequest.Stream {
-		if err := streamAnthropicMessagesResponse(writer, envelope, selection.model); err != nil {
-			return
-		}
 		return
 	}
 
@@ -174,12 +176,15 @@ func buildMessagesPromptText(request anthropicMessagesRequest, selection northbo
 }
 
 func buildAnthropicMessagesResponse(envelope bridge.GatewayEnvelope, model string) (anthropicMessagesResponse, error) {
+	return buildAnthropicMessagesResponseWithID(envelope, model, buildNorthboundResponseID("msg-", envelope.RequestID))
+}
+
+func buildAnthropicMessagesResponseWithID(envelope bridge.GatewayEnvelope, model string, responseID string) (anthropicMessagesResponse, error) {
 	if envelope.Response == nil {
 		return anthropicMessagesResponse{}, fmt.Errorf("gateway envelope is missing response payload")
 	}
 
 	content := buildNorthboundResponseContent(envelope)
-	responseID := buildNorthboundResponseID("msg-", envelope.RequestID)
 
 	return anthropicMessagesResponse{
 		ID:           responseID,
@@ -201,51 +206,121 @@ func buildAnthropicMessagesResponse(envelope bridge.GatewayEnvelope, model strin
 	}, nil
 }
 
-func streamAnthropicMessagesResponse(
-	writer http.ResponseWriter,
-	envelope bridge.GatewayEnvelope,
-	model string,
-) error {
-	responseDocument, err := buildAnthropicMessagesResponse(envelope, model)
-	if err != nil {
-		return err
-	}
-	contentText := ""
-	if len(responseDocument.Content) > 0 {
-		contentText = responseDocument.Content[0].Text
-	}
-
-	prepareSSEHeaders(writer)
-	if err := writeSSEEvent(writer, "message_start", anthropicMessageStartEvent{
-		Type:    "message_start",
-		Message: responseDocument,
-	}); err != nil {
-		return err
-	}
-	if err := writeSSEEvent(writer, "content_block_start", anthropicContentBlockEvent{
-		Type:  "content_block_start",
-		Index: 0,
-		ContentBlock: anthropicMessageContent{
-			Type: "text",
-			Text: "",
+func buildAnthropicMessagesResponseSkeleton(responseID string, model string) anthropicMessagesResponse {
+	return anthropicMessagesResponse{
+		ID:         responseID,
+		Type:       "message",
+		Role:       "assistant",
+		Model:      model,
+		StopReason: "",
+		Content:    nil,
+		Usage: anthropicMessagesUsage{
+			InputTokens:  0,
+			OutputTokens: 0,
 		},
-	}); err != nil {
-		return err
 	}
-	for _, chunkText := range splitTextForStreaming(contentText, 96) {
-		if chunkText == "" {
-			continue
+}
+
+func (s *Server) streamAnthropicMessagesResponse(
+	ctx context.Context,
+	writer http.ResponseWriter,
+	canonicalRequest []byte,
+	selection northboundSelection,
+	temperature float64,
+) error {
+	responseID := buildNorthboundResponseID("msg-", fmt.Sprintf("%d", time.Now().UnixNano()))
+	streamStarted := false
+	streamCompleted := false
+	emittedContent := false
+	var completedEnvelope *bridge.GatewayEnvelope
+
+	startStream := func() error {
+		if streamStarted {
+			return nil
 		}
-		if err := writeSSEEvent(writer, "content_block_delta", anthropicContentBlockEvent{
-			Type:  "content_block_delta",
+		prepareSSEHeaders(writer)
+		if err := writeSSEEvent(writer, "message_start", anthropicMessageStartEvent{
+			Type:    "message_start",
+			Message: buildAnthropicMessagesResponseSkeleton(responseID, selection.model),
+		}); err != nil {
+			return err
+		}
+		if err := writeSSEEvent(writer, "content_block_start", anthropicContentBlockEvent{
+			Type:  "content_block_start",
 			Index: 0,
-			Delta: anthropicContentDelta{
-				Type: "text_delta",
-				Text: chunkText,
+			ContentBlock: anthropicMessageContent{
+				Type: "text",
+				Text: "",
 			},
 		}); err != nil {
 			return err
 		}
+		streamStarted = true
+		return nil
+	}
+
+	err := s.bridge.StreamEnvelope(
+		ctx,
+		canonicalRequest,
+		bridge.EnvelopeOptions{
+			Provider:        selection.provider,
+			ProviderProfile: selection.providerProfile,
+			Model:           selection.upstreamModel,
+			BaseURL:         s.config.BaseURL,
+			APIKey:          s.config.APIKey,
+			Temperature:     temperature,
+			RequestTimeout:  s.config.BridgeTimeout,
+		},
+		func(event bridge.StreamEvent) error {
+			switch strings.TrimSpace(event.Type) {
+			case "delta":
+				if event.Delta == "" {
+					return nil
+				}
+				if err := startStream(); err != nil {
+					return err
+				}
+				emittedContent = true
+				return writeSSEEvent(writer, "content_block_delta", anthropicContentBlockEvent{
+					Type:  "content_block_delta",
+					Index: 0,
+					Delta: anthropicContentDelta{
+						Type: "text_delta",
+						Text: event.Delta,
+					},
+				})
+			case "completed":
+				streamCompleted = true
+				if event.Envelope != nil {
+					completedEnvelope = event.Envelope
+				}
+				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
+					return fmt.Errorf(gatewayErrorMessage(event.Envelope.Error))
+				}
+				return nil
+			case "error":
+				return fmt.Errorf(gatewayErrorMessage(event.Error))
+			default:
+				return nil
+			}
+		},
+	)
+	if err != nil {
+		return err
+	}
+	if !streamCompleted {
+		return fmt.Errorf("platform bridge stream ended without completion event")
+	}
+	if err := startStream(); err != nil {
+		return err
+	}
+	if completedEnvelope == nil {
+		return fmt.Errorf("platform bridge stream completed without envelope")
+	}
+
+	responseDocument, err := buildAnthropicMessagesResponseWithID(*completedEnvelope, selection.model, responseID)
+	if err != nil {
+		return err
 	}
 	if err := writeSSEEvent(writer, "content_block_stop", anthropicContentBlockEvent{
 		Type:  "content_block_stop",

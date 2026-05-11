@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
@@ -91,6 +92,14 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 
+	if responseRequest.Stream {
+		if err := s.streamOpenAIResponsesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature)); err != nil {
+			writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+			return
+		}
+		return
+	}
+
 	envelope, err := s.bridge.HandleEnvelope(
 		ctx,
 		canonicalRequest,
@@ -110,13 +119,6 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
 		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
-		return
-	}
-
-	if responseRequest.Stream {
-		if err := streamOpenAIResponsesResponse(writer, envelope, selection.model); err != nil {
-			return
-		}
 		return
 	}
 
@@ -168,12 +170,15 @@ func buildResponsesPromptText(request openAIResponsesRequest, selection northbou
 }
 
 func buildOpenAIResponsesResponse(envelope bridge.GatewayEnvelope, model string) (openAIResponsesResponse, error) {
+	return buildOpenAIResponsesResponseWithID(envelope, model, buildNorthboundResponseID("resp-", envelope.RequestID))
+}
+
+func buildOpenAIResponsesResponseWithID(envelope bridge.GatewayEnvelope, model string, responseID string) (openAIResponsesResponse, error) {
 	if envelope.Response == nil {
 		return openAIResponsesResponse{}, fmt.Errorf("gateway envelope is missing response payload")
 	}
 
 	content := buildNorthboundResponseContent(envelope)
-	responseID := buildNorthboundResponseID("resp-", envelope.RequestID)
 	now := timeNowUnix()
 
 	return openAIResponsesResponse{
@@ -223,49 +228,107 @@ func describeNorthboundInputKind(value any) string {
 	}
 }
 
-func streamOpenAIResponsesResponse(
+func (s *Server) streamOpenAIResponsesResponse(
+	ctx context.Context,
 	writer http.ResponseWriter,
-	envelope bridge.GatewayEnvelope,
-	model string,
+	canonicalRequest []byte,
+	selection northboundSelection,
+	temperature float64,
 ) error {
-	responseDocument, err := buildOpenAIResponsesResponse(envelope, model)
-	if err != nil {
-		return err
-	}
+	responseID := buildNorthboundResponseID("resp-", fmt.Sprintf("%d", time.Now().UnixNano()))
+	createdAt := timeNowUnix()
+	streamStarted := false
+	streamCompleted := false
+	emittedContent := false
+	var completedEnvelope *bridge.GatewayEnvelope
 
-	prepareSSEHeaders(writer)
-	if err := writeSSEEvent(writer, "response.created", openAIResponsesStreamEvent{
-		Type:       "response.created",
-		ResponseID: responseDocument.ID,
-		Response: &openAIResponsesResponse{
-			ID:        responseDocument.ID,
-			Object:    responseDocument.Object,
-			CreatedAt: responseDocument.CreatedAt,
-			Model:     responseDocument.Model,
-			Status:    "in_progress",
-		},
-	}); err != nil {
-		return err
-	}
-
-	for _, chunkText := range splitTextForStreaming(responseDocument.OutputText, 96) {
-		if chunkText == "" {
-			continue
+	startStream := func() error {
+		if streamStarted {
+			return nil
 		}
-		if err := writeSSEEvent(writer, "response.output_text.delta", openAIResponsesStreamEvent{
-			Type:         "response.output_text.delta",
-			ResponseID:   responseDocument.ID,
-			OutputIndex:  0,
-			ContentIndex: 0,
-			Delta:        chunkText,
+		prepareSSEHeaders(writer)
+		if err := writeSSEEvent(writer, "response.created", openAIResponsesStreamEvent{
+			Type:       "response.created",
+			ResponseID: responseID,
+			Response: &openAIResponsesResponse{
+				ID:        responseID,
+				Object:    "response",
+				CreatedAt: createdAt,
+				Model:     selection.model,
+				Status:    "in_progress",
+			},
 		}); err != nil {
 			return err
 		}
+		streamStarted = true
+		return nil
 	}
 
+	err := s.bridge.StreamEnvelope(
+		ctx,
+		canonicalRequest,
+		bridge.EnvelopeOptions{
+			Provider:        selection.provider,
+			ProviderProfile: selection.providerProfile,
+			Model:           selection.upstreamModel,
+			BaseURL:         s.config.BaseURL,
+			APIKey:          s.config.APIKey,
+			Temperature:     temperature,
+			RequestTimeout:  s.config.BridgeTimeout,
+		},
+		func(event bridge.StreamEvent) error {
+			switch strings.TrimSpace(event.Type) {
+			case "delta":
+				if event.Delta == "" {
+					return nil
+				}
+				if err := startStream(); err != nil {
+					return err
+				}
+				emittedContent = true
+				return writeSSEEvent(writer, "response.output_text.delta", openAIResponsesStreamEvent{
+					Type:         "response.output_text.delta",
+					ResponseID:   responseID,
+					OutputIndex:  0,
+					ContentIndex: 0,
+					Delta:        event.Delta,
+				})
+			case "completed":
+				streamCompleted = true
+				if event.Envelope != nil {
+					completedEnvelope = event.Envelope
+				}
+				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
+					return fmt.Errorf(gatewayErrorMessage(event.Envelope.Error))
+				}
+				return nil
+			case "error":
+				return fmt.Errorf(gatewayErrorMessage(event.Error))
+			default:
+				return nil
+			}
+		},
+	)
+	if err != nil {
+		return err
+	}
+	if !streamCompleted {
+		return fmt.Errorf("platform bridge stream ended without completion event")
+	}
+	if err := startStream(); err != nil {
+		return err
+	}
+	if completedEnvelope == nil {
+		return fmt.Errorf("platform bridge stream completed without envelope")
+	}
+
+	responseDocument, err := buildOpenAIResponsesResponseWithID(*completedEnvelope, selection.model, responseID)
+	if err != nil {
+		return err
+	}
 	if err := writeSSEEvent(writer, "response.output_text.done", openAIResponsesStreamEvent{
 		Type:         "response.output_text.done",
-		ResponseID:   responseDocument.ID,
+		ResponseID:   responseID,
 		OutputIndex:  0,
 		ContentIndex: 0,
 	}); err != nil {
@@ -273,7 +336,7 @@ func streamOpenAIResponsesResponse(
 	}
 	if err := writeSSEEvent(writer, "response.completed", openAIResponsesStreamEvent{
 		Type:       "response.completed",
-		ResponseID: responseDocument.ID,
+		ResponseID: responseID,
 		Response:   &responseDocument,
 	}); err != nil {
 		return err
