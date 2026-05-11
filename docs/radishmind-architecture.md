@@ -97,7 +97,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 - 统一校验请求、识别任务、选择 provider/profile，并返回 `CopilotGatewayEnvelope`。
 - 当前 `SUPPORTED_ROUTES` 仍然有限，说明平台还在先做骨架而不是全量铺开任务面。
-- 当前 `Go` 平台服务层已经通过 Python bridge 接到 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 的第一版兼容层；这条 bridge 目前仍是窄切片，先把非流式文本消息固定映射到 `radish/answer_docs_question`，并通过 SSE 做出第一版流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，但更细粒度的 model discovery 和更广 provider 覆盖仍要继续补齐，而且这些路径都必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
+- 当前 `Go` 平台服务层已经通过 Python bridge 接到 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 的第一版兼容层；这条 bridge 目前仍是窄切片，先把非流式文本消息固定映射到 `radish/answer_docs_question`，并通过 SSE 做出第一版流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，但更广 provider 覆盖仍要继续补齐，而且这些路径都必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
 - 服务/API smoke 当前锁定 advisory-only、schema validation、route metadata、error envelope 和 handoff 不执行这些不变量。
 
 ### 3. Retrieval & Tool Layer
@@ -139,7 +139,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 ## 当前缺口
 
 - 只有最小 `Go` 长驻服务壳和 bridge-backed `HTTP API`
-- 只有最小 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 兼容接口；当前虽已补第一版 SSE 流式兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发，但更细粒度的 model discovery 和更广 provider 覆盖还未正式落地
+- 只有最小 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 兼容接口；当前虽已补第一版 SSE 流式兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发、把 `/v1/models` 推进到列表 + 精确 lookup，但更广 provider 覆盖还未正式落地
 - 没有正式 `HuggingFace` 与 `Ollama` southbound 服务接入
 - 没有正式 session contract、history policy、恢复和会话级门禁
 - 没有通用 tool registry、tool calling contract 和 tool audit

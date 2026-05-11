@@ -49,6 +49,7 @@ func NewServer(cfg config.Config, options Options) *Server {
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
 	mux.HandleFunc("GET /v1/models", server.handleModels)
+	mux.HandleFunc("GET /v1/models/{id}", server.handleModel)
 	mux.HandleFunc("POST /v1/chat/completions", server.handleChatCompletions)
 	mux.HandleFunc("POST /v1/responses", server.handleResponses)
 	mux.HandleFunc("POST /v1/messages", server.handleMessages)
@@ -77,6 +78,10 @@ func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request
 
 func (s *Server) handleModels(writer http.ResponseWriter, _ *http.Request) {
 	handleModels(writer, s)
+}
+
+func (s *Server) handleModel(writer http.ResponseWriter, request *http.Request) {
+	handleModel(writer, request, s)
 }
 
 func writeJSON(writer http.ResponseWriter, statusCode int, document any) {

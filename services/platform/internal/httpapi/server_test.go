@@ -355,4 +355,92 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			t.Fatalf("unexpected profile inventory source: %#v", response.Data[2].Metadata["source"])
 		}
 	})
+
+	t.Run("model detail default", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/platform-model", nil)
+		req.SetPathValue("id", "platform-model")
+		rec := httptest.NewRecorder()
+
+		server.handleModel(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response openAIModelObject
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response.ID != "platform-model" {
+			t.Fatalf("unexpected model id: %s", response.ID)
+		}
+		if response.Metadata["source"] != "configured_default" {
+			t.Fatalf("unexpected metadata source: %#v", response.Metadata["source"])
+		}
+	})
+
+	t.Run("model detail provider", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/mock", nil)
+		req.SetPathValue("id", "mock")
+		rec := httptest.NewRecorder()
+
+		server.handleModel(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response openAIModelObject
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response.ID != "mock" {
+			t.Fatalf("unexpected model id: %s", response.ID)
+		}
+		if response.Metadata["source"] != "provider_registry" {
+			t.Fatalf("unexpected metadata source: %#v", response.Metadata["source"])
+		}
+	})
+
+	t.Run("model detail profile", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/profile:anyrouter", nil)
+		req.SetPathValue("id", "profile:anyrouter")
+		rec := httptest.NewRecorder()
+
+		server.handleModel(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response openAIModelObject
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response.ID != "profile:anyrouter" {
+			t.Fatalf("unexpected model id: %s", response.ID)
+		}
+		if response.Metadata["source"] != "provider_profile_inventory" {
+			t.Fatalf("unexpected metadata source: %#v", response.Metadata["source"])
+		}
+		if response.Metadata["resolved_model"] != "deepseek-chat" {
+			t.Fatalf("unexpected resolved model: %#v", response.Metadata["resolved_model"])
+		}
+	})
+
+	t.Run("model detail missing", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/does-not-exist", nil)
+		req.SetPathValue("id", "does-not-exist")
+		rec := httptest.NewRecorder()
+
+		server.handleModel(rec, req)
+
+		if rec.Code != http.StatusNotFound {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response errorDocument
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode error response: %v", err)
+		}
+		if response.Error.Code != "MODEL_NOT_FOUND" {
+			t.Fatalf("unexpected error code: %#v", response.Error.Code)
+		}
+	})
 }

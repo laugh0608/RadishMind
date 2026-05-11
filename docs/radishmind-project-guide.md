@@ -107,13 +107,17 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 
 当前 `Go` 平台服务层骨架已落在 `services/platform/`，用于承载后续 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳。
 
-当前它只固定三件事：
+当前它先固定最小服务启动入口，以及以下 northbound/health 路由：
 
 - 最小服务启动入口
 - `GET /healthz`
-- `GET /v1/models` 与 `POST /v1/chat/completions` 的 northbound 路由壳
+- `GET /v1/models`
+- `GET /v1/models/{id}`
+- `POST /v1/chat/completions`
+- `POST /v1/responses`
+- `POST /v1/messages`
 
-其中 `/v1/chat/completions` 现在已经接到第一版 bridge，但它仍然是窄切片：只接非流式文本消息，并先固定映射到 `radish/answer_docs_question`；`GET /v1/models` 则已从 provider 目录推进到 bridge-backed provider/profile inventory，但还不是更细粒度的完整 model discovery。
+其中 `/v1/chat/completions` 现在已经接到第一版 bridge，但它仍然是窄切片：只接非流式文本消息，并先固定映射到 `radish/answer_docs_question`；`GET /v1/models` 则已从 provider 目录推进到 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup。
 
 ### 4. 跑本地候选模型输出
 
@@ -140,7 +144,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳、第一版 bridge、SSE 兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发，但更细粒度的 model discovery 和更广 provider 覆盖还没正式落地
+- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳、第一版 bridge、SSE 兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发、把 `/v1/models` 推进到列表 + 精确 lookup，但更广 provider 覆盖还没正式落地
 
 ## 今天还不能算完成的能力
 
@@ -149,7 +153,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 - 官方长驻服务进程
 - 完整的正式 HTTP API 包装
 - `HuggingFace` 与 `Ollama` 的正式服务级接入
-- `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口仍在补齐流式和 model/profile inventory 细节
+- `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口仍在补齐流式和更广 provider 覆盖细节
 - session store / history policy / recovery runbook
 - 通用 tool registry 和 tool calling contract
 - 官方 deployment runbook 或可发布部署包

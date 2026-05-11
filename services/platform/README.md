@@ -19,6 +19,7 @@
 
 - `GET /healthz`
 - `GET /v1/models`
+- `GET /v1/models/{id}`
 - `POST /v1/chat/completions`
 - `POST /v1/responses`
 - `POST /v1/messages`
@@ -31,4 +32,4 @@
 - 当前只把最后一条文本用户消息映射到 `radish/answer_docs_question`
 - 返回内容当前优先取 canonical `summary`，必要时回退首条 `answer`
 
-`GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前还不是完整的动态 provider/profile discovery。
+`GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前已支持列表和 `/v1/models/{id}` 精确 lookup，但还不是完整的动态 provider/profile discovery。
