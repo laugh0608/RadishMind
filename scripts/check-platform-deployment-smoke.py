@@ -10,7 +10,7 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PLATFORM_DIR = REPO_ROOT / "services/platform"
+PLATFORM_WRAPPER = REPO_ROOT / "scripts/run-platform-service.sh"
 SECRET_SENTINEL = "deployment-smoke-secret"
 
 
@@ -20,10 +20,10 @@ def base_env() -> dict[str, str]:
     return env
 
 
-def run_platform_command(args: list[str], *, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+def run_platform_wrapper(args: list[str], *, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["go", "run", "./cmd/radishmind-platform", *args],
-        cwd=PLATFORM_DIR,
+        [str(PLATFORM_WRAPPER), *args],
+        cwd=REPO_ROOT,
         env=env,
         capture_output=True,
         text=True,
@@ -59,7 +59,7 @@ def check_mock_deployment_config() -> None:
         )
         env = base_env()
         env["RADISHMIND_PLATFORM_CONFIG"] = str(config_path)
-        result = run_platform_command(["config-check"], env=env)
+        result = run_platform_wrapper(["config-check"], env=env)
         require(result.returncode == 0, f"mock deployment config should pass: {result.stderr or result.stdout}")
         document = parse_json_output(result)
         config = document.get("config") or {}
@@ -92,7 +92,7 @@ def check_env_override() -> None:
                 "RADISHMIND_PLATFORM_MODEL": "env-model",
             }
         )
-        result = run_platform_command(["config-summary"], env=env)
+        result = run_platform_wrapper(["config-summary"], env=env)
         require(result.returncode == 0, f"env override config-summary should pass: {result.stderr or result.stdout}")
         document = parse_json_output(result)
         require(document.get("profile") == "env-profile", "env profile should override config file")
@@ -108,16 +108,23 @@ def check_invalid_deployment_config() -> None:
         write_config(config_path, {"provider": "openai-compatible", "bridge_timeout": "not-a-duration"})
         env = base_env()
         env["RADISHMIND_PLATFORM_CONFIG"] = str(config_path)
-        result = run_platform_command(["config-check"], env=env)
+        result = run_platform_wrapper(["config-check"], env=env)
         require(result.returncode != 0, "invalid deployment config should fail")
         combined_output = f"{result.stdout}\n{result.stderr}"
         require("bridge_timeout" in combined_output, "invalid deployment config should name bridge_timeout")
+
+
+def check_wrapper_rejects_unknown_command() -> None:
+    result = run_platform_wrapper(["unknown-command"], env=base_env())
+    require(result.returncode == 2, "platform wrapper should reject unknown commands with exit code 2")
+    require("unsupported platform service command" in result.stderr, "wrapper failure should explain unsupported command")
 
 
 def main() -> int:
     check_mock_deployment_config()
     check_env_override()
     check_invalid_deployment_config()
+    check_wrapper_rejects_unknown_command()
     print("platform deployment smoke checks passed.")
     return 0
 

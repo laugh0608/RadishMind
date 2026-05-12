@@ -44,6 +44,8 @@
 
 部署壳 smoke 由 `scripts/check-platform-deployment-smoke.py` 固定到快速检查中。它不启动长驻服务、不访问外部 provider，只验证本地配置文件加载、环境变量覆盖、无效配置失败和 secret 不泄漏。
 
+本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
+
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
 
 ## 本地启动 runbook
@@ -109,6 +111,20 @@ go run ./cmd/radishmind-platform
 ```bash
 RADISHMIND_PLATFORM_CONFIG=tmp/radishmind-platform.local.json \
 go run ./services/platform/cmd/radishmind-platform
+```
+
+推荐通过稳定 wrapper 先跑配置检查，再启动长驻服务：
+
+```bash
+./scripts/run-platform-service.sh config-check
+./scripts/run-platform-service.sh serve
+```
+
+Windows / PowerShell 使用：
+
+```powershell
+pwsh ./scripts/run-platform-service.ps1 -Command config-check
+pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
 生产前仍需要单独补 secret 管理、部署环境隔离和观测策略；当前只固定本地开发入口和最小 deployment smoke。

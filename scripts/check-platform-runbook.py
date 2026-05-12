@@ -16,6 +16,9 @@ EXPECTED_COMMAND_PATTERNS = (
     "cd services/platform",
     "GOCACHE=/tmp/radishmind-go-build-cache go test ./...",
     "RADISHMIND_PLATFORM_CONFIG=tmp/radishmind-platform.local.json",
+    "./scripts/run-platform-service.sh config-check",
+    "./scripts/run-platform-service.sh serve",
+    "pwsh ./scripts/run-platform-service.ps1 -Command config-check",
     "go run ./cmd/radishmind-platform",
     "go run ./services/platform/cmd/radishmind-platform config-summary",
     "go run ./services/platform/cmd/radishmind-platform config-check",
@@ -51,6 +54,8 @@ def main() -> int:
     require("## 故障边界" in readme, "platform README must include failure boundary section")
     require("default < config file < env" in readme, "platform README must document config precedence")
     require("scripts/check-platform-deployment-smoke.py" in readme, "platform README must mention deployment smoke")
+    require("scripts/run-platform-service.sh" in readme, "platform README must mention platform service shell wrapper")
+    require("scripts/run-platform-service.ps1" in readme, "platform README must mention platform service PowerShell wrapper")
 
     env_keys = extract_platform_env_keys(config_content)
     missing_env_keys = sorted(key for key in env_keys if key not in readme)
