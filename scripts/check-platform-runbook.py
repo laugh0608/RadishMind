@@ -16,6 +16,8 @@ EXPECTED_COMMAND_PATTERNS = (
     "cd services/platform",
     "GOCACHE=/tmp/radishmind-go-build-cache go test ./...",
     "go run ./cmd/radishmind-platform",
+    "go run ./services/platform/cmd/radishmind-platform config-summary",
+    "go run ./services/platform/cmd/radishmind-platform config-check",
     "curl -sS http://127.0.0.1:8080/healthz",
     "curl -sS http://127.0.0.1:8080/v1/models",
     "curl -sS http://127.0.0.1:8080/v1/models/mock",

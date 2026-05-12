@@ -40,6 +40,8 @@
 - `scripts/run-platform-bridge.py providers` 能从 Python registry 输出 `mock`、`openai-compatible`、`huggingface` 与 `ollama` provider 能力。
 - `scripts/run-platform-bridge.py inventory` 能在受控环境变量下暴露 openai-compatible fallback chain、HuggingFace profile 和 Ollama local profile，并且只暴露 `has_api_key` / `credential_state`，不泄漏 key 原文。
 
+配置分层门禁由 `scripts/check-platform-config.py` 固定到快速检查中。它通过同一个 `config.LoadFromEnv` 入口验证 `config-summary` 和 `config-check`，只输出脱敏字段：provider、profile、model、base_url 是否存在、`credential_state`、timeout、listen addr 与 Python bridge 路径，不输出 `RADISHMIND_PLATFORM_API_KEY` 或 `base_url` 原文。
+
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
 
 ## 本地启动 runbook
@@ -89,6 +91,13 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_PLATFORM_TEMPERATURE` | `0` | provider 调用温度 |
 
 生产前仍需要单独补配置文件、secret 管理、部署环境隔离和观测策略；当前只固定本地开发入口。
+
+可用一次性命令检查本地配置摘要，输出不会暴露 secret：
+
+```bash
+go run ./services/platform/cmd/radishmind-platform config-summary
+go run ./services/platform/cmd/radishmind-platform config-check
+```
 
 ## 本地 smoke 验证
 
