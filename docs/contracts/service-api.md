@@ -90,6 +90,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 当前平台级 `ops smoke` 由 `scripts/check-platform-ops-smoke.py` 承接，并已接入 `check-repo --fast`。它不启动长驻服务、不访问外部 provider，只固定 `Go` 平台层 `go test ./...`、Python bridge provider registry、openai-compatible fallback profile chain、HuggingFace profile 与 Ollama local profile inventory 这些可快速复验的不变量。该门禁证明平台 bootstrap、northbound handler 和 southbound discoverability 能在本地受控环境下同时成立，但仍不等同于 production deployment。
 
+当前本地启动 runbook 固定在 `services/platform/README.md`，并由 `scripts/check-platform-runbook.py` 防止配置、路由和命令说明漂移。该检查会对齐 `RADISHMIND_PLATFORM_*` 环境变量、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages` 和最小 curl smoke 命令；它只保证本地开发入口可复验，不代表 secret 管理、进程守护、部署观测或生产鉴权已经完成。
+
 ### `RadishFlow` UI 消费口径
 
 `RadishFlow` 调用侧在消费 `CopilotGatewayEnvelope` 时，应先把 envelope 映射为 UI 可展示、可审计、不可直接执行的 consumption view：
