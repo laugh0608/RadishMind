@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-11
+更新时间：2026-05-12
 
 ## 这份文档讲什么
 
@@ -71,7 +71,7 @@ python3 scripts/run-copilot-inference.py \
   --response-output tmp/rf-suggest-edit.response.json
 ```
 
-如果后续要接真实 provider，再显式传 `--provider openai-compatible|huggingface|ollama`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议，并且 `services/platform/` 已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 收口为第一版桥接能力，同时 `HuggingFace`、`Ollama` 已有第一版 provider coverage，但更广 discoverability 和长驻部署壳还在补齐。
+如果后续要接真实 provider，再显式传 `--provider openai-compatible|huggingface|ollama`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议；`services/platform/` 也已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、SSE bridge、provider/profile inventory、request-side selection、`HuggingFace` / `Ollama` coverage、本地启动 wrapper、JSON 配置层级、deployment smoke、diagnostics / failure boundary 和 discoverability 对齐纳入第一版 runtime foundation。
 
 ### 2. 跑进程内 gateway demo
 
@@ -103,13 +103,20 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 
 它现在是仓库里最接近“服务切片验收”的正式门禁。
 
-### 3.5 查看 Go 平台服务层骨架
+### 3.5 运行 Go 平台服务层
 
-当前 `Go` 平台服务层骨架已落在 `services/platform/`，用于承载后续 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳。
+当前 `Go` 平台服务层已落在 `services/platform/`，用于承载 `HTTP API`、`gateway`、鉴权、流式转发、观测和部署壳。日常本地运行优先使用 wrapper，而不是手动切换目录：
 
-当前它先固定最小服务启动入口，以及以下 northbound/health 路由：
+```bash
+./scripts/run-platform-service.sh config-check
+./scripts/run-platform-service.sh diagnostics
+./scripts/run-platform-service.sh serve
+```
 
-- 最小服务启动入口
+Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 config-check|diagnostics|serve`。
+
+当前它固定以下 northbound / health 路由：
+
 - `GET /healthz`
 - `GET /v1/models`
 - `GET /v1/models/{id}`
@@ -117,7 +124,9 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 - `POST /v1/responses`
 - `POST /v1/messages`
 
-其中 `/v1/chat/completions` 现在已经接到第一版 bridge，但它仍然是窄切片：只接非流式文本消息，并先固定映射到 `radish/answer_docs_question`；`GET /v1/models` 则已从 provider 目录推进到 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup。
+其中 `/v1/chat/completions` 已接到第一版 bridge，并支持非流式与 SSE 增量转发；`/v1/models`、请求侧 provider/profile selection 与 `diagnostics.providers.selectable_model_ids` 共享同一套 discoverability 口径，包括 `profile:<profile>` 与 `provider:<provider>:profile:<profile>`。当请求选中 profile 时，响应 `context.northbound` 会带出脱敏后的 `credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 与 `northbound_protocols`，便于客户端和部署检查判断实际命中的 provider/profile。
+
+这仍然不是 production deployment：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级 secret backend、进程监管、环境隔离和正式发布包。
 
 ### 4. 跑本地候选模型输出
 
@@ -144,21 +153,22 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向还没有完成：虽然已经有最小 `Go HTTP` 壳、第一版 bridge、SSE 兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发、把 `/v1/models` 推进到列表 + 精确 lookup，但更广 provider 覆盖还没正式落地
+- 北向已有第一版兼容面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
+- 当前仍是窄切片：还缺请求级观测、错误分类、production secret backend、部署隔离、外部 provider health check 与更完整的 route / stream 组合 smoke
 
 ## 今天还不能算完成的能力
 
 当前仓库还没有这些正式能力：
 
-- 官方长驻服务进程
-- 完整的正式 HTTP API 包装
-- `HuggingFace` 与 `Ollama` 的更广 discoverability、profile inventory 和正式部署壳
-- `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的完整对外兼容接口仍在补齐流式和更广 provider 覆盖细节
+- production deployment package
+- production secret backend
+- process supervisor 与环境隔离
+- 请求级 observability、错误分类和外部 provider health check
+- 更完整的 route-level smoke、stream 组合和兼容性矩阵
 - session store / history policy / recovery runbook
 - 通用 tool registry 和 tool calling contract
-- 官方 deployment runbook、平台级 `ops smoke` 或可发布部署包
 
-所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、最小 Go HTTP 壳和 smoke/demo 链路，但还没有完整正式部署面。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke 和 bridge-backed provider/profile discoverability，但还没有完整 production deployment 面。
 
 ## 读文档顺序
 
@@ -181,5 +191,5 @@ python3 scripts/run-radishmind-core-candidate.py \
 - 不把 `RadishMind` 做成上层业务真相源
 - 不默认把 builder/guided 结果当成 raw 晋级证据
 - 不在上层项目还没具备真实挂载点时继续细化假想接线
-- 不把长驻服务、session、tooling、外部模型兼容或协议兼容能力写成“已经具备”
+- 不把 production deployment、session、tooling 或完整外部兼容矩阵写成“已经具备”
 - 不默认下载大模型、数据集或权重
