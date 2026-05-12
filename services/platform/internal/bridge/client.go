@@ -39,17 +39,17 @@ type ProviderDescription struct {
 }
 
 type ProviderProfileDescription struct {
-	Profile               string  `json:"profile"`
-	NormalizedProfile     string  `json:"normalized_profile"`
-	ProviderID            string  `json:"provider_id"`
-	ResolvedModel         string  `json:"resolved_model"`
-	APIStyle              string  `json:"api_style"`
-	HasBaseURL            bool    `json:"has_base_url"`
-	HasAPIKey             bool    `json:"has_api_key"`
-	RequestTimeoutSeconds float64 `json:"request_timeout_seconds"`
-	Active                bool    `json:"active"`
-	Fallback              bool    `json:"fallback"`
-	ChainIndex            int     `json:"chain_index"`
+	Profile               string         `json:"profile"`
+	NormalizedProfile     string         `json:"normalized_profile"`
+	ProviderID            string         `json:"provider_id"`
+	ResolvedModel         string         `json:"resolved_model"`
+	APIStyle              string         `json:"api_style"`
+	HasBaseURL            bool           `json:"has_base_url"`
+	HasAPIKey             bool           `json:"has_api_key"`
+	RequestTimeoutSeconds float64        `json:"request_timeout_seconds"`
+	Active                bool           `json:"active"`
+	Fallback              bool           `json:"fallback"`
+	ChainIndex            int            `json:"chain_index"`
 	Capabilities          map[string]any `json:"capabilities"`
 	NorthboundProtocols   []string       `json:"northbound_protocols"`
 	NorthboundRoutes      []string       `json:"northbound_routes"`
@@ -179,13 +179,9 @@ func (c *Client) buildEnvelopeArgs(command string, options EnvelopeOptions) []st
 }
 
 func (c *Client) run(ctx context.Context, args []string, stdin []byte) ([]byte, error) {
-	scriptPath := c.scriptPath
-	if !filepath.IsAbs(scriptPath) {
-		resolvedPath, err := filepath.Abs(scriptPath)
-		if err != nil {
-			return nil, fmt.Errorf("resolve bridge script path: %w", err)
-		}
-		scriptPath = resolvedPath
+	scriptPath, err := resolveScriptPath(c.scriptPath)
+	if err != nil {
+		return nil, err
 	}
 
 	commandArgs := append([]string{scriptPath}, args...)
@@ -215,13 +211,9 @@ func (c *Client) runStream(
 	stdin []byte,
 	handleEvent func(StreamEvent) error,
 ) error {
-	scriptPath := c.scriptPath
-	if !filepath.IsAbs(scriptPath) {
-		resolvedPath, err := filepath.Abs(scriptPath)
-		if err != nil {
-			return fmt.Errorf("resolve bridge script path: %w", err)
-		}
-		scriptPath = resolvedPath
+	scriptPath, err := resolveScriptPath(c.scriptPath)
+	if err != nil {
+		return err
 	}
 
 	commandArgs := append([]string{scriptPath}, args...)
@@ -275,4 +267,36 @@ func (c *Client) runStream(
 		return fmt.Errorf("python bridge stream failed: %w", err)
 	}
 	return nil
+}
+
+func resolveScriptPath(scriptPath string) (string, error) {
+	normalizedPath := strings.TrimSpace(scriptPath)
+	if normalizedPath == "" {
+		normalizedPath = defaultScriptPath
+	}
+	if filepath.IsAbs(normalizedPath) {
+		return normalizedPath, nil
+	}
+
+	currentDir, err := filepath.Abs(".")
+	if err != nil {
+		return "", fmt.Errorf("resolve bridge script path: %w", err)
+	}
+	for {
+		candidate := filepath.Join(currentDir, normalizedPath)
+		if _, statErr := filepath.EvalSymlinks(candidate); statErr == nil {
+			return candidate, nil
+		}
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			break
+		}
+		currentDir = parentDir
+	}
+
+	resolvedPath, err := filepath.Abs(normalizedPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve bridge script path: %w", err)
+	}
+	return "", fmt.Errorf("resolve bridge script path: %s was not found from current directory or parents", resolvedPath)
 }

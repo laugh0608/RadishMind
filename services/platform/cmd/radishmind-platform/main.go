@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/diagnostics"
 	"radishmind.local/services/platform/internal/httpapi"
 )
 
@@ -26,6 +30,9 @@ func main() {
 			return
 		case "config-check":
 			writeConfigCheck(cfg)
+			return
+		case "diagnostics":
+			writeDiagnostics(cfg)
 			return
 		default:
 			log.Fatalf("unsupported command: %s", os.Args[1])
@@ -73,5 +80,25 @@ func writeConfigCheck(cfg config.Config) {
 	}
 	if exitCode != 0 {
 		os.Exit(exitCode)
+	}
+}
+
+func writeDiagnostics(cfg config.Config) {
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.BridgeTimeout)
+	defer cancel()
+	report := diagnostics.BuildReport(
+		ctx,
+		cfg,
+		bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
+		time.Now().UTC(),
+	)
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(report); err != nil {
+		log.Fatalf("write diagnostics: %v", err)
+	}
+	if report.Status != "ok" {
+		os.Exit(1)
 	}
 }

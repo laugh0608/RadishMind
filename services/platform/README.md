@@ -7,7 +7,7 @@
 - 启动最小本地 `HTTP` 服务
 - 承载 northbound `API` / `gateway` 入口
 - 通过 Python bridge 调用 canonical `CopilotGatewayEnvelope`
-- 提供观测、部署壳和后续鉴权 / 流式转发落点
+- 提供结构化诊断、观测、部署壳和后续鉴权 / 流式转发落点
 
 当前明确不做：
 
@@ -32,7 +32,7 @@
 - 当前只把最后一条文本用户消息映射到 `radish/answer_docs_question`
 - 返回内容当前优先取 canonical `summary`，必要时回退首条 `answer`
 
-`GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前已支持列表和 `/v1/models/{id}` 精确 lookup，并带出第一版 provider-qualified profile inventory，但还不是完整的动态 provider/profile discovery。下一步优先补更广 provider/profile discoverability、配置分层和部署壳。
+`GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前已支持列表和 `/v1/models/{id}` 精确 lookup，并带出第一版 provider-qualified profile inventory，但还不是完整的动态 provider/profile discovery。下一步优先补更广 provider/profile discoverability、配置分层、部署观测和 failure boundary。
 
 当前平台级 `ops smoke` 已由 `scripts/check-platform-ops-smoke.py` 固定为快速门禁。它不启动长期驻留服务、不访问外部 provider，只验证三类可运行边界：
 
@@ -43,6 +43,8 @@
 配置分层门禁由 `scripts/check-platform-config.py` 固定到快速检查中。它通过同一个 `config.LoadFromEnv` 入口验证 `config-summary` 和 `config-check`，只输出脱敏字段：provider、profile、model、base_url 是否存在、`credential_state`、timeout、listen addr、Python bridge 路径与字段来源，不输出 `RADISHMIND_PLATFORM_API_KEY` 或 `base_url` 原文。
 
 部署壳 smoke 由 `scripts/check-platform-deployment-smoke.py` 固定到快速检查中。它不启动长驻服务、不访问外部 provider，只验证本地配置文件加载、环境变量覆盖、无效配置失败和 secret 不泄漏。
+
+结构化诊断 smoke 由 `scripts/check-platform-diagnostics.py` 固定到快速检查中。它通过一次性 `diagnostics` 命令聚合启动配置、必填字段、Python bridge provider registry 和 provider/profile inventory，不启动长驻服务、不访问外部 provider，并只输出 `credential_state`、计数和状态字段，不输出 secret、token 或 provider URL 原文。
 
 本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
@@ -113,10 +115,11 @@ RADISHMIND_PLATFORM_CONFIG=tmp/radishmind-platform.local.json \
 go run ./services/platform/cmd/radishmind-platform
 ```
 
-推荐通过稳定 wrapper 先跑配置检查，再启动长驻服务：
+推荐通过稳定 wrapper 先跑配置检查和结构化诊断，再启动长驻服务：
 
 ```bash
 ./scripts/run-platform-service.sh config-check
+./scripts/run-platform-service.sh diagnostics
 ./scripts/run-platform-service.sh serve
 ```
 
@@ -124,6 +127,7 @@ Windows / PowerShell 使用：
 
 ```powershell
 pwsh ./scripts/run-platform-service.ps1 -Command config-check
+pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
 pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
@@ -134,7 +138,17 @@ pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```bash
 go run ./services/platform/cmd/radishmind-platform config-summary
 go run ./services/platform/cmd/radishmind-platform config-check
+go run ./services/platform/cmd/radishmind-platform diagnostics
 ```
+
+`diagnostics` 输出固定为结构化 JSON，主要字段包括：
+
+- `status`：`ok` 或 `error`
+- `config`：复用脱敏 `config-summary`
+- `checks`：`config_required_fields`、`bridge_provider_registry`、`bridge_provider_inventory` 与 `deployment_readiness`
+- `bridge`：Python bridge 脚本、registry / inventory 可用性和 bridge 失败码
+- `providers`：provider registry 数量、profile 数量、active profile chain、credential state 计数和 deployment mode 计数
+- `failure_codes` / `failure`：启动前可定位的失败边界
 
 ## 本地 smoke 验证
 
@@ -158,6 +172,9 @@ curl -sS http://127.0.0.1:8080/v1/chat/completions \
 
 ## 故障边界
 
+- 启动前先运行 `./scripts/run-platform-service.sh diagnostics`；如果 `status=error`，优先读取 `failure.code` 和 `checks[].code`，再决定是否启动长驻服务。
+- 若 `failure.code=CONFIG_REQUIRED_FIELDS_MISSING`，优先检查 `config.missing_required_fields`，不要从日志或诊断输出寻找 secret 原文。
+- 若 `failure.code=PROVIDER_REGISTRY_UNAVAILABLE` 或 `PROVIDER_INVENTORY_UNAVAILABLE`，优先检查 `bridge.python_binary`、`bridge.script`、当前工作目录和 Python import 路径。
 - 若启动时报 `load config`，优先检查 duration / float 类环境变量格式，例如 `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT=30s`、`RADISHMIND_PLATFORM_TEMPERATURE=0`。
 - 若 `/v1/models` 返回 `PROVIDER_REGISTRY_UNAVAILABLE`，优先检查 `RADISHMIND_PLATFORM_PYTHON_BIN`、`RADISHMIND_PLATFORM_BRIDGE_SCRIPT` 和当前工作目录是否能访问仓库根下的 Python bridge。
 - 若 chat 路由返回 bridge 失败，先用 `python3 scripts/run-platform-bridge.py providers` 与 `python3 scripts/run-platform-bridge.py inventory` 验证 Python 侧 provider registry 是否可用。

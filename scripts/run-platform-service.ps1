@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("serve", "config-summary", "config-check")]
+    [ValidateSet("serve", "config-summary", "config-check", "diagnostics")]
     [string]$Command = "serve",
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$RemainingArgs

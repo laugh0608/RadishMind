@@ -17,11 +17,14 @@ EXPECTED_COMMAND_PATTERNS = (
     "GOCACHE=/tmp/radishmind-go-build-cache go test ./...",
     "RADISHMIND_PLATFORM_CONFIG=tmp/radishmind-platform.local.json",
     "./scripts/run-platform-service.sh config-check",
+    "./scripts/run-platform-service.sh diagnostics",
     "./scripts/run-platform-service.sh serve",
     "pwsh ./scripts/run-platform-service.ps1 -Command config-check",
+    "pwsh ./scripts/run-platform-service.ps1 -Command diagnostics",
     "go run ./cmd/radishmind-platform",
     "go run ./services/platform/cmd/radishmind-platform config-summary",
     "go run ./services/platform/cmd/radishmind-platform config-check",
+    "go run ./services/platform/cmd/radishmind-platform diagnostics",
     "curl -sS http://127.0.0.1:8080/healthz",
     "curl -sS http://127.0.0.1:8080/v1/models",
     "curl -sS http://127.0.0.1:8080/v1/models/mock",
@@ -54,6 +57,7 @@ def main() -> int:
     require("## 故障边界" in readme, "platform README must include failure boundary section")
     require("default < config file < env" in readme, "platform README must document config precedence")
     require("scripts/check-platform-deployment-smoke.py" in readme, "platform README must mention deployment smoke")
+    require("scripts/check-platform-diagnostics.py" in readme, "platform README must mention diagnostics smoke")
     require("scripts/run-platform-service.sh" in readme, "platform README must mention platform service shell wrapper")
     require("scripts/run-platform-service.ps1" in readme, "platform README must mention platform service PowerShell wrapper")
 

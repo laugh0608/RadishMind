@@ -90,6 +90,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 当前平台级 `ops smoke` 由 `scripts/check-platform-ops-smoke.py` 承接，并已接入 `check-repo --fast`。它不启动长驻服务、不访问外部 provider，只固定 `Go` 平台层 `go test ./...`、Python bridge provider registry、openai-compatible fallback profile chain、HuggingFace profile 与 Ollama local profile inventory 这些可快速复验的不变量。该门禁证明平台 bootstrap、northbound handler 和 southbound discoverability 能在本地受控环境下同时成立，但仍不等同于 production deployment。
 
+当前平台级结构化诊断由 `radishmind-platform diagnostics` 与 `scripts/check-platform-diagnostics.py` 承接，并已接入 `check-repo --fast`。它聚合启动配置、配置必填字段、Python bridge provider registry 和 provider/profile inventory，输出 `status`、`checks`、`failure_codes`、`bridge`、`providers` 与脱敏 `config`；其中 credential 只表达 `configured / missing / optional_missing / not_required` 这类状态，不输出 API key、token、cookie、secret 或 provider URL 原文。该诊断用于启动前 failure boundary 和本地部署排障，不替代生产 secret backend、进程守护或外部 provider 健康探测。
+
 `/v1/models` 的 profile 条目必须暴露稳定 discoverability metadata：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。其中 `credential_state` 只允许表达 `configured / missing / optional_missing / not_required` 这类状态，不得泄漏 API key、token 或 secret 原文；`deployment_mode` 用于区分 `remote_api`、`local_daemon`、`embedded` 等运行形态。
 
 当前本地启动 runbook 固定在 `services/platform/README.md`，并由 `scripts/check-platform-runbook.py` 防止配置、路由和命令说明漂移。该检查会对齐 `RADISHMIND_PLATFORM_*` 环境变量、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages` 和最小 curl smoke 命令；它只保证本地开发入口可复验，不代表 secret 管理、进程守护、部署观测或生产鉴权已经完成。

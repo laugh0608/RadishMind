@@ -27,12 +27,12 @@ case "${command}" in
   serve)
     exec go run ./cmd/radishmind-platform "$@"
     ;;
-  config-summary | config-check)
+  config-summary | config-check | diagnostics)
     exec go run ./cmd/radishmind-platform "${command}" "$@"
     ;;
   *)
     echo "unsupported platform service command: ${command}" >&2
-    echo "supported commands: serve, config-summary, config-check" >&2
+    echo "supported commands: serve, config-summary, config-check, diagnostics" >&2
     exit 2
     ;;
 esac
