@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-05-11
+更新时间：2026-05-12
 
 ## 架构目标
 
@@ -97,7 +97,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 - 统一校验请求、识别任务、选择 provider/profile，并返回 `CopilotGatewayEnvelope`。
 - 当前 `SUPPORTED_ROUTES` 仍然有限，说明平台还在先做骨架而不是全量铺开任务面。
-- 当前 `Go` 平台服务层已经通过 Python bridge 接到 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 的第一版兼容层；这条 bridge 目前仍是窄切片，先把非流式文本消息固定映射到 `radish/answer_docs_question`，并通过 SSE 做出第一版流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，同时补了 `HuggingFace` / `Ollama` 的第一版 southbound provider coverage，`/v1/models` 也开始暴露 provider-qualified profile inventory，但更广 provider/profile discoverability 仍要继续补齐，而且这些路径都必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
+- 当前 `Go` 平台服务层已经通过 Python bridge 接到 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 的第一版兼容层；这条 bridge 目前仍是窄切片，先把非流式文本消息固定映射到 `radish/answer_docs_question`，并通过 SSE 做出第一版流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，同时补了 `HuggingFace` / `Ollama` 的第一版 southbound provider coverage；`/v1/models`、northbound request selection 与 diagnostics 已共享 provider-qualified profile inventory、credential state、deployment mode、streaming、route 和 protocol metadata，但这些路径仍必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
 - 服务/API smoke 当前锁定 advisory-only、schema validation、route metadata、error envelope 和 handoff 不执行这些不变量。
 
 ### 3. Retrieval & Tool Layer
@@ -139,8 +139,8 @@ Protocol Compatibility Layer 翻译回 northbound response
 ## 当前缺口
 
 - 只有最小 `Go` 长驻服务壳和 bridge-backed `HTTP API`
-- 只有最小 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 兼容接口；当前虽已补第一版 SSE 流式兼容骨架和 bridge-backed provider/profile inventory，并把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化、把流式路径推进到 bridge 增量转发、把 `/v1/models` 推进到列表 + 精确 lookup，但更广 provider/profile discoverability 和部署壳还未正式落地
-- 没有把 `HuggingFace` 与 `Ollama` 的更广 profile discoverability、统一 auth/config 分层和部署 runbook 完整补齐
+- 只有最小 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 兼容接口；当前虽已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics 和 discoverability 对齐，但请求级观测、错误分类和生产部署边界还未正式落地
+- `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory 和 diagnostics 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
 - 没有正式 session contract、history policy、恢复和会话级门禁
 - 没有通用 tool registry、tool calling contract 和 tool audit
 - 没有正式 deployment runbook、启动包装和平台级 ops smoke

@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-11
+更新时间：2026-05-12
 
 ## 文档目的
 
@@ -20,7 +20,7 @@
 
 ## 当前优先做什么
 
-1. `Runtime Service`：在现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/platform/` 和 `RadishFlow` service smoke gate 之上，继续把已落地的最小 `provider registry` 与 `Go` service bootstrap 骨架扩到协议兼容层、本地启动、配置、调用和部署入口。当前第一版 `Go -> Python` bridge 已接通 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models`，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，其中 `HuggingFace` / `Ollama` 已有第一版 provider coverage，平台级 `ops smoke`、本地启动 runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke 与结构化 diagnostics/failure boundary 已纳入快速门禁；下一步继续补更广 provider/profile discoverability 和更正式的部署观测策略。
+1. `Runtime Service`：在现有 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/platform/` 和 `RadishFlow` service smoke gate 之上，继续把已落地的最小 `provider registry` 与 `Go` service bootstrap 骨架扩到协议兼容层、本地启动、配置、调用和部署入口。当前第一版 `Go -> Python` bridge 已接通 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models`，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，其中 `HuggingFace` / `Ollama` 已有第一版 provider coverage；平台级 `ops smoke`、本地启动 runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary，以及 `/v1/models`、请求选择和 diagnostics 之间的 provider/profile discoverability 对齐已纳入快速门禁。明天优先继续做平台请求级观测和错误分类，而不是继续扩同一层配置兜底。
 2. `Conversation & Session`：补齐会话标识、历史压缩、恢复和审计边界，不再只停留在 `conversation_id` 透传。
 3. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式工具契约、registry、timeout/retry/policy。
 4. `Evaluation & Governance`：把已有 schema、offline eval、service smoke 和 runtime provider dispatch smoke 扩展到 runtime、session、tooling 和 deployment 门禁。

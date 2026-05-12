@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-11
+更新时间：2026-05-12
 
 ## 路线图原则
 
@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper 和最小 deployment smoke 已补齐，但第一版 northbound 仍是窄切片：更广 provider/profile discoverability 与部署观测 / failure boundary 还需要继续补齐。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary 和 provider/profile discoverability 对齐已补齐。第一版 northbound 仍是窄切片，下一步重点转向请求级观测、错误分类、部署环境边界和更完整的长驻服务运维口径。
 
-下一步：在现有 provider registry 骨架、`Go` service bootstrap、平台级 `ops smoke`、配置层级和 deployment smoke 之上，继续把更广 provider/profile discoverability、部署观测和 failure boundary 补齐，再把现有 bridge 增量流式转发扩展到更多 northbound / southbound 组合。
+下一步：在现有 provider registry 骨架、`Go` service bootstrap、平台级 `ops smoke`、配置层级、deployment smoke、diagnostics 和 discoverability 对齐之上，补请求级观测字段、错误分类和部署环境边界，再把现有 bridge 增量流式转发扩展到更多 northbound / southbound 组合。
 
 ### 2. `Conversation & Session`
 
@@ -101,7 +101,7 @@
 
 目标：让本地长驻服务、启动脚本、观测、故障边界和 deployment smoke 具备正式口径。
 
-状态：当前尚未开始。
+状态：当前已完成本地 wrapper、配置文件层级、deployment smoke 和启动前 diagnostics 的第一版门禁；尚未进入 production secret backend、进程守护、请求级观测或正式部署环境隔离。
 
 ### `P4`：Model Adaptation & Training
 
