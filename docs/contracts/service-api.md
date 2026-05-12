@@ -88,6 +88,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 当前还新增 `scripts/check-radishflow-service-smoke-matrix.py --check-summary scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json` 作为矩阵级门禁。该门禁不新增业务模拟，而是把 `run-copilot-inference.py` CLI runtime、进程内 gateway、`RadishFlow export -> adapter/request -> gateway` demo、UI consumption summary 与 candidate edit handoff summary 收束到同一条 `radishflow/suggest_flowsheet_edits` 服务切片，检查 route、provider、`requires_confirmation`、advisory-only、UI 不写回和 handoff 不执行这些跨入口不变量。
 
+当前平台级 `ops smoke` 由 `scripts/check-platform-ops-smoke.py` 承接，并已接入 `check-repo --fast`。它不启动长驻服务、不访问外部 provider，只固定 `Go` 平台层 `go test ./...`、Python bridge provider registry、openai-compatible fallback profile chain、HuggingFace profile 与 Ollama local profile inventory 这些可快速复验的不变量。该门禁证明平台 bootstrap、northbound handler 和 southbound discoverability 能在本地受控环境下同时成立，但仍不等同于 production deployment。
+
 ### `RadishFlow` UI 消费口径
 
 `RadishFlow` 调用侧在消费 `CopilotGatewayEnvelope` 时，应先把 envelope 映射为 UI 可展示、可审计、不可直接执行的 consumption view：

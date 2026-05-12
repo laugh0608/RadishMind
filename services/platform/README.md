@@ -33,3 +33,9 @@
 - 返回内容当前优先取 canonical `summary`，必要时回退首条 `answer`
 
 `GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前已支持列表和 `/v1/models/{id}` 精确 lookup，并带出第一版 provider-qualified profile inventory，但还不是完整的动态 provider/profile discovery。下一步优先补更广 provider/profile discoverability、长驻部署壳和平台级 `ops smoke`。
+
+当前平台级 `ops smoke` 已由 `scripts/check-platform-ops-smoke.py` 固定为快速门禁。它不启动长期驻留服务、不访问外部 provider，只验证三类可运行边界：
+
+- `go test ./...` 能覆盖平台服务层的 `healthz`、northbound 路由、provider/profile selection 和 SSE 兼容行为。
+- `scripts/run-platform-bridge.py providers` 能从 Python registry 输出 `mock`、`openai-compatible`、`huggingface` 与 `ollama` provider 能力。
+- `scripts/run-platform-bridge.py inventory` 能在受控环境变量下暴露 openai-compatible fallback chain、HuggingFace profile 和 Ollama local profile，并且只暴露 `has_api_key`，不泄漏 key 原文。

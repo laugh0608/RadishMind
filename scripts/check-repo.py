@@ -1061,6 +1061,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
     run_python_script("check-runtime-provider-dispatch.py", [])
+    run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
