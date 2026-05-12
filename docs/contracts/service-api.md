@@ -1,0 +1,137 @@
+# RadishMind 服务/API 接入契约
+
+更新时间：2026-05-12
+
+## 协议兼容边界
+
+`CopilotRequest`、`CopilotResponse` 与 `CopilotGatewayEnvelope` 继续是本仓库内部的 canonical protocol。
+
+这意味着后续即使平台要同时支持：
+
+- 南向调用外部模型和外部 provider
+- 北向对外提供常见 AI 协议接口
+
+也仍然必须遵循“兼容层只做翻译，不另起第二套真相源”的规则。
+
+实现语言可以分布在 `Go`、`Python` 和 `TypeScript`，但都必须从 `contracts/` 读取同一套 schema 和 canonical contract，不得各自重新定义业务真相源。
+
+当前目标口径应固定为：
+
+- 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`
+- 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
+
+当前真实状态是：
+
+- `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
+- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
+- `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
+- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 也已开始暴露 provider-qualified profile inventory，但更广 profile discoverability、统一 auth/config 分层、正式部署壳和平台级 `ops smoke` 仍未完全落地
+
+当前第一版 `Go -> Python` bridge 的 northbound 切片仍然很窄：
+
+- 只接非流式文本消息
+- 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
+- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup；`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；但更广 provider/profile discoverability 仍在补齐中
+- 当前 northbound `model` 选择已经开始支持 configured default、provider id、legacy `profile:<name>` 与 provider-qualified `provider:<provider>:profile:<profile>`；同时 `radishmind.provider` / `radishmind.provider_profile` 扩展字段已具备显式覆盖能力
+
+## 当前服务/API 接入切片
+
+从 `suggest_flowsheet_edits v93` 与 `suggest_ghost_completion v25` 收口后，下一步不再默认通过继续跑真实样本推进，而是把现有协议和评测资产上提为服务/API 接入门禁。
+
+当前最小切片建议固定为：
+
+1. 上层或本地 smoke 提供 schema-valid `CopilotRequest`
+2. `Go` northbound 入口把 OpenAI 请求翻译成最小 canonical request，并交给 Python bridge
+3. `Copilot Gateway / Task Router` 校验 `project / task / schema_version`
+4. Gateway 调用现有 `services/gateway/copilot_gateway.py` 路径生成 `CopilotGatewayEnvelope`
+5. Response Builder 保持统一 `risk_level / requires_confirmation / citations / proposed_actions`
+6. 服务层只输出 advisory response，不写回 `RadishFlow`、`Radish` 或 `RadishCatalyst` 真相源
+7. 同一请求必须能复用既有 eval regression、candidate record audit 与治理报表作为验收门禁
+
+真实 provider capture 只在服务/API 或集成演示暴露现有样本无法覆盖的新 drift 时触发；触发前应先写清楚新假设、覆盖缺口和退出条件。
+
+### `CopilotGatewayEnvelope` 调用口径
+
+当前 gateway 层返回值统一采用 `CopilotGatewayEnvelope`，schema 真相源为 `contracts/copilot-gateway-envelope.schema.json`。
+
+首个对外调用形态当前固定为**Go HTTP + Python gateway bridge**：
+
+```python
+from services.gateway import GatewayOptions, handle_copilot_request
+
+envelope = handle_copilot_request(
+    copilot_request,
+    options=GatewayOptions(provider="mock"),
+)
+```
+
+HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canonical bridge 的包装形态；长驻服务、鉴权、端口和部署生命周期尚未进入更完整切片前，不把更复杂的 API 表面当成真相源。未来若扩展更多 northbound 形态，也必须复用同一个 `CopilotGatewayEnvelope` 语义，而不是引入第二套响应协议。
+
+调用侧口径建议固定为：
+
+- 上层提交 schema-valid `CopilotRequest`，不直接调用任务 runtime 或 provider
+- Gateway 返回 `schema_version / status / request_id / project / task / response / error / metadata`
+- 当 `status=ok` 或 `status=partial` 时，`response` 必须存在，并继续按 `contracts/copilot-response.schema.json` 校验和消费
+- 当 `status=failed` 时，调用侧必须优先读取 `error.code` 与 `error.message`；若同时存在 `response`，它也只能作为 failed advisory response 展示或记录，不能转成可执行动作
+- `metadata.route` 固定表达 `project/task`，用于调用侧日志、审计和路由观测
+- `metadata.provider` 只表达本次 gateway 使用的 provider/profile/model 摘要，不应被上层当作业务结果
+- `metadata.advisory_only` 必须保持 `true`；上层不得绕过人工确认或规则层复核直接执行 `response.proposed_actions`
+- `metadata.request_validated` 与 `metadata.response_validated` 用于确认 gateway 是否完成请求和响应 schema 校验；生产前调用侧应把任一 `false` 视为异常观测信号
+- 对 `RadishFlow suggest_flowsheet_edits`，即使 gateway 返回 `partial`，只要 `response.requires_confirmation=true`，上层也只能呈现候选建议，不能写回 `FlowsheetDocument`
+
+当前仓库用两层 smoke 固定这条调用口径：
+
+- `scripts/check-gateway-service-smoke.py --check-summary scripts/checks/fixtures/gateway-service-smoke-summary.json`：固定进程内 Python API 的成功调用、schema-valid 但 unsupported route、schema-invalid request 三类 envelope 行为
+- `scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check`：固定 `RadishFlow export -> adapter/request -> gateway envelope` 的服务/API 集成 smoke
+
+这些 summary 只锁定上层依赖的 envelope 行为字段，不锁死完整自然语言响应。
+
+当前还新增 `scripts/check-radishflow-service-smoke-matrix.py --check-summary scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json` 作为矩阵级门禁。该门禁不新增业务模拟，而是把 `run-copilot-inference.py` CLI runtime、进程内 gateway、`RadishFlow export -> adapter/request -> gateway` demo、UI consumption summary 与 candidate edit handoff summary 收束到同一条 `radishflow/suggest_flowsheet_edits` 服务切片，检查 route、provider、`requires_confirmation`、advisory-only、UI 不写回和 handoff 不执行这些跨入口不变量。
+
+### `RadishFlow` UI 消费口径
+
+`RadishFlow` 调用侧在消费 `CopilotGatewayEnvelope` 时，应先把 envelope 映射为 UI 可展示、可审计、不可直接执行的 consumption view：
+
+- `status=ok/partial` 且存在 `response.proposed_actions` 时，可展示候选提案卡片，但必须保留 `requires_confirmation`
+- `candidate_edit` 只能显示为 advisory proposal，后续真实修改仍交由上层命令层和人工确认流处理
+- `status=failed` 时，UI 应优先展示 `error.code / error.message`，并把同时存在的 failed `response` 仅作为说明或日志，不转成候选动作
+- `metadata.provider / route / request_validated / response_validated / advisory_only` 应进入调用侧审计或诊断信息，不作为业务真相源
+- 任一消费路径都不得直接写回 `FlowsheetDocument`
+
+当前仓库用 `scripts/check-radishflow-gateway-ui-consumption.py --check-summary scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json` 固定这层消费口径。该 summary 覆盖 proposal-ready、unsupported route 与 schema-invalid 三类路径，确保上层可消费视图始终保持 advisory-only。
+
+### `RadishFlow` 候选编辑 handoff 口径
+
+当用户在 UI 中确认某条 `candidate_edit` 后，调用侧仍不应直接执行 patch，而应生成命令层可接收的候选 handoff：
+
+- 只有 `kind=candidate_edit` 且 `requires_confirmation=true` 的动作可以进入 handoff
+- handoff 输出是 `radishflow_candidate_edit_proposal`，不是已执行命令
+- handoff 必须保留 `source_request_id`、`source_route`、`action_index`、`target`、`patch_keys`、`risk_level` 与 `citation_ids`
+- handoff 必须显式标记 `requires_human_confirmation=true` 与 `can_execute=false`
+- `status=failed`、schema-invalid request 或没有合格 `candidate_edit` 的响应不得产生 handoff
+
+当前仓库用 `scripts/check-radishflow-candidate-edit-handoff.py --check-summary scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json` 固定这层 handoff 口径。该 summary 只证明候选动作可被安全交接给上层命令层，不代表本仓库已经执行或实现 `RadishFlow` 真实命令。
+
+### 当前上层接入等待口径
+
+`RadishFlow`、`Radish` 与 `RadishCatalyst` 暂时都还没有进入真实模型 / Agent 接入阶段，因此当前不把真实上层调用位置作为 `RadishMind` 的阻塞项。
+
+在上层项目准备好之前：
+
+- 当前已落地的 gateway smoke、服务级 smoke 矩阵、`RadishFlow` UI consumption summary 与 candidate edit handoff summary 视为未来接入验收门禁
+- 不继续为尚不存在的上层 UI / 命令层扩展更多本仓库内模拟 summary
+- HTTP JSON 包装已由 `Go` 平台服务层承接，但它仍只是 canonical bridge 的第一版包装形态，不在没有真实消费方前继续膨胀协议表面
+- 当前主线优先维护 `M3` 的 service/API smoke 矩阵，继续把 gateway、UI consumption 与 candidate edit handoff 作为同一条 `RadishFlow` 服务切片的验收门禁；`M4` 仅保留已收口的 builder/tooling 与 `3B/4B` 审计记录，不再继续扩同一批 guided 或 broader 样本面
+- 未来 `RadishFlow`、`Radish` 或 `RadishCatalyst` 准备接入时，应优先复用现有 `CopilotRequest`、`CopilotResponse` 与 `CopilotGatewayEnvelope`，而不是新增第二套协议
+- `RadishCatalyst` 当前仅作为第三项目预留，不修改 `contracts/copilot-request.schema.json`、`contracts/copilot-response.schema.json` 或 gateway route；等第一条真实任务、adapter skeleton 和最小 eval sample 一起进入时，再扩 `project=radishcatalyst` 的 schema 枚举和 smoke
+
+### 当前仓库集成边界
+
+当前正式口径是：`RadishMind`、`RadishFlow`、`Radish` 与 `RadishCatalyst` 保持独立仓库，通过协议、gateway、adapter、评测门禁和版本化制品集成，而不是在正式仓库之间互相建立 `git submodule`。
+
+当前不采用以下做法作为默认方案：
+
+- 不在 `RadishMind` 中加入 `RadishFlow`、`Radish`、`RadishCatalyst` 子模块
+- 不在 `RadishFlow`、`Radish`、`RadishCatalyst` 中默认加入 `RadishMind` 子模块
+
+原因是当前更需要先冻结服务/API 接口、schema、smoke 与验收门禁，而不是提前把多仓库源码分发方式固化为长期结构。若后续确实需要多仓联调或集成演示，应优先单独建立 integration workspace / super-repo，而不是让任一正式仓库承担长期聚合角色。

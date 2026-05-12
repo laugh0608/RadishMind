@@ -6,6 +6,8 @@
 
 `docs/` 是 RadishMind 的正式文档源。关键入口文档只保留项目定位、当前阶段、最近进度、下一步和停止线；历史推演、批次细节、长实验观察和一次性讨论应沉淀到 `docs/devlogs/`、任务卡、manifest 或 run record 中。
 
+文档默认按“短入口 + 专题页 + 证据附件”维护：入口文档保持可快速阅读，契约细节拆到稳定专题，长命令输出、批次流水和实验观察进入周志、任务卡附件、manifest、summary 或 run record。仓库级检查会对 Markdown 篇幅执行预算：入口文档超过 `250` 行失败，普通 Markdown 超过 `500` 行提示、超过 `800` 行失败，周志和任务卡超过 `350` 行提示、超过 `600` 行失败；临时超限必须在文件头写明 `markdown-size-allow:` 及拆分计划。
+
 新会话优先按以下顺序读取：
 
 1. 本文件
@@ -58,6 +60,7 @@
 - [阶段路线图](radishmind-roadmap.md)
 - [代码规范](radishmind-code-standards.md)
 - [跨项目集成契约](radishmind-integration-contracts.md)
+- [契约专题目录](contracts/README.md)
 - [ADR 0002: 仓库集成边界](adr/0002-repository-integration-boundary.md)
 - [RadishMind-Core 首版基座评估](radishmind-core-baseline-evaluation.md)
 - [ADR 0001: 分支与 PR 治理](adr/0001-branch-and-pr-governance.md)
