@@ -102,6 +102,21 @@ def check_success_report() -> None:
     provider_ids = set(providers.get("registry_provider_ids") or [])
     require({"mock", "openai-compatible", "huggingface", "ollama"} <= provider_ids, "diagnostics provider registry is incomplete")
     require(int(providers.get("profile_count") or 0) >= 4, "diagnostics should expose configured profile count")
+    selectable_model_ids = set(providers.get("selectable_model_ids") or [])
+    require("profile:anyrouter" in selectable_model_ids, "diagnostics should expose openai-compatible selectable model id")
+    require(
+        "provider:huggingface:profile:hf-chat" in selectable_model_ids,
+        "diagnostics should expose huggingface selectable model id",
+    )
+    require(
+        "provider:ollama:profile:local" in selectable_model_ids,
+        "diagnostics should expose ollama selectable model id",
+    )
+    require(
+        int(providers.get("selectable_model_count") or 0) == len(selectable_model_ids),
+        "diagnostics selectable model count should match selectable ids",
+    )
+    require(providers.get("missing_credential_model_ids") == [], "diagnostics should not report missing credentials in success path")
     require(int(providers.get("configured_credential_count") or 0) >= 3, "diagnostics should count configured credentials")
     require(int(providers.get("optional_credential_count") or 0) >= 1, "diagnostics should count optional credentials")
 

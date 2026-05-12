@@ -46,6 +46,9 @@ type ProviderDiagnostics struct {
 	RegistryCount             int      `json:"registry_count"`
 	RegistryProviderIDs       []string `json:"registry_provider_ids"`
 	ProfileCount              int      `json:"profile_count"`
+	SelectableModelIDs        []string `json:"selectable_model_ids"`
+	SelectableModelCount      int      `json:"selectable_model_count"`
+	MissingCredentialModelIDs []string `json:"missing_credential_model_ids"`
 	ActiveProfileChain        []string `json:"active_profile_chain"`
 	MissingCredentialCount    int      `json:"missing_credential_count"`
 	OptionalCredentialCount   int      `json:"optional_credential_count"`
@@ -72,6 +75,12 @@ func BuildReport(ctx context.Context, cfg config.Config, client BridgeClient, ge
 			PythonBinary: summary.PythonBridge.PythonBinary,
 			Script:       summary.PythonBridge.Script,
 			FailureCodes: make([]string, 0),
+		},
+		Providers: ProviderDiagnostics{
+			RegistryProviderIDs:       make([]string, 0),
+			SelectableModelIDs:        make([]string, 0),
+			MissingCredentialModelIDs: make([]string, 0),
+			ActiveProfileChain:        make([]string, 0),
 		},
 		Metadata: map[string]interface{}{
 			"diagnostics_version": 1,
@@ -161,9 +170,17 @@ func providerIDs(providers []bridge.ProviderDescription) []string {
 
 func applyProfileCounts(diagnostics *ProviderDiagnostics, profiles []bridge.ProviderProfileDescription) {
 	for _, profile := range profiles {
+		modelID := buildProviderProfileModelID(profile.ProviderID, profile.Profile)
+		if modelID != "" {
+			diagnostics.SelectableModelIDs = append(diagnostics.SelectableModelIDs, modelID)
+			diagnostics.SelectableModelCount++
+		}
 		switch profile.CredentialState {
 		case "missing":
 			diagnostics.MissingCredentialCount++
+			if modelID != "" {
+				diagnostics.MissingCredentialModelIDs = append(diagnostics.MissingCredentialModelIDs, modelID)
+			}
 		case "optional_missing":
 			diagnostics.OptionalCredentialCount++
 		case "configured":
@@ -176,4 +193,25 @@ func applyProfileCounts(diagnostics *ProviderDiagnostics, profiles []bridge.Prov
 			diagnostics.LocalProfileCount++
 		}
 	}
+}
+
+func buildProviderProfileModelID(providerID string, profile string) string {
+	normalizedProviderID := strings.TrimSpace(providerID)
+	normalizedProfile := strings.TrimSpace(profile)
+	if normalizedProviderID == "" && normalizedProfile == "" {
+		return ""
+	}
+	if normalizedProviderID == "openai-compatible" {
+		if normalizedProfile == "" {
+			return "profile:default"
+		}
+		return "profile:" + normalizedProfile
+	}
+	if normalizedProviderID == "" {
+		return "profile:" + normalizedProfile
+	}
+	if normalizedProfile == "" {
+		normalizedProfile = "default"
+	}
+	return "provider:" + normalizedProviderID + ":profile:" + normalizedProfile
 }

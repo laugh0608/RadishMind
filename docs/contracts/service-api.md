@@ -94,6 +94,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 `/v1/models` 的 profile 条目必须暴露稳定 discoverability metadata：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。其中 `credential_state` 只允许表达 `configured / missing / optional_missing / not_required` 这类状态，不得泄漏 API key、token 或 secret 原文；`deployment_mode` 用于区分 `remote_api`、`local_daemon`、`embedded` 等运行形态。
 
+`/v1/models`、northbound request selection 和 `diagnostics.providers` 必须复用同一套 provider/profile discoverability 口径：profile 可选择 ID 固定为 `profile:<profile>` 或 `provider:<provider>:profile:<profile>`，selection metadata 固定暴露 `selected_provider`、`selected_provider_profile`、`selected_model`、`upstream_model`、`selection_source`、`selection_inventory_kind`、`credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 与 `northbound_protocols`。如果某个 profile 在 `/v1/models` 中可见，使用对应 model id 发起 `/v1/chat/completions`、`/v1/responses` 或 `/v1/messages` 时，canonical request 的 `context.northbound` 必须带出同源 selection metadata，避免“列表可见但请求选择不可解释”的漂移。
+
 当前本地启动 runbook 固定在 `services/platform/README.md`，并由 `scripts/check-platform-runbook.py` 防止配置、路由和命令说明漂移。该检查会对齐 `RADISHMIND_PLATFORM_*` 环境变量、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages` 和最小 curl smoke 命令；它只保证本地开发入口可复验，不代表 secret 管理、进程守护、部署观测或生产鉴权已经完成。
 
 ### `RadishFlow` UI 消费口径

@@ -17,11 +17,18 @@ const (
 )
 
 type northboundSelection struct {
-	provider        string
-	providerProfile string
-	model           string
-	upstreamModel   string
-	source          string
+	provider            string
+	providerProfile     string
+	model               string
+	upstreamModel       string
+	source              string
+	inventoryKind       string
+	credentialState     string
+	deploymentMode      string
+	authMode            string
+	streaming           bool
+	northboundRoutes    []string
+	northboundProtocols []string
 }
 
 type northboundCanonicalRequestOptions struct {
@@ -156,6 +163,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 		model:           configuredModel,
 		upstreamModel:   configuredModel,
 		source:          "configured_default",
+		inventoryKind:   "configured_default",
 	}
 	if selection.model == "" {
 		if selection.providerProfile != "" {
@@ -183,16 +191,14 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 			selection.model = requestedModel
 			selection.source = "requested_provider_profile_model"
 			if profile, ok := lookupNorthboundProfile(inventoryLookup, requestedModel); ok {
-				selection.provider = strings.TrimSpace(profile.ProviderID)
-				selection.providerProfile = strings.TrimSpace(profile.Profile)
+				selection.applyProfile(profile)
 				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 				selection.source = "requested_provider_profile_model+inventory"
 			}
 		} else if profile, ok := lookupNorthboundProfile(inventoryLookup, requestedModel); ok {
 			requestedConcreteModel = false
 			requestedProfileMatched = true
-			selection.provider = strings.TrimSpace(profile.ProviderID)
-			selection.providerProfile = strings.TrimSpace(profile.Profile)
+			selection.applyProfile(profile)
 			selection.model = requestedModel
 			selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 			selection.source = "requested_profile_model"
@@ -208,6 +214,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 				selection.providerProfile = activeProfile
 				selection.model = buildNorthboundProfileModelID(providerID, activeProfile)
 				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.applyProfile(profile)
 					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 				}
 				selection.source = "requested_provider_model+inventory"
@@ -224,6 +231,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 				selection.providerProfile = activeProfile
 				selection.model = buildNorthboundProfileModelID(requestedModel, activeProfile)
 				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.applyProfile(profile)
 					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 				}
 				selection.source = "requested_provider_model+inventory"
@@ -261,6 +269,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 				selection.providerProfile = activeProfile
 				selection.model = buildNorthboundProfileModelID(explicitProvider, activeProfile)
 				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.applyProfile(profile)
 					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 				}
 			} else if selection.providerProfile == "" {
@@ -273,16 +282,14 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 		selection.providerProfile = explicitProfile
 		selection.source = "radishmind.provider_profile"
 		if profile, ok := lookupNorthboundProfile(inventoryLookup, buildNorthboundProfileModelID(selection.provider, explicitProfile)); ok {
-			selection.provider = strings.TrimSpace(profile.ProviderID)
-			selection.providerProfile = strings.TrimSpace(profile.Profile)
+			selection.applyProfile(profile)
 			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
 			if !requestedConcreteModel {
 				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 			}
 			selection.source = "radishmind.provider_profile+inventory"
 		} else if profile, ok := lookupNorthboundProfile(inventoryLookup, "profile:"+explicitProfile); ok {
-			selection.provider = strings.TrimSpace(profile.ProviderID)
-			selection.providerProfile = strings.TrimSpace(profile.Profile)
+			selection.applyProfile(profile)
 			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
 			if !requestedConcreteModel {
 				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
@@ -299,6 +306,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 				selection.providerProfile = activeProfile
 				selection.model = buildNorthboundProfileModelID(selection.provider, activeProfile)
 				if profile, ok := lookupNorthboundProfile(inventoryLookup, selection.model); ok {
+					selection.applyProfile(profile)
 					selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 				}
 			} else if selection.model == "" {
@@ -311,7 +319,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 
 	if selection.providerProfile != "" {
 		if profile, ok := lookupNorthboundProfile(inventoryLookup, buildNorthboundProfileModelID(selection.provider, selection.providerProfile)); ok {
-			selection.provider = strings.TrimSpace(profile.ProviderID)
+			selection.applyProfile(profile)
 			if !requestedConcreteModel {
 				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 			}
@@ -338,8 +346,27 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 			selection.model = selection.provider
 		}
 	}
+	if selection.inventoryKind == "" {
+		if _, ok := inventoryLookup.providers[selection.provider]; ok && selection.providerProfile == "" {
+			selection.inventoryKind = "provider_registry"
+		} else {
+			selection.inventoryKind = "runtime_override"
+		}
+	}
 
 	return selection
+}
+
+func (selection *northboundSelection) applyProfile(profile bridge.ProviderProfileDescription) {
+	selection.provider = strings.TrimSpace(profile.ProviderID)
+	selection.providerProfile = strings.TrimSpace(profile.Profile)
+	selection.inventoryKind = "provider_profile"
+	selection.credentialState = strings.TrimSpace(profile.CredentialState)
+	selection.deploymentMode = strings.TrimSpace(profile.DeploymentMode)
+	selection.authMode = strings.TrimSpace(profile.AuthMode)
+	selection.streaming = profile.Streaming
+	selection.northboundRoutes = append([]string(nil), profile.NorthboundRoutes...)
+	selection.northboundProtocols = append([]string(nil), profile.NorthboundProtocols...)
 }
 
 func buildNorthboundCanonicalRequest(options northboundCanonicalRequestOptions) ([]byte, error) {
@@ -395,14 +422,8 @@ func buildNorthboundSelectionFields(
 	selection northboundSelection,
 	extension *chatCompletionExtension,
 ) map[string]any {
-	fields := map[string]any{
-		"requested_model":           strings.TrimSpace(requestedModel),
-		"selected_provider":         strings.TrimSpace(selection.provider),
-		"selected_provider_profile": strings.TrimSpace(selection.providerProfile),
-		"selected_model":            strings.TrimSpace(selection.model),
-		"upstream_model":            strings.TrimSpace(selection.upstreamModel),
-		"selection_source":          strings.TrimSpace(selection.source),
-	}
+	fields := buildNorthboundSelectionMetadata(selection)
+	fields["requested_model"] = strings.TrimSpace(requestedModel)
 	if extension != nil {
 		if provider := strings.TrimSpace(extension.Provider); provider != "" {
 			fields["requested_provider"] = provider
@@ -418,6 +439,34 @@ func buildNorthboundSelectionFields(
 		}
 	}
 	return fields
+}
+
+func buildNorthboundSelectionMetadata(selection northboundSelection) map[string]any {
+	metadata := map[string]any{
+		"selected_provider":         strings.TrimSpace(selection.provider),
+		"selected_provider_profile": strings.TrimSpace(selection.providerProfile),
+		"selected_model":            strings.TrimSpace(selection.model),
+		"upstream_model":            strings.TrimSpace(selection.upstreamModel),
+		"selection_source":          strings.TrimSpace(selection.source),
+		"selection_inventory_kind":  strings.TrimSpace(selection.inventoryKind),
+		"streaming":                 selection.streaming,
+	}
+	if selection.credentialState != "" {
+		metadata["credential_state"] = strings.TrimSpace(selection.credentialState)
+	}
+	if selection.deploymentMode != "" {
+		metadata["deployment_mode"] = strings.TrimSpace(selection.deploymentMode)
+	}
+	if selection.authMode != "" {
+		metadata["auth_mode"] = strings.TrimSpace(selection.authMode)
+	}
+	if len(selection.northboundRoutes) > 0 {
+		metadata["northbound_routes"] = append([]string(nil), selection.northboundRoutes...)
+	}
+	if len(selection.northboundProtocols) > 0 {
+		metadata["northbound_protocols"] = append([]string(nil), selection.northboundProtocols...)
+	}
+	return metadata
 }
 
 func buildNorthboundPromptText(sections ...string) string {

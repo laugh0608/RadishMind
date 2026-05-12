@@ -404,6 +404,18 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if northbound["upstream_model"] != "deepseek-chat" {
 			t.Fatalf("unexpected upstream model: %#v", northbound["upstream_model"])
 		}
+		if northbound["credential_state"] != "configured" {
+			t.Fatalf("unexpected credential state: %#v", northbound["credential_state"])
+		}
+		if northbound["deployment_mode"] != "remote_api" {
+			t.Fatalf("unexpected deployment mode: %#v", northbound["deployment_mode"])
+		}
+		if northbound["selection_inventory_kind"] != "provider_profile" {
+			t.Fatalf("unexpected selection inventory kind: %#v", northbound["selection_inventory_kind"])
+		}
+		if routes, ok := northbound["northbound_routes"].([]any); !ok || len(routes) == 0 {
+			t.Fatalf("missing northbound routes: %#v", northbound["northbound_routes"])
+		}
 	})
 
 	t.Run("chat provider profile selection", func(t *testing.T) {
@@ -559,6 +571,19 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if profileModel.Metadata["streaming"] != true {
 			t.Fatalf("unexpected profile streaming flag: %#v", profileModel.Metadata["streaming"])
+		}
+		selectionMetadata, ok := profileModel.Metadata["selection"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing profile selection metadata: %#v", profileModel.Metadata["selection"])
+		}
+		if selectionMetadata["selected_provider"] != "openai-compatible" {
+			t.Fatalf("unexpected selection provider: %#v", selectionMetadata["selected_provider"])
+		}
+		if selectionMetadata["credential_state"] != "configured" {
+			t.Fatalf("unexpected selection credential state: %#v", selectionMetadata["credential_state"])
+		}
+		if selectionMetadata["selection_inventory_kind"] != "provider_profile" {
+			t.Fatalf("unexpected selection inventory kind: %#v", selectionMetadata["selection_inventory_kind"])
 		}
 	})
 

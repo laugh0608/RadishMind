@@ -50,6 +50,8 @@
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
 
+profile 可选择 ID 固定为 `profile:<profile>` 或 `provider:<provider>:profile:<profile>`。`/v1/models`、请求时的 provider/profile selection 和 `diagnostics.providers.selectable_model_ids` 使用同一套 ID 与 readiness metadata；当请求选中某个 profile 时，canonical request 的 `context.northbound` 会记录 `credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 与 `northbound_protocols`，用于审计和排障。
+
 ## 本地启动 runbook
 
 该 runbook 面向开发者本机验证，不等同于 production deployment。启动服务前应先运行平台层单元测试：
@@ -148,6 +150,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - `checks`：`config_required_fields`、`bridge_provider_registry`、`bridge_provider_inventory` 与 `deployment_readiness`
 - `bridge`：Python bridge 脚本、registry / inventory 可用性和 bridge 失败码
 - `providers`：provider registry 数量、profile 数量、active profile chain、credential state 计数和 deployment mode 计数
+- `providers.selectable_model_ids`：与 `/v1/models` 和请求选择一致的 profile model id 列表
 - `failure_codes` / `failure`：启动前可定位的失败边界
 
 ## 本地 smoke 验证

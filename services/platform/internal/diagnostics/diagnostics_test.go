@@ -41,8 +41,18 @@ func TestBuildReportReturnsSanitizedOKDiagnostics(t *testing.T) {
 		},
 		inventory: bridge.ProviderInventory{
 			Profiles: []bridge.ProviderProfileDescription{
-				{CredentialState: "configured", DeploymentMode: "remote_api"},
-				{CredentialState: "optional_missing", DeploymentMode: "local_daemon"},
+				{
+					ProviderID:      "openai-compatible",
+					Profile:         "anyrouter",
+					CredentialState: "configured",
+					DeploymentMode:  "remote_api",
+				},
+				{
+					ProviderID:      "ollama",
+					Profile:         "local",
+					CredentialState: "optional_missing",
+					DeploymentMode:  "local_daemon",
+				},
 			},
 			ActiveProfileChain: []string{"provider:huggingface:profile:hf-chat"},
 		},
@@ -67,6 +77,9 @@ func TestBuildReportReturnsSanitizedOKDiagnostics(t *testing.T) {
 	}
 	if report.Providers.ConfiguredCredentialCount != 1 || report.Providers.OptionalCredentialCount != 1 {
 		t.Fatalf("unexpected credential counts: %#v", report.Providers)
+	}
+	if !reflect.DeepEqual(report.Providers.SelectableModelIDs, []string{"profile:anyrouter", "provider:ollama:profile:local"}) {
+		t.Fatalf("unexpected selectable model ids: %#v", report.Providers.SelectableModelIDs)
 	}
 }
 

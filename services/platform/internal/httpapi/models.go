@@ -152,18 +152,25 @@ func buildNorthboundConfiguredModel(
 		Created: now,
 		OwnedBy: strings.TrimSpace(server.config.Provider),
 		Metadata: map[string]any{
-			"source":                     "configured_default",
-			"provider_id":                strings.TrimSpace(server.config.Provider),
-			"provider_profile":           strings.TrimSpace(server.config.ProviderProfile),
-			"northbound_routes":          []string{"/v1/chat/completions", "/v1/responses", "/v1/messages", "/v1/models"},
-			"northbound_protocols":       []string{northboundProtocolChatCompletions, northboundProtocolResponses, northboundProtocolMessages},
-			"inventory_kind":             "configured_default",
-			"active_profile_chain":       inventory.ActiveProfileChain,
-			"profile_inventory":          inventory.Profiles,
-			"profile_inventory_count":    len(inventory.Profiles),
-			"provider_inventory_count":   len(inventory.Providers),
-			"provider_registry_version":  "bridge-backed",
-			"resolved_selection_summary": buildNorthboundSelectionSummary(server.config.Provider, server.config.ProviderProfile, configuredModel),
+			"source":                    "configured_default",
+			"provider_id":               strings.TrimSpace(server.config.Provider),
+			"provider_profile":          strings.TrimSpace(server.config.ProviderProfile),
+			"northbound_routes":         []string{"/v1/chat/completions", "/v1/responses", "/v1/messages", "/v1/models"},
+			"northbound_protocols":      []string{northboundProtocolChatCompletions, northboundProtocolResponses, northboundProtocolMessages},
+			"inventory_kind":            "configured_default",
+			"active_profile_chain":      inventory.ActiveProfileChain,
+			"profile_inventory":         inventory.Profiles,
+			"profile_inventory_count":   len(inventory.Profiles),
+			"provider_inventory_count":  len(inventory.Providers),
+			"provider_registry_version": "bridge-backed",
+			"selection": buildNorthboundSelectionMetadata(northboundSelection{
+				provider:        server.config.Provider,
+				providerProfile: server.config.ProviderProfile,
+				model:           configuredModel,
+				upstreamModel:   configuredModel,
+				source:          "configured_default",
+				inventoryKind:   "configured_default",
+			}),
 		},
 	}
 }
@@ -232,7 +239,7 @@ func buildNorthboundProfileModel(now int64, profile bridge.ProviderProfileDescri
 			"deployment_mode":         profile.DeploymentMode,
 			"auth_mode":               profile.AuthMode,
 			"streaming":               profile.Streaming,
-			"selection_summary":       buildNorthboundSelectionSummary(profile.ProviderID, profile.Profile, profile.ResolvedModel),
+			"selection":               buildNorthboundSelectionMetadata(selectionFromProfileModel(profile, modelID)),
 			"lookup_aliases":          buildNorthboundProfileModelAliases(profile),
 		},
 	}
@@ -249,14 +256,6 @@ func buildNorthboundProfileModelAliases(profile bridge.ProviderProfileDescriptio
 		aliases = append(aliases, "profile:"+profileName)
 	}
 	return aliases
-}
-
-func buildNorthboundSelectionSummary(provider string, providerProfile string, model string) map[string]any {
-	return map[string]any{
-		"provider":         strings.TrimSpace(provider),
-		"provider_profile": strings.TrimSpace(providerProfile),
-		"model":            strings.TrimSpace(model),
-	}
 }
 
 func buildNorthboundProfileModelID(providerID string, profile string) string {
@@ -278,4 +277,14 @@ func buildNorthboundProfileModelID(providerID string, profile string) string {
 		trimmedProfile = "default"
 	}
 	return "provider:" + trimmedProviderID + ":profile:" + trimmedProfile
+}
+
+func selectionFromProfileModel(profile bridge.ProviderProfileDescription, modelID string) northboundSelection {
+	selection := northboundSelection{
+		model:         strings.TrimSpace(modelID),
+		upstreamModel: strings.TrimSpace(profile.ResolvedModel),
+		source:        "provider_profile_inventory",
+	}
+	selection.applyProfile(profile)
+	return selection
 }
