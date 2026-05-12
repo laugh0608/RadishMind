@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary 和 provider/profile discoverability 对齐已补齐。第一版 northbound 仍是窄切片，下一步重点转向请求级观测、错误分类、部署环境边界和更完整的长驻服务运维口径。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary 和 provider/profile discoverability 对齐已补齐。`P1 Runtime Foundation` 已达到 first-pass complete；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，下一步只保留请求级观测、错误分类和必要协议组合门禁作为短收口。
 
-下一步：在现有 provider registry 骨架、`Go` service bootstrap、平台级 `ops smoke`、配置层级、deployment smoke、diagnostics 和 discoverability 对齐之上，补请求级观测字段、错误分类和部署环境边界，再把现有 bridge 增量流式转发扩展到更多 northbound / southbound 组合。
+下一步：补最小 request-level observability 与 error taxonomy，固定 `request_id`、route、provider/profile、selected model、latency、sanitized error code 和 failure boundary；完成后把主要实现重心切到 `P2 Session & Tooling Foundation`，不再继续把 P1 做成无限硬化阶段。
 
 ### 2. `Conversation & Session`
 
@@ -83,25 +83,25 @@
 
 目标：把“项目到底是什么、有哪些主线、哪些能力缺口最关键”写成正式文档和能力矩阵。
 
-状态：当前正在完成。
+状态：已完成平台重定义、能力矩阵和主线切换；后续只维护文档口径，不再作为主要实现阶段。
 
 ### `P1`：Runtime Foundation
 
 目标：收口最小本地 service bootstrap、provider registry、northbound/southbound 协议兼容、配置、调用和 smoke 路径。
 
-状态：这是当前默认第一实现项；provider registry 最小骨架已落地，下一步继续补协议兼容层和本地 service bootstrap。
+状态：first-pass complete。provider registry、Go service bootstrap、northbound bridge、provider/profile discoverability、config layering、wrapper、deployment smoke 和 diagnostics 已进入快速门禁；剩余只保留 request observability、error taxonomy 与必要协议组合 smoke 作为短收口。
 
 ### `P2`：Session & Tooling Foundation
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：紧随 `P1`，不提前空转架构。
+状态：即将进入主要实现阶段。P1 短收口完成后，优先补 session contract、history policy、recovery record、tool schema、tool registry、tool policy 和 audit record。
 
 ### `P3`：Local Deployment & Ops Governance
 
 目标：让本地长驻服务、启动脚本、观测、故障边界和 deployment smoke 具备正式口径。
 
-状态：当前已完成本地 wrapper、配置文件层级、deployment smoke 和启动前 diagnostics 的第一版门禁；尚未进入 production secret backend、进程守护、请求级观测或正式部署环境隔离。
+状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics 和 runbook drift check；尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
 
 ### `P4`：Model Adaptation & Training
 
@@ -117,9 +117,9 @@
 
 ## 下一步
 
-1. 先推进 `Runtime Service`，把 provider registry、外部模型接入和对外协议兼容收口成正式平台能力。
-2. 再补 `Conversation & Session` 与 `Tooling Framework` 的最小契约，不再只靠 task-local 透传和脚本散落逻辑。
-3. 把 `Evaluation & Governance` 从“任务输出门禁”扩展为“平台能力门禁”。
+1. 先用一个短收口任务补齐 platform request observability 和 error taxonomy。
+2. 随后进入 `P2 Session & Tooling Foundation`，补 `Conversation & Session` 与 `Tooling Framework` 的最小契约，不再只靠 task-local 透传和脚本散落逻辑。
+3. 把 `Evaluation & Governance` 从“任务输出门禁”扩展为“平台能力门禁”，重点覆盖 request observability、session、tooling 和 deployment promotion。
 4. 只有在前述平台边界稳定后，才定义新的训练 / 蒸馏主线。
 5. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
 
@@ -129,5 +129,6 @@
 - 不把机器指标通过写成人工可接受度通过。
 - 不在没有非重复能力假设时继续扩同一批 `M4` 实验。
 - 不在上层项目没有真实挂载点时继续细化假想接线设计。
+- 不把 `P1` 继续扩成无止境的 provider/config/diagnostics 细化阶段。
 - 不让模型直接写上层业务真相源。
 - 不用晦涩抽象、空泛 helper 或多层 fallback 掩盖代码职责不清。

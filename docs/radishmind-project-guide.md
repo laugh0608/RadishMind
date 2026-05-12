@@ -39,13 +39,13 @@
 
 ## 当前五条主线
 
-1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础；表层实现按职责可落到 `Go`，模型侧仍保留 `Python`。
+1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础；当前已达到 first-pass complete，下一步只短收口请求级观测和错误分类。
 2. `Conversation & Session`：会话标识、历史压缩、恢复和审计边界。
 3. `Tooling Framework`：检索、附件解析、候选生成、builder、tool policy 和 audit。
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，默认先看 `Runtime Service`，再看 `Conversation & Session` 与 `Tooling Framework`。
+如果你今天想推进开发，默认先完成 `Runtime Service` 的请求级观测 / 错误分类短收口，然后进入 `Conversation & Session` 与 `Tooling Framework`。
 
 ## 目录速览
 
@@ -154,7 +154,8 @@ python3 scripts/run-radishmind-core-candidate.py \
 
 - 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
 - 北向已有第一版兼容面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
-- 当前仍是窄切片：还缺请求级观测、错误分类、production secret backend、部署隔离、外部 provider health check 与更完整的 route / stream 组合 smoke
+- `P1 Runtime Foundation` 已达到 first-pass complete，当前不应继续把 provider/config/diagnostics 同层细节当作主线
+- 当前仍是窄切片：还缺请求级观测、错误分类、production secret backend、部署隔离、外部 provider health check 与少量高价值 route / stream 组合 smoke
 
 ## 今天还不能算完成的能力
 

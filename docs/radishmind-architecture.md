@@ -138,14 +138,14 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 ## 当前缺口
 
-- 只有最小 `Go` 长驻服务壳和 bridge-backed `HTTP API`
-- 只有最小 northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 兼容接口；当前虽已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics 和 discoverability 对齐，但请求级观测、错误分类和生产部署边界还未正式落地
+- 当前只有 first-pass `Go` platform service 和 bridge-backed `HTTP API`，还不是 production deployment
+- northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 已具备第一版兼容接口；当前虽已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics 和 discoverability 对齐，但请求级观测、错误分类和生产部署边界还未正式落地
 - `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory 和 diagnostics 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
 - 没有正式 session contract、history policy、恢复和会话级门禁
 - 没有通用 tool registry、tool calling contract 和 tool audit
-- 没有正式 deployment runbook、启动包装和平台级 ops smoke
+- 尚未具备 production secret backend、process supervisor、正式部署环境隔离和可发布部署包
 
-这些缺口说明：当前最应该做的是把平台骨架补完整，而不是继续围绕同一批模型实验或假想接线打转。
+这些缺口说明：`P1 Runtime Foundation` 已有可用的一版平台骨架，当前不应继续在 provider/config/diagnostics 同层无限细化；下一步应先补请求级观测和错误分类，再把主要实现重心切到 session 与 tooling。
 
 ## 当前进度
 
