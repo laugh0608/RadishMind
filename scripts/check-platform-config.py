@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,8 @@ REQUIRED_SUMMARY_FIELDS = {
     "required_fields",
     "missing_required_fields",
     "secret_fields",
+    "config_file",
+    "field_sources",
     "sanitized",
 }
 
@@ -72,6 +75,8 @@ def require_summary_shape(summary: dict[str, Any]) -> None:
     require(summary.get("sanitized") is True, "config summary must be marked sanitized")
     require(isinstance(summary.get("timeouts"), dict), "config summary timeouts must be an object")
     require(isinstance(summary.get("python_bridge"), dict), "config summary python_bridge must be an object")
+    require(isinstance(summary.get("config_file"), dict), "config summary config_file must be an object")
+    require(isinstance(summary.get("field_sources"), dict), "config summary field_sources must be an object")
     require("api_key" not in summary, "config summary must not expose api_key")
     require("base_url" not in summary, "config summary must not expose base_url")
     serialized = json.dumps(summary, ensure_ascii=False)
@@ -85,6 +90,8 @@ def check_mock_default() -> None:
     require(summary["provider"] == "mock", "default provider should be mock")
     require(summary["credential_state"] == "not_required", "mock credential state should be not_required")
     require(summary["missing_required_fields"] == [], "mock config should not miss required fields")
+    require(summary["field_sources"].get("provider") == "default", "default provider source should be default")
+    require(summary["config_file"].get("configured") is False, "default config_file should not be configured")
 
     status_code, check_document = load_check(env)
     require(status_code == 0, "mock config-check should pass")
@@ -114,6 +121,8 @@ def check_remote_provider_success() -> None:
     require(summary["base_url_configured"] is True, "base_url_configured should be true")
     require(summary["credential_state"] == "configured", "remote provider credential state should be configured")
     require(summary["timeouts"].get("bridge") == "45s", "bridge timeout did not round-trip")
+    require(summary["field_sources"].get("provider") == "env", "provider source should be env")
+    require(summary["field_sources"].get("credential") == "env", "credential source should be env")
 
     status_code, check_document = load_check(env)
     require(status_code == 0, "configured remote config-check should pass")
@@ -153,11 +162,56 @@ def check_ollama_optional_credential() -> None:
     require(summary["missing_required_fields"] == [], "ollama config should not require credential")
 
 
+def check_config_file_layering() -> None:
+    env = base_env()
+    with tempfile.TemporaryDirectory(prefix="radishmind-platform-config-") as temp_dir:
+        config_path = Path(temp_dir) / "platform-config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "listen_addr": "127.0.0.1:9191",
+                    "provider": "openai-compatible",
+                    "provider_profile": "file-profile",
+                    "model": "file-model",
+                    "base_url": "https://file.example.invalid/v1",
+                    "api_key": SECRET_SENTINEL,
+                    "bridge_timeout": "55s",
+                    "temperature": 0.3,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        env.update(
+            {
+                "RADISHMIND_PLATFORM_CONFIG": str(config_path),
+                "RADISHMIND_PLATFORM_MODEL": "env-model",
+                "RADISHMIND_PLATFORM_BRIDGE_TIMEOUT": "22s",
+            }
+        )
+        summary = load_summary(env)
+        require_summary_shape(summary)
+        require(summary["listen_addr"] == "127.0.0.1:9191", "config file listen addr did not load")
+        require(summary["provider"] == "openai-compatible", "config file provider did not load")
+        require(summary["profile"] == "file-profile", "config file profile did not load")
+        require(summary["model"] == "env-model", "env model should override config file model")
+        require(summary["timeouts"].get("bridge") == "22s", "env bridge timeout should override config file")
+        require(summary["base_url_configured"] is True, "config file base_url presence should be true")
+        require(summary["credential_state"] == "configured", "config file credential should be configured")
+        require(summary["config_file"].get("path") == str(config_path), "config file path did not round-trip")
+        require(summary["config_file"].get("loaded") is True, "config file should be marked loaded")
+        require(summary["field_sources"].get("listen_addr") == "file", "listen_addr source should be file")
+        require(summary["field_sources"].get("model") == "env", "model source should be env")
+        require(summary["field_sources"].get("bridge_timeout") == "env", "bridge timeout source should be env")
+        require(summary["field_sources"].get("credential") == "file", "credential source should be file")
+
+
 def main() -> int:
     check_mock_default()
     check_remote_provider_success()
     check_remote_provider_failure()
     check_ollama_optional_credential()
+    check_config_file_layering()
     print("platform config checks passed.")
     return 0
 

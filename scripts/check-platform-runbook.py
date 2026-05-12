@@ -15,6 +15,7 @@ MAIN_PATH = REPO_ROOT / "services/platform/cmd/radishmind-platform/main.go"
 EXPECTED_COMMAND_PATTERNS = (
     "cd services/platform",
     "GOCACHE=/tmp/radishmind-go-build-cache go test ./...",
+    "RADISHMIND_PLATFORM_CONFIG=tmp/radishmind-platform.local.json",
     "go run ./cmd/radishmind-platform",
     "go run ./services/platform/cmd/radishmind-platform config-summary",
     "go run ./services/platform/cmd/radishmind-platform config-check",
@@ -48,6 +49,8 @@ def main() -> int:
     require("## 环境变量" in readme, "platform README must include environment variable section")
     require("## 本地 smoke 验证" in readme, "platform README must include local smoke section")
     require("## 故障边界" in readme, "platform README must include failure boundary section")
+    require("default < config file < env" in readme, "platform README must document config precedence")
+    require("scripts/check-platform-deployment-smoke.py" in readme, "platform README must mention deployment smoke")
 
     env_keys = extract_platform_env_keys(config_content)
     missing_env_keys = sorted(key for key in env_keys if key not in readme)
