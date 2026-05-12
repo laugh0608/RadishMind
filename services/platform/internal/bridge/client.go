@@ -50,6 +50,13 @@ type ProviderProfileDescription struct {
 	Active                bool    `json:"active"`
 	Fallback              bool    `json:"fallback"`
 	ChainIndex            int     `json:"chain_index"`
+	Capabilities          map[string]any `json:"capabilities"`
+	NorthboundProtocols   []string       `json:"northbound_protocols"`
+	NorthboundRoutes      []string       `json:"northbound_routes"`
+	CredentialState       string         `json:"credential_state"`
+	DeploymentMode        string         `json:"deployment_mode"`
+	AuthMode              string         `json:"auth_mode"`
+	Streaming             bool           `json:"streaming"`
 }
 
 type ProviderInventory struct {

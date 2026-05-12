@@ -143,6 +143,28 @@ def check_bridge_inventory(env: dict[str, str]) -> None:
         profile_by_model_id["provider:huggingface:profile:hf-chat"].get("has_api_key") is True,
         "huggingface profile should expose api-key presence without leaking the key",
     )
+    require(
+        profile_by_model_id["provider:huggingface:profile:hf-chat"].get("credential_state") == "configured",
+        "huggingface profile should expose configured credential state",
+    )
+    require(
+        profile_by_model_id["provider:ollama:profile:local"].get("credential_state") == "optional_missing",
+        "ollama local profile should expose optional_missing credential state",
+    )
+    require(
+        profile_by_model_id["profile:anyrouter"].get("deployment_mode") == "remote_api",
+        "openai-compatible profile should expose deployment mode",
+    )
+    require(
+        profile_by_model_id["provider:ollama:profile:local"].get("deployment_mode") == "local_daemon",
+        "ollama local profile should expose local daemon deployment mode",
+    )
+    for model_id, profile in profile_by_model_id.items():
+        capabilities = profile.get("capabilities")
+        require(isinstance(capabilities, dict), f"{model_id}: profile capabilities must be an object")
+        require(capabilities.get("chat") is True, f"{model_id}: profile must expose chat capability")
+        require("chat.completions" in (profile.get("northbound_protocols") or []), f"{model_id}: missing chat northbound protocol")
+        require("/v1/chat/completions" in (profile.get("northbound_routes") or []), f"{model_id}: missing chat northbound route")
 
 
 def provider_profile_model_id(provider_id: str, profile: str) -> str:

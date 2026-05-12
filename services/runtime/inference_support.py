@@ -368,6 +368,7 @@ def describe_provider_inventory() -> dict[str, Any]:
                 )
             resolved_profile = str(resolved["profile"]).strip() or str(profile or "").strip() or "default"
             profile_model_id = build_provider_profile_inventory_model_id(provider_id, resolved_profile)
+            provider_capabilities = provider.get("capabilities") or {}
             if index == 0:
                 active_profile_chain.append(profile_model_id)
             profiles.append(
@@ -383,6 +384,13 @@ def describe_provider_inventory() -> dict[str, Any]:
                     "active": index == 0,
                     "fallback": index > 0,
                     "chain_index": index,
+                    "capabilities": provider_capabilities,
+                    "northbound_protocols": provider_profile_northbound_protocols(provider_capabilities),
+                    "northbound_routes": provider_profile_northbound_routes(provider_capabilities),
+                    "credential_state": provider_profile_credential_state(provider_capabilities, bool(str(resolved["api_key"]).strip())),
+                    "deployment_mode": provider_capabilities.get("deployment_mode") or "",
+                    "auth_mode": provider_capabilities.get("auth_mode") or "",
+                    "streaming": bool(provider_capabilities.get("streaming")),
                 }
             )
 
@@ -391,6 +399,39 @@ def describe_provider_inventory() -> dict[str, Any]:
         "profiles": profiles,
         "active_profile_chain": active_profile_chain,
     }
+
+
+def provider_profile_northbound_protocols(capabilities: dict[str, Any]) -> list[str]:
+    protocols: list[str] = []
+    if capabilities.get("chat"):
+        protocols.append("chat.completions")
+    if capabilities.get("responses"):
+        protocols.append("responses")
+    if capabilities.get("messages"):
+        protocols.append("messages")
+    return protocols
+
+
+def provider_profile_northbound_routes(capabilities: dict[str, Any]) -> list[str]:
+    routes = ["/v1/models"]
+    if capabilities.get("chat"):
+        routes.append("/v1/chat/completions")
+    if capabilities.get("responses"):
+        routes.append("/v1/responses")
+    if capabilities.get("messages"):
+        routes.append("/v1/messages")
+    return routes
+
+
+def provider_profile_credential_state(capabilities: dict[str, Any], has_api_key: bool) -> str:
+    auth_mode = str(capabilities.get("auth_mode") or "").strip()
+    if auth_mode == "none":
+        return "not_required"
+    if has_api_key:
+        return "configured"
+    if auth_mode == "optional":
+        return "optional_missing"
+    return "missing"
 
 
 def validate_request_document(document: Any) -> None:

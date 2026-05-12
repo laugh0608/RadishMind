@@ -90,7 +90,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			SupportedAPIStyles: []string{"openai-compatible", "gemini-native", "anthropic-messages"},
 			ProfileDriven:      true,
 			Notes:              "test provider",
-			Capabilities:       map[string]any{"chat": true, "streaming": true},
+			Capabilities:       map[string]any{"chat": true, "streaming": true, "auth_mode": "profile", "deployment_mode": "remote_api"},
 		},
 		{
 			ProviderID:         "huggingface",
@@ -99,7 +99,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			SupportedAPIStyles: []string{"huggingface-chat-completions"},
 			ProfileDriven:      true,
 			Notes:              "test provider",
-			Capabilities:       map[string]any{"chat": true, "streaming": true},
+			Capabilities:       map[string]any{"chat": true, "streaming": true, "auth_mode": "profile", "deployment_mode": "remote_api"},
 		},
 		{
 			ProviderID:         "ollama",
@@ -108,7 +108,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			SupportedAPIStyles: []string{"ollama-chat-completions"},
 			ProfileDriven:      true,
 			Notes:              "test provider",
-			Capabilities:       map[string]any{"chat": true, "streaming": true},
+			Capabilities:       map[string]any{"chat": true, "streaming": true, "auth_mode": "optional", "deployment_mode": "local_daemon"},
 		},
 	}
 
@@ -129,6 +129,13 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 					Active:                true,
 					Fallback:              false,
 					ChainIndex:            0,
+					Capabilities:          map[string]any{"chat": true, "streaming": true, "auth_mode": "profile", "deployment_mode": "remote_api"},
+					NorthboundProtocols:   []string{"chat.completions"},
+					NorthboundRoutes:      []string{"/v1/models", "/v1/chat/completions"},
+					CredentialState:       "configured",
+					DeploymentMode:        "remote_api",
+					AuthMode:              "profile",
+					Streaming:             true,
 				},
 				{
 					Profile:               "hf-chat",
@@ -142,6 +149,13 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 					Active:                true,
 					Fallback:              false,
 					ChainIndex:            0,
+					Capabilities:          map[string]any{"chat": true, "streaming": true, "auth_mode": "profile", "deployment_mode": "remote_api"},
+					NorthboundProtocols:   []string{"chat.completions"},
+					NorthboundRoutes:      []string{"/v1/models", "/v1/chat/completions"},
+					CredentialState:       "configured",
+					DeploymentMode:        "remote_api",
+					AuthMode:              "profile",
+					Streaming:             true,
 				},
 				{
 					Profile:               "local",
@@ -155,6 +169,13 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 					Active:                true,
 					Fallback:              false,
 					ChainIndex:            0,
+					Capabilities:          map[string]any{"chat": true, "streaming": true, "auth_mode": "optional", "deployment_mode": "local_daemon"},
+					NorthboundProtocols:   []string{"chat.completions"},
+					NorthboundRoutes:      []string{"/v1/models", "/v1/chat/completions"},
+					CredentialState:       "optional_missing",
+					DeploymentMode:        "local_daemon",
+					AuthMode:              "optional",
+					Streaming:             true,
 				},
 			},
 			ActiveProfileChain: []string{
@@ -530,6 +551,15 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if profileModel.Metadata["source"] != "provider_profile_inventory" {
 			t.Fatalf("unexpected profile inventory source: %#v", profileModel.Metadata["source"])
 		}
+		if profileModel.Metadata["credential_state"] != "configured" {
+			t.Fatalf("unexpected profile credential state: %#v", profileModel.Metadata["credential_state"])
+		}
+		if profileModel.Metadata["deployment_mode"] != "remote_api" {
+			t.Fatalf("unexpected profile deployment mode: %#v", profileModel.Metadata["deployment_mode"])
+		}
+		if profileModel.Metadata["streaming"] != true {
+			t.Fatalf("unexpected profile streaming flag: %#v", profileModel.Metadata["streaming"])
+		}
 	})
 
 	t.Run("model detail default", func(t *testing.T) {
@@ -662,6 +692,12 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if response.Metadata["provider_profile"] != "hf-chat" {
 			t.Fatalf("unexpected provider profile: %#v", response.Metadata["provider_profile"])
+		}
+		if response.Metadata["credential_state"] != "configured" {
+			t.Fatalf("unexpected credential state: %#v", response.Metadata["credential_state"])
+		}
+		if response.Metadata["deployment_mode"] != "remote_api" {
+			t.Fatalf("unexpected deployment mode: %#v", response.Metadata["deployment_mode"])
 		}
 	})
 
