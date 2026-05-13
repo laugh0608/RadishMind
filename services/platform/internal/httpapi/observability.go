@@ -169,6 +169,18 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryNorthboundRequest,
 			defaultMessage:  "checkpoint not found",
 		},
+		"CHECKPOINT_MATERIALIZED_RESULTS_DISABLED": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "checkpoint read is metadata-only; materialized results are disabled",
+		},
+		"CHECKPOINT_AUTO_REPLAY_DISABLED": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "checkpoint read does not support automatic replay",
+		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,
 			errorType:       "configuration_error",

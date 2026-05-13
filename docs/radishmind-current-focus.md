@@ -21,8 +21,8 @@
 
 ## 当前优先做什么
 
-1. `Conversation & Session`：首版 session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、fixture、northbound session metadata 和平台 metadata-only route smoke 已开始落地；下一步继续收口只读暴露方式，不引入长期记忆。
-2. `Tooling Framework`：最小 tool schema、registry fixture、policy/audit record、session binding、metadata-only result cache 和快速门禁已开始落地；下一步仍只推进契约和治理边界，不实现真实工具执行器。
+1. `Conversation & Session`：首版 session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、fixture、northbound session metadata 和平台 metadata-only route smoke 已开始落地；checkpoint read route 已开始拒绝 materialized result / replay 类查询参数。下一步继续收口只读暴露方式，不引入长期记忆。
+2. `Tooling Framework`：最小 tool schema、registry fixture、policy/audit record、session binding、metadata-only result cache 和快速门禁已开始落地；tool audit summary 已进入 checkpoint read metadata smoke。下一步仍只推进契约和治理边界，不实现真实工具执行器。
 3. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics/request-observability checks 扩展到 session 与 tooling 门禁。
 4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
 

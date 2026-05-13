@@ -600,6 +600,89 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if replayPolicy["auto_replay_enabled"] != false || replayPolicy["requires_confirmation_for_actions"] != true {
 			t.Fatalf("unexpected replay policy: %#v", replayPolicy)
 		}
+		toolAuditSummary, ok := result["tool_audit_summary"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing tool audit summary: %#v", result["tool_audit_summary"])
+		}
+		if toolAuditSummary["policy_decision"] != "blocked_tool_execution_disabled" ||
+			toolAuditSummary["requires_confirmation"] != true ||
+			toolAuditSummary["execution_enabled"] != false ||
+			toolAuditSummary["execution_status"] != "not_executed" {
+			t.Fatalf("unexpected tool audit summary: %#v", toolAuditSummary)
+		}
+		if toolAuditSummary["result_cache_mode"] != "metadata_only" ||
+			toolAuditSummary["result_ref"] != nil ||
+			toolAuditSummary["durable_memory_written"] != false ||
+			toolAuditSummary["writes_business_truth"] != false {
+			t.Fatalf("unexpected tool audit state boundary: %#v", toolAuditSummary)
+		}
+		rawBody := rec.Body.String()
+		for _, forbidden := range []string{
+			`"output_ref"`,
+			`"executor_ref"`,
+			`"result_ref":"`,
+			`"materialized_results_included":true`,
+			`"auto_replay_enabled":true`,
+			`"writes_business_truth":true`,
+			`"durable_memory_enabled":true`,
+		} {
+			if strings.Contains(rawBody, forbidden) {
+				t.Fatalf("checkpoint read response leaked forbidden field/state %s: %s", forbidden, rawBody)
+			}
+		}
+	})
+
+	t.Run("session recovery checkpoint read blocks materialized results and replay", func(t *testing.T) {
+		routeServer := NewServer(config.Config{}, Options{BuildVersion: "test"})
+		cases := []struct {
+			name string
+			path string
+			code string
+		}{
+			{
+				name: "materialized results",
+				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?include_materialized_results=true",
+				code: "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+			},
+			{
+				name: "tool results",
+				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?include_tool_results=1",
+				code: "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+			},
+			{
+				name: "auto replay",
+				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?auto_replay=true",
+				code: "CHECKPOINT_AUTO_REPLAY_DISABLED",
+			},
+			{
+				name: "replay execution",
+				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?replay=yes",
+				code: "CHECKPOINT_AUTO_REPLAY_DISABLED",
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+				rec := httptest.NewRecorder()
+
+				routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+				if rec.Code != http.StatusBadRequest {
+					t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+				}
+				var response errorDocument
+				if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+					t.Fatalf("decode error response: %v", err)
+				}
+				if response.Error.Code != tc.code {
+					t.Fatalf("unexpected error code: %#v", response.Error.Code)
+				}
+				if response.Error.FailureBoundary != errorBoundaryNorthboundRequest {
+					t.Fatalf("unexpected failure boundary: %#v", response.Error.FailureBoundary)
+				}
+			})
+		}
 	})
 
 	t.Run("error envelope observability", func(t *testing.T) {

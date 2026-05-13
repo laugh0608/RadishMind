@@ -15,6 +15,7 @@ READ_SCHEMA_PATH = REPO_ROOT / "contracts/session-recovery-checkpoint-read.schem
 CHECKPOINT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-basic.json"
 MANIFEST_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-manifest-basic.json"
 READ_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-read-basic.json"
+TOOL_AUDIT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/tool-audit-record-basic.json"
 
 
 def load_json_document(path: Path) -> Any:
@@ -104,7 +105,7 @@ def check_manifest(manifest: dict[str, Any], checkpoint: dict[str, Any]) -> None
     require(audit.get("writes_business_truth") is False, "manifest audit must not write business truth")
 
 
-def check_read_result(read_result: dict[str, Any], checkpoint: dict[str, Any]) -> None:
+def check_read_result(read_result: dict[str, Any], checkpoint: dict[str, Any], tool_audit: dict[str, Any]) -> None:
     api_boundary = read_result.get("api_boundary")
     require(isinstance(api_boundary, dict), "read api_boundary must be an object")
     require(api_boundary.get("implemented") is False, "checkpoint read API boundary must not claim implementation")
@@ -138,6 +139,25 @@ def check_read_result(read_result: dict[str, Any], checkpoint: dict[str, Any]) -
         if isinstance(ref, dict)
     }
     require(read_refs == checkpoint_refs, "read result refs must mirror checkpoint refs")
+
+    tool_audit_summary = result.get("tool_audit_summary")
+    require(isinstance(tool_audit_summary, dict), "read result must include tool_audit_summary")
+    require(tool_audit_summary.get("audit_id") == tool_audit.get("audit_id"), "tool audit summary audit_id mismatch")
+    require(tool_audit_summary.get("tool_id") == tool_audit.get("tool_id"), "tool audit summary tool_id mismatch")
+    require(
+        tool_audit_summary.get("policy_decision") == tool_audit.get("policy_decision", {}).get("decision"),
+        "tool audit summary policy decision mismatch",
+    )
+    require(
+        tool_audit_summary.get("requires_confirmation") == tool_audit.get("policy_decision", {}).get("requires_confirmation"),
+        "tool audit summary confirmation policy mismatch",
+    )
+    require(tool_audit_summary.get("execution_enabled") is False, "read route must not expose executable tooling")
+    require(tool_audit_summary.get("execution_status") == "not_executed", "read route must keep tool execution not_executed")
+    require(tool_audit_summary.get("result_cache_mode") == "metadata_only", "read route must expose metadata-only cache mode")
+    require(tool_audit_summary.get("result_ref") is None, "read route must not expose a materialized result ref")
+    require(tool_audit_summary.get("durable_memory_written") is False, "read route must not write durable memory")
+    require(tool_audit_summary.get("writes_business_truth") is False, "read route must not write business truth")
 
     replay_policy = result.get("replay_policy")
     checkpoint_replay_policy = checkpoint.get("replay_policy") or {}
@@ -184,6 +204,7 @@ def main() -> int:
     checkpoint_fixture = load_json_document(CHECKPOINT_FIXTURE_PATH)
     manifest_fixture = load_json_document(MANIFEST_FIXTURE_PATH)
     read_fixture = load_json_document(READ_FIXTURE_PATH)
+    tool_audit_fixture = load_json_document(TOOL_AUDIT_FIXTURE_PATH)
 
     for schema in (checkpoint_schema, manifest_schema, read_schema):
         jsonschema.Draft202012Validator.check_schema(schema)
@@ -197,10 +218,12 @@ def main() -> int:
         raise SystemExit("session recovery checkpoint manifest fixture must be an object")
     if not isinstance(read_fixture, dict):
         raise SystemExit("session recovery checkpoint read fixture must be an object")
+    if not isinstance(tool_audit_fixture, dict):
+        raise SystemExit("tool audit fixture must be an object")
 
     check_checkpoint(checkpoint_fixture)
     check_manifest(manifest_fixture, checkpoint_fixture)
-    check_read_result(read_fixture, checkpoint_fixture)
+    check_read_result(read_fixture, checkpoint_fixture, tool_audit_fixture)
 
     print("session recovery checkpoint contract smoke passed.")
     return 0

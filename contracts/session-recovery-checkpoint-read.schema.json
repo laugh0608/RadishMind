@@ -108,6 +108,7 @@
         "turn_id",
         "checkpoint_ref",
         "refs",
+        "tool_audit_summary",
         "replay_policy",
         "state_summary"
       ],
@@ -166,6 +167,73 @@
               "required_for_recovery": {
                 "type": "boolean"
               }
+            }
+          }
+        },
+        "tool_audit_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "audit_id",
+            "tool_id",
+            "policy_decision",
+            "requires_confirmation",
+            "execution_enabled",
+            "execution_status",
+            "result_cache_mode",
+            "result_ref",
+            "durable_memory_written",
+            "writes_business_truth"
+          ],
+          "properties": {
+            "audit_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tool_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "policy_decision": {
+              "type": "string",
+              "enum": [
+                "allowed_contract_only",
+                "blocked_tool_execution_disabled",
+                "blocked_requires_confirmation",
+                "blocked_policy"
+              ]
+            },
+            "requires_confirmation": {
+              "type": "boolean"
+            },
+            "execution_enabled": {
+              "type": "boolean",
+              "const": false
+            },
+            "execution_status": {
+              "type": "string",
+              "enum": [
+                "not_executed",
+                "blocked"
+              ]
+            },
+            "result_cache_mode": {
+              "type": "string",
+              "enum": [
+                "none",
+                "metadata_only"
+              ]
+            },
+            "result_ref": {
+              "type": "null"
+            },
+            "durable_memory_written": {
+              "type": "boolean",
+              "const": false
+            },
+            "writes_business_truth": {
+              "type": "boolean",
+              "const": false
             }
           }
         },

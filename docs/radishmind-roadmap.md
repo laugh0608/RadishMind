@@ -35,7 +35,7 @@
 
 目标：让多轮对话、历史压缩、恢复和审计成为平台能力，而不是各任务自己拼上下文。
 
-状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、`session-recovery-checkpoint-read.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，read result 只暴露 metadata refs，不保存或返回真实工具结果，也不自动 replay。平台层已新增 metadata-only route smoke，但当前仍没有 durable session store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器。
+状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、`session-recovery-checkpoint-read.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，read result 只暴露 metadata refs 和 tool audit 治理摘要，不保存或返回真实工具结果，也不自动 replay。平台层已新增 metadata-only route smoke，并拒绝 materialized result / replay 类查询参数，但当前仍没有 durable session store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器。
 
 下一步：在该契约基础上继续明确平台层只读暴露方式和治理门禁，不实现跨轮 replay。
 
@@ -43,7 +43,7 @@
 
 目标：把检索、局部规则、候选生成和 builder 经验收口为正式工具契约、registry、policy 和 audit。
 
-状态：当前已有 task-local 的 deterministic tooling 与 builder 资产；最小 `tool.schema.json`、`tool-registry.schema.json`、`tool-audit-record.schema.json`、registry fixture、policy/audit fixture 和快速门禁已开始落地，用于固定工具注册、调用轨、timeout/retry/policy、session binding、metadata-only result cache 和 audit 的结构边界。当前仍没有真实工具执行器、长期记忆或新的 provider/model 实验。
+状态：当前已有 task-local 的 deterministic tooling 与 builder 资产；最小 `tool.schema.json`、`tool-registry.schema.json`、`tool-audit-record.schema.json`、registry fixture、policy/audit fixture 和快速门禁已开始落地，用于固定工具注册、调用轨、timeout/retry/policy、session binding、metadata-only result cache 和 audit 的结构边界。tool audit summary 已进入 checkpoint read route smoke，用于固定 execution disabled、not executed、metadata-only cache 和 no result ref。当前仍没有真实工具执行器、长期记忆或新的 provider/model 实验。
 
 下一步：继续把 tooling contract 与 recovery checkpoint 读取边界对齐；在上层确认流和执行器边界明确前，不启动真实执行。
 

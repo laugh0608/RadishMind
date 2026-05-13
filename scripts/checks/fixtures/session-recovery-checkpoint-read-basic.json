@@ -48,6 +48,18 @@
         "required_for_recovery": false
       }
     ],
+    "tool_audit_summary": {
+      "audit_id": "tool-audit-0001",
+      "tool_id": "radishflow.suggest_edits.candidate_builder.v1",
+      "policy_decision": "blocked_tool_execution_disabled",
+      "requires_confirmation": true,
+      "execution_enabled": false,
+      "execution_status": "not_executed",
+      "result_cache_mode": "metadata_only",
+      "result_ref": null,
+      "durable_memory_written": false,
+      "writes_business_truth": false
+    },
     "replay_policy": {
       "replayable": true,
       "auto_replay_enabled": false,

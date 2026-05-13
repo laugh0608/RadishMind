@@ -20,6 +20,19 @@ func (s *Server) handleSessionRecoveryCheckpoint(writer http.ResponseWriter, req
 		s.writePlatformError(writer, trace, "MISSING_CHECKPOINT_ID", "checkpoint id is required")
 		return
 	}
+	if queryFlagEnabled(request, "include_materialized_results") ||
+		queryFlagEnabled(request, "include_tool_results") ||
+		queryFlagEnabled(request, "materialize_results") {
+		s.writePlatformError(writer, trace, "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED", "checkpoint read route is metadata-only")
+		return
+	}
+	if queryFlagEnabled(request, "auto_replay") ||
+		queryFlagEnabled(request, "auto_replay_enabled") ||
+		queryFlagEnabled(request, "execute_replay") ||
+		queryFlagEnabled(request, "replay") {
+		s.writePlatformError(writer, trace, "CHECKPOINT_AUTO_REPLAY_DISABLED", "checkpoint read route does not support replay execution")
+		return
+	}
 
 	sessionID := strings.TrimSpace(request.URL.Query().Get("session_id"))
 	if sessionID == "" {
@@ -89,6 +102,18 @@ func buildSessionRecoveryCheckpointReadResult(checkpointID string, sessionID str
 					"required_for_recovery": false,
 				},
 			},
+			"tool_audit_summary": map[string]any{
+				"audit_id":               "tool-audit-0001",
+				"tool_id":                "radishflow.suggest_edits.candidate_builder.v1",
+				"policy_decision":        "blocked_tool_execution_disabled",
+				"requires_confirmation":  true,
+				"execution_enabled":      false,
+				"execution_status":       "not_executed",
+				"result_cache_mode":      "metadata_only",
+				"result_ref":             nil,
+				"durable_memory_written": false,
+				"writes_business_truth":  false,
+			},
 			"replay_policy": map[string]any{
 				"replayable":                        true,
 				"auto_replay_enabled":               false,
@@ -114,5 +139,15 @@ func buildSessionRecoveryCheckpointReadResult(checkpointID string, sessionID str
 				"route is a contract boundary and is not implemented as a replay executor",
 			},
 		},
+	}
+}
+
+func queryFlagEnabled(request *http.Request, name string) bool {
+	value := strings.ToLower(strings.TrimSpace(request.URL.Query().Get(name)))
+	switch value {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
 	}
 }
