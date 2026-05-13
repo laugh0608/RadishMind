@@ -35,9 +35,9 @@
 
 目标：让多轮对话、历史压缩、恢复和审计成为平台能力，而不是各任务自己拼上下文。
 
-状态：当前只有 `conversation_id` 透传和局部 snapshot 语义，还没有正式 session schema、history policy、recovery record 或跨轮 smoke。
+状态：已补首版 `session-record.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；当前仍没有 durable session store、长期记忆或跨轮恢复执行器。
 
-下一步：补 session contract、fixture 和最小 smoke，再决定状态落点和缓存策略。
+下一步：在该契约基础上补会话级缓存/状态落点决策，再推进最小 tool contract 与 registry 原型。
 
 ### 3. `Tooling Framework`
 
@@ -95,7 +95,7 @@
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：进入主要实现阶段。优先补 session contract、history policy、recovery record、tool schema、tool registry、tool policy 和 audit record。
+状态：进入主要实现阶段。session contract、history policy、recovery record 与 northbound session metadata 已有首版门禁；下一步补 tool schema、tool registry、tool policy 和 audit record。
 
 ### `P3`：Local Deployment & Ops Governance
 

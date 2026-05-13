@@ -75,6 +75,7 @@
 
 项目上下文只在各自专题页维护，本入口只固定 `CopilotRequest` 与 artifact 的共用抽象。
 
+- [会话记录契约](session.md)
 - [RadishFlow 上下文契约](radishflow-context.md)
 - [Radish 上下文契约](radish-context.md)
 - [RadishCatalyst 上下文预留契约](radishcatalyst-context.md)

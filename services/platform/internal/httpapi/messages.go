@@ -163,6 +163,9 @@ func buildMessagesPromptText(request anthropicMessagesRequest, selection northbo
 	for key, value := range buildNorthboundSelectionFields(request.Model, selection, request.RadishMind) {
 		northboundFields[key] = value
 	}
+	if session := buildNorthboundSessionMetadata(request.RadishMind, len(request.Messages)); len(session) > 0 {
+		northboundFields["session"] = session
+	}
 	if len(request.Metadata) > 0 {
 		northboundFields["metadata"] = request.Metadata
 	}

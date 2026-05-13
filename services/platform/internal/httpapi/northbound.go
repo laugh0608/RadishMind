@@ -446,6 +446,86 @@ func buildNorthboundSelectionFields(
 	return fields
 }
 
+func buildNorthboundSessionMetadata(extension *chatCompletionExtension, messageCount int) map[string]any {
+	if extension == nil {
+		return nil
+	}
+	conversationID := strings.TrimSpace(extension.ConversationID)
+	turnID := strings.TrimSpace(extension.TurnID)
+	parentTurnID := strings.TrimSpace(extension.ParentTurnID)
+	historyPolicy := normalizeNorthboundHistoryPolicy(extension.HistoryPolicy)
+	historyWindow := extension.HistoryWindow
+	if conversationID == "" && turnID == "" && parentTurnID == "" && strings.TrimSpace(extension.HistoryPolicy) == "" && historyWindow <= 0 {
+		return nil
+	}
+	sessionID := conversationID
+	if sessionID == "" {
+		sessionID = "request-local"
+	}
+	if turnID == "" {
+		turnID = "current"
+	}
+	if historyWindow <= 0 {
+		historyWindow = messageCount
+		if historyWindow <= 0 {
+			historyWindow = 1
+		}
+		if historyWindow > 8 {
+			historyWindow = 8
+		}
+	}
+	session := map[string]any{
+		"schema_version": 1,
+		"kind":           "conversation_session_record",
+		"session_id":     sessionID,
+		"turn_id":        turnID,
+		"source":         "northbound_compat",
+		"history_policy": map[string]any{
+			"mode":                 historyPolicy,
+			"max_turns":            historyWindow,
+			"include_system":       true,
+			"include_tool_results": false,
+			"compression": map[string]any{
+				"strategy":            "none",
+				"summary_artifact_id": nil,
+			},
+		},
+		"recovery_record": map[string]any{
+			"status":              "not_required",
+			"last_stable_turn_id": nil,
+			"replayable":          false,
+			"reason":              "northbound compatibility layer does not own a durable session store",
+			"checkpoints":         []map[string]any{},
+		},
+		"audit": map[string]any{
+			"advisory_only":                     true,
+			"writes_business_truth":             false,
+			"requires_confirmation_for_actions": false,
+			"notes": []string{
+				"session metadata is attached to the canonical request for audit and recovery boundaries only",
+			},
+		},
+	}
+	if conversationID != "" {
+		session["conversation_id"] = conversationID
+	}
+	if parentTurnID != "" {
+		session["parent_turn_id"] = parentTurnID
+	} else {
+		session["parent_turn_id"] = nil
+	}
+	return session
+}
+
+func normalizeNorthboundHistoryPolicy(policy string) string {
+	switch strings.TrimSpace(policy) {
+	case "stateless", "windowed", "summary_only", "disabled":
+		return strings.TrimSpace(policy)
+	default:
+		return "windowed"
+	}
+}
+
 func buildNorthboundSelectionMetadata(selection northboundSelection) map[string]any {
 	metadata := map[string]any{
 		"selected_provider":         strings.TrimSpace(selection.provider),

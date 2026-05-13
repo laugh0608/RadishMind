@@ -1066,6 +1066,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-platform-deployment-smoke.py", [])
     run_python_script("check-platform-diagnostics.py", [])
     run_python_script("check-platform-runbook.py", [])
+    run_python_script("check-session-record-contract.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])

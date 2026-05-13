@@ -22,6 +22,7 @@ def base_env() -> dict[str, str]:
     env.setdefault("GOCACHE", str(platform_temp_dir() / "radishmind-go-build-cache"))
     env.update(
         {
+            "RADISHMIND_PLATFORM_PYTHON_BIN": sys.executable,
             "RADISHMIND_MODEL_PROFILE": "anyrouter",
             "RADISHMIND_MODEL_PROFILE_FALLBACKS": "anyrouter,backup",
             "RADISHMIND_MODEL_PROFILE_ANYROUTER_NAME": "deepseek-chat",

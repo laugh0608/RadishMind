@@ -487,6 +487,53 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("northbound session metadata", func(t *testing.T) {
+		body := `{"model":"profile:anyrouter","messages":[{"role":"system","content":"keep answers concise"},{"role":"user","content":"hello"}],"radishmind":{"conversation_id":"conv-123","turn_id":"turn-002","parent_turn_id":"turn-001","history_policy":"windowed","history_window":6}}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		northbound := canonicalNorthboundContext(t, decodeCanonicalRequest(t, fb.lastRequest))
+		if northbound["conversation_id"] != "conv-123" {
+			t.Fatalf("unexpected conversation id: %#v", northbound["conversation_id"])
+		}
+		session, ok := northbound["session"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing session metadata: %#v", northbound["session"])
+		}
+		if session["kind"] != "conversation_session_record" {
+			t.Fatalf("unexpected session kind: %#v", session["kind"])
+		}
+		if session["session_id"] != "conv-123" || session["turn_id"] != "turn-002" || session["parent_turn_id"] != "turn-001" {
+			t.Fatalf("unexpected session identity: %#v", session)
+		}
+		historyPolicy, ok := session["history_policy"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing history policy: %#v", session["history_policy"])
+		}
+		if historyPolicy["mode"] != "windowed" || historyPolicy["max_turns"] != float64(6) {
+			t.Fatalf("unexpected history policy: %#v", historyPolicy)
+		}
+		recoveryRecord, ok := session["recovery_record"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing recovery record: %#v", session["recovery_record"])
+		}
+		if recoveryRecord["status"] != "not_required" || recoveryRecord["replayable"] != false {
+			t.Fatalf("unexpected recovery record: %#v", recoveryRecord)
+		}
+		audit, ok := session["audit"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing session audit: %#v", session["audit"])
+		}
+		if audit["advisory_only"] != true || audit["writes_business_truth"] != false {
+			t.Fatalf("unexpected session audit: %#v", audit)
+		}
+	})
+
 	t.Run("error envelope observability", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{`))
 		req.Header.Set("X-Request-Id", "req-error-123")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from typing import Any
@@ -88,6 +89,18 @@ REVIEWED_PASS_EXPECTED = 15
 REVIEWED_CHANGES_REQUIRED_EXPECTED = 0
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Check committed broader task-scoped builder review records.",
+    )
+    parser.add_argument(
+        "--require-local-artifacts",
+        action="store_true",
+        help="Also open the referenced tmp/ run artifacts. This is for local post-run audits, not default fast checks.",
+    )
+    return parser.parse_args()
+
+
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
@@ -146,8 +159,61 @@ def validate_segment_artifacts(
     segment_id: str,
     artifacts: dict[str, Any],
     execution_gate: dict[str, Any],
+    *,
+    require_local_artifacts: bool,
 ) -> None:
     expected = EXPECTED_SEGMENT_SUMMARIES[segment_id]
+    segments = execution_gate.get("segments")
+    require(isinstance(segments, dict), "execution_gate_summary.segments must be an object")
+    segment_summary = segments.get(segment_id)
+    require(isinstance(segment_summary, dict), f"execution_gate_summary.segments.{segment_id} must be an object")
+    machine_gate_summary = segment_summary.get("machine_gate_summary")
+    require(isinstance(machine_gate_summary, dict), f"{segment_id} machine_gate_summary must be an object")
+    require(machine_gate_summary.get("schema_valid_rate") == expected["schema_valid_rate"], f"{segment_id} machine gate schema_valid_rate mismatch")
+    require(machine_gate_summary.get("task_valid_rate") == expected["task_valid_rate"], f"{segment_id} machine gate task_valid_rate mismatch")
+    require(machine_gate_summary.get("builder_output_count") == expected["builder_output_count"], f"{segment_id} machine gate builder_output_count mismatch")
+    require(machine_gate_summary.get("timeout_count") == expected["timeout_count"], f"{segment_id} machine gate timeout_count mismatch")
+
+    offline_eval_summary = segment_summary.get("offline_eval_summary")
+    require(isinstance(offline_eval_summary, dict), f"{segment_id} offline_eval_summary must be an object")
+    require(offline_eval_summary.get("run_status") == "completed", f"{segment_id} offline eval summary run_status mismatch")
+    require(
+        offline_eval_summary.get("promotion_status") == "no_promotion_planned",
+        f"{segment_id} offline eval summary promotion_status mismatch",
+    )
+    require(
+        offline_eval_summary.get("all_result_records_passed") is True,
+        f"{segment_id} offline eval summary must record all_result_records_passed",
+    )
+
+    audit_summary_record = segment_summary.get("natural_language_audit_summary")
+    require(isinstance(audit_summary_record, dict), f"{segment_id} natural_language_audit_summary must be an object")
+    require(audit_summary_record.get("status") == "pass", f"{segment_id} recorded audit status mismatch")
+    require(audit_summary_record.get("violation_count") == 0, f"{segment_id} recorded audit violation_count mismatch")
+    require(
+        audit_summary_record.get("warning_count") == expected["audit_warning_count"],
+        f"{segment_id} recorded audit warning_count mismatch",
+    )
+    require(
+        audit_summary_record.get("natural_field_count") == expected["audit_natural_field_count"],
+        f"{segment_id} recorded audit natural_field_count mismatch",
+    )
+    require(
+        audit_summary_record.get("merged_natural_field_count") == expected["audit_merged_natural_field_count"],
+        f"{segment_id} recorded audit merged_natural_field_count mismatch",
+    )
+    require(
+        audit_summary_record.get("fallback_natural_field_count") == expected["audit_fallback_natural_field_count"],
+        f"{segment_id} recorded audit fallback_natural_field_count mismatch",
+    )
+    require(
+        audit_summary_record.get("fallback_natural_field_rate") == expected["audit_fallback_natural_field_rate"],
+        f"{segment_id} recorded audit fallback_natural_field_rate mismatch",
+    )
+
+    if not require_local_artifacts:
+        return
+
     summary_document = load_json(REPO_ROOT / str(artifacts.get("candidate_summary")))
     require(isinstance(summary_document, dict), f"{segment_id} candidate summary must be an object")
     require(summary_document.get("sample_count") == expected["sample_count"], f"{segment_id} sample_count mismatch")
@@ -177,52 +243,7 @@ def validate_segment_artifacts(
     require(isinstance(audit_document, dict), f"{segment_id} natural-language audit must be an object")
     audit_summary = audit_document.get("summary")
     require(isinstance(audit_summary, dict), f"{segment_id} audit summary must be an object")
-    require(audit_summary.get("status") == "pass", f"{segment_id} audit status mismatch")
-    require(audit_summary.get("violation_count") == 0, f"{segment_id} audit violation_count mismatch")
-    require(audit_summary.get("warning_count") == expected["audit_warning_count"], f"{segment_id} audit warning_count mismatch")
-    require(
-        audit_summary.get("natural_field_count") == expected["audit_natural_field_count"],
-        f"{segment_id} audit natural_field_count mismatch",
-    )
-    require(
-        audit_summary.get("merged_natural_field_count") == expected["audit_merged_natural_field_count"],
-        f"{segment_id} audit merged_natural_field_count mismatch",
-    )
-    require(
-        audit_summary.get("fallback_natural_field_count") == expected["audit_fallback_natural_field_count"],
-        f"{segment_id} audit fallback_natural_field_count mismatch",
-    )
-    require(
-        audit_summary.get("fallback_natural_field_rate") == expected["audit_fallback_natural_field_rate"],
-        f"{segment_id} audit fallback_natural_field_rate mismatch",
-    )
-
-    segments = execution_gate.get("segments")
-    require(isinstance(segments, dict), "execution_gate_summary.segments must be an object")
-    segment_summary = segments.get(segment_id)
-    require(isinstance(segment_summary, dict), f"execution_gate_summary.segments.{segment_id} must be an object")
-    machine_gate_summary = segment_summary.get("machine_gate_summary")
-    require(isinstance(machine_gate_summary, dict), f"{segment_id} machine_gate_summary must be an object")
-    require(machine_gate_summary.get("schema_valid_rate") == expected["schema_valid_rate"], f"{segment_id} machine gate schema_valid_rate mismatch")
-    require(machine_gate_summary.get("task_valid_rate") == expected["task_valid_rate"], f"{segment_id} machine gate task_valid_rate mismatch")
-    require(machine_gate_summary.get("builder_output_count") == expected["builder_output_count"], f"{segment_id} machine gate builder_output_count mismatch")
-    require(machine_gate_summary.get("timeout_count") == expected["timeout_count"], f"{segment_id} machine gate timeout_count mismatch")
-
-    offline_eval_summary = segment_summary.get("offline_eval_summary")
-    require(isinstance(offline_eval_summary, dict), f"{segment_id} offline_eval_summary must be an object")
-    require(offline_eval_summary.get("run_status") == "completed", f"{segment_id} offline eval summary run_status mismatch")
-    require(
-        offline_eval_summary.get("promotion_status") == "no_promotion_planned",
-        f"{segment_id} offline eval summary promotion_status mismatch",
-    )
-    require(
-        offline_eval_summary.get("all_result_records_passed") is True,
-        f"{segment_id} offline eval summary must record all_result_records_passed",
-    )
-
-    audit_summary_record = segment_summary.get("natural_language_audit_summary")
-    require(isinstance(audit_summary_record, dict), f"{segment_id} natural_language_audit_summary must be an object")
-    require(audit_summary_record == audit_summary, f"{segment_id} audit summary must match recorded summary")
+    require(audit_summary == audit_summary_record, f"{segment_id} audit summary must match recorded summary")
 
 
 def expected_sample_sets(entry: dict[str, Any]) -> dict[str, str]:
@@ -245,6 +266,7 @@ def expected_sample_sets(entry: dict[str, Any]) -> dict[str, str]:
 
 
 def main() -> int:
+    args = parse_args()
     document = load_json(RECORDS_PATH)
     entry = load_json(ENTRY_PATH)
     runbook = load_json(RUNBOOK_PATH)
@@ -303,7 +325,12 @@ def main() -> int:
     completion_rule = str(execution_gate.get("completion_rule") or "")
     require("reviewed_pass" in completion_rule and "both execution segments" in completion_rule, "completion rule mismatch")
     for segment_id in SEGMENT_OUTPUT_DIRS:
-        validate_segment_artifacts(segment_id, source_artifacts[segment_id], execution_gate)
+        validate_segment_artifacts(
+            segment_id,
+            source_artifacts[segment_id],
+            execution_gate,
+            require_local_artifacts=args.require_local_artifacts,
+        )
 
     records = document.get("records")
     require(isinstance(records, list) and len(records) == 15, "records must contain 15 review records")

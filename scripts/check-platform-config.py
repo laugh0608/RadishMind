@@ -60,7 +60,7 @@ def load_check(env: dict[str, str]) -> tuple[int, dict[str, Any]]:
 
 def base_env() -> dict[str, str]:
     env = {key: value for key, value in os.environ.items() if not key.startswith("RADISHMIND_")}
-    env.setdefault("GOCACHE", str(Path(os.getenv("TMPDIR", "/tmp")) / "radishmind-go-build-cache"))
+    env.setdefault("GOCACHE", str(Path(tempfile.gettempdir()) / "radishmind-go-build-cache"))
     return env
 
 

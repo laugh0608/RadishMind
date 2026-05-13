@@ -21,7 +21,7 @@
 
 ## 当前优先做什么
 
-1. `Conversation & Session`：补齐 session contract、history policy、recovery record、fixture 和最小会话级 smoke，不再只停留在 `conversation_id` 透传。
+1. `Conversation & Session`：首版 session contract、history policy、recovery record、fixture 和 northbound session metadata 已开始落地；下一步决定会话状态落点和缓存边界，不引入长期记忆。
 2. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式 tool schema、registry、timeout/retry/policy 和 audit record。
 3. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics/request-observability checks 扩展到 session 与 tooling 门禁。
 4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。

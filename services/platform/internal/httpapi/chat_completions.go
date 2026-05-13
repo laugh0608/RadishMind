@@ -28,6 +28,10 @@ type chatCompletionMessage struct {
 type chatCompletionExtension struct {
 	Locale          string `json:"locale,omitempty"`
 	ConversationID  string `json:"conversation_id,omitempty"`
+	TurnID          string `json:"turn_id,omitempty"`
+	ParentTurnID    string `json:"parent_turn_id,omitempty"`
+	HistoryPolicy   string `json:"history_policy,omitempty"`
+	HistoryWindow   int    `json:"history_window,omitempty"`
 	Provider        string `json:"provider,omitempty"`
 	ProviderProfile string `json:"provider_profile,omitempty"`
 }
@@ -166,6 +170,9 @@ func buildChatCanonicalRequest(
 	}
 	for key, value := range buildNorthboundSelectionFields(chatRequest.Model, selection, chatRequest.RadishMind) {
 		northboundFields[key] = value
+	}
+	if session := buildNorthboundSessionMetadata(chatRequest.RadishMind, len(chatRequest.Messages)); len(session) > 0 {
+		northboundFields["session"] = session
 	}
 	if len(chatRequest.Metadata) > 0 {
 		northboundFields["metadata"] = chatRequest.Metadata
