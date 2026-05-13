@@ -35,9 +35,9 @@
 
 目标：让多轮对话、历史压缩、恢复和审计成为平台能力，而不是各任务自己拼上下文。
 
-状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、`session-recovery-checkpoint-read.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，read result 只暴露 metadata refs，不保存或返回真实工具结果，也不自动 replay。当前仍没有 durable session store、长期记忆、真实 checkpoint read route 或跨轮恢复执行器。
+状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、`session-recovery-checkpoint-read.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，read result 只暴露 metadata refs，不保存或返回真实工具结果，也不自动 replay。平台层已新增 metadata-only route smoke，但当前仍没有 durable session store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器。
 
-下一步：在该契约基础上继续明确平台层只读暴露方式和 route smoke，不实现跨轮 replay。
+下一步：在该契约基础上继续明确平台层只读暴露方式和治理门禁，不实现跨轮 replay。
 
 ### 3. `Tooling Framework`
 

@@ -21,7 +21,7 @@
 
 ## 当前优先做什么
 
-1. `Conversation & Session`：首版 session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、fixture 和 northbound session metadata 已开始落地；下一步继续收口平台层只读暴露方式，不引入长期记忆。
+1. `Conversation & Session`：首版 session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、fixture、northbound session metadata 和平台 metadata-only route smoke 已开始落地；下一步继续收口只读暴露方式，不引入长期记忆。
 2. `Tooling Framework`：最小 tool schema、registry fixture、policy/audit record、session binding、metadata-only result cache 和快速门禁已开始落地；下一步仍只推进契约和治理边界，不实现真实工具执行器。
 3. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics/request-observability checks 扩展到 session 与 tooling 门禁。
 4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
@@ -50,7 +50,7 @@
 - 不继续加长同一批 prompt/scaffold 当作默认推进。
 - 不在 tool registry v1 后立即接真实工具执行器、长期记忆或新的 provider/model 实验。
 - 不在 recovery checkpoint v1 后立即实现跨轮自动 replay。
-- 不把 checkpoint read boundary 写成已经落地的真实 HTTP route。
+- 不把 checkpoint read route smoke 升级为 durable checkpoint store、materialized result reader 或跨轮 replay executor。
 - 不扩 `RadishFlow` 同类真实 capture，除非先写清楚非重复 drift 假设。
 - 不把 `RadishCatalyst` 从文档预留提前扩成真实 schema、adapter 或 gateway smoke。
 - 不在 runtime、session、tooling 契约还没稳定前启动训练放量。

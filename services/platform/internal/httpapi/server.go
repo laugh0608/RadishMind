@@ -57,6 +57,7 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux.HandleFunc("POST /v1/chat/completions", server.handleChatCompletions)
 	mux.HandleFunc("POST /v1/responses", server.handleResponses)
 	mux.HandleFunc("POST /v1/messages", server.handleMessages)
+	mux.HandleFunc("GET /v1/session/recovery/checkpoints/{checkpoint_id}", server.handleSessionRecoveryCheckpoint)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,

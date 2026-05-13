@@ -534,6 +534,74 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("session recovery checkpoint read", func(t *testing.T) {
+		routeServer := NewServer(config.Config{}, Options{BuildVersion: "test"})
+		req := httptest.NewRequest(http.MethodGet, "/v1/session/recovery/checkpoints/session-checkpoint-0001?session_id=radishflow-session-001&turn_id=turn-0003", nil)
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response map[string]any
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response["kind"] != "session_recovery_checkpoint_read_result" {
+			t.Fatalf("unexpected kind: %#v", response["kind"])
+		}
+		apiBoundary, ok := response["api_boundary"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing api boundary: %#v", response["api_boundary"])
+		}
+		if apiBoundary["implemented"] != false || apiBoundary["response_shape"] != "metadata_refs_only" {
+			t.Fatalf("unexpected api boundary: %#v", apiBoundary)
+		}
+		accessPolicy, ok := response["access_policy"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing access policy: %#v", response["access_policy"])
+		}
+		if accessPolicy["metadata_only"] != true || accessPolicy["materialized_results_included"] != false || accessPolicy["auto_replay_enabled"] != false {
+			t.Fatalf("unexpected access policy: %#v", accessPolicy)
+		}
+		result, ok := response["result"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing result: %#v", response["result"])
+		}
+		refs, ok := result["refs"].([]any)
+		if !ok || len(refs) == 0 {
+			t.Fatalf("missing refs: %#v", result["refs"])
+		}
+		hasToolAudit := false
+		for _, ref := range refs {
+			refObject, ok := ref.(map[string]any)
+			if !ok {
+				t.Fatalf("unexpected ref object: %#v", ref)
+			}
+			if refObject["kind"] == "tool_audit" {
+				hasToolAudit = true
+			}
+		}
+		if !hasToolAudit {
+			t.Fatalf("expected tool audit ref: %#v", refs)
+		}
+		stateSummary, ok := result["state_summary"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing state summary: %#v", result["state_summary"])
+		}
+		if stateSummary["contains_materialized_tool_results"] != false || stateSummary["contains_business_truth"] != false {
+			t.Fatalf("unexpected state summary: %#v", stateSummary)
+		}
+		replayPolicy, ok := result["replay_policy"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing replay policy: %#v", result["replay_policy"])
+		}
+		if replayPolicy["auto_replay_enabled"] != false || replayPolicy["requires_confirmation_for_actions"] != true {
+			t.Fatalf("unexpected replay policy: %#v", replayPolicy)
+		}
+	})
+
 	t.Run("error envelope observability", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{`))
 		req.Header.Set("X-Request-Id", "req-error-123")

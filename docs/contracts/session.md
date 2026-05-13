@@ -29,7 +29,7 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 
 `SessionRecoveryCheckpointReadResult` 必须表达：
 
-- `api_boundary`：当前只定义平台 metadata 读取边界，`implemented=false`，不声明真实 HTTP route 已落地。
+- `api_boundary`：当前只定义平台 metadata 读取边界，`implemented=false` 表示没有 durable checkpoint store、materialized result 读取或 replay executor；平台层可以暴露 fixture-backed route smoke，但不得把它声明为真实恢复 API。
 - `request`：按 `checkpoint_id / session_id / turn_id` 查询，并强制 `include_materialized_results=false`。
 - `result`：只返回 checkpoint ref、metadata refs、replay policy 摘要和 state summary。
 - `access_policy`：必须保持 metadata-only、不返回真实工具结果、不写业务真相源、不启用 durable memory 或 automatic replay。
@@ -58,4 +58,4 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 - 不把 recovery record 写成自动恢复执行计划；它只记录可审计边界和 checkpoint 引用。
 - 不把 tool result cache 升级为长期记忆；当前只允许 request-local metadata 或 session recovery checkpoint 引用。
 - 不让 recovery checkpoint 自动 replay；当前只固定 record / manifest 与可审计引用。
-- 不把 checkpoint read boundary 写成已实现 API；当前只冻结 response shape 和安全边界。
+- 不把 checkpoint read route smoke 写成 durable checkpoint store、materialized result reader 或 replay executor；当前只冻结 response shape 和安全边界。

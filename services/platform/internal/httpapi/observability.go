@@ -157,6 +157,18 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryNorthboundRequest,
 			defaultMessage:  "model id is required",
 		},
+		"MISSING_CHECKPOINT_ID": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "checkpoint id is required",
+		},
+		"CHECKPOINT_NOT_FOUND": {
+			statusCode:      http.StatusNotFound,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "checkpoint not found",
+		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,
 			errorType:       "configuration_error",
