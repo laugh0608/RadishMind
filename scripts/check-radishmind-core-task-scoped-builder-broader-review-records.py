@@ -100,6 +100,13 @@ def load_json(path: Path) -> Any:
         raise SystemExit(f"failed to parse {path.relative_to(REPO_ROOT)}: {exc}") from exc
 
 
+def repo_rel(path: Path) -> str:
+    try:
+        return path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def collect_manifest_paths(document: Any) -> set[str]:
     paths: set[str] = set()
     if isinstance(document, dict):
@@ -258,11 +265,11 @@ def main() -> int:
     require(document.get("does_not_mark_raw_promotion") is True, "records must not promote raw")
     require(document.get("does_not_mark_training_acceptance") is True, "records must not accept training")
 
-    require(document.get("review_entry") == str(ENTRY_PATH.relative_to(REPO_ROOT)), "review_entry mismatch")
-    require(document.get("review_runbook") == str(RUNBOOK_PATH.relative_to(REPO_ROOT)), "review_runbook mismatch")
+    require(document.get("review_entry") == repo_rel(ENTRY_PATH), "review_entry mismatch")
+    require(document.get("review_runbook") == repo_rel(RUNBOOK_PATH), "review_runbook mismatch")
     require(
         runbook.get("post_run_review_record_expectation", {}).get("future_record_path")
-        == str(RECORDS_PATH.relative_to(REPO_ROOT)),
+        == repo_rel(RECORDS_PATH),
         "runbook future record path mismatch",
     )
 
