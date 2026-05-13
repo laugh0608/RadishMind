@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/session-recovery-checkpoint.schema.json",
+  "title": "RadishMindSessionRecoveryCheckpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "checkpoint_id",
+    "session_id",
+    "turn_id",
+    "created_at",
+    "source",
+    "storage_policy",
+    "replay_policy",
+    "refs",
+    "state_summary",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "session_recovery_checkpoint"
+    },
+    "checkpoint_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "turn_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_turn_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "session_record",
+        "tool_audit",
+        "manual_fixture"
+      ]
+    },
+    "storage_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "materialized_result_storage",
+        "durable_memory_enabled",
+        "writes_business_truth"
+      ],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "fixture_only",
+            "local_artifact",
+            "session_recovery_store"
+          ]
+        },
+        "materialized_result_storage": {
+          "type": "string",
+          "enum": [
+            "none",
+            "metadata_only",
+            "artifact_ref_only"
+          ]
+        },
+        "durable_memory_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "writes_business_truth": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "replay_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "replayable",
+        "auto_replay_enabled",
+        "requires_confirmation_for_actions",
+        "allowed_ref_kinds"
+      ],
+      "properties": {
+        "replayable": {
+          "type": "boolean"
+        },
+        "auto_replay_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "requires_confirmation_for_actions": {
+          "type": "boolean"
+        },
+        "allowed_ref_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "request",
+              "response",
+              "session_record",
+              "session_audit",
+              "tool_audit",
+              "tool_state",
+              "tool_result_metadata"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "ref",
+          "required_for_recovery"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "request",
+              "response",
+              "session_record",
+              "session_audit",
+              "tool_audit",
+              "tool_state",
+              "tool_result_metadata"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required_for_recovery": {
+            "type": "boolean"
+          },
+          "checksum": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "state_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contains_tool_result_metadata",
+        "contains_materialized_tool_results",
+        "contains_business_truth",
+        "notes"
+      ],
+      "properties": {
+        "contains_tool_result_metadata": {
+          "type": "boolean"
+        },
+        "contains_materialized_tool_results": {
+          "type": "boolean",
+          "const": false
+        },
+        "contains_business_truth": {
+          "type": "boolean",
+          "const": false
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "advisory_only",
+        "writes_business_truth",
+        "durable_memory_written",
+        "notes"
+      ],
+      "properties": {
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "writes_business_truth": {
+          "type": "boolean",
+          "const": false
+        },
+        "durable_memory_written": {
+          "type": "boolean",
+          "const": false
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

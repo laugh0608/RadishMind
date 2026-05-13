@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "session_recovery_checkpoint_manifest",
+  "manifest_id": "session-recovery-checkpoints-v1",
+  "created_at": "2026-05-13T12:00:00Z",
+  "storage_policy": {
+    "default_scope": "fixture_only",
+    "durable_memory_enabled": false,
+    "auto_replay_enabled": false
+  },
+  "checkpoints": [
+    {
+      "checkpoint_id": "session-checkpoint-0001",
+      "session_id": "radishflow-session-001",
+      "turn_id": "turn-0003",
+      "record_ref": "scripts/checks/fixtures/session-recovery-checkpoint-basic.json",
+      "replayable": true
+    }
+  ],
+  "audit": {
+    "advisory_only": true,
+    "writes_business_truth": false,
+    "notes": [
+      "manifest indexes recovery checkpoint fixtures only",
+      "it does not enable durable storage or automatic replay"
+    ]
+  }
+}

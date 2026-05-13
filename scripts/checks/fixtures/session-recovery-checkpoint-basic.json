@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "kind": "session_recovery_checkpoint",
+  "checkpoint_id": "session-checkpoint-0001",
+  "session_id": "radishflow-session-001",
+  "turn_id": "turn-0003",
+  "parent_turn_id": "turn-0002",
+  "created_at": "2026-05-13T12:00:00Z",
+  "source": "tool_audit",
+  "storage_policy": {
+    "scope": "fixture_only",
+    "materialized_result_storage": "metadata_only",
+    "durable_memory_enabled": false,
+    "writes_business_truth": false
+  },
+  "replay_policy": {
+    "replayable": true,
+    "auto_replay_enabled": false,
+    "requires_confirmation_for_actions": true,
+    "allowed_ref_kinds": [
+      "request",
+      "session_record",
+      "tool_audit",
+      "tool_state",
+      "tool_result_metadata"
+    ]
+  },
+  "refs": [
+    {
+      "kind": "request",
+      "ref": "request:req-tooling-001",
+      "required_for_recovery": true,
+      "checksum": null
+    },
+    {
+      "kind": "session_record",
+      "ref": "session:radishflow-session-001:turn-0003",
+      "required_for_recovery": true,
+      "checksum": null
+    },
+    {
+      "kind": "tool_audit",
+      "ref": "tool-audit:tool-audit-0001",
+      "required_for_recovery": true,
+      "checksum": null
+    },
+    {
+      "kind": "tool_state",
+      "ref": "tool-state:tool-audit-0001",
+      "required_for_recovery": false,
+      "checksum": null
+    },
+    {
+      "kind": "tool_result_metadata",
+      "ref": "tool-result-cache:req-tooling-001:turn-0003:radishflow.suggest_edits.candidate_builder.v1",
+      "required_for_recovery": false,
+      "checksum": null
+    }
+  ],
+  "state_summary": {
+    "contains_tool_result_metadata": true,
+    "contains_materialized_tool_results": false,
+    "contains_business_truth": false,
+    "notes": [
+      "checkpoint stores policy and cache metadata only",
+      "no materialized tool output or business truth is stored"
+    ]
+  },
+  "audit": {
+    "advisory_only": true,
+    "writes_business_truth": false,
+    "durable_memory_written": false,
+    "notes": [
+      "checkpoint is recoverable only through explicit review",
+      "auto replay and durable memory remain disabled"
+    ]
+  }
+}

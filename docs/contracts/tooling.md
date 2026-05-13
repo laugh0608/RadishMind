@@ -55,6 +55,7 @@ Schema 真相源为：
 - 进入 recovery checkpoint 的 v1 工具状态只记录 metadata、policy decision 和 audit ref，不代表工具已经执行。
 - `result_cache.mode=metadata_only` 时不得写 `result_ref`；只有后续真实 executor 边界明确后，才允许引入 materialized result ref。
 - 所有状态落点都必须保持 `durable_memory_written=false`。
+- recovery checkpoint record / manifest 由 `contracts/session-recovery-checkpoint*.schema.json` 固定；tooling 侧只引用 checkpoint ref，不负责跨轮 replay。
 
 ## 当前停止线
 

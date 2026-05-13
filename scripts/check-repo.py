@@ -384,6 +384,8 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/tool.schema.json",
         REPO_ROOT / "contracts/tool-registry.schema.json",
         REPO_ROOT / "contracts/tool-audit-record.schema.json",
+        REPO_ROOT / "contracts/session-recovery-checkpoint.schema.json",
+        REPO_ROOT / "contracts/session-recovery-checkpoint-manifest.schema.json",
         REPO_ROOT / "contracts/image-generation-intent.schema.json",
         REPO_ROOT / "contracts/image-generation-backend-request.schema.json",
         REPO_ROOT / "contracts/image-generation-artifact.schema.json",
@@ -1071,6 +1073,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-platform-runbook.py", [])
     run_python_script("check-session-record-contract.py", [])
     run_python_script("check-tooling-framework-contract.py", [])
+    run_python_script("check-session-recovery-checkpoint-contract.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])

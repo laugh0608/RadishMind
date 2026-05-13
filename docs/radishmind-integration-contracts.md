@@ -18,6 +18,8 @@
 - `contracts/tool.schema.json`
 - `contracts/tool-registry.schema.json`
 - `contracts/tool-audit-record.schema.json`
+- `contracts/session-recovery-checkpoint.schema.json`
+- `contracts/session-recovery-checkpoint-manifest.schema.json`
 - `contracts/image-generation-intent.schema.json`
 - `contracts/image-generation-backend-request.schema.json`
 - `contracts/image-generation-artifact.schema.json`

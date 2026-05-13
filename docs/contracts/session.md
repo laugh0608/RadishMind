@@ -6,7 +6,7 @@
 
 本文档固定 `Conversation & Session` 的首版最小契约。当前目标是把 `conversation_id` 从简单透传升级为可审计的 session record，而不是立即实现持久化 session store、长期记忆或自治恢复循环。
 
-Schema 真相源为 `contracts/session-record.schema.json`，最小 fixture 为 `scripts/checks/fixtures/session-record-basic.json`，快速门禁为 `scripts/check-session-record-contract.py`。
+Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint.schema.json` 与 `contracts/session-recovery-checkpoint-manifest.schema.json`。最小 fixture 为 `scripts/checks/fixtures/session-record-basic.json`、`scripts/checks/fixtures/session-recovery-checkpoint-basic.json` 与 `scripts/checks/fixtures/session-recovery-checkpoint-manifest-basic.json`。快速门禁为 `scripts/check-session-record-contract.py` 与 `scripts/check-session-recovery-checkpoint-contract.py`。
 
 ## 最小结构
 
@@ -18,6 +18,14 @@ Schema 真相源为 `contracts/session-record.schema.json`，最小 fixture 为 
 - `state_policy`：会话状态落点、tool result cache 范围、recovery checkpoint 引用范围；v1 只允许 request-local / northbound metadata / session recovery checkpoint 这类受限边界，不启用 durable memory。
 - `recovery_record`：恢复状态、最后稳定轮次、是否可 replay 和 checkpoint 引用。
 - `audit`：必须保持 advisory-only，不写 `RadishFlow`、`Radish` 或其他上层业务真相源。
+
+`SessionRecoveryCheckpoint` 必须表达：
+
+- `checkpoint_id`、`session_id`、`turn_id`：checkpoint 身份与所属会话轮次。
+- `storage_policy`：当前只允许 fixture / local artifact / session recovery store 这类引用落点，且不启用 durable memory、不写业务真相源。
+- `replay_policy`：是否 replayable、是否要求人工确认；v1 强制 `auto_replay_enabled=false`。
+- `refs`：request、session record、tool audit、tool state、tool result metadata 等引用，不保存真实工具执行结果。
+- `state_summary` 与 `audit`：明确不包含 materialized tool results，不包含业务真相源。
 
 ## Northbound 兼容层
 
@@ -42,3 +50,4 @@ Schema 真相源为 `contracts/session-record.schema.json`，最小 fixture 为 
 - 不让 northbound compatibility layer 自行持久化用户历史。
 - 不把 recovery record 写成自动恢复执行计划；它只记录可审计边界和 checkpoint 引用。
 - 不把 tool result cache 升级为长期记忆；当前只允许 request-local metadata 或 session recovery checkpoint 引用。
+- 不让 recovery checkpoint 自动 replay；当前只固定 record / manifest 与可审计引用。

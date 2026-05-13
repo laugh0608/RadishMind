@@ -35,9 +35,9 @@
 
 目标：让多轮对话、历史压缩、恢复和审计成为平台能力，而不是各任务自己拼上下文。
 
-状态：已补首版 `session-record.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory。当前仍没有 durable session store、长期记忆或跨轮恢复执行器。
+状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，不保存真实工具结果，也不自动 replay。当前仍没有 durable session store、长期记忆或跨轮恢复执行器。
 
-下一步：在该契约基础上继续明确 recovery checkpoint 的真实存放口径和跨轮恢复读取边界。
+下一步：在该契约基础上继续明确 recovery checkpoint 的读取 API 边界和平台层暴露方式。
 
 ### 3. `Tooling Framework`
 
@@ -45,7 +45,7 @@
 
 状态：当前已有 task-local 的 deterministic tooling 与 builder 资产；最小 `tool.schema.json`、`tool-registry.schema.json`、`tool-audit-record.schema.json`、registry fixture、policy/audit fixture 和快速门禁已开始落地，用于固定工具注册、调用轨、timeout/retry/policy、session binding、metadata-only result cache 和 audit 的结构边界。当前仍没有真实工具执行器、长期记忆或新的 provider/model 实验。
 
-下一步：继续把 tooling contract 与 recovery checkpoint 存放口径对齐；在上层确认流和执行器边界明确前，不启动真实执行。
+下一步：继续把 tooling contract 与 recovery checkpoint 读取边界对齐；在上层确认流和执行器边界明确前，不启动真实执行。
 
 ### 4. `Evaluation & Governance`
 
@@ -95,7 +95,7 @@
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：进入主要实现阶段。session contract、history policy、state policy、recovery record 与 northbound session metadata 已有首版门禁；tool schema、tool registry、tool policy、session binding、metadata-only result cache 和 audit record 已有最小契约与快速门禁。
+状态：进入主要实现阶段。session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest 与 northbound session metadata 已有首版门禁；tool schema、tool registry、tool policy、session binding、metadata-only result cache 和 audit record 已有最小契约与快速门禁。
 
 ### `P3`：Local Deployment & Ops Governance
 
