@@ -43,9 +43,9 @@
 
 目标：把检索、局部规则、候选生成和 builder 经验收口为正式工具契约、registry、policy 和 audit。
 
-状态：当前已有 task-local 的 deterministic tooling 与 builder 资产，但还没有通用工具注册、调用轨、timeout/retry/policy 和 tool audit。
+状态：当前已有 task-local 的 deterministic tooling 与 builder 资产；最小 `tool.schema.json`、`tool-registry.schema.json`、`tool-audit-record.schema.json`、registry fixture、policy/audit fixture 和快速门禁已开始落地，用于固定工具注册、调用轨、timeout/retry/policy 和 audit 的结构边界。当前仍没有真实工具执行器、长期记忆或新的 provider/model 实验。
 
-下一步：先定义最小 tool contract 和 registry 原型，避免继续把工具能力散落在 adapter 与脚本里。
+下一步：继续把 tooling contract 与 session/recovery 审计轨对齐，再决定真实工具状态落点；在上层确认流和执行器边界明确前，不启动真实执行。
 
 ### 4. `Evaluation & Governance`
 
@@ -95,7 +95,7 @@
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：进入主要实现阶段。session contract、history policy、recovery record 与 northbound session metadata 已有首版门禁；下一步补 tool schema、tool registry、tool policy 和 audit record。
+状态：进入主要实现阶段。session contract、history policy、recovery record 与 northbound session metadata 已有首版门禁；tool schema、tool registry、tool policy 和 audit record 已有最小契约与快速门禁。
 
 ### `P3`：Local Deployment & Ops Governance
 

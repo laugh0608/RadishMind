@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/tool-registry.schema.json",
+  "title": "RadishMindToolRegistry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "registry_id",
+    "created_at",
+    "registry_policy",
+    "tools",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "tool_registry"
+    },
+    "registry_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "registry_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_enabled",
+        "durable_memory_enabled",
+        "default_timeout_seconds",
+        "max_retry_attempts",
+        "network_default"
+      ],
+      "properties": {
+        "execution_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "durable_memory_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "default_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "max_retry_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "network_default": {
+          "type": "string",
+          "enum": [
+            "disabled",
+            "explicit_only"
+          ]
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "advisory_only",
+        "writes_business_truth",
+        "notes"
+      ],
+      "properties": {
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "writes_business_truth": {
+          "type": "boolean",
+          "const": false
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

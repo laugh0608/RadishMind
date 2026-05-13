@@ -22,7 +22,7 @@
 ## 当前优先做什么
 
 1. `Conversation & Session`：首版 session contract、history policy、recovery record、fixture 和 northbound session metadata 已开始落地；下一步决定会话状态落点和缓存边界，不引入长期记忆。
-2. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式 tool schema、registry、timeout/retry/policy 和 audit record。
+2. `Tooling Framework`：最小 tool schema、registry fixture、policy/audit record 和快速门禁已开始落地；下一步仍只推进契约和治理边界，不实现真实工具执行器。
 3. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics/request-observability checks 扩展到 session 与 tooling 门禁。
 4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
 
@@ -48,6 +48,7 @@
 ## 默认不要做
 
 - 不继续加长同一批 prompt/scaffold 当作默认推进。
+- 不在 tool registry v1 后立即接真实工具执行器、长期记忆或新的 provider/model 实验。
 - 不扩 `RadishFlow` 同类真实 capture，除非先写清楚非重复 drift 假设。
 - 不把 `RadishCatalyst` 从文档预留提前扩成真实 schema、adapter 或 gateway smoke。
 - 不在 runtime、session、tooling 契约还没稳定前启动训练放量。

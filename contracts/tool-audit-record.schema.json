@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/tool-audit-record.schema.json",
+  "title": "RadishMindToolAuditRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "audit_id",
+    "tool_id",
+    "request_id",
+    "session_id",
+    "turn_id",
+    "policy_decision",
+    "execution",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "tool_invocation_audit_record"
+    },
+    "audit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tool_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*\\.v[0-9]+$"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "turn_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_ref": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "output_ref": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "policy_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "requires_confirmation",
+        "reason",
+        "policy_refs"
+      ],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": [
+            "allowed_contract_only",
+            "blocked_tool_execution_disabled",
+            "blocked_requires_confirmation",
+            "blocked_policy"
+          ]
+        },
+        "requires_confirmation": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_enabled",
+        "status",
+        "executor_ref",
+        "started_at",
+        "finished_at",
+        "duration_ms"
+      ],
+      "properties": {
+        "execution_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_executed",
+            "blocked"
+          ]
+        },
+        "executor_ref": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "started_at": {
+          "type": "null"
+        },
+        "finished_at": {
+          "type": "null"
+        },
+        "duration_ms": {
+          "type": "null"
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "advisory_only",
+        "writes_business_truth",
+        "durable_memory_written",
+        "secrets_redacted",
+        "notes"
+      ],
+      "properties": {
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "writes_business_truth": {
+          "type": "boolean",
+          "const": false
+        },
+        "durable_memory_written": {
+          "type": "boolean",
+          "const": false
+        },
+        "secrets_redacted": {
+          "type": "boolean",
+          "const": true
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

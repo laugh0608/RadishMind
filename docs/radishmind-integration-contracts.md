@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-05-12
+更新时间：2026-05-13
 
 ## 文档目的
 
@@ -15,6 +15,9 @@
 - `contracts/copilot-gateway-envelope.schema.json`
 - `contracts/copilot-training-sample.schema.json`
 - `contracts/session-record.schema.json`
+- `contracts/tool.schema.json`
+- `contracts/tool-registry.schema.json`
+- `contracts/tool-audit-record.schema.json`
 - `contracts/image-generation-intent.schema.json`
 - `contracts/image-generation-backend-request.schema.json`
 - `contracts/image-generation-artifact.schema.json`
@@ -32,6 +35,7 @@
 
 - [服务/API 接入契约](contracts/service-api.md)：northbound / southbound 兼容边界、`CopilotGatewayEnvelope`、`RadishFlow` UI consumption、candidate edit handoff、上层接入等待口径和仓库集成边界。
 - [会话记录契约](contracts/session.md)：`Conversation & Session` 的 `session_id / turn_id`、history policy、recovery record、northbound session metadata 和 advisory-only audit 边界。
+- [工具框架契约](contracts/tooling.md)：`Tooling Framework` 的 tool definition、registry、policy/audit record 和不执行真实工具的 v1 停止线。
 - [训练 / 蒸馏样本契约](contracts/training-samples.md)：`CopilotTrainingSample`、训练集合治理、candidate record 转换、offline eval runner、本地模型 candidate wrapper 和 M4 builder/tooling 证据边界。
 - [图片生成契约](contracts/image-generation.md)：`RadishMind-Image Adapter`、image intent、backend request、artifact metadata 和最小评测 manifest。
 - [输入与项目上下文契约](contracts/input-context.md)：`CopilotRequest`、artifact 抽象和项目上下文专题索引。

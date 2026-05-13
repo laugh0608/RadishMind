@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "kind": "tool_registry",
+  "registry_id": "radishmind-tool-registry-v1",
+  "created_at": "2026-05-13T11:00:00Z",
+  "registry_policy": {
+    "execution_enabled": false,
+    "durable_memory_enabled": false,
+    "default_timeout_seconds": 30,
+    "max_retry_attempts": 1,
+    "network_default": "disabled"
+  },
+  "tools": [
+    {
+      "schema_version": 1,
+      "kind": "tool_definition",
+      "tool_id": "radish.docs.retrieval_context.v1",
+      "display_name": "Radish Docs Retrieval Context",
+      "description": "Declares the request-local docs retrieval context boundary for answer_docs_question.",
+      "tool_type": "retrieval",
+      "project_scope": "radish",
+      "interface": {
+        "input_schema_ref": "contracts/copilot-request.schema.json#/properties/context",
+        "output_schema_ref": "contracts/copilot-response.schema.json#/properties/citations",
+        "input_ref_policy": "request_context",
+        "output_ref_policy": "audit_only"
+      },
+      "execution": {
+        "mode": "contract_only",
+        "executor_ref": null,
+        "timeout_seconds": 20,
+        "retry_policy": {
+          "max_attempts": 1,
+          "retry_on": []
+        }
+      },
+      "policy": {
+        "advisory_only": true,
+        "writes_business_truth": false,
+        "allows_network": false,
+        "durable_memory_enabled": false,
+        "requires_confirmation_for_actions": false,
+        "allowed_projects": [
+          "radish"
+        ],
+        "data_access": "request_context",
+        "risk_level": "low"
+      },
+      "audit": {
+        "audit_event_required": true,
+        "records_inputs": true,
+        "records_outputs": true,
+        "redacts_secrets": true,
+        "notes": [
+          "registry entry declares a retrieval boundary only",
+          "no network fetch or durable memory write is enabled"
+        ]
+      }
+    },
+    {
+      "schema_version": 1,
+      "kind": "tool_definition",
+      "tool_id": "radishflow.suggest_edits.candidate_builder.v1",
+      "display_name": "RadishFlow Suggest Edits Candidate Builder",
+      "description": "Declares the candidate builder boundary for RadishFlow suggest_flowsheet_edits handoff records.",
+      "tool_type": "candidate_builder",
+      "project_scope": "radishflow",
+      "interface": {
+        "input_schema_ref": "contracts/copilot-request.schema.json",
+        "output_schema_ref": "contracts/copilot-response.schema.json#/properties/candidate_actions",
+        "input_ref_policy": "request_context",
+        "output_ref_policy": "artifact_ref"
+      },
+      "execution": {
+        "mode": "contract_only",
+        "executor_ref": null,
+        "timeout_seconds": 30,
+        "retry_policy": {
+          "max_attempts": 1,
+          "retry_on": []
+        }
+      },
+      "policy": {
+        "advisory_only": true,
+        "writes_business_truth": false,
+        "allows_network": false,
+        "durable_memory_enabled": false,
+        "requires_confirmation_for_actions": true,
+        "allowed_projects": [
+          "radishflow"
+        ],
+        "data_access": "request_context",
+        "risk_level": "medium"
+      },
+      "audit": {
+        "audit_event_required": true,
+        "records_inputs": true,
+        "records_outputs": true,
+        "redacts_secrets": true,
+        "notes": [
+          "candidate builder output remains advisory until upper-layer confirmation",
+          "v1 registry does not bind a real executor"
+        ]
+      }
+    }
+  ],
+  "audit": {
+    "advisory_only": true,
+    "writes_business_truth": false,
+    "notes": [
+      "tool registry v1 is a contract and governance fixture",
+      "tool execution, long-term memory, and external provider experiments are out of scope"
+    ]
+  }
+}

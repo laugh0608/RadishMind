@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "kind": "tool_invocation_audit_record",
+  "audit_id": "tool-audit-0001",
+  "tool_id": "radishflow.suggest_edits.candidate_builder.v1",
+  "request_id": "req-tooling-001",
+  "session_id": "radishflow-session-001",
+  "turn_id": "turn-0003",
+  "input_ref": "request:req-tooling-001",
+  "output_ref": null,
+  "policy_decision": {
+    "decision": "blocked_tool_execution_disabled",
+    "requires_confirmation": true,
+    "reason": "tool execution is not enabled in the v1 registry; candidate actions require upper-layer confirmation",
+    "policy_refs": [
+      "contracts/tool-registry.schema.json#/properties/registry_policy",
+      "contracts/tool.schema.json#/properties/policy"
+    ]
+  },
+  "execution": {
+    "execution_enabled": false,
+    "status": "not_executed",
+    "executor_ref": null,
+    "started_at": null,
+    "finished_at": null,
+    "duration_ms": null
+  },
+  "audit": {
+    "advisory_only": true,
+    "writes_business_truth": false,
+    "durable_memory_written": false,
+    "secrets_redacted": true,
+    "notes": [
+      "record captures policy decision and audit boundary only",
+      "no tool executor ran and no durable memory was written"
+    ]
+  }
+}

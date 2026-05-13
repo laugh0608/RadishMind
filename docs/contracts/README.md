@@ -1,12 +1,14 @@
 # RadishMind 契约专题目录
 
-更新时间：2026-05-12
+更新时间：2026-05-13
 
 本目录承载 `docs/radishmind-integration-contracts.md` 拆出的稳定专题。入口文档只保留当前结论、索引和停止线；需要修改字段、任务上下文或长样例时，优先修改本目录下的对应专题页。
 
 ## 阅读入口
 
 - [服务/API 接入契约](service-api.md)
+- [会话记录契约](session.md)
+- [工具框架契约](tooling.md)
 - [训练 / 蒸馏样本契约](training-samples.md)
 - [图片生成契约](image-generation.md)
 - [输入与项目上下文契约](input-context.md)
