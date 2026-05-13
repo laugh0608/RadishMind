@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-12
+更新时间：2026-05-13
 
 ## 这份文档讲什么
 
@@ -39,13 +39,13 @@
 
 ## 当前五条主线
 
-1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础；当前已达到 first-pass complete，下一步只短收口请求级观测和错误分类。
-2. `Conversation & Session`：会话标识、历史压缩、恢复和审计边界。
-3. `Tooling Framework`：检索、附件解析、候选生成、builder、tool policy 和 audit。
+1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础；当前已达到 short close，request observability 和 error taxonomy 已进入平台门禁。
+2. `Conversation & Session`：会话标识、历史压缩、恢复和审计边界；当前已有 session record、recovery checkpoint record/manifest/read result、northbound session metadata 和 metadata-only route smoke。
+3. `Tooling Framework`：检索、附件解析、候选生成、builder、tool policy 和 audit；当前已有 tool contract、registry、audit record、session binding 和 metadata-only result cache。
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，默认先完成 `Runtime Service` 的请求级观测 / 错误分类短收口，然后进入 `Conversation & Session` 与 `Tooling Framework`。
+如果你今天想推进开发，默认进入 `P2 Session & Tooling Foundation`，继续收口 session / tooling 的契约、审计和平台治理门禁。
 
 ## 目录速览
 
@@ -123,8 +123,11 @@ Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 co
 - `POST /v1/chat/completions`
 - `POST /v1/responses`
 - `POST /v1/messages`
+- `GET /v1/session/recovery/checkpoints/{checkpoint_id}`
 
 其中 `/v1/chat/completions` 已接到第一版 bridge，并支持非流式与 SSE 增量转发；`/v1/models`、请求侧 provider/profile selection 与 `diagnostics.providers.selectable_model_ids` 共享同一套 discoverability 口径，包括 `profile:<profile>` 与 `provider:<provider>:profile:<profile>`。当请求选中 profile 时，响应 `context.northbound` 会带出脱敏后的 `credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 与 `northbound_protocols`，便于客户端和部署检查判断实际命中的 provider/profile。
+
+`GET /v1/session/recovery/checkpoints/{checkpoint_id}` 当前只是 fixture-backed metadata-only route smoke：它返回 checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，并拒绝 materialized result / replay 类查询；它不是 durable checkpoint store、materialized result reader 或 replay executor。
 
 这仍然不是 production deployment：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级 secret backend、进程监管、环境隔离和正式发布包。
 
@@ -154,8 +157,8 @@ python3 scripts/run-radishmind-core-candidate.py \
 
 - 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
 - 北向已有第一版兼容面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
-- `P1 Runtime Foundation` 已达到 first-pass complete，当前不应继续把 provider/config/diagnostics 同层细节当作主线
-- 当前仍是窄切片：还缺请求级观测、错误分类、production secret backend、部署隔离、外部 provider health check 与少量高价值 route / stream 组合 smoke
+- `P1 Runtime Foundation` 已达到 short close，当前不应继续把 provider/config/diagnostics/observability 同层细节当作主线
+- 当前仍是窄切片：还缺 production secret backend、部署隔离、外部 provider health check、少量高价值 route / stream 组合 smoke，以及 session/tooling 的真实存储和执行边界
 
 ## 今天还不能算完成的能力
 
@@ -164,12 +167,12 @@ python3 scripts/run-radishmind-core-candidate.py \
 - production deployment package
 - production secret backend
 - process supervisor 与环境隔离
-- 请求级 observability、错误分类和外部 provider health check
+- 外部 provider health check
 - 更完整的 route-level smoke、stream 组合和兼容性矩阵
-- session store / history policy / recovery runbook
-- 通用 tool registry 和 tool calling contract
+- durable session store / materialized checkpoint reader / recovery runbook
+- 真实工具执行器、materialized tool result cache 和上层确认流接线
 
-所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke 和 bridge-backed provider/profile discoverability，但还没有完整 production deployment 面。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability 和 session/tooling metadata smoke，但还没有完整 production deployment 面。
 
 ## 读文档顺序
 
