@@ -45,6 +45,24 @@ def check_session_record(record: dict[str, Any]) -> None:
     else:
         require(bool(str(compression.get("summary_artifact_id") or "").strip()), "compressed history must name its summary artifact")
 
+    state_policy = record.get("state_policy")
+    if state_policy is not None:
+        require(isinstance(state_policy, dict), "state_policy must be an object when present")
+        require(state_policy.get("durable_memory_enabled") is False, "session state policy must not enable durable memory")
+        require(
+            state_policy.get("session_state_scope") in {"request_local", "northbound_metadata"},
+            "session state scope must stay local or metadata-only",
+        )
+        require(
+            state_policy.get("tool_result_cache_scope") in {"disabled", "request_local", "session_recovery_checkpoint"},
+            "unexpected tool result cache scope",
+        )
+        if state_policy.get("tool_result_cache_scope") == "session_recovery_checkpoint":
+            require(
+                state_policy.get("recovery_checkpoint_scope") in {"audit_refs_only", "audit_and_result_refs"},
+                "session recovery cache must declare checkpoint reference scope",
+            )
+
     recovery_record = record.get("recovery_record")
     require(isinstance(recovery_record, dict), "recovery_record must be an object")
     checkpoints = recovery_record.get("checkpoints")

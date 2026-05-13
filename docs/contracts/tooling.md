@@ -39,9 +39,22 @@ Schema 真相源为：
 `ToolAuditRecord` 必须表达：
 
 - `tool_id`、`request_id`、`session_id`、`turn_id`：调用轨与会话轨可关联。
+- `session_binding`：工具审计是否进入 session recovery checkpoint，以及对应 checkpoint ref。
 - `policy_decision`：本次工具调用是否被允许、阻断或需要确认。
 - `execution`：v1 只能记录 `not_executed` / `blocked`，不能声称已经执行真实工具。
+- `state_landing`：工具状态落点；v1 只允许 `none`、`request_local` 或 `session_recovery_checkpoint`，并强制 `durable_memory_written=false`。
+- `result_cache`：工具结果缓存边界；v1 支持 `none`、`metadata_only` 和未来 `result_ref` 形态，但当前 fixture 只固定 metadata-only recovery checkpoint，不缓存真实执行结果。
 - `audit`：保持 advisory-only、不写业务真相源、不写 durable memory、secret 已脱敏。
+
+## Session 关联与缓存边界
+
+当前最小策略是：
+
+- session record 的 `state_policy` 决定会话状态与 tool result cache 的落点。
+- tool audit record 用 `session_binding` 明确自己是否进入 recovery checkpoint。
+- 进入 recovery checkpoint 的 v1 工具状态只记录 metadata、policy decision 和 audit ref，不代表工具已经执行。
+- `result_cache.mode=metadata_only` 时不得写 `result_ref`；只有后续真实 executor 边界明确后，才允许引入 materialized result ref。
+- 所有状态落点都必须保持 `durable_memory_written=false`。
 
 ## 当前停止线
 

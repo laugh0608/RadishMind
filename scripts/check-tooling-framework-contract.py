@@ -80,6 +80,20 @@ def check_registry(registry: dict[str, Any], tool_schema: dict[str, Any]) -> Non
 def check_tool_audit_record(record: dict[str, Any], registry: dict[str, Any]) -> None:
     tool_ids = {str(tool.get("tool_id")) for tool in registry.get("tools", []) if isinstance(tool, dict)}
     require(record.get("tool_id") in tool_ids, "tool audit record must reference a registered tool")
+    require(bool(str(record.get("session_id") or "").strip()), "tool audit record must name session_id")
+    require(bool(str(record.get("turn_id") or "").strip()), "tool audit record must name turn_id")
+
+    session_binding = record.get("session_binding")
+    require(isinstance(session_binding, dict), "session_binding must be an object")
+    require(
+        session_binding.get("session_record_kind") == "conversation_session_record",
+        "tool audit must bind to conversation session record",
+    )
+    if session_binding.get("include_in_recovery") is True:
+        require(
+            bool(str(session_binding.get("recovery_checkpoint_ref") or "").strip()),
+            "recoverable tool audit must name recovery_checkpoint_ref",
+        )
 
     decision = record.get("policy_decision")
     require(isinstance(decision, dict), "policy_decision must be an object")
@@ -94,6 +108,35 @@ def check_tool_audit_record(record: dict[str, Any], registry: dict[str, Any]) ->
     require(execution.get("execution_enabled") is False, "tool audit must keep execution disabled")
     require(execution.get("status") == "not_executed", "v1 tool audit must not claim execution")
     require(execution.get("executor_ref") is None, "v1 tool audit must not reference an executor")
+
+    state_landing = record.get("state_landing")
+    require(isinstance(state_landing, dict), "state_landing must be an object")
+    require(state_landing.get("durable_memory_written") is False, "tool state landing must not write durable memory")
+    if session_binding.get("include_in_recovery") is True:
+        require(
+            state_landing.get("scope") == "session_recovery_checkpoint",
+            "recoverable tool audit must land state in session recovery checkpoint",
+        )
+        require(bool(str(state_landing.get("state_ref") or "").strip()), "recoverable tool audit must name state_ref")
+
+    result_cache = record.get("result_cache")
+    require(isinstance(result_cache, dict), "result_cache must be an object")
+    require(result_cache.get("durable_memory_written") is False, "tool result cache must not write durable memory")
+    require(
+        result_cache.get("scope") in {"none", "request_local", "session_recovery_checkpoint"},
+        "unexpected tool result cache scope",
+    )
+    if execution.get("status") == "not_executed":
+        require(
+            result_cache.get("mode") != "result_ref",
+            "not-executed tool audit must not cache a materialized result",
+        )
+        require(record.get("output_ref") is None, "not-executed tool audit must not declare output_ref")
+    if result_cache.get("mode") == "metadata_only":
+        require(result_cache.get("result_ref") is None, "metadata-only cache must not claim result_ref")
+        require(bool(str(result_cache.get("cache_key") or "").strip()), "metadata-only cache must keep a cache_key")
+    if result_cache.get("mode") == "result_ref":
+        require(bool(str(result_cache.get("result_ref") or "").strip()), "result cache must name result_ref")
 
     audit = record.get("audit")
     require(isinstance(audit, dict), "audit must be an object")

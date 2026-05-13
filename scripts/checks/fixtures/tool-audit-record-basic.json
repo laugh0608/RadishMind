@@ -8,6 +8,11 @@
   "turn_id": "turn-0003",
   "input_ref": "request:req-tooling-001",
   "output_ref": null,
+  "session_binding": {
+    "session_record_kind": "conversation_session_record",
+    "include_in_recovery": true,
+    "recovery_checkpoint_ref": "tool-audit:tool-audit-0001"
+  },
   "policy_decision": {
     "decision": "blocked_tool_execution_disabled",
     "requires_confirmation": true,
@@ -24,6 +29,19 @@
     "started_at": null,
     "finished_at": null,
     "duration_ms": null
+  },
+  "state_landing": {
+    "scope": "session_recovery_checkpoint",
+    "state_ref": "tool-state:tool-audit-0001",
+    "durable_memory_written": false
+  },
+  "result_cache": {
+    "mode": "metadata_only",
+    "scope": "session_recovery_checkpoint",
+    "cache_key": "tool-result-cache:req-tooling-001:turn-0003:radishflow.suggest_edits.candidate_builder.v1",
+    "result_ref": null,
+    "retention": "until_recovery_checkpoint",
+    "durable_memory_written": false
   },
   "audit": {
     "advisory_only": true,

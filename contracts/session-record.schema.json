@@ -91,6 +91,9 @@
     "history_policy": {
       "$ref": "#/$defs/history_policy"
     },
+    "state_policy": {
+      "$ref": "#/$defs/state_policy"
+    },
     "recovery_record": {
       "$ref": "#/$defs/recovery_record"
     },
@@ -214,6 +217,8 @@
                   "response",
                   "summary",
                   "audit",
+                  "tool_audit",
+                  "tool_state",
                   "external"
                 ]
               },
@@ -223,6 +228,45 @@
               }
             }
           }
+        }
+      }
+    },
+    "state_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_state_scope",
+        "tool_result_cache_scope",
+        "recovery_checkpoint_scope",
+        "durable_memory_enabled"
+      ],
+      "properties": {
+        "session_state_scope": {
+          "type": "string",
+          "enum": [
+            "request_local",
+            "northbound_metadata"
+          ]
+        },
+        "tool_result_cache_scope": {
+          "type": "string",
+          "enum": [
+            "disabled",
+            "request_local",
+            "session_recovery_checkpoint"
+          ]
+        },
+        "recovery_checkpoint_scope": {
+          "type": "string",
+          "enum": [
+            "none",
+            "audit_refs_only",
+            "audit_and_result_refs"
+          ]
+        },
+        "durable_memory_enabled": {
+          "type": "boolean",
+          "const": false
         }
       }
     },

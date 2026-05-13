@@ -21,8 +21,8 @@
 
 ## 当前优先做什么
 
-1. `Conversation & Session`：首版 session contract、history policy、recovery record、fixture 和 northbound session metadata 已开始落地；下一步决定会话状态落点和缓存边界，不引入长期记忆。
-2. `Tooling Framework`：最小 tool schema、registry fixture、policy/audit record 和快速门禁已开始落地；下一步仍只推进契约和治理边界，不实现真实工具执行器。
+1. `Conversation & Session`：首版 session contract、history policy、state policy、recovery record、fixture 和 northbound session metadata 已开始落地；下一步继续收口恢复 checkpoint 的真实存放口径，不引入长期记忆。
+2. `Tooling Framework`：最小 tool schema、registry fixture、policy/audit record、session binding、metadata-only result cache 和快速门禁已开始落地；下一步仍只推进契约和治理边界，不实现真实工具执行器。
 3. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics/request-observability checks 扩展到 session 与 tooling 门禁。
 4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
 

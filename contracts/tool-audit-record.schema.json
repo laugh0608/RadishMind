@@ -12,8 +12,11 @@
     "request_id",
     "session_id",
     "turn_id",
+    "session_binding",
     "policy_decision",
     "execution",
+    "state_landing",
+    "result_cache",
     "audit"
   ],
   "properties": {
@@ -66,6 +69,35 @@
           "type": "null"
         }
       ]
+    },
+    "session_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_record_kind",
+        "include_in_recovery",
+        "recovery_checkpoint_ref"
+      ],
+      "properties": {
+        "session_record_kind": {
+          "type": "string",
+          "const": "conversation_session_record"
+        },
+        "include_in_recovery": {
+          "type": "boolean"
+        },
+        "recovery_checkpoint_ref": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
     },
     "policy_decision": {
       "type": "object",
@@ -145,6 +177,104 @@
         },
         "duration_ms": {
           "type": "null"
+        }
+      }
+    },
+    "state_landing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "state_ref",
+        "durable_memory_written"
+      ],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "none",
+            "request_local",
+            "session_recovery_checkpoint"
+          ]
+        },
+        "state_ref": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "durable_memory_written": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "result_cache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "scope",
+        "cache_key",
+        "result_ref",
+        "retention",
+        "durable_memory_written"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "metadata_only",
+            "result_ref"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "none",
+            "request_local",
+            "session_recovery_checkpoint"
+          ]
+        },
+        "cache_key": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_ref": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retention": {
+          "type": "string",
+          "enum": [
+            "none",
+            "until_response_complete",
+            "until_recovery_checkpoint"
+          ]
+        },
+        "durable_memory_written": {
+          "type": "boolean",
+          "const": false
         }
       }
     },

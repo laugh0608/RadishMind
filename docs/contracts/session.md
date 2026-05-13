@@ -15,6 +15,7 @@ Schema 真相源为 `contracts/session-record.schema.json`，最小 fixture 为 
 - `session_id` / `conversation_id`：会话身份；v1 默认保持两者一致，便于兼容已有调用方。
 - `turn_id` / `parent_turn_id`：当前轮次和上一稳定轮次引用。
 - `history_policy`：历史窗口、是否包含 system/tool 结果、是否使用 summary 压缩。
+- `state_policy`：会话状态落点、tool result cache 范围、recovery checkpoint 引用范围；v1 只允许 request-local / northbound metadata / session recovery checkpoint 这类受限边界，不启用 durable memory。
 - `recovery_record`：恢复状态、最后稳定轮次、是否可 replay 和 checkpoint 引用。
 - `audit`：必须保持 advisory-only，不写 `RadishFlow`、`Radish` 或其他上层业务真相源。
 
@@ -40,3 +41,4 @@ Schema 真相源为 `contracts/session-record.schema.json`，最小 fixture 为 
 - 不在 v1 中引入共享长期记忆。
 - 不让 northbound compatibility layer 自行持久化用户历史。
 - 不把 recovery record 写成自动恢复执行计划；它只记录可审计边界和 checkpoint 引用。
+- 不把 tool result cache 升级为长期记忆；当前只允许 request-local metadata 或 session recovery checkpoint 引用。
