@@ -29,24 +29,26 @@ type northboundModelCatalog struct {
 	aliases map[string]string
 }
 
-func handleModels(writer http.ResponseWriter, server *Server) {
+func handleModels(writer http.ResponseWriter, request *http.Request, server *Server) {
+	trace := newRequestTrace(request, "/v1/models")
 	ctx, cancel := context.WithTimeout(context.Background(), server.config.BridgeTimeout)
 	defer cancel()
 
 	inventory, err := server.bridge.DescribeInventory(ctx)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PROVIDER_REGISTRY_UNAVAILABLE", err.Error())
+		server.writePlatformError(writer, trace, "PROVIDER_INVENTORY_UNAVAILABLE", err.Error())
 		return
 	}
 
 	catalog := buildNorthboundModelCatalog(server, inventory)
-	writeJSON(writer, http.StatusOK, catalog.list)
+	writeObservedJSON(writer, http.StatusOK, trace, catalog.list)
 }
 
 func handleModel(writer http.ResponseWriter, request *http.Request, server *Server) {
+	trace := newRequestTrace(request, "/v1/models/{id}")
 	modelID := strings.TrimSpace(request.PathValue("id"))
 	if modelID == "" {
-		writeOpenAIError(writer, http.StatusBadRequest, "MISSING_MODEL_ID", "model id is required")
+		server.writePlatformError(writer, trace, "MISSING_MODEL_ID", "model id is required")
 		return
 	}
 
@@ -55,18 +57,18 @@ func handleModel(writer http.ResponseWriter, request *http.Request, server *Serv
 
 	inventory, err := server.bridge.DescribeInventory(ctx)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PROVIDER_REGISTRY_UNAVAILABLE", err.Error())
+		server.writePlatformError(writer, trace, "PROVIDER_INVENTORY_UNAVAILABLE", err.Error())
 		return
 	}
 
 	catalog := buildNorthboundModelCatalog(server, inventory)
 	model, ok := catalog.lookup(modelID)
 	if !ok {
-		writeOpenAIError(writer, http.StatusNotFound, "MODEL_NOT_FOUND", fmt.Sprintf("model not found: %s", modelID))
+		server.writePlatformError(writer, trace, "MODEL_NOT_FOUND", fmt.Sprintf("model not found: %s", modelID))
 		return
 	}
 
-	writeJSON(writer, http.StatusOK, model)
+	writeObservedJSON(writer, http.StatusOK, trace, model)
 }
 
 func buildNorthboundModelCatalog(server *Server, inventory bridge.ProviderInventory) northboundModelCatalog {

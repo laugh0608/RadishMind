@@ -52,6 +52,10 @@
 
 profile 可选择 ID 固定为 `profile:<profile>` 或 `provider:<provider>:profile:<profile>`。`/v1/models`、请求时的 provider/profile selection 和 `diagnostics.providers.selectable_model_ids` 使用同一套 ID 与 readiness metadata；当请求选中某个 profile 时，canonical request 的 `context.northbound` 会记录 `credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 与 `northbound_protocols`，用于审计和排障。
 
+请求级观测已固定为轻量平台能力：`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` 会接受或生成 `request_id`，通过 `X-Request-Id` 响应头返回，并把同一 ID 写入 canonical `CopilotRequest.request_id` 与 `context.northbound.request_id`。非流式和流式路径都会记录统一日志字段：`request_id`、route、HTTP status、latency、provider/profile、selected model、selection source，以及失败时的 error code 与 failure boundary。
+
+错误响应采用统一 error taxonomy，不输出 provider URL 或 credential 原文。当前固定的主要失败边界包括：`northbound_request`、`canonical_request`、`provider_inventory`、`python_bridge`、`platform_response`、`southbound_provider` 与 `configuration`。
+
 ## 本地启动 runbook
 
 该 runbook 面向开发者本机验证，不等同于 production deployment。启动服务前应先运行平台层单元测试：
@@ -179,6 +183,8 @@ curl -sS http://127.0.0.1:8080/v1/chat/completions \
 - 若 `failure.code=CONFIG_REQUIRED_FIELDS_MISSING`，优先检查 `config.missing_required_fields`，不要从日志或诊断输出寻找 secret 原文。
 - 若 `failure.code=PROVIDER_REGISTRY_UNAVAILABLE` 或 `PROVIDER_INVENTORY_UNAVAILABLE`，优先检查 `bridge.python_binary`、`bridge.script`、当前工作目录和 Python import 路径。
 - 若启动时报 `load config`，优先检查 duration / float 类环境变量格式，例如 `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT=30s`、`RADISHMIND_PLATFORM_TEMPERATURE=0`。
-- 若 `/v1/models` 返回 `PROVIDER_REGISTRY_UNAVAILABLE`，优先检查 `RADISHMIND_PLATFORM_PYTHON_BIN`、`RADISHMIND_PLATFORM_BRIDGE_SCRIPT` 和当前工作目录是否能访问仓库根下的 Python bridge。
-- 若 chat 路由返回 bridge 失败，先用 `python3 scripts/run-platform-bridge.py providers` 与 `python3 scripts/run-platform-bridge.py inventory` 验证 Python 侧 provider registry 是否可用。
+- 若 `/v1/models` 返回 `PROVIDER_INVENTORY_UNAVAILABLE`，优先检查 `RADISHMIND_PLATFORM_PYTHON_BIN`、`RADISHMIND_PLATFORM_BRIDGE_SCRIPT` 和当前工作目录是否能访问仓库根下的 Python bridge。
+- 若 northbound 路由返回 `PLATFORM_BRIDGE_FAILED`，先用 `python3 scripts/run-platform-bridge.py providers` 与 `python3 scripts/run-platform-bridge.py inventory` 验证 Python 侧 provider registry / inventory 是否可用。
+- 若返回 `MODEL_NOT_FOUND`，优先用 `/v1/models` 或 `diagnostics.providers.selectable_model_ids` 确认可选择 ID，避免把 provider id、profile id 与真实 upstream model 混用。
+- 若返回 `PLATFORM_RESPONSE_INVALID`，说明 Python bridge 已返回 envelope，但 `Go` northbound 兼容层无法翻译为目标协议响应，应优先检查 envelope 的 `response` 结构。
 - 若要接真实 provider，必须通过环境变量或本机 secret 注入 `RADISHMIND_PLATFORM_BASE_URL` / `RADISHMIND_PLATFORM_API_KEY` 或 provider profile 配置；不要把 key、token、cookie 或真实 provider raw dump 写入 committed 文档。

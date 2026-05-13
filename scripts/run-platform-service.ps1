@@ -1,6 +1,5 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("serve", "config-summary", "config-check", "diagnostics")]
     [string]$Command = "serve",
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$RemainingArgs
@@ -17,7 +16,7 @@ if ($null -eq $goCommand) {
 }
 
 if (-not $env:GOCACHE) {
-    $env:GOCACHE = "/tmp/radishmind-go-build-cache"
+    $env:GOCACHE = Join-Path ([System.IO.Path]::GetTempPath()) "radishmind-go-build-cache"
 }
 
 if (-not $env:RADISHMIND_PLATFORM_CONFIG) {
@@ -29,10 +28,18 @@ if (-not $env:RADISHMIND_PLATFORM_CONFIG) {
 
 Push-Location $platformDir
 try {
-    if ($Command -eq "serve") {
-        & go run ./cmd/radishmind-platform @RemainingArgs
-    } else {
-        & go run ./cmd/radishmind-platform $Command @RemainingArgs
+    switch ($Command) {
+        "serve" {
+            & go run ./cmd/radishmind-platform @RemainingArgs
+        }
+        { $_ -in @("config-summary", "config-check", "diagnostics") } {
+            & go run ./cmd/radishmind-platform $Command @RemainingArgs
+        }
+        default {
+            [Console]::Error.WriteLine("unsupported platform service command: $Command")
+            [Console]::Error.WriteLine("supported commands: serve, config-summary, config-check, diagnostics")
+            exit 2
+        }
     }
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE

@@ -72,6 +72,28 @@ func findNorthboundModel(data []openAIModelObject, modelID string) (openAIModelO
 	return openAIModelObject{}, false
 }
 
+func decodeCanonicalRequest(t *testing.T, raw []byte) map[string]any {
+	t.Helper()
+	var canonicalRequest map[string]any
+	if err := json.Unmarshal(raw, &canonicalRequest); err != nil {
+		t.Fatalf("decode canonical request: %v", err)
+	}
+	return canonicalRequest
+}
+
+func canonicalNorthboundContext(t *testing.T, canonicalRequest map[string]any) map[string]any {
+	t.Helper()
+	contextBlock, ok := canonicalRequest["context"].(map[string]any)
+	if !ok {
+		t.Fatalf("missing context block: %#v", canonicalRequest["context"])
+	}
+	northbound, ok := contextBlock["northbound"].(map[string]any)
+	if !ok {
+		t.Fatalf("missing northbound context: %#v", contextBlock["northbound"])
+	}
+	return northbound
+}
+
 func TestPlatformNorthboundRoutes(t *testing.T) {
 	providerDescriptions := []bridge.ProviderDescription{
 		{
@@ -234,18 +256,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			t.Fatalf("unexpected model: %s", response.Model)
 		}
 
-		var canonicalRequest map[string]any
-		if err := json.Unmarshal(fb.lastRequest, &canonicalRequest); err != nil {
-			t.Fatalf("decode canonical request: %v", err)
-		}
-		contextBlock, ok := canonicalRequest["context"].(map[string]any)
-		if !ok {
-			t.Fatalf("missing context block: %#v", canonicalRequest["context"])
-		}
-		northbound, ok := contextBlock["northbound"].(map[string]any)
-		if !ok {
-			t.Fatalf("missing northbound context: %#v", contextBlock["northbound"])
-		}
+		northbound := canonicalNorthboundContext(t, decodeCanonicalRequest(t, fb.lastRequest))
 		if northbound["protocol"] != northboundProtocolResponses {
 			t.Fatalf("unexpected protocol: %#v", northbound["protocol"])
 		}
@@ -304,18 +315,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			t.Fatalf("unexpected model: %s", response.Model)
 		}
 
-		var canonicalRequest map[string]any
-		if err := json.Unmarshal(fb.lastRequest, &canonicalRequest); err != nil {
-			t.Fatalf("decode canonical request: %v", err)
-		}
-		contextBlock, ok := canonicalRequest["context"].(map[string]any)
-		if !ok {
-			t.Fatalf("missing context block: %#v", canonicalRequest["context"])
-		}
-		northbound, ok := contextBlock["northbound"].(map[string]any)
-		if !ok {
-			t.Fatalf("missing northbound context: %#v", contextBlock["northbound"])
-		}
+		northbound := canonicalNorthboundContext(t, decodeCanonicalRequest(t, fb.lastRequest))
 		if northbound["protocol"] != northboundProtocolMessages {
 			t.Fatalf("unexpected protocol: %#v", northbound["protocol"])
 		}
@@ -383,18 +383,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			t.Fatalf("unexpected bridge model: %s", fb.lastOptions.Model)
 		}
 
-		var canonicalRequest map[string]any
-		if err := json.Unmarshal(fb.lastRequest, &canonicalRequest); err != nil {
-			t.Fatalf("decode canonical request: %v", err)
-		}
-		contextBlock, ok := canonicalRequest["context"].(map[string]any)
-		if !ok {
-			t.Fatalf("missing context block: %#v", canonicalRequest["context"])
-		}
-		northbound, ok := contextBlock["northbound"].(map[string]any)
-		if !ok {
-			t.Fatalf("missing northbound context: %#v", contextBlock["northbound"])
-		}
+		northbound := canonicalNorthboundContext(t, decodeCanonicalRequest(t, fb.lastRequest))
 		if northbound["selected_provider"] != "openai-compatible" {
 			t.Fatalf("unexpected selected provider: %#v", northbound["selected_provider"])
 		}
@@ -415,6 +404,120 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if routes, ok := northbound["northbound_routes"].([]any); !ok || len(routes) == 0 {
 			t.Fatalf("missing northbound routes: %#v", northbound["northbound_routes"])
+		}
+	})
+
+	t.Run("northbound request observability", func(t *testing.T) {
+		cases := []struct {
+			name     string
+			route    string
+			body     string
+			protocol string
+			handle   func(http.ResponseWriter, *http.Request)
+		}{
+			{
+				name:     "chat",
+				route:    "/v1/chat/completions",
+				body:     `{"model":"profile:anyrouter","messages":[{"role":"user","content":"hello"}]}`,
+				protocol: northboundProtocolChatCompletions,
+				handle:   server.handleChatCompletions,
+			},
+			{
+				name:     "responses",
+				route:    "/v1/responses",
+				body:     `{"model":"profile:anyrouter","input":"Please answer this"}`,
+				protocol: northboundProtocolResponses,
+				handle:   server.handleResponses,
+			},
+			{
+				name:     "messages",
+				route:    "/v1/messages",
+				body:     `{"model":"profile:anyrouter","messages":[{"role":"user","content":"hello"}]}`,
+				protocol: northboundProtocolMessages,
+				handle:   server.handleMessages,
+			},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				requestID := "req-observe-" + tc.name
+				req := httptest.NewRequest(http.MethodPost, tc.route, strings.NewReader(tc.body))
+				req.Header.Set("X-Request-Id", requestID)
+				rec := httptest.NewRecorder()
+
+				tc.handle(rec, req)
+
+				if rec.Code != http.StatusOK {
+					t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+				}
+				if got := rec.Header().Get("X-Request-Id"); got != requestID {
+					t.Fatalf("unexpected response request id header: %s", got)
+				}
+				canonicalRequest := decodeCanonicalRequest(t, fb.lastRequest)
+				if canonicalRequest["request_id"] != requestID {
+					t.Fatalf("unexpected canonical request id: %#v", canonicalRequest["request_id"])
+				}
+				contextBlock := canonicalRequest["context"].(map[string]any)
+				if contextBlock["route"] != tc.route {
+					t.Fatalf("unexpected canonical route: %#v", contextBlock["route"])
+				}
+				northbound := canonicalNorthboundContext(t, canonicalRequest)
+				if northbound["request_id"] != requestID {
+					t.Fatalf("unexpected northbound request id: %#v", northbound["request_id"])
+				}
+				if northbound["protocol"] != tc.protocol {
+					t.Fatalf("unexpected protocol: %#v", northbound["protocol"])
+				}
+				if northbound["selected_provider"] != "openai-compatible" {
+					t.Fatalf("unexpected selected provider: %#v", northbound["selected_provider"])
+				}
+				if northbound["selected_provider_profile"] != "anyrouter" {
+					t.Fatalf("unexpected selected provider profile: %#v", northbound["selected_provider_profile"])
+				}
+				if northbound["selected_model"] != "profile:anyrouter" {
+					t.Fatalf("unexpected selected model: %#v", northbound["selected_model"])
+				}
+				if northbound["upstream_model"] != "deepseek-chat" {
+					t.Fatalf("unexpected upstream model: %#v", northbound["upstream_model"])
+				}
+				if northbound["selection_source"] != "requested_profile_model" {
+					t.Fatalf("unexpected selection source: %#v", northbound["selection_source"])
+				}
+			})
+		}
+	})
+
+	t.Run("error envelope observability", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{`))
+		req.Header.Set("X-Request-Id", "req-error-123")
+		rec := httptest.NewRecorder()
+
+		server.handleResponses(rec, req)
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("X-Request-Id"); got != "req-error-123" {
+			t.Fatalf("unexpected response request id header: %s", got)
+		}
+		var response errorDocument
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode error response: %v", err)
+		}
+		if response.Error.Code != "INVALID_JSON" {
+			t.Fatalf("unexpected error code: %#v", response.Error.Code)
+		}
+		if response.Error.RequestID != "req-error-123" {
+			t.Fatalf("unexpected error request id: %#v", response.Error.RequestID)
+		}
+		if response.Error.Route != "/v1/responses" {
+			t.Fatalf("unexpected error route: %#v", response.Error.Route)
+		}
+		if response.Error.FailureBoundary != errorBoundaryNorthboundRequest {
+			t.Fatalf("unexpected failure boundary: %#v", response.Error.FailureBoundary)
+		}
+		if response.Error.Metadata["latency_ms"] == nil {
+			t.Fatalf("expected error latency metadata")
 		}
 	})
 
@@ -512,9 +615,10 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 	})
 
 	t.Run("models", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models", nil)
 		rec := httptest.NewRecorder()
 
-		handleModels(rec, server)
+		handleModels(rec, req, server)
 
 		if rec.Code != http.StatusOK {
 			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
@@ -72,15 +71,16 @@ type openAIChatMessage struct {
 }
 
 func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, "/v1/chat/completions")
 	var chatRequest chatCompletionRequest
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&chatRequest); err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_JSON", fmt.Sprintf("invalid chat completion request: %v", err))
+		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid chat completion request: %v", err))
 		return
 	}
 
 	if len(chatRequest.Messages) == 0 {
-		writeOpenAIError(writer, http.StatusBadRequest, "MISSING_MESSAGES", "messages must contain at least one item")
+		s.writePlatformError(writer, trace, "MISSING_MESSAGES", "messages must contain at least one item")
 		return
 	}
 
@@ -93,17 +93,18 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	}
 
 	selection := s.resolveNorthboundSelection(ctx, chatRequest.Model, chatRequest.RadishMind)
+	trace.applySelection(selection)
 	temperature := effectiveTemperature(chatRequest.Temperature, s.config.Temperature)
 
-	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection)
+	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_CHAT_MESSAGES", err.Error())
+		s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
 		return
 	}
 
 	if chatRequest.Stream {
-		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature); err != nil {
-			writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, trace); err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
 		}
 		return
 	}
@@ -114,20 +115,20 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		s.buildBridgeEnvelopeOptions(selection, temperature),
 	)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
-		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
+		s.writePlatformError(writer, trace, gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
 		return
 	}
 
 	openAIResponse, err := buildOpenAIChatCompletionResponse(envelope, selection.model)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_RESPONSE_INVALID", err.Error())
+		s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
 		return
 	}
-	writeJSON(writer, http.StatusOK, openAIResponse)
+	writeObservedJSON(writer, http.StatusOK, trace, openAIResponse)
 }
 
 func (s *Server) resolveKnownProvider(ctx context.Context, requestedModel string) string {
@@ -152,6 +153,7 @@ func buildChatCanonicalRequest(
 	chatRequest chatCompletionRequest,
 	locale string,
 	selection northboundSelection,
+	requestID string,
 ) ([]byte, error) {
 	promptText, err := buildPromptFromMessages(chatRequest.Messages)
 	if err != nil {
@@ -169,6 +171,7 @@ func buildChatCanonicalRequest(
 		northboundFields["metadata"] = chatRequest.Metadata
 	}
 	return buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
+		requestID:        requestID,
 		route:            "/v1/chat/completions",
 		protocol:         northboundProtocolChatCompletions,
 		locale:           locale,
@@ -308,8 +311,9 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
+	trace requestTrace,
 ) error {
-	responseID := buildNorthboundResponseID("chatcmpl-", fmt.Sprintf("%d", time.Now().UnixNano()))
+	responseID := buildNorthboundResponseID("chatcmpl-", trace.requestID)
 	createdAt := timeNowUnix()
 	streamStarted := false
 	streamCompleted := false
@@ -320,6 +324,7 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 			return nil
 		}
 		prepareSSEHeaders(writer)
+		writeTraceHeaders(writer, trace)
 		if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
 			ID:      responseID,
 			Object:  "chat.completion.chunk",
@@ -404,7 +409,11 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 		return err
 	}
 
-	return writeSSEEvent(writer, "", "[DONE]")
+	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
+		return err
+	}
+	logRequestTrace(trace, http.StatusOK, "", "")
+	return nil
 }
 
 func effectiveTemperature(requestTemperature *float64, fallback float64) float64 {
@@ -423,22 +432,6 @@ func truncateForTitle(text string) string {
 		return normalized
 	}
 	return normalized[:79]
-}
-
-func gatewayStatusToHTTPStatus(err *bridge.GatewayError) int {
-	if err == nil {
-		return http.StatusBadGateway
-	}
-	switch err.Code {
-	case "REQUEST_SCHEMA_INVALID":
-		return http.StatusBadRequest
-	case "UNSUPPORTED_PROVIDER":
-		return http.StatusBadGateway
-	case "UNSUPPORTED_TASK":
-		return http.StatusBadGateway
-	default:
-		return http.StatusBadGateway
-	}
 }
 
 func gatewayErrorCode(err *bridge.GatewayError) string {

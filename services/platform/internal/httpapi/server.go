@@ -34,9 +34,13 @@ type errorDocument struct {
 }
 
 type errorBody struct {
-	Message string `json:"message"`
-	Type    string `json:"type"`
-	Code    string `json:"code"`
+	Message         string         `json:"message"`
+	Type            string         `json:"type"`
+	Code            string         `json:"code"`
+	RequestID       string         `json:"request_id,omitempty"`
+	Route           string         `json:"route,omitempty"`
+	FailureBoundary string         `json:"failure_boundary,omitempty"`
+	Metadata        map[string]any `json:"metadata,omitempty"`
 }
 
 func NewServer(cfg config.Config, options Options) *Server {
@@ -76,8 +80,8 @@ func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request
 	})
 }
 
-func (s *Server) handleModels(writer http.ResponseWriter, _ *http.Request) {
-	handleModels(writer, s)
+func (s *Server) handleModels(writer http.ResponseWriter, request *http.Request) {
+	handleModels(writer, request, s)
 }
 
 func (s *Server) handleModel(writer http.ResponseWriter, request *http.Request) {
@@ -90,14 +94,4 @@ func writeJSON(writer http.ResponseWriter, statusCode int, document any) {
 	encoder := json.NewEncoder(writer)
 	encoder.SetEscapeHTML(false)
 	_ = encoder.Encode(document)
-}
-
-func writeOpenAIError(writer http.ResponseWriter, statusCode int, code string, message string) {
-	writeJSON(writer, statusCode, map[string]any{
-		"error": map[string]any{
-			"message": message,
-			"type":    "invalid_request_error",
-			"code":    code,
-		},
-	})
 }

@@ -32,6 +32,7 @@ type northboundSelection struct {
 }
 
 type northboundCanonicalRequestOptions struct {
+	requestID        string
 	route            string
 	protocol         string
 	locale           string
@@ -413,6 +414,10 @@ func buildNorthboundCanonicalRequest(options northboundCanonicalRequestOptions) 
 			"mode":                              "advisory",
 			"requires_confirmation_for_actions": false,
 		},
+	}
+	if requestID := strings.TrimSpace(options.requestID); requestID != "" {
+		canonicalRequest["request_id"] = requestID
+		northboundContext["request_id"] = requestID
 	}
 	return json.Marshal(canonicalRequest)
 }

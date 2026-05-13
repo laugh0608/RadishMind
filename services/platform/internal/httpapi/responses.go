@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
@@ -63,10 +62,11 @@ type openAIResponsesStreamEvent struct {
 }
 
 func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, "/v1/responses")
 	var responseRequest openAIResponsesRequest
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&responseRequest); err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_JSON", fmt.Sprintf("invalid responses request: %v", err))
+		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid responses request: %v", err))
 		return
 	}
 
@@ -74,13 +74,15 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	defer cancel()
 
 	selection := s.resolveNorthboundSelection(ctx, responseRequest.Model, responseRequest.RadishMind)
+	trace.applySelection(selection)
 	promptText, northboundFields, err := buildResponsesPromptText(responseRequest, selection)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_RESPONSES_REQUEST", err.Error())
+		s.writePlatformError(writer, trace, "INVALID_RESPONSES_REQUEST", err.Error())
 		return
 	}
 
 	canonicalRequest, err := buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
+		requestID:        trace.requestID,
 		route:            "/v1/responses",
 		protocol:         northboundProtocolResponses,
 		locale:           resolveNorthboundLocale(responseRequest.RadishMind),
@@ -88,13 +90,13 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		northboundFields: northboundFields,
 	})
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_RESPONSES_REQUEST", err.Error())
+		s.writePlatformError(writer, trace, "INVALID_RESPONSES_REQUEST", err.Error())
 		return
 	}
 
 	if responseRequest.Stream {
-		if err := s.streamOpenAIResponsesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature)); err != nil {
-			writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+		if err := s.streamOpenAIResponsesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature), trace); err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
 			return
 		}
 		return
@@ -106,20 +108,20 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		s.buildBridgeEnvelopeOptions(selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature)),
 	)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
-		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
+		s.writePlatformError(writer, trace, gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
 		return
 	}
 
 	responseDocument, err := buildOpenAIResponsesResponse(envelope, selection.model)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_RESPONSE_INVALID", err.Error())
+		s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
 		return
 	}
-	writeJSON(writer, http.StatusOK, responseDocument)
+	writeObservedJSON(writer, http.StatusOK, trace, responseDocument)
 }
 
 func buildResponsesPromptText(request openAIResponsesRequest, selection northboundSelection) (string, map[string]any, error) {
@@ -226,8 +228,9 @@ func (s *Server) streamOpenAIResponsesResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
+	trace requestTrace,
 ) error {
-	responseID := buildNorthboundResponseID("resp-", fmt.Sprintf("%d", time.Now().UnixNano()))
+	responseID := buildNorthboundResponseID("resp-", trace.requestID)
 	createdAt := timeNowUnix()
 	streamStarted := false
 	streamCompleted := false
@@ -239,6 +242,7 @@ func (s *Server) streamOpenAIResponsesResponse(
 			return nil
 		}
 		prepareSSEHeaders(writer)
+		writeTraceHeaders(writer, trace)
 		if err := writeSSEEvent(writer, "response.created", openAIResponsesStreamEvent{
 			Type:       "response.created",
 			ResponseID: responseID,
@@ -325,5 +329,9 @@ func (s *Server) streamOpenAIResponsesResponse(
 	}); err != nil {
 		return err
 	}
-	return writeSSEEvent(writer, "", "[DONE]")
+	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
+		return err
+	}
+	logRequestTrace(trace, http.StatusOK, "", "")
+	return nil
 }

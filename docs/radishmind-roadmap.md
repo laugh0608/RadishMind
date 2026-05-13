@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-12
+更新时间：2026-05-13
 
 ## 路线图原则
 
@@ -27,9 +27,9 @@
 
 目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
 
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary 和 provider/profile discoverability 对齐已补齐。`P1 Runtime Foundation` 已达到 first-pass complete；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，下一步只保留请求级观测、错误分类和必要协议组合门禁作为短收口。
+状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary、provider/profile discoverability 对齐、request-level observability 与 error taxonomy 已补齐。`P1 Runtime Foundation` 已达到 short close；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，主要实现重心切到 `P2 Session & Tooling Foundation`。
 
-下一步：补最小 request-level observability 与 error taxonomy，固定 `request_id`、route、provider/profile、selected model、latency、sanitized error code 和 failure boundary；完成后把主要实现重心切到 `P2 Session & Tooling Foundation`，不再继续把 P1 做成无限硬化阶段。
+下一步：不再继续把 `P1` 做成无限硬化阶段；进入 `P2 Session & Tooling Foundation`，先补 session contract、history policy、recovery record、tool schema、tool registry、tool policy 和 audit record。
 
 ### 2. `Conversation & Session`
 
@@ -89,13 +89,13 @@
 
 目标：收口最小本地 service bootstrap、provider registry、northbound/southbound 协议兼容、配置、调用和 smoke 路径。
 
-状态：first-pass complete。provider registry、Go service bootstrap、northbound bridge、provider/profile discoverability、config layering、wrapper、deployment smoke 和 diagnostics 已进入快速门禁；剩余只保留 request observability、error taxonomy 与必要协议组合 smoke 作为短收口。
+状态：short close。provider registry、Go service bootstrap、northbound bridge、provider/profile discoverability、config layering、wrapper、deployment smoke、diagnostics、request observability、error taxonomy 与三种 northbound 协议的 selection metadata smoke 已进入平台单元测试和快速门禁。
 
 ### `P2`：Session & Tooling Foundation
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：即将进入主要实现阶段。P1 短收口完成后，优先补 session contract、history policy、recovery record、tool schema、tool registry、tool policy 和 audit record。
+状态：进入主要实现阶段。优先补 session contract、history policy、recovery record、tool schema、tool registry、tool policy 和 audit record。
 
 ### `P3`：Local Deployment & Ops Governance
 
@@ -117,11 +117,10 @@
 
 ## 下一步
 
-1. 先用一个短收口任务补齐 platform request observability 和 error taxonomy。
-2. 随后进入 `P2 Session & Tooling Foundation`，补 `Conversation & Session` 与 `Tooling Framework` 的最小契约，不再只靠 task-local 透传和脚本散落逻辑。
-3. 把 `Evaluation & Governance` 从“任务输出门禁”扩展为“平台能力门禁”，重点覆盖 request observability、session、tooling 和 deployment promotion。
-4. 只有在前述平台边界稳定后，才定义新的训练 / 蒸馏主线。
-5. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
+1. 进入 `P2 Session & Tooling Foundation`，补 `Conversation & Session` 与 `Tooling Framework` 的最小契约，不再只靠 task-local 透传和脚本散落逻辑。
+2. 把 `Evaluation & Governance` 从“任务输出门禁”扩展为“平台能力门禁”，重点覆盖 session、tooling 和 deployment promotion。
+3. 只有在前述平台边界稳定后，才定义新的训练 / 蒸馏主线。
+4. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
 
 ## 停止线
 

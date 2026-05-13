@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
@@ -72,14 +71,15 @@ type anthropicStopDelta struct {
 }
 
 func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, "/v1/messages")
 	var messageRequest anthropicMessagesRequest
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&messageRequest); err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_JSON", fmt.Sprintf("invalid messages request: %v", err))
+		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid messages request: %v", err))
 		return
 	}
 	if len(messageRequest.Messages) == 0 {
-		writeOpenAIError(writer, http.StatusBadRequest, "MISSING_MESSAGES", "messages must contain at least one item")
+		s.writePlatformError(writer, trace, "MISSING_MESSAGES", "messages must contain at least one item")
 		return
 	}
 
@@ -87,13 +87,15 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	defer cancel()
 
 	selection := s.resolveNorthboundSelection(ctx, messageRequest.Model, messageRequest.RadishMind)
+	trace.applySelection(selection)
 	promptText, northboundFields, err := buildMessagesPromptText(messageRequest, selection)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_MESSAGES_REQUEST", err.Error())
+		s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", err.Error())
 		return
 	}
 
 	canonicalRequest, err := buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
+		requestID:        trace.requestID,
 		route:            "/v1/messages",
 		protocol:         northboundProtocolMessages,
 		locale:           resolveNorthboundLocale(messageRequest.RadishMind),
@@ -101,13 +103,13 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		northboundFields: northboundFields,
 	})
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadRequest, "INVALID_MESSAGES_REQUEST", err.Error())
+		s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", err.Error())
 		return
 	}
 
 	if messageRequest.Stream {
-		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature)); err != nil {
-			writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature), trace); err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
 			return
 		}
 		return
@@ -119,20 +121,20 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		s.buildBridgeEnvelopeOptions(selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature)),
 	)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
-		writeOpenAIError(writer, gatewayStatusToHTTPStatus(envelope.Error), gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
+		s.writePlatformError(writer, trace, gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
 		return
 	}
 
 	responseDocument, err := buildAnthropicMessagesResponse(envelope, selection.model)
 	if err != nil {
-		writeOpenAIError(writer, http.StatusBadGateway, "PLATFORM_RESPONSE_INVALID", err.Error())
+		s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
 		return
 	}
-	writeJSON(writer, http.StatusOK, responseDocument)
+	writeObservedJSON(writer, http.StatusOK, trace, responseDocument)
 }
 
 func buildMessagesPromptText(request anthropicMessagesRequest, selection northboundSelection) (string, map[string]any, error) {
@@ -219,8 +221,9 @@ func (s *Server) streamAnthropicMessagesResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
+	trace requestTrace,
 ) error {
-	responseID := buildNorthboundResponseID("msg-", fmt.Sprintf("%d", time.Now().UnixNano()))
+	responseID := buildNorthboundResponseID("msg-", trace.requestID)
 	streamStarted := false
 	streamCompleted := false
 	emittedContent := false
@@ -231,6 +234,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 			return nil
 		}
 		prepareSSEHeaders(writer)
+		writeTraceHeaders(writer, trace)
 		if err := writeSSEEvent(writer, "message_start", anthropicMessageStartEvent{
 			Type:    "message_start",
 			Message: buildAnthropicMessagesResponseSkeleton(responseID, selection.model),
@@ -324,5 +328,9 @@ func (s *Server) streamAnthropicMessagesResponse(
 	}); err != nil {
 		return err
 	}
-	return writeSSEEvent(writer, "", "[DONE]")
+	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
+		return err
+	}
+	logRequestTrace(trace, http.StatusOK, "", "")
+	return nil
 }

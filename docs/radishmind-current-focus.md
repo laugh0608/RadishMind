@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-12
+更新时间：2026-05-13
 
 ## 文档目的
 
@@ -10,31 +10,29 @@
 
 ## 当前阶段
 
-当前已经从“M3/M4 收口后的被动等待”切换到“平台重定义后的平台本体建设期”；`P1 Runtime Foundation` 已达到 first-pass complete，不再默认继续横向细磨 provider/config/diagnostics 同一层：
+当前已经从“M3/M4 收口后的被动等待”切换到“平台重定义后的平台本体建设期”；`P1 Runtime Foundation` 已达到 short close，不再默认继续横向细磨 provider/config/diagnostics/observability 同一层：
 
 - `M3` 的 gateway、service smoke、UI consumption 与 candidate handoff 继续作为冻结门禁保留。
 - `M4` 的 broader 15/15 `reviewed_pass` 与 `3B/4B` guided capacity review 继续作为路线证据保留。
 - 当前不继续扩同一批 `M4` 实验，不提前设计不存在的上层真实接线。
-- 当前可以用一个短收口任务补齐请求级观测和错误分类，然后把主要实现重心切到 `P2 Session & Tooling Foundation`。
+- 平台请求级观测和错误分类短收口已进入 `Go` northbound 层与平台单元测试，主要实现重心可以切到 `P2 Session & Tooling Foundation`。
 
-如果今天开始写代码，默认先做平台请求级观测和错误分类的短收口；完成后进入 `Conversation & Session` 与 `Tooling Framework`，而不是继续重跑模型、扩同层配置兜底或补想象中的接入细节。
+如果今天继续写代码，默认进入 `Conversation & Session` 与 `Tooling Framework`，而不是继续重跑模型、扩同层配置兜底或补想象中的接入细节。
 
 ## 当前优先做什么
 
-1. `Runtime Service` 短收口：在已落地的 provider registry、Go platform bridge、`/v1/*` 兼容面、SSE bridge、provider/profile discoverability、config layering、wrapper、deployment smoke 和 diagnostics 之上，补最小 request-level observability 与 error taxonomy。建议字段只覆盖 `request_id`、route、provider/profile、selected model、latency、sanitized error code 和 failure boundary，不扩大成完整监控平台。
-2. `Conversation & Session`：补齐 session contract、history policy、recovery record、fixture 和最小会话级 smoke，不再只停留在 `conversation_id` 透传。
-3. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式 tool schema、registry、timeout/retry/policy 和 audit record。
-4. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics checks 扩展到 request observability、session 与 tooling 门禁。
-5. `Model Adaptation`：在前四项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
+1. `Conversation & Session`：补齐 session contract、history policy、recovery record、fixture 和最小会话级 smoke，不再只停留在 `conversation_id` 透传。
+2. `Tooling Framework`：把当前 task-local 的检索、候选生成和 builder 经验收口成正式 tool schema、registry、timeout/retry/policy 和 audit record。
+3. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics/request-observability checks 扩展到 session 与 tooling 门禁。
+4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
 
 ## 为什么是这些任务
 
 - 上层项目目前没有真实挂载点、确认流和命令承接接口，继续细化接线设计收益很低。
 - 仓库里已经有 runtime、gateway、adapter、eval 和 governance 资产，可以先把平台骨架做完整。
-- `provider registry`、northbound bridge、本地 wrapper、config layering、diagnostics 和 deployment smoke 已经给出 P1 first-pass 基础；继续在同一层增加更多别名、兜底和配置分支会开始降低边际收益。
+- `provider registry`、northbound bridge、本地 wrapper、config layering、diagnostics、deployment smoke、request observability 和 error taxonomy 已经给出 P1 short close 基础；继续在同一层增加更多别名、兜底和配置分支会开始降低边际收益。
 - 平台表层语言边界已固定为：`UI` 用 `React + Vite + TypeScript`，平台服务层用 `Go`，模型侧继续保留 `Python`，所有层只共享 `contracts/` 里的 canonical protocol。
-- 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` bridge，后续只补必要的请求观测、错误边界和协议组合门禁，不再回头把模型逻辑写回 `Go`。
-- 如果平台不能解释一次请求命中了哪个 route、provider/profile、model、耗时和失败边界，就还不能支撑后续 session、tooling 与部署治理。
+- 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` bridge，并能解释一次请求命中了哪个 route、provider/profile、model、耗时和失败边界；后续不再回头把模型逻辑写回 `Go`。
 - 如果在 service、session、tooling 边界还没稳定前继续深挖模型实验，容易再次陷入局部优化。
 
 ## 当前已有可直接利用的基础
@@ -74,7 +72,7 @@
 - 动协议、schema 或 API：读 `docs/radishmind-integration-contracts.md`
 - 动 `RadishMind-Core` 评测：读 `docs/radishmind-core-baseline-evaluation.md`
 - 动代码风格、抽象或脚本组织：读 `docs/radishmind-code-standards.md`
-- 查最近执行细节：读本周周志 `docs/devlogs/2026-W19.md`
+- 查最近执行细节：读本周周志 `docs/devlogs/2026-W20.md`
 
 ## 验证基线
 

@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-05-12
+更新时间：2026-05-13
 
 本文档用于回答三件事：
 
@@ -12,19 +12,19 @@
 
 | 主线 | 当前已有 | 当前缺口 | 当前不做 | 下一步 |
 | --- | --- | --- | --- | --- |
-| `Runtime Service` | `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/platform/` Go platform service、`RadishFlow` gateway demo、service smoke matrix、平台级 `ops smoke`、本地启动 runbook、启动 wrapper、JSON 配置层级、deployment smoke、structured diagnostics / failure boundary、provider/profile discoverability 对齐；`P1` 已达到 first-pass complete | 请求级 observability、错误分类、production secret backend、process supervision、环境隔离、可发布部署包 | 不承诺正式 production deployment，不接外部认证系统，不直接写回上层真相源，不继续把 provider/config/diagnostics 同层细节无限扩张 | 短收口 request-level observability 和 error taxonomy，然后切到 `P2 Session & Tooling Foundation` |
+| `Runtime Service` | `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/platform/` Go platform service、`RadishFlow` gateway demo、service smoke matrix、平台级 `ops smoke`、本地启动 runbook、启动 wrapper、JSON 配置层级、deployment smoke、structured diagnostics / failure boundary、provider/profile discoverability 对齐、request-level observability、error taxonomy；`P1` 已达到 short close | production secret backend、process supervision、环境隔离、可发布部署包 | 不承诺正式 production deployment，不接外部认证系统，不直接写回上层真相源，不继续把 provider/config/diagnostics/observability 同层细节无限扩张 | 切到 `P2 Session & Tooling Foundation` |
 | `Southbound Model Access` | `services/runtime/provider_registry.py` 已落地最小 `provider registry` 骨架，并收口当前 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 与 `openai-compatible chat / gemini-native / anthropic-messages` 分流；`HuggingFace` / `Ollama` 已进入 profile inventory、diagnostics 和 readiness metadata；`run-radishmind-core-candidate.py` 已具备 `local_transformers` 本地模型实验入口 | 外部 provider health checks、production secret backend、retry/fallback/cost/latency policy | 不把单一 provider 或单一模型绑定成平台唯一方向，不把实验 wrapper 直接当正式服务能力 | 在现有 registry / diagnostics 骨架上继续补 health check、secret backend 和调用策略 |
-| `Northbound API Compatibility` | internal canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`、进程内 gateway、CLI runtime、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 第一版 bridge、SSE 兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、bridge 增量流式转发、`GET /v1/models/{id}` 精确 lookup、显式 provider/model 隔离；`/v1/models`、request selection 与 diagnostics selectable model ids 已共享 `profile:<profile>` / `provider:<provider>:profile:<profile>` 口径 | route-level smoke 扩展、请求级 observability、错误分类、更多 northbound / southbound stream 组合 | 不让兼容层演化成第二套业务真相源，不为每个协议单独复制一套核心业务逻辑 | 先补 request observability、error taxonomy 和少量高价值 route smoke，不把更多协议组合当作当前主线 |
+| `Northbound API Compatibility` | internal canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`、进程内 gateway、CLI runtime、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 第一版 bridge、SSE 兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、bridge 增量流式转发、`GET /v1/models/{id}` 精确 lookup、显式 provider/model 隔离；`/v1/models`、request selection 与 diagnostics selectable model ids 已共享 `profile:<profile>` / `provider:<provider>:profile:<profile>` 口径；三种 northbound 协议已共享 `request_id`、route、selection metadata、latency 日志和 error envelope | 更多 northbound / southbound stream 组合、session-aware route smoke | 不让兼容层演化成第二套业务真相源，不为每个协议单独复制一套核心业务逻辑 | 暂不把更多协议组合当作当前主线，先进入 session/tooling |
 | `Conversation & Session` | request 已支持 `conversation_id`，`RadishFlow` snapshot 带局部会话语义 | session schema、history policy、恢复记录、跨轮审计、会话级 smoke | 不做共享长期记忆，不做隐式自治规划循环 | 先定义 session contract、fixture 和最小恢复/审计边界 |
 | `Tooling Framework` | task-local 的检索、合法候选生成、deterministic builder、`tool_hints` | 通用 tool contract、registry、timeout/retry/policy、tool audit | 不做 unrestricted tool calling，不把所有逻辑塞进模型提示词 | 先做本地 tool contract 与 registry 原型 |
-| `Evaluation & Governance` | schema、offline eval、candidate record、review record、`check-repo`、service smoke、runtime provider dispatch smoke、platform config / deployment / diagnostics / runbook checks | session/tooling/request observability 级门禁、平台级 promotion checklist | 不用纯机器指标决定晋级，不把真实大产物直接提交入仓 | 先扩展 smoke gate 到 session、tooling、request observability 和 deployment promotion 主线 |
+| `Evaluation & Governance` | schema、offline eval、candidate record、review record、`check-repo`、service smoke、runtime provider dispatch smoke、platform config / deployment / diagnostics / runbook checks、platform request observability 单元测试 | session/tooling 级门禁、平台级 promotion checklist | 不用纯机器指标决定晋级，不把真实大产物直接提交入仓 | 先扩展 smoke gate 到 session、tooling 和 deployment promotion 主线 |
 | `Model Adaptation` | raw/repaired/injected/guided/builder 轨、training sample conversion、训练治理文档 | 平台对齐的基座目标、晋级门槛、蒸馏计划、训练 runbook | 不做大规模训练放量，不把 `14B/32B` 设为默认目标，不把 builder/guided 写成 raw 晋级 | 等平台主线稳定后，再锁定 v1 训练路线 |
 | `Image Path` | image intent、backend request、artifact schema、最小评测 manifest | 真实 backend adapter、artifact 返回链路、image safety runbook | 不下载图片模型，不直接接真实生图 backend | 先补 image adapter handshake 和 safety gate 文档 |
 | 上层项目接入 | `RadishFlow` service/API 门禁冻结，`Radish` docs QA 资产具备，`RadishCatalyst` 文档预留 | 上层挂载点、确认流、命令承接接口、真实审计落点 | 不继续细化假想接线，不改外部仓库，不补不存在的 UI/命令承接层 | 等上层准备就绪后，只选一个切片真实接入 |
 
 ## 现阶段判断
 
-- `P1 Runtime Foundation` 已经从“应该先补平台本体”推进到 first-pass complete。
-- 当前最优先的缺口已经从“外部模型接入 + 多协议兼容”转为“请求级观测 + 错误分类”这个短收口，以及随后的 `P2 Session & Tooling Foundation`。
+- `P1 Runtime Foundation` 已经从“应该先补平台本体”推进到 short close。
+- 当前最优先的缺口已经从“请求级观测 + 错误分类”转为 `P2 Session & Tooling Foundation`。
 - `M3` 与 `M4` 已经提供了足够的冻结证据，说明仓库不是“什么都不能做”，而是应该把这些证据转化为正式平台能力。
 - 如果后续仍然只围绕样本、prompt、假想接线，或 provider/config/diagnostics 同层细节打转，就会再次偏离主线。

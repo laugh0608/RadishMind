@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import subprocess
 import tempfile
 from pathlib import Path
@@ -10,24 +11,37 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PLATFORM_WRAPPER = REPO_ROOT / "scripts/run-platform-service.sh"
+PLATFORM_WRAPPER_SH = REPO_ROOT / "scripts/run-platform-service.sh"
+PLATFORM_WRAPPER_PS1 = REPO_ROOT / "scripts/run-platform-service.ps1"
 SECRET_SENTINEL = "deployment-smoke-secret"
 
 
 def base_env() -> dict[str, str]:
     env = {key: value for key, value in os.environ.items() if not key.startswith("RADISHMIND_")}
-    env.setdefault("GOCACHE", str(Path(os.getenv("TMPDIR", "/tmp")) / "radishmind-go-build-cache"))
+    env.setdefault("GOCACHE", str(platform_temp_dir() / "radishmind-go-build-cache"))
     return env
+
+
+def platform_temp_dir() -> Path:
+    return Path(os.getenv("TMPDIR") or os.getenv("TEMP") or os.getenv("TMP") or "/tmp")
 
 
 def run_platform_wrapper(args: list[str], *, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [str(PLATFORM_WRAPPER), *args],
+        platform_wrapper_args(args),
         cwd=REPO_ROOT,
         env=env,
         capture_output=True,
         text=True,
     )
+
+
+def platform_wrapper_args(args: list[str]) -> list[str]:
+    if platform.system().lower().startswith("win"):
+        command = args[0] if args else "serve"
+        remaining_args = args[1:] if len(args) > 1 else []
+        return ["pwsh", str(PLATFORM_WRAPPER_PS1), "-Command", command, *remaining_args]
+    return [str(PLATFORM_WRAPPER_SH), *args]
 
 
 def require(condition: bool, message: str) -> None:
