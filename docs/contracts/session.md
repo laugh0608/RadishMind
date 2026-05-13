@@ -6,7 +6,7 @@
 
 本文档固定 `Conversation & Session` 的首版最小契约。当前目标是把 `conversation_id` 从简单透传升级为可审计的 session record，而不是立即实现持久化 session store、长期记忆或自治恢复循环。
 
-Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint.schema.json` 与 `contracts/session-recovery-checkpoint-manifest.schema.json`。最小 fixture 为 `scripts/checks/fixtures/session-record-basic.json`、`scripts/checks/fixtures/session-recovery-checkpoint-basic.json` 与 `scripts/checks/fixtures/session-recovery-checkpoint-manifest-basic.json`。快速门禁为 `scripts/check-session-record-contract.py` 与 `scripts/check-session-recovery-checkpoint-contract.py`。
+Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint.schema.json`、`contracts/session-recovery-checkpoint-manifest.schema.json` 与 `contracts/session-recovery-checkpoint-read.schema.json`。最小 fixture 为 `scripts/checks/fixtures/session-record-basic.json`、`scripts/checks/fixtures/session-recovery-checkpoint-basic.json`、`scripts/checks/fixtures/session-recovery-checkpoint-manifest-basic.json` 与 `scripts/checks/fixtures/session-recovery-checkpoint-read-basic.json`。快速门禁为 `scripts/check-session-record-contract.py` 与 `scripts/check-session-recovery-checkpoint-contract.py`。
 
 ## 最小结构
 
@@ -26,6 +26,13 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 - `replay_policy`：是否 replayable、是否要求人工确认；v1 强制 `auto_replay_enabled=false`。
 - `refs`：request、session record、tool audit、tool state、tool result metadata 等引用，不保存真实工具执行结果。
 - `state_summary` 与 `audit`：明确不包含 materialized tool results，不包含业务真相源。
+
+`SessionRecoveryCheckpointReadResult` 必须表达：
+
+- `api_boundary`：当前只定义平台 metadata 读取边界，`implemented=false`，不声明真实 HTTP route 已落地。
+- `request`：按 `checkpoint_id / session_id / turn_id` 查询，并强制 `include_materialized_results=false`。
+- `result`：只返回 checkpoint ref、metadata refs、replay policy 摘要和 state summary。
+- `access_policy`：必须保持 metadata-only、不返回真实工具结果、不写业务真相源、不启用 durable memory 或 automatic replay。
 
 ## Northbound 兼容层
 
@@ -51,3 +58,4 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 - 不把 recovery record 写成自动恢复执行计划；它只记录可审计边界和 checkpoint 引用。
 - 不把 tool result cache 升级为长期记忆；当前只允许 request-local metadata 或 session recovery checkpoint 引用。
 - 不让 recovery checkpoint 自动 replay；当前只固定 record / manifest 与可审计引用。
+- 不把 checkpoint read boundary 写成已实现 API；当前只冻结 response shape 和安全边界。

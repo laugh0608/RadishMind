@@ -386,6 +386,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/tool-audit-record.schema.json",
         REPO_ROOT / "contracts/session-recovery-checkpoint.schema.json",
         REPO_ROOT / "contracts/session-recovery-checkpoint-manifest.schema.json",
+        REPO_ROOT / "contracts/session-recovery-checkpoint-read.schema.json",
         REPO_ROOT / "contracts/image-generation-intent.schema.json",
         REPO_ROOT / "contracts/image-generation-backend-request.schema.json",
         REPO_ROOT / "contracts/image-generation-artifact.schema.json",

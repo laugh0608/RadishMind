@@ -11,8 +11,10 @@ import jsonschema
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CHECKPOINT_SCHEMA_PATH = REPO_ROOT / "contracts/session-recovery-checkpoint.schema.json"
 MANIFEST_SCHEMA_PATH = REPO_ROOT / "contracts/session-recovery-checkpoint-manifest.schema.json"
+READ_SCHEMA_PATH = REPO_ROOT / "contracts/session-recovery-checkpoint-read.schema.json"
 CHECKPOINT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-basic.json"
 MANIFEST_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-manifest-basic.json"
+READ_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-read-basic.json"
 
 
 def load_json_document(path: Path) -> Any:
@@ -102,24 +104,103 @@ def check_manifest(manifest: dict[str, Any], checkpoint: dict[str, Any]) -> None
     require(audit.get("writes_business_truth") is False, "manifest audit must not write business truth")
 
 
+def check_read_result(read_result: dict[str, Any], checkpoint: dict[str, Any]) -> None:
+    api_boundary = read_result.get("api_boundary")
+    require(isinstance(api_boundary, dict), "read api_boundary must be an object")
+    require(api_boundary.get("implemented") is False, "checkpoint read API boundary must not claim implementation")
+    require(api_boundary.get("response_shape") == "metadata_refs_only", "checkpoint read response must be metadata refs only")
+
+    request = read_result.get("request")
+    require(isinstance(request, dict), "read request must be an object")
+    require(request.get("checkpoint_id") == checkpoint.get("checkpoint_id"), "read request checkpoint_id mismatch")
+    require(request.get("session_id") == checkpoint.get("session_id"), "read request session_id mismatch")
+    require(request.get("include_materialized_results") is False, "read request must not include materialized results")
+
+    result = read_result.get("result")
+    require(isinstance(result, dict), "read result must be an object")
+    require(result.get("status") == "found", "read fixture must describe a found checkpoint")
+    require(result.get("checkpoint_id") == checkpoint.get("checkpoint_id"), "read result checkpoint_id mismatch")
+    require(result.get("session_id") == checkpoint.get("session_id"), "read result session_id mismatch")
+    require(result.get("turn_id") == checkpoint.get("turn_id"), "read result turn_id mismatch")
+    require(
+        result.get("checkpoint_ref") == "scripts/checks/fixtures/session-recovery-checkpoint-basic.json",
+        "read result must point at committed checkpoint fixture",
+    )
+
+    checkpoint_refs = {
+        (str(ref.get("kind")), str(ref.get("ref")), bool(ref.get("required_for_recovery")))
+        for ref in checkpoint.get("refs", [])
+        if isinstance(ref, dict)
+    }
+    read_refs = {
+        (str(ref.get("kind")), str(ref.get("ref")), bool(ref.get("required_for_recovery")))
+        for ref in result.get("refs", [])
+        if isinstance(ref, dict)
+    }
+    require(read_refs == checkpoint_refs, "read result refs must mirror checkpoint refs")
+
+    replay_policy = result.get("replay_policy")
+    checkpoint_replay_policy = checkpoint.get("replay_policy") or {}
+    require(isinstance(replay_policy, dict), "read replay_policy must be an object")
+    require(replay_policy.get("replayable") == checkpoint_replay_policy.get("replayable"), "read replayable mismatch")
+    require(replay_policy.get("auto_replay_enabled") is False, "read result must not enable automatic replay")
+    require(
+        replay_policy.get("requires_confirmation_for_actions")
+        == checkpoint_replay_policy.get("requires_confirmation_for_actions"),
+        "read confirmation policy mismatch",
+    )
+
+    state_summary = result.get("state_summary")
+    checkpoint_state_summary = checkpoint.get("state_summary") or {}
+    require(isinstance(state_summary, dict), "read state_summary must be an object")
+    require(
+        state_summary.get("contains_materialized_tool_results") is False,
+        "read result must not expose materialized tool results",
+    )
+    require(state_summary.get("contains_business_truth") is False, "read result must not expose business truth")
+    require(
+        state_summary.get("contains_tool_result_metadata")
+        == checkpoint_state_summary.get("contains_tool_result_metadata"),
+        "read tool metadata summary mismatch",
+    )
+
+    access_policy = read_result.get("access_policy")
+    require(isinstance(access_policy, dict), "read access_policy must be an object")
+    require(access_policy.get("metadata_only") is True, "read access policy must be metadata-only")
+    require(access_policy.get("materialized_results_included") is False, "read access policy must not include results")
+    require(access_policy.get("durable_memory_enabled") is False, "read access policy must not enable durable memory")
+    require(access_policy.get("writes_business_truth") is False, "read access policy must not write business truth")
+    require(access_policy.get("auto_replay_enabled") is False, "read access policy must not enable auto replay")
+
+    audit = read_result.get("audit")
+    require(isinstance(audit, dict), "read audit must be an object")
+    require(audit.get("advisory_only") is True, "read audit must remain advisory-only")
+
+
 def main() -> int:
     checkpoint_schema = load_json_document(CHECKPOINT_SCHEMA_PATH)
     manifest_schema = load_json_document(MANIFEST_SCHEMA_PATH)
+    read_schema = load_json_document(READ_SCHEMA_PATH)
     checkpoint_fixture = load_json_document(CHECKPOINT_FIXTURE_PATH)
     manifest_fixture = load_json_document(MANIFEST_FIXTURE_PATH)
+    read_fixture = load_json_document(READ_FIXTURE_PATH)
 
-    for schema in (checkpoint_schema, manifest_schema):
+    for schema in (checkpoint_schema, manifest_schema, read_schema):
         jsonschema.Draft202012Validator.check_schema(schema)
 
     jsonschema.validate(checkpoint_fixture, checkpoint_schema)
     jsonschema.validate(manifest_fixture, manifest_schema)
+    jsonschema.validate(read_fixture, read_schema)
     if not isinstance(checkpoint_fixture, dict):
         raise SystemExit("session recovery checkpoint fixture must be an object")
     if not isinstance(manifest_fixture, dict):
         raise SystemExit("session recovery checkpoint manifest fixture must be an object")
+    if not isinstance(read_fixture, dict):
+        raise SystemExit("session recovery checkpoint read fixture must be an object")
 
     check_checkpoint(checkpoint_fixture)
     check_manifest(manifest_fixture, checkpoint_fixture)
+    check_read_result(read_fixture, checkpoint_fixture)
 
     print("session recovery checkpoint contract smoke passed.")
     return 0

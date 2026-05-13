@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "kind": "session_recovery_checkpoint_read_result",
+  "read_id": "session-checkpoint-read-0001",
+  "api_boundary": {
+    "surface": "platform_metadata",
+    "route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+    "implemented": false,
+    "response_shape": "metadata_refs_only"
+  },
+  "request": {
+    "checkpoint_id": "session-checkpoint-0001",
+    "session_id": "radishflow-session-001",
+    "turn_id": "turn-0003",
+    "include_refs": true,
+    "include_materialized_results": false
+  },
+  "result": {
+    "status": "found",
+    "checkpoint_id": "session-checkpoint-0001",
+    "session_id": "radishflow-session-001",
+    "turn_id": "turn-0003",
+    "checkpoint_ref": "scripts/checks/fixtures/session-recovery-checkpoint-basic.json",
+    "refs": [
+      {
+        "kind": "request",
+        "ref": "request:req-tooling-001",
+        "required_for_recovery": true
+      },
+      {
+        "kind": "session_record",
+        "ref": "session:radishflow-session-001:turn-0003",
+        "required_for_recovery": true
+      },
+      {
+        "kind": "tool_audit",
+        "ref": "tool-audit:tool-audit-0001",
+        "required_for_recovery": true
+      },
+      {
+        "kind": "tool_state",
+        "ref": "tool-state:tool-audit-0001",
+        "required_for_recovery": false
+      },
+      {
+        "kind": "tool_result_metadata",
+        "ref": "tool-result-cache:req-tooling-001:turn-0003:radishflow.suggest_edits.candidate_builder.v1",
+        "required_for_recovery": false
+      }
+    ],
+    "replay_policy": {
+      "replayable": true,
+      "auto_replay_enabled": false,
+      "requires_confirmation_for_actions": true
+    },
+    "state_summary": {
+      "contains_tool_result_metadata": true,
+      "contains_materialized_tool_results": false,
+      "contains_business_truth": false
+    }
+  },
+  "access_policy": {
+    "metadata_only": true,
+    "materialized_results_included": false,
+    "durable_memory_enabled": false,
+    "writes_business_truth": false,
+    "auto_replay_enabled": false
+  },
+  "audit": {
+    "advisory_only": true,
+    "notes": [
+      "read boundary exposes checkpoint refs and policy metadata only",
+      "route is a contract boundary and is not implemented as a replay executor"
+    ]
+  }
+}
