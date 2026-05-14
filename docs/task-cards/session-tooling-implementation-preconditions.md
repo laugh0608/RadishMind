@@ -12,6 +12,8 @@
 
 负向回归 skeleton 为 `scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json`，快速门禁为 `scripts/check-session-tooling-negative-regression-skeleton.py`。它只固定 blocked executor、blocked storage 和 blocked confirmation 的失败样本骨架，不代表 negative_regression_suite 已满足。
 
+Confirmation flow design 为 `scripts/checks/fixtures/session-tooling-confirmation-flow-design.json`，快速门禁为 `scripts/check-session-tooling-confirmation-flow-design.py`。它只定义 approve / reject / defer、stale / mismatched / missing confirmation、审计事件和禁止绕过规则，不代表上层确认流已经接入。
+
 ## 当前已完成门禁
 
 当前可以声明的能力只到以下层级：

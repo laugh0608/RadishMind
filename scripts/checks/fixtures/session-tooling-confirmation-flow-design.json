@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_confirmation_flow_design",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "design_only_not_connected",
+  "source_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "task_card": "docs/task-cards/session-tooling-confirmation-flow-design.md",
+  "scope": {
+    "area": "confirmation",
+    "current_boundary": "requires_confirmation_metadata_only",
+    "upper_layer_integration": "not_connected",
+    "execution_enabled": false,
+    "writes_business_truth": false
+  },
+  "confirmation_record_shape": {
+    "required_fields": [
+      "confirmation_id",
+      "session_id",
+      "turn_id",
+      "action_ref",
+      "action_hash",
+      "outcome",
+      "actor_ref",
+      "confirmed_at",
+      "audit_ref"
+    ],
+    "outcomes": [
+      {
+        "outcome": "approve",
+        "effect": "records_approval_only",
+        "allowed_next_state": "approved_pending_execution_boundary",
+        "forbidden_side_effects": [
+          "execution_status=executed",
+          "confirmed_action_execution",
+          "writes_business_truth=true",
+          "result_ref"
+        ]
+      },
+      {
+        "outcome": "reject",
+        "effect": "blocks_candidate_action",
+        "allowed_next_state": "rejected_terminal",
+        "forbidden_side_effects": [
+          "execution_status=executed",
+          "confirmed_action_execution",
+          "writes_business_truth=true",
+          "replay_executor"
+        ]
+      },
+      {
+        "outcome": "defer",
+        "effect": "keeps_candidate_pending_without_execution",
+        "allowed_next_state": "deferred_pending_confirmation",
+        "forbidden_side_effects": [
+          "execution_status=executed",
+          "confirmed_action_execution",
+          "writes_business_truth=true",
+          "durable_memory_written=true"
+        ]
+      }
+    ]
+  },
+  "negative_cases": [
+    {
+      "case_id": "missing-confirmation",
+      "expected_failure_boundary": "confirmation_gate",
+      "expected_error_code": "CONFIRMATION_REQUIRED",
+      "forbidden_outputs": [
+        "execution_status=executed",
+        "confirmed_action_execution",
+        "writes_business_truth=true"
+      ]
+    },
+    {
+      "case_id": "stale-confirmation",
+      "expected_failure_boundary": "confirmation_gate",
+      "expected_error_code": "CONFIRMATION_STALE",
+      "forbidden_outputs": [
+        "execution_status=executed",
+        "replay_executor",
+        "writes_business_truth=true"
+      ]
+    },
+    {
+      "case_id": "mismatched-confirmation-payload",
+      "expected_failure_boundary": "confirmation_gate",
+      "expected_error_code": "CONFIRMATION_PAYLOAD_MISMATCH",
+      "forbidden_outputs": [
+        "execution_status=executed",
+        "confirmed_action_execution",
+        "result_ref"
+      ]
+    }
+  ],
+  "audit_events": [
+    "confirmation_requested",
+    "confirmation_recorded",
+    "confirmation_rejected",
+    "confirmation_deferred",
+    "confirmation_invalidated"
+  ],
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_memory",
+    "real_tool_executor",
+    "result_materialization"
+  ],
+  "precondition_status_after_design": {
+    "upper_layer_confirmation_flow": "not_satisfied",
+    "independent_audit_records": "not_satisfied",
+    "negative_regression_suite": "not_satisfied",
+    "result_materialization_policy": "not_satisfied"
+  },
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-confirmation-flow-design.py",
+      "coverage": "validates_confirmation_flow_design_shape_and_blocked_capabilities"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}
