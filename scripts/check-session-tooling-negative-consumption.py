@@ -10,10 +10,12 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DENIED_QUERY_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
 PROMOTION_GATE_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-tooling-promotion-gates.json"
+ROUTE_SMOKE_SUMMARY_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json"
 SUMMARY_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-consumption-summary.json"
 
 CHECKPOINT_CONTRACT_CHECK = REPO_ROOT / "scripts/check-session-recovery-checkpoint-contract.py"
 PROMOTION_GATE_CHECK = REPO_ROOT / "scripts/check-session-tooling-promotion-gates.py"
+ROUTE_SMOKE_COVERAGE_CHECK = REPO_ROOT / "scripts/check-session-recovery-route-smoke-coverage.py"
 SERVER_TEST = REPO_ROOT / "services/platform/internal/httpapi/server_test.go"
 CHECK_REPO = REPO_ROOT / "scripts/check-repo.py"
 THIS_CHECK = REPO_ROOT / "scripts/check-session-tooling-negative-consumption.py"
@@ -42,6 +44,7 @@ def file_contains(path: Path, text: str) -> bool:
 def check_consumers() -> None:
     denied_fixture_name = DENIED_QUERY_FIXTURE.name
     promotion_fixture_name = PROMOTION_GATE_FIXTURE.name
+    route_smoke_summary_fixture_name = ROUTE_SMOKE_SUMMARY_FIXTURE.name
     summary_fixture_name = SUMMARY_FIXTURE.name
 
     require(
@@ -59,6 +62,14 @@ def check_consumers() -> None:
     require(
         file_contains(CHECK_REPO, "check-session-tooling-promotion-gates.py"),
         "fast baseline must run promotion gate check",
+    )
+    require(
+        file_contains(ROUTE_SMOKE_COVERAGE_CHECK, route_smoke_summary_fixture_name),
+        "route smoke coverage check must compare route smoke summary fixture",
+    )
+    require(
+        file_contains(CHECK_REPO, "check-session-recovery-route-smoke-coverage.py"),
+        "fast baseline must run route smoke coverage check",
     )
     require(
         file_contains(THIS_CHECK, summary_fixture_name),
@@ -134,6 +145,20 @@ def build_summary() -> dict[str, Any]:
                 {
                     "path": relative_path(PROMOTION_GATE_CHECK),
                     "coverage": "promotion_gate_shape_and_blocked_claims",
+                },
+                {
+                    "path": relative_path(CHECK_REPO),
+                    "coverage": "fast_baseline_entrypoint",
+                },
+            ],
+        },
+        "route_smoke_coverage_summary": {
+            "path": relative_path(ROUTE_SMOKE_SUMMARY_FIXTURE),
+            "covered_route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+            "consumers": [
+                {
+                    "path": relative_path(ROUTE_SMOKE_COVERAGE_CHECK),
+                    "coverage": "regenerates_and_compares_route_smoke_summary",
                 },
                 {
                     "path": relative_path(CHECK_REPO),

@@ -54,6 +54,20 @@
       }
     ]
   },
+  "route_smoke_coverage_summary": {
+    "path": "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json",
+    "covered_route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+    "consumers": [
+      {
+        "path": "scripts/check-session-recovery-route-smoke-coverage.py",
+        "coverage": "regenerates_and_compares_route_smoke_summary"
+      },
+      {
+        "path": "scripts/check-repo.py",
+        "coverage": "fast_baseline_entrypoint"
+      }
+    ]
+  },
   "summary_consumers": [
     {
       "path": "scripts/check-session-tooling-negative-consumption.py",
