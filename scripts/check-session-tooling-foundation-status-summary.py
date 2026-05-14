@@ -12,6 +12,7 @@ READINESS_SUMMARY = REPO_ROOT / "scripts/checks/fixtures/session-tooling-readine
 PRECONDITIONS = REPO_ROOT / "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
 NEGATIVE_SKELETON = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json"
 INDEPENDENT_AUDIT_RECORDS_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json"
+RESULT_MATERIALIZATION_POLICY_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
@@ -26,6 +27,7 @@ REQUIRED_TRACK_IDS = {
     "implementation_preconditions",
     "independent_audit_records_design",
     "negative_regression_skeleton",
+    "result_materialization_policy_design",
 }
 REQUIRED_AREAS = {"executor", "storage", "confirmation"}
 REQUIRED_NEXT_STAGE_CONDITIONS = {
@@ -145,6 +147,7 @@ def build_summary() -> dict[str, Any]:
         "source_implementation_preconditions": relative_path(PRECONDITIONS),
         "source_negative_regression_skeleton": relative_path(NEGATIVE_SKELETON),
         "source_independent_audit_records_design": relative_path(INDEPENDENT_AUDIT_RECORDS_DESIGN),
+        "source_result_materialization_policy_design": relative_path(RESULT_MATERIALIZATION_POLICY_DESIGN),
         "completed_governance_tracks": [
             {
                 "track_id": "contract_and_fixture_gates",
@@ -204,6 +207,16 @@ def build_summary() -> dict[str, Any]:
                     "scripts/check-session-tooling-independent-audit-records.py",
                 ],
                 "claim": "independent audit record shape, event sources, and confirmation/executor/storage boundaries are design-checkable",
+            },
+            {
+                "track_id": "result_materialization_policy_design",
+                "status": "complete",
+                "evidence": [
+                    "docs/task-cards/session-tooling-result-materialization-policy.md",
+                    "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
+                    "scripts/check-session-tooling-result-materialization-policy.py",
+                ],
+                "claim": "metadata-only, result_ref, and materialized result boundaries are design-checkable while current result readers remain disabled",
             },
         ],
         "missing_implementation_prerequisites": not_ready_areas_from_preconditions(preconditions),
@@ -301,6 +314,10 @@ def check_docs_and_consumers() -> None:
     require(
         "check-session-tooling-independent-audit-records.py" in check_repo,
         "fast baseline must run independent audit records design check",
+    )
+    require(
+        "check-session-tooling-result-materialization-policy.py" in check_repo,
+        "fast baseline must run result materialization policy design check",
     )
 
 

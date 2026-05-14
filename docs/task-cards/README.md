@@ -29,6 +29,7 @@
 2. [`P2 Session & Tooling` 实现前置条件](session-tooling-implementation-preconditions.md)
 3. [`P2 Session & Tooling` confirmation flow design](session-tooling-confirmation-flow-design.md)
 4. [`P2 Session & Tooling` independent audit records design](session-tooling-independent-audit-records.md)
+5. [`P2 Session & Tooling` result materialization policy design](session-tooling-result-materialization-policy.md)
 
 使用原则：
 

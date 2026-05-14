@@ -8,6 +8,7 @@
   "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
   "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
   "source_independent_audit_records_design": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
+  "source_result_materialization_policy_design": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -67,6 +68,16 @@
         "scripts/check-session-tooling-independent-audit-records.py"
       ],
       "claim": "independent audit record shape, event sources, and confirmation/executor/storage boundaries are design-checkable"
+    },
+    {
+      "track_id": "result_materialization_policy_design",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-result-materialization-policy.md",
+        "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
+        "scripts/check-session-tooling-result-materialization-policy.py"
+      ],
+      "claim": "metadata-only, result_ref, and materialized result boundaries are design-checkable while current result readers remain disabled"
     }
   ],
   "missing_implementation_prerequisites": [
