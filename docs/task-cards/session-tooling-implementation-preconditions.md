@@ -10,6 +10,8 @@
 
 程序化真相源为 `scripts/checks/fixtures/session-tooling-implementation-preconditions.json`，快速门禁为 `scripts/check-session-tooling-implementation-preconditions.py`。
 
+负向回归 skeleton 为 `scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json`，快速门禁为 `scripts/check-session-tooling-negative-regression-skeleton.py`。它只固定 blocked executor、blocked storage 和 blocked confirmation 的失败样本骨架，不代表 negative_regression_suite 已满足。
+
 ## 当前已完成门禁
 
 当前可以声明的能力只到以下层级：
@@ -90,6 +92,16 @@
 2. executor sandbox、storage backend、materialization policy 和 independent audit record 均有明确任务卡或契约草案。
 3. 负向回归先于实现落地，并能证明越界执行、越界读取、越界写入和 replay 都会失败。
 4. `scripts/checks/fixtures/session-tooling-readiness-summary.json` 仍保持当前 metadata-only 门禁通过，且不把 readiness 改写成实现完成。
+
+## 负向回归 skeleton
+
+当前已经固定三组 skeleton case，但仍只属于治理骨架：
+
+- blocked executor：覆盖 executor disabled、network disabled 和 checkpoint read 中 `executor_ref` denied。
+- blocked storage：覆盖 materialized result read、durable memory write 和 business truth write denied。
+- blocked confirmation：覆盖 missing confirmation、stale confirmation 和 mismatched confirmation payload denied。
+
+这些 case 只用于提前固定失败边界、错误码和 forbidden outputs。它们不创建真实执行入口、不创建持久化后端、不读取 materialized result，也不执行确认后的动作。
 
 ## 非目标
 

@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_negative_regression_skeleton",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "skeleton_only_implementation_blocked",
+  "source_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "groups": [
+    {
+      "group_id": "executor_blocked",
+      "precondition_area": "executor",
+      "status": "skeleton_only",
+      "cases": [
+        {
+          "case_id": "executor-disabled-tool-run",
+          "intent": "execute_registered_tool",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "TOOL_EXECUTOR_DISABLED",
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "executor_ref",
+            "result_ref",
+            "writes_business_truth=true"
+          ]
+        },
+        {
+          "case_id": "executor-network-disabled",
+          "intent": "execute_network_tool_without_policy",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "TOOL_NETWORK_DISABLED",
+          "forbidden_outputs": [
+            "network_request_sent=true",
+            "execution_status=executed",
+            "result_ref",
+            "durable_memory_written=true"
+          ]
+        },
+        {
+          "case_id": "executor-ref-checkpoint-read-denied",
+          "intent": "read_executor_ref_from_checkpoint",
+          "expected_failure_boundary": "northbound_request",
+          "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+          "mirrors_denied_query_category": "materialized_results",
+          "forbidden_outputs": [
+            "executor_ref",
+            "execution_status=executed",
+            "materialized_results_included=true"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "storage_materialization_blocked",
+      "precondition_area": "storage",
+      "status": "skeleton_only",
+      "cases": [
+        {
+          "case_id": "materialized-result-read-denied",
+          "intent": "read_materialized_tool_result",
+          "expected_failure_boundary": "northbound_request",
+          "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+          "mirrors_denied_query_category": "materialized_results",
+          "forbidden_outputs": [
+            "materialized_results_included=true",
+            "result_ref",
+            "output_ref"
+          ]
+        },
+        {
+          "case_id": "durable-memory-write-denied",
+          "intent": "write_tool_state_to_durable_memory",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+          "mirrors_denied_query_category": "durable_memory",
+          "forbidden_outputs": [
+            "durable_memory_written=true",
+            "long_term_memory",
+            "business_truth_write"
+          ]
+        },
+        {
+          "case_id": "business-truth-write-denied",
+          "intent": "write_candidate_action_to_upper_layer_truth_source",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "BUSINESS_TRUTH_WRITE_DISABLED",
+          "forbidden_outputs": [
+            "writes_business_truth=true",
+            "confirmed_action_execution",
+            "durable_memory_written=true"
+          ]
+        }
+      ]
+    },
+    {
+      "group_id": "confirmation_blocked",
+      "precondition_area": "confirmation",
+      "status": "skeleton_only",
+      "cases": [
+        {
+          "case_id": "missing-confirmation-denied",
+          "intent": "execute_high_risk_action_without_confirmation",
+          "expected_failure_boundary": "confirmation_gate",
+          "expected_error_code": "CONFIRMATION_REQUIRED",
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "confirmed_action_execution",
+            "writes_business_truth=true"
+          ]
+        },
+        {
+          "case_id": "stale-confirmation-denied",
+          "intent": "execute_action_with_stale_confirmation",
+          "expected_failure_boundary": "confirmation_gate",
+          "expected_error_code": "CONFIRMATION_STALE",
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "replay_executor",
+            "writes_business_truth=true"
+          ]
+        },
+        {
+          "case_id": "mismatched-confirmation-payload-denied",
+          "intent": "execute_action_with_mismatched_confirmation_payload",
+          "expected_failure_boundary": "confirmation_gate",
+          "expected_error_code": "CONFIRMATION_PAYLOAD_MISMATCH",
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "confirmed_action_execution",
+            "result_ref"
+          ]
+        }
+      ]
+    }
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "result_ref_reader"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-negative-regression-skeleton.py",
+      "coverage": "validates_skeleton_groups_cases_and_precondition_alignment"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}
