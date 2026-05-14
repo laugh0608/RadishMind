@@ -22,7 +22,11 @@ func (s *Server) handleSessionRecoveryCheckpoint(writer http.ResponseWriter, req
 	}
 	if queryFlagEnabled(request, "include_materialized_results") ||
 		queryFlagEnabled(request, "include_tool_results") ||
-		queryFlagEnabled(request, "materialize_results") {
+		queryFlagEnabled(request, "materialize_results") ||
+		queryFlagEnabled(request, "include_result_ref") ||
+		queryHasValue(request, "result_ref") ||
+		queryHasValue(request, "output_ref") ||
+		queryHasValue(request, "executor_ref") {
 		s.writePlatformError(writer, trace, "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED", "checkpoint read route is metadata-only")
 		return
 	}
@@ -31,6 +35,12 @@ func (s *Server) handleSessionRecoveryCheckpoint(writer http.ResponseWriter, req
 		queryFlagEnabled(request, "execute_replay") ||
 		queryFlagEnabled(request, "replay") {
 		s.writePlatformError(writer, trace, "CHECKPOINT_AUTO_REPLAY_DISABLED", "checkpoint read route does not support replay execution")
+		return
+	}
+	if queryFlagEnabled(request, "durable_memory") ||
+		queryFlagEnabled(request, "durable_memory_enabled") ||
+		queryFlagEnabled(request, "include_durable_memory") {
+		s.writePlatformError(writer, trace, "CHECKPOINT_DURABLE_MEMORY_DISABLED", "checkpoint read route does not support durable memory")
 		return
 	}
 
@@ -150,4 +160,8 @@ func queryFlagEnabled(request *http.Request, name string) bool {
 	default:
 		return false
 	}
+}
+
+func queryHasValue(request *http.Request, name string) bool {
+	return strings.TrimSpace(request.URL.Query().Get(name)) != ""
 }

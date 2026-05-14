@@ -15,6 +15,7 @@ READ_SCHEMA_PATH = REPO_ROOT / "contracts/session-recovery-checkpoint-read.schem
 CHECKPOINT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-basic.json"
 MANIFEST_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-manifest-basic.json"
 READ_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-read-basic.json"
+DENIED_QUERIES_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
 TOOL_AUDIT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/tool-audit-record-basic.json"
 
 
@@ -197,6 +198,72 @@ def check_read_result(read_result: dict[str, Any], checkpoint: dict[str, Any], t
     require(audit.get("advisory_only") is True, "read audit must remain advisory-only")
 
 
+def check_denied_queries_fixture(denied_queries: dict[str, Any], checkpoint: dict[str, Any]) -> None:
+    require(denied_queries.get("schema_version") == 1, "denied query fixture schema_version must be 1")
+    require(
+        denied_queries.get("kind") == "session_recovery_checkpoint_read_denied_queries",
+        "denied query fixture kind mismatch",
+    )
+    require(
+        denied_queries.get("route") == "/v1/session/recovery/checkpoints/{checkpoint_id}",
+        "denied query fixture route mismatch",
+    )
+    require(
+        denied_queries.get("checkpoint_id") == checkpoint.get("checkpoint_id"),
+        "denied query fixture checkpoint_id mismatch",
+    )
+
+    cases = denied_queries.get("cases")
+    require(isinstance(cases, list) and len(cases) > 0, "denied query fixture cases must be non-empty")
+    expected_codes_by_category = {
+        "materialized_results": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+        "replay": "CHECKPOINT_AUTO_REPLAY_DISABLED",
+        "durable_memory": "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+    }
+    expected_params_by_category = {
+        "materialized_results": {
+            "include_materialized_results",
+            "include_tool_results",
+            "materialize_results",
+            "include_result_ref",
+            "result_ref",
+            "output_ref",
+            "executor_ref",
+        },
+        "replay": {"auto_replay", "auto_replay_enabled", "execute_replay", "replay"},
+        "durable_memory": {"durable_memory", "durable_memory_enabled", "include_durable_memory"},
+    }
+    seen_names: set[str] = set()
+    seen_params_by_category: dict[str, set[str]] = {
+        category: set() for category in expected_params_by_category
+    }
+    for case in cases:
+        require(isinstance(case, dict), "denied query case must be an object")
+        name = str(case.get("name") or "").strip()
+        require(bool(name), "denied query case must name itself")
+        require(name not in seen_names, f"duplicate denied query case name: {name}")
+        seen_names.add(name)
+
+        category = str(case.get("category") or "").strip()
+        require(category in expected_codes_by_category, f"unexpected denied query category: {category}")
+        require(
+            case.get("expected_error_code") == expected_codes_by_category[category],
+            f"denied query case '{name}' has wrong expected error code",
+        )
+        query = str(case.get("query") or "").strip()
+        require("=" in query and not query.startswith("?"), f"denied query case '{name}' has invalid query")
+        param_name = query.split("=", 1)[0]
+        require(
+            param_name in expected_params_by_category[category],
+            f"denied query case '{name}' has unexpected query param '{param_name}'",
+        )
+        seen_params_by_category[category].add(param_name)
+
+    for category, expected_params in expected_params_by_category.items():
+        missing = sorted(expected_params - seen_params_by_category[category])
+        require(not missing, f"denied query fixture missing {category} params: {missing}")
+
+
 def main() -> int:
     checkpoint_schema = load_json_document(CHECKPOINT_SCHEMA_PATH)
     manifest_schema = load_json_document(MANIFEST_SCHEMA_PATH)
@@ -204,6 +271,7 @@ def main() -> int:
     checkpoint_fixture = load_json_document(CHECKPOINT_FIXTURE_PATH)
     manifest_fixture = load_json_document(MANIFEST_FIXTURE_PATH)
     read_fixture = load_json_document(READ_FIXTURE_PATH)
+    denied_queries_fixture = load_json_document(DENIED_QUERIES_FIXTURE_PATH)
     tool_audit_fixture = load_json_document(TOOL_AUDIT_FIXTURE_PATH)
 
     for schema in (checkpoint_schema, manifest_schema, read_schema):
@@ -218,12 +286,15 @@ def main() -> int:
         raise SystemExit("session recovery checkpoint manifest fixture must be an object")
     if not isinstance(read_fixture, dict):
         raise SystemExit("session recovery checkpoint read fixture must be an object")
+    if not isinstance(denied_queries_fixture, dict):
+        raise SystemExit("session recovery checkpoint denied query fixture must be an object")
     if not isinstance(tool_audit_fixture, dict):
         raise SystemExit("tool audit fixture must be an object")
 
     check_checkpoint(checkpoint_fixture)
     check_manifest(manifest_fixture, checkpoint_fixture)
     check_read_result(read_fixture, checkpoint_fixture, tool_audit_fixture)
+    check_denied_queries_fixture(denied_queries_fixture, checkpoint_fixture)
 
     print("session recovery checkpoint contract smoke passed.")
     return 0

@@ -1,6 +1,6 @@
 # RadishMind 会话记录契约
 
-更新时间：2026-05-13
+更新时间：2026-05-14
 
 ## 文档目的
 
@@ -51,6 +51,17 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 
 当这些字段存在时，`Go` 平台层会在 canonical `CopilotRequest.context.northbound.session` 中写入 `conversation_session_record`。该记录只用于审计、窗口策略和恢复边界说明，不代表平台已经拥有 durable session store。
 
+## Promotion 门禁分层
+
+当前 session / checkpoint 只能按以下层级晋级，不允许跳层声明能力：
+
+| 层级 | 当前门禁 | 可声明能力 | 不可声明能力 |
+| --- | --- | --- | --- |
+| Contract gate | `session-record`、`session-recovery-checkpoint*` schema、正向 fixture、`session-recovery-checkpoint-read-denied-queries` 负向 fixture | 会话身份、history/state/recovery policy、checkpoint refs、metadata-only read result 结构稳定 | durable session store、长期记忆、真实 checkpoint storage |
+| Platform route smoke | `GET /v1/session/recovery/checkpoints/{checkpoint_id}` fixture-backed route、禁止 materialized result / replay / durable memory 查询参数 | 平台能稳定暴露 metadata-only checkpoint read shape，并拒绝越界读取和执行请求 | materialized result reader、跨轮 replay executor、自动恢复 API |
+| Fast check | `check-session-record-contract.py`、`check-session-recovery-checkpoint-contract.py`、`go test ./...` 经 `check-repo --fast` 间接覆盖 | 日常开发能复验 session/checkpoint 治理不变量 | 生产级持久化、外部 provider 健康、真实上层确认流 |
+| Future implementation gate | 真实上层确认流、executor 边界、storage backend 设计和独立负向回归明确后再定义 | 可讨论有限 durable store 或受控 replay 的实现条件 | 在本阶段直接启用自动 replay 或长期记忆 |
+
 ## 当前停止线
 
 - 不把 session record 当作上层业务状态源。
@@ -60,4 +71,4 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 - 不把 tool result cache 升级为长期记忆；当前只允许 request-local metadata 或 session recovery checkpoint 引用。
 - 不让 recovery checkpoint 自动 replay；当前只固定 record / manifest 与可审计引用。
 - 不把 checkpoint read route smoke 写成 durable checkpoint store、materialized result reader 或 replay executor；当前只冻结 response shape 和安全边界。
-- checkpoint read route 必须拒绝 materialized result 与 replay 类查询参数，并在平台 smoke 中覆盖这些治理门禁。
+- checkpoint read route 必须拒绝 materialized result、result ref、executor ref、replay 和 durable memory 类查询参数，并在平台 smoke 中覆盖这些治理门禁。

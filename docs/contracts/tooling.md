@@ -1,6 +1,6 @@
 # RadishMind 工具框架契约
 
-更新时间：2026-05-13
+更新时间：2026-05-14
 
 ## 文档目的
 
@@ -57,6 +57,17 @@ Schema 真相源为：
 - 所有状态落点都必须保持 `durable_memory_written=false`。
 - recovery checkpoint record / manifest 由 `contracts/session-recovery-checkpoint*.schema.json` 固定；tooling 侧只引用 checkpoint ref，不负责跨轮 replay。
 
+## Promotion 门禁分层
+
+当前 tooling 只能按以下层级晋级：
+
+| 层级 | 当前门禁 | 可声明能力 | 不可声明能力 |
+| --- | --- | --- | --- |
+| Contract gate | `tool`、`tool-registry`、`tool-audit-record` schema 与 fixture | 工具定义、registry policy、session binding、metadata-only audit/cache 边界稳定 | 真实工具执行、真实结果缓存、durable tool store |
+| Checkpoint read gate | `session-recovery-checkpoint-read` fixture 与 denied query fixture | checkpoint read 可暴露 tool audit summary，且只暴露治理元数据 | 返回 tool output、result ref、executor ref 或 materialized result |
+| Platform route smoke | checkpoint metadata-only route 与负向查询参数 smoke | 平台能拒绝把 tool audit summary 升级成执行或结果读取请求 | executor、replay、长期记忆或业务真相源写入 |
+| Future implementation gate | 上层确认流、executor sandbox、result materialization policy 和独立审计记录明确后再定义 | 可讨论受控工具执行器和短期 result ref | 在当前 registry v1 后直接启用 unrestricted tool calling |
+
 ## 当前停止线
 
 - 不实现真实工具执行器。
@@ -64,3 +75,4 @@ Schema 真相源为：
 - 不新增 provider/model 实验。
 - 不让工具直接写 `RadishFlow`、`Radish` 或其他上层业务真相源。
 - 不把 candidate builder 输出当作已确认动作；高风险候选动作仍必须由上层确认流承接。
+- 不让 checkpoint read route 返回 tool output、result ref、executor ref 或 materialized tool result。

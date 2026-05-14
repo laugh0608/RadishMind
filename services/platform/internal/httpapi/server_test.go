@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -21,6 +23,18 @@ type fakeBridge struct {
 	lastOptions  bridge.EnvelopeOptions
 	streamCalled bool
 	streamErr    error
+}
+
+type checkpointDeniedQueriesFixture struct {
+	Route        string                `json:"route"`
+	CheckpointID string                `json:"checkpoint_id"`
+	Cases        []checkpointQueryCase `json:"cases"`
+}
+
+type checkpointQueryCase struct {
+	Name              string `json:"name"`
+	Query             string `json:"query"`
+	ExpectedErrorCode string `json:"expected_error_code"`
 }
 
 func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
@@ -92,6 +106,28 @@ func canonicalNorthboundContext(t *testing.T, canonicalRequest map[string]any) m
 		t.Fatalf("missing northbound context: %#v", contextBlock["northbound"])
 	}
 	return northbound
+}
+
+func loadCheckpointDeniedQueriesFixture(t *testing.T) checkpointDeniedQueriesFixture {
+	t.Helper()
+	path := filepath.Join("..", "..", "..", "..", "scripts", "checks", "fixtures", "session-recovery-checkpoint-read-denied-queries.json")
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read denied query fixture: %v", err)
+	}
+	var fixture checkpointDeniedQueriesFixture
+	if err := json.Unmarshal(raw, &fixture); err != nil {
+		t.Fatalf("decode denied query fixture: %v", err)
+	}
+	if fixture.Route == "" || fixture.CheckpointID == "" || len(fixture.Cases) == 0 {
+		t.Fatalf("invalid denied query fixture: %#v", fixture)
+	}
+	return fixture
+}
+
+func checkpointDeniedQueryPath(fixture checkpointDeniedQueriesFixture, query string) string {
+	basePath := strings.Replace(fixture.Route, "{checkpoint_id}", fixture.CheckpointID, 1)
+	return basePath + "?" + query
 }
 
 func TestPlatformNorthboundRoutes(t *testing.T) {
@@ -634,36 +670,11 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 
 	t.Run("session recovery checkpoint read blocks materialized results and replay", func(t *testing.T) {
 		routeServer := NewServer(config.Config{}, Options{BuildVersion: "test"})
-		cases := []struct {
-			name string
-			path string
-			code string
-		}{
-			{
-				name: "materialized results",
-				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?include_materialized_results=true",
-				code: "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
-			},
-			{
-				name: "tool results",
-				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?include_tool_results=1",
-				code: "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
-			},
-			{
-				name: "auto replay",
-				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?auto_replay=true",
-				code: "CHECKPOINT_AUTO_REPLAY_DISABLED",
-			},
-			{
-				name: "replay execution",
-				path: "/v1/session/recovery/checkpoints/session-checkpoint-0001?replay=yes",
-				code: "CHECKPOINT_AUTO_REPLAY_DISABLED",
-			},
-		}
+		fixture := loadCheckpointDeniedQueriesFixture(t)
 
-		for _, tc := range cases {
-			t.Run(tc.name, func(t *testing.T) {
-				req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+		for _, tc := range fixture.Cases {
+			t.Run(tc.Name, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, checkpointDeniedQueryPath(fixture, tc.Query), nil)
 				rec := httptest.NewRecorder()
 
 				routeServer.httpServer.Handler.ServeHTTP(rec, req)
@@ -675,7 +686,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 				if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
 					t.Fatalf("decode error response: %v", err)
 				}
-				if response.Error.Code != tc.code {
+				if response.Error.Code != tc.ExpectedErrorCode {
 					t.Fatalf("unexpected error code: %#v", response.Error.Code)
 				}
 				if response.Error.FailureBoundary != errorBoundaryNorthboundRequest {
