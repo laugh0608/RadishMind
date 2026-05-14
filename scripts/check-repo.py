@@ -1083,6 +1083,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-session-tooling-negative-regression-skeleton.py", [])
     run_python_script("check-session-tooling-foundation-status-summary.py", [])
     run_python_script("check-session-tooling-confirmation-flow-design.py", [])
+    run_python_script("check-session-tooling-independent-audit-records.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])

@@ -28,6 +28,7 @@
 1. [接入前置条件总表](cross-project-integration-readiness.md)
 2. [`P2 Session & Tooling` 实现前置条件](session-tooling-implementation-preconditions.md)
 3. [`P2 Session & Tooling` confirmation flow design](session-tooling-confirmation-flow-design.md)
+4. [`P2 Session & Tooling` independent audit records design](session-tooling-independent-audit-records.md)
 
 使用原则：
 

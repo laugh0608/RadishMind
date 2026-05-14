@@ -7,6 +7,7 @@
   "source_readiness_summary": "scripts/checks/fixtures/session-tooling-readiness-summary.json",
   "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
   "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_independent_audit_records_design": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -56,6 +57,16 @@
         "scripts/check-session-tooling-negative-regression-skeleton.py"
       ],
       "claim": "blocked executor, storage/materialization, and confirmation cases have skeleton coverage"
+    },
+    {
+      "track_id": "independent_audit_records_design",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-independent-audit-records.md",
+        "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
+        "scripts/check-session-tooling-independent-audit-records.py"
+      ],
+      "claim": "independent audit record shape, event sources, and confirmation/executor/storage boundaries are design-checkable"
     }
   ],
   "missing_implementation_prerequisites": [
