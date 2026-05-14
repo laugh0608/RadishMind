@@ -13,6 +13,8 @@ PRECONDITIONS = REPO_ROOT / "scripts/checks/fixtures/session-tooling-implementat
 NEGATIVE_SKELETON = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
+CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
+ROADMAP = REPO_ROOT / "docs/radishmind-roadmap.md"
 CHECK_REPO = REPO_ROOT / "scripts/check-repo.py"
 THIS_CHECK = REPO_ROOT / "scripts/check-session-tooling-foundation-status-summary.py"
 
@@ -259,15 +261,26 @@ def check_summary_shape(document: dict[str, Any]) -> None:
 def check_docs_and_consumers() -> None:
     current_focus = CURRENT_FOCUS.read_text(encoding="utf-8")
     devlog = DEVLOG.read_text(encoding="utf-8")
+    capability_matrix = CAPABILITY_MATRIX.read_text(encoding="utf-8")
+    roadmap = ROADMAP.read_text(encoding="utf-8")
     check_repo = CHECK_REPO.read_text(encoding="utf-8")
     fixture_name = FIXTURE_PATH.name
 
     for label, content in (
         ("docs/radishmind-current-focus.md", current_focus),
         ("docs/devlogs/2026-W20.md", devlog),
+        ("docs/radishmind-capability-matrix.md", capability_matrix),
+        ("docs/radishmind-roadmap.md", roadmap),
     ):
         require(fixture_name in content, f"{label} must reference foundation status summary")
         require("close candidate" in content, f"{label} must mention close candidate")
+        require("governance-only" in content, f"{label} must mention governance-only")
+    for label, content in (
+        ("docs/radishmind-capability-matrix.md", capability_matrix),
+        ("docs/radishmind-roadmap.md", roadmap),
+    ):
+        require("P2 short close" in content, f"{label} must explicitly avoid P2 short close")
+        require("negative_regression_suite" in content, f"{label} must mention negative_regression_suite boundary")
     require(
         "check-session-tooling-foundation-status-summary.py" in check_repo,
         "fast baseline must run foundation status summary check",
