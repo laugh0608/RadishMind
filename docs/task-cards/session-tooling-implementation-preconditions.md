@@ -20,6 +20,8 @@ Result materialization policy design 为 `scripts/checks/fixtures/session-toolin
 
 Executor boundary design 为 `scripts/checks/fixtures/session-tooling-executor-boundary-design.json`，快速门禁为 `scripts/check-session-tooling-executor-boundary.py`。它只定义 sandbox、allowlist、execution envelope、timeout / retry 和失败边界，不代表真实 executor 已经存在。
 
+Storage backend design 为 `scripts/checks/fixtures/session-tooling-storage-backend-design.json`，快速门禁为 `scripts/check-session-tooling-storage-backend-design.py`。它只定义 session / checkpoint / audit / result store 职责分离、retention、redaction、secret handling 和写入边界，不代表 durable store 已经存在。
+
 ## 当前已完成门禁
 
 当前可以声明的能力只到以下层级：
@@ -28,7 +30,7 @@ Executor boundary design 为 `scripts/checks/fixtures/session-tooling-executor-b
 - checkpoint read route 已有 fixture-backed metadata-only smoke。
 - denied query fixture 已覆盖 materialized result、result ref、executor ref、durable memory 和 replay 类请求。
 - promotion gate、negative consumption summary、route smoke coverage summary 和 readiness summary 已进入 `check-repo --fast`。
-- confirmation flow、independent audit records、result materialization policy 和 executor boundary 已有设计级 fixture 与 check，但仍未接入真实实现。
+- confirmation flow、independent audit records、result materialization policy、executor boundary 和 storage backend 已有设计级 fixture 与 check，但仍未接入真实实现。
 
 这些门禁只说明 contract 和 metadata smoke ready，不说明真实 executor、durable storage、confirmation flow 或 replay 已经存在。
 
