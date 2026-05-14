@@ -66,7 +66,7 @@ Schema 真相源为：
 | Contract gate | `tool`、`tool-registry`、`tool-audit-record` schema 与 fixture | 工具定义、registry policy、session binding、metadata-only audit/cache 边界稳定 | 真实工具执行、真实结果缓存、durable tool store |
 | Checkpoint read gate | `session-recovery-checkpoint-read` fixture 与 denied query fixture | checkpoint read 可暴露 tool audit summary，且只暴露治理元数据 | 返回 tool output、result ref、executor ref 或 materialized result |
 | Platform route smoke | checkpoint metadata-only route 与负向查询参数 smoke | 平台能拒绝把 tool audit summary 升级成执行或结果读取请求 | executor、replay、长期记忆或业务真相源写入 |
-| Future implementation gate | 上层确认流、executor sandbox、result materialization policy 和独立审计记录明确后再定义 | 可讨论受控工具执行器和短期 result ref | 在当前 registry v1 后直接启用 unrestricted tool calling |
+| Future implementation gate | 上层确认流接线、independent audit、result materialization policy、executor boundary、storage backend 和完整负向回归同时明确后再定义 | 可讨论受控工具执行器、短期 result ref 和受控 storage backend | 在当前 registry v1 后直接启用 unrestricted tool calling、业务写回、长期记忆或 replay |
 
 ## 当前停止线
 

@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-05-13
+更新时间：2026-05-14
 
 ## 架构目标
 
@@ -24,12 +24,12 @@
 ### 2. `Conversation & Session`
 
 - 负责 `conversation_id`、会话历史、恢复、压缩和审计边界。
-- 当前已有首版 session record、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、northbound session metadata 和 metadata-only route smoke；仍没有 durable session store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器。
+- 当前已有首版 session record、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、northbound session metadata、metadata-only route smoke、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design 和 foundation status summary；这些只代表 close candidate / governance-only，仍没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器。
 
 ### 3. `Tooling Framework`
 
 - 负责检索、附件解析、项目语义转换、本地候选生成、response builder 和工具策略。
-- 当前已有首版 tool contract、registry、policy/audit record、session binding、metadata-only result cache 和 checkpoint read `tool_audit_summary`；仍没有真实工具执行器、materialized tool result cache、durable tool store 或上层确认流接线。
+- 当前已有首版 tool contract、registry、policy/audit record、session binding、metadata-only result cache、checkpoint read `tool_audit_summary`、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton 和五类设计门禁；仍没有真实工具执行器、materialized tool result cache、durable tool store、durable audit/result store 或上层确认流接线。
 
 ### 4. `Model Runtime`
 
@@ -39,7 +39,7 @@
 ### 5. `Evaluation & Governance`
 
 - 负责 schema、smoke、offline eval、candidate record、review、promotion gate 与仓库级检查。
-- 这一层保证平台不是“能跑一次”，而是“能长期复跑并解释为什么通过或不通过”。
+- 这一层保证平台不是“能跑一次”，而是“能长期复跑并解释为什么通过或不通过”。当前 P2 设计级门禁由 fixture + check + task card 共同固定，但它们仍属于治理边界，不是实现完成声明。
 
 ## 请求视角
 
@@ -131,9 +131,9 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py`
 - `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound
 - `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`
-- `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata 和平台 checkpoint metadata-only route smoke
-- `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py` 和各类 deterministic builder/check
-- `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records
+- `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata、平台 checkpoint metadata-only route smoke、readiness summary、implementation preconditions 和 storage / audit / result 边界 fixture
+- `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py`、confirmation flow design、executor boundary design、result materialization policy design 和各类 deterministic builder/check
+- `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records、promotion gates、negative consumption summary、route smoke coverage summary、foundation status summary 和 P2 design gate checks
 - `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`
 
 ## 当前缺口
@@ -141,11 +141,11 @@ Protocol Compatibility Layer 翻译回 northbound response
 - 当前只有 first-pass `Go` platform service 和 bridge-backed `HTTP API`，还不是 production deployment
 - northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 已具备第一版兼容接口；当前已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics、discoverability 对齐、请求级观测和错误分类，但生产部署边界还未正式落地
 - `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory 和 diagnostics 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
-- 已有 session/tooling 首版契约和 metadata-only 门禁，但没有 durable session store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器
-- 已有 tool registry、tool audit 和 metadata-only result cache 契约，但没有真实工具执行器、materialized result reader、durable tool store 或上层确认流接线
+- 已有 session/tooling 首版契约、metadata-only 门禁、close-candidate status summary 和五类设计级边界门禁，但没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器
+- 已有 tool registry、tool audit、metadata-only result cache、result materialization policy design 和 executor boundary design，但没有真实工具执行器、materialized result reader、durable tool store、durable result store 或上层确认流接线
 - 尚未具备 production secret backend、process supervisor、正式部署环境隔离和可发布部署包
 
-这些缺口说明：`P1 Runtime Foundation` 已达到 short close，当前不应继续在 provider/config/diagnostics/observability 同层无限细化；下一步应把主要实现重心切到 session 与 tooling。
+这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only；下一步应先收口 close-candidate readiness rollup，再决定是否进入真实实现设计。
 
 ## 当前进度
 

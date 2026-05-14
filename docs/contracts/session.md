@@ -60,7 +60,7 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 | Contract gate | `session-record`、`session-recovery-checkpoint*` schema、正向 fixture、`session-recovery-checkpoint-read-denied-queries` 负向 fixture | 会话身份、history/state/recovery policy、checkpoint refs、metadata-only read result 结构稳定 | durable session store、长期记忆、真实 checkpoint storage |
 | Platform route smoke | `GET /v1/session/recovery/checkpoints/{checkpoint_id}` fixture-backed route、禁止 materialized result / replay / durable memory 查询参数 | 平台能稳定暴露 metadata-only checkpoint read shape，并拒绝越界读取和执行请求 | materialized result reader、跨轮 replay executor、自动恢复 API |
 | Fast check | `check-session-record-contract.py`、`check-session-recovery-checkpoint-contract.py`、`go test ./...` 经 `check-repo --fast` 间接覆盖 | 日常开发能复验 session/checkpoint 治理不变量 | 生产级持久化、外部 provider 健康、真实上层确认流 |
-| Future implementation gate | 真实上层确认流、executor 边界、storage backend 设计和独立负向回归明确后再定义 | 可讨论有限 durable store 或受控 replay 的实现条件 | 在本阶段直接启用自动 replay 或长期记忆 |
+| Future implementation gate | 上层确认流接线、independent audit、result materialization policy、executor boundary、storage backend 和完整负向回归同时明确后再定义 | 可讨论有限 durable store、受控 result reader 或受控 replay 的实现条件 | 在本阶段直接启用自动 replay、长期记忆、业务写回或持久化读取 |
 
 ## 当前停止线
 
