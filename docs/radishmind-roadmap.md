@@ -95,7 +95,7 @@
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：进入主要实现阶段。session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、denied query fixture 与 northbound session metadata 已有首版门禁；tool schema、tool registry、tool policy、session binding、metadata-only result cache、audit record 和 promotion gate 分层已有最小契约与快速门禁。
+状态：进入主要实现阶段。session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、denied query fixture、promotion gate fixture 与 northbound session metadata 已有首版门禁；tool schema、tool registry、tool policy、session binding、metadata-only result cache、audit record 和 promotion gate 分层已有最小契约与快速门禁。
 
 ### `P3`：Local Deployment & Ops Governance
 
