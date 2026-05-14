@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_negative_consumption_summary",
+  "stage": "P2 Session & Tooling Foundation",
+  "denied_query_fixture": {
+    "path": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+    "total_cases": 14,
+    "categories": {
+      "durable_memory": 3,
+      "materialized_results": 7,
+      "replay": 4
+    },
+    "expected_error_codes": [
+      "CHECKPOINT_AUTO_REPLAY_DISABLED",
+      "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    ],
+    "consumers": [
+      {
+        "path": "scripts/check-session-recovery-checkpoint-contract.py",
+        "coverage": "fixture_shape_and_required_case_categories"
+      },
+      {
+        "path": "services/platform/internal/httpapi/server_test.go",
+        "coverage": "go_route_negative_smoke_cases"
+      }
+    ]
+  },
+  "promotion_gate_fixture": {
+    "path": "scripts/checks/fixtures/session-tooling-promotion-gates.json",
+    "total_gates": 4,
+    "gate_ids": [
+      "checkpoint_read_gate",
+      "contract_gate",
+      "future_implementation_gate",
+      "platform_route_smoke"
+    ],
+    "future_enablement_blockers": [
+      "executor_boundary",
+      "independent_audit_records",
+      "negative_regression_suite",
+      "result_materialization_policy",
+      "storage_backend_design",
+      "upper_layer_confirmation_flow"
+    ],
+    "consumers": [
+      {
+        "path": "scripts/check-session-tooling-promotion-gates.py",
+        "coverage": "promotion_gate_shape_and_blocked_claims"
+      },
+      {
+        "path": "scripts/check-repo.py",
+        "coverage": "fast_baseline_entrypoint"
+      }
+    ]
+  },
+  "summary_consumers": [
+    {
+      "path": "scripts/check-session-tooling-negative-consumption.py",
+      "coverage": "regenerates_and_compares_this_summary"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "durable_memory",
+    "materialized_tool_results",
+    "real_checkpoint_storage_backend",
+    "real_tool_executor",
+    "result_ref_reader"
+  ]
+}

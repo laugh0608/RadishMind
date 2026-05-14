@@ -21,5 +21,6 @@
 
 - 本目录文档不替代 `contracts/` 下的 schema 真相源。
 - `P2 Session & Tooling Foundation` 的晋级口径同时由 `scripts/checks/fixtures/session-tooling-promotion-gates.json` 固定；修改 session/tooling promotion gate 时，应同步更新对应专题页和该 fixture。
+- P2 负向门禁消费关系由 `scripts/checks/fixtures/session-tooling-negative-consumption-summary.json` 固定；新增 denied query、promotion gate 或对应消费者时，应同步更新该 summary。
 - 长示例、批次流水和运行记录继续进入 fixture、manifest、summary、run record 或 task card 附件。
 - 单个专题接近 `500` 行时，应优先继续按稳定职责拆分，而不是添加 `markdown-size-allow:`。
