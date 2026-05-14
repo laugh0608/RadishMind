@@ -9,6 +9,7 @@
   "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
   "source_independent_audit_records_design": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
   "source_result_materialization_policy_design": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
+  "source_executor_boundary_design": "scripts/checks/fixtures/session-tooling-executor-boundary-design.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -78,6 +79,16 @@
         "scripts/check-session-tooling-result-materialization-policy.py"
       ],
       "claim": "metadata-only, result_ref, and materialized result boundaries are design-checkable while current result readers remain disabled"
+    },
+    {
+      "track_id": "executor_boundary_design",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-executor-boundary.md",
+        "scripts/checks/fixtures/session-tooling-executor-boundary-design.json",
+        "scripts/check-session-tooling-executor-boundary.py"
+      ],
+      "claim": "executor sandbox, allowlist, execution envelope, timeout/retry, and failure boundaries are design-checkable while execution remains disabled"
     }
   ],
   "missing_implementation_prerequisites": [

@@ -30,6 +30,7 @@
 3. [`P2 Session & Tooling` confirmation flow design](session-tooling-confirmation-flow-design.md)
 4. [`P2 Session & Tooling` independent audit records design](session-tooling-independent-audit-records.md)
 5. [`P2 Session & Tooling` result materialization policy design](session-tooling-result-materialization-policy.md)
+6. [`P2 Session & Tooling` executor boundary design](session-tooling-executor-boundary.md)
 
 使用原则：
 
