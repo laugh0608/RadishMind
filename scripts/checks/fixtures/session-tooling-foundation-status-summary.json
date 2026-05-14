@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_foundation_status_summary",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "close_candidate_governance_only",
+  "implementation_status": "not_implemented",
+  "source_readiness_summary": "scripts/checks/fixtures/session-tooling-readiness-summary.json",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "completed_governance_tracks": [
+    {
+      "track_id": "contract_and_fixture_gates",
+      "status": "complete",
+      "evidence": [
+        "scripts/check-session-record-contract.py",
+        "scripts/check-tooling-framework-contract.py",
+        "scripts/check-session-recovery-checkpoint-contract.py"
+      ],
+      "claim": "session, tooling, and checkpoint read contracts are fixture-checkable"
+    },
+    {
+      "track_id": "metadata_route_smoke",
+      "status": "complete",
+      "evidence": [
+        "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json",
+        "scripts/check-session-recovery-route-smoke-coverage.py"
+      ],
+      "claim": "checkpoint read route smoke covers metadata-only response shape and denied query categories"
+    },
+    {
+      "track_id": "promotion_and_readiness",
+      "status": "complete",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-promotion-gates.json",
+        "scripts/checks/fixtures/session-tooling-readiness-summary.json",
+        "scripts/check-session-tooling-promotion-gates.py",
+        "scripts/check-session-tooling-readiness-summary.py"
+      ],
+      "claim": "promotion gates and readiness summary separate current governance claims from future implementation claims"
+    },
+    {
+      "track_id": "implementation_preconditions",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-implementation-preconditions.md",
+        "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+        "scripts/check-session-tooling-implementation-preconditions.py"
+      ],
+      "claim": "executor, storage, and confirmation implementation preconditions are explicit and still blocked"
+    },
+    {
+      "track_id": "negative_regression_skeleton",
+      "status": "complete",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+        "scripts/check-session-tooling-negative-regression-skeleton.py"
+      ],
+      "claim": "blocked executor, storage/materialization, and confirmation cases have skeleton coverage"
+    }
+  ],
+  "missing_implementation_prerequisites": [
+    {
+      "area": "executor",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "executor_boundary",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "area": "storage",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "storage_backend_design",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "area": "confirmation",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ]
+    }
+  ],
+  "next_stage_entry_conditions": [
+    "upper_layer_confirmation_flow",
+    "executor_boundary",
+    "storage_backend_design",
+    "result_materialization_policy",
+    "independent_audit_records",
+    "complete_negative_regression_suite"
+  ],
+  "not_claimed_capabilities": [
+    "automatic_replay",
+    "confirmed_action_execution",
+    "durable_session_store",
+    "durable_tool_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_checkpoint_storage_backend",
+    "real_tool_executor"
+  ],
+  "close_candidate_limits": [
+    "does_not_mark_p2_short_close",
+    "does_not_enable_executor",
+    "does_not_enable_durable_storage",
+    "does_not_enable_confirmation_flow",
+    "does_not_enable_replay",
+    "does_not_complete_negative_regression_suite"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-foundation-status-summary.py",
+      "coverage": "regenerates_and_compares_this_status_summary"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}
