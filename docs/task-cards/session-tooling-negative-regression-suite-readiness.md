@@ -8,7 +8,7 @@
 
 程序化真相源为 `scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json`，快速门禁为 `scripts/check-session-tooling-negative-regression-suite-readiness.py`。
 
-当前状态是 `acceptance_defined_suite_not_complete`：可以声明 suite 验收口径已定义，但不能声明完整 `negative_regression_suite` 已满足，也不能据此解除 executor、storage 或 confirmation 的 `not_ready` 状态。
+当前状态是 `governance_suite_consumed_deny_by_default_gates_defined`：可以声明 suite 验收口径已定义、governance-only suite 已被消费，且 executor / storage / confirmation 三类 deny-by-default implementation gate contract 已对齐；但不能声明完整 `negative_regression_suite` 已满足，也不能据此解除 executor、storage 或 confirmation 的 `not_ready` 状态。
 
 ## 必须覆盖的负向组
 
@@ -25,7 +25,7 @@
 - `real_consumers_before_completion`：每个负向 case 必须被真实 contract、route、policy 或 implementation gate 消费，不能只存在于 fixture。
 - `independent_audit_assertions`：每个 blocked action 必须验证预期 audit event，或明确验证当前不会写 audit store。
 - `side_effect_absence_assertions`：每个 case 必须证明没有发生 execution、storage、materialized result、business truth write 或 replay side effect。
-- `implementation_gate_alignment`：executor、storage、confirmation 的实现 gate 必须存在，且仍默认 deny。
+- `implementation_gate_alignment`：executor、storage、confirmation 的 deny-by-default gate contract 已存在且默认 deny；真实实现 consumer 仍未满足。
 
 `checkpoint_denied_query_alignment` 当前只被已有 denied query fixture 部分满足，不代表完整 suite 完成。
 
@@ -45,5 +45,6 @@
 1. 每个 skeleton case 都有明确消费者。
 2. 每个 case 都验证 audit 或 audit non-write 边界。
 3. 每个 case 都验证禁止 side effect。
-4. executor、storage、confirmation implementation gate 已存在，并由 suite 覆盖 deny-by-default 行为。
-5. close-candidate rollup 仍保持 governance-only，直到其它 short close 前置条件同时满足。
+4. executor、storage、confirmation implementation gate contract 已存在，并由 suite 覆盖 deny-by-default 行为。
+5. 真实 executor、storage、confirmation consumer 能证明 deny 行为先于任何 side effect 生效。
+6. close-candidate rollup 仍保持 governance-only，直到其它 short close 前置条件同时满足。

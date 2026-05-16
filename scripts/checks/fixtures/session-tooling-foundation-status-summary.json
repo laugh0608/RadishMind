@@ -11,6 +11,7 @@
   "source_result_materialization_policy_design": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
   "source_executor_boundary_design": "scripts/checks/fixtures/session-tooling-executor-boundary-design.json",
   "source_storage_backend_design": "scripts/checks/fixtures/session-tooling-storage-backend-design.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -100,6 +101,16 @@
         "scripts/check-session-tooling-storage-backend-design.py"
       ],
       "claim": "session, checkpoint, audit, and result store responsibilities are design-checkable while durable storage remains disabled"
+    },
+    {
+      "track_id": "deny_by_default_implementation_gates",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-deny-by-default-implementation-gates.md",
+        "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+        "scripts/check-session-tooling-deny-by-default-implementation-gates.py"
+      ],
+      "claim": "executor, storage, and confirmation deny-by-default implementation gate contracts are checkable while real implementations remain disabled"
     }
   ],
   "missing_implementation_prerequisites": [

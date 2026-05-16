@@ -17,6 +17,7 @@ INDEPENDENT_AUDIT = FIXTURE_DIR / "session-tooling-independent-audit-records-des
 RESULT_MATERIALIZATION = FIXTURE_DIR / "session-tooling-result-materialization-policy-design.json"
 CONFIRMATION_FLOW = FIXTURE_DIR / "session-tooling-confirmation-flow-design.json"
 TOOL_REGISTRY = FIXTURE_DIR / "tool-registry-basic.json"
+IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
 
 TASK_CARD = REPO_ROOT / "docs/task-cards/session-tooling-negative-regression-suite.md"
 TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
@@ -32,46 +33,55 @@ GROUP_PRECONDITIONS = {
 
 CASE_CONSUMERS = {
     "executor-disabled-tool-run": [
+        "deny_by_default_implementation_gates",
         "implementation_preconditions",
         "tool_registry_policy",
         "negative_regression_suite_check",
     ],
     "executor-network-disabled": [
+        "deny_by_default_implementation_gates",
         "tool_registry_policy",
         "independent_audit_records_design",
         "negative_regression_suite_check",
     ],
     "executor-ref-checkpoint-read-denied": [
+        "deny_by_default_implementation_gates",
         "checkpoint_denied_query_fixture",
         "result_materialization_policy",
         "negative_regression_suite_check",
     ],
     "materialized-result-read-denied": [
+        "deny_by_default_implementation_gates",
         "checkpoint_denied_query_fixture",
         "result_materialization_policy",
         "negative_regression_suite_check",
     ],
     "durable-memory-write-denied": [
+        "deny_by_default_implementation_gates",
         "implementation_preconditions",
         "independent_audit_records_design",
         "negative_regression_suite_check",
     ],
     "business-truth-write-denied": [
+        "deny_by_default_implementation_gates",
         "implementation_preconditions",
         "independent_audit_records_design",
         "negative_regression_suite_check",
     ],
     "missing-confirmation-denied": [
+        "deny_by_default_implementation_gates",
         "confirmation_flow_design",
         "implementation_preconditions",
         "negative_regression_suite_check",
     ],
     "stale-confirmation-denied": [
+        "deny_by_default_implementation_gates",
         "confirmation_flow_design",
         "implementation_preconditions",
         "negative_regression_suite_check",
     ],
     "mismatched-confirmation-payload-denied": [
+        "deny_by_default_implementation_gates",
         "confirmation_flow_design",
         "implementation_preconditions",
         "negative_regression_suite_check",
@@ -143,6 +153,7 @@ CASE_SIDE_EFFECT_ASSERTIONS = {
 CONSUMER_PATHS = {
     "checkpoint_denied_query_fixture": DENIED_QUERY_FIXTURE,
     "confirmation_flow_design": CONFIRMATION_FLOW,
+    "deny_by_default_implementation_gates": IMPLEMENTATION_GATES,
     "implementation_preconditions": PRECONDITIONS_PATH,
     "independent_audit_records_design": INDEPENDENT_AUDIT,
     "negative_regression_suite_check": THIS_CHECK,
@@ -256,7 +267,7 @@ def suite_cases_for_group(group: dict[str, Any]) -> list[dict[str, Any]]:
                 ),
                 "implementation_gate_alignment": {
                     "gate_area": precondition_area,
-                    "current_status": "missing_deny_by_default_implementation_gate",
+                    "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
                     "required_before_suite_completion": True,
                 },
             }
@@ -272,6 +283,7 @@ def build_suite() -> dict[str, Any]:
     confirmation = require_object(load_json_document(CONFIRMATION_FLOW), "confirmation flow must be object")
     registry = require_object(load_json_document(TOOL_REGISTRY), "tool registry must be object")
     denied_queries = require_object(load_json_document(DENIED_QUERY_FIXTURE), "denied query fixture must be object")
+    implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates must be object")
 
     require(skeleton.get("status") == "skeleton_only_implementation_blocked", "skeleton must remain blocked")
     require(preconditions.get("status") == "preconditions_not_satisfied", "preconditions must remain unsatisfied")
@@ -280,6 +292,10 @@ def build_suite() -> dict[str, Any]:
     require(confirmation.get("status") == "design_only_not_connected", "confirmation must remain design-only")
     require((registry.get("registry_policy") or {}).get("execution_enabled") is False, "registry must keep execution disabled")
     require(isinstance(denied_queries.get("cases"), list), "denied query fixture must include cases")
+    require(
+        implementation_gates.get("status") == "deny_by_default_gates_defined_implementation_blocked",
+        "implementation gates must be defined but blocked",
+    )
 
     groups: list[dict[str, Any]] = []
     for raw_group in skeleton.get("groups") or []:
@@ -299,7 +315,7 @@ def build_suite() -> dict[str, Any]:
         "schema_version": 1,
         "kind": "session_tooling_negative_regression_suite",
         "stage": "P2 Session & Tooling Foundation",
-        "status": "governance_suite_consumed_implementation_gates_missing",
+        "status": "governance_suite_consumed_deny_by_default_gates_defined",
         "implementation_status": "not_ready",
         "source_negative_regression_skeleton": relative_path(SKELETON_PATH),
         "source_implementation_preconditions": relative_path(PRECONDITIONS_PATH),
@@ -308,13 +324,14 @@ def build_suite() -> dict[str, Any]:
         "source_result_materialization_policy_design": relative_path(RESULT_MATERIALIZATION),
         "source_confirmation_flow_design": relative_path(CONFIRMATION_FLOW),
         "source_tool_registry_fixture": relative_path(TOOL_REGISTRY),
+        "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "coverage_summary": {
             "group_count": len(groups),
             "case_count": sum(len(group["cases"]) for group in groups),
             "consumer_assertions": "governance_consumers_present_for_all_cases",
             "audit_assertions": "audit_non_write_boundary_asserted_for_all_cases",
             "side_effect_absence_assertions": "forbidden_side_effect_absence_asserted_for_all_cases",
-            "implementation_gate_alignment": "not_satisfied",
+            "implementation_gate_alignment": "satisfied_by_deny_by_default_gate_contracts",
         },
         "groups": groups,
         "suite_acceptance_progress": [
@@ -336,11 +353,11 @@ def build_suite() -> dict[str, Any]:
             },
             {
                 "requirement_id": "implementation_gate_alignment",
-                "status": "not_satisfied",
+                "status": "satisfied_by_deny_by_default_gate_contracts",
             },
         ],
         "blocked_completion_reasons": [
-            "implementation_gates_missing",
+            "real_executor_storage_confirmation_implementations_missing",
             "executor_storage_confirmation_still_not_ready",
             "upper_layer_confirmation_flow_missing",
             "durable_store_and_result_reader_still_disabled",
@@ -363,7 +380,7 @@ def check_suite_shape(document: dict[str, Any]) -> None:
     require(document.get("schema_version") == 1, "suite schema_version must be 1")
     require(document.get("kind") == "session_tooling_negative_regression_suite", "suite kind mismatch")
     require(
-        document.get("status") == "governance_suite_consumed_implementation_gates_missing",
+        document.get("status") == "governance_suite_consumed_deny_by_default_gates_defined",
         "suite must not claim completion",
     )
     require(document.get("implementation_status") == "not_ready", "suite must keep implementation not_ready")
@@ -425,8 +442,8 @@ def check_suite_shape(document: dict[str, Any]) -> None:
             gate = require_object(case.get("implementation_gate_alignment"), f"{case_id} must include gate alignment")
             require(gate.get("gate_area") == GROUP_PRECONDITIONS[group_id], f"{case_id} gate area mismatch")
             require(
-                gate.get("current_status") == "missing_deny_by_default_implementation_gate",
-                f"{case_id} must keep implementation gate missing",
+                gate.get("current_status") == "deny_by_default_gate_contract_defined_implementation_blocked",
+                f"{case_id} must consume deny-by-default gate contract",
             )
             require(gate.get("required_before_suite_completion") is True, f"{case_id} must block completion")
 
@@ -440,8 +457,8 @@ def check_suite_shape(document: dict[str, Any]) -> None:
         if isinstance(item, dict)
     }
     require(
-        progress_by_id.get("implementation_gate_alignment") == "not_satisfied",
-        "suite must keep implementation gate alignment unsatisfied",
+        progress_by_id.get("implementation_gate_alignment") == "satisfied_by_deny_by_default_gate_contracts",
+        "suite must align implementation gate contract",
     )
     for requirement_id in (
         "real_consumers_before_completion",

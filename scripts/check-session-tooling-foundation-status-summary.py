@@ -15,6 +15,7 @@ INDEPENDENT_AUDIT_RECORDS_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-
 RESULT_MATERIALIZATION_POLICY_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json"
 EXECUTOR_BOUNDARY_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-executor-boundary-design.json"
 STORAGE_BACKEND_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-storage-backend-design.json"
+IMPLEMENTATION_GATES = REPO_ROOT / "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
@@ -32,6 +33,7 @@ REQUIRED_TRACK_IDS = {
     "result_materialization_policy_design",
     "executor_boundary_design",
     "storage_backend_design",
+    "deny_by_default_implementation_gates",
 }
 REQUIRED_AREAS = {"executor", "storage", "confirmation"}
 REQUIRED_NEXT_STAGE_CONDITIONS = {
@@ -132,12 +134,17 @@ def build_summary() -> dict[str, Any]:
     readiness = require_object(load_json_document(READINESS_SUMMARY), "readiness summary must be object")
     preconditions = require_object(load_json_document(PRECONDITIONS), "preconditions fixture must be object")
     negative_skeleton = require_object(load_json_document(NEGATIVE_SKELETON), "negative skeleton fixture must be object")
+    implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
 
     require(readiness.get("status") == "metadata_ready_implementation_blocked", "readiness must stay implementation blocked")
     require(preconditions.get("status") == "preconditions_not_satisfied", "preconditions must stay unsatisfied")
     require(
         negative_skeleton.get("status") == "skeleton_only_implementation_blocked",
         "negative skeleton must stay implementation blocked",
+    )
+    require(
+        implementation_gates.get("status") == "deny_by_default_gates_defined_implementation_blocked",
+        "implementation gates must be defined but blocked",
     )
     check_negative_skeleton_groups(negative_skeleton)
 
@@ -154,6 +161,7 @@ def build_summary() -> dict[str, Any]:
         "source_result_materialization_policy_design": relative_path(RESULT_MATERIALIZATION_POLICY_DESIGN),
         "source_executor_boundary_design": relative_path(EXECUTOR_BOUNDARY_DESIGN),
         "source_storage_backend_design": relative_path(STORAGE_BACKEND_DESIGN),
+        "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "completed_governance_tracks": [
             {
                 "track_id": "contract_and_fixture_gates",
@@ -243,6 +251,16 @@ def build_summary() -> dict[str, Any]:
                     "scripts/check-session-tooling-storage-backend-design.py",
                 ],
                 "claim": "session, checkpoint, audit, and result store responsibilities are design-checkable while durable storage remains disabled",
+            },
+            {
+                "track_id": "deny_by_default_implementation_gates",
+                "status": "complete",
+                "evidence": [
+                    "docs/task-cards/session-tooling-deny-by-default-implementation-gates.md",
+                    "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+                    "scripts/check-session-tooling-deny-by-default-implementation-gates.py",
+                ],
+                "claim": "executor, storage, and confirmation deny-by-default implementation gate contracts are checkable while real implementations remain disabled",
             },
         ],
         "missing_implementation_prerequisites": not_ready_areas_from_preconditions(preconditions),
@@ -352,6 +370,10 @@ def check_docs_and_consumers() -> None:
     require(
         "check-session-tooling-storage-backend-design.py" in check_repo,
         "fast baseline must run storage backend design check",
+    )
+    require(
+        "check-session-tooling-deny-by-default-implementation-gates.py" in check_repo,
+        "fast baseline must run deny-by-default implementation gates check",
     )
 
 

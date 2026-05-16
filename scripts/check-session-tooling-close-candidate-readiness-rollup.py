@@ -16,6 +16,7 @@ PRECONDITIONS = FIXTURE_DIR / "session-tooling-implementation-preconditions.json
 NEGATIVE_SKELETON = FIXTURE_DIR / "session-tooling-negative-regression-skeleton.json"
 NEGATIVE_SUITE = FIXTURE_DIR / "session-tooling-negative-regression-suite.json"
 NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
+IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
 CONFIRMATION_FLOW = FIXTURE_DIR / "session-tooling-confirmation-flow-design.json"
 INDEPENDENT_AUDIT = FIXTURE_DIR / "session-tooling-independent-audit-records-design.json"
 RESULT_MATERIALIZATION = FIXTURE_DIR / "session-tooling-result-materialization-policy-design.json"
@@ -41,6 +42,7 @@ REQUIRED_GATES = {
     "negative_regression_skeleton",
     "negative_regression_governance_suite",
     "negative_regression_suite_readiness",
+    "deny_by_default_implementation_gates",
     "implementation_preconditions",
 }
 REQUIRED_NOT_READY_AREAS = {"executor", "storage", "confirmation"}
@@ -54,6 +56,7 @@ REQUIRED_ALLOWED_CLAIMS = {
     "contract_and_metadata_smoke_ready",
     "design_gates_checkable",
     "negative_regression_skeleton_exists",
+    "deny_by_default_implementation_gates_checkable",
     "close_candidate_governance_only",
 }
 REQUIRED_PROHIBITED_CLAIMS = {
@@ -158,6 +161,7 @@ def build_rollup() -> dict[str, Any]:
         load_json_document(NEGATIVE_SUITE_READINESS),
         "negative suite readiness fixture must be object",
     )
+    implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
     confirmation = require_object(load_json_document(CONFIRMATION_FLOW), "confirmation flow fixture must be object")
     audit = require_object(load_json_document(INDEPENDENT_AUDIT), "independent audit fixture must be object")
     result = require_object(load_json_document(RESULT_MATERIALIZATION), "result materialization fixture must be object")
@@ -169,11 +173,20 @@ def build_rollup() -> dict[str, Any]:
     require_status(readiness, "metadata_ready_implementation_blocked", "readiness summary")
     require_status(preconditions, "preconditions_not_satisfied", "implementation preconditions")
     require_status(negative_skeleton, "skeleton_only_implementation_blocked", "negative regression skeleton")
-    require_status(negative_suite_fixture, "governance_suite_consumed_implementation_gates_missing", "negative regression suite")
+    require_status(
+        negative_suite_fixture,
+        "governance_suite_consumed_deny_by_default_gates_defined",
+        "negative regression suite",
+    )
     require_status(
         negative_suite_readiness,
-        "governance_suite_consumed_implementation_gates_missing",
+        "governance_suite_consumed_deny_by_default_gates_defined",
         "negative regression suite readiness",
+    )
+    require_status(
+        implementation_gates,
+        "deny_by_default_gates_defined_implementation_blocked",
+        "implementation gates",
     )
     require_status(confirmation, "design_only_not_connected", "confirmation flow")
     require_status(audit, "design_only_not_connected", "independent audit")
@@ -193,6 +206,7 @@ def build_rollup() -> dict[str, Any]:
         "source_negative_regression_skeleton": relative_path(NEGATIVE_SKELETON),
         "source_negative_regression_suite": relative_path(NEGATIVE_SUITE),
         "source_negative_regression_suite_readiness": relative_path(NEGATIVE_SUITE_READINESS),
+        "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "design_gate_rollup": [
             {
                 "gate_id": "confirmation_flow",
@@ -272,11 +286,11 @@ def build_rollup() -> dict[str, Any]:
                 "source": relative_path(NEGATIVE_SUITE),
                 "status": negative_suite_fixture["status"],
                 "implementation_ready": False,
-                "current_claim": "negative cases have governance consumers, audit non-write assertions, and side-effect absence assertions",
+                "current_claim": "negative cases have governance consumers, audit non-write assertions, side-effect absence assertions, and deny-by-default gate contract alignment",
                 "remaining_blockers": [
-                    "implementation_gate_alignment",
                     "upper_layer_confirmation_flow",
                     "complete_negative_regression_suite",
+                    "real_executor_storage_confirmation_implementations",
                 ],
             },
             {
@@ -284,10 +298,22 @@ def build_rollup() -> dict[str, Any]:
                 "source": relative_path(NEGATIVE_SUITE_READINESS),
                 "status": negative_suite_readiness["status"],
                 "implementation_ready": False,
-                "current_claim": "suite acceptance is now consumed at governance level, but implementation gates remain missing",
+                "current_claim": "suite acceptance is consumed at governance level and aligned to deny-by-default gate contracts, but real implementation consumers remain missing",
                 "remaining_blockers": [
-                    "implementation_gate_alignment",
                     "complete_negative_regression_suite",
+                    "real_executor_storage_confirmation_implementations",
+                ],
+            },
+            {
+                "gate_id": "deny_by_default_implementation_gates",
+                "source": relative_path(IMPLEMENTATION_GATES),
+                "status": implementation_gates["status"],
+                "implementation_ready": False,
+                "current_claim": "executor, storage, and confirmation deny-by-default gate contracts are checkable",
+                "remaining_blockers": [
+                    "upper_layer_confirmation_flow",
+                    "complete_negative_regression_suite",
+                    "real_executor_storage_confirmation_implementations",
                 ],
             },
             {
@@ -313,7 +339,7 @@ def build_rollup() -> dict[str, Any]:
             {
                 "condition": "complete_negative_regression_suite",
                 "status": "not_satisfied",
-                "reason": "governance suite exists, but implementation gates do not yet prove real execution/storage/confirmation deny-by-default boundaries",
+                "reason": "governance suite and deny-by-default gate contracts exist, but no real implementation consumers prove executor/storage/confirmation denial",
             },
             {
                 "condition": "executor_storage_confirmation_enablement_plan",
@@ -330,6 +356,7 @@ def build_rollup() -> dict[str, Any]:
             "contract_and_metadata_smoke_ready",
             "design_gates_checkable",
             "negative_regression_skeleton_exists",
+            "deny_by_default_implementation_gates_checkable",
             "close_candidate_governance_only",
         ],
         "prohibited_claims": [

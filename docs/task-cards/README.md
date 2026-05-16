@@ -35,6 +35,7 @@
 8. [`P2 Session & Tooling` close-candidate readiness rollup](session-tooling-close-candidate-readiness-rollup.md)
 9. [`P2 Session & Tooling` negative regression suite readiness](session-tooling-negative-regression-suite-readiness.md)
 10. [`P2 Session & Tooling` negative regression suite](session-tooling-negative-regression-suite.md)
+11. [`P2 Session & Tooling` deny-by-default implementation gates](session-tooling-deny-by-default-implementation-gates.md)
 
 使用原则：
 

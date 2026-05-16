@@ -15,6 +15,7 @@ SKELETON_PATH = FIXTURE_DIR / "session-tooling-negative-regression-skeleton.json
 PRECONDITIONS_PATH = FIXTURE_DIR / "session-tooling-implementation-preconditions.json"
 DENIED_QUERY_FIXTURE = FIXTURE_DIR / "session-recovery-checkpoint-read-denied-queries.json"
 CLOSE_CANDIDATE_ROLLUP = FIXTURE_DIR / "session-tooling-close-candidate-readiness-rollup.json"
+IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
 
 TASK_CARD_PATH = REPO_ROOT / "docs/task-cards/session-tooling-negative-regression-suite-readiness.md"
 TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
@@ -39,7 +40,7 @@ REQUIRED_REQUIREMENTS = {
     "implementation_gate_alignment",
 }
 REQUIRED_BLOCKERS = {
-    "implementation_gates_missing",
+    "real_executor_storage_confirmation_implementations_missing",
     "executor_storage_confirmation_still_not_ready",
     "upper_layer_confirmation_flow_missing",
     "durable_store_and_result_reader_still_disabled",
@@ -186,11 +187,16 @@ def build_readiness() -> dict[str, Any]:
     preconditions = require_object(load_json_document(PRECONDITIONS_PATH), "preconditions fixture must be object")
     denied_queries = require_object(load_json_document(DENIED_QUERY_FIXTURE), "denied query fixture must be object")
     close_candidate = require_object(load_json_document(CLOSE_CANDIDATE_ROLLUP), "close candidate rollup must be object")
+    implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
 
     require(skeleton.get("status") == "skeleton_only_implementation_blocked", "skeleton must remain implementation blocked")
     require(
-        suite.get("status") == "governance_suite_consumed_implementation_gates_missing",
-        "suite must remain governance-only with missing implementation gates",
+        suite.get("status") == "governance_suite_consumed_deny_by_default_gates_defined",
+        "suite must remain governance-only with deny-by-default gates defined",
+    )
+    require(
+        implementation_gates.get("status") == "deny_by_default_gates_defined_implementation_blocked",
+        "implementation gates must remain blocked",
     )
     require(preconditions.get("status") == "preconditions_not_satisfied", "preconditions must remain unsatisfied")
     require(close_candidate.get("status") == "close_candidate_governance_only", "rollup must remain governance-only")
@@ -205,13 +211,14 @@ def build_readiness() -> dict[str, Any]:
         "schema_version": 1,
         "kind": "session_tooling_negative_regression_suite_readiness",
         "stage": "P2 Session & Tooling Foundation",
-        "status": "governance_suite_consumed_implementation_gates_missing",
+        "status": "governance_suite_consumed_deny_by_default_gates_defined",
         "implementation_status": "not_ready",
         "source_negative_regression_suite": relative_path(SUITE_PATH),
         "source_negative_regression_skeleton": relative_path(SKELETON_PATH),
         "source_implementation_preconditions": relative_path(PRECONDITIONS_PATH),
         "source_denied_query_fixture": relative_path(DENIED_QUERY_FIXTURE),
         "source_close_candidate_rollup": relative_path(CLOSE_CANDIDATE_ROLLUP),
+        "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "minimum_suite_groups": minimum_suite_groups(skeleton, suite),
         "suite_acceptance_requirements": [
             {
@@ -236,13 +243,13 @@ def build_readiness() -> dict[str, Any]:
             },
             {
                 "requirement_id": "implementation_gate_alignment",
-                "status": "not_satisfied",
-                "description": "The suite cannot be complete until executor, storage, and confirmation implementation gates exist and remain deny-by-default",
+                "status": "satisfied_by_deny_by_default_gate_contracts",
+                "description": "Executor, storage, and confirmation deny-by-default gate contracts exist, but real implementations are still blocked",
             },
         ],
         "current_skeleton_coverage": skeleton_coverage(skeleton),
         "blocked_completion_reasons": [
-            "implementation_gates_missing",
+            "real_executor_storage_confirmation_implementations_missing",
             "executor_storage_confirmation_still_not_ready",
             "upper_layer_confirmation_flow_missing",
             "durable_store_and_result_reader_still_disabled",
@@ -265,7 +272,7 @@ def check_fixture_shape(document: dict[str, Any]) -> None:
     require(document.get("schema_version") == 1, "suite readiness schema_version must be 1")
     require(document.get("kind") == "session_tooling_negative_regression_suite_readiness", "suite readiness kind mismatch")
     require(
-        document.get("status") == "governance_suite_consumed_implementation_gates_missing",
+        document.get("status") == "governance_suite_consumed_deny_by_default_gates_defined",
         "suite readiness must not claim completion",
     )
     require(document.get("implementation_status") == "not_ready", "suite readiness must keep implementation not_ready")
@@ -298,8 +305,8 @@ def check_fixture_shape(document: dict[str, Any]) -> None:
         if isinstance(item, dict)
     }
     require(
-        statuses_by_requirement.get("implementation_gate_alignment") == "not_satisfied",
-        "suite readiness must keep implementation gate alignment unsatisfied",
+        statuses_by_requirement.get("implementation_gate_alignment") == "satisfied_by_deny_by_default_gate_contracts",
+        "suite readiness must align deny-by-default gate contracts",
     )
 
     blockers = set(require_string_list(document.get("blocked_completion_reasons"), "suite readiness must include blockers"))

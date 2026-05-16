@@ -72,7 +72,7 @@
     "path": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
     "total_groups": 3,
     "total_cases": 9,
-    "status": "governance_suite_consumed_implementation_gates_missing",
+    "status": "governance_suite_consumed_deny_by_default_gates_defined",
     "consumers": [
       {
         "path": "scripts/check-session-tooling-negative-regression-suite.py",

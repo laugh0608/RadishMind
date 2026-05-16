@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "session_tooling_negative_regression_suite",
   "stage": "P2 Session & Tooling Foundation",
-  "status": "governance_suite_consumed_implementation_gates_missing",
+  "status": "governance_suite_consumed_deny_by_default_gates_defined",
   "implementation_status": "not_ready",
   "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
   "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
@@ -11,13 +11,14 @@
   "source_result_materialization_policy_design": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
   "source_confirmation_flow_design": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json",
   "source_tool_registry_fixture": "scripts/checks/fixtures/tool-registry-basic.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "coverage_summary": {
     "group_count": 3,
     "case_count": 9,
     "consumer_assertions": "governance_consumers_present_for_all_cases",
     "audit_assertions": "audit_non_write_boundary_asserted_for_all_cases",
     "side_effect_absence_assertions": "forbidden_side_effect_absence_asserted_for_all_cases",
-    "implementation_gate_alignment": "not_satisfied"
+    "implementation_gate_alignment": "satisfied_by_deny_by_default_gate_contracts"
   },
   "groups": [
     {
@@ -31,6 +32,10 @@
           "expected_failure_boundary": "policy_gate",
           "expected_error_code": "TOOL_EXECUTOR_DISABLED",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "implementation_preconditions",
               "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
@@ -65,7 +70,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "executor",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         },
@@ -75,6 +80,10 @@
           "expected_failure_boundary": "policy_gate",
           "expected_error_code": "TOOL_NETWORK_DISABLED",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "tool_registry_policy",
               "path": "scripts/checks/fixtures/tool-registry-basic.json"
@@ -109,7 +118,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "executor",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         },
@@ -119,6 +128,10 @@
           "expected_failure_boundary": "northbound_request",
           "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "checkpoint_denied_query_fixture",
               "path": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
@@ -151,7 +164,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "executor",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         }
@@ -168,6 +181,10 @@
           "expected_failure_boundary": "northbound_request",
           "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "checkpoint_denied_query_fixture",
               "path": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
@@ -200,7 +217,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "storage",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         },
@@ -210,6 +227,10 @@
           "expected_failure_boundary": "policy_gate",
           "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "implementation_preconditions",
               "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
@@ -242,7 +263,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "storage",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         },
@@ -252,6 +273,10 @@
           "expected_failure_boundary": "policy_gate",
           "expected_error_code": "BUSINESS_TRUTH_WRITE_DISABLED",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "implementation_preconditions",
               "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
@@ -284,7 +309,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "storage",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         }
@@ -301,6 +326,10 @@
           "expected_failure_boundary": "confirmation_gate",
           "expected_error_code": "CONFIRMATION_REQUIRED",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "confirmation_flow_design",
               "path": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json"
@@ -333,7 +362,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "confirmation",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         },
@@ -343,6 +372,10 @@
           "expected_failure_boundary": "confirmation_gate",
           "expected_error_code": "CONFIRMATION_STALE",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "confirmation_flow_design",
               "path": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json"
@@ -375,7 +408,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "confirmation",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         },
@@ -385,6 +418,10 @@
           "expected_failure_boundary": "confirmation_gate",
           "expected_error_code": "CONFIRMATION_PAYLOAD_MISMATCH",
           "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
             {
               "consumer_id": "confirmation_flow_design",
               "path": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json"
@@ -417,7 +454,7 @@
           ],
           "implementation_gate_alignment": {
             "gate_area": "confirmation",
-            "current_status": "missing_deny_by_default_implementation_gate",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
             "required_before_suite_completion": true
           }
         }
@@ -443,11 +480,11 @@
     },
     {
       "requirement_id": "implementation_gate_alignment",
-      "status": "not_satisfied"
+      "status": "satisfied_by_deny_by_default_gate_contracts"
     }
   ],
   "blocked_completion_reasons": [
-    "implementation_gates_missing",
+    "real_executor_storage_confirmation_implementations_missing",
     "executor_storage_confirmation_still_not_ready",
     "upper_layer_confirmation_flow_missing",
     "durable_store_and_result_reader_still_disabled"

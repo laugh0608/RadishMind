@@ -22,6 +22,8 @@ Executor boundary design 为 `scripts/checks/fixtures/session-tooling-executor-b
 
 Storage backend design 为 `scripts/checks/fixtures/session-tooling-storage-backend-design.json`，快速门禁为 `scripts/check-session-tooling-storage-backend-design.py`。它只定义 session / checkpoint / audit / result store 职责分离、retention、redaction、secret handling 和写入边界，不代表 durable store 已经存在。
 
+Deny-by-default implementation gates 为 `scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json`，快速门禁为 `scripts/check-session-tooling-deny-by-default-implementation-gates.py`。它只定义 executor、storage、confirmation 三类实现入口的默认拒绝契约、拒绝码和 side-effect absence 断言，不代表真实 executor、durable store 或 confirmation flow 已经存在。
+
 ## 当前已完成门禁
 
 当前可以声明的能力只到以下层级：
@@ -31,6 +33,7 @@ Storage backend design 为 `scripts/checks/fixtures/session-tooling-storage-back
 - denied query fixture 已覆盖 materialized result、result ref、executor ref、durable memory 和 replay 类请求。
 - promotion gate、negative consumption summary、route smoke coverage summary 和 readiness summary 已进入 `check-repo --fast`。
 - confirmation flow、independent audit records、result materialization policy、executor boundary 和 storage backend 已有设计级 fixture 与 check，但仍未接入真实实现。
+- executor、storage、confirmation deny-by-default implementation gate contract 已可检查，但仍只是默认拒绝契约。
 
 这些门禁只说明 contract 和 metadata smoke ready，不说明真实 executor、durable storage、confirmation flow 或 replay 已经存在。
 
@@ -101,7 +104,7 @@ Storage backend design 为 `scripts/checks/fixtures/session-tooling-storage-back
 
 1. 上层项目给出真实确认流或等价的只读承接边界。
 2. executor sandbox、storage backend、materialization policy 和 independent audit record 均有明确任务卡或契约草案。
-3. 负向回归先于实现落地，并能证明越界执行、越界读取、越界写入和 replay 都会失败。
+3. 负向回归先于实现落地，并能证明 deny-by-default gate 在越界执行、越界读取、越界写入和 replay 前生效。
 4. `scripts/checks/fixtures/session-tooling-readiness-summary.json` 仍保持当前 metadata-only 门禁通过，且不把 readiness 改写成实现完成。
 
 ## 负向回归 skeleton

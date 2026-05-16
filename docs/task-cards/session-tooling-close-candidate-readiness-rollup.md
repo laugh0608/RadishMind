@@ -20,6 +20,7 @@ rollup 汇总以下已落地的 P2 治理资产：
 - executor boundary design
 - storage backend design
 - negative regression skeleton
+- deny-by-default implementation gates
 - implementation preconditions
 
 这些资产只把当前边界收口到可检查的设计层，不解除任何实现阻塞。
@@ -29,6 +30,7 @@ rollup 汇总以下已落地的 P2 治理资产：
 - `contract_and_metadata_smoke_ready`
 - `design_gates_checkable`
 - `negative_regression_skeleton_exists`
+- `deny_by_default_implementation_gates_checkable`
 - `close_candidate_governance_only`
 
 ## 当前禁止声明
@@ -46,7 +48,7 @@ rollup 汇总以下已落地的 P2 治理资产：
 当前仍为 `not_satisfied`：
 
 - `upper_layer_confirmation_flow`：上层还没有真实 approve / reject / defer 接线。
-- `complete_negative_regression_suite`：当前只有 skeleton，不能证明真实实现边界。
+- `complete_negative_regression_suite`：当前已有 governance-only suite 和 deny-by-default gate contract，但没有真实 implementation consumer 证明执行、存储和确认入口都会先拒绝。
 - `executor_storage_confirmation_enablement_plan`：executor、storage、confirmation 仍全部是 `not_ready`。
 - `durable_store_and_result_reader_policy`：durable store 与 materialized result reader 仍未实现或启用。
 

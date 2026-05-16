@@ -2,13 +2,14 @@
   "schema_version": 1,
   "kind": "session_tooling_negative_regression_suite_readiness",
   "stage": "P2 Session & Tooling Foundation",
-  "status": "governance_suite_consumed_implementation_gates_missing",
+  "status": "governance_suite_consumed_deny_by_default_gates_defined",
   "implementation_status": "not_ready",
   "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
   "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
   "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
   "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
   "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "minimum_suite_groups": [
     {
       "group_id": "executor_blocked",
@@ -88,8 +89,8 @@
     },
     {
       "requirement_id": "implementation_gate_alignment",
-      "status": "not_satisfied",
-      "description": "The suite cannot be complete until executor, storage, and confirmation implementation gates exist and remain deny-by-default"
+      "status": "satisfied_by_deny_by_default_gate_contracts",
+      "description": "Executor, storage, and confirmation deny-by-default gate contracts exist, but real implementations are still blocked"
     }
   ],
   "current_skeleton_coverage": {
@@ -112,7 +113,7 @@
     ]
   },
   "blocked_completion_reasons": [
-    "implementation_gates_missing",
+    "real_executor_storage_confirmation_implementations_missing",
     "executor_storage_confirmation_still_not_ready",
     "upper_layer_confirmation_flow_missing",
     "durable_store_and_result_reader_still_disabled"

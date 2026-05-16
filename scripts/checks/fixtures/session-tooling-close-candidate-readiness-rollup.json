@@ -10,6 +10,7 @@
   "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
   "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
   "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "design_gate_rollup": [
     {
       "gate_id": "confirmation_flow",
@@ -87,24 +88,36 @@
     {
       "gate_id": "negative_regression_governance_suite",
       "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
-      "status": "governance_suite_consumed_implementation_gates_missing",
+      "status": "governance_suite_consumed_deny_by_default_gates_defined",
       "implementation_ready": false,
-      "current_claim": "negative cases have governance consumers, audit non-write assertions, and side-effect absence assertions",
+      "current_claim": "negative cases have governance consumers, audit non-write assertions, side-effect absence assertions, and deny-by-default gate contract alignment",
       "remaining_blockers": [
-        "implementation_gate_alignment",
         "upper_layer_confirmation_flow",
-        "complete_negative_regression_suite"
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations"
       ]
     },
     {
       "gate_id": "negative_regression_suite_readiness",
       "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
-      "status": "governance_suite_consumed_implementation_gates_missing",
+      "status": "governance_suite_consumed_deny_by_default_gates_defined",
       "implementation_ready": false,
-      "current_claim": "suite acceptance is now consumed at governance level, but implementation gates remain missing",
+      "current_claim": "suite acceptance is consumed at governance level and aligned to deny-by-default gate contracts, but real implementation consumers remain missing",
       "remaining_blockers": [
-        "implementation_gate_alignment",
-        "complete_negative_regression_suite"
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations"
+      ]
+    },
+    {
+      "gate_id": "deny_by_default_implementation_gates",
+      "source": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+      "status": "deny_by_default_gates_defined_implementation_blocked",
+      "implementation_ready": false,
+      "current_claim": "executor, storage, and confirmation deny-by-default gate contracts are checkable",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations"
       ]
     },
     {
@@ -161,7 +174,7 @@
     {
       "condition": "complete_negative_regression_suite",
       "status": "not_satisfied",
-      "reason": "governance suite exists, but implementation gates do not yet prove real execution/storage/confirmation deny-by-default boundaries"
+      "reason": "governance suite and deny-by-default gate contracts exist, but no real implementation consumers prove executor/storage/confirmation denial"
     },
     {
       "condition": "executor_storage_confirmation_enablement_plan",
@@ -178,6 +191,7 @@
     "contract_and_metadata_smoke_ready",
     "design_gates_checkable",
     "negative_regression_skeleton_exists",
+    "deny_by_default_implementation_gates_checkable",
     "close_candidate_governance_only"
   ],
   "prohibited_claims": [
