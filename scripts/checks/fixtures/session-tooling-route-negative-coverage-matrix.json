@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_route_negative_coverage_matrix",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "route_negative_coverage_matrix_governance_only",
+  "implementation_status": "not_ready",
+  "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "source_enablement_plan": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+  "task_card": "docs/task-cards/session-tooling-route-negative-coverage-matrix.md",
+  "current_route_coverage": {
+    "route_id": "checkpoint_read_metadata_only",
+    "route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+    "status": "covered_metadata_only",
+    "denied_query_case_count": 14,
+    "covered_suite_case_ids": [
+      "executor-ref-checkpoint-read-denied",
+      "materialized-result-read-denied"
+    ]
+  },
+  "case_matrix": [
+    {
+      "area": "executor",
+      "case_id": "executor-disabled-tool-run",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "TOOL_EXECUTOR_DISABLED",
+      "current_route_coverage_status": "governance_only_future_route_required",
+      "current_route_id": null,
+      "future_route_requirement_id": "executor_gate_route_smoke",
+      "future_requirement_status": "not_satisfied",
+      "suite_completion_blocker": true
+    },
+    {
+      "area": "executor",
+      "case_id": "executor-network-disabled",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "TOOL_NETWORK_DISABLED",
+      "current_route_coverage_status": "governance_only_future_route_required",
+      "current_route_id": null,
+      "future_route_requirement_id": "executor_gate_route_smoke",
+      "future_requirement_status": "not_satisfied",
+      "suite_completion_blocker": true
+    },
+    {
+      "area": "executor",
+      "case_id": "executor-ref-checkpoint-read-denied",
+      "expected_failure_boundary": "northbound_request",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+      "current_route_coverage_status": "covered_by_checkpoint_read_metadata_route",
+      "current_route_id": "checkpoint_read_metadata_only",
+      "future_route_requirement_id": null,
+      "future_requirement_status": null,
+      "suite_completion_blocker": false
+    },
+    {
+      "area": "storage",
+      "case_id": "materialized-result-read-denied",
+      "expected_failure_boundary": "northbound_request",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+      "current_route_coverage_status": "covered_by_checkpoint_read_metadata_route",
+      "current_route_id": "checkpoint_read_metadata_only",
+      "future_route_requirement_id": null,
+      "future_requirement_status": null,
+      "suite_completion_blocker": false
+    },
+    {
+      "area": "storage",
+      "case_id": "durable-memory-write-denied",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "current_route_coverage_status": "governance_only_future_route_required",
+      "current_route_id": null,
+      "future_route_requirement_id": "storage_materialization_gate_route_smoke",
+      "future_requirement_status": "not_satisfied",
+      "suite_completion_blocker": true
+    },
+    {
+      "area": "storage",
+      "case_id": "business-truth-write-denied",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "BUSINESS_TRUTH_WRITE_DISABLED",
+      "current_route_coverage_status": "governance_only_future_route_required",
+      "current_route_id": null,
+      "future_route_requirement_id": "storage_materialization_gate_route_smoke",
+      "future_requirement_status": "not_satisfied",
+      "suite_completion_blocker": true
+    },
+    {
+      "area": "confirmation",
+      "case_id": "missing-confirmation-denied",
+      "expected_failure_boundary": "confirmation_gate",
+      "expected_error_code": "CONFIRMATION_REQUIRED",
+      "current_route_coverage_status": "governance_only_future_route_required",
+      "current_route_id": null,
+      "future_route_requirement_id": "confirmation_gate_route_smoke",
+      "future_requirement_status": "not_satisfied",
+      "suite_completion_blocker": true
+    },
+    {
+      "area": "confirmation",
+      "case_id": "stale-confirmation-denied",
+      "expected_failure_boundary": "confirmation_gate",
+      "expected_error_code": "CONFIRMATION_STALE",
+      "current_route_coverage_status": "governance_only_future_route_required",
+      "current_route_id": null,
+      "future_route_requirement_id": "confirmation_gate_route_smoke",
+      "future_requirement_status": "not_satisfied",
+      "suite_completion_blocker": true
+    },
+    {
+      "area": "confirmation",
+      "case_id": "mismatched-confirmation-payload-denied",
+      "expected_failure_boundary": "confirmation_gate",
+      "expected_error_code": "CONFIRMATION_PAYLOAD_MISMATCH",
+      "current_route_coverage_status": "governance_only_future_route_required",
+      "current_route_id": null,
+      "future_route_requirement_id": "confirmation_gate_route_smoke",
+      "future_requirement_status": "not_satisfied",
+      "suite_completion_blocker": true
+    }
+  ],
+  "matrix_totals": {
+    "suite_case_count": 9,
+    "current_route_covered_suite_cases": 2,
+    "governance_only_future_route_required_cases": 7,
+    "future_route_requirement_count": 4,
+    "future_route_requirements_satisfied": 0,
+    "suite_completion_blocker_cases": 7
+  },
+  "future_route_requirement_matrix": [
+    {
+      "requirement_id": "executor_gate_route_smoke",
+      "status": "not_satisfied",
+      "blocked_suite_case_ids": [
+        "executor-disabled-tool-run",
+        "executor-network-disabled"
+      ]
+    },
+    {
+      "requirement_id": "storage_materialization_gate_route_smoke",
+      "status": "not_satisfied",
+      "blocked_suite_case_ids": [
+        "durable-memory-write-denied",
+        "business-truth-write-denied"
+      ]
+    },
+    {
+      "requirement_id": "confirmation_gate_route_smoke",
+      "status": "not_satisfied",
+      "blocked_suite_case_ids": [
+        "missing-confirmation-denied",
+        "stale-confirmation-denied",
+        "mismatched-confirmation-payload-denied"
+      ]
+    },
+    {
+      "requirement_id": "durable_store_reader_route_smoke",
+      "status": "not_satisfied",
+      "blocked_suite_case_ids": []
+    }
+  ],
+  "current_allowed_claims": [
+    "route_negative_coverage_matrix_checkable",
+    "checkpoint_read_route_suite_case_mapping_checkable",
+    "future_route_requirement_gaps_checkable",
+    "governance_only_route_negative_coverage"
+  ],
+  "prohibited_claims": [
+    "complete_negative_regression_suite",
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-route-negative-coverage-matrix.py",
+      "coverage": "regenerates_and_compares_this_route_negative_coverage_matrix"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

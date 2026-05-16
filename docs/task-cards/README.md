@@ -41,6 +41,7 @@
 14. [`P2 Session & Tooling` short close readiness delta](session-tooling-short-close-readiness-delta.md)
 15. [`P2 Session & Tooling` readiness consistency rollup](session-tooling-readiness-consistency-rollup.md)
 16. [`P2 Session & Tooling` executor / storage / confirmation enablement plan](session-tooling-executor-storage-confirmation-enablement-plan.md)
+17. [`P2 Session & Tooling` route negative coverage matrix](session-tooling-route-negative-coverage-matrix.md)
 
 使用原则：
 

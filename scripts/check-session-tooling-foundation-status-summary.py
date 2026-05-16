@@ -17,6 +17,7 @@ EXECUTOR_BOUNDARY_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-
 STORAGE_BACKEND_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-storage-backend-design.json"
 IMPLEMENTATION_GATES = REPO_ROOT / "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
 NEGATIVE_COVERAGE_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json"
+ROUTE_NEGATIVE_COVERAGE_MATRIX = REPO_ROOT / "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json"
 ROUTE_SMOKE_READINESS_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json"
 SHORT_CLOSE_DELTA = REPO_ROOT / "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
 READINESS_CONSISTENCY_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json"
@@ -40,6 +41,7 @@ REQUIRED_TRACK_IDS = {
     "storage_backend_design",
     "deny_by_default_implementation_gates",
     "negative_coverage_rollup",
+    "route_negative_coverage_matrix",
     "route_smoke_readiness_rollup",
     "short_close_readiness_delta",
     "readiness_consistency_rollup",
@@ -178,6 +180,7 @@ def build_summary() -> dict[str, Any]:
         "source_storage_backend_design": relative_path(STORAGE_BACKEND_DESIGN),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
+        "source_route_negative_coverage_matrix": relative_path(ROUTE_NEGATIVE_COVERAGE_MATRIX),
         "source_route_smoke_readiness_rollup": relative_path(ROUTE_SMOKE_READINESS_ROLLUP),
         "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "source_readiness_consistency_rollup": relative_path(READINESS_CONSISTENCY_ROLLUP),
@@ -291,6 +294,16 @@ def build_summary() -> dict[str, Any]:
                     "scripts/check-session-tooling-negative-coverage-rollup.py",
                 ],
                 "claim": "negative route smoke, fixture consumers, governance suite cases, and deny-by-default gate coverage are checkable while real implementation consumers remain missing",
+            },
+            {
+                "track_id": "route_negative_coverage_matrix",
+                "status": "complete",
+                "evidence": [
+                    "docs/task-cards/session-tooling-route-negative-coverage-matrix.md",
+                    "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+                    "scripts/check-session-tooling-route-negative-coverage-matrix.py",
+                ],
+                "claim": "negative suite cases are mapped to current metadata-only route coverage and future route smoke requirements",
             },
             {
                 "track_id": "route_smoke_readiness_rollup",
@@ -448,6 +461,10 @@ def check_docs_and_consumers() -> None:
     require(
         "check-session-tooling-negative-coverage-rollup.py" in check_repo,
         "fast baseline must run negative coverage rollup check",
+    )
+    require(
+        "check-session-tooling-route-negative-coverage-matrix.py" in check_repo,
+        "fast baseline must run route negative coverage matrix check",
     )
     require(
         "check-session-tooling-route-smoke-readiness-rollup.py" in check_repo,
