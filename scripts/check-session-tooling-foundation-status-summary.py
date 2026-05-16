@@ -17,6 +17,7 @@ EXECUTOR_BOUNDARY_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-
 STORAGE_BACKEND_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-storage-backend-design.json"
 IMPLEMENTATION_GATES = REPO_ROOT / "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
 NEGATIVE_COVERAGE_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json"
+SHORT_CLOSE_DELTA = REPO_ROOT / "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
@@ -36,6 +37,7 @@ REQUIRED_TRACK_IDS = {
     "storage_backend_design",
     "deny_by_default_implementation_gates",
     "negative_coverage_rollup",
+    "short_close_readiness_delta",
 }
 REQUIRED_AREAS = {"executor", "storage", "confirmation"}
 REQUIRED_NEXT_STAGE_CONDITIONS = {
@@ -170,6 +172,7 @@ def build_summary() -> dict[str, Any]:
         "source_storage_backend_design": relative_path(STORAGE_BACKEND_DESIGN),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
+        "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "completed_governance_tracks": [
             {
                 "track_id": "contract_and_fixture_gates",
@@ -279,6 +282,16 @@ def build_summary() -> dict[str, Any]:
                     "scripts/check-session-tooling-negative-coverage-rollup.py",
                 ],
                 "claim": "negative route smoke, fixture consumers, governance suite cases, and deny-by-default gate coverage are checkable while real implementation consumers remain missing",
+            },
+            {
+                "track_id": "short_close_readiness_delta",
+                "status": "complete",
+                "evidence": [
+                    "docs/task-cards/session-tooling-short-close-readiness-delta.md",
+                    "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+                    "scripts/check-session-tooling-short-close-readiness-delta.py",
+                ],
+                "claim": "hard prerequisites from close candidate to P2 short close are checkable and remain not_satisfied",
             },
         ],
         "missing_implementation_prerequisites": not_ready_areas_from_preconditions(preconditions),
@@ -396,6 +409,10 @@ def check_docs_and_consumers() -> None:
     require(
         "check-session-tooling-negative-coverage-rollup.py" in check_repo,
         "fast baseline must run negative coverage rollup check",
+    )
+    require(
+        "check-session-tooling-short-close-readiness-delta.py" in check_repo,
+        "fast baseline must run short close readiness delta check",
     )
 
 

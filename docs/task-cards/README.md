@@ -37,6 +37,7 @@
 10. [`P2 Session & Tooling` negative regression suite](session-tooling-negative-regression-suite.md)
 11. [`P2 Session & Tooling` deny-by-default implementation gates](session-tooling-deny-by-default-implementation-gates.md)
 12. [`P2 Session & Tooling` negative coverage rollup](session-tooling-negative-coverage-rollup.md)
+13. [`P2 Session & Tooling` short close readiness delta](session-tooling-short-close-readiness-delta.md)
 
 使用原则：
 

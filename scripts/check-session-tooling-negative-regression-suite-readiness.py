@@ -17,6 +17,7 @@ DENIED_QUERY_FIXTURE = FIXTURE_DIR / "session-recovery-checkpoint-read-denied-qu
 CLOSE_CANDIDATE_ROLLUP = FIXTURE_DIR / "session-tooling-close-candidate-readiness-rollup.json"
 IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
 NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
+SHORT_CLOSE_DELTA = FIXTURE_DIR / "session-tooling-short-close-readiness-delta.json"
 
 TASK_CARD_PATH = REPO_ROOT / "docs/task-cards/session-tooling-negative-regression-suite-readiness.md"
 TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
@@ -40,6 +41,7 @@ REQUIRED_REQUIREMENTS = {
     "checkpoint_denied_query_alignment",
     "implementation_gate_alignment",
     "negative_coverage_rollup_alignment",
+    "short_close_delta_alignment",
 }
 REQUIRED_BLOCKERS = {
     "real_executor_storage_confirmation_implementations_missing",
@@ -191,6 +193,7 @@ def build_readiness() -> dict[str, Any]:
     close_candidate = require_object(load_json_document(CLOSE_CANDIDATE_ROLLUP), "close candidate rollup must be object")
     implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
     negative_coverage = require_object(load_json_document(NEGATIVE_COVERAGE_ROLLUP), "negative coverage rollup must be object")
+    short_close_delta = require_object(load_json_document(SHORT_CLOSE_DELTA), "short close delta fixture must be object")
 
     require(skeleton.get("status") == "skeleton_only_implementation_blocked", "skeleton must remain implementation blocked")
     require(
@@ -215,6 +218,11 @@ def build_readiness() -> dict[str, Any]:
         "complete_negative_regression_suite" in negative_coverage.get("prohibited_claims", []),
         "negative coverage rollup must still prohibit complete suite claim",
     )
+    require(short_close_delta.get("status") == "short_close_blocked", "short close delta must stay blocked")
+    require(
+        "complete_negative_regression_suite" in short_close_delta.get("prohibited_claims", []),
+        "short close delta must still prohibit complete suite claim",
+    )
     denied_cases = denied_queries.get("cases")
     require(isinstance(denied_cases, list) and denied_cases, "denied query fixture must include cases")
 
@@ -231,6 +239,7 @@ def build_readiness() -> dict[str, Any]:
         "source_close_candidate_rollup": relative_path(CLOSE_CANDIDATE_ROLLUP),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
+        "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "minimum_suite_groups": minimum_suite_groups(skeleton, suite),
         "suite_acceptance_requirements": [
             {
@@ -262,6 +271,11 @@ def build_readiness() -> dict[str, Any]:
                 "requirement_id": "negative_coverage_rollup_alignment",
                 "status": "satisfied_by_governance_only_negative_coverage_rollup",
                 "description": "Route smoke, fixture consumers, governance suite cases, and deny-by-default gates are checkable, but real implementation consumers remain missing",
+            },
+            {
+                "requirement_id": "short_close_delta_alignment",
+                "status": "satisfied_by_blocked_short_close_delta",
+                "description": "The short close readiness delta consumes this suite readiness and keeps complete_negative_regression_suite as not_satisfied",
             },
         ],
         "current_skeleton_coverage": skeleton_coverage(skeleton),

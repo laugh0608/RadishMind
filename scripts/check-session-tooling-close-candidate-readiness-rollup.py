@@ -18,6 +18,7 @@ NEGATIVE_SUITE = FIXTURE_DIR / "session-tooling-negative-regression-suite.json"
 NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
 IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
 NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
+SHORT_CLOSE_DELTA = FIXTURE_DIR / "session-tooling-short-close-readiness-delta.json"
 CONFIRMATION_FLOW = FIXTURE_DIR / "session-tooling-confirmation-flow-design.json"
 INDEPENDENT_AUDIT = FIXTURE_DIR / "session-tooling-independent-audit-records-design.json"
 RESULT_MATERIALIZATION = FIXTURE_DIR / "session-tooling-result-materialization-policy-design.json"
@@ -59,6 +60,7 @@ REQUIRED_ALLOWED_CLAIMS = {
     "design_gates_checkable",
     "negative_regression_skeleton_exists",
     "deny_by_default_implementation_gates_checkable",
+    "short_close_delta_checkable",
     "close_candidate_governance_only",
 }
 REQUIRED_PROHIBITED_CLAIMS = {
@@ -219,6 +221,7 @@ def build_rollup() -> dict[str, Any]:
         "source_negative_regression_suite_readiness": relative_path(NEGATIVE_SUITE_READINESS),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
+        "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "design_gate_rollup": [
             {
                 "gate_id": "confirmation_flow",
@@ -381,6 +384,7 @@ def build_rollup() -> dict[str, Any]:
             "design_gates_checkable",
             "negative_regression_skeleton_exists",
             "deny_by_default_implementation_gates_checkable",
+            "short_close_delta_checkable",
             "close_candidate_governance_only",
         ],
         "prohibited_claims": [
@@ -393,6 +397,12 @@ def build_rollup() -> dict[str, Any]:
             "complete_negative_regression_suite",
         ],
         "blocked_capabilities": sorted(REQUIRED_BLOCKED_CAPABILITIES),
+        "short_close_delta": {
+            "source": relative_path(SHORT_CLOSE_DELTA),
+            "target_state": "p2_short_close",
+            "status": "short_close_blocked",
+            "hard_prerequisite_count": len(REQUIRED_SHORT_CLOSE_PREREQUISITES),
+        },
         "consumers": [
             {
                 "path": relative_path(THIS_CHECK),
@@ -448,6 +458,12 @@ def check_rollup_shape(document: dict[str, Any]) -> None:
     blocked = set(require_string_list(document.get("blocked_capabilities"), "rollup must include blocked capabilities"))
     missing_blocked = sorted(REQUIRED_BLOCKED_CAPABILITIES - blocked)
     require(not missing_blocked, f"rollup missing blocked capabilities: {missing_blocked}")
+
+    delta = require_object(document.get("short_close_delta"), "rollup must include short_close_delta")
+    require(delta.get("source") == relative_path(SHORT_CLOSE_DELTA), "rollup short close delta source mismatch")
+    require(delta.get("target_state") == "p2_short_close", "rollup short close delta target mismatch")
+    require(delta.get("status") == "short_close_blocked", "rollup short close delta must stay blocked")
+    require(delta.get("hard_prerequisite_count") == 4, "rollup short close delta must keep four hard prerequisites")
 
 
 def check_docs_and_consumers() -> None:

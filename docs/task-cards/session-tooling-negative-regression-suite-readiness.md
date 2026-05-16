@@ -6,7 +6,7 @@
 
 本任务卡固定完整 `negative_regression_suite` 的进入条件和验收维度。
 
-程序化真相源为 `scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json`，快速门禁为 `scripts/check-session-tooling-negative-regression-suite-readiness.py`。该 readiness 还消费 `scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json`，用于确认当前负向覆盖仍只是 governance-only rollup，不是 P2 short close 或完整 suite 完成。
+程序化真相源为 `scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json`，快速门禁为 `scripts/check-session-tooling-negative-regression-suite-readiness.py`。该 readiness 还消费 `scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json`，并对齐 `scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json`，用于确认当前负向覆盖仍只是 governance-only rollup，完整 suite 仍是 `not_satisfied`，不是 P2 short close 或完整 suite 完成。
 
 当前状态是 `governance_suite_consumed_deny_by_default_gates_defined`：可以声明 suite 验收口径已定义、governance-only suite 已被消费，且 executor / storage / confirmation 三类 deny-by-default implementation gate contract 已对齐；但不能声明完整 `negative_regression_suite` 已满足，也不能据此解除 executor、storage 或 confirmation 的 `not_ready` 状态。
 
@@ -27,6 +27,7 @@
 - `side_effect_absence_assertions`：每个 case 必须证明没有发生 execution、storage、materialized result、business truth write 或 replay side effect。
 - `implementation_gate_alignment`：executor、storage、confirmation 的 deny-by-default gate contract 已存在且默认 deny；真实实现 consumer 仍未满足。
 - `negative_coverage_rollup_alignment`：route smoke、fixture consumer、governance suite case 与 deny-by-default gate 覆盖关系已可检查；真实 implementation consumer 仍未满足。
+- `short_close_delta_alignment`：short close delta 已把 `complete_negative_regression_suite` 继续标记为 `not_satisfied`，避免 readiness 被误写成 P2 short close。
 
 `checkpoint_denied_query_alignment` 当前只被已有 denied query fixture 部分满足，不代表完整 suite 完成。
 

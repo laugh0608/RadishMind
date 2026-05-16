@@ -13,6 +13,7 @@
   "source_storage_backend_design": "scripts/checks/fixtures/session-tooling-storage-backend-design.json",
   "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -122,6 +123,16 @@
         "scripts/check-session-tooling-negative-coverage-rollup.py"
       ],
       "claim": "negative route smoke, fixture consumers, governance suite cases, and deny-by-default gate coverage are checkable while real implementation consumers remain missing"
+    },
+    {
+      "track_id": "short_close_readiness_delta",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-short-close-readiness-delta.md",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/check-session-tooling-short-close-readiness-delta.py"
+      ],
+      "claim": "hard prerequisites from close candidate to P2 short close are checkable and remain not_satisfied"
     }
   ],
   "missing_implementation_prerequisites": [

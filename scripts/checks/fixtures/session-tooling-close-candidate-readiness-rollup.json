@@ -12,6 +12,7 @@
   "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
   "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
   "design_gate_rollup": [
     {
       "gate_id": "confirmation_flow",
@@ -205,6 +206,7 @@
     "design_gates_checkable",
     "negative_regression_skeleton_exists",
     "deny_by_default_implementation_gates_checkable",
+    "short_close_delta_checkable",
     "close_candidate_governance_only"
   ],
   "prohibited_claims": [
@@ -231,6 +233,12 @@
     "real_tool_executor",
     "replay_executor"
   ],
+  "short_close_delta": {
+    "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+    "target_state": "p2_short_close",
+    "status": "short_close_blocked",
+    "hard_prerequisite_count": 4
+  },
   "consumers": [
     {
       "path": "scripts/check-session-tooling-close-candidate-readiness-rollup.py",

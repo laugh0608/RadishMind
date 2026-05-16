@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_short_close_readiness_delta",
+  "stage": "P2 Session & Tooling Foundation",
+  "current_state": "close_candidate_governance_only",
+  "target_state": "p2_short_close",
+  "status": "short_close_blocked",
+  "implementation_status": "not_ready",
+  "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "source_foundation_status_summary": "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
+  "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "hard_prerequisites": [
+    {
+      "prerequisite_id": "upper_layer_confirmation_flow",
+      "current_status": "not_satisfied",
+      "current_evidence": "confirmation flow design exists, but no approve/reject/defer integration is connected",
+      "required_delta": [
+        "define upper-layer confirmation request/decision handoff",
+        "bind confirmation decision to independent audit records",
+        "prove stale/missing/mismatched confirmation remains denied before any action side effect"
+      ],
+      "blocks_claims": [
+        "confirmation_flow_connected",
+        "confirmed_action_execution",
+        "p2_short_close"
+      ]
+    },
+    {
+      "prerequisite_id": "complete_negative_regression_suite",
+      "current_status": "not_satisfied",
+      "current_evidence": "governance suite, suite readiness, deny-by-default gates, and negative coverage rollup exist, but real implementation consumers are missing",
+      "required_delta": [
+        "attach real executor/storage/confirmation consumers to every negative case",
+        "prove deny-by-default gates fire before execution, storage, materialization, confirmation, business write, or replay side effects",
+        "keep route smoke, suite readiness, and close-candidate rollup aligned after consumers are added"
+      ],
+      "blocks_claims": [
+        "complete_negative_regression_suite",
+        "real_tool_executor_ready",
+        "durable_storage_ready",
+        "p2_short_close"
+      ]
+    },
+    {
+      "prerequisite_id": "executor_storage_confirmation_enablement_plan",
+      "current_status": "not_satisfied",
+      "current_evidence": "implementation preconditions remain executor=not_ready, storage=not_ready, confirmation=not_ready",
+      "required_delta": [
+        "turn executor enablement from not_ready to gated plan only after confirmation and negative suite prerequisites are satisfied",
+        "turn storage enablement from not_ready to gated plan only after durable store and result reader policy is satisfied",
+        "turn confirmation enablement from not_ready to gated plan only after upper-layer confirmation flow is connected"
+      ],
+      "blocks_claims": [
+        "real_tool_executor_ready",
+        "durable_storage_ready",
+        "confirmation_flow_connected",
+        "p2_short_close"
+      ]
+    },
+    {
+      "prerequisite_id": "durable_store_and_result_reader_policy",
+      "current_status": "not_satisfied",
+      "current_evidence": "storage backend and result materialization policy are design-checkable, but durable stores and materialized result readers are disabled",
+      "required_delta": [
+        "define durable session/checkpoint/audit/result store enablement boundaries",
+        "define materialized result reader policy and denied access behavior",
+        "prove secret handling, redaction, retention, and no business truth write side effects before enabling storage"
+      ],
+      "blocks_claims": [
+        "durable_storage_ready",
+        "materialized_result_reader_ready",
+        "automatic_replay_ready",
+        "p2_short_close"
+      ]
+    }
+  ],
+  "delta_totals": {
+    "hard_prerequisite_count": 4,
+    "satisfied_count": 0,
+    "not_satisfied_count": 4
+  },
+  "current_allowed_claims": [
+    "close_candidate_governance_only",
+    "short_close_delta_checkable",
+    "hard_prerequisites_identified",
+    "implementation_still_blocked"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready",
+    "complete_negative_regression_suite"
+  ],
+  "do_not_implement_now": [
+    "automatic_replay",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "upper_layer_confirmation_flow_connection"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-short-close-readiness-delta.py",
+      "coverage": "regenerates_and_compares_this_short_close_delta"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

@@ -8,7 +8,7 @@
 
 程序化真相源为 `scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json`，快速门禁为 `scripts/check-session-tooling-close-candidate-readiness-rollup.py`。
 
-当前 rollup 只声明 `close_candidate_governance_only`，即 governance-only：design gate 可检查，metadata smoke 可复验，负向回归已有 skeleton，`scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json` 已固定 route smoke、fixture consumer、governance suite 和 deny-by-default gate contract 的覆盖关系；但仍不是 `P2 short close`，也不是真实 executor、durable store、confirmation flow、materialized result reader 或 replay 已实现。
+当前 rollup 只声明 `close_candidate_governance_only`，即 governance-only：design gate 可检查，metadata smoke 可复验，负向回归已有 skeleton，`scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json` 已固定 route smoke、fixture consumer、governance suite 和 deny-by-default gate contract 的覆盖关系，`scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json` 已把 close candidate 到 `P2 short close` 的硬前置条件收口为 `not_satisfied` delta；但仍不是 `P2 short close`，也不是真实 executor、durable store、confirmation flow、materialized result reader 或 replay 已实现。
 
 ## 汇总范围
 
@@ -33,6 +33,7 @@ rollup 汇总以下已落地的 P2 治理资产：
 - `negative_regression_skeleton_exists`
 - `deny_by_default_implementation_gates_checkable`
 - `negative_coverage_rollup_governance_only`
+- `short_close_delta_checkable`
 - `close_candidate_governance_only`
 
 ## 当前禁止声明
