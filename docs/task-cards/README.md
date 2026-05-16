@@ -16,7 +16,7 @@
 1. [explain_diagnostics](radishflow-explain-diagnostics.md)
 2. [suggest_flowsheet_edits](radishflow-suggest-flowsheet-edits.md)
 3. [explain_control_plane_state](radishflow-explain-control-plane-state.md)
-4. [suggest_ghost_completion](radishflow-suggest-ghost-completion.md)
+4. [suggest_ghost_completion](radishflow-suggest-ghost-completion.md)（附件：[PoC 进展](radishflow-suggest-ghost-completion-progress.md)、[候选上下文与样本覆盖](radishflow-suggest-ghost-completion-candidate-context.md)）
 5. [接入前置条件与阻塞项](radishflow-first-real-integration.md)
 
 ## `Radish`
