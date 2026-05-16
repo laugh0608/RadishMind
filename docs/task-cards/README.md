@@ -33,6 +33,7 @@
 6. [`P2 Session & Tooling` executor boundary design](session-tooling-executor-boundary.md)
 7. [`P2 Session & Tooling` storage backend design](session-tooling-storage-backend-design.md)
 8. [`P2 Session & Tooling` close-candidate readiness rollup](session-tooling-close-candidate-readiness-rollup.md)
+9. [`P2 Session & Tooling` negative regression suite readiness](session-tooling-negative-regression-suite-readiness.md)
 
 使用原则：
 

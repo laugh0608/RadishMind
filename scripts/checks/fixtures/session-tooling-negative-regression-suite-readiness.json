@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_negative_regression_suite_readiness",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "acceptance_defined_suite_not_complete",
+  "implementation_status": "not_ready",
+  "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "minimum_suite_groups": [
+    {
+      "group_id": "executor_blocked",
+      "precondition_area": "executor",
+      "source_skeleton_group": "executor_blocked",
+      "required_case_ids": [
+        "executor-disabled-tool-run",
+        "executor-network-disabled",
+        "executor-ref-checkpoint-read-denied"
+      ],
+      "required_suite_coverage": [
+        "policy_gate_consumer",
+        "tool_registry_policy_consumer",
+        "independent_audit_expectation",
+        "no_execution_side_effects",
+        "no_network_side_effects"
+      ],
+      "current_status": "skeleton_only"
+    },
+    {
+      "group_id": "storage_materialization_blocked",
+      "precondition_area": "storage",
+      "source_skeleton_group": "storage_materialization_blocked",
+      "required_case_ids": [
+        "materialized-result-read-denied",
+        "durable-memory-write-denied",
+        "business-truth-write-denied"
+      ],
+      "required_suite_coverage": [
+        "checkpoint_read_route_consumer",
+        "storage_policy_gate_consumer",
+        "independent_audit_expectation",
+        "no_materialized_result_side_effects",
+        "no_business_truth_write_side_effects"
+      ],
+      "current_status": "skeleton_only"
+    },
+    {
+      "group_id": "confirmation_blocked",
+      "precondition_area": "confirmation",
+      "source_skeleton_group": "confirmation_blocked",
+      "required_case_ids": [
+        "missing-confirmation-denied",
+        "stale-confirmation-denied",
+        "mismatched-confirmation-payload-denied"
+      ],
+      "required_suite_coverage": [
+        "confirmation_gate_consumer",
+        "action_payload_hash_consumer",
+        "independent_audit_expectation",
+        "no_confirmed_action_execution",
+        "no_replay_side_effects"
+      ],
+      "current_status": "skeleton_only"
+    }
+  ],
+  "suite_acceptance_requirements": [
+    {
+      "requirement_id": "real_consumers_before_completion",
+      "status": "not_satisfied",
+      "description": "Each negative case must be consumed by a concrete contract, route, policy, or implementation gate rather than only listed in a fixture"
+    },
+    {
+      "requirement_id": "independent_audit_assertions",
+      "status": "not_satisfied",
+      "description": "Each blocked action must assert the expected audit event or explicit audit non-write boundary"
+    },
+    {
+      "requirement_id": "side_effect_absence_assertions",
+      "status": "not_satisfied",
+      "description": "Each case must prove that execution, storage, materialized result, business truth write, and replay side effects did not occur"
+    },
+    {
+      "requirement_id": "checkpoint_denied_query_alignment",
+      "status": "partially_satisfied_by_existing_fixture",
+      "description": "Committed checkpoint denied query cases already cover materialized result, durable memory, and replay read requests"
+    },
+    {
+      "requirement_id": "implementation_gate_alignment",
+      "status": "not_satisfied",
+      "description": "The suite cannot be complete until executor, storage, and confirmation implementation gates exist and remain deny-by-default"
+    }
+  ],
+  "current_skeleton_coverage": {
+    "group_count": 3,
+    "case_count": 9,
+    "failure_boundaries": [
+      "confirmation_gate",
+      "northbound_request",
+      "policy_gate"
+    ],
+    "error_codes": [
+      "BUSINESS_TRUTH_WRITE_DISABLED",
+      "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+      "CONFIRMATION_PAYLOAD_MISMATCH",
+      "CONFIRMATION_REQUIRED",
+      "CONFIRMATION_STALE",
+      "TOOL_EXECUTOR_DISABLED",
+      "TOOL_NETWORK_DISABLED"
+    ]
+  },
+  "blocked_completion_reasons": [
+    "real_consumers_missing",
+    "independent_audit_assertions_missing",
+    "side_effect_absence_assertions_missing",
+    "implementation_gates_missing",
+    "executor_storage_confirmation_still_not_ready"
+  ],
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "durable_tool_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "result_ref_reader"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-negative-regression-suite-readiness.py",
+      "coverage": "validates_negative_regression_suite_acceptance_without_marking_suite_complete"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

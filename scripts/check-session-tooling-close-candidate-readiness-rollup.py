@@ -14,6 +14,7 @@ FOUNDATION_STATUS = FIXTURE_DIR / "session-tooling-foundation-status-summary.jso
 READINESS_SUMMARY = FIXTURE_DIR / "session-tooling-readiness-summary.json"
 PRECONDITIONS = FIXTURE_DIR / "session-tooling-implementation-preconditions.json"
 NEGATIVE_SKELETON = FIXTURE_DIR / "session-tooling-negative-regression-skeleton.json"
+NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
 CONFIRMATION_FLOW = FIXTURE_DIR / "session-tooling-confirmation-flow-design.json"
 INDEPENDENT_AUDIT = FIXTURE_DIR / "session-tooling-independent-audit-records-design.json"
 RESULT_MATERIALIZATION = FIXTURE_DIR / "session-tooling-result-materialization-policy-design.json"
@@ -37,6 +38,7 @@ REQUIRED_GATES = {
     "executor_boundary",
     "storage_backend_design",
     "negative_regression_skeleton",
+    "negative_regression_suite_readiness",
     "implementation_preconditions",
 }
 REQUIRED_NOT_READY_AREAS = {"executor", "storage", "confirmation"}
@@ -149,6 +151,7 @@ def build_rollup() -> dict[str, Any]:
     readiness = require_object(load_json_document(READINESS_SUMMARY), "readiness summary must be object")
     preconditions = require_object(load_json_document(PRECONDITIONS), "preconditions fixture must be object")
     negative_skeleton = require_object(load_json_document(NEGATIVE_SKELETON), "negative skeleton fixture must be object")
+    negative_suite = require_object(load_json_document(NEGATIVE_SUITE_READINESS), "negative suite readiness fixture must be object")
     confirmation = require_object(load_json_document(CONFIRMATION_FLOW), "confirmation flow fixture must be object")
     audit = require_object(load_json_document(INDEPENDENT_AUDIT), "independent audit fixture must be object")
     result = require_object(load_json_document(RESULT_MATERIALIZATION), "result materialization fixture must be object")
@@ -160,6 +163,7 @@ def build_rollup() -> dict[str, Any]:
     require_status(readiness, "metadata_ready_implementation_blocked", "readiness summary")
     require_status(preconditions, "preconditions_not_satisfied", "implementation preconditions")
     require_status(negative_skeleton, "skeleton_only_implementation_blocked", "negative regression skeleton")
+    require_status(negative_suite, "acceptance_defined_suite_not_complete", "negative regression suite readiness")
     require_status(confirmation, "design_only_not_connected", "confirmation flow")
     require_status(audit, "design_only_not_connected", "independent audit")
     require_status(result, "design_only_not_connected", "result materialization")
@@ -176,6 +180,7 @@ def build_rollup() -> dict[str, Any]:
         "source_readiness_summary": relative_path(READINESS_SUMMARY),
         "source_implementation_preconditions": relative_path(PRECONDITIONS),
         "source_negative_regression_skeleton": relative_path(NEGATIVE_SKELETON),
+        "source_negative_regression_suite_readiness": relative_path(NEGATIVE_SUITE_READINESS),
         "design_gate_rollup": [
             {
                 "gate_id": "confirmation_flow",
@@ -247,6 +252,20 @@ def build_rollup() -> dict[str, Any]:
                 "implementation_ready": False,
                 "current_claim": "blocked executor, storage/materialization, and confirmation cases have skeleton coverage",
                 "remaining_blockers": [
+                    "complete_negative_regression_suite",
+                ],
+            },
+            {
+                "gate_id": "negative_regression_suite_readiness",
+                "source": relative_path(NEGATIVE_SUITE_READINESS),
+                "status": negative_suite["status"],
+                "implementation_ready": False,
+                "current_claim": "complete suite acceptance requirements are checkable, but real consumers, audit assertions, side-effect assertions, and implementation gates remain missing",
+                "remaining_blockers": [
+                    "real_consumers_before_completion",
+                    "independent_audit_assertions",
+                    "side_effect_absence_assertions",
+                    "implementation_gate_alignment",
                     "complete_negative_regression_suite",
                 ],
             },
@@ -371,6 +390,10 @@ def check_docs_and_consumers() -> None:
     fixture_name = ROLLUP.name
 
     require(THIS_CHECK.name in check_repo, "fast baseline must run close-candidate readiness rollup check")
+    require(
+        "check-session-tooling-negative-regression-suite-readiness.py" in check_repo,
+        "fast baseline must run negative regression suite readiness check",
+    )
     require(TASK_CARD.name in task_cards_readme, "task-cards README must reference close-candidate rollup task card")
     for label, content in (
         ("task card", task_card),
