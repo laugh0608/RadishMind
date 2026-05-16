@@ -1,6 +1,6 @@
 # RadishMind 工具框架契约
 
-更新时间：2026-05-14
+更新时间：2026-05-16
 
 ## 文档目的
 
@@ -66,7 +66,12 @@ Schema 真相源为：
 | Contract gate | `tool`、`tool-registry`、`tool-audit-record` schema 与 fixture | 工具定义、registry policy、session binding、metadata-only audit/cache 边界稳定 | 真实工具执行、真实结果缓存、durable tool store |
 | Checkpoint read gate | `session-recovery-checkpoint-read` fixture 与 denied query fixture | checkpoint read 可暴露 tool audit summary，且只暴露治理元数据 | 返回 tool output、result ref、executor ref 或 materialized result |
 | Platform route smoke | checkpoint metadata-only route 与负向查询参数 smoke | 平台能拒绝把 tool audit summary 升级成执行或结果读取请求 | executor、replay、长期记忆或业务真相源写入 |
-| Future implementation gate | 上层确认流接线、independent audit、result materialization policy、executor boundary、storage backend 和完整负向回归同时明确后再定义 | 可讨论受控工具执行器、短期 result ref 和受控 storage backend | 在当前 registry v1 后直接启用 unrestricted tool calling、业务写回、长期记忆或 replay |
+| Governance rollup gate | `session-tooling-negative-regression-suite`、deny-by-default gates、negative coverage rollup、route negative coverage matrix、enablement plan 和 stop-line manifest | 负向 case、默认拒绝、coverage、future route requirement 和停止线可复验 | 完整 `negative_regression_suite`、真实 executor、durable result store、confirmation 接线 |
+| Future implementation gate | 上层确认流接线、independent audit、result materialization policy、executor boundary、storage backend、enablement plan entry condition 和完整负向回归同时满足后再定义 | 可讨论受控工具执行器、短期 result ref 和受控 storage backend | 在当前 registry v1 后直接启用 unrestricted tool calling、业务写回、长期记忆或 replay |
+
+## 治理证据链
+
+当前 tooling 的实现停止线由 `scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json` 和 `session-tooling-stop-line-manifest.json` 固定。它们只证明默认拒绝、coverage 关系和 future enablement 条件可检查；真实工具执行器、durable result store、confirmation 接线和 materialized result reader 仍未启用。
 
 ## 当前停止线
 

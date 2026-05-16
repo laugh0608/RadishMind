@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-05-14
+更新时间：2026-05-16
 
 ## 文档目的
 
@@ -33,13 +33,13 @@
 - 所有高风险输出都必须带 `requires_confirmation`。
 - 兼容层只做翻译，不另起第二套真相源。
 - 上层项目只消费建议、解释、候选动作和审计信息，最终业务真相源仍由上层维护。
-- `P2 Session & Tooling Foundation` 当前只声明 close candidate / governance-only；confirmation flow、independent audit、result materialization、executor boundary 和 storage backend 仍是设计级门禁，不代表真实执行、持久化、结果读取或 replay 已启用。
+- `P2 Session & Tooling Foundation` 当前只声明 close candidate / governance-only；negative regression governance suite、deny-by-default gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、short close readiness delta、readiness consistency rollup、enablement plan 和 stop-line manifest 都是治理证据链，不代表真实执行、持久化、结果读取、confirmation 接线或 replay 已启用。
 
 ## 专题索引
 
 - [服务/API 接入契约](contracts/service-api.md)：northbound / southbound 兼容边界、`CopilotGatewayEnvelope`、`RadishFlow` UI consumption、candidate edit handoff、上层接入等待口径和仓库集成边界。
-- [会话记录契约](contracts/session.md)：`Conversation & Session` 的 `session_id / turn_id`、history policy、recovery record、northbound session metadata、metadata-only checkpoint read、promotion gate、负向查询和 advisory-only audit 边界。
-- [工具框架契约](contracts/tooling.md)：`Tooling Framework` 的 tool definition、registry、policy/audit record、metadata-only result cache、result materialization policy、executor/storage 边界和不执行真实工具的 v1 停止线。
+- [会话记录契约](contracts/session.md)：`Conversation & Session` 的 `session_id / turn_id`、history policy、recovery record、northbound session metadata、metadata-only checkpoint read、promotion gate、readiness rollup、stop-line manifest、负向查询和 advisory-only audit 边界。
+- [工具框架契约](contracts/tooling.md)：`Tooling Framework` 的 tool definition、registry、policy/audit record、metadata-only result cache、negative regression governance suite、deny-by-default gates、result materialization policy、executor/storage 边界和不执行真实工具的 v1 停止线。
 - [训练 / 蒸馏样本契约](contracts/training-samples.md)：`CopilotTrainingSample`、训练集合治理、candidate record 转换、offline eval runner、本地模型 candidate wrapper 和 M4 builder/tooling 证据边界。
 - [图片生成契约](contracts/image-generation.md)：`RadishMind-Image Adapter`、image intent、backend request、artifact metadata 和最小评测 manifest。
 - [输入与项目上下文契约](contracts/input-context.md)：`CopilotRequest`、artifact 抽象和项目上下文专题索引。

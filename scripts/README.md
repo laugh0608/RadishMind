@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-05-13
+更新时间：2026-05-16
 
 ## 目录目标
 
@@ -23,6 +23,7 @@
   - 当前还提供 `check-session-record-contract.py`，用于校验 `SessionRecord` schema、fixture、history/state policy、recovery record、northbound metadata 和不写业务真相源边界
   - 当前还提供 `check-tooling-framework-contract.py`，用于校验 tool definition、registry policy、tool audit、session binding、metadata-only result cache、不启用 executor 和不写 durable memory 边界
   - 当前还提供 `check-session-recovery-checkpoint-contract.py`，用于校验 recovery checkpoint record/manifest/read result、tool audit summary、metadata-only read boundary、无 materialized result、无 durable memory 和无 automatic replay 边界
+  - 当前还提供一组 `check-session-tooling-*.py` P2 governance checks，用于固定 promotion gate、negative consumption、readiness summary、implementation preconditions、negative regression skeleton / suite / readiness、deny-by-default implementation gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、close-candidate readiness rollup、short close readiness delta、readiness consistency rollup、executor/storage/confirmation enablement plan 和 stop-line manifest；这些检查只声明 governance-only 可复验，不实现真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆或 replay
   - 当前还提供 `build-copilot-training-samples.py`，用于把 committed eval 样本中的 `input_request + golden_response` 转换为 `CopilotTrainingSample` JSONL，也支持把 audit pass candidate record 转换为 `teacher_capture` 训练样本，并用 summary fixture 固定首批转换结果；生成 JSONL 默认输出到 `tmp/`，不直接作为 committed 训练资产
   - 当前还提供 `run-radishmind-core-offline-eval.py`，用于运行 `RadishMind-Core` 首个离线评测 runner；当前既支持读取 committed eval 样本的 `golden_response` 作为 fixture 候选输出，也支持读取 `run-radishmind-core-candidate.py` 生成的 candidate response 文件和 summary，生成符合 `radishmind-core-offline-eval-run` schema 的 completed run record；评测阶段不重新运行模型、不访问 provider、不下载权重，schema-invalid raw 输出会进入指标失败统计而不是阻断整批记录生成
   - 当前还提供 `run-radishmind-core-candidate.py`，用于把离线评测样本转换成候选模型 prompt 与 candidate response 文件；仓库级检查只使用 `golden_fixture` dry-run provider，真实本地模型必须显式传入 `--provider local_transformers` 和 `--model-dir` 或 `RADISHMIND_MODEL_DIR`，且脚本使用 `local_files_only`，不自动下载模型；调试真实小模型时可用 `--sample-id` 限定单条样本，用 `--sample-timeout-seconds` 为单条本地生成设置超时边界，并用 `--allow-invalid-output` 把 schema-invalid、JSON parse error 或 timeout 原始失败保留在 `tmp/` 下审计；本地模型运行会打印 `runtime-ready / batch-start / sample-start / sample-done` 进度，便于区分正在生成、单样本超时和脚本无响应；当前 `Qwen2.5-1.5B-Instruct` 本地 9 条 M4 fixture raw / repaired 全量复跑推荐使用 `--sample-timeout-seconds 240`，单样本定位可先用 `180`，慢样本、扩样本、冷缓存、慢 CPU 或更大本地候选探测用 `300`，机制 smoke 可用 `1` 秒验证 `generation_timeout` 链路；当前还提供 timeout probe、planned holdout probe、full holdout 与 v2 非重叠 holdout probe 的 committed manifest / dry-run summary；prompt document 会记录静态 `prompt_budget` 字符拆解，用于区分 request、output contract、prompt scaffold、完整 response scaffold 和 hard-field freeze 的成本来源；发送给模型的 scaffold 使用 `compact_response_scaffold`，已由 freeze 覆盖的大块对象用 `copy_from_hard_field_freeze` 引用，避免在同一 prompt 中重复完整 scaffold；本地模型 summary 会记录 per-sample token / JSON 抽取 / JSON cleanup / 推理耗时 / timeout 指标，另可显式加 `--repair-hard-fields` 运行后处理实验，把 scaffold 派生的硬字段、action shape、citation、issue 与确认边界修回协议形态；当前也已接入 `--guided-decoding json_schema` 受限实验轨，它仍只对 `local_transformers` 生效，但 runtime backend 已扩为“原生 `GenerationConfig.guided_decoding` 或 `custom_generate` scaffold-slot shim”二选一，因此当前 `.venv` 的 `transformers 5.7.0` 也可直接跑 guided 轨，不再因为缺少 `GenerationConfig.guided_decoding` 而被整条路线阻塞；full holdout fix3 与 v2 非重叠 holdout 已证明 repaired 结果必须和 raw 模型能力、人工复核、非重叠样本结论分开解读
@@ -42,7 +43,7 @@
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper
   - 当前也承载 `scripts/checks/image_generation.py`，作为 Image Adapter 契约 smoke 与 eval manifest smoke 复用的结构化链路断言 helper
-  - 当前也承载 session/tooling/recovery checkpoint 的最小 fixture，用于固定 P2 metadata-only、advisory-only、no-executor、no-durable-memory 和 no-replay 不变量
+  - 当前也承载 session/tooling/recovery checkpoint 的最小 fixture 和 P2 governance rollup fixture，用于固定 P2 metadata-only、advisory-only、no-executor、no-durable-memory、no-materialized-result-reader、no-confirmation-wiring 和 no-replay 不变量
 - `scripts/eval/`
   - 放评测回归 runner 的内部实现模块
   - 当前 `run-eval-regression.py` 的具体实现已拆到这里

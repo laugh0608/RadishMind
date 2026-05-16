@@ -1,6 +1,6 @@
 # RadishMind 会话记录契约
 
-更新时间：2026-05-14
+更新时间：2026-05-16
 
 ## 文档目的
 
@@ -60,7 +60,12 @@ Schema 真相源为 `contracts/session-record.schema.json`、`contracts/session-
 | Contract gate | `session-record`、`session-recovery-checkpoint*` schema、正向 fixture、`session-recovery-checkpoint-read-denied-queries` 负向 fixture | 会话身份、history/state/recovery policy、checkpoint refs、metadata-only read result 结构稳定 | durable session store、长期记忆、真实 checkpoint storage |
 | Platform route smoke | `GET /v1/session/recovery/checkpoints/{checkpoint_id}` fixture-backed route、禁止 materialized result / replay / durable memory 查询参数 | 平台能稳定暴露 metadata-only checkpoint read shape，并拒绝越界读取和执行请求 | materialized result reader、跨轮 replay executor、自动恢复 API |
 | Fast check | `check-session-record-contract.py`、`check-session-recovery-checkpoint-contract.py`、`go test ./...` 经 `check-repo --fast` 间接覆盖 | 日常开发能复验 session/checkpoint 治理不变量 | 生产级持久化、外部 provider 健康、真实上层确认流 |
-| Future implementation gate | 上层确认流接线、independent audit、result materialization policy、executor boundary、storage backend 和完整负向回归同时明确后再定义 | 可讨论有限 durable store、受控 result reader 或受控 replay 的实现条件 | 在本阶段直接启用自动 replay、长期记忆、业务写回或持久化读取 |
+| Governance rollup gate | `session-tooling-short-close-readiness-delta`、`session-tooling-route-smoke-readiness-rollup`、`session-tooling-readiness-consistency-rollup`、`session-tooling-stop-line-manifest` | close candidate 后的剩余 blocker、future route smoke 缺口、跨 rollup 漂移和停止线可复验 | `P2 short close`、真实 checkpoint store、materialized result reader、automatic replay |
+| Future implementation gate | 上层确认流接线、independent audit、result materialization policy、executor boundary、storage backend、enablement plan entry condition 和完整负向回归同时满足后再定义 | 可讨论有限 durable store、受控 result reader 或受控 replay 的实现条件 | 在本阶段直接启用自动 replay、长期记忆、业务写回或持久化读取 |
+
+## 治理证据链
+
+`P2 Session & Tooling Foundation` 的 session / checkpoint 能力当前由 `scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-readiness-consistency-rollup.json` 和 `session-tooling-stop-line-manifest.json` 共同约束。它们只证明停止线、阻塞项和 route smoke 缺口可检查，不证明 durable checkpoint store、materialized result reader 或 replay executor 已实现。
 
 ## 当前停止线
 
