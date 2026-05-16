@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_route_smoke_readiness_rollup",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "route_smoke_readiness_governance_only",
+  "implementation_status": "not_ready",
+  "source_route_smoke_coverage": "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "current_route_smoke": [
+    {
+      "route_id": "checkpoint_read_metadata_only",
+      "route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+      "status": "covered_metadata_only",
+      "positive_status": 200,
+      "negative_status": 400,
+      "negative_case_count": 14,
+      "failure_boundary": "northbound_request",
+      "current_claim": "fixture-backed checkpoint read route covers metadata-only response shape and denied materialized result/replay query categories"
+    }
+  ],
+  "future_route_smoke_requirements": [
+    {
+      "requirement_id": "executor_gate_route_smoke",
+      "status": "not_satisfied",
+      "gate_status": "deny_by_default_contract_defined",
+      "required_before": [
+        "real_tool_executor_ready",
+        "complete_negative_regression_suite",
+        "p2_short_close"
+      ],
+      "must_prove": [
+        "executor requests are denied by default before any execution side effect",
+        "network execution remains denied unless an explicit future policy enables it",
+        "executor denial emits or explicitly withholds independent audit according to the active audit boundary"
+      ]
+    },
+    {
+      "requirement_id": "storage_materialization_gate_route_smoke",
+      "status": "not_satisfied",
+      "gate_status": "deny_by_default_contract_defined",
+      "required_before": [
+        "durable_storage_ready",
+        "materialized_result_reader_ready",
+        "complete_negative_regression_suite",
+        "p2_short_close"
+      ],
+      "must_prove": [
+        "materialized result reads are denied before any result payload is returned",
+        "durable session/checkpoint/audit/result writes are denied before storage side effects",
+        "business truth writes remain impossible from session/tooling routes"
+      ]
+    },
+    {
+      "requirement_id": "confirmation_gate_route_smoke",
+      "status": "not_satisfied",
+      "gate_status": "deny_by_default_contract_defined",
+      "required_before": [
+        "confirmation_flow_connected",
+        "confirmed_action_execution",
+        "complete_negative_regression_suite",
+        "p2_short_close"
+      ],
+      "must_prove": [
+        "missing confirmation is denied before action execution",
+        "stale confirmation is denied before action execution",
+        "mismatched confirmation payload hash is denied before action execution"
+      ]
+    },
+    {
+      "requirement_id": "durable_store_reader_route_smoke",
+      "status": "not_satisfied",
+      "gate_status": "not_implemented",
+      "required_before": [
+        "durable_storage_ready",
+        "materialized_result_reader_ready",
+        "automatic_replay_ready",
+        "p2_short_close"
+      ],
+      "must_prove": [
+        "durable reader routes do not leak secrets or unredacted provider payloads",
+        "retention and redaction policy is visible in route metadata",
+        "reader routes cannot trigger replay or business truth writes"
+      ]
+    }
+  ],
+  "coverage_totals": {
+    "current_route_smoke_count": 1,
+    "future_requirement_count": 4,
+    "future_requirements_satisfied": 0,
+    "negative_suite_cases": 9,
+    "route_consumed_suite_cases": 2,
+    "short_close_hard_prerequisites_not_satisfied": 4
+  },
+  "current_allowed_claims": [
+    "checkpoint_read_metadata_route_smoke_covered",
+    "route_smoke_gap_checkable",
+    "route_smoke_readiness_governance_only"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready",
+    "complete_negative_regression_suite"
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "replay_executor"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-route-smoke-readiness-rollup.py",
+      "coverage": "regenerates_and_compares_this_route_smoke_readiness_rollup"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}
