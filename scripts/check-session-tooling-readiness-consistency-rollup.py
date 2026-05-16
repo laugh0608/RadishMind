@@ -12,6 +12,7 @@ FIXTURE_DIR = REPO_ROOT / "scripts/checks/fixtures"
 ROLLUP = FIXTURE_DIR / "session-tooling-readiness-consistency-rollup.json"
 FOUNDATION_STATUS = FIXTURE_DIR / "session-tooling-foundation-status-summary.json"
 CLOSE_CANDIDATE_ROLLUP = FIXTURE_DIR / "session-tooling-close-candidate-readiness-rollup.json"
+ROUTE_NEGATIVE_COVERAGE_MATRIX = FIXTURE_DIR / "session-tooling-route-negative-coverage-matrix.json"
 ROUTE_SMOKE_READINESS = FIXTURE_DIR / "session-tooling-route-smoke-readiness-rollup.json"
 SHORT_CLOSE_DELTA = FIXTURE_DIR / "session-tooling-short-close-readiness-delta.json"
 NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
@@ -30,6 +31,7 @@ THIS_CHECK = REPO_ROOT / "scripts/check-session-tooling-readiness-consistency-ro
 EXPECTED_STATUSES = [
     (FOUNDATION_STATUS, "close_candidate_governance_only", "not_implemented"),
     (CLOSE_CANDIDATE_ROLLUP, "close_candidate_governance_only", "not_ready"),
+    (ROUTE_NEGATIVE_COVERAGE_MATRIX, "route_negative_coverage_matrix_governance_only", "not_ready"),
     (ROUTE_SMOKE_READINESS, "route_smoke_readiness_governance_only", "not_ready"),
     (SHORT_CLOSE_DELTA, "short_close_blocked", "not_ready"),
     (NEGATIVE_COVERAGE_ROLLUP, "negative_coverage_rollup_governance_only", "not_ready"),
@@ -101,6 +103,7 @@ def source_reference_alignment(documents: dict[Path, dict[str, Any]]) -> list[di
             FOUNDATION_STATUS,
             [
                 NEGATIVE_COVERAGE_ROLLUP,
+                ROUTE_NEGATIVE_COVERAGE_MATRIX,
                 ROUTE_SMOKE_READINESS,
                 SHORT_CLOSE_DELTA,
             ],
@@ -142,6 +145,7 @@ def source_reference_alignment(documents: dict[Path, dict[str, Any]]) -> list[di
             [
                 CLOSE_CANDIDATE_ROLLUP,
                 NEGATIVE_COVERAGE_ROLLUP,
+                ROUTE_NEGATIVE_COVERAGE_MATRIX,
                 SHORT_CLOSE_DELTA,
             ],
         ),
@@ -220,6 +224,7 @@ def build_rollup() -> dict[str, Any]:
     foundation = documents[FOUNDATION_STATUS]
     close_candidate = documents[CLOSE_CANDIDATE_ROLLUP]
     route_smoke = documents[ROUTE_SMOKE_READINESS]
+    route_negative_matrix = documents[ROUTE_NEGATIVE_COVERAGE_MATRIX]
     short_delta = documents[SHORT_CLOSE_DELTA]
     negative_coverage = documents[NEGATIVE_COVERAGE_ROLLUP]
     suite_readiness = documents[NEGATIVE_SUITE_READINESS]
@@ -250,6 +255,7 @@ def build_rollup() -> dict[str, Any]:
     require(close_prereqs == delta_prereqs, "close candidate and short close delta prerequisites drifted")
 
     route_totals = require_object(route_smoke.get("coverage_totals"), "route smoke totals required")
+    matrix_totals = require_object(route_negative_matrix.get("matrix_totals"), "route negative matrix totals required")
     delta_totals = require_object(short_delta.get("delta_totals"), "short close delta totals required")
     negative_totals = require_object(negative_coverage.get("coverage_totals"), "negative coverage totals required")
     skeleton_totals = require_object(suite_readiness.get("current_skeleton_coverage"), "suite readiness skeleton totals required")
@@ -265,6 +271,26 @@ def build_rollup() -> dict[str, Any]:
         route_totals.get("route_consumed_suite_cases") == negative_totals.get("route_consumed_suite_cases"),
         "route consumed suite case totals drifted",
     )
+    require(
+        matrix_totals.get("suite_case_count") == negative_totals.get("negative_suite_cases"),
+        "matrix suite case totals drifted",
+    )
+    require(
+        matrix_totals.get("current_route_covered_suite_cases") == negative_totals.get("route_consumed_suite_cases"),
+        "matrix current route coverage totals drifted",
+    )
+    require(
+        matrix_totals.get("governance_only_future_route_required_cases") == negative_totals.get("governance_only_suite_cases"),
+        "matrix future route required totals drifted",
+    )
+    require(
+        matrix_totals.get("future_route_requirement_count") == route_totals.get("future_requirement_count"),
+        "matrix future route requirement totals drifted",
+    )
+    require(
+        matrix_totals.get("future_route_requirements_satisfied") == route_totals.get("future_requirements_satisfied"),
+        "matrix future route satisfaction totals drifted",
+    )
 
     return {
         "schema_version": 1,
@@ -274,6 +300,7 @@ def build_rollup() -> dict[str, Any]:
         "implementation_status": "not_ready",
         "source_foundation_status_summary": relative_path(FOUNDATION_STATUS),
         "source_close_candidate_rollup": relative_path(CLOSE_CANDIDATE_ROLLUP),
+        "source_route_negative_coverage_matrix": relative_path(ROUTE_NEGATIVE_COVERAGE_MATRIX),
         "source_route_smoke_readiness_rollup": relative_path(ROUTE_SMOKE_READINESS),
         "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
@@ -295,6 +322,14 @@ def build_rollup() -> dict[str, Any]:
             "governance_only_suite_cases": negative_totals.get("governance_only_suite_cases"),
             "future_route_requirement_count": route_totals.get("future_requirement_count"),
             "future_route_requirements_satisfied": route_totals.get("future_requirements_satisfied"),
+            "route_negative_matrix_suite_cases": matrix_totals.get("suite_case_count"),
+            "route_negative_matrix_current_route_covered_suite_cases": matrix_totals.get(
+                "current_route_covered_suite_cases"
+            ),
+            "route_negative_matrix_future_route_required_suite_cases": matrix_totals.get(
+                "governance_only_future_route_required_cases"
+            ),
+            "route_negative_matrix_suite_completion_blocker_cases": matrix_totals.get("suite_completion_blocker_cases"),
         },
         "implementation_area_alignment": implementation_area_alignment(close_candidate, negative_coverage),
         "shared_prohibited_claims": sorted(REQUIRED_PROHIBITED_CLAIMS),
@@ -334,7 +369,7 @@ def check_rollup_shape(document: dict[str, Any]) -> None:
     require(document.get("implementation_status") == "not_ready", "consistency rollup must not claim implementation")
 
     statuses = document.get("rollup_status_alignment")
-    require(isinstance(statuses, list) and len(statuses) == 6, "consistency rollup must cover six source statuses")
+    require(isinstance(statuses, list) and len(statuses) == 7, "consistency rollup must cover seven source statuses")
 
     prereqs = require_object(
         document.get("short_close_prerequisite_alignment"),
@@ -352,6 +387,19 @@ def check_rollup_shape(document: dict[str, Any]) -> None:
     require(coverage.get("governance_only_suite_cases") == 7, "governance-only suite case count must stay 7")
     require(coverage.get("future_route_requirement_count") == 4, "future route requirement count must stay 4")
     require(coverage.get("future_route_requirements_satisfied") == 0, "future route requirements must remain unsatisfied")
+    require(coverage.get("route_negative_matrix_suite_cases") == 9, "matrix suite case count must stay 9")
+    require(
+        coverage.get("route_negative_matrix_current_route_covered_suite_cases") == 2,
+        "matrix covered suite case count must stay 2",
+    )
+    require(
+        coverage.get("route_negative_matrix_future_route_required_suite_cases") == 7,
+        "matrix future route required count must stay 7",
+    )
+    require(
+        coverage.get("route_negative_matrix_suite_completion_blocker_cases") == 7,
+        "matrix suite blocker count must stay 7",
+    )
 
     areas = document.get("implementation_area_alignment")
     require(isinstance(areas, list) and len(areas) == 3, "implementation area alignment must cover three areas")
@@ -375,6 +423,7 @@ def check_docs_and_consumers() -> None:
     task_card = TASK_CARD.read_text(encoding="utf-8")
     task_cards_readme = TASK_CARDS_README.read_text(encoding="utf-8")
     fixture_name = ROLLUP.name
+    matrix_fixture_name = ROUTE_NEGATIVE_COVERAGE_MATRIX.name
 
     require(THIS_CHECK.name in check_repo, "fast baseline must run readiness consistency rollup check")
     require(TASK_CARD.name in task_cards_readme, "task-cards README must reference readiness consistency task card")
@@ -387,6 +436,7 @@ def check_docs_and_consumers() -> None:
         ("devlog", DEVLOG.read_text(encoding="utf-8")),
     ):
         require(fixture_name in content, f"{label} must reference readiness consistency rollup fixture")
+        require(matrix_fixture_name in content, f"{label} must reference route negative coverage matrix fixture")
         require("governance-only" in content, f"{label} must mention governance-only")
         require("P2 short close" in content, f"{label} must mention P2 short close boundary")
         require("not_satisfied" in content, f"{label} must mention not_satisfied readiness boundary")

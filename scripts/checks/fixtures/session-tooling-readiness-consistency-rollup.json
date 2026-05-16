@@ -6,6 +6,7 @@
   "implementation_status": "not_ready",
   "source_foundation_status_summary": "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
   "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "source_route_negative_coverage_matrix": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
   "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
   "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
   "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
@@ -19,6 +20,11 @@
     {
       "source": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
       "status": "close_candidate_governance_only",
+      "implementation_status": "not_ready"
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+      "status": "route_negative_coverage_matrix_governance_only",
       "implementation_status": "not_ready"
     },
     {
@@ -47,6 +53,7 @@
       "source": "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
       "references": [
         "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+        "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
         "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
         "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
       ]
@@ -88,6 +95,7 @@
       "references": [
         "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
         "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+        "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
         "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
       ]
     }
@@ -109,7 +117,11 @@
     "route_consumed_suite_cases": 2,
     "governance_only_suite_cases": 7,
     "future_route_requirement_count": 4,
-    "future_route_requirements_satisfied": 0
+    "future_route_requirements_satisfied": 0,
+    "route_negative_matrix_suite_cases": 9,
+    "route_negative_matrix_current_route_covered_suite_cases": 2,
+    "route_negative_matrix_future_route_required_suite_cases": 7,
+    "route_negative_matrix_suite_completion_blocker_cases": 7
   },
   "implementation_area_alignment": [
     {

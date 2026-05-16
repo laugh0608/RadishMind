@@ -17,6 +17,7 @@ DENIED_QUERY_FIXTURE = FIXTURE_DIR / "session-recovery-checkpoint-read-denied-qu
 CLOSE_CANDIDATE_ROLLUP = FIXTURE_DIR / "session-tooling-close-candidate-readiness-rollup.json"
 IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
 NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
+ROUTE_NEGATIVE_COVERAGE_MATRIX = FIXTURE_DIR / "session-tooling-route-negative-coverage-matrix.json"
 SHORT_CLOSE_DELTA = FIXTURE_DIR / "session-tooling-short-close-readiness-delta.json"
 
 TASK_CARD_PATH = REPO_ROOT / "docs/task-cards/session-tooling-negative-regression-suite-readiness.md"
@@ -41,6 +42,7 @@ REQUIRED_REQUIREMENTS = {
     "checkpoint_denied_query_alignment",
     "implementation_gate_alignment",
     "negative_coverage_rollup_alignment",
+    "route_negative_coverage_matrix_alignment",
     "short_close_delta_alignment",
 }
 REQUIRED_BLOCKERS = {
@@ -193,6 +195,7 @@ def build_readiness() -> dict[str, Any]:
     close_candidate = require_object(load_json_document(CLOSE_CANDIDATE_ROLLUP), "close candidate rollup must be object")
     implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
     negative_coverage = require_object(load_json_document(NEGATIVE_COVERAGE_ROLLUP), "negative coverage rollup must be object")
+    route_negative_matrix = require_object(load_json_document(ROUTE_NEGATIVE_COVERAGE_MATRIX), "route negative coverage matrix must be object")
     short_close_delta = require_object(load_json_document(SHORT_CLOSE_DELTA), "short close delta fixture must be object")
 
     require(skeleton.get("status") == "skeleton_only_implementation_blocked", "skeleton must remain implementation blocked")
@@ -211,6 +214,14 @@ def build_readiness() -> dict[str, Any]:
         "negative coverage rollup must remain governance-only",
     )
     require(
+        route_negative_matrix.get("status") == "route_negative_coverage_matrix_governance_only",
+        "route negative coverage matrix must remain governance-only",
+    )
+    require(
+        route_negative_matrix.get("implementation_status") == "not_ready",
+        "route negative coverage matrix must not claim implementation readiness",
+    )
+    require(
         "complete_negative_regression_suite" in close_candidate.get("prohibited_claims", []),
         "rollup must still prohibit complete negative regression suite claim",
     )
@@ -225,6 +236,7 @@ def build_readiness() -> dict[str, Any]:
     )
     denied_cases = denied_queries.get("cases")
     require(isinstance(denied_cases, list) and denied_cases, "denied query fixture must include cases")
+    route_matrix_totals = require_object(route_negative_matrix.get("matrix_totals"), "matrix totals required")
 
     return {
         "schema_version": 1,
@@ -239,6 +251,7 @@ def build_readiness() -> dict[str, Any]:
         "source_close_candidate_rollup": relative_path(CLOSE_CANDIDATE_ROLLUP),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
+        "source_route_negative_coverage_matrix": relative_path(ROUTE_NEGATIVE_COVERAGE_MATRIX),
         "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "minimum_suite_groups": minimum_suite_groups(skeleton, suite),
         "suite_acceptance_requirements": [
@@ -273,12 +286,25 @@ def build_readiness() -> dict[str, Any]:
                 "description": "Route smoke, fixture consumers, governance suite cases, and deny-by-default gates are checkable, but real implementation consumers remain missing",
             },
             {
+                "requirement_id": "route_negative_coverage_matrix_alignment",
+                "status": "satisfied_by_governance_only_route_negative_coverage_matrix",
+                "description": "The route negative coverage matrix confirms only two suite cases are covered by the current metadata-only route while seven remain future-route-required",
+            },
+            {
                 "requirement_id": "short_close_delta_alignment",
                 "status": "satisfied_by_blocked_short_close_delta",
                 "description": "The short close readiness delta consumes this suite readiness and keeps complete_negative_regression_suite as not_satisfied",
             },
         ],
         "current_skeleton_coverage": skeleton_coverage(skeleton),
+        "route_negative_coverage_summary": {
+            "current_route_covered_suite_cases": route_matrix_totals.get("current_route_covered_suite_cases"),
+            "governance_only_future_route_required_cases": route_matrix_totals.get(
+                "governance_only_future_route_required_cases"
+            ),
+            "future_route_requirements_satisfied": route_matrix_totals.get("future_route_requirements_satisfied"),
+            "suite_completion_blocker_cases": route_matrix_totals.get("suite_completion_blocker_cases"),
+        },
         "blocked_completion_reasons": [
             "real_executor_storage_confirmation_implementations_missing",
             "executor_storage_confirmation_still_not_ready",
@@ -344,6 +370,20 @@ def check_fixture_shape(document: dict[str, Any]) -> None:
         == "satisfied_by_governance_only_negative_coverage_rollup",
         "suite readiness must align negative coverage rollup",
     )
+    require(
+        statuses_by_requirement.get("route_negative_coverage_matrix_alignment")
+        == "satisfied_by_governance_only_route_negative_coverage_matrix",
+        "suite readiness must align route negative coverage matrix",
+    )
+
+    route_summary = require_object(
+        document.get("route_negative_coverage_summary"),
+        "suite readiness must include route negative coverage summary",
+    )
+    require(route_summary.get("current_route_covered_suite_cases") == 2, "suite readiness route covered count drifted")
+    require(route_summary.get("governance_only_future_route_required_cases") == 7, "suite readiness future route count drifted")
+    require(route_summary.get("future_route_requirements_satisfied") == 0, "suite readiness future route readiness drifted")
+    require(route_summary.get("suite_completion_blocker_cases") == 7, "suite readiness blocker count drifted")
 
     blockers = set(require_string_list(document.get("blocked_completion_reasons"), "suite readiness must include blockers"))
     missing_blockers = sorted(REQUIRED_BLOCKERS - blockers)
@@ -364,6 +404,7 @@ def check_docs_and_consumers() -> None:
     roadmap = ROADMAP.read_text(encoding="utf-8")
     devlog = DEVLOG.read_text(encoding="utf-8")
     fixture_name = FIXTURE_PATH.name
+    matrix_fixture_name = ROUTE_NEGATIVE_COVERAGE_MATRIX.name
 
     require(THIS_CHECK.name in check_repo, "fast baseline must run negative regression suite readiness check")
     require(TASK_CARD_PATH.name in task_cards_readme, "task-cards README must reference suite readiness task card")
@@ -376,6 +417,7 @@ def check_docs_and_consumers() -> None:
         ("devlog", devlog),
     ):
         require(fixture_name in content, f"{label} must reference suite readiness fixture")
+        require(matrix_fixture_name in content, f"{label} must reference route negative coverage matrix fixture")
         require("negative_regression_suite" in content, f"{label} must mention negative_regression_suite")
     for marker in ("not_satisfied", "不实现真实工具执行器", "不启用 automatic replay"):
         require(marker in task_card, f"task card missing marker: {marker}")

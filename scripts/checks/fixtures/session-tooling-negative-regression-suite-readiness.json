@@ -11,6 +11,7 @@
   "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
   "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_route_negative_coverage_matrix": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
   "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
   "minimum_suite_groups": [
     {
@@ -100,6 +101,11 @@
       "description": "Route smoke, fixture consumers, governance suite cases, and deny-by-default gates are checkable, but real implementation consumers remain missing"
     },
     {
+      "requirement_id": "route_negative_coverage_matrix_alignment",
+      "status": "satisfied_by_governance_only_route_negative_coverage_matrix",
+      "description": "The route negative coverage matrix confirms only two suite cases are covered by the current metadata-only route while seven remain future-route-required"
+    },
+    {
       "requirement_id": "short_close_delta_alignment",
       "status": "satisfied_by_blocked_short_close_delta",
       "description": "The short close readiness delta consumes this suite readiness and keeps complete_negative_regression_suite as not_satisfied"
@@ -123,6 +129,12 @@
       "TOOL_EXECUTOR_DISABLED",
       "TOOL_NETWORK_DISABLED"
     ]
+  },
+  "route_negative_coverage_summary": {
+    "current_route_covered_suite_cases": 2,
+    "governance_only_future_route_required_cases": 7,
+    "future_route_requirements_satisfied": 0,
+    "suite_completion_blocker_cases": 7
   },
   "blocked_completion_reasons": [
     "real_executor_storage_confirmation_implementations_missing",
