@@ -8,6 +8,7 @@
   "source_readiness_summary": "scripts/checks/fixtures/session-tooling-readiness-summary.json",
   "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
   "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
   "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
   "design_gate_rollup": [
     {
@@ -84,15 +85,24 @@
       ]
     },
     {
+      "gate_id": "negative_regression_governance_suite",
+      "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+      "status": "governance_suite_consumed_implementation_gates_missing",
+      "implementation_ready": false,
+      "current_claim": "negative cases have governance consumers, audit non-write assertions, and side-effect absence assertions",
+      "remaining_blockers": [
+        "implementation_gate_alignment",
+        "upper_layer_confirmation_flow",
+        "complete_negative_regression_suite"
+      ]
+    },
+    {
       "gate_id": "negative_regression_suite_readiness",
       "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
-      "status": "acceptance_defined_suite_not_complete",
+      "status": "governance_suite_consumed_implementation_gates_missing",
       "implementation_ready": false,
-      "current_claim": "complete suite acceptance requirements are checkable, but real consumers, audit assertions, side-effect assertions, and implementation gates remain missing",
+      "current_claim": "suite acceptance is now consumed at governance level, but implementation gates remain missing",
       "remaining_blockers": [
-        "real_consumers_before_completion",
-        "independent_audit_assertions",
-        "side_effect_absence_assertions",
         "implementation_gate_alignment",
         "complete_negative_regression_suite"
       ]
@@ -151,7 +161,7 @@
     {
       "condition": "complete_negative_regression_suite",
       "status": "not_satisfied",
-      "reason": "current negative coverage is skeleton_only and does not prove implementation boundaries"
+      "reason": "governance suite exists, but implementation gates do not yet prove real execution/storage/confirmation deny-by-default boundaries"
     },
     {
       "condition": "executor_storage_confirmation_enablement_plan",

@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-14
+更新时间：2026-05-16
 
 ## 路线图原则
 
@@ -35,7 +35,7 @@
 
 目标：让多轮对话、历史压缩、恢复和审计成为平台能力，而不是各任务自己拼上下文。
 
-状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、`session-recovery-checkpoint-read.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，read result 只暴露 metadata refs 和 tool audit 治理摘要，不保存或返回真实工具结果，也不自动 replay。平台层已新增 metadata-only route smoke，并通过 denied query fixture 拒绝 materialized result、result ref、executor ref、durable memory 与 replay 类查询参数；readiness summary、implementation preconditions、negative regression skeleton、`session-tooling-negative-regression-suite-readiness.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、`session-tooling-foundation-status-summary.json` 和 `session-tooling-close-candidate-readiness-rollup.json` 已把当前状态收口为 `close candidate / governance-only`，但当前仍没有 durable session store、durable checkpoint store、durable audit store、durable result store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器，也不声明 P2 short close。
+状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、`session-recovery-checkpoint-read.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，read result 只暴露 metadata refs 和 tool audit 治理摘要，不保存或返回真实工具结果，也不自动 replay。平台层已新增 metadata-only route smoke，并通过 denied query fixture 拒绝 materialized result、result ref、executor ref、durable memory 与 replay 类查询参数；readiness summary、implementation preconditions、negative regression skeleton、governance-only `session-tooling-negative-regression-suite.json`、`session-tooling-negative-regression-suite-readiness.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、`session-tooling-foundation-status-summary.json` 和 `session-tooling-close-candidate-readiness-rollup.json` 已把当前状态收口为 `close candidate / governance-only`，但当前仍没有 durable session store、durable checkpoint store、durable audit store、durable result store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器，也不声明 P2 short close。
 
 下一步：维护 P2 close-candidate readiness rollup，继续把 confirmation、independent audit、result materialization、executor boundary、storage backend 与完整负向回归的满足状态保持为可检查口径；在 short close 前置条件满足前，不进入真实实现设计。
 
@@ -43,7 +43,7 @@
 
 目标：把检索、局部规则、候选生成和 builder 经验收口为正式工具契约、registry、policy 和 audit。
 
-状态：当前已有 task-local 的 deterministic tooling 与 builder 资产；最小 `tool.schema.json`、`tool-registry.schema.json`、`tool-audit-record.schema.json`、registry fixture、policy/audit fixture 和快速门禁已开始落地，用于固定工具注册、调用轨、timeout/retry/policy、session binding、metadata-only result cache 和 audit 的结构边界。tool audit summary 已进入 checkpoint read route smoke，用于固定 execution disabled、not executed、metadata-only cache 和 no result ref；session/tooling promotion gate 分层、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton、`session-tooling-negative-regression-suite-readiness.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、close candidate status summary 与 close-candidate readiness rollup 已进入快速门禁。当前仍没有真实工具执行器、durable audit store、durable result store、长期记忆或新的 provider/model 实验，negative skeleton、suite readiness、audit design、materialization policy design、executor boundary design 和 storage backend design 也不等同于完整 `negative_regression_suite`。
+状态：当前已有 task-local 的 deterministic tooling 与 builder 资产；最小 `tool.schema.json`、`tool-registry.schema.json`、`tool-audit-record.schema.json`、registry fixture、policy/audit fixture 和快速门禁已开始落地，用于固定工具注册、调用轨、timeout/retry/policy、session binding、metadata-only result cache 和 audit 的结构边界。tool audit summary 已进入 checkpoint read route smoke，用于固定 execution disabled、not executed、metadata-only cache 和 no result ref；session/tooling promotion gate 分层、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton、governance-only negative regression suite、`session-tooling-negative-regression-suite-readiness.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、close candidate status summary 与 close-candidate readiness rollup 已进入快速门禁。当前仍没有真实工具执行器、durable audit store、durable result store、长期记忆或新的 provider/model 实验，negative skeleton、governance suite、suite readiness、audit design、materialization policy design、executor boundary design 和 storage backend design 也不等同于完整 `negative_regression_suite`。
 
 下一步：继续通过 close-candidate rollup 守住 tooling contract、audit、result materialization、executor boundary 与 storage backend 的设计门禁；在上层确认流接线和完整负向回归满足前，不启动真实执行。
 
@@ -95,7 +95,7 @@
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：`close candidate / governance-only`。session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、denied query fixture、promotion gate fixture、negative consumption summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton、`session-tooling-negative-regression-suite-readiness.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、foundation status summary、close-candidate readiness rollup 与 northbound session metadata 已有首版门禁；tool schema、tool registry、tool policy、session binding、metadata-only result cache、audit record 和 promotion gate 分层已有最小契约与快速门禁。当前仍不声明 P2 short close，也不具备真实 executor、durable storage、上层 confirmation flow 接线、materialized result reader、durable audit store、durable result store 或完整 `negative_regression_suite`。
+状态：`close candidate / governance-only`。session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、denied query fixture、promotion gate fixture、negative consumption summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton、governance-only negative regression suite、`session-tooling-negative-regression-suite-readiness.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、foundation status summary、close-candidate readiness rollup 与 northbound session metadata 已有首版门禁；tool schema、tool registry、tool policy、session binding、metadata-only result cache、audit record 和 promotion gate 分层已有最小契约与快速门禁。当前仍不声明 P2 short close，也不具备真实 executor、durable storage、上层 confirmation flow 接线、materialized result reader、durable audit store、durable result store 或完整 `negative_regression_suite`。
 
 ### `P3`：Local Deployment & Ops Governance
 
@@ -118,7 +118,7 @@
 ## 下一步
 
 1. 继续维护 `P2 Session & Tooling Foundation` close-candidate readiness rollup，确保 `scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json` 能明确 design gate 已完成项、仍不满足项和进入 short close 前的硬前置条件。
-2. 继续把 `Evaluation & Governance` 从“任务输出门禁”扩展为“平台能力门禁”，重点覆盖 session、tooling、negative regression suite readiness、implementation preconditions 和 close-candidate rollup。
+2. 继续把 `Evaluation & Governance` 从“任务输出门禁”扩展为“平台能力门禁”，重点覆盖 session、tooling、governance-only negative regression suite、negative regression suite readiness、implementation preconditions 和 close-candidate rollup。
 3. 只有在前述平台边界稳定后，才定义新的训练 / 蒸馏主线。
 4. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
 

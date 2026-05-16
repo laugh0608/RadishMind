@@ -11,11 +11,13 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DENIED_QUERY_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
 PROMOTION_GATE_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-tooling-promotion-gates.json"
 ROUTE_SMOKE_SUMMARY_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json"
+NEGATIVE_REGRESSION_SUITE_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-regression-suite.json"
 SUMMARY_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-consumption-summary.json"
 
 CHECKPOINT_CONTRACT_CHECK = REPO_ROOT / "scripts/check-session-recovery-checkpoint-contract.py"
 PROMOTION_GATE_CHECK = REPO_ROOT / "scripts/check-session-tooling-promotion-gates.py"
 ROUTE_SMOKE_COVERAGE_CHECK = REPO_ROOT / "scripts/check-session-recovery-route-smoke-coverage.py"
+NEGATIVE_REGRESSION_SUITE_CHECK = REPO_ROOT / "scripts/check-session-tooling-negative-regression-suite.py"
 SERVER_TEST = REPO_ROOT / "services/platform/internal/httpapi/server_test.go"
 CHECK_REPO = REPO_ROOT / "scripts/check-repo.py"
 THIS_CHECK = REPO_ROOT / "scripts/check-session-tooling-negative-consumption.py"
@@ -45,6 +47,7 @@ def check_consumers() -> None:
     denied_fixture_name = DENIED_QUERY_FIXTURE.name
     promotion_fixture_name = PROMOTION_GATE_FIXTURE.name
     route_smoke_summary_fixture_name = ROUTE_SMOKE_SUMMARY_FIXTURE.name
+    negative_regression_suite_fixture_name = NEGATIVE_REGRESSION_SUITE_FIXTURE.name
     summary_fixture_name = SUMMARY_FIXTURE.name
 
     require(
@@ -72,6 +75,14 @@ def check_consumers() -> None:
         "fast baseline must run route smoke coverage check",
     )
     require(
+        file_contains(NEGATIVE_REGRESSION_SUITE_CHECK, negative_regression_suite_fixture_name),
+        "negative regression suite check must compare committed suite fixture",
+    )
+    require(
+        file_contains(CHECK_REPO, "check-session-tooling-negative-regression-suite.py"),
+        "fast baseline must run negative regression suite check",
+    )
+    require(
         file_contains(THIS_CHECK, summary_fixture_name),
         "negative consumption check must compare committed summary",
     )
@@ -84,8 +95,10 @@ def check_consumers() -> None:
 def build_summary() -> dict[str, Any]:
     denied_queries = load_json_document(DENIED_QUERY_FIXTURE)
     promotion_gates = load_json_document(PROMOTION_GATE_FIXTURE)
+    negative_regression_suite = load_json_document(NEGATIVE_REGRESSION_SUITE_FIXTURE)
     require(isinstance(denied_queries, dict), "denied query fixture must be an object")
     require(isinstance(promotion_gates, dict), "promotion gate fixture must be an object")
+    require(isinstance(negative_regression_suite, dict), "negative regression suite fixture must be an object")
 
     cases = denied_queries.get("cases")
     require(isinstance(cases, list), "denied query fixture cases must be a list")
@@ -115,6 +128,14 @@ def build_summary() -> dict[str, Any]:
     )
     require(isinstance(future_gate, dict), "promotion gate fixture must include future_implementation_gate")
     future_blockers = sorted(str(item or "").strip() for item in future_gate.get("required_before_enablement") or [])
+
+    suite_groups = negative_regression_suite.get("groups")
+    require(isinstance(suite_groups, list), "negative regression suite groups must be a list")
+    suite_case_count = 0
+    for group in suite_groups:
+        if not isinstance(group, dict):
+            continue
+        suite_case_count += len([case for case in group.get("cases") or [] if isinstance(case, dict)])
 
     return {
         "schema_version": 1,
@@ -159,6 +180,22 @@ def build_summary() -> dict[str, Any]:
                 {
                     "path": relative_path(ROUTE_SMOKE_COVERAGE_CHECK),
                     "coverage": "regenerates_and_compares_route_smoke_summary",
+                },
+                {
+                    "path": relative_path(CHECK_REPO),
+                    "coverage": "fast_baseline_entrypoint",
+                },
+            ],
+        },
+        "negative_regression_suite_fixture": {
+            "path": relative_path(NEGATIVE_REGRESSION_SUITE_FIXTURE),
+            "total_groups": len(suite_groups),
+            "total_cases": suite_case_count,
+            "status": str(negative_regression_suite.get("status") or "").strip(),
+            "consumers": [
+                {
+                    "path": relative_path(NEGATIVE_REGRESSION_SUITE_CHECK),
+                    "coverage": "regenerates_and_compares_governance_suite_case_consumers",
                 },
                 {
                     "path": relative_path(CHECK_REPO),

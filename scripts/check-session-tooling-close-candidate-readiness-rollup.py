@@ -14,6 +14,7 @@ FOUNDATION_STATUS = FIXTURE_DIR / "session-tooling-foundation-status-summary.jso
 READINESS_SUMMARY = FIXTURE_DIR / "session-tooling-readiness-summary.json"
 PRECONDITIONS = FIXTURE_DIR / "session-tooling-implementation-preconditions.json"
 NEGATIVE_SKELETON = FIXTURE_DIR / "session-tooling-negative-regression-skeleton.json"
+NEGATIVE_SUITE = FIXTURE_DIR / "session-tooling-negative-regression-suite.json"
 NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
 CONFIRMATION_FLOW = FIXTURE_DIR / "session-tooling-confirmation-flow-design.json"
 INDEPENDENT_AUDIT = FIXTURE_DIR / "session-tooling-independent-audit-records-design.json"
@@ -38,6 +39,7 @@ REQUIRED_GATES = {
     "executor_boundary",
     "storage_backend_design",
     "negative_regression_skeleton",
+    "negative_regression_governance_suite",
     "negative_regression_suite_readiness",
     "implementation_preconditions",
 }
@@ -151,7 +153,11 @@ def build_rollup() -> dict[str, Any]:
     readiness = require_object(load_json_document(READINESS_SUMMARY), "readiness summary must be object")
     preconditions = require_object(load_json_document(PRECONDITIONS), "preconditions fixture must be object")
     negative_skeleton = require_object(load_json_document(NEGATIVE_SKELETON), "negative skeleton fixture must be object")
-    negative_suite = require_object(load_json_document(NEGATIVE_SUITE_READINESS), "negative suite readiness fixture must be object")
+    negative_suite_fixture = require_object(load_json_document(NEGATIVE_SUITE), "negative suite fixture must be object")
+    negative_suite_readiness = require_object(
+        load_json_document(NEGATIVE_SUITE_READINESS),
+        "negative suite readiness fixture must be object",
+    )
     confirmation = require_object(load_json_document(CONFIRMATION_FLOW), "confirmation flow fixture must be object")
     audit = require_object(load_json_document(INDEPENDENT_AUDIT), "independent audit fixture must be object")
     result = require_object(load_json_document(RESULT_MATERIALIZATION), "result materialization fixture must be object")
@@ -163,7 +169,12 @@ def build_rollup() -> dict[str, Any]:
     require_status(readiness, "metadata_ready_implementation_blocked", "readiness summary")
     require_status(preconditions, "preconditions_not_satisfied", "implementation preconditions")
     require_status(negative_skeleton, "skeleton_only_implementation_blocked", "negative regression skeleton")
-    require_status(negative_suite, "acceptance_defined_suite_not_complete", "negative regression suite readiness")
+    require_status(negative_suite_fixture, "governance_suite_consumed_implementation_gates_missing", "negative regression suite")
+    require_status(
+        negative_suite_readiness,
+        "governance_suite_consumed_implementation_gates_missing",
+        "negative regression suite readiness",
+    )
     require_status(confirmation, "design_only_not_connected", "confirmation flow")
     require_status(audit, "design_only_not_connected", "independent audit")
     require_status(result, "design_only_not_connected", "result materialization")
@@ -180,6 +191,7 @@ def build_rollup() -> dict[str, Any]:
         "source_readiness_summary": relative_path(READINESS_SUMMARY),
         "source_implementation_preconditions": relative_path(PRECONDITIONS),
         "source_negative_regression_skeleton": relative_path(NEGATIVE_SKELETON),
+        "source_negative_regression_suite": relative_path(NEGATIVE_SUITE),
         "source_negative_regression_suite_readiness": relative_path(NEGATIVE_SUITE_READINESS),
         "design_gate_rollup": [
             {
@@ -256,15 +268,24 @@ def build_rollup() -> dict[str, Any]:
                 ],
             },
             {
+                "gate_id": "negative_regression_governance_suite",
+                "source": relative_path(NEGATIVE_SUITE),
+                "status": negative_suite_fixture["status"],
+                "implementation_ready": False,
+                "current_claim": "negative cases have governance consumers, audit non-write assertions, and side-effect absence assertions",
+                "remaining_blockers": [
+                    "implementation_gate_alignment",
+                    "upper_layer_confirmation_flow",
+                    "complete_negative_regression_suite",
+                ],
+            },
+            {
                 "gate_id": "negative_regression_suite_readiness",
                 "source": relative_path(NEGATIVE_SUITE_READINESS),
-                "status": negative_suite["status"],
+                "status": negative_suite_readiness["status"],
                 "implementation_ready": False,
-                "current_claim": "complete suite acceptance requirements are checkable, but real consumers, audit assertions, side-effect assertions, and implementation gates remain missing",
+                "current_claim": "suite acceptance is now consumed at governance level, but implementation gates remain missing",
                 "remaining_blockers": [
-                    "real_consumers_before_completion",
-                    "independent_audit_assertions",
-                    "side_effect_absence_assertions",
                     "implementation_gate_alignment",
                     "complete_negative_regression_suite",
                 ],
@@ -292,7 +313,7 @@ def build_rollup() -> dict[str, Any]:
             {
                 "condition": "complete_negative_regression_suite",
                 "status": "not_satisfied",
-                "reason": "current negative coverage is skeleton_only and does not prove implementation boundaries",
+                "reason": "governance suite exists, but implementation gates do not yet prove real execution/storage/confirmation deny-by-default boundaries",
             },
             {
                 "condition": "executor_storage_confirmation_enablement_plan",

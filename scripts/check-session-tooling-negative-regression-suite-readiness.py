@@ -10,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_DIR = REPO_ROOT / "scripts/checks/fixtures"
 
 FIXTURE_PATH = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
+SUITE_PATH = FIXTURE_DIR / "session-tooling-negative-regression-suite.json"
 SKELETON_PATH = FIXTURE_DIR / "session-tooling-negative-regression-skeleton.json"
 PRECONDITIONS_PATH = FIXTURE_DIR / "session-tooling-implementation-preconditions.json"
 DENIED_QUERY_FIXTURE = FIXTURE_DIR / "session-recovery-checkpoint-read-denied-queries.json"
@@ -38,11 +39,10 @@ REQUIRED_REQUIREMENTS = {
     "implementation_gate_alignment",
 }
 REQUIRED_BLOCKERS = {
-    "real_consumers_missing",
-    "independent_audit_assertions_missing",
-    "side_effect_absence_assertions_missing",
     "implementation_gates_missing",
     "executor_storage_confirmation_still_not_ready",
+    "upper_layer_confirmation_flow_missing",
+    "durable_store_and_result_reader_still_disabled",
 }
 REQUIRED_NOT_ENABLED = {
     "automatic_replay",
@@ -127,8 +127,13 @@ def skeleton_coverage(skeleton: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def minimum_suite_groups(skeleton: dict[str, Any]) -> list[dict[str, Any]]:
+def minimum_suite_groups(skeleton: dict[str, Any], suite: dict[str, Any]) -> list[dict[str, Any]]:
     groups = skeleton_groups_by_id(skeleton)
+    suite_groups = {
+        str(group.get("group_id") or "").strip(): group
+        for group in suite.get("groups") or []
+        if isinstance(group, dict)
+    }
     return [
         {
             "group_id": "executor_blocked",
@@ -142,7 +147,7 @@ def minimum_suite_groups(skeleton: dict[str, Any]) -> list[dict[str, Any]]:
                 "no_execution_side_effects",
                 "no_network_side_effects",
             ],
-            "current_status": "skeleton_only",
+            "current_status": str(suite_groups["executor_blocked"].get("current_status") or "").strip(),
         },
         {
             "group_id": "storage_materialization_blocked",
@@ -156,7 +161,7 @@ def minimum_suite_groups(skeleton: dict[str, Any]) -> list[dict[str, Any]]:
                 "no_materialized_result_side_effects",
                 "no_business_truth_write_side_effects",
             ],
-            "current_status": "skeleton_only",
+            "current_status": str(suite_groups["storage_materialization_blocked"].get("current_status") or "").strip(),
         },
         {
             "group_id": "confirmation_blocked",
@@ -170,18 +175,23 @@ def minimum_suite_groups(skeleton: dict[str, Any]) -> list[dict[str, Any]]:
                 "no_confirmed_action_execution",
                 "no_replay_side_effects",
             ],
-            "current_status": "skeleton_only",
+            "current_status": str(suite_groups["confirmation_blocked"].get("current_status") or "").strip(),
         },
     ]
 
 
 def build_readiness() -> dict[str, Any]:
     skeleton = require_object(load_json_document(SKELETON_PATH), "negative regression skeleton must be object")
+    suite = require_object(load_json_document(SUITE_PATH), "negative regression suite must be object")
     preconditions = require_object(load_json_document(PRECONDITIONS_PATH), "preconditions fixture must be object")
     denied_queries = require_object(load_json_document(DENIED_QUERY_FIXTURE), "denied query fixture must be object")
     close_candidate = require_object(load_json_document(CLOSE_CANDIDATE_ROLLUP), "close candidate rollup must be object")
 
     require(skeleton.get("status") == "skeleton_only_implementation_blocked", "skeleton must remain implementation blocked")
+    require(
+        suite.get("status") == "governance_suite_consumed_implementation_gates_missing",
+        "suite must remain governance-only with missing implementation gates",
+    )
     require(preconditions.get("status") == "preconditions_not_satisfied", "preconditions must remain unsatisfied")
     require(close_candidate.get("status") == "close_candidate_governance_only", "rollup must remain governance-only")
     require(
@@ -195,33 +205,34 @@ def build_readiness() -> dict[str, Any]:
         "schema_version": 1,
         "kind": "session_tooling_negative_regression_suite_readiness",
         "stage": "P2 Session & Tooling Foundation",
-        "status": "acceptance_defined_suite_not_complete",
+        "status": "governance_suite_consumed_implementation_gates_missing",
         "implementation_status": "not_ready",
+        "source_negative_regression_suite": relative_path(SUITE_PATH),
         "source_negative_regression_skeleton": relative_path(SKELETON_PATH),
         "source_implementation_preconditions": relative_path(PRECONDITIONS_PATH),
         "source_denied_query_fixture": relative_path(DENIED_QUERY_FIXTURE),
         "source_close_candidate_rollup": relative_path(CLOSE_CANDIDATE_ROLLUP),
-        "minimum_suite_groups": minimum_suite_groups(skeleton),
+        "minimum_suite_groups": minimum_suite_groups(skeleton, suite),
         "suite_acceptance_requirements": [
             {
                 "requirement_id": "real_consumers_before_completion",
-                "status": "not_satisfied",
-                "description": "Each negative case must be consumed by a concrete contract, route, policy, or implementation gate rather than only listed in a fixture",
+                "status": "partially_satisfied_by_governance_suite",
+                "description": "Each negative case now has governance consumers, but implementation gates are still missing",
             },
             {
                 "requirement_id": "independent_audit_assertions",
-                "status": "not_satisfied",
-                "description": "Each blocked action must assert the expected audit event or explicit audit non-write boundary",
+                "status": "satisfied_by_audit_non_write_boundary",
+                "description": "Each blocked action asserts the expected event source and explicit audit non-write boundary",
             },
             {
                 "requirement_id": "side_effect_absence_assertions",
-                "status": "not_satisfied",
-                "description": "Each case must prove that execution, storage, materialized result, business truth write, and replay side effects did not occur",
+                "status": "satisfied_by_forbidden_side_effect_assertions",
+                "description": "Each case asserts absence of execution, storage, materialized result, business truth write, or replay side effects",
             },
             {
                 "requirement_id": "checkpoint_denied_query_alignment",
-                "status": "partially_satisfied_by_existing_fixture",
-                "description": "Committed checkpoint denied query cases already cover materialized result, durable memory, and replay read requests",
+                "status": "satisfied_by_denied_query_fixture_and_suite_cases",
+                "description": "Committed checkpoint denied query cases are consumed by route/contract checks and mirrored by suite cases",
             },
             {
                 "requirement_id": "implementation_gate_alignment",
@@ -231,11 +242,10 @@ def build_readiness() -> dict[str, Any]:
         ],
         "current_skeleton_coverage": skeleton_coverage(skeleton),
         "blocked_completion_reasons": [
-            "real_consumers_missing",
-            "independent_audit_assertions_missing",
-            "side_effect_absence_assertions_missing",
             "implementation_gates_missing",
             "executor_storage_confirmation_still_not_ready",
+            "upper_layer_confirmation_flow_missing",
+            "durable_store_and_result_reader_still_disabled",
         ],
         "not_enabled_capabilities": sorted(REQUIRED_NOT_ENABLED),
         "consumers": [
@@ -254,7 +264,10 @@ def build_readiness() -> dict[str, Any]:
 def check_fixture_shape(document: dict[str, Any]) -> None:
     require(document.get("schema_version") == 1, "suite readiness schema_version must be 1")
     require(document.get("kind") == "session_tooling_negative_regression_suite_readiness", "suite readiness kind mismatch")
-    require(document.get("status") == "acceptance_defined_suite_not_complete", "suite readiness must not claim completion")
+    require(
+        document.get("status") == "governance_suite_consumed_implementation_gates_missing",
+        "suite readiness must not claim completion",
+    )
     require(document.get("implementation_status") == "not_ready", "suite readiness must keep implementation not_ready")
 
     groups = document.get("minimum_suite_groups")
@@ -266,7 +279,10 @@ def check_fixture_shape(document: dict[str, Any]) -> None:
         group_obj = require_object(group, "suite readiness group must be object")
         group_id = str(group_obj.get("group_id") or "").strip()
         require(group_obj.get("precondition_area") == REQUIRED_GROUPS[group_id], f"{group_id} precondition area mismatch")
-        require(group_obj.get("current_status") == "skeleton_only", f"{group_id} must remain skeleton_only")
+        require(
+            group_obj.get("current_status") == "governance_consumed_implementation_blocked",
+            f"{group_id} must remain implementation blocked",
+        )
         require_string_list(group_obj.get("required_case_ids"), f"{group_id} must include required cases")
         coverage = set(require_string_list(group_obj.get("required_suite_coverage"), f"{group_id} must include suite coverage"))
         require("independent_audit_expectation" in coverage, f"{group_id} must require independent audit expectation")
@@ -276,8 +292,15 @@ def check_fixture_shape(document: dict[str, Any]) -> None:
     requirement_ids = {str(item.get("requirement_id") or "").strip() for item in requirements if isinstance(item, dict)}
     missing_requirements = sorted(REQUIRED_REQUIREMENTS - requirement_ids)
     require(not missing_requirements, f"suite readiness missing requirements: {missing_requirements}")
-    statuses = {str(item.get("status") or "").strip() for item in requirements if isinstance(item, dict)}
-    require("not_satisfied" in statuses, "suite readiness must keep unsatisfied requirements")
+    statuses_by_requirement = {
+        str(item.get("requirement_id") or "").strip(): str(item.get("status") or "").strip()
+        for item in requirements
+        if isinstance(item, dict)
+    }
+    require(
+        statuses_by_requirement.get("implementation_gate_alignment") == "not_satisfied",
+        "suite readiness must keep implementation gate alignment unsatisfied",
+    )
 
     blockers = set(require_string_list(document.get("blocked_completion_reasons"), "suite readiness must include blockers"))
     missing_blockers = sorted(REQUIRED_BLOCKERS - blockers)

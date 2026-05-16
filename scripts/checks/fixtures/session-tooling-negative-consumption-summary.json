@@ -68,6 +68,22 @@
       }
     ]
   },
+  "negative_regression_suite_fixture": {
+    "path": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+    "total_groups": 3,
+    "total_cases": 9,
+    "status": "governance_suite_consumed_implementation_gates_missing",
+    "consumers": [
+      {
+        "path": "scripts/check-session-tooling-negative-regression-suite.py",
+        "coverage": "regenerates_and_compares_governance_suite_case_consumers"
+      },
+      {
+        "path": "scripts/check-repo.py",
+        "coverage": "fast_baseline_entrypoint"
+      }
+    ]
+  },
   "summary_consumers": [
     {
       "path": "scripts/check-session-tooling-negative-consumption.py",
