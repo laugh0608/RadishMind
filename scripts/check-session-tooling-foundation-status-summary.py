@@ -19,6 +19,7 @@ IMPLEMENTATION_GATES = REPO_ROOT / "scripts/checks/fixtures/session-tooling-deny
 NEGATIVE_COVERAGE_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json"
 ROUTE_SMOKE_READINESS_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json"
 SHORT_CLOSE_DELTA = REPO_ROOT / "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
+READINESS_CONSISTENCY_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
@@ -40,6 +41,7 @@ REQUIRED_TRACK_IDS = {
     "negative_coverage_rollup",
     "route_smoke_readiness_rollup",
     "short_close_readiness_delta",
+    "readiness_consistency_rollup",
 }
 REQUIRED_AREAS = {"executor", "storage", "confirmation"}
 REQUIRED_NEXT_STAGE_CONDITIONS = {
@@ -176,6 +178,7 @@ def build_summary() -> dict[str, Any]:
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
         "source_route_smoke_readiness_rollup": relative_path(ROUTE_SMOKE_READINESS_ROLLUP),
         "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
+        "source_readiness_consistency_rollup": relative_path(READINESS_CONSISTENCY_ROLLUP),
         "completed_governance_tracks": [
             {
                 "track_id": "contract_and_fixture_gates",
@@ -306,6 +309,16 @@ def build_summary() -> dict[str, Any]:
                 ],
                 "claim": "hard prerequisites from close candidate to P2 short close are checkable and remain not_satisfied",
             },
+            {
+                "track_id": "readiness_consistency_rollup",
+                "status": "complete",
+                "evidence": [
+                    "docs/task-cards/session-tooling-readiness-consistency-rollup.md",
+                    "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json",
+                    "scripts/check-session-tooling-readiness-consistency-rollup.py",
+                ],
+                "claim": "close candidate, route smoke, negative coverage, suite readiness, and short close delta readiness claims are cross-checked for drift",
+            },
         ],
         "missing_implementation_prerequisites": not_ready_areas_from_preconditions(preconditions),
         "next_stage_entry_conditions": [
@@ -430,6 +443,10 @@ def check_docs_and_consumers() -> None:
     require(
         "check-session-tooling-short-close-readiness-delta.py" in check_repo,
         "fast baseline must run short close readiness delta check",
+    )
+    require(
+        "check-session-tooling-readiness-consistency-rollup.py" in check_repo,
+        "fast baseline must run readiness consistency rollup check",
     )
 
 

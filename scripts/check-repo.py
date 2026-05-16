@@ -1089,6 +1089,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-session-tooling-foundation-status-summary.py", [])
     run_python_script("check-session-tooling-close-candidate-readiness-rollup.py", [])
     run_python_script("check-session-tooling-short-close-readiness-delta.py", [])
+    run_python_script("check-session-tooling-readiness-consistency-rollup.py", [])
     run_python_script("check-session-tooling-confirmation-flow-design.py", [])
     run_python_script("check-session-tooling-independent-audit-records.py", [])
     run_python_script("check-session-tooling-result-materialization-policy.py", [])

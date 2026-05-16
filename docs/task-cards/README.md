@@ -39,6 +39,7 @@
 12. [`P2 Session & Tooling` negative coverage rollup](session-tooling-negative-coverage-rollup.md)
 13. [`P2 Session & Tooling` route smoke readiness rollup](session-tooling-route-smoke-readiness-rollup.md)
 14. [`P2 Session & Tooling` short close readiness delta](session-tooling-short-close-readiness-delta.md)
+15. [`P2 Session & Tooling` readiness consistency rollup](session-tooling-readiness-consistency-rollup.md)
 
 使用原则：
 

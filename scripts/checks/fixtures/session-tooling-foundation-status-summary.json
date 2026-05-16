@@ -15,6 +15,7 @@
   "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
   "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
   "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "source_readiness_consistency_rollup": "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -144,6 +145,16 @@
         "scripts/check-session-tooling-short-close-readiness-delta.py"
       ],
       "claim": "hard prerequisites from close candidate to P2 short close are checkable and remain not_satisfied"
+    },
+    {
+      "track_id": "readiness_consistency_rollup",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-readiness-consistency-rollup.md",
+        "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json",
+        "scripts/check-session-tooling-readiness-consistency-rollup.py"
+      ],
+      "claim": "close candidate, route smoke, negative coverage, suite readiness, and short close delta readiness claims are cross-checked for drift"
     }
   ],
   "missing_implementation_prerequisites": [
