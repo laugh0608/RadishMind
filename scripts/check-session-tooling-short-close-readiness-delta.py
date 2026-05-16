@@ -15,6 +15,7 @@ FOUNDATION_STATUS = FIXTURE_DIR / "session-tooling-foundation-status-summary.jso
 NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
 NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
 PRECONDITIONS = FIXTURE_DIR / "session-tooling-implementation-preconditions.json"
+ENABLEMENT_PLAN = FIXTURE_DIR / "session-tooling-executor-storage-confirmation-enablement-plan.json"
 
 TASK_CARD = REPO_ROOT / "docs/task-cards/session-tooling-short-close-readiness-delta.md"
 TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
@@ -115,6 +116,7 @@ def build_delta() -> dict[str, Any]:
     suite_readiness = require_object(load_json_document(NEGATIVE_SUITE_READINESS), "suite readiness must be object")
     coverage_rollup = require_object(load_json_document(NEGATIVE_COVERAGE_ROLLUP), "negative coverage rollup must be object")
     preconditions = require_object(load_json_document(PRECONDITIONS), "implementation preconditions must be object")
+    enablement_plan = require_object(load_json_document(ENABLEMENT_PLAN), "enablement plan must be object")
 
     require(close_candidate.get("status") == "close_candidate_governance_only", "close candidate must stay governance-only")
     require(close_candidate.get("implementation_status") == "not_ready", "close candidate must not claim implementation readiness")
@@ -130,6 +132,7 @@ def build_delta() -> dict[str, Any]:
         "negative coverage rollup must stay governance-only",
     )
     require(preconditions.get("status") == "preconditions_not_satisfied", "implementation preconditions must remain unsatisfied")
+    require(enablement_plan.get("status") == "enablement_plan_defined_blocked", "enablement plan must remain blocked")
 
     close_prerequisites = close_prerequisites_by_id(close_candidate)
     statuses = precondition_statuses(preconditions)
@@ -169,7 +172,7 @@ def build_delta() -> dict[str, Any]:
         {
             "prerequisite_id": "executor_storage_confirmation_enablement_plan",
             "current_status": close_prerequisites["executor_storage_confirmation_enablement_plan"]["status"],
-            "current_evidence": f"implementation preconditions remain executor={statuses['executor']}, storage={statuses['storage']}, confirmation={statuses['confirmation']}",
+            "current_evidence": f"enablement plan is defined but blocked; implementation preconditions remain executor={statuses['executor']}, storage={statuses['storage']}, confirmation={statuses['confirmation']}",
             "required_delta": [
                 "turn executor enablement from not_ready to gated plan only after confirmation and negative suite prerequisites are satisfied",
                 "turn storage enablement from not_ready to gated plan only after durable store and result reader policy is satisfied",
@@ -213,6 +216,7 @@ def build_delta() -> dict[str, Any]:
         "source_negative_regression_suite_readiness": relative_path(NEGATIVE_SUITE_READINESS),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
         "source_implementation_preconditions": relative_path(PRECONDITIONS),
+        "source_executor_storage_confirmation_enablement_plan": relative_path(ENABLEMENT_PLAN),
         "hard_prerequisites": hard_prerequisites,
         "delta_totals": {
             "hard_prerequisite_count": len(hard_prerequisites),

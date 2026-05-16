@@ -19,6 +19,7 @@ NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-su
 IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
 NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
 SHORT_CLOSE_DELTA = FIXTURE_DIR / "session-tooling-short-close-readiness-delta.json"
+ENABLEMENT_PLAN = FIXTURE_DIR / "session-tooling-executor-storage-confirmation-enablement-plan.json"
 CONFIRMATION_FLOW = FIXTURE_DIR / "session-tooling-confirmation-flow-design.json"
 INDEPENDENT_AUDIT = FIXTURE_DIR / "session-tooling-independent-audit-records-design.json"
 RESULT_MATERIALIZATION = FIXTURE_DIR / "session-tooling-result-materialization-policy-design.json"
@@ -47,6 +48,7 @@ REQUIRED_GATES = {
     "deny_by_default_implementation_gates",
     "negative_coverage_rollup",
     "implementation_preconditions",
+    "executor_storage_confirmation_enablement_plan",
 }
 REQUIRED_NOT_READY_AREAS = {"executor", "storage", "confirmation"}
 REQUIRED_SHORT_CLOSE_PREREQUISITES = {
@@ -170,6 +172,7 @@ def build_rollup() -> dict[str, Any]:
         load_json_document(NEGATIVE_COVERAGE_ROLLUP),
         "negative coverage rollup fixture must be object",
     )
+    enablement_plan = require_object(load_json_document(ENABLEMENT_PLAN), "enablement plan fixture must be object")
     confirmation = require_object(load_json_document(CONFIRMATION_FLOW), "confirmation flow fixture must be object")
     audit = require_object(load_json_document(INDEPENDENT_AUDIT), "independent audit fixture must be object")
     result = require_object(load_json_document(RESULT_MATERIALIZATION), "result materialization fixture must be object")
@@ -201,6 +204,11 @@ def build_rollup() -> dict[str, Any]:
         "negative_coverage_rollup_governance_only",
         "negative coverage rollup",
     )
+    require_status(
+        enablement_plan,
+        "enablement_plan_defined_blocked",
+        "executor/storage/confirmation enablement plan",
+    )
     require_status(confirmation, "design_only_not_connected", "confirmation flow")
     require_status(audit, "design_only_not_connected", "independent audit")
     require_status(result, "design_only_not_connected", "result materialization")
@@ -222,6 +230,7 @@ def build_rollup() -> dict[str, Any]:
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
         "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
         "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
+        "source_executor_storage_confirmation_enablement_plan": relative_path(ENABLEMENT_PLAN),
         "design_gate_rollup": [
             {
                 "gate_id": "confirmation_flow",
@@ -353,6 +362,18 @@ def build_rollup() -> dict[str, Any]:
                     "executor",
                     "storage",
                     "confirmation",
+                ],
+            },
+            {
+                "gate_id": "executor_storage_confirmation_enablement_plan",
+                "source": relative_path(ENABLEMENT_PLAN),
+                "status": enablement_plan["status"],
+                "implementation_ready": False,
+                "current_claim": "executor, storage, and confirmation gated-plan entry conditions are checkable while current implementation remains blocked",
+                "remaining_blockers": [
+                    "upper_layer_confirmation_flow",
+                    "complete_negative_regression_suite",
+                    "durable_store_and_result_reader_policy",
                 ],
             },
         ],

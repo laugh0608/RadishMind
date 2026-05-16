@@ -13,6 +13,7 @@
   "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
   "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
   "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "source_executor_storage_confirmation_enablement_plan": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
   "design_gate_rollup": [
     {
       "gate_id": "confirmation_flow",
@@ -144,6 +145,18 @@
         "executor",
         "storage",
         "confirmation"
+      ]
+    },
+    {
+      "gate_id": "executor_storage_confirmation_enablement_plan",
+      "source": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+      "status": "enablement_plan_defined_blocked",
+      "implementation_ready": false,
+      "current_claim": "executor, storage, and confirmation gated-plan entry conditions are checkable while current implementation remains blocked",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "complete_negative_regression_suite",
+        "durable_store_and_result_reader_policy"
       ]
     }
   ],

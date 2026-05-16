@@ -24,6 +24,8 @@ Storage backend design 为 `scripts/checks/fixtures/session-tooling-storage-back
 
 Deny-by-default implementation gates 为 `scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json`，快速门禁为 `scripts/check-session-tooling-deny-by-default-implementation-gates.py`。它只定义 executor、storage、confirmation 三类实现入口的默认拒绝契约、拒绝码和 side-effect absence 断言，不代表真实 executor、durable store 或 confirmation flow 已经存在。
 
+Executor / storage / confirmation enablement plan 为 `scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json`，快速门禁为 `scripts/check-session-tooling-executor-storage-confirmation-enablement-plan.py`。它只把三类能力进入未来 gated plan 前必须具备的证据拆成可检查条件，不代表 executor、storage 或 confirmation 已经进入实现设计。
+
 ## 当前已完成门禁
 
 当前可以声明的能力只到以下层级：
@@ -34,6 +36,7 @@ Deny-by-default implementation gates 为 `scripts/checks/fixtures/session-toolin
 - promotion gate、negative consumption summary、route smoke coverage summary 和 readiness summary 已进入 `check-repo --fast`。
 - confirmation flow、independent audit records、result materialization policy、executor boundary 和 storage backend 已有设计级 fixture 与 check，但仍未接入真实实现。
 - executor、storage、confirmation deny-by-default implementation gate contract 已可检查，但仍只是默认拒绝契约。
+- executor、storage、confirmation enablement plan 已可检查，但三类能力仍是 `blocked_not_gated_plan` / `not_ready`。
 
 这些门禁只说明 contract 和 metadata smoke ready，不说明真实 executor、durable storage、confirmation flow 或 replay 已经存在。
 

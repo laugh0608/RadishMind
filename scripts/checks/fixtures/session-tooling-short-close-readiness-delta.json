@@ -11,6 +11,7 @@
   "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
   "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
   "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_executor_storage_confirmation_enablement_plan": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
   "hard_prerequisites": [
     {
       "prerequisite_id": "upper_layer_confirmation_flow",
@@ -46,7 +47,7 @@
     {
       "prerequisite_id": "executor_storage_confirmation_enablement_plan",
       "current_status": "not_satisfied",
-      "current_evidence": "implementation preconditions remain executor=not_ready, storage=not_ready, confirmation=not_ready",
+      "current_evidence": "enablement plan is defined but blocked; implementation preconditions remain executor=not_ready, storage=not_ready, confirmation=not_ready",
       "required_delta": [
         "turn executor enablement from not_ready to gated plan only after confirmation and negative suite prerequisites are satisfied",
         "turn storage enablement from not_ready to gated plan only after durable store and result reader policy is satisfied",

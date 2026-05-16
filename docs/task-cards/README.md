@@ -40,6 +40,7 @@
 13. [`P2 Session & Tooling` route smoke readiness rollup](session-tooling-route-smoke-readiness-rollup.md)
 14. [`P2 Session & Tooling` short close readiness delta](session-tooling-short-close-readiness-delta.md)
 15. [`P2 Session & Tooling` readiness consistency rollup](session-tooling-readiness-consistency-rollup.md)
+16. [`P2 Session & Tooling` executor / storage / confirmation enablement plan](session-tooling-executor-storage-confirmation-enablement-plan.md)
 
 使用原则：
 

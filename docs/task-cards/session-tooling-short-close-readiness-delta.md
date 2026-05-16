@@ -16,7 +16,7 @@
 
 - `upper_layer_confirmation_flow`：confirmation flow design 已可检查，但还没有真实 approve / reject / defer 上层接线。
 - `complete_negative_regression_suite`：governance suite、suite readiness、deny-by-default gates 和 negative coverage rollup 已存在，但真实 implementation consumer 仍缺失。
-- `executor_storage_confirmation_enablement_plan`：executor、storage、confirmation 仍全部是 `not_ready`，不能被当前治理资产直接解锁。
+- `executor_storage_confirmation_enablement_plan`：`scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json` 已把三类能力进入未来 gated plan 前的证据拆成可检查条件，但 executor、storage、confirmation 仍全部是 `blocked_not_gated_plan` / `not_ready`，不能被当前治理资产直接解锁。
 - `durable_store_and_result_reader_policy`：storage backend 与 result materialization policy 仍停在设计门禁，没有 durable store 或 materialized result reader。
 
 ## 当前允许声明

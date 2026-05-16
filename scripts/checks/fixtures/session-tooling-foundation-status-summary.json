@@ -16,6 +16,7 @@
   "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
   "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
   "source_readiness_consistency_rollup": "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json",
+  "source_executor_storage_confirmation_enablement_plan": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -155,6 +156,16 @@
         "scripts/check-session-tooling-readiness-consistency-rollup.py"
       ],
       "claim": "close candidate, route smoke, negative coverage, suite readiness, and short close delta readiness claims are cross-checked for drift"
+    },
+    {
+      "track_id": "executor_storage_confirmation_enablement_plan",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-executor-storage-confirmation-enablement-plan.md",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/check-session-tooling-executor-storage-confirmation-enablement-plan.py"
+      ],
+      "claim": "executor, storage, and confirmation gated-plan entry conditions are checkable while implementation remains blocked"
     }
   ],
   "missing_implementation_prerequisites": [

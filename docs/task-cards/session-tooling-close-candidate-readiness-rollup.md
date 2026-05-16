@@ -10,6 +10,8 @@
 
 当前 rollup 只声明 `close_candidate_governance_only`，即 governance-only：design gate 可检查，metadata smoke 可复验，负向回归已有 skeleton，`scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json` 已固定 route smoke、fixture consumer、governance suite 和 deny-by-default gate contract 的覆盖关系，`scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json` 已把 close candidate 到 `P2 short close` 的硬前置条件收口为 `not_satisfied` delta；但仍不是 `P2 short close`，也不是真实 executor、durable store、confirmation flow、materialized result reader 或 replay 已实现。
 
+`scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json` 已把 executor、storage、confirmation 进入未来 gated plan 前的证据拆成可检查条件，但该 plan 仍是 governance-only，不解除任何实现阻塞。
+
 ## 汇总范围
 
 rollup 汇总以下已落地的 P2 治理资产：
@@ -23,6 +25,7 @@ rollup 汇总以下已落地的 P2 治理资产：
 - deny-by-default implementation gates
 - negative coverage rollup
 - implementation preconditions
+- executor / storage / confirmation enablement plan
 
 这些资产只把当前边界收口到可检查的设计层，不解除任何实现阻塞。
 
@@ -52,7 +55,7 @@ rollup 汇总以下已落地的 P2 治理资产：
 
 - `upper_layer_confirmation_flow`：上层还没有真实 approve / reject / defer 接线。
 - `complete_negative_regression_suite`：当前已有 governance-only suite、deny-by-default gate contract 和 negative coverage rollup，但没有真实 implementation consumer 证明执行、存储和确认入口都会先拒绝。
-- `executor_storage_confirmation_enablement_plan`：executor、storage、confirmation 仍全部是 `not_ready`。
+- `executor_storage_confirmation_enablement_plan`：enablement plan 已可检查，但 executor、storage、confirmation 仍全部是 `blocked_not_gated_plan` / `not_ready`。
 - `durable_store_and_result_reader_policy`：durable store 与 materialized result reader 仍未实现或启用。
 
 ## 非目标
