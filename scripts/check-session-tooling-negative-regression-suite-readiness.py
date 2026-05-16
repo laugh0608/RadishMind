@@ -16,6 +16,7 @@ PRECONDITIONS_PATH = FIXTURE_DIR / "session-tooling-implementation-preconditions
 DENIED_QUERY_FIXTURE = FIXTURE_DIR / "session-recovery-checkpoint-read-denied-queries.json"
 CLOSE_CANDIDATE_ROLLUP = FIXTURE_DIR / "session-tooling-close-candidate-readiness-rollup.json"
 IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
+NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
 
 TASK_CARD_PATH = REPO_ROOT / "docs/task-cards/session-tooling-negative-regression-suite-readiness.md"
 TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
@@ -38,6 +39,7 @@ REQUIRED_REQUIREMENTS = {
     "side_effect_absence_assertions",
     "checkpoint_denied_query_alignment",
     "implementation_gate_alignment",
+    "negative_coverage_rollup_alignment",
 }
 REQUIRED_BLOCKERS = {
     "real_executor_storage_confirmation_implementations_missing",
@@ -188,6 +190,7 @@ def build_readiness() -> dict[str, Any]:
     denied_queries = require_object(load_json_document(DENIED_QUERY_FIXTURE), "denied query fixture must be object")
     close_candidate = require_object(load_json_document(CLOSE_CANDIDATE_ROLLUP), "close candidate rollup must be object")
     implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
+    negative_coverage = require_object(load_json_document(NEGATIVE_COVERAGE_ROLLUP), "negative coverage rollup must be object")
 
     require(skeleton.get("status") == "skeleton_only_implementation_blocked", "skeleton must remain implementation blocked")
     require(
@@ -201,8 +204,16 @@ def build_readiness() -> dict[str, Any]:
     require(preconditions.get("status") == "preconditions_not_satisfied", "preconditions must remain unsatisfied")
     require(close_candidate.get("status") == "close_candidate_governance_only", "rollup must remain governance-only")
     require(
+        negative_coverage.get("status") == "negative_coverage_rollup_governance_only",
+        "negative coverage rollup must remain governance-only",
+    )
+    require(
         "complete_negative_regression_suite" in close_candidate.get("prohibited_claims", []),
         "rollup must still prohibit complete negative regression suite claim",
+    )
+    require(
+        "complete_negative_regression_suite" in negative_coverage.get("prohibited_claims", []),
+        "negative coverage rollup must still prohibit complete suite claim",
     )
     denied_cases = denied_queries.get("cases")
     require(isinstance(denied_cases, list) and denied_cases, "denied query fixture must include cases")
@@ -219,6 +230,7 @@ def build_readiness() -> dict[str, Any]:
         "source_denied_query_fixture": relative_path(DENIED_QUERY_FIXTURE),
         "source_close_candidate_rollup": relative_path(CLOSE_CANDIDATE_ROLLUP),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
+        "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
         "minimum_suite_groups": minimum_suite_groups(skeleton, suite),
         "suite_acceptance_requirements": [
             {
@@ -245,6 +257,11 @@ def build_readiness() -> dict[str, Any]:
                 "requirement_id": "implementation_gate_alignment",
                 "status": "satisfied_by_deny_by_default_gate_contracts",
                 "description": "Executor, storage, and confirmation deny-by-default gate contracts exist, but real implementations are still blocked",
+            },
+            {
+                "requirement_id": "negative_coverage_rollup_alignment",
+                "status": "satisfied_by_governance_only_negative_coverage_rollup",
+                "description": "Route smoke, fixture consumers, governance suite cases, and deny-by-default gates are checkable, but real implementation consumers remain missing",
             },
         ],
         "current_skeleton_coverage": skeleton_coverage(skeleton),
@@ -307,6 +324,11 @@ def check_fixture_shape(document: dict[str, Any]) -> None:
     require(
         statuses_by_requirement.get("implementation_gate_alignment") == "satisfied_by_deny_by_default_gate_contracts",
         "suite readiness must align deny-by-default gate contracts",
+    )
+    require(
+        statuses_by_requirement.get("negative_coverage_rollup_alignment")
+        == "satisfied_by_governance_only_negative_coverage_rollup",
+        "suite readiness must align negative coverage rollup",
     )
 
     blockers = set(require_string_list(document.get("blocked_completion_reasons"), "suite readiness must include blockers"))

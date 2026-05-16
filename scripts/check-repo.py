@@ -1084,6 +1084,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-session-tooling-negative-regression-suite.py", [])
     run_python_script("check-session-tooling-negative-regression-suite-readiness.py", [])
     run_python_script("check-session-tooling-deny-by-default-implementation-gates.py", [])
+    run_python_script("check-session-tooling-negative-coverage-rollup.py", [])
     run_python_script("check-session-tooling-foundation-status-summary.py", [])
     run_python_script("check-session-tooling-close-candidate-readiness-rollup.py", [])
     run_python_script("check-session-tooling-confirmation-flow-design.py", [])

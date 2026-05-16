@@ -16,6 +16,7 @@ RESULT_MATERIALIZATION_POLICY_DESIGN = REPO_ROOT / "scripts/checks/fixtures/sess
 EXECUTOR_BOUNDARY_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-executor-boundary-design.json"
 STORAGE_BACKEND_DESIGN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-storage-backend-design.json"
 IMPLEMENTATION_GATES = REPO_ROOT / "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+NEGATIVE_COVERAGE_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
@@ -34,6 +35,7 @@ REQUIRED_TRACK_IDS = {
     "executor_boundary_design",
     "storage_backend_design",
     "deny_by_default_implementation_gates",
+    "negative_coverage_rollup",
 }
 REQUIRED_AREAS = {"executor", "storage", "confirmation"}
 REQUIRED_NEXT_STAGE_CONDITIONS = {
@@ -135,6 +137,7 @@ def build_summary() -> dict[str, Any]:
     preconditions = require_object(load_json_document(PRECONDITIONS), "preconditions fixture must be object")
     negative_skeleton = require_object(load_json_document(NEGATIVE_SKELETON), "negative skeleton fixture must be object")
     implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
+    negative_coverage = require_object(load_json_document(NEGATIVE_COVERAGE_ROLLUP), "negative coverage rollup must be object")
 
     require(readiness.get("status") == "metadata_ready_implementation_blocked", "readiness must stay implementation blocked")
     require(preconditions.get("status") == "preconditions_not_satisfied", "preconditions must stay unsatisfied")
@@ -145,6 +148,10 @@ def build_summary() -> dict[str, Any]:
     require(
         implementation_gates.get("status") == "deny_by_default_gates_defined_implementation_blocked",
         "implementation gates must be defined but blocked",
+    )
+    require(
+        negative_coverage.get("status") == "negative_coverage_rollup_governance_only",
+        "negative coverage rollup must stay governance-only",
     )
     check_negative_skeleton_groups(negative_skeleton)
 
@@ -162,6 +169,7 @@ def build_summary() -> dict[str, Any]:
         "source_executor_boundary_design": relative_path(EXECUTOR_BOUNDARY_DESIGN),
         "source_storage_backend_design": relative_path(STORAGE_BACKEND_DESIGN),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
+        "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
         "completed_governance_tracks": [
             {
                 "track_id": "contract_and_fixture_gates",
@@ -261,6 +269,16 @@ def build_summary() -> dict[str, Any]:
                     "scripts/check-session-tooling-deny-by-default-implementation-gates.py",
                 ],
                 "claim": "executor, storage, and confirmation deny-by-default implementation gate contracts are checkable while real implementations remain disabled",
+            },
+            {
+                "track_id": "negative_coverage_rollup",
+                "status": "complete",
+                "evidence": [
+                    "docs/task-cards/session-tooling-negative-coverage-rollup.md",
+                    "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+                    "scripts/check-session-tooling-negative-coverage-rollup.py",
+                ],
+                "claim": "negative route smoke, fixture consumers, governance suite cases, and deny-by-default gate coverage are checkable while real implementation consumers remain missing",
             },
         ],
         "missing_implementation_prerequisites": not_ready_areas_from_preconditions(preconditions),
@@ -374,6 +392,10 @@ def check_docs_and_consumers() -> None:
     require(
         "check-session-tooling-deny-by-default-implementation-gates.py" in check_repo,
         "fast baseline must run deny-by-default implementation gates check",
+    )
+    require(
+        "check-session-tooling-negative-coverage-rollup.py" in check_repo,
+        "fast baseline must run negative coverage rollup check",
     )
 
 

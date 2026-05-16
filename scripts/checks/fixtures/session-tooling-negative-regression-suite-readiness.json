@@ -10,6 +10,7 @@
   "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
   "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
   "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
   "minimum_suite_groups": [
     {
       "group_id": "executor_blocked",
@@ -91,6 +92,11 @@
       "requirement_id": "implementation_gate_alignment",
       "status": "satisfied_by_deny_by_default_gate_contracts",
       "description": "Executor, storage, and confirmation deny-by-default gate contracts exist, but real implementations are still blocked"
+    },
+    {
+      "requirement_id": "negative_coverage_rollup_alignment",
+      "status": "satisfied_by_governance_only_negative_coverage_rollup",
+      "description": "Route smoke, fixture consumers, governance suite cases, and deny-by-default gates are checkable, but real implementation consumers remain missing"
     }
   ],
   "current_skeleton_coverage": {

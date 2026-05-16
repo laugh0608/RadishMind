@@ -17,6 +17,7 @@ NEGATIVE_SKELETON = FIXTURE_DIR / "session-tooling-negative-regression-skeleton.
 NEGATIVE_SUITE = FIXTURE_DIR / "session-tooling-negative-regression-suite.json"
 NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
 IMPLEMENTATION_GATES = FIXTURE_DIR / "session-tooling-deny-by-default-implementation-gates.json"
+NEGATIVE_COVERAGE_ROLLUP = FIXTURE_DIR / "session-tooling-negative-coverage-rollup.json"
 CONFIRMATION_FLOW = FIXTURE_DIR / "session-tooling-confirmation-flow-design.json"
 INDEPENDENT_AUDIT = FIXTURE_DIR / "session-tooling-independent-audit-records-design.json"
 RESULT_MATERIALIZATION = FIXTURE_DIR / "session-tooling-result-materialization-policy-design.json"
@@ -43,6 +44,7 @@ REQUIRED_GATES = {
     "negative_regression_governance_suite",
     "negative_regression_suite_readiness",
     "deny_by_default_implementation_gates",
+    "negative_coverage_rollup",
     "implementation_preconditions",
 }
 REQUIRED_NOT_READY_AREAS = {"executor", "storage", "confirmation"}
@@ -162,6 +164,10 @@ def build_rollup() -> dict[str, Any]:
         "negative suite readiness fixture must be object",
     )
     implementation_gates = require_object(load_json_document(IMPLEMENTATION_GATES), "implementation gates fixture must be object")
+    negative_coverage_rollup = require_object(
+        load_json_document(NEGATIVE_COVERAGE_ROLLUP),
+        "negative coverage rollup fixture must be object",
+    )
     confirmation = require_object(load_json_document(CONFIRMATION_FLOW), "confirmation flow fixture must be object")
     audit = require_object(load_json_document(INDEPENDENT_AUDIT), "independent audit fixture must be object")
     result = require_object(load_json_document(RESULT_MATERIALIZATION), "result materialization fixture must be object")
@@ -188,6 +194,11 @@ def build_rollup() -> dict[str, Any]:
         "deny_by_default_gates_defined_implementation_blocked",
         "implementation gates",
     )
+    require_status(
+        negative_coverage_rollup,
+        "negative_coverage_rollup_governance_only",
+        "negative coverage rollup",
+    )
     require_status(confirmation, "design_only_not_connected", "confirmation flow")
     require_status(audit, "design_only_not_connected", "independent audit")
     require_status(result, "design_only_not_connected", "result materialization")
@@ -207,6 +218,7 @@ def build_rollup() -> dict[str, Any]:
         "source_negative_regression_suite": relative_path(NEGATIVE_SUITE),
         "source_negative_regression_suite_readiness": relative_path(NEGATIVE_SUITE_READINESS),
         "source_deny_by_default_implementation_gates": relative_path(IMPLEMENTATION_GATES),
+        "source_negative_coverage_rollup": relative_path(NEGATIVE_COVERAGE_ROLLUP),
         "design_gate_rollup": [
             {
                 "gate_id": "confirmation_flow",
@@ -314,6 +326,18 @@ def build_rollup() -> dict[str, Any]:
                     "upper_layer_confirmation_flow",
                     "complete_negative_regression_suite",
                     "real_executor_storage_confirmation_implementations",
+                ],
+            },
+            {
+                "gate_id": "negative_coverage_rollup",
+                "source": relative_path(NEGATIVE_COVERAGE_ROLLUP),
+                "status": negative_coverage_rollup["status"],
+                "implementation_ready": False,
+                "current_claim": "negative fixture, route smoke, governance suite, and gate contract coverage is checkable",
+                "remaining_blockers": [
+                    "complete_negative_regression_suite",
+                    "real_executor_storage_confirmation_implementations",
+                    "upper_layer_confirmation_flow",
                 ],
             },
             {

@@ -11,6 +11,7 @@
   "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
   "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
   "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
   "design_gate_rollup": [
     {
       "gate_id": "confirmation_flow",
@@ -118,6 +119,18 @@
         "upper_layer_confirmation_flow",
         "complete_negative_regression_suite",
         "real_executor_storage_confirmation_implementations"
+      ]
+    },
+    {
+      "gate_id": "negative_coverage_rollup",
+      "source": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+      "status": "negative_coverage_rollup_governance_only",
+      "implementation_ready": false,
+      "current_claim": "negative fixture, route smoke, governance suite, and gate contract coverage is checkable",
+      "remaining_blockers": [
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations",
+        "upper_layer_confirmation_flow"
       ]
     },
     {
