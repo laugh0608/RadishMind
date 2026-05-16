@@ -42,6 +42,7 @@
 15. [`P2 Session & Tooling` readiness consistency rollup](session-tooling-readiness-consistency-rollup.md)
 16. [`P2 Session & Tooling` executor / storage / confirmation enablement plan](session-tooling-executor-storage-confirmation-enablement-plan.md)
 17. [`P2 Session & Tooling` route negative coverage matrix](session-tooling-route-negative-coverage-matrix.md)
+18. [`P2 Session & Tooling` stop-line manifest](session-tooling-stop-line-manifest.md)
 
 使用原则：
 

@@ -22,6 +22,7 @@ ROUTE_SMOKE_READINESS_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tool
 SHORT_CLOSE_DELTA = REPO_ROOT / "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
 READINESS_CONSISTENCY_ROLLUP = REPO_ROOT / "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json"
 ENABLEMENT_PLAN = REPO_ROOT / "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json"
+STOP_LINE_MANIFEST = REPO_ROOT / "scripts/checks/fixtures/session-tooling-stop-line-manifest.json"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
@@ -46,6 +47,7 @@ REQUIRED_TRACK_IDS = {
     "short_close_readiness_delta",
     "readiness_consistency_rollup",
     "executor_storage_confirmation_enablement_plan",
+    "stop_line_manifest",
 }
 REQUIRED_AREAS = {"executor", "storage", "confirmation"}
 REQUIRED_NEXT_STAGE_CONDITIONS = {
@@ -185,6 +187,7 @@ def build_summary() -> dict[str, Any]:
         "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "source_readiness_consistency_rollup": relative_path(READINESS_CONSISTENCY_ROLLUP),
         "source_executor_storage_confirmation_enablement_plan": relative_path(ENABLEMENT_PLAN),
+        "source_stop_line_manifest": relative_path(STOP_LINE_MANIFEST),
         "completed_governance_tracks": [
             {
                 "track_id": "contract_and_fixture_gates",
@@ -345,6 +348,16 @@ def build_summary() -> dict[str, Any]:
                 ],
                 "claim": "executor, storage, and confirmation gated-plan entry conditions are checkable while implementation remains blocked",
             },
+            {
+                "track_id": "stop_line_manifest",
+                "status": "complete",
+                "evidence": [
+                    "docs/task-cards/session-tooling-stop-line-manifest.md",
+                    "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+                    "scripts/check-session-tooling-stop-line-manifest.py",
+                ],
+                "claim": "P2 hard prerequisites and stop-line capabilities remain checkable and blocked before any implementation can be enabled",
+            },
         ],
         "missing_implementation_prerequisites": not_ready_areas_from_preconditions(preconditions),
         "next_stage_entry_conditions": [
@@ -481,6 +494,10 @@ def check_docs_and_consumers() -> None:
     require(
         "check-session-tooling-executor-storage-confirmation-enablement-plan.py" in check_repo,
         "fast baseline must run executor/storage/confirmation enablement plan check",
+    )
+    require(
+        "check-session-tooling-stop-line-manifest.py" in check_repo,
+        "fast baseline must run stop-line manifest check",
     )
 
 

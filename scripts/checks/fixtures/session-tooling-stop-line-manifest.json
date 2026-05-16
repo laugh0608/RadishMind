@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_stop_line_manifest",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "stop_lines_governance_only",
+  "implementation_status": "not_ready",
+  "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "source_executor_storage_confirmation_enablement_plan": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+  "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_route_negative_coverage_matrix": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+  "hard_prerequisite_blockers": [
+    {
+      "blocker_id": "upper_layer_confirmation_flow",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "evidence": "confirmation flow design exists, but no approve/reject/defer integration is connected",
+      "blocks_claims": [
+        "confirmation_flow_connected",
+        "confirmed_action_execution",
+        "p2_short_close"
+      ]
+    },
+    {
+      "blocker_id": "complete_negative_regression_suite",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "evidence": "governance suite, suite readiness, deny-by-default gates, and negative coverage rollup exist, but real implementation consumers are missing",
+      "blocks_claims": [
+        "complete_negative_regression_suite",
+        "real_tool_executor_ready",
+        "durable_storage_ready",
+        "p2_short_close"
+      ]
+    },
+    {
+      "blocker_id": "executor_storage_confirmation_enablement_plan",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "evidence": "enablement plan is defined but blocked; implementation preconditions remain executor=not_ready, storage=not_ready, confirmation=not_ready",
+      "blocks_claims": [
+        "real_tool_executor_ready",
+        "durable_storage_ready",
+        "confirmation_flow_connected",
+        "p2_short_close"
+      ]
+    },
+    {
+      "blocker_id": "durable_store_and_result_reader_policy",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "evidence": "storage backend and result materialization policy are design-checkable, but durable stores and materialized result readers are disabled",
+      "blocks_claims": [
+        "durable_storage_ready",
+        "materialized_result_reader_ready",
+        "automatic_replay_ready",
+        "p2_short_close"
+      ]
+    }
+  ],
+  "stop_line_capabilities": [
+    {
+      "capability": "automatic_replay",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "business_truth_write",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "confirmed_action_execution",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "durable_audit_store",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "durable_checkpoint_store",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "durable_result_store",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "durable_session_store",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "durable_tool_store",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "long_term_memory",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "materialized_result_reader",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "real_checkpoint_storage_backend",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json"
+      ]
+    },
+    {
+      "capability": "real_tool_executor",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "replay_executor",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json"
+      ]
+    },
+    {
+      "capability": "result_ref_reader",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "capability": "upper_layer_confirmation_flow_connection",
+      "status": "blocked",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json"
+      ]
+    }
+  ],
+  "suite_blocker_summary": {
+    "negative_suite_cases": 9,
+    "current_route_covered_suite_cases": 2,
+    "future_route_required_suite_cases": 7,
+    "future_route_requirements_satisfied": 0,
+    "suite_completion_blocker_cases": 7
+  },
+  "blocker_source_map": [
+    {
+      "blocker_id": "upper_layer_confirmation_flow",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json"
+      ]
+    },
+    {
+      "blocker_id": "complete_negative_regression_suite",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+        "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json"
+      ]
+    },
+    {
+      "blocker_id": "executor_storage_confirmation_enablement_plan",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json"
+      ]
+    },
+    {
+      "blocker_id": "durable_store_and_result_reader_policy",
+      "evidence_sources": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+        "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json"
+      ]
+    }
+  ],
+  "required_updates_before_relaxing_stop_line": [
+    {
+      "fixture": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+      "check": "check-session-tooling-close-candidate-readiness-rollup.py"
+    },
+    {
+      "fixture": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "check": "check-session-tooling-short-close-readiness-delta.py"
+    },
+    {
+      "fixture": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+      "check": "check-session-tooling-executor-storage-confirmation-enablement-plan.py"
+    },
+    {
+      "fixture": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+      "check": "check-session-tooling-negative-regression-suite-readiness.py"
+    },
+    {
+      "fixture": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+      "check": "check-session-tooling-route-negative-coverage-matrix.py"
+    },
+    {
+      "fixture": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+      "check": "check-session-tooling-stop-line-manifest.py"
+    }
+  ],
+  "current_allowed_claims": [
+    "stop_lines_manifest_checkable",
+    "hard_prerequisite_blockers_identified",
+    "stop_line_evidence_sources_checkable",
+    "governance_only_stop_line_status"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready",
+    "complete_negative_regression_suite"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-stop-line-manifest.py",
+      "coverage": "regenerates_and_compares_this_stop_line_manifest"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

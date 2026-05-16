@@ -18,6 +18,7 @@
   "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
   "source_readiness_consistency_rollup": "scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json",
   "source_executor_storage_confirmation_enablement_plan": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+  "source_stop_line_manifest": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
   "completed_governance_tracks": [
     {
       "track_id": "contract_and_fixture_gates",
@@ -177,6 +178,16 @@
         "scripts/check-session-tooling-executor-storage-confirmation-enablement-plan.py"
       ],
       "claim": "executor, storage, and confirmation gated-plan entry conditions are checkable while implementation remains blocked"
+    },
+    {
+      "track_id": "stop_line_manifest",
+      "status": "complete",
+      "evidence": [
+        "docs/task-cards/session-tooling-stop-line-manifest.md",
+        "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+        "scripts/check-session-tooling-stop-line-manifest.py"
+      ],
+      "claim": "P2 hard prerequisites and stop-line capabilities remain checkable and blocked before any implementation can be enabled"
     }
   ],
   "missing_implementation_prerequisites": [
