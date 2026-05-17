@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-05-14
+更新时间：2026-05-17
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -43,6 +43,7 @@
 16. [`P2 Session & Tooling` executor / storage / confirmation enablement plan](session-tooling-executor-storage-confirmation-enablement-plan.md)
 17. [`P2 Session & Tooling` route negative coverage matrix](session-tooling-route-negative-coverage-matrix.md)
 18. [`P2 Session & Tooling` stop-line manifest](session-tooling-stop-line-manifest.md)
+19. [`P2 Session & Tooling` short close entry checklist](session-tooling-short-close-entry-checklist.md)
 
 使用原则：
 
