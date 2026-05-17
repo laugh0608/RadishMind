@@ -104,7 +104,7 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 当前 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口。它聚合服务状态、`/v1/models` provider/profile inventory、session metadata route、tool metadata route、blocked action route 和停止线，供未来本地控制台或上层 UI 一次读取当前平台可展示能力。该 overview 只消费已有 metadata / blocked shell，不引入第二套业务真相源，也不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
-上层或未来本地 console 的 overview 消费口径已固定在 `contracts/typescript/platform-overview-api.ts`。该文件只提供 `PlatformOverviewResponse`、`PlatformOverviewConsoleViewModel` 和只读 view helper，调用侧应把 service status、model inventory、session/tooling surface 和 stop-lines 作为展示字段；不得把 overview 投影成可执行命令、durable store 状态、业务写回能力或 replay 能力。
+上层或未来本地 console 的 overview 消费口径已固定在 [Platform Overview UI View 契约](platform-overview-ui-view.md) 与 `contracts/typescript/platform-overview-api.ts`。该 TypeScript 文件只提供 `PlatformOverviewResponse`、`PlatformOverviewConsoleViewModel` 和只读 view helper，调用侧应把 service status、model inventory、session/tooling surface 和 stop-lines 作为展示字段；不得把 overview 投影成可执行命令、durable store 状态、业务写回能力或 replay 能力。
 
 上层或未来 UI 的最小 TypeScript 消费口径已固定在 `contracts/typescript/session-tooling-api.ts`。该文件只提供 `SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse` 类型和 blocked view helper，调用侧应把 `canExecute=false`、`statusLabel=blocked`、`primaryCode`、`requiresConfirmation` 与 `noSideEffects` 作为展示字段；不得把 metadata shell 或 blocked response 转成可执行命令。
 

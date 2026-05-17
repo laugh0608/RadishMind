@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-05-16
+更新时间：2026-05-17
 
 ## 目录目标
 
@@ -15,12 +15,14 @@
   - 例如 `check-repo.py`、`run-eval-regression.py`、`check-repo.sh`、`check-repo-fast.sh`
   - `check-repo.py` 支持 `--fast`，用于日常快速验证；`check-repo.sh --fast`、`check-repo-fast.sh`、`pwsh ./scripts/check-repo.ps1 -Fast` 与 `pwsh ./scripts/check-repo-fast.ps1` 都会跳过慢速回归和批量元数据重跑，但仍保留核心静态门禁
   - 当前还提供 `run-platform-service.sh` 与 `run-platform-service.ps1`，作为本地 Go platform service wrapper；支持 `serve`、`config-summary`、`config-check` 与 `diagnostics`，并统一处理 repo root、`services/platform` 工作目录、默认 `GOCACHE` 和默认本地配置文件
+  - 当前还提供 `run-platform-overview-consumer-smoke.py`，用于把 `GET /v1/platform/overview` 转成未来本地 console 可展示的 overview view model；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回
   - 当前还提供 `run-platform-session-tooling-consumer-smoke.py`，用于把 session/tooling metadata shell 与 blocked action response 转成上层可展示的消费视图；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回
   - 当前还提供 `check-platform-ops-smoke.py`，用于固定 Go platform service 的测试入口、bridge registry 和 provider/profile inventory 基线
   - 当前还提供 `check-platform-config.py`，用于校验 platform config summary / config check 的脱敏输出、配置来源和 secret 不泄露边界
   - 当前还提供 `check-platform-deployment-smoke.py`，用于校验 JSON 配置文件层级、环境变量覆盖、wrapper unknown command failure boundary 和 secret 不泄露边界
   - 当前还提供 `check-platform-diagnostics.py`，用于校验 structured diagnostics、startup/config/bridge/provider registry failure boundary 和 discoverability selectable model ids
   - 当前还提供 `check-platform-runbook.py`，用于校验 platform 本地运行说明与脚本入口之间的 runbook drift
+  - 当前还提供 `check-platform-overview-consumer-contract.py`，用于校验 `contracts/typescript/platform-overview-api.ts` 与 Go platform overview route 的只读路由、停止线和 console view model 保持一致，并在离线模式下运行 `run-platform-overview-consumer-smoke.py --check`；它只固定 overview 消费视图，不实现 UI、executor、durable store 或 confirmation 接线
   - 当前还提供 `check-platform-session-tooling-consumer-contract.py`，用于校验 `contracts/typescript/session-tooling-api.ts` 与 Go session/tooling metadata shell 的路由、拒绝码和 blocked action 无副作用字段保持一致，并在离线模式下运行 `run-platform-session-tooling-consumer-smoke.py --check`；它只固定上层消费视图，不实现 UI、executor、durable store 或 confirmation 接线
   - 当前还提供 `check-session-record-contract.py`，用于校验 `SessionRecord` schema、fixture、history/state policy、recovery record、northbound metadata 和不写业务真相源边界
   - 当前还提供 `check-tooling-framework-contract.py`，用于校验 tool definition、registry policy、tool audit、session binding、metadata-only result cache、不启用 executor 和不写 durable memory 边界

@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-16
+更新时间：2026-05-17
 
 ## 这份文档讲什么
 
@@ -26,6 +26,7 @@
 - 接收结构化上下文
 - 运行最小推理链路
 - 兼容多种上游模型接入方式与多种下游协议接口
+- 提供本地只读产品发现面，供 console 或上层 UI 读取平台可展示能力和停止线
 - 组织局部工具、规则和响应收口
 - 输出解释、诊断、结构化建议和候选动作
 - 维护统一协议、评测门禁、审计记录和训练治理
@@ -156,9 +157,9 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向已有第一版兼容面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
+- 北向已有第一版兼容面和只读产品面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/session/metadata`、`/v1/tools/metadata`、blocked `/v1/tools/actions`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
 - `P1 Runtime Foundation` 已达到 short close，当前不应继续把 provider/config/diagnostics/observability 同层细节当作主线
-- 当前仍是窄切片：还缺 production secret backend、部署隔离、外部 provider health check、少量高价值 route / stream 组合 smoke，以及 session/tooling 的真实确认流接线、存储、执行和完整负向回归；P2 现有 route / gate / negative regression 资产仍是 governance-only
+- 当前仍是窄切片：还缺 production secret backend、部署隔离、外部 provider health check、真实本地 console 壳，以及 session/tooling 的真实确认流接线、存储、执行和完整负向回归；P2 现有 route / gate / negative regression 资产仍是 governance-only
 
 ## 今天还不能算完成的能力
 
@@ -168,11 +169,12 @@ python3 scripts/run-radishmind-core-candidate.py \
 - production secret backend
 - process supervisor 与环境隔离
 - 外部 provider health check
+- 真正的本地 console 前端工程
 - 更完整的 route-level smoke、stream 组合和兼容性矩阵
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
 - 真实工具执行器、materialized tool result cache、上层确认流接线和完整 session/tooling 负向回归 implementation consumer
 
-所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面，也没有真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、overview consumer smoke、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面、本地 console 前端工程、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
 
 ## 读文档顺序
 

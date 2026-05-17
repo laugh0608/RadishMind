@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-05-16
+更新时间：2026-05-17
 
 ## 架构目标
 
@@ -20,16 +20,17 @@
 - 当前 southbound 已开始由统一 `provider registry` 收口：现有 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流都归到同一条 provider truth；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
 - 当前 northbound 对外形态已经开始由 `Go` 承载最小正式 `HTTP` 服务壳；`Python` 继续保留 CLI runtime 和 canonical gateway 语义，`Go` 只做协议兼容与进程调度，避免把平台服务层锁死在 `Python`。
 - `UI` 层默认 `React + Vite + TypeScript`，通过北向协议消费平台能力，不直接承载模型实现逻辑。
+- 当前 `P3 Local Product Shell / Ops Surface` 已开始在平台服务层暴露只读 `/v1/platform/overview`，并用 TypeScript overview consumer contract 与 consumer smoke 固定未来本地 console 的 service status、model inventory、session/tooling surface 和 stop-line view model。
 
 ### 2. `Conversation & Session`
 
 - 负责 `conversation_id`、会话历史、恢复、压缩和审计边界。
-- 当前已有首版 session record、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、northbound session metadata、metadata-only route smoke、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、negative regression governance suite、route negative coverage matrix、short close readiness delta、readiness consistency rollup、executor/storage/confirmation enablement plan、stop-line manifest 和 foundation status summary；这些只代表 close candidate / governance-only，仍没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器。
+- 当前已有首版 session record、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、northbound session metadata、metadata-only route smoke、session metadata route 和 overview 消费面；confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、negative regression governance suite、route negative coverage matrix、short close readiness delta、readiness consistency rollup、executor/storage/confirmation enablement plan、stop-line manifest 和 foundation status summary 只代表 close candidate / governance-only，仍没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器。
 
 ### 3. `Tooling Framework`
 
 - 负责检索、附件解析、项目语义转换、本地候选生成、response builder 和工具策略。
-- 当前已有首版 tool contract、registry、policy/audit record、session binding、metadata-only result cache、checkpoint read `tool_audit_summary`、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton、governance-only negative regression suite、deny-by-default implementation gates、negative coverage rollup、route smoke readiness rollup、readiness drift 检查和五类设计门禁；仍没有真实工具执行器、materialized tool result cache、durable tool store、durable audit/result store 或上层确认流接线。
+- 当前已有首版 tool contract、registry、policy/audit record、session binding、metadata-only result cache、tool metadata route、blocked action route、checkpoint read `tool_audit_summary`、overview 消费面、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton、governance-only negative regression suite、deny-by-default implementation gates、negative coverage rollup、route smoke readiness rollup、readiness drift 检查和五类设计门禁；仍没有真实工具执行器、materialized tool result cache、durable tool store、durable audit/result store 或上层确认流接线。
 
 ### 4. `Model Runtime`
 
@@ -45,7 +46,7 @@
 
 当前还有一层必须继续补齐、但已经开始正式落地的协议翻译边界：
 
-- 北向：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 等兼容接口如何映射到 canonical `CopilotRequest`
+- 北向：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、session/tooling metadata shell 等兼容接口和产品面如何映射到 canonical request 或只读 discovery view
 - 南向：`RadishMind-Core`、`HuggingFace`、`Ollama`、OpenAI-compatible、Gemini、Anthropic 等 provider 如何被统一调度
 
 平台内部真相源仍应保持 `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`，兼容接口只做翻译层，不另起第二套真相源。
@@ -97,7 +98,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 - 统一校验请求、识别任务、选择 provider/profile，并返回 `CopilotGatewayEnvelope`。
 - 当前 `SUPPORTED_ROUTES` 仍然有限，说明平台还在先做骨架而不是全量铺开任务面。
-- 当前 `Go` 平台服务层已经通过 Python bridge 接到 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 的第一版兼容层；这条 bridge 目前仍是窄切片，先把非流式文本消息固定映射到 `radish/answer_docs_question`，并通过 SSE 做出第一版流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 `/v1/chat/completions` 的 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，同时补了 `HuggingFace` / `Ollama` 的第一版 southbound provider coverage；`/v1/models`、northbound request selection 与 diagnostics 已共享 provider-qualified profile inventory、credential state、deployment mode、streaming、route 和 protocol metadata，三种 northbound 协议也共享 `request_id`、latency、error code 与 failure boundary 观测口径，但这些路径仍必须复用同一条 gateway truth，而不是绕过 gateway 直接拼 provider 请求。
+- 当前 `Go` 平台服务层已经通过 Python bridge 接到 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 的第一版兼容层，并额外暴露只读 `/v1/platform/overview`、`/v1/session/metadata`、`/v1/tools/metadata` 和 blocked `/v1/tools/actions` 产品壳。bridge 目前仍是窄切片，先把非流式文本消息固定映射到 `radish/answer_docs_question`，并通过 SSE 做出第一版流式兼容骨架、把 `/v1/models` 从 provider 目录推进到 bridge-backed provider/profile inventory，再补上 `GET /v1/models/{id}` 的精确 lookup；当前已经把 request-side provider/profile 选择显式化，并把流式路径推进到 bridge 增量转发，同时补了 `HuggingFace` / `Ollama` 的第一版 southbound provider coverage。`/v1/platform/overview` 只聚合服务状态、model inventory、session/tooling route 和停止线；它不是执行器、store、confirmation flow 或业务写回入口。
 - 服务/API smoke 当前锁定 advisory-only、schema validation、route metadata、error envelope 和 handoff 不执行这些不变量。
 
 ### 3. Retrieval & Tool Layer
@@ -129,7 +130,8 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 - `Frontend UI`：`React + Vite + TypeScript`
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py`
-- `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound
+- `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound、session/tooling metadata shell、blocked action shell 和只读 platform overview
+- `Local Product Shell / Ops Surface`：`GET /v1/platform/overview`、`contracts/typescript/platform-overview-api.ts`、`scripts/run-platform-overview-consumer-smoke.py` 和 `docs/contracts/platform-overview-ui-view.md`
 - `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`
 - `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata、平台 checkpoint metadata-only route smoke、readiness summary、implementation preconditions、route smoke readiness rollup、short close readiness delta、stop-line manifest 和 storage / audit / result 边界 fixture
 - `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py`、confirmation flow design、executor boundary design、result materialization policy design、negative regression suite、deny-by-default gates、enablement plan 和各类 deterministic builder/check
@@ -139,13 +141,13 @@ Protocol Compatibility Layer 翻译回 northbound response
 ## 当前缺口
 
 - 当前只有 first-pass `Go` platform service 和 bridge-backed `HTTP API`，还不是 production deployment
-- northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models` 已具备第一版兼容接口；当前已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics、discoverability 对齐、请求级观测和错误分类，但生产部署边界还未正式落地
+- northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview` 和 session/tooling metadata shell 已具备第一版兼容 / discovery 接口；当前已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics、discoverability 对齐、请求级观测、错误分类和 overview consumer smoke，但生产部署边界还未正式落地
 - `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory 和 diagnostics 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
 - 已有 session/tooling 首版契约、metadata-only 门禁、close-candidate status summary、negative regression governance suite、route/gate coverage rollup、readiness consistency rollup、short close delta、enablement plan、stop-line manifest 和五类设计级边界门禁，但没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器
 - 已有 tool registry、tool audit、metadata-only result cache、result materialization policy design、executor boundary design 和 deny-by-default gate contract，但没有真实工具执行器、materialized result reader、durable tool store、durable result store 或上层确认流接线
 - 尚未具备 production secret backend、process supervisor、正式部署环境隔离和可发布部署包
 
-这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only；下一步应先用 stop-line manifest、short close readiness delta 和 entry checklist 复核 `P2 short close` 进入条件，再决定是否进入真实实现设计。
+这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only；当前实现重心已切到 `P3 Local Product Shell / Ops Surface`，下一步应优先补只读本地 console 壳，继续消费 `/v1/platform/overview`，而不是回头扩 P2 readiness、真实 executor、durable store 或 confirmation 接线。
 
 ## 当前进度
 

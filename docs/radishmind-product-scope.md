@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-05-10
+更新时间：2026-05-17
 
 ## 核心定义
 
@@ -23,21 +23,21 @@
 
 ### 1. `Runtime Service`
 
-- 提供最小可运行的推理入口、gateway、route 识别、provider/profile 选择和响应封装。
-- 当前已有 CLI runtime、进程内 Python gateway 与最小 `Go` HTTP bridge；后续要补更完整的长驻服务、HTTP 包装、启动配置和本地部署 runbook，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
+- 提供最小可运行的推理入口、gateway、route 识别、provider/profile 选择、响应封装和本地产品 discovery 面。
+- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、session/tooling metadata shell 和 blocked action shell；后续要补更完整的本地 console、生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
 - 这一层必须同时覆盖两条方向：
-  - 北向协议兼容：对外提供 native Copilot API，以及 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 这类常见兼容接口。
+  - 北向协议兼容：对外提供 native Copilot API，以及 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、session/tooling metadata shell 这类常见兼容接口和只读产品发现接口。
   - 南向模型接入：对内接入 `RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages 等 provider / transport。
 
 ### 2. `Conversation & Session`
 
 - 管理 `conversation_id`、会话上下文、历史压缩、恢复和审计边界。
-- 当前只具备 request 透传和局部 snapshot；后续要补齐正式 session contract、history policy 和 recovery 资产。
+- 当前已有 session contract、history/state policy、checkpoint metadata-only read route 和 `GET /v1/session/metadata`；这些只支撑 metadata / overview 展示，不代表 durable session store、长期记忆或 replay executor 已启用。
 
 ### 3. `Tooling Framework`
 
 - 承载检索、附件解析、项目语义转换、本地候选生成、response builder 与工具策略。
-- 当前工具能力主要是 task-local、deterministic 的规则与 builder；后续要收口为通用工具契约、registry、timeout/retry/policy 和 tool audit。
+- 当前已有通用 tool contract、registry、audit、`GET /v1/tools/metadata` 和 blocked `POST /v1/tools/actions`；它们只支撑 contract-only 展示和 blocked action response，不代表真实工具执行器、confirmation flow 或业务写回已启用。
 
 ### 4. `Evaluation & Governance`
 
@@ -64,6 +64,7 @@
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
+- 当前实现焦点已进入 `P3 Local Product Shell / Ops Surface`：先用 `/v1/platform/overview` 和 overview consumer smoke 固定本地 console 可展示能力，再补真正的只读 console 壳。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面

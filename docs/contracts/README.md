@@ -1,12 +1,13 @@
 # RadishMind 契约专题目录
 
-更新时间：2026-05-14
+更新时间：2026-05-17
 
 本目录承载 `docs/radishmind-integration-contracts.md` 拆出的稳定专题。入口文档只保留当前结论、索引和停止线；需要修改字段、任务上下文或长样例时，优先修改本目录下的对应专题页。
 
 ## 阅读入口
 
 - [服务/API 接入契约](service-api.md)
+- [Platform Overview UI View 契约](platform-overview-ui-view.md)
 - [会话记录契约](session.md)
 - [工具框架契约](tooling.md)
 - [Session / Tooling UI View 契约](session-tooling-ui-view.md)
