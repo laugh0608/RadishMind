@@ -102,6 +102,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 只承接最小 session/tooling 产品骨架。session metadata route 返回 northbound `radishmind` 扩展字段、history/state/recovery 边界和 disabled capability；tools metadata route 返回当前 contract-only registry view；tool action route 对工具 action 请求返回 `tool_action_blocked_response`，用于上层或 UI 消费 `status=blocked`、denial code、confirmation requirement 和 side-effect absence。该 blocked response 不代表 confirmation 接线、executor、durable store、materialized result reader、长期记忆、业务写回或 replay 已启用。
 
+上层或未来 UI 的最小 TypeScript 消费口径已固定在 `contracts/typescript/session-tooling-api.ts`。该文件只提供 `SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse` 类型和 blocked view helper，调用侧应把 `canExecute=false`、`statusLabel=blocked`、`primaryCode`、`requiresConfirmation` 与 `noSideEffects` 作为展示字段；不得把 metadata shell 或 blocked response 转成可执行命令。
+
 当前本地启动 runbook 固定在 `services/platform/README.md`，并由 `scripts/check-platform-runbook.py` 防止配置、路由和命令说明漂移。该检查会对齐 `RADISHMIND_PLATFORM_*` 环境变量、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions` 和最小 curl smoke 命令；它只保证本地开发入口可复验，不代表 secret 管理、进程守护、部署观测或生产鉴权已经完成。
 
 ### `RadishFlow` UI 消费口径

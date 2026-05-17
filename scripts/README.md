@@ -20,6 +20,7 @@
   - 当前还提供 `check-platform-deployment-smoke.py`，用于校验 JSON 配置文件层级、环境变量覆盖、wrapper unknown command failure boundary 和 secret 不泄露边界
   - 当前还提供 `check-platform-diagnostics.py`，用于校验 structured diagnostics、startup/config/bridge/provider registry failure boundary 和 discoverability selectable model ids
   - 当前还提供 `check-platform-runbook.py`，用于校验 platform 本地运行说明与脚本入口之间的 runbook drift
+  - 当前还提供 `check-platform-session-tooling-consumer-contract.py`，用于校验 `contracts/typescript/session-tooling-api.ts` 与 Go session/tooling metadata shell 的路由、拒绝码和 blocked action 无副作用字段保持一致；它只固定上层消费视图，不实现 UI、executor、durable store 或 confirmation 接线
   - 当前还提供 `check-session-record-contract.py`，用于校验 `SessionRecord` schema、fixture、history/state policy、recovery record、northbound metadata 和不写业务真相源边界
   - 当前还提供 `check-tooling-framework-contract.py`，用于校验 tool definition、registry policy、tool audit、session binding、metadata-only result cache、不启用 executor 和不写 durable memory 边界
   - 当前还提供 `check-session-recovery-checkpoint-contract.py`，用于校验 recovery checkpoint record/manifest/read result、tool audit summary、metadata-only read boundary、无 materialized result、无 durable memory 和无 automatic replay 边界

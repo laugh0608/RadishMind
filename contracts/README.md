@@ -10,6 +10,8 @@
 - 便于在数据集、回归脚本和适配器层复用
 - 能先冻结结构边界，再决定是否生成 TypeScript 或其他语言类型
 
+当前也允许在 `contracts/typescript/` 放置极薄的上层消费类型。它们不是新的业务真相源，只用于让未来 `React + Vite + TypeScript` UI 或上层项目以稳定字段消费已存在的 HTTP metadata shell；字段语义仍以 `contracts/` schema、`docs/contracts/` 专题页和 `services/platform/` 路由实现为准。
+
 当前文件：
 
 1. `copilot-request.schema.json`
@@ -31,6 +33,10 @@
 17. `radishflow-adapter-snapshot.schema.json`
 18. `radishflow-export-snapshot.schema.json`
 
+当前 TypeScript 消费契约：
+
+1. `typescript/session-tooling-api.ts`
+
 使用原则：
 
 - 文档说明以 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 为语义说明入口
@@ -41,6 +47,7 @@
 - 当前 `session-record.schema.json` 用于冻结 `Conversation & Session` 的首版会话记录契约，明确 `session_id / turn_id`、bounded `history_policy`、`state_policy`、`recovery_record` 和 advisory-only audit 口径；`scripts/check-session-record-contract.py` 会用 `scripts/checks/fixtures/session-record-basic.json` 校验 schema、fixture、会话状态只落在 northbound metadata / session recovery checkpoint、tool result cache 不写 durable memory，以及“会话记录不写业务真相源”的不变量。`Go` northbound 兼容层在显式 `radishmind.conversation_id` / `turn_id` / `history_policy` 等扩展存在时，会把同一口径写入 canonical request 的 `context.northbound.session`，但当前仍不实现 durable session store 或长期记忆。
 - 当前 `tool.schema.json`、`tool-registry.schema.json` 与 `tool-audit-record.schema.json` 用于冻结 `Tooling Framework` 的首版工具定义、注册表和 policy/audit 记录契约；`scripts/check-tooling-framework-contract.py` 会用 `scripts/checks/fixtures/tool-registry-basic.json` 与 `scripts/checks/fixtures/tool-audit-record-basic.json` 校验 registry fixture、逐条 tool definition、不启用真实 executor、不允许 network default、不写业务真相源、不写 durable memory、高风险候选动作需要确认、tool audit 与 session recovery checkpoint 关联，以及 metadata-only result cache 不伪造真实执行结果等不变量。当前只登记契约、状态落点和审计边界，不实现真实工具执行器、长期记忆或新的 provider/model 实验。
 - 当前 `session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json` 与 `session-recovery-checkpoint-read.schema.json` 用于冻结 session recovery checkpoint 的首版记录、索引和读取 API 边界；`scripts/check-session-recovery-checkpoint-contract.py` 会用 `scripts/checks/fixtures/session-recovery-checkpoint-basic.json`、`scripts/checks/fixtures/session-recovery-checkpoint-manifest-basic.json`、`scripts/checks/fixtures/session-recovery-checkpoint-read-basic.json` 与 `scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json` 校验 checkpoint 只保存 request/session/tool audit/tool state/tool result metadata 引用，读取结果只暴露 metadata refs 与 tool audit 治理摘要，不保存或返回 materialized tool result，不写业务真相源，不启用 durable memory，也不启用 automatic replay。`services/platform/` 当前只暴露 fixture-backed metadata-only route smoke，用于冻结 response shape，并拒绝 materialized result、result ref、executor ref、durable memory 与 replay 类请求；它不是 durable checkpoint store、materialized result reader 或跨轮 replay executor。
+- 当前 `typescript/session-tooling-api.ts` 用于冻结最小上层消费视图：`SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse`、`toToolActionBlockedView` 与 `listToolActionOptions`。它只表达 metadata-only、contract-only 和 blocked action 展示语义，固定 `canExecute=false`、`executed=false`、`result_ref=null`、无 durable memory、无业务写回和无 replay side effect；`scripts/check-platform-session-tooling-consumer-contract.py` 会把该消费契约与 `services/platform/internal/httpapi/session_tooling_metadata.go` 中的路由、拒绝码和无副作用字段做静态对齐。
 - 当前 `scripts/checks/fixtures/session-tooling-promotion-gates.json` 是 `P2 Session & Tooling Foundation` 的 promotion gate 程序化摘要；`scripts/check-session-tooling-promotion-gates.py` 会校验 contract gate、checkpoint read gate、platform route smoke 与 future implementation gate 的可声明能力、禁止声明能力和 future enablement 前置条件，避免把当前 metadata-only smoke 误写成真实 executor、durable store、长期记忆或 replay 能力。
 - 当前 `scripts/checks/fixtures/session-tooling-negative-consumption-summary.json` 用于汇总 P2 负向 fixture 的实际消费关系；`scripts/check-session-tooling-negative-consumption.py` 会重新生成并对比该 summary，确认 denied query fixture 被 contract check 与 Go route smoke 消费、promotion gate fixture 被 promotion check 与 fast baseline 消费，避免出现“fixture 存在但未被门禁覆盖”的漂移。
 - 当前 `scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json` 用于固定 checkpoint read route smoke 的覆盖范围；`scripts/check-session-recovery-route-smoke-coverage.py` 会重新生成并对比该 summary，确认正向 metadata-only response shape、禁止响应字段、负向查询类别、错误码和 `northbound_request` failure boundary 均由 Go route smoke 覆盖。
