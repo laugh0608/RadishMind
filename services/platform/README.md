@@ -7,7 +7,7 @@
 - 启动最小本地 `HTTP` 服务
 - 承载 northbound `API` / `gateway` 入口
 - 通过 Python bridge 调用 canonical `CopilotGatewayEnvelope`
-- 提供结构化诊断、观测、部署壳和后续鉴权 / 流式转发落点
+- 提供结构化诊断、观测、本地产品 overview、部署壳和后续鉴权 / 流式转发落点
 
 当前明确不做：
 
@@ -18,6 +18,7 @@
 当前最小路由：
 
 - `GET /healthz`
+- `GET /v1/platform/overview`
 - `GET /v1/models`
 - `GET /v1/models/{id}`
 - `POST /v1/chat/completions`
@@ -28,7 +29,9 @@
 - `GET /v1/tools/metadata`
 - `POST /v1/tools/actions`
 
-其中 `/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 已接到最小 canonical bridge：`Go` 只负责 northbound 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
+其中 `GET /v1/platform/overview` 是 `P3 Local Product Shell` 的首个只读产品面入口：它汇总服务状态、可选 model/profile、session/tooling metadata route、blocked action route 和当前停止线，供未来本地控制台或上层 UI 一次读取。它不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
+
+`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 已接到最小 canonical bridge：`Go` 只负责 northbound 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
 
 `GET /v1/session/recovery/checkpoints/{checkpoint_id}` 当前只是 session recovery checkpoint 的 metadata-only route smoke：它返回固定 fixture 边界、checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，不读取 durable checkpoint store，不返回 materialized tool result，也不执行跨轮 replay。该 route 会拒绝 materialized result 和 replay 类查询参数，例如 `include_materialized_results=true`、`include_tool_results=true` 或 `auto_replay=true`。
 
@@ -188,6 +191,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 
 ```bash
 curl -sS http://127.0.0.1:8080/healthz
+curl -sS http://127.0.0.1:8080/v1/platform/overview
 curl -sS http://127.0.0.1:8080/v1/models
 curl -sS http://127.0.0.1:8080/v1/models/mock
 curl -sS http://127.0.0.1:8080/v1/session/metadata
@@ -204,6 +208,7 @@ curl -sS http://127.0.0.1:8080/v1/chat/completions \
 预期边界：
 
 - `/healthz` 返回 `status=ok`、`service=radishmind-platform`。
+- `/v1/platform/overview` 返回 `platform_overview`，其中 `product_surface.mode=local_read_only_product_shell`，并汇总 `/v1/models`、session metadata、tool metadata 和 blocked action route；所有 executor / durable store / confirmation / writeback / replay 停止线均为 `false`。
 - `/v1/models` 返回 OpenAI-compatible `object=list`，并包含 provider registry 与 profile inventory。
 - `/v1/models/mock` 可通过精确 lookup 返回 mock provider model。
 - `/v1/session/metadata` 返回 `session_metadata`，其中 durable session/checkpoint store、long-term memory、automatic replay 和 business truth write 均为 `false`。

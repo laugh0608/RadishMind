@@ -1246,4 +1246,108 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			t.Fatalf("unexpected error code: %#v", response.Error.Code)
 		}
 	})
+
+	t.Run("platform overview aggregates local product shell", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/platform/overview", nil)
+		req.Header.Set("X-Request-Id", "req-platform-overview-001")
+		rec := httptest.NewRecorder()
+
+		server.handlePlatformOverview(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("X-Request-Id"); got != "req-platform-overview-001" {
+			t.Fatalf("unexpected request id header: %s", got)
+		}
+		var response map[string]any
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response["kind"] != "platform_overview" || response["stage"] != "P3 Local Product Shell" {
+			t.Fatalf("unexpected overview identity: %#v", response)
+		}
+		productSurface, ok := response["product_surface"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing product surface: %#v", response["product_surface"])
+		}
+		if productSurface["mode"] != "local_read_only_product_shell" || productSurface["ui_consumable"] != true {
+			t.Fatalf("unexpected product surface: %#v", productSurface)
+		}
+		routes, ok := productSurface["routes"].([]any)
+		if !ok {
+			t.Fatalf("missing product surface routes: %#v", productSurface["routes"])
+		}
+		for _, expectedRoute := range []string{"/v1/platform/overview", "/v1/session/metadata", "/v1/tools/metadata", "/v1/tools/actions"} {
+			found := false
+			for _, route := range routes {
+				if route == expectedRoute {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("overview routes missing %s: %#v", expectedRoute, routes)
+			}
+		}
+
+		models, ok := response["models"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing models summary: %#v", response["models"])
+		}
+		if models["status"] != "ok" || models["inventory_kind"] != "bridge_backed_provider_profile_inventory" {
+			t.Fatalf("unexpected models summary: %#v", models)
+		}
+		selectableIDs, ok := models["selectable_model_ids"].([]any)
+		if !ok || len(selectableIDs) == 0 {
+			t.Fatalf("missing selectable model ids: %#v", models["selectable_model_ids"])
+		}
+		hasAnyrouterProfile := false
+		for _, modelID := range selectableIDs {
+			if modelID == "profile:anyrouter" {
+				hasAnyrouterProfile = true
+			}
+		}
+		if !hasAnyrouterProfile {
+			t.Fatalf("overview missing profile:anyrouter selectable id: %#v", selectableIDs)
+		}
+
+		sessionTooling, ok := response["session_tooling"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing session tooling summary: %#v", response["session_tooling"])
+		}
+		if sessionTooling["metadata_only"] != true || sessionTooling["execution_enabled"] != false || sessionTooling["tool_action_status"] != "blocked" {
+			t.Fatalf("unexpected session tooling summary: %#v", sessionTooling)
+		}
+		stopLines, ok := response["stop_lines"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing stop lines: %#v", response["stop_lines"])
+		}
+		for _, disabled := range []string{
+			"real_executor_enabled",
+			"durable_store_enabled",
+			"confirmation_flow_connected",
+			"materialized_result_reader",
+			"long_term_memory_enabled",
+			"business_truth_write_enabled",
+			"automatic_replay_enabled",
+		} {
+			if stopLines[disabled] != false {
+				t.Fatalf("expected stop line %s=false: %#v", disabled, stopLines)
+			}
+		}
+
+		rawBody := rec.Body.String()
+		for _, forbidden := range []string{
+			`"real_executor_enabled":true`,
+			`"durable_store_enabled":true`,
+			`"confirmation_flow_connected":true`,
+			`"business_truth_write_enabled":true`,
+			`"automatic_replay_enabled":true`,
+		} {
+			if strings.Contains(rawBody, forbidden) {
+				t.Fatalf("platform overview leaked forbidden state %s: %s", forbidden, rawBody)
+			}
+		}
+	})
 }

@@ -52,6 +52,7 @@ func NewServer(cfg config.Config, options Options) *Server {
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
+	mux.HandleFunc("GET /v1/platform/overview", server.handlePlatformOverview)
 	mux.HandleFunc("GET /v1/models", server.handleModels)
 	mux.HandleFunc("GET /v1/models/{id}", server.handleModel)
 	mux.HandleFunc("POST /v1/chat/completions", server.handleChatCompletions)

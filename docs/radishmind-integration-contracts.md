@@ -34,6 +34,7 @@
 - 兼容层只做翻译，不另起第二套真相源。
 - 上层项目只消费建议、解释、候选动作和审计信息，最终业务真相源仍由上层维护。
 - `P2 Session & Tooling Foundation` 当前只声明 close candidate / governance-only；negative regression governance suite、deny-by-default gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、short close readiness delta、readiness consistency rollup、enablement plan 和 stop-line manifest 都是治理证据链，不代表真实执行、持久化、结果读取、confirmation 接线或 replay 已启用。
+- `P3 Local Product Shell / Ops Surface` 已开始暴露只读 `GET /v1/platform/overview`，用于聚合服务状态、model/profile inventory、session/tooling metadata、blocked action route 和停止线；它只服务上层或 UI 发现，不引入真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
 ## 专题索引
 
