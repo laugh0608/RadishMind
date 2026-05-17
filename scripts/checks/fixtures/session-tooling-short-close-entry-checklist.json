@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_short_close_entry_checklist",
+  "stage": "P2 Session & Tooling Foundation",
+  "current_state": "close_candidate_governance_only",
+  "target_state": "p2_short_close",
+  "status": "entry_blocked_governance_only",
+  "implementation_status": "not_ready",
+  "source_stop_line_manifest": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
+  "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_upper_layer_confirmation_flow_readiness": "scripts/checks/fixtures/session-tooling-upper-layer-confirmation-flow-readiness.json",
+  "entry_conditions": [
+    {
+      "condition_id": "upper_layer_confirmation_flow",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "stop_line_source": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+      "readiness_source": "scripts/checks/fixtures/session-tooling-upper-layer-confirmation-flow-readiness.json",
+      "current_evidence": "confirmation flow design exists, but no approve/reject/defer integration is connected",
+      "must_satisfy_before_entry": [
+        "define upper-layer confirmation request/decision handoff",
+        "bind confirmation decision to independent audit records",
+        "prove stale/missing/mismatched confirmation remains denied before any action side effect"
+      ],
+      "blocks_claims": [
+        "confirmation_flow_connected",
+        "confirmed_action_execution",
+        "p2_short_close"
+      ]
+    },
+    {
+      "condition_id": "complete_negative_regression_suite",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+      "stop_line_source": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+      "current_evidence": "governance suite, suite readiness, deny-by-default gates, and route coverage matrix exist, but real implementation consumers are missing",
+      "must_satisfy_before_entry": [
+        "attach real executor/storage/confirmation consumers to every negative case",
+        "prove deny-by-default gates fire before execution, storage, materialization, confirmation, business write, or replay side effects",
+        "keep route smoke, suite readiness, and close-candidate rollup aligned after consumers are added"
+      ],
+      "blocks_claims": [
+        "complete_negative_regression_suite",
+        "real_tool_executor_ready",
+        "durable_storage_ready",
+        "p2_short_close"
+      ]
+    },
+    {
+      "condition_id": "executor_storage_confirmation_enablement_plan",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "stop_line_source": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+      "current_evidence": "executor, storage, and confirmation enablement plan is defined but remains blocked_not_gated_plan",
+      "must_satisfy_before_entry": [
+        "turn executor enablement from not_ready to gated plan only after confirmation and negative suite prerequisites are satisfied",
+        "turn storage enablement from not_ready to gated plan only after durable store and result reader policy is satisfied",
+        "turn confirmation enablement from not_ready to gated plan only after upper-layer confirmation flow is connected"
+      ],
+      "blocks_claims": [
+        "real_tool_executor_ready",
+        "durable_storage_ready",
+        "confirmation_flow_connected",
+        "p2_short_close"
+      ]
+    },
+    {
+      "condition_id": "durable_store_and_result_reader_policy",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "stop_line_source": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+      "current_evidence": "storage backend and result materialization policy are design-checkable, but durable stores and materialized result readers are disabled",
+      "must_satisfy_before_entry": [
+        "define durable session/checkpoint/audit/result store enablement boundaries",
+        "define materialized result reader policy and denied access behavior",
+        "prove secret handling, redaction, retention, and no business truth write side effects before enabling storage"
+      ],
+      "blocks_claims": [
+        "durable_storage_ready",
+        "materialized_result_reader_ready",
+        "automatic_replay_ready",
+        "p2_short_close"
+      ]
+    }
+  ],
+  "route_smoke_entry_requirements": [
+    {
+      "requirement_id": "executor_gate_route_smoke",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json"
+    },
+    {
+      "requirement_id": "storage_materialization_gate_route_smoke",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json"
+    },
+    {
+      "requirement_id": "confirmation_gate_route_smoke",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json"
+    },
+    {
+      "requirement_id": "durable_store_reader_route_smoke",
+      "status": "not_satisfied",
+      "source": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json"
+    }
+  ],
+  "negative_suite_entry_summary": {
+    "negative_suite_cases": 9,
+    "current_route_covered_suite_cases": 2,
+    "future_route_required_suite_cases": 7,
+    "future_route_requirements_satisfied": 0,
+    "suite_completion_blocker_cases": 7,
+    "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+  },
+  "entry_totals": {
+    "condition_count": 4,
+    "satisfied_count": 0,
+    "not_satisfied_count": 4,
+    "future_route_smoke_requirement_count": 4,
+    "future_route_smoke_satisfied_count": 0
+  },
+  "current_allowed_claims": [
+    "short_close_entry_checklist_checkable",
+    "entry_conditions_identified",
+    "entry_still_blocked",
+    "governance_only_entry_status"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready",
+    "complete_negative_regression_suite"
+  ],
+  "do_not_implement_now": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "upper_layer_confirmation_flow_connection"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-short-close-entry-checklist.py",
+      "coverage": "regenerates_and_compares_this_short_close_entry_checklist"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

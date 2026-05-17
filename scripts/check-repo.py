@@ -381,6 +381,12 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/copilot-response.schema.json",
         REPO_ROOT / "contracts/copilot-gateway-envelope.schema.json",
         REPO_ROOT / "contracts/copilot-training-sample.schema.json",
+        REPO_ROOT / "contracts/tool.schema.json",
+        REPO_ROOT / "contracts/tool-registry.schema.json",
+        REPO_ROOT / "contracts/tool-audit-record.schema.json",
+        REPO_ROOT / "contracts/session-recovery-checkpoint.schema.json",
+        REPO_ROOT / "contracts/session-recovery-checkpoint-manifest.schema.json",
+        REPO_ROOT / "contracts/session-recovery-checkpoint-read.schema.json",
         REPO_ROOT / "contracts/image-generation-intent.schema.json",
         REPO_ROOT / "contracts/image-generation-backend-request.schema.json",
         REPO_ROOT / "contracts/image-generation-artifact.schema.json",
@@ -1026,18 +1032,86 @@ def check_generated_eval_metadata() -> None:
     check_committed_candidate_record_batches()
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--skip-text-files", action="store_true")
-    return parser.parse_args()
+def check_fast_baseline() -> None:
+    run_python_script("check-radishflow-service-smoke-matrix.py", ["--check-summary", "scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json"])
+    run_python_script("check-radishmind-core-baseline-matrix.py", [])
+    run_python_script("check-radishmind-core-eval-thresholds.py", [])
+    run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
+    run_python_script(
+        "check-radishmind-core-structured-output-run-set.py",
+        ["--check-summary", "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json"],
+    )
+    run_python_script("check-radishmind-core-candidate-json-cleanup.py", [])
+    run_python_script("check-radishmind-core-candidate-parameter-updates.py", [])
+    run_python_script("check-radishmind-core-candidate-prompt-policy.py", [])
+    run_python_script("check-radishmind-core-candidate-hard-field-freeze.py", [])
+    run_python_script("check-radishmind-core-candidate-hard-field-injection.py", [])
+    run_python_script("check-radishmind-core-guided-decoding-contract.py", [])
+    run_python_script("check-radishmind-core-suggest-edits-response-builder.py", [])
+    run_python_script("check-radishmind-core-task-scoped-response-builder.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-review-plan.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-human-review-records.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-full-holdout-runbook.py", [])
+    run_python_script("check-radishmind-core-constrained-guided-decoding-runbook.py", [])
+    run_python_script(
+        "check-radishmind-core-task-scoped-builder-broader-review-entry.py",
+        ["--check-summary", "scripts/checks/fixtures/radishmind-core-task-scoped-builder-broader-review-entry-summary.json"],
+    )
+    run_python_script("check-radishmind-core-task-scoped-builder-broader-review-runbook.py", [])
+    run_python_script("check-radishmind-core-task-scoped-builder-broader-review-records.py", [])
+    run_python_script(
+        "check-radishmind-core-guided-capacity-review-records.py",
+        ["--check-summary", "scripts/checks/fixtures/radishmind-core-guided-capacity-review-records-summary.json"],
+    )
+    run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
+    run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
+    run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
+    run_python_script("check-runtime-provider-dispatch.py", [])
+    run_python_script("check-platform-ops-smoke.py", [])
+    run_python_script("check-platform-config.py", [])
+    run_python_script("check-platform-deployment-smoke.py", [])
+    run_python_script("check-platform-diagnostics.py", [])
+    run_python_script("check-platform-runbook.py", [])
+    run_python_script("check-session-record-contract.py", [])
+    run_python_script("check-tooling-framework-contract.py", [])
+    run_python_script("check-session-recovery-checkpoint-contract.py", [])
+    run_python_script("check-session-tooling-promotion-gates.py", [])
+    run_python_script("check-session-tooling-negative-consumption.py", [])
+    run_python_script("check-session-recovery-route-smoke-coverage.py", [])
+    run_python_script("check-session-tooling-readiness-summary.py", [])
+    run_python_script("check-session-tooling-implementation-preconditions.py", [])
+    run_python_script("check-session-tooling-negative-regression-skeleton.py", [])
+    run_python_script("check-session-tooling-negative-regression-suite.py", [])
+    run_python_script("check-session-tooling-negative-regression-suite-readiness.py", [])
+    run_python_script("check-session-tooling-deny-by-default-implementation-gates.py", [])
+    run_python_script("check-session-tooling-negative-coverage-rollup.py", [])
+    run_python_script("check-session-tooling-route-negative-coverage-matrix.py", [])
+    run_python_script("check-session-tooling-route-smoke-readiness-rollup.py", [])
+    run_python_script("check-session-tooling-foundation-status-summary.py", [])
+    run_python_script("check-session-tooling-close-candidate-readiness-rollup.py", [])
+    run_python_script("check-session-tooling-short-close-readiness-delta.py", [])
+    run_python_script("check-session-tooling-readiness-consistency-rollup.py", [])
+    run_python_script("check-session-tooling-executor-storage-confirmation-enablement-plan.py", [])
+    run_python_script("check-session-tooling-stop-line-manifest.py", [])
+    run_python_script("check-session-tooling-upper-layer-confirmation-flow-readiness.py", [])
+    run_python_script("check-session-tooling-short-close-entry-checklist.py", [])
+    run_python_script("check-session-tooling-confirmation-flow-design.py", [])
+    run_python_script("check-session-tooling-independent-audit-records.py", [])
+    run_python_script("check-session-tooling-result-materialization-policy.py", [])
+    run_python_script("check-session-tooling-executor-boundary.py", [])
+    run_python_script("check-session-tooling-storage-backend-design.py", [])
+    run_python_script("check-copilot-training-sample-contract.py", [])
+    run_python_script("check-copilot-training-dataset-governance.py", [])
+    run_python_script("check-image-generation-intent-contract.py", [])
+    run_python_script("check-image-generation-eval-manifest.py", [])
+    check_path_budget()
+    check_required_files()
+    check_content_baseline()
+    check_contract_schemas()
 
 
-def main() -> int:
-    args = parse_args()
-
-    if not args.skip_text_files:
-        run_python_script("check-text-files.py", [])
-
+def check_full_baseline() -> None:
+    check_fast_baseline()
     run_python_script("run-eval-regression.py", ["radish-docs-qa", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-control-plane", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-diagnostics", "--fail-on-violation"])
@@ -1074,45 +1148,6 @@ def main() -> int:
             "scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json",
         ],
     )
-    run_python_script(
-        "check-radishflow-service-smoke-matrix.py",
-        [
-            "--check-summary",
-            "scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json",
-        ],
-    )
-    run_python_script("check-radishmind-core-baseline-matrix.py", [])
-    run_python_script("check-radishmind-core-eval-thresholds.py", [])
-    run_python_script("check-radishmind-core-offline-eval-run-contract.py", [])
-    run_python_script(
-        "check-radishmind-core-structured-output-run-set.py",
-        [
-            "--check-summary",
-            "scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json",
-        ],
-    )
-    run_python_script("check-radishmind-core-candidate-json-cleanup.py", [])
-    run_python_script("check-radishmind-core-candidate-parameter-updates.py", [])
-    run_python_script("check-radishmind-core-candidate-prompt-policy.py", [])
-    run_python_script("check-radishmind-core-candidate-hard-field-freeze.py", [])
-    run_python_script("check-radishmind-core-candidate-hard-field-injection.py", [])
-    run_python_script("check-radishmind-core-suggest-edits-response-builder.py", [])
-    run_python_script("check-radishmind-core-task-scoped-response-builder.py", [])
-    run_python_script("check-radishmind-core-task-scoped-builder-review-plan.py", [])
-    run_python_script("check-radishmind-core-task-scoped-builder-human-review-records.py", [])
-    run_python_script("check-radishmind-core-task-scoped-builder-full-holdout-runbook.py", [])
-    run_python_script(
-        "check-radishmind-core-task-scoped-builder-broader-review-entry.py",
-        [
-            "--check-summary",
-            "scripts/checks/fixtures/radishmind-core-task-scoped-builder-broader-review-entry-summary.json",
-        ],
-    )
-    run_python_script("check-radishmind-core-task-scoped-builder-broader-review-runbook.py", [])
-    run_python_script("check-radishmind-core-task-scoped-builder-broader-review-records.py", [])
-    run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
-    run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
-    run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
     run_python_script("run-radishmind-core-offline-eval.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-core-candidate-") as temp_dir:
         candidate_output_dir = Path(temp_dir) / "candidate-run"
@@ -1173,8 +1208,6 @@ def main() -> int:
         expected_summary="scripts/checks/fixtures/radishmind-core-full-holdout-candidate-summary.json",
         eval_manifest="scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
     )
-    run_python_script("check-copilot-training-sample-contract.py", [])
-    run_python_script("check-copilot-training-dataset-governance.py", [])
     with tempfile.TemporaryDirectory(prefix="check-repo-training-samples-") as temp_dir:
         run_python_script(
             "build-copilot-training-samples.py",
@@ -1198,16 +1231,29 @@ def main() -> int:
                 "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-summary.json",
             ],
         )
-    run_python_script("check-image-generation-intent-contract.py", [])
-    run_python_script("check-image-generation-eval-manifest.py", [])
-
-    check_path_budget()
-    check_required_files()
-    check_content_baseline()
-    check_contract_schemas()
     check_generated_eval_metadata()
 
-    print("repository baseline checks passed.")
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--skip-text-files", action="store_true")
+    parser.add_argument("--fast", action="store_true", help="skip the slow runtime/regression suites")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+
+    if not args.skip_text_files:
+        run_python_script("check-text-files.py", [])
+        run_python_script("check-markdown-size.py", [])
+
+    if args.fast:
+        check_fast_baseline()
+        print("repository fast baseline checks passed.")
+    else:
+        check_full_baseline()
+        print("repository baseline checks passed.")
     return 0
 
 

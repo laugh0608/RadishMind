@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_deny_by_default_implementation_gates",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "deny_by_default_gates_defined_implementation_blocked",
+  "implementation_status": "not_ready",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+  "task_card": "docs/task-cards/session-tooling-deny-by-default-implementation-gates.md",
+  "gates": [
+    {
+      "gate_area": "executor",
+      "status": "deny_by_default_contract_defined",
+      "default_decision": "deny",
+      "implementation_ready": false,
+      "current_boundary": "contract_only_no_execution",
+      "trigger_scope": [
+        "registered_tool_execution_request",
+        "network_tool_execution_request",
+        "checkpoint_executor_ref_read_request"
+      ],
+      "denied_actions": [
+        "execute_registered_tool",
+        "execute_network_tool_without_policy",
+        "return_executor_ref_from_checkpoint_read"
+      ],
+      "required_denial_outputs": [
+        "TOOL_EXECUTOR_DISABLED",
+        "TOOL_NETWORK_DISABLED",
+        "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+      ],
+      "side_effect_absence_assertions": [
+        "no_execution_side_effects",
+        "no_network_side_effects",
+        "no_executor_ref",
+        "no_result_ref",
+        "no_business_truth_write_side_effects"
+      ],
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "storage_backend_design",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "complete_negative_regression_suite"
+      ],
+      "forbidden_current_scope": [
+        "real_tool_executor",
+        "shell_execution",
+        "network_request_sent",
+        "executor_ref_in_checkpoint_read",
+        "business_truth_write"
+      ]
+    },
+    {
+      "gate_area": "storage",
+      "status": "deny_by_default_contract_defined",
+      "default_decision": "deny",
+      "implementation_ready": false,
+      "current_boundary": "metadata_refs_only_no_durable_store",
+      "trigger_scope": [
+        "materialized_result_read_request",
+        "durable_memory_write_request",
+        "business_truth_write_request"
+      ],
+      "denied_actions": [
+        "read_materialized_tool_result",
+        "write_tool_state_to_durable_memory",
+        "write_candidate_action_to_upper_layer_truth_source"
+      ],
+      "required_denial_outputs": [
+        "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+        "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+        "BUSINESS_TRUTH_WRITE_DISABLED"
+      ],
+      "side_effect_absence_assertions": [
+        "no_materialized_result_side_effects",
+        "no_result_ref",
+        "no_durable_memory_write_side_effects",
+        "no_long_term_memory",
+        "no_business_truth_write_side_effects"
+      ],
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "storage_backend_design",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "complete_negative_regression_suite"
+      ],
+      "forbidden_current_scope": [
+        "durable_session_store",
+        "durable_checkpoint_store",
+        "durable_audit_store",
+        "durable_result_store",
+        "materialized_result_reader",
+        "long_term_memory",
+        "business_truth_write"
+      ]
+    },
+    {
+      "gate_area": "confirmation",
+      "status": "deny_by_default_contract_defined",
+      "default_decision": "deny",
+      "implementation_ready": false,
+      "current_boundary": "requires_confirmation_metadata_only",
+      "trigger_scope": [
+        "high_risk_action_without_confirmation",
+        "action_with_stale_confirmation",
+        "action_with_mismatched_confirmation_payload"
+      ],
+      "denied_actions": [
+        "execute_high_risk_action_without_confirmation",
+        "execute_action_with_stale_confirmation",
+        "execute_action_with_mismatched_confirmation_payload"
+      ],
+      "required_denial_outputs": [
+        "CONFIRMATION_REQUIRED",
+        "CONFIRMATION_STALE",
+        "CONFIRMATION_PAYLOAD_MISMATCH"
+      ],
+      "side_effect_absence_assertions": [
+        "no_execution_side_effects",
+        "no_confirmed_action_execution",
+        "no_replay_side_effects",
+        "no_business_truth_write_side_effects",
+        "no_result_ref"
+      ],
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "complete_negative_regression_suite"
+      ],
+      "forbidden_current_scope": [
+        "implicit_confirmation",
+        "confirmed_action_execution",
+        "automatic_replay",
+        "replay_executor",
+        "business_truth_write"
+      ]
+    }
+  ],
+  "shared_invariants": [
+    "fail_closed_when_policy_or_confirmation_is_absent",
+    "no_side_effect_before_explicit_enablement",
+    "no_materialized_result_or_ref_from_checkpoint_read",
+    "no_business_truth_write_from_model_or_tooling_layer",
+    "no_automatic_replay"
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "replay_executor"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-deny-by-default-implementation-gates.py",
+      "coverage": "validates_minimum_deny_by_default_gate_contracts_for_executor_storage_confirmation"
+    },
+    {
+      "path": "scripts/check-session-tooling-negative-regression-suite.py",
+      "coverage": "aligns_negative_suite_cases_with_gate_area_and_denial_outputs"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

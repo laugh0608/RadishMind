@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_executor_boundary_design",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "design_only_not_connected",
+  "source_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_independent_audit_records_design": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
+  "source_result_materialization_policy_design": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
+  "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_tool_registry_fixture": "scripts/checks/fixtures/tool-registry-basic.json",
+  "source_tool_audit_record_fixture": "scripts/checks/fixtures/tool-audit-record-basic.json",
+  "task_card": "docs/task-cards/session-tooling-executor-boundary.md",
+  "scope": {
+    "area": "executor_boundary",
+    "current_boundary": "contract_only_no_execution",
+    "execution_enabled": false,
+    "sandbox_enabled": false,
+    "allowlist_enforced": false,
+    "network_enabled": false,
+    "result_materialization_enabled": false,
+    "writes_business_truth": false,
+    "replay_enabled": false
+  },
+  "execution_envelope": {
+    "required_fields": [
+      "execution_request_id",
+      "tool_id",
+      "request_id",
+      "session_id",
+      "turn_id",
+      "action_ref",
+      "action_hash",
+      "confirmation_ref",
+      "policy_decision_ref",
+      "input_ref",
+      "output_policy",
+      "audit_record_ref"
+    ],
+    "separation_rules": [
+      "execution_input_output_envelope_is_not_model_prompt_text",
+      "checkpoint_read_response_is_not_execution_envelope",
+      "tool_audit_record_is_not_materialized_tool_output",
+      "confirmation_record_is_not_execution_permission_without_policy_gate"
+    ],
+    "forbidden_current_fields": [
+      "executor_ref",
+      "process_id",
+      "stdout",
+      "stderr",
+      "raw_tool_output",
+      "result_ref",
+      "materialized_result_uri"
+    ]
+  },
+  "sandbox_policy": {
+    "current_status": "not_implemented",
+    "required_before_enablement": [
+      "process_or_worker_isolation",
+      "filesystem_scope_policy",
+      "network_policy",
+      "secret_injection_policy",
+      "resource_limits",
+      "kill_timeout_policy"
+    ],
+    "current_forbidden_capabilities": [
+      "shell_execution",
+      "filesystem_write_outside_workspace",
+      "network_access",
+      "secret_access",
+      "gpu_or_long_running_job",
+      "background_process",
+      "business_truth_write"
+    ]
+  },
+  "allowlist_policy": {
+    "current_status": "not_implemented",
+    "required_before_enablement": [
+      "tool_id_allowlist",
+      "project_scope_allowlist",
+      "risk_level_policy",
+      "network_scope_policy",
+      "write_scope_policy",
+      "confirmation_requirement_policy"
+    ],
+    "default_decision": "deny",
+    "current_allowed_tools": [],
+    "blocked_categories": [
+      "unregistered_tool",
+      "network_tool",
+      "business_truth_write_tool",
+      "durable_store_write_tool",
+      "replay_tool",
+      "long_running_job"
+    ]
+  },
+  "timeout_retry_policy": {
+    "current_status": "design_only",
+    "timeout_required_before_execution": true,
+    "retry_default": "disabled_until_idempotency_policy_exists",
+    "required_before_enablement": [
+      "per_tool_timeout_ms",
+      "cancellation_boundary",
+      "idempotency_key_policy",
+      "retry_budget_policy",
+      "partial_failure_audit_policy"
+    ],
+    "forbidden_current_scope": [
+      "automatic_retry",
+      "background_retry",
+      "retry_after_confirmation_without_revalidation",
+      "replay_retry"
+    ]
+  },
+  "failure_boundaries": [
+    {
+      "case_id": "executor-disabled-tool-run",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "TOOL_EXECUTOR_DISABLED",
+      "required_audit_event": "executor_execution_not_enabled",
+      "forbidden_outputs": [
+        "execution_status=executed",
+        "executor_ref",
+        "result_ref",
+        "writes_business_truth=true"
+      ]
+    },
+    {
+      "case_id": "executor-network-disabled",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "TOOL_NETWORK_DISABLED",
+      "required_audit_event": "tool_network_denied",
+      "forbidden_outputs": [
+        "network_request_sent=true",
+        "execution_status=executed",
+        "result_ref",
+        "writes_business_truth=true"
+      ]
+    },
+    {
+      "case_id": "executor-ref-checkpoint-read-denied",
+      "expected_failure_boundary": "northbound_request",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+      "required_audit_event": "checkpoint_read_query_denied",
+      "forbidden_outputs": [
+        "executor_ref",
+        "raw_tool_output",
+        "result_ref",
+        "materialized_result_uri"
+      ]
+    }
+  ],
+  "boundary_alignment": {
+    "confirmation": [
+      "confirmation_ref is required in the future execution envelope for high-risk actions",
+      "confirmation approval alone does not bypass executor policy gate or sandbox checks",
+      "missing, stale, or mismatched confirmation must fail before execution"
+    ],
+    "result_materialization": [
+      "executor output cannot create result_ref while result_ref_enabled=false",
+      "raw tool output and materialized_result_uri are forbidden in current execution envelope",
+      "future result materialization requires the separate result_materialization_policy gate"
+    ],
+    "audit": [
+      "every future execution attempt must create independent audit records before and after policy decisions",
+      "current design may only record blocked or not_executed audit metadata",
+      "audit records do not store raw tool output or credentials"
+    ],
+    "storage": [
+      "executor boundary does not create durable session, tool, audit, or result stores",
+      "business truth writes remain forbidden",
+      "durable storage backend must be designed separately before execution can persist results"
+    ]
+  },
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "automatic_retry",
+    "background_process",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_result_store",
+    "durable_session_store",
+    "durable_tool_store",
+    "executor_ref_reader",
+    "long_running_job",
+    "long_term_memory",
+    "materialized_result_reader",
+    "network_tool_execution",
+    "raw_tool_output_reader",
+    "real_tool_executor",
+    "result_ref_reader",
+    "shell_execution"
+  ],
+  "precondition_status_after_design": {
+    "executor_boundary": "design_boundary_defined_not_implemented",
+    "result_materialization_policy": "design_boundary_defined_not_implemented",
+    "independent_audit_records": "design_boundary_defined_not_implemented",
+    "upper_layer_confirmation_flow": "not_satisfied",
+    "storage_backend_design": "not_satisfied",
+    "negative_regression_suite": "not_satisfied"
+  },
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-executor-boundary.py",
+      "coverage": "validates_executor_boundary_design_sandbox_allowlist_envelope_failures_and_blocked_capabilities"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

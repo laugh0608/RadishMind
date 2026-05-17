@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_negative_coverage_rollup",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "negative_coverage_rollup_governance_only",
+  "implementation_status": "not_ready",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "source_route_smoke_coverage": "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json",
+  "source_negative_consumption_summary": "scripts/checks/fixtures/session-tooling-negative-consumption-summary.json",
+  "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+  "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "task_card": "docs/task-cards/session-tooling-negative-coverage-rollup.md",
+  "coverage_layers": [
+    {
+      "layer_id": "checkpoint_read_route_smoke",
+      "status": "metadata_only_route_consumed",
+      "coverage": "positive response shape and denied query categories are covered by Go route smoke",
+      "evidence": [
+        "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json",
+        "services/platform/internal/httpapi/server_test.go"
+      ]
+    },
+    {
+      "layer_id": "negative_consumption_summary",
+      "status": "summary_consumed",
+      "coverage": "denied query, promotion gate, route smoke, and governance suite fixtures have consumers",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-negative-consumption-summary.json",
+        "scripts/check-session-tooling-negative-consumption.py"
+      ]
+    },
+    {
+      "layer_id": "governance_negative_suite",
+      "status": "governance_suite_consumed_deny_by_default_gates_defined",
+      "coverage": "9 negative cases assert governance consumers, audit non-write boundary, and side-effect absence",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+        "scripts/check-session-tooling-negative-regression-suite.py"
+      ]
+    },
+    {
+      "layer_id": "deny_by_default_implementation_gates",
+      "status": "deny_by_default_gates_defined_implementation_blocked",
+      "coverage": "executor, storage, and confirmation gate contracts default to deny",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+        "scripts/check-session-tooling-deny-by-default-implementation-gates.py"
+      ]
+    },
+    {
+      "layer_id": "real_implementation_consumers",
+      "status": "missing",
+      "coverage": "no real executor, storage, or confirmation implementation consumer exists",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json"
+      ]
+    }
+  ],
+  "route_coverage": {
+    "route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+    "positive_response_shape": "200",
+    "negative_case_count": 14,
+    "negative_categories": {
+      "durable_memory": 3,
+      "materialized_results": 7,
+      "replay": 4
+    },
+    "negative_error_codes": [
+      "CHECKPOINT_AUTO_REPLAY_DISABLED",
+      "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    ],
+    "failure_boundary": "northbound_request",
+    "forbidden_response_markers": [
+      "\"auto_replay_enabled\":true",
+      "\"durable_memory_enabled\":true",
+      "\"executor_ref\"",
+      "\"materialized_results_included\":true",
+      "\"output_ref\"",
+      "\"result_ref\":\"",
+      "\"writes_business_truth\":true"
+    ]
+  },
+  "coverage_by_area": [
+    {
+      "area": "executor",
+      "suite_case_count": 3,
+      "route_consumed_case_ids": [
+        "executor-ref-checkpoint-read-denied"
+      ],
+      "governance_only_case_ids": [
+        "executor-disabled-tool-run",
+        "executor-network-disabled"
+      ],
+      "deny_by_default_gate_status": "deny_by_default_contract_defined",
+      "default_decision": "deny",
+      "real_implementation_consumer": "missing",
+      "current_claim": "governance_and_gate_contract_covered_no_real_implementation"
+    },
+    {
+      "area": "storage",
+      "suite_case_count": 3,
+      "route_consumed_case_ids": [
+        "materialized-result-read-denied"
+      ],
+      "governance_only_case_ids": [
+        "durable-memory-write-denied",
+        "business-truth-write-denied"
+      ],
+      "deny_by_default_gate_status": "deny_by_default_contract_defined",
+      "default_decision": "deny",
+      "real_implementation_consumer": "missing",
+      "current_claim": "governance_and_gate_contract_covered_no_real_implementation"
+    },
+    {
+      "area": "confirmation",
+      "suite_case_count": 3,
+      "route_consumed_case_ids": [],
+      "governance_only_case_ids": [
+        "missing-confirmation-denied",
+        "stale-confirmation-denied",
+        "mismatched-confirmation-payload-denied"
+      ],
+      "deny_by_default_gate_status": "deny_by_default_contract_defined",
+      "default_decision": "deny",
+      "real_implementation_consumer": "missing",
+      "current_claim": "governance_and_gate_contract_covered_no_real_implementation"
+    }
+  ],
+  "coverage_totals": {
+    "denied_query_cases": 14,
+    "negative_suite_cases": 9,
+    "route_consumed_suite_cases": 2,
+    "governance_only_suite_cases": 7,
+    "deny_by_default_gate_areas": 3
+  },
+  "current_allowed_claims": [
+    "metadata_only_route_smoke_covered",
+    "negative_fixture_consumers_covered",
+    "governance_suite_gate_contract_alignment_covered",
+    "negative_coverage_rollup_governance_only"
+  ],
+  "prohibited_claims": [
+    "complete_negative_regression_suite",
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready"
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "replay_executor"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-negative-coverage-rollup.py",
+      "coverage": "regenerates_and_compares_this_negative_coverage_rollup"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

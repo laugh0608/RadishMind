@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_guided_capacity_review_records_summary",
+  "phase": "M4-preparation",
+  "record_path": "training/datasets/radishmind-core-guided-capacity-review-records-v0.json",
+  "review_batch_id": "qwen3-4b-guided-vs-qwen25-3b-holdout6-review-v0",
+  "status": "reviewed_changes_required",
+  "sample_set_id": "holdout6-v2-non-overlap",
+  "baseline_model": "Qwen2.5-3B-Instruct",
+  "challenger_model": "Qwen3-4B-Instruct-2507",
+  "sample_count": 6,
+  "comparison_result": "reviewed_changes_required",
+  "baseline_summary_leak_count": 0,
+  "challenger_summary_leak_count": 6,
+  "comparison_dimension_changes_required_count": 4,
+  "sample_reviewed_changes_required_count": 6,
+  "sample_reviewed_pass_count": 0,
+  "decision": "4B guided is only a partial cleanup over 3B guided, not a natural-language quality promotion. It lowers some simple repetition/noise, but worsens summary leakage / summary 泄漏 and does not resolve cross-object or ambiguity semantics.",
+  "not_raw_promotion": true,
+  "not_training_acceptance": true
+}

@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_executor_storage_confirmation_enablement_plan",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "enablement_plan_defined_blocked",
+  "implementation_status": "not_ready",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "task_card": "docs/task-cards/session-tooling-executor-storage-confirmation-enablement-plan.md",
+  "enablement_areas": [
+    {
+      "area": "executor",
+      "current_status": "blocked_not_gated_plan",
+      "precondition_status": "not_ready",
+      "default_decision": "deny",
+      "real_implementation_consumer": "missing",
+      "required_before_gated_plan": [
+        "upper_layer_confirmation_flow_not_satisfied",
+        "complete_negative_regression_suite_not_satisfied",
+        "executor_boundary_design_checkable",
+        "independent_audit_records_design_checkable",
+        "result_materialization_policy_design_checkable",
+        "executor_gate_route_smoke_not_satisfied"
+      ],
+      "gated_plan_entry_evidence": [
+        "executor requests denied before execution side effects",
+        "network execution denied unless future policy enables it",
+        "independent audit expectation defined for every execution attempt",
+        "result materialization remains metadata-only until durable policy is satisfied"
+      ],
+      "still_forbidden": [
+        "real_tool_executor",
+        "network_tool_execution",
+        "executor_ref_in_checkpoint_read",
+        "business_truth_write"
+      ]
+    },
+    {
+      "area": "storage",
+      "current_status": "blocked_not_gated_plan",
+      "precondition_status": "not_ready",
+      "default_decision": "deny",
+      "real_implementation_consumer": "missing",
+      "required_before_gated_plan": [
+        "durable_store_and_result_reader_policy_not_satisfied",
+        "complete_negative_regression_suite_not_satisfied",
+        "storage_backend_design_checkable",
+        "result_materialization_policy_design_checkable",
+        "independent_audit_records_design_checkable",
+        "storage_materialization_gate_route_smoke_not_satisfied"
+      ],
+      "gated_plan_entry_evidence": [
+        "durable writes denied before storage side effects",
+        "materialized result reads denied before result payload is returned",
+        "retention redaction and secret handling policy is explicit",
+        "business truth writes remain impossible from session/tooling routes"
+      ],
+      "still_forbidden": [
+        "durable_session_store",
+        "durable_checkpoint_store",
+        "durable_audit_store",
+        "durable_result_store",
+        "materialized_result_reader",
+        "long_term_memory"
+      ]
+    },
+    {
+      "area": "confirmation",
+      "current_status": "blocked_not_gated_plan",
+      "precondition_status": "not_ready",
+      "default_decision": "deny",
+      "real_implementation_consumer": "missing",
+      "required_before_gated_plan": [
+        "upper_layer_confirmation_flow_not_satisfied",
+        "complete_negative_regression_suite_not_satisfied",
+        "confirmation_flow_design_checkable",
+        "independent_audit_records_design_checkable",
+        "result_materialization_policy_design_checkable",
+        "confirmation_gate_route_smoke_not_satisfied"
+      ],
+      "gated_plan_entry_evidence": [
+        "missing confirmation denied before action execution",
+        "stale confirmation denied before action execution",
+        "mismatched payload hash denied before action execution",
+        "confirmed action handoff remains distinct from advisory candidate output"
+      ],
+      "still_forbidden": [
+        "upper_layer_confirmation_flow_connection",
+        "confirmed_action_execution",
+        "implicit_confirmation",
+        "automatic_replay",
+        "business_truth_write"
+      ]
+    }
+  ],
+  "shared_entry_conditions": [
+    {
+      "condition": "upper_layer_confirmation_flow",
+      "status": "not_satisfied"
+    },
+    {
+      "condition": "complete_negative_regression_suite",
+      "status": "not_satisfied"
+    },
+    {
+      "condition": "executor_storage_confirmation_enablement_plan",
+      "status": "not_satisfied"
+    },
+    {
+      "condition": "durable_store_and_result_reader_policy",
+      "status": "not_satisfied"
+    }
+  ],
+  "current_allowed_claims": [
+    "enablement_plan_defined",
+    "gated_plan_entry_conditions_checkable",
+    "implementation_still_blocked"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready",
+    "complete_negative_regression_suite"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-executor-storage-confirmation-enablement-plan.py",
+      "coverage": "regenerates_and_compares_this_enablement_plan"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

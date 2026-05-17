@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_readiness_consistency_rollup",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "no_readiness_drift_governance_only",
+  "implementation_status": "not_ready",
+  "source_foundation_status_summary": "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
+  "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "source_route_negative_coverage_matrix": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+  "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "rollup_status_alignment": [
+    {
+      "source": "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
+      "status": "close_candidate_governance_only",
+      "implementation_status": "not_implemented"
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+      "status": "close_candidate_governance_only",
+      "implementation_status": "not_ready"
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+      "status": "route_negative_coverage_matrix_governance_only",
+      "implementation_status": "not_ready"
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
+      "status": "route_smoke_readiness_governance_only",
+      "implementation_status": "not_ready"
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "status": "short_close_blocked",
+      "implementation_status": "not_ready"
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+      "status": "negative_coverage_rollup_governance_only",
+      "implementation_status": "not_ready"
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+      "status": "governance_suite_consumed_deny_by_default_gates_defined",
+      "implementation_status": "not_ready"
+    }
+  ],
+  "source_reference_alignment": [
+    {
+      "source": "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
+      "references": [
+        "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+        "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+        "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
+      ]
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+      "references": [
+        "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
+      ]
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
+      "references": [
+        "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
+      ]
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+      "references": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
+        "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+      "references": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json"
+      ]
+    },
+    {
+      "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+      "references": [
+        "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+        "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+        "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+        "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json"
+      ]
+    }
+  ],
+  "short_close_prerequisite_alignment": {
+    "prerequisite_ids": [
+      "upper_layer_confirmation_flow",
+      "complete_negative_regression_suite",
+      "executor_storage_confirmation_enablement_plan",
+      "durable_store_and_result_reader_policy"
+    ],
+    "status": "not_satisfied",
+    "close_candidate_count": 4,
+    "short_close_delta_count": 4,
+    "route_smoke_rollup_not_satisfied_count": 4
+  },
+  "coverage_totals_alignment": {
+    "negative_suite_cases": 9,
+    "route_consumed_suite_cases": 2,
+    "governance_only_suite_cases": 7,
+    "future_route_requirement_count": 4,
+    "future_route_requirements_satisfied": 0,
+    "route_negative_matrix_suite_cases": 9,
+    "route_negative_matrix_current_route_covered_suite_cases": 2,
+    "route_negative_matrix_future_route_required_suite_cases": 7,
+    "route_negative_matrix_suite_completion_blocker_cases": 7
+  },
+  "implementation_area_alignment": [
+    {
+      "area": "executor",
+      "precondition_status": "not_ready",
+      "negative_coverage_consumer": "missing",
+      "default_decision": "deny"
+    },
+    {
+      "area": "storage",
+      "precondition_status": "not_ready",
+      "negative_coverage_consumer": "missing",
+      "default_decision": "deny"
+    },
+    {
+      "area": "confirmation",
+      "precondition_status": "not_ready",
+      "negative_coverage_consumer": "missing",
+      "default_decision": "deny"
+    }
+  ],
+  "shared_prohibited_claims": [
+    "automatic_replay_ready",
+    "complete_negative_regression_suite",
+    "confirmation_flow_connected",
+    "durable_storage_ready",
+    "materialized_result_reader_ready",
+    "p2_short_close",
+    "real_tool_executor_ready"
+  ],
+  "current_allowed_claims": [
+    "readiness_drift_checkable",
+    "rollup_statuses_aligned",
+    "short_close_prerequisites_still_not_satisfied",
+    "governance_only_consistency_verified"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready",
+    "complete_negative_regression_suite"
+  ],
+  "do_not_implement_now": [
+    "automatic_replay",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "upper_layer_confirmation_flow_connection"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-readiness-consistency-rollup.py",
+      "coverage": "regenerates_and_compares_this_readiness_consistency_rollup"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

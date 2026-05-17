@@ -488,17 +488,60 @@ def build_full_holdout_track(experiment: dict[str, Any]) -> dict[str, Any]:
 
 def check_current_conclusion(experiment: dict[str, Any]) -> dict[str, Any]:
     conclusion = require_dict(experiment, "current_conclusion")
-    require(conclusion.get("status") == "task_scoped_builder_full_holdout_citation_fixture_tightened_reviewed_pass", "current conclusion status mismatch")
+    require(
+        conclusion.get("status") == "guided_holdout6_v2_pass_prioritize_3b_4b_comparison",
+        "current conclusion status mismatch",
+    )
+    require(
+        conclusion.get("next_priority") == "prepare_3b_4b_comparison_before_larger_sample_expansion",
+        "current conclusion next_priority mismatch",
+    )
+    require(
+        conclusion.get("priority_runbook")
+        == "training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json",
+        "current conclusion priority_runbook mismatch",
+    )
     next_step = str(conclusion.get("next_step") or "")
-    require("不应直接切 `3B/4B`" in next_step, "conclusion must reject direct 3B/4B switch")
+    require(
+        "3B/4B" in next_step,
+        "conclusion must mention 3B/4B comparison",
+    )
+    require("holdout6-v2-non-overlap" in next_step, "conclusion must keep the v2 non-overlap holdout evidence")
+    require("offline eval" in next_step, "conclusion must preserve offline eval as the comparison gate")
+    require("自然语言退化" in next_step or "复杂解释质量" in next_step, "conclusion must explain why model-size comparison is needed")
     require("raw 模型晋级" in next_step, "conclusion must reject raw promotion")
     require("训练准入证据" in next_step, "conclusion must reject training acceptance")
-    require("扩大 task-scoped builder 样本面" in next_step, "conclusion must require broader builder review")
-    require("constrained/guided decoding" in next_step, "conclusion must mention constrained decoding")
-    require("raw 模型晋级" in next_step, "conclusion must still reject raw promotion")
+    require("更大样本面" in next_step, "conclusion must still mention larger sample expansion ordering")
+    guided_capacity_audit = require_dict(conclusion, "guided_capacity_audit")
+    require(
+        guided_capacity_audit.get("review_record_path")
+        == "training/datasets/radishmind-core-guided-capacity-review-records-v0.json",
+        "guided capacity review record path mismatch",
+    )
+    require(
+        guided_capacity_audit.get("review_status") == "reviewed_changes_required",
+        "guided capacity review status mismatch",
+    )
+    require(guided_capacity_audit.get("sample_set") == "holdout6-v2-non-overlap", "guided capacity sample set mismatch")
+    require(guided_capacity_audit.get("machine_gate").startswith("Both `Qwen2.5-3B-Instruct` guided"), "guided capacity machine gate mismatch")
+    require(
+        "summary` JSON 片段泄漏" in str(guided_capacity_audit.get("decision") or "")
+        or "summary 泄漏" in str(guided_capacity_audit.get("decision") or ""),
+        "guided capacity audit decision mismatch",
+    )
     return {
         "status": conclusion.get("status"),
+        "next_priority": conclusion.get("next_priority"),
+        "priority_runbook": conclusion.get("priority_runbook"),
         "next_step": conclusion.get("next_step"),
+        "guided_capacity_audit": {
+            "review_record_path": guided_capacity_audit.get("review_record_path"),
+            "review_status": guided_capacity_audit.get("review_status"),
+            "sample_set": guided_capacity_audit.get("sample_set"),
+            "machine_gate": guided_capacity_audit.get("machine_gate"),
+            "manual_findings": guided_capacity_audit.get("manual_findings"),
+            "decision": guided_capacity_audit.get("decision"),
+        },
     }
 
 

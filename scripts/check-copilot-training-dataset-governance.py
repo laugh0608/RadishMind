@@ -31,6 +31,13 @@ def require(condition: bool, message: str) -> None:
         raise SystemExit(message)
 
 
+def repo_rel(path: Path) -> str:
+    try:
+        return path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def require_existing_file(path_value: str, *, field_name: str) -> None:
     require(path_value.strip() == path_value and path_value.strip(), f"{field_name} must be a non-empty clean path")
     path = REPO_ROOT / path_value
@@ -169,7 +176,7 @@ def check_holdout_split(governance: dict[str, Any], seed_sample_ids: set[str]) -
     require(document.get("status") == "planned", "holdout split must remain planned before model eval")
     require(document.get("does_not_generate_jsonl") is True, "holdout split must not generate JSONL")
     require(document.get("does_not_run_models") is True, "holdout split must not run models")
-    require(document.get("governance_manifest") == str(MANIFEST_PATH.relative_to(REPO_ROOT)), "holdout governance manifest mismatch")
+    require(document.get("governance_manifest") == repo_rel(MANIFEST_PATH), "holdout governance manifest mismatch")
 
     split_policy = document.get("split_policy")
     require(isinstance(split_policy, dict), "holdout split_policy must be an object")
@@ -234,7 +241,7 @@ def check_review_record() -> None:
     require(document.get("status") == "planned", "review record must remain planned")
     require(document.get("does_not_generate_jsonl") is True, "review record must not generate JSONL")
     require(document.get("does_not_run_models") is True, "review record must not run models")
-    require(document.get("governance_manifest") == str(MANIFEST_PATH.relative_to(REPO_ROOT)), "review governance manifest mismatch")
+    require(document.get("governance_manifest") == repo_rel(MANIFEST_PATH), "review governance manifest mismatch")
 
     record_template = document.get("record_template")
     require(isinstance(record_template, dict), "review record_template must be an object")

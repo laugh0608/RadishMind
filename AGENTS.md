@@ -19,7 +19,9 @@
 - 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题
 - 修改规则、架构、协议、目录职责、阶段范围或协作文档时，优先保持与 `docs/` 中现有正式文档一致
 - 文档中提到 `Radish`、`RadishFlow`、`RadishCatalyst` 外部项目时，默认使用项目名和在线仓库 URL，不写开发者本机绝对路径或相对路径；如需读取本地资料，应要求开发者在当次任务临时提供路径，不把该临时路径写入长期文档
-- 每做完一个可分割子步骤，都应进行最小验证；仓库级默认验证入口优先使用当前环境的原生入口：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`，Linux / WSL 用 `./scripts/check-repo.sh`
+- 每做完一个可分割子步骤，都应进行最小验证；仓库级默认验证入口优先使用快速模式：Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1 -Fast`，Linux / WSL 用 `./scripts/check-repo.sh --fast` 或 `./scripts/check-repo-fast.sh`
+- 只有改动较大、发布前，或影响评测/治理口径、协议、架构、阶段边界与文档真相源时，才补跑全量 `check-repo`
+- 不要把 fast mode 当成最终门禁
 - 重要阶段性决策除了改代码，还应同步更新对应文档；如果属于本周重要推进，追加到周志
 
 ## 文档真相源
@@ -41,6 +43,9 @@
 - 优先更新已有文档，不为一次性讨论创建大量散文档
 - 回答“今天要做什么以推进开发”时，默认先读 `docs/radishmind-current-focus.md`，长契约、长评测文档和周志细节只在需要实施具体任务时按需读取
 - `docs/README.md`、产品范围、架构和路线图等关键入口文档应尽量简约，只保留定位、最近阶段、当前进度、下一步和明确停止线
+- 文档默认按“短入口 + 专题页 + 证据附件”组织；入口文档超过 `250` 行、普通 Markdown 超过 `800` 行、周志或任务卡超过 `600` 行会触发仓库检查失败
+- 普通 Markdown 超过 `500` 行、周志或任务卡超过 `350` 行会触发 warning；接近 warning 时应优先拆分专题、分片、manifest、summary 或 run record
+- 必须临时保留的超限文档，应在文件头部 20 行内写入 `markdown-size-allow:`，说明保留原因、默认是否需要阅读和后续拆分计划
 - 历史细节、完整实验观察、长命令输出和批次流水优先放入周志、任务卡、manifest、summary 或 run record，不反复复制进入口文档
 - 周志按 `docs/devlogs/YYYY-Www.md` 命名
 - 许可条款以仓库根 `LICENSE` 文件为准；若当前尚未补齐，则应在后续基础建设阶段补上
@@ -103,8 +108,10 @@
 - 文档读取、文档修改、脚本修改
 - 本仓库内的代码与配置修改
 - `git status`、`git diff`、`git log` 等只读 Git 操作
-- `pwsh ./scripts/check-repo.ps1`
-- `./scripts/check-repo.sh`
+- `pwsh ./scripts/check-repo.ps1 -Fast`
+- `./scripts/check-repo.sh --fast`
+- `pwsh ./scripts/check-repo-fast.ps1`
+- `./scripts/check-repo-fast.sh`
 - 简洁明确的提交操作
 
 ### 需要先告知用户再执行
@@ -139,16 +146,20 @@
 
 验证入口按所在环境优先执行：
 
-1. Windows / PowerShell：`pwsh ./scripts/check-repo.ps1`
-2. Linux / WSL：`./scripts/check-repo.sh`
+1. Windows / PowerShell：`pwsh ./scripts/check-repo.ps1 -Fast`
+2. Linux / WSL：`./scripts/check-repo.sh --fast`
+3. 快速 wrapper：`pwsh ./scripts/check-repo-fast.ps1` 或 `./scripts/check-repo-fast.sh`
+4. 全量模式：`pwsh ./scripts/check-repo.ps1` 或 `./scripts/check-repo.sh`
 
 补充说明：
 
-- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致
-- 仓库主实现栈为 `Python`；评测、回归与仓库级校验统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
+- `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致；日常协作默认走它们的快速参数或对应 fast wrapper
+- `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
+- `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
+- 仓库按职责分层：模型训练、评测与脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` 可按职责采用 `Go`；评测、回归与仓库级校验仍统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
 - 执行验证链路时，应提供可用的 Python 启动器与 `jsonschema`
 - 基线重点是文本文件卫生、治理文件齐备性和 GitHub 规则/工作流口径一致性
-- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并执行对应仓库级验证入口
+- 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并执行快速验证入口；只有文档改动触及治理口径、阶段边界或真相源时，再补跑全量入口
 
 ## 实现约定
 
@@ -170,7 +181,7 @@
 
 ## 文件与代码规范
 
-- 代码应趋近对应语言的良好和优雅实践；本仓库主实现栈为 `Python` 时，应优先使用清晰函数、显式数据结构、标准库能力和可测试边界
+- 代码应趋近对应语言的良好和优雅实践；本仓库中的 `Python`、`Go`、`TypeScript` 代码都应优先使用清晰函数、显式数据结构、标准库或框架的惯用能力和可测试边界
 - 命名必须表达真实职责和领域含义，避免 `process_data`、`handle_item`、`manager`、`helper` 这类无法说明边界的泛名
 - 禁止乱写不明意义的方法、空转 wrapper、多层转发、过度泛化 factory/manager 或晦涩抽象封装
 - 抽象只在能稳定表达职责边界、消除真实重复或明显降低复杂度时引入；不要为了“看起来通用”增加理解成本

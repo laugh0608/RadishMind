@@ -1,11 +1,19 @@
 [CmdletBinding()]
 param(
-    [switch]$SkipTextFiles
+    [switch]$SkipTextFiles,
+    [switch]$Fast
 )
 
 $ErrorActionPreference = "Stop"
 
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+
 function Get-PythonLauncher {
+    $venvPython = Join-Path $repoRoot ".venv/Scripts/python.exe"
+    if (Test-Path -LiteralPath $venvPython -PathType Leaf) {
+        return $venvPython
+    }
+
     foreach ($candidate in @("python", "python3", "py")) {
         $command = Get-Command $candidate -ErrorAction SilentlyContinue
         if ($null -ne $command) {
@@ -16,7 +24,6 @@ function Get-PythonLauncher {
     throw "python is required for scripts/check-repo.ps1"
 }
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $scriptPath = Join-Path $repoRoot "scripts/check-repo.py"
 
 if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
@@ -32,6 +39,10 @@ $arguments += $scriptPath
 
 if ($SkipTextFiles) {
     $arguments += "--skip-text-files"
+}
+
+if ($Fast) {
+    $arguments += "--fast"
 }
 
 & $pythonLauncher @arguments

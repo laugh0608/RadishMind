@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_readiness_summary",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "metadata_ready_implementation_blocked",
+  "readiness_level": "contract_and_metadata_smoke_ready",
+  "completed_gates": [
+    {
+      "gate_id": "session_contract_gate",
+      "status": "complete",
+      "evidence": [
+        "contracts/session-record.schema.json",
+        "scripts/checks/fixtures/session-record-basic.json",
+        "scripts/check-session-record-contract.py"
+      ],
+      "claim": "session identity, bounded history policy, state policy, and recovery record are fixture-checkable"
+    },
+    {
+      "gate_id": "tooling_contract_gate",
+      "status": "complete",
+      "evidence": [
+        "contracts/tool.schema.json",
+        "contracts/tool-registry.schema.json",
+        "contracts/tool-audit-record.schema.json",
+        "scripts/checks/fixtures/tool-registry-basic.json",
+        "scripts/checks/fixtures/tool-audit-record-basic.json",
+        "scripts/check-tooling-framework-contract.py"
+      ],
+      "claim": "tool registry, policy, audit, session binding, and metadata-only cache boundaries are fixture-checkable"
+    },
+    {
+      "gate_id": "checkpoint_read_contract_gate",
+      "status": "complete",
+      "evidence": [
+        "contracts/session-recovery-checkpoint-read.schema.json",
+        "scripts/checks/fixtures/session-recovery-checkpoint-read-basic.json",
+        "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+        "scripts/check-session-recovery-checkpoint-contract.py"
+      ],
+      "claim": "checkpoint read exposes metadata refs and rejects materialized result, durable memory, and replay queries"
+    },
+    {
+      "gate_id": "promotion_gate_summary",
+      "status": "complete",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-promotion-gates.json",
+        "scripts/check-session-tooling-promotion-gates.py"
+      ],
+      "claim": "P2 promotion gates separate current metadata-only claims from future implementation claims"
+    },
+    {
+      "gate_id": "negative_consumption_summary",
+      "status": "complete",
+      "evidence": [
+        "scripts/checks/fixtures/session-tooling-negative-consumption-summary.json",
+        "scripts/check-session-tooling-negative-consumption.py"
+      ],
+      "claim": "negative fixtures and summaries have explicit consumers in contract, route, and fast baseline checks"
+    },
+    {
+      "gate_id": "route_smoke_coverage_summary",
+      "status": "complete",
+      "evidence": [
+        "scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json",
+        "scripts/check-session-recovery-route-smoke-coverage.py"
+      ],
+      "claim": "checkpoint read route smoke covers metadata-only response shape, denied query categories, and northbound failure boundary"
+    }
+  ],
+  "coverage_counts": {
+    "denied_query_cases": 14,
+    "denied_query_categories": {
+      "durable_memory": 3,
+      "materialized_results": 7,
+      "replay": 4
+    },
+    "promotion_gate_count": 4,
+    "route_smoke_negative_cases": 14,
+    "route_smoke_expected_error_codes": [
+      "CHECKPOINT_AUTO_REPLAY_DISABLED",
+      "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    ]
+  },
+  "missing_preconditions": [
+    {
+      "area": "executor",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "executor_boundary",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ],
+      "blocked_until": "tool execution can be sandboxed, audited independently, and covered by negative regression before any executor is enabled"
+    },
+    {
+      "area": "storage",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "storage_backend_design",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ],
+      "blocked_until": "durable session, checkpoint, and tool result storage semantics are designed and separately checked"
+    },
+    {
+      "area": "confirmation",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ],
+      "blocked_until": "upper-layer confirmation flow exists for high-risk actions, replay, and any business-truth write candidate"
+    }
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "durable_session_store",
+    "durable_tool_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_checkpoint_storage_backend",
+    "real_tool_executor",
+    "replay_executor"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-readiness-summary.py",
+      "coverage": "regenerates_and_compares_this_readiness_summary"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

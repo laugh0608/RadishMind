@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "kind": "session_recovery_checkpoint_route_smoke_coverage_summary",
+  "route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+  "stage": "P2 Session & Tooling Foundation",
+  "positive_smoke": {
+    "test_name": "session recovery checkpoint read",
+    "request_path": "/v1/session/recovery/checkpoints/session-checkpoint-0001?session_id=radishflow-session-001&turn_id=turn-0003",
+    "expected_status": 200,
+    "response_shape_assertions": [
+      "kind=session_recovery_checkpoint_read_result",
+      "api_boundary.implemented=false",
+      "api_boundary.response_shape=metadata_refs_only",
+      "access_policy.metadata_only=true",
+      "access_policy.materialized_results_included=false",
+      "access_policy.auto_replay_enabled=false",
+      "refs.include=tool_audit",
+      "state_summary.contains_materialized_tool_results=false",
+      "state_summary.contains_business_truth=false",
+      "replay_policy.auto_replay_enabled=false",
+      "replay_policy.requires_confirmation_for_actions=true",
+      "tool_audit_summary.policy_decision=blocked_tool_execution_disabled",
+      "tool_audit_summary.requires_confirmation=true",
+      "tool_audit_summary.execution_enabled=false",
+      "tool_audit_summary.execution_status=not_executed",
+      "tool_audit_summary.result_cache_mode=metadata_only",
+      "tool_audit_summary.result_ref=null",
+      "tool_audit_summary.durable_memory_written=false",
+      "tool_audit_summary.writes_business_truth=false"
+    ],
+    "forbidden_response_markers": [
+      "\"auto_replay_enabled\":true",
+      "\"durable_memory_enabled\":true",
+      "\"executor_ref\"",
+      "\"materialized_results_included\":true",
+      "\"output_ref\"",
+      "\"result_ref\":\"",
+      "\"writes_business_truth\":true"
+    ]
+  },
+  "negative_smoke": {
+    "test_name": "session recovery checkpoint read blocks materialized results and replay",
+    "fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+    "total_cases": 14,
+    "categories": {
+      "durable_memory": 3,
+      "materialized_results": 7,
+      "replay": 4
+    },
+    "expected_status": 400,
+    "expected_error_codes": [
+      "CHECKPOINT_AUTO_REPLAY_DISABLED",
+      "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    ],
+    "failure_boundary": "northbound_request"
+  },
+  "consumers": [
+    {
+      "path": "services/platform/internal/httpapi/server_test.go",
+      "coverage": "positive_and_negative_route_smoke"
+    },
+    {
+      "path": "scripts/check-session-recovery-route-smoke-coverage.py",
+      "coverage": "regenerates_and_compares_this_summary"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "durable_memory",
+    "materialized_result_reader",
+    "replay_executor",
+    "result_ref_reader",
+    "tool_executor"
+  ]
+}

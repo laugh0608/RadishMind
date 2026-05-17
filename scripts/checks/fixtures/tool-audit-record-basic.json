@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "kind": "tool_invocation_audit_record",
+  "audit_id": "tool-audit-0001",
+  "tool_id": "radishflow.suggest_edits.candidate_builder.v1",
+  "request_id": "req-tooling-001",
+  "session_id": "radishflow-session-001",
+  "turn_id": "turn-0003",
+  "input_ref": "request:req-tooling-001",
+  "output_ref": null,
+  "session_binding": {
+    "session_record_kind": "conversation_session_record",
+    "include_in_recovery": true,
+    "recovery_checkpoint_ref": "tool-audit:tool-audit-0001"
+  },
+  "policy_decision": {
+    "decision": "blocked_tool_execution_disabled",
+    "requires_confirmation": true,
+    "reason": "tool execution is not enabled in the v1 registry; candidate actions require upper-layer confirmation",
+    "policy_refs": [
+      "contracts/tool-registry.schema.json#/properties/registry_policy",
+      "contracts/tool.schema.json#/properties/policy"
+    ]
+  },
+  "execution": {
+    "execution_enabled": false,
+    "status": "not_executed",
+    "executor_ref": null,
+    "started_at": null,
+    "finished_at": null,
+    "duration_ms": null
+  },
+  "state_landing": {
+    "scope": "session_recovery_checkpoint",
+    "state_ref": "tool-state:tool-audit-0001",
+    "durable_memory_written": false
+  },
+  "result_cache": {
+    "mode": "metadata_only",
+    "scope": "session_recovery_checkpoint",
+    "cache_key": "tool-result-cache:req-tooling-001:turn-0003:radishflow.suggest_edits.candidate_builder.v1",
+    "result_ref": null,
+    "retention": "until_recovery_checkpoint",
+    "durable_memory_written": false
+  },
+  "audit": {
+    "advisory_only": true,
+    "writes_business_truth": false,
+    "durable_memory_written": false,
+    "secrets_redacted": true,
+    "notes": [
+      "record captures policy decision and audit boundary only",
+      "no tool executor ran and no durable memory was written"
+    ]
+  }
+}

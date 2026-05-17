@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_implementation_preconditions",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "preconditions_not_satisfied",
+  "source_readiness_summary": "scripts/checks/fixtures/session-tooling-readiness-summary.json",
+  "task_card": "docs/task-cards/session-tooling-implementation-preconditions.md",
+  "areas": [
+    {
+      "area": "executor",
+      "status": "not_ready",
+      "current_boundary": "contract_only_no_execution",
+      "required_before_enablement": [
+        "executor_boundary",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ],
+      "acceptance_gates": [
+        "executor sandbox and allowlist are specified before any tool execution path exists",
+        "execution input/output envelope is separate from model prompt text and checkpoint read response",
+        "every execution attempt emits an independent audit record",
+        "negative regression covers blocked execution, blocked network, blocked business truth writes, and blocked replay"
+      ],
+      "forbidden_current_scope": [
+        "real_tool_executor",
+        "unrestricted_tool_calling",
+        "executor_ref_in_checkpoint_read",
+        "business_truth_write"
+      ]
+    },
+    {
+      "area": "storage",
+      "status": "not_ready",
+      "current_boundary": "metadata_refs_only_no_durable_store",
+      "required_before_enablement": [
+        "storage_backend_design",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ],
+      "acceptance_gates": [
+        "session, checkpoint, audit, and materialized result storage responsibilities are separated",
+        "retention, redaction, and secret handling rules are specified before durable writes",
+        "checkpoint read keeps metadata-only default and requires explicit policy for any materialized result ref",
+        "negative regression covers durable memory disabled, result ref disabled, and business truth write disabled"
+      ],
+      "forbidden_current_scope": [
+        "durable_session_store",
+        "durable_tool_store",
+        "long_term_memory",
+        "materialized_result_reader",
+        "real_checkpoint_storage_backend"
+      ]
+    },
+    {
+      "area": "confirmation",
+      "status": "not_ready",
+      "current_boundary": "requires_confirmation_metadata_only",
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ],
+      "acceptance_gates": [
+        "upper layer owns explicit approve, reject, and defer outcomes",
+        "high-risk actions, replay requests, and business truth writes cannot bypass confirmation",
+        "confirmed action handoff is distinct from advisory candidate output",
+        "negative regression covers missing confirmation, stale confirmation, and mismatched action payloads"
+      ],
+      "forbidden_current_scope": [
+        "implicit_confirmation",
+        "automatic_replay",
+        "confirmed_action_execution",
+        "business_truth_write"
+      ]
+    }
+  ],
+  "shared_stop_lines": [
+    "do_not_enable_real_executor",
+    "do_not_add_durable_store",
+    "do_not_add_long_term_memory",
+    "do_not_add_replay_executor",
+    "do_not_return_materialized_results_from_checkpoint_read"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-implementation-preconditions.py",
+      "coverage": "validates_precondition_fixture_task_card_and_readiness_summary_alignment"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

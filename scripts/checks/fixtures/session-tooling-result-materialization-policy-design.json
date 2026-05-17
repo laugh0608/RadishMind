@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_result_materialization_policy_design",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "design_only_not_connected",
+  "source_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_independent_audit_records_design": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "source_tool_audit_record_fixture": "scripts/checks/fixtures/tool-audit-record-basic.json",
+  "task_card": "docs/task-cards/session-tooling-result-materialization-policy.md",
+  "scope": {
+    "area": "result_materialization_policy",
+    "current_boundary": "metadata_only_no_result_ref_no_materialized_output",
+    "executor_enabled": false,
+    "result_ref_enabled": false,
+    "materialized_result_reader_enabled": false,
+    "durable_result_store_enabled": false,
+    "writes_business_truth": false,
+    "replay_enabled": false
+  },
+  "policy_modes": [
+    {
+      "mode": "metadata_only",
+      "current_status": "enabled_for_fixture_boundary_only",
+      "allowed_refs": [
+        "request_ref",
+        "session_record_ref",
+        "tool_audit_ref",
+        "tool_state_metadata_ref",
+        "checkpoint_ref"
+      ],
+      "forbidden_refs": [
+        "result_ref",
+        "output_ref",
+        "executor_ref",
+        "materialized_result_uri",
+        "business_truth_ref",
+        "replay_ref"
+      ],
+      "read_behavior": "checkpoint read may return governance metadata and audit summaries only"
+    },
+    {
+      "mode": "result_ref",
+      "current_status": "future_only_disabled",
+      "required_before_enablement": [
+        "real_tool_executor",
+        "durable_result_store_design",
+        "independent_audit_records_implemented",
+        "upper_layer_confirmation_flow",
+        "negative_regression_suite"
+      ],
+      "forbidden_current_scope": [
+        "include_result_ref=true",
+        "result_ref=tool-result-001",
+        "output_ref=tool-output-001",
+        "executor_ref=local-tool-executor"
+      ],
+      "read_behavior": "must be rejected by checkpoint read route in current P2 scope"
+    },
+    {
+      "mode": "materialized_result",
+      "current_status": "future_only_disabled",
+      "required_before_enablement": [
+        "retention_policy",
+        "redaction_policy",
+        "secret_handling_policy",
+        "durable_result_store_design",
+        "explicit_reader_authorization",
+        "negative_regression_suite"
+      ],
+      "forbidden_current_scope": [
+        "include_materialized_results=true",
+        "include_tool_results=1",
+        "materialize_results=on",
+        "raw_tool_output",
+        "business_truth_write"
+      ],
+      "read_behavior": "must be rejected by checkpoint read route in current P2 scope"
+    }
+  ],
+  "denied_query_alignment": {
+    "required_category": "materialized_results",
+    "required_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+    "required_queries": [
+      "include_materialized_results=true",
+      "include_tool_results=1",
+      "materialize_results=on",
+      "include_result_ref=true",
+      "result_ref=tool-result-001",
+      "output_ref=tool-output-001",
+      "executor_ref=local-tool-executor"
+    ]
+  },
+  "boundary_alignment": {
+    "confirmation": [
+      "confirmation approval cannot create result_ref or materialized output in current scope",
+      "approved actions remain approved_pending_execution_boundary until executor and result materialization are separately enabled",
+      "high-risk result reads or writes require upper_layer_confirmation_flow before future enablement"
+    ],
+    "executor": [
+      "real_tool_executor remains not_implemented and executor_enabled=false",
+      "executor_ref is forbidden in checkpoint read and result materialization policy current scope",
+      "future executor output must be separated from model prompt text and checkpoint metadata response"
+    ],
+    "storage": [
+      "durable_result_store_enabled=false and materialized_result_reader_enabled=false",
+      "metadata-only checkpoint read is not a result store",
+      "future result storage requires retention, redaction, secret handling, and explicit reader authorization"
+    ],
+    "audit": [
+      "independent audit records may record denied materialization attempts as metadata",
+      "audit records do not store raw tool output or credentials",
+      "future result_ref or materialized_result access must create independent audit records"
+    ]
+  },
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_result_store",
+    "durable_session_store",
+    "durable_tool_store",
+    "executor_ref_reader",
+    "long_term_memory",
+    "materialized_result_reader",
+    "raw_tool_output_reader",
+    "real_tool_executor",
+    "result_ref_reader"
+  ],
+  "precondition_status_after_design": {
+    "result_materialization_policy": "design_boundary_defined_not_implemented",
+    "upper_layer_confirmation_flow": "not_satisfied",
+    "executor_boundary": "not_satisfied",
+    "storage_backend_design": "not_satisfied",
+    "independent_audit_records": "design_boundary_defined_not_implemented",
+    "negative_regression_suite": "not_satisfied"
+  },
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-result-materialization-policy.py",
+      "coverage": "validates_result_materialization_policy_design_modes_denied_queries_and_boundaries"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

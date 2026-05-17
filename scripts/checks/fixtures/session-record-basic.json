@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "kind": "conversation_session_record",
+  "session_id": "radish-docs-session-001",
+  "conversation_id": "radish-docs-session-001",
+  "turn_id": "turn-0002",
+  "parent_turn_id": "turn-0001",
+  "request_id": "req-session-001",
+  "project": "radish",
+  "task": "answer_docs_question",
+  "route": "/v1/chat/completions",
+  "protocol": "openai-chat-completions",
+  "source": "northbound_compat",
+  "created_at": "2026-05-13T10:00:00Z",
+  "history_policy": {
+    "mode": "windowed",
+    "max_turns": 8,
+    "include_system": true,
+    "include_tool_results": false,
+    "compression": {
+      "strategy": "none",
+      "summary_artifact_id": null
+    }
+  },
+  "state_policy": {
+    "session_state_scope": "northbound_metadata",
+    "tool_result_cache_scope": "session_recovery_checkpoint",
+    "recovery_checkpoint_scope": "audit_refs_only",
+    "durable_memory_enabled": false
+  },
+  "recovery_record": {
+    "status": "available",
+    "last_stable_turn_id": "turn-0001",
+    "replayable": true,
+    "reason": "previous turn was schema-valid and advisory-only",
+    "checkpoints": [
+      {
+        "kind": "request",
+        "ref": "req-session-0001"
+      },
+      {
+        "kind": "audit",
+        "ref": "session-audit-0001"
+      },
+      {
+        "kind": "tool_audit",
+        "ref": "tool-audit-0001"
+      }
+    ]
+  },
+  "audit": {
+    "advisory_only": true,
+    "writes_business_truth": false,
+    "requires_confirmation_for_actions": true,
+    "notes": [
+      "session record only declares history and recovery boundaries",
+      "no business source of truth is modified by this record"
+    ]
+  }
+}

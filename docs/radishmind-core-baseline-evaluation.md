@@ -1,6 +1,6 @@
 # RadishMind-Core 首版基座评估矩阵
 
-更新时间：2026-05-06
+更新时间：2026-05-10
 
 ## 文档目的
 
@@ -18,13 +18,23 @@
 
 2026-05-06 已完成 citation-tightened full-holdout-9 `Qwen2.5-1.5B-Instruct --build-task-scoped-response` 复跑：candidate summary 重新达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`builder_output_count=9`、`timeout_count=0`，offline eval 三组任务 blocking metrics 全部通过，自然语言 audit 为 `pass`、`violation_count=0`、`warning_count=3`、`fallback_natural_field_rate=0.142857`。正式 review records 已更新为 9/9 `reviewed_pass`；docs QA 三条短 action title warning、task-specific fallback text、risk/advisory boundary 与 holdout leakage 均已复核通过，`compressor-parameter-update` 的 broad citation blocker 也已关闭。当前这只恢复 builder/tooling 轨机器与人工复核通过状态，不代表 raw 晋级、训练准入或 production contract 接受证据。
 
-同一轮人工复核已确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document` citation，而是收口到 indexed diagnostics、unit config 与 latest snapshot evidence；deterministic scaffold 也已覆盖这条边界。这个修正只说明 fixture/scaffold 与人工复核口径已收紧，不追认旧本地产物为 raw 晋级证据。broader task-scoped builder review 的 15 样本 entry、两段 runbook 和 pending records 骨架已经固定；下一步应按 runbook 执行两段本地 broader review 并审计 `tmp/` 产物，而不是继续等待 citation.tightened 重跑或提前写 `reviewed_pass`。
+同一轮人工复核已确认 `compressor-parameter-update` 不再使用 broad `artifact:flowsheet_document` citation，而是收口到 indexed diagnostics、unit config 与 latest snapshot evidence；deterministic scaffold 也已覆盖这条边界。这个修正只说明 fixture/scaffold 与人工复核口径已收紧，不追认旧本地产物为 raw 晋级证据。broader task-scoped builder review 的 15 样本 entry、两段 runbook 和 review records 骨架已经固定；2026-05-08 已按 runbook 读取两段新 `tmp/` 产物并完成 broader 15 样本复核回填，当前 records 结论已推进到 15/15 `reviewed_pass`，但它仍只代表 builder/tooling 路线通过，不代表 raw 晋级、训练准入或 production contract 接受。
 
 2026-05-06 已将 broader task-scoped builder review 的可执行样本面固定为 15 条：`full-holdout-9` 的 9 条 reviewed_pass 样本，加上 `holdout6-v2-non-overlap` 的 6 条非重叠回归样本，三类任务各 5 条。该入口落在 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`，并由 `scripts/check-radishmind-core-task-scoped-builder-broader-review-entry.py` 接入仓库级验证；它只收口下一轮 broader review 的执行面，不代表 raw 晋级、训练准入或 production contract 接受证据。
 
+2026-05-10 追加的 `Qwen2.5-3B-Instruct` 观测表明，3B 仍然不能把 `holdout6-v2-non-overlap` 上的复杂自然语言问题完全收口：raw 在 `suggest_flowsheet_edits` 上依然 blocked，且有 1 条超时、`advisory_action_boundary_rate=0.5`；guided 则把结构化门禁拉回到 6/6 机器通过，但 candidate responses 仍保留跨对象解释退化和 ghost/docs 的自然语言污染。因此 3B 不是“已经够用”的结论，而是把 3B/4B 容量-质量曲线的下界补齐。
+
+同日对 `Qwen2.5-3B-Instruct` guided 与 `Qwen3-4B-Instruct-2507` guided 的 6 条真实 candidate responses 做同口径人工审计后，当前结论进一步收紧为“4B 只有局部去噪改善，不构成质量晋级”。这份结论已经正式落到 `training/datasets/radishmind-core-guided-capacity-review-records-v0.json`，并固定为 `reviewed_changes_required`：`4B guided` 在 `docs-faq-forum-conflict`、`evidence-gap`、`flash-vapor-outlet` 与 `efficiency-range` 这些较简单样本上，确实减少了 `3B guided` 中明显的重复 filler、`请联系支持团队` / `请联系工程师` 污染和过长模板句；但它同时引入了更系统性的 `summary` 泄漏：6 条 inspected outputs 的 `summary` 都带入了 `','answers':[...` 形态的内联 JSON 片段。更关键的是，复杂语义面没有随容量同步收口：`cross-object-mixed-risk-reconnect-plus-pump-parameter-001` 仍保留泛化 `请复核` / `建议人工确认后处理`、`PUMP_OUTLET_PRESSURE_TARGET_INVALID` severity drift 和截断的 warning explanation；`valve-ambiguous-no-tab-001` 也仍没有明确说出“两条候选都可见，但都不能默认 `Tab` 接受”。因此当前更准确的写法不是“4B guided 优于 3B guided”，而是“4B guided 对简单污染有局部改善，但 summary 泄漏更强、复杂解释仍未收口”。
+
 同日补充 broader review runbook：`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 将 15 样本 surface 拆成 full-holdout-9 与 holdout6-v2-non-overlap 两段本地执行清单，并明确两段各自的 candidate summary、offline eval、natural-language audit 和后续 human review record 期望。`scripts/check-radishmind-core-task-scoped-builder-broader-review-runbook.py` 负责固定该 runbook 只描述计划，不生成结果，也不提前把 broader review 伪装成 reviewed_pass。
 
-同日再补 pending review records 骨架：`training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 预置 broader 15 样本逐条复核入口和 `tmp/` artifact 路径，但状态保持 `pending_review`。`scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 会阻止该骨架在真实两段本地执行、offline eval、natural-language audit 和人工复核完成前被标成 `reviewed_pass`。
+同日再补 pending review records 骨架：`training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json` 预置 broader 15 样本逐条复核入口和 `tmp/` artifact 路径。`scripts/check-radishmind-core-task-scoped-builder-broader-review-records.py` 会阻止该记录集在真实两段本地执行、offline eval、natural-language audit 和人工复核完成前被标成 `reviewed_pass`；当前这条约束已被满足，2026-05-08 回填后该记录集现为 15/15 `reviewed_pass`。
+
+2026-05-07 已按 runbook 完成两段 broader review 本地执行：full-holdout-9 与 holdout6-v2-non-overlap 的 candidate summary 均达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`，offline eval 与 natural-language audit 均为 pass；full-holdout-9 仅保留 3 条 docs QA short-title warning，v2 仅保留 1 条 warning，均无 violation。2026-05-08 读取新一轮 `tmp/` 产物后，15 条样本人工复核已全部更新为 `reviewed_pass`：accepted warning 样本集中在 4 条 docs QA short-title UI-copy warning，accepted fallback 样本集中在 10 条仍使用 task-grounded deterministic fallback 的记录。当前 broader review records 已把两段 machine gate、offline eval、natural-language audit 和全部 reviewer 结论写实到批次级 summary；这批产物现在可以作为更强的 tooling-route evidence，但仍不应写成 raw 晋级或训练准入证据。
+
+在 broader 15 样本已经 `reviewed_pass` 的前提下，guided/constrained 轨现在已经回答了原来的第一层问题：同一 `holdout6-v2-non-overlap`、同一 `300s` timeout、同一 raw 边界下，`Qwen2.5-1.5B-Instruct` 的结构化输出表现确实能被更强约束明显改善。2026-05-10 的 `Qwen2.5-3B-Instruct` 和 `Qwen3-4B-Instruct-2507` 进一步把容量梯度补齐，但两者都没有把自然语言质量完全收口：3B raw 仍 blocked、3B guided 仍有退化，4B guided 只在简单 docs/ghost 去重上有局部改善，却引入了系统性 `summary` JSON 片段泄漏，且 cross-object / no-tab 语义仍未真正改善。因此当前下一步不是继续扩大同一 1.5B guided 样本面，而是把 `3B/4B` 的差异收口成容量-质量曲线，判断这些残余问题究竟主要来自模型容量，还是仍可继续靠约束解码 / tooling 收口。
+
+2026-05-07 日终又补了同一批 10 条 blocker 的 deterministic builder 收口和回归断言：`suggest_flowsheet_edits` 的 action-citation / compressor / efficiency，以及 `answer_docs_question` 的 attachment / docs-attachments-faq / navigation / docs-faq-forum-conflict 现在都已改成 task-grounded summary / answer / citation 语义；`scripts/check-radishmind-core-task-scoped-response-builder.py` 现已覆盖这 10 条 blocker 的全量 deterministic 回归。2026-05-08 读取新一轮 broader `tmp/` 产物后，这些修复已被真实 rerun 证实：full-holdout-9 natural-language audit 现为 `merged_natural_field_count=15`、`fallback_natural_field_count=27`、`fallback_natural_field_rate=0.642857`，v2 现为 `merged_natural_field_count=4`、`fallback_natural_field_count=28`、`fallback_natural_field_rate=0.875`。这说明 builder 已在更大范围内把不够 task-grounded 的 raw 文案收回到 deterministic fallback，并且 broader review 已接受这些 fallback 仍然 factual、source-grounded、advisory-only 的样本。
 
 ## 评估对象
 
@@ -121,6 +131,7 @@ repaired 观测结论：
 - 当前已新增 `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json`，记录 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨接入 `radishmind-core-offline-eval-run` 后的观察摘要；repaired 在当前 9 条 fixture 上达到 `schema_valid_rate=1.0` 与 `task_valid_rate=1.0`，但修复了 `8/9` 条输出，因此不得视为 raw 能力晋级
 - repaired 结果只能证明后处理链路可行，不能替代 raw 模型能力；后续晋级判断必须同时保留 raw summary、repaired summary、修复路径统计、样本覆盖说明和人工复核结论
 - task-scoped builder 的后续扩样也遵循同一原则：机器通过、自然语言 audit 通过和 planned review 口径固定，都只能证明 tooling 路线可继续观察，不能直接替代 raw 晋级或训练准入判断
+- 2026-05-10 的 `Qwen3-4B-Instruct-2507` raw / guided 观测也已经完成：raw 在 `holdout6-v2-non-overlap` 上 `schema_valid_rate=0.6666666666666666`、`task_valid_rate=1.0`、`timeout_count=2`，主要卡在 `suggest_flowsheet_edits` 和 `suggest_ghost_completion` 两条复杂边界；guided 在同一 holdout 上达到 `schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`、`hit_max_new_tokens_count=1`，并在简单 docs/ghost 样本上减轻了 `3B guided` 的重复 filler，但 6 条 `summary` 全部泄漏了 `','answers':[...` 形态的内联 JSON 片段，且 cross-object / no-tab 语义仍未收口。这个结果说明 4B 已把结构化门禁再往前推了一步，但还没有把自然语言质量完全收口。
 - 2026-05-06 citation-tightened full-holdout-9 复跑已完成：同一批 9 条样本重新达到 `9/9` schema/task valid、offline eval 全绿与自然语言 audit `violation_count=0`，并且 review records 现在已推进为 9/9 `reviewed_pass`。`compressor-parameter-update` 的 numeric detail 断言与 citation locator 断言都已通过；该结果只恢复 builder/tooling 轨机器与人工复核通过状态，仍需把它和 raw 晋级、训练准入严格分开。
 - `run-radishmind-core-candidate.py` 已为 `local_transformers` 增加显式 `--sample-timeout-seconds` 单样本超时边界；timeout 会记录为 invalid candidate output、`generation_timeout` 失败分类和 generation summary 的 `timeout_count`，避免单条本地生成长时间阻塞整批评测
 
@@ -374,7 +385,7 @@ repaired 观测结论：
 
 ## 今日主线
 
-基于当前阶段判断，今天的主线已经从“继续补观测”收口为“先把决策型实验落成可复跑入口”。当前优先实验记录固定为 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，它明确回答以下问题：
+基于当前阶段判断，今天的主线已经从“继续补观测”收口为“回到 `M3` 的 service/API smoke 维护，并把 `M4` 的 3B/4B 收口证据保留为正式记录”。当前优先实验记录固定为 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，它明确回答以下问题：
 
 - 当前 raw blocked，主因是否主要来自结构化输出约束方式不足，而不是单纯模型容量不足
 
@@ -393,14 +404,14 @@ repaired 观测结论：
 - `suggest_flowsheet_edits` response builder
 - 可组合的 task-scoped response builder
 
-只有当这些更强约束后，raw 仍主要卡在复杂 reasoning 或 action planning，下一步才应进入 `minimind-v`、`3B` 或 `4B` 对照。反过来，如果更强约束已经明显改善 `status / risk_level / requires_confirmation`、citation 顺序或 action boundary，则下一步优先推进 response builder / tool 分工，而不是先扩模型尺寸。
+只有当这些更强约束后，raw 仍主要卡在复杂 reasoning 或 action planning，下一步才应进入新的模型尺寸对照。反过来，如果更强约束已经明显改善 `status / risk_level / requires_confirmation`、citation 顺序或 action boundary，则下一步优先推进 response builder / tool 分工，而不是继续扩同一批样本面。
 
 2026-05-04 首轮 v2 非重叠 holdout raw / repaired 双轨已经完成。两轨都使用本地 `Qwen2.5-1.5B-Instruct`、同一 6 条样本、同一 `300s` timeout、`--allow-invalid-output` 与 `--validate-task`；repaired 轨额外启用 `--repair-hard-fields`。随后 offline eval runner 只读取 `tmp/` candidate outputs 生成本地 run record，不重跑模型、不下载权重。
 
 - raw：`schema_valid_rate=0.8333333333333334`、`task_valid_rate=0.4`、`timeout_count=0`，offline eval 决策仍为 `blocked`
 - repaired：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`timeout_count=0`，但决策仍为 `no_promotion_planned`，因为它是显式后处理工程轨
 
-该结果强化当前路线判断：同样模型、同样样本和同样 timeout 下，raw blocked 到 repaired `6/6` task-valid 的差异更支持先验证 constrained / guided decoding、硬字段外部注入和 response builder / tooling 分工，而不是直接把失败归因到模型容量并进入 `3B/4B` 对照。
+该结果强化当前路线判断：同样模型、同样样本和同样 timeout 下，raw blocked 到 repaired `6/6` task-valid 的差异更支持先验证 constrained / guided decoding、硬字段外部注入和 response builder / tooling 分工，而不是直接把失败归因到模型容量并进入新的模型尺寸对照。
 
 当前已先落成硬字段外部注入的最小 candidate wrapper 变体：`--inject-hard-fields`。它只写回 prompt document 中 `hard_field_freeze.fields` 明确声明的 JSON path/value，并在 summary 中记录 `postprocess_policy.inject_hard_fields`、`injected_output_count` 与 `injected_path_counts`；它不会像 `--repair-hard-fields` 那样重建完整 response scaffold，因此可以作为 raw 与 repaired 之间的第三轨对照。下一步应优先让用户在同一 v2 非重叠 holdout 上运行该第三轨，再判断“只注入稳定硬字段”是否足以改善 raw 阻塞指标。
 
@@ -430,7 +441,7 @@ repaired 观测结论：
 
 用户继续完成修正后同一 v2 非重叠 holdout 的真实本地复跑。该轨机器指标继续通过：`schema_valid_rate=1.0`、`task_valid_rate=1.0`、`task_validation_attempted=6`、`builder_output_count=6`、`timeout_count=0`、`hit_max_new_tokens_count=0`、`json_extracted_count=6`、总生成耗时约 `894.117s`、平均 `149.019s`；offline eval 三组任务所有 blocking metrics 仍为 `1.0`，整体 `promotion_status=no_promotion_planned`。目标 response 抽查也通过：`docs-faq-forum-conflict` 的 answer 已替换为 docs / FAQ / forum source precedence 的任务感知文本，不再出现通用占位句；`ghost flash vapor` 使用本地候选集与预览描述，不再出现 `法律`、`法规`、`合法` 或 `合规` 误译。至此，task-scoped builder 在 v2 非重叠 holdout 上同时具备机器通过与两类目标自然语言 guardrail 验证；该结论仍是 tooling 分工路线证据，不是 raw 模型晋级证据。下一步应在扩大样本面前先固定自然语言 review / audit 口径，覆盖语义正确性、引用解释质量和 fallback 使用比例。
 
-当前已把该自然语言 review 口径落为仓库级 deterministic audit gate：新增 `scripts/audit-radishmind-core-task-scoped-natural-language.py` 与 `scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json`，并由 `scripts/check-repo.py` 重新生成 v2 `golden_fixture --build-task-scoped-response` 临时 candidate 输出后执行审计。该审计不运行模型、不下载权重，只接受 task-scoped builder summary；它会阻塞通用占位自然语言、ghost completion 的法律/法规/合法/合规误译，以及 docs source-conflict answer 中丢失 docs / FAQ / forum 来源语境的问题，同时记录 merged 与 fallback 自然语言字段比例。当前 fixture 审计结果为 `sample_count=6`、`violation_count=0`、`warning_count=0`、`natural_field_count=32`、`merged_natural_field_count=30`、`fallback_natural_field_count=2`、`fallback_natural_field_rate=0.0625`。这使下一步扩大 task-scoped builder 样本面前已有可复跑的自然语言质量门禁，但仍不能替代人工 reviewer 对引用解释质量、事实充分性和业务语义的判断。
+当前已把该自然语言 review 口径落为仓库级 deterministic audit gate：新增 `scripts/audit-radishmind-core-task-scoped-natural-language.py` 与 `scripts/checks/fixtures/radishmind-core-task-scoped-natural-language-audit-summary.json`，并由 `scripts/check-repo.py` 重新生成 v2 `golden_fixture --build-task-scoped-response` 临时 candidate 输出后执行审计。该审计不运行模型、不下载权重，只接受 task-scoped builder summary；它会阻塞通用占位自然语言、ghost completion 的法律/法规/合法/合规误译，以及 docs source-conflict answer 中丢失 docs / FAQ / forum 来源语境的问题，同时记录 merged 与 fallback 自然语言字段比例。当前 fixture 审计结果为 `sample_count=6`、`violation_count=0`、`warning_count=0`、`natural_field_count=32`、`merged_natural_field_count=27`、`fallback_natural_field_count=5`、`fallback_natural_field_rate=0.15625`。这说明当前 builder 在更多位置倾向拒收不够 task-grounded 的自然语言并改走 deterministic fallback；它为下一步 broader review rerun 提供了可复跑门禁，但仍不能替代人工 reviewer 对引用解释质量、事实充分性和业务语义的判断。
 
 当前又补 `scripts/check-radishmind-core-structured-output-run-set.py` 与 `scripts/checks/fixtures/radishmind-core-structured-output-run-set-summary.json`，把上述 v2 多轨真实观测从长实验记录抽成仓库级 run-set 门禁。该门禁只读取 `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json`，不访问 `tmp/` 产物、不运行本地模型、不下载权重；它固定 raw / repaired / hard-field injection / suggest-edits builder / task-scoped builder / fixed guardrail 六条轨道的关键指标、`promotion_status`、`timeout_count`、`builder_output_count`、人工复核状态和 route signal。由此可以防止后续把 repaired 或 builder 通过误写成 raw 晋级，也防止遗漏“下一步应扩大 task-scoped builder 样本面与自然语言 review，而不是直接切 `3B/4B`”这个阶段结论。
 

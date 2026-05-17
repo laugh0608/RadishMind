@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_promotion_gates",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "contract_and_metadata_smoke_only",
+  "gates": [
+    {
+      "gate_id": "contract_gate",
+      "scope": [
+        "session",
+        "tooling",
+        "checkpoint"
+      ],
+      "current_evidence": [
+        "contracts/session-record.schema.json",
+        "contracts/session-recovery-checkpoint.schema.json",
+        "contracts/session-recovery-checkpoint-manifest.schema.json",
+        "contracts/session-recovery-checkpoint-read.schema.json",
+        "contracts/tool.schema.json",
+        "contracts/tool-registry.schema.json",
+        "contracts/tool-audit-record.schema.json",
+        "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
+      ],
+      "allowed_claims": [
+        "session identity and bounded history policy are contract-stable",
+        "tool registry and audit boundaries are contract-stable",
+        "checkpoint read shape is metadata-only"
+      ],
+      "blocked_claims": [
+        "durable session store",
+        "durable tool store",
+        "long-term memory",
+        "real checkpoint storage backend",
+        "real tool executor"
+      ]
+    },
+    {
+      "gate_id": "checkpoint_read_gate",
+      "scope": [
+        "checkpoint",
+        "tooling"
+      ],
+      "current_evidence": [
+        "scripts/checks/fixtures/session-recovery-checkpoint-read-basic.json",
+        "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
+      ],
+      "allowed_claims": [
+        "checkpoint read exposes metadata refs",
+        "checkpoint read exposes tool audit governance summary",
+        "checkpoint read rejects materialized result and replay requests"
+      ],
+      "blocked_claims": [
+        "materialized result reader",
+        "tool output reader",
+        "result ref reader",
+        "executor ref reader",
+        "automatic replay"
+      ]
+    },
+    {
+      "gate_id": "platform_route_smoke",
+      "scope": [
+        "platform",
+        "checkpoint"
+      ],
+      "current_evidence": [
+        "services/platform/internal/httpapi/session_recovery.go",
+        "services/platform/internal/httpapi/server_test.go"
+      ],
+      "allowed_claims": [
+        "platform route can return fixture-backed metadata-only checkpoint read result",
+        "platform route rejects materialized result, durable memory, and replay query params"
+      ],
+      "blocked_claims": [
+        "production checkpoint service",
+        "durable checkpoint store",
+        "cross-turn replay executor",
+        "business truth source"
+      ]
+    },
+    {
+      "gate_id": "future_implementation_gate",
+      "scope": [
+        "executor",
+        "storage",
+        "upper_layer_integration"
+      ],
+      "current_evidence": [
+        "docs/contracts/session.md",
+        "docs/contracts/tooling.md"
+      ],
+      "allowed_claims": [
+        "future implementation requirements are identified"
+      ],
+      "blocked_claims": [
+        "executor enabled",
+        "durable memory enabled",
+        "result materialization enabled",
+        "automatic replay enabled"
+      ],
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "executor_boundary",
+        "storage_backend_design",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ]
+    }
+  ]
+}

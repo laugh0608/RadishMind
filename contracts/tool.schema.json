@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/tool.schema.json",
+  "title": "RadishMindToolDefinition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "tool_id",
+    "display_name",
+    "description",
+    "tool_type",
+    "project_scope",
+    "interface",
+    "execution",
+    "policy",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "tool_definition"
+    },
+    "tool_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*\\.v[0-9]+$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tool_type": {
+      "type": "string",
+      "enum": [
+        "retrieval",
+        "candidate_builder",
+        "validator",
+        "adapter",
+        "policy_check",
+        "diagnostic",
+        "metadata_reader"
+      ]
+    },
+    "project_scope": {
+      "type": "string",
+      "enum": [
+        "radishmind",
+        "radishflow",
+        "radish",
+        "cross_project"
+      ]
+    },
+    "interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_schema_ref",
+        "output_schema_ref",
+        "input_ref_policy",
+        "output_ref_policy"
+      ],
+      "properties": {
+        "input_schema_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "output_schema_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_ref_policy": {
+          "type": "string",
+          "enum": [
+            "inline_json",
+            "artifact_ref",
+            "request_context"
+          ]
+        },
+        "output_ref_policy": {
+          "type": "string",
+          "enum": [
+            "inline_json",
+            "artifact_ref",
+            "audit_only"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "executor_ref",
+        "timeout_seconds",
+        "retry_policy"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "contract_only",
+            "deterministic_local",
+            "external_adapter"
+          ]
+        },
+        "executor_ref": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "retry_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_attempts",
+            "retry_on"
+          ],
+          "properties": {
+            "max_attempts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3
+            },
+            "retry_on": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "timeout",
+                  "transient_error"
+                ]
+              },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "advisory_only",
+        "writes_business_truth",
+        "allows_network",
+        "durable_memory_enabled",
+        "requires_confirmation_for_actions",
+        "allowed_projects",
+        "data_access",
+        "risk_level"
+      ],
+      "properties": {
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "writes_business_truth": {
+          "type": "boolean",
+          "const": false
+        },
+        "allows_network": {
+          "type": "boolean"
+        },
+        "durable_memory_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "requires_confirmation_for_actions": {
+          "type": "boolean"
+        },
+        "allowed_projects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "radishflow",
+              "radish"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "data_access": {
+          "type": "string",
+          "enum": [
+            "fixture_only",
+            "request_context",
+            "artifact_metadata",
+            "local_readonly_index"
+          ]
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audit_event_required",
+        "records_inputs",
+        "records_outputs",
+        "redacts_secrets",
+        "notes"
+      ],
+      "properties": {
+        "audit_event_required": {
+          "type": "boolean",
+          "const": true
+        },
+        "records_inputs": {
+          "type": "boolean"
+        },
+        "records_outputs": {
+          "type": "boolean"
+        },
+        "redacts_secrets": {
+          "type": "boolean",
+          "const": true
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

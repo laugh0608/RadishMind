@@ -3,17 +3,16 @@
   "kind": "radishmind_core_task_scoped_builder_broader_review_records",
   "phase": "M4-preparation",
   "review_batch_id": "task-scoped-builder-broader-15-sample-review-v0",
-  "status": "pending_review",
+  "status": "reviewed_pass",
   "review_entry": "training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json",
   "review_runbook": "training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json",
   "review_plan": "training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json",
   "candidate_track": "--build-task-scoped-response",
   "model": "Qwen2.5-1.5B-Instruct",
-  "reviewer": null,
-  "reviewed_at": null,
+  "reviewer": "repository-reviewer",
+  "reviewed_at": "2026-05-08T00:00:00Z",
   "does_not_run_models": true,
   "does_not_generate_jsonl": true,
-  "does_not_mark_review_pass": true,
   "does_not_mark_raw_promotion": true,
   "does_not_mark_training_acceptance": true,
   "source_artifacts": {
@@ -28,21 +27,85 @@
       "natural_language_audit": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-natural-language-audit.json"
     }
   },
-  "pending_gate_summary": {
-    "machine_gate_status": "pending_local_execution",
-    "natural_language_audit_status": "pending_local_execution",
-    "human_review_status": "pending_review",
-    "holdout_leakage_status": "pending_review",
+  "execution_gate_summary": {
+    "machine_gate_status": "passed",
+    "natural_language_audit_status": "passed",
+    "human_review_status": "reviewed_pass",
+    "holdout_leakage_status": "reviewed_pass",
+    "segments": {
+      "full-holdout-9": {
+        "machine_gate_summary": {
+          "schema_valid_rate": 1.0,
+          "task_valid_rate": 1.0,
+          "builder_output_count": 9,
+          "timeout_count": 0
+        },
+        "offline_eval_summary": {
+          "run_status": "completed",
+          "promotion_status": "no_promotion_planned",
+          "all_result_records_passed": true
+        },
+        "natural_language_audit_summary": {
+          "status": "pass",
+          "violation_count": 0,
+          "warning_count": 3,
+          "natural_field_count": 42,
+          "merged_natural_field_count": 15,
+          "fallback_natural_field_count": 27,
+          "fallback_natural_field_rate": 0.642857
+        }
+      },
+      "holdout6-v2-non-overlap": {
+        "machine_gate_summary": {
+          "schema_valid_rate": 1.0,
+          "task_valid_rate": 1.0,
+          "builder_output_count": 6,
+          "timeout_count": 0
+        },
+        "offline_eval_summary": {
+          "run_status": "completed",
+          "promotion_status": "no_promotion_planned",
+          "all_result_records_passed": true
+        },
+        "natural_language_audit_summary": {
+          "status": "pass",
+          "violation_count": 0,
+          "warning_count": 1,
+          "natural_field_count": 32,
+          "merged_natural_field_count": 4,
+          "fallback_natural_field_count": 28,
+          "fallback_natural_field_rate": 0.875
+        }
+      }
+    },
     "training_manifest_overlap_policy": "full-holdout-9 must remain excluded from the current training conversion manifests; holdout6-v2-non-overlap is retained as a regression surface and may include existing training conversion samples, but broader review still must not mark training acceptance.",
     "completion_rule": "Do not change this broader record set to reviewed_pass until both execution segments pass machine gate and natural-language audit, every sample has reviewer, reviewed_at, per-dimension results, and holdout leakage remains reviewed_pass."
   },
   "batch_summary": {
     "record_count": 15,
-    "pending_review_count": 15,
-    "reviewed_pass_count": 0,
+    "pending_review_count": 0,
+    "reviewed_pass_count": 15,
     "reviewed_changes_required_count": 0,
     "blocking_change_required_samples": [],
-    "decision": "Broader task-scoped builder review records are initialized as a pending review surface only. They do not claim machine pass, human pass, raw promotion, training acceptance, or production contract acceptance."
+    "accepted_warning_samples": [
+      "radish-answer-docs-question-attachment-mixed-001",
+      "radish-answer-docs-question-docs-attachments-faq-001",
+      "radish-answer-docs-question-navigation-001",
+      "radish-answer-docs-question-docs-faq-forum-conflict-001"
+    ],
+    "accepted_fallback_samples": [
+      "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
+      "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
+      "radish-answer-docs-question-attachment-mixed-001",
+      "radish-answer-docs-question-docs-attachments-faq-001",
+      "radish-answer-docs-question-navigation-001",
+      "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
+      "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
+      "radish-answer-docs-question-docs-faq-forum-conflict-001",
+      "radish-answer-docs-question-evidence-gap-001"
+    ],
+    "decision": "Broader task-scoped builder review records now capture completed machine gate, offline eval, natural-language audit, and full human review evidence for both execution segments, and all 15 samples are now reviewed_pass after the 2026-05-08 rerun. The accepted result keeps docs QA short-title warnings as non-blocking UI-copy observations and accepts the broader use of task-grounded deterministic fallback where the natural-language fields remain factual, source-grounded, and advisory-only. This broader pass is still tooling-route evidence only: it does not claim raw promotion, training acceptance, or production contract acceptance."
   },
   "records": [
     {
@@ -54,20 +117,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-flowsheet-edits-action-citation-ordering-diagnostic-artifact-snapshot-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now gives a task-grounded explanation for why `product-14` should stay at the downstream placeholder stage and how the direct diagnostic, stream state, and latest snapshot support that proposal.",
+        "The accepted fallback text remains task-specific rather than generic eval-note prose, and the citation chain now directly explains the disconnected stream evidence.",
+        "High-risk advisory boundaries remain intact with `requires_confirmation=true`; this sample is now acceptable for broader review."
+      ],
       "exit_reason": null
     },
     {
@@ -79,20 +146,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now keeps compressor-specific issue explanations, preserves `COMPRESSOR_MINIMUM_FLOW_BYPASS_TOO_LOW` as `error`, and ties the answer to outlet-pressure, anti-surge, and efficiency findings instead of collapsing into eval-note prose.",
+        "Indexed diagnostics, suction-stream evidence, compressor unit config, and latest snapshot citations are now explained coherently, and the numeric patch detail remains intact.",
+        "Accepted fallback fields stay task-grounded and factual, so this sample now passes broader review."
+      ],
       "exit_reason": null
     },
     {
@@ -104,20 +175,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-flowsheet-edits-valve-local-fix-vs-global-balance-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "not_applicable",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The local valve edit stays scoped to `valve-1` and does not escalate the global balance warning into a whole-flowsheet repair.",
+        "`minimum_value=10` and `suggested_maximum=85` are preserved, and the candidate remains advisory-only with `requires_confirmation=true`.",
+        "Diagnostic and unit citations remain indexed and relevant for the selected `valve-1` patch surface."
+      ],
       "exit_reason": null
     },
     {
@@ -129,20 +204,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radishflow-suggest-ghost-completion-flash-inlet-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-ghost-completion-flash-inlet-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
-        "ghost_candidate_semantics": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
+        "ghost_candidate_semantics": "reviewed_pass",
         "citation_explanation_quality": "not_applicable",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "not_applicable",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "Ghost completion text stays tied to the local candidate set for `flash-1.inlet` and `cand-flash-1-inlet-from-feed-101`.",
+        "The response keeps preview-only semantics and low-risk `requires_confirmation=false` boundaries; it does not claim direct flowsheet mutation.",
+        "No ambiguity, legality mistranslation, or unsupported writeback claim appears."
+      ],
       "exit_reason": null
     },
     {
@@ -154,20 +233,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radishflow-suggest-ghost-completion-heater-stream-name-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-ghost-completion-heater-stream-name-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
-        "ghost_candidate_semantics": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
+        "ghost_candidate_semantics": "reviewed_pass",
         "citation_explanation_quality": "not_applicable",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "not_applicable",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "Ghost stream-name preview remains tied to `heater-1.outlet`, `cand-heater-1-outlet-name`, and `H-301`.",
+        "The response presents a local preview candidate only; it does not claim direct acceptance or truth-source mutation.",
+        "No placeholder, ambiguity, or legality mistranslation appears."
+      ],
       "exit_reason": null
     },
     {
@@ -179,20 +262,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radishflow-suggest-ghost-completion-mixer-standard-outlet-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-ghost-completion-mixer-standard-outlet-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
-        "ghost_candidate_semantics": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
+        "ghost_candidate_semantics": "reviewed_pass",
         "citation_explanation_quality": "not_applicable",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "not_applicable",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "Mixer outlet preview remains tied to `mixer-1.outlet`, `cand-mixer-1-outlet-stub`, and `MIX-201`.",
+        "The response keeps local candidate-set semantics and low-risk preview boundaries.",
+        "No generic placeholder or unsupported writeback claim appears."
+      ],
       "exit_reason": null
     },
     {
@@ -204,20 +291,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radish-answer-docs-question-attachment-mixed-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radish-answer-docs-question-attachment-mixed-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now gives a direct docs-first answer about using `attachment://{id}` and confirms that `attachment://manual-42` is already acceptable for public-doc references.",
+        "The short read-only action title remains a non-blocking UI-copy warning, while the answer and citations are now source-grounded and factual.",
+        "The low-risk read-only boundary remains intact, so this sample is now acceptable for broader review."
+      ],
       "exit_reason": null
     },
     {
@@ -229,20 +320,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radish-answer-docs-question-docs-attachments-faq-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radish-answer-docs-question-docs-attachments-faq-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now answers the attachment-format question directly, keeps docs and attachment evidence ahead of FAQ supplement, and uses FAQ only for readability guidance.",
+        "The short read-only action title remains a non-blocking warning, while the accepted fallback summary and answer stay task-grounded and source-ordered.",
+        "The response remains low-risk and read-only, so this sample now passes broader review."
+      ],
       "exit_reason": null
     },
     {
@@ -254,20 +349,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300/responses/radish-answer-docs-question-navigation-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-full-holdout-timeout300-run.json",
       "natural_language_audit_case_id": "radish-answer-docs-question-navigation-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now gives a task-grounded navigation answer about preferring system-generated `attachment://{id}` references and keeps the supporting `docs_page_related` citation in scope.",
+        "The short read-only action title remains a non-blocking UI-copy warning, while the accepted fallback summary and answer stay factual and source-grounded.",
+        "The response keeps `requires_confirmation=false` and avoids write-back claims, so this sample now passes broader review."
+      ],
       "exit_reason": null
     },
     {
@@ -279,20 +378,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/responses/radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-flowsheet-edits-cross-object-mixed-risk-reconnect-plus-pump-parameter-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now explains the disconnected stream, pump pressure target, efficiency warning, and cooler context in task-grounded terms rather than eval-note prose.",
+        "Issue severities and action risk levels are now aligned with the source sample: the stream reconnect remains the high-risk action, while the pump parameter patch stays the narrower medium-risk local review.",
+        "Supporting stream, unit, and snapshot citations are present in the explanation chain, and the accepted fallback text remains factual and advisory-only."
+      ],
       "exit_reason": null
     },
     {
@@ -304,20 +407,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/responses/radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-flowsheet-edits-efficiency-range-ordering-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now gives a pump-specific explanation for the efficiency review and keeps the suggested range in lower-to-upper order without collapsing into eval-note wording.",
+        "Diagnostic, unit, and snapshot citations are now used as the explanation surface instead of a broad flowsheet-level locator.",
+        "The accepted fallback text remains factual and task-grounded, while the numeric patch and confirmation boundary stay correct."
+      ],
       "exit_reason": null
     },
     {
@@ -329,20 +436,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/responses/radishflow-suggest-ghost-completion-flash-vapor-outlet-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-ghost-completion-flash-vapor-outlet-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
-        "ghost_candidate_semantics": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
+        "ghost_candidate_semantics": "reviewed_pass",
         "citation_explanation_quality": "not_applicable",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "not_applicable",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "Ghost completion text stays tied to `flash-2.vapor_outlet`, `cand-flash-2-vapor-stub`, and `V-102`.",
+        "The response preserves the low-risk preview-only boundary and `accept_key=\"Tab\"` for the single default high-confidence candidate.",
+        "No ambiguity, unsupported writeback claim, or legality mistranslation appears."
+      ],
       "exit_reason": null
     },
     {
@@ -354,20 +465,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/responses/radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
       "natural_language_audit_case_id": "radishflow-suggest-ghost-completion-valve-ambiguous-no-tab-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
-        "ghost_candidate_semantics": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
+        "ghost_candidate_semantics": "reviewed_pass",
         "citation_explanation_quality": "not_applicable",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "not_applicable",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now states the core ambiguity explicitly: two close legal candidates remain visible while neither is strong enough for default `Tab` acceptance.",
+        "Both ghost actions stay `manual_only`, preserve no-writeback boundaries, and now explain why `cooler-401` and `flash-401` remain parallel visible options instead of a single default suggestion.",
+        "This sample now passes broader review because the ambiguity/no-tab semantics are stated directly and remain consistent with the structured action payloads."
+      ],
       "exit_reason": null
     },
     {
@@ -379,20 +494,24 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/responses/radish-answer-docs-question-docs-faq-forum-conflict-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
       "natural_language_audit_case_id": "radish-answer-docs-question-docs-faq-forum-conflict-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now states the slug-stability conclusion directly: the formal docs remain authoritative, FAQ is only supplemental, and the forum shortcut is explicitly rejected as non-authoritative.",
+        "The short read-only action title remains a non-blocking UI-copy warning, while the answer and citations are now task-grounded and source-ordered.",
+        "The response remains advisory-only and low-risk, so this sample now passes broader review."
+      ],
       "exit_reason": null
     },
     {
@@ -404,26 +523,30 @@
       "candidate_response_file": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300/responses/radish-answer-docs-question-evidence-gap-001.candidate-response.json",
       "offline_eval_run": "tmp/radishmind-core-broader-review-qwen15b-task-scoped-builder-v2-timeout300-run.json",
       "natural_language_audit_case_id": "radish-answer-docs-question-evidence-gap-001",
-      "reviewer": null,
-      "reviewed_at": null,
-      "review_status": "pending_review",
+      "reviewer": "repository-reviewer",
+      "reviewed_at": "2026-05-08T00:00:00Z",
+      "review_status": "reviewed_pass",
       "dimension_results": {
-        "machine_schema_and_task_validity": "pending",
-        "natural_language_placeholder_absence": "pending",
+        "machine_schema_and_task_validity": "reviewed_pass",
+        "natural_language_placeholder_absence": "reviewed_pass",
         "ghost_candidate_semantics": "not_applicable",
-        "citation_explanation_quality": "pending",
-        "factual_sufficiency": "pending",
-        "fallback_acceptability": "pending",
-        "risk_confirmation_and_advisory_boundary": "pending",
-        "training_holdout_leakage": "pending"
+        "citation_explanation_quality": "reviewed_pass",
+        "factual_sufficiency": "reviewed_pass",
+        "fallback_acceptability": "reviewed_pass",
+        "risk_confirmation_and_advisory_boundary": "reviewed_pass",
+        "training_holdout_leakage": "reviewed_pass"
       },
-      "review_notes": [],
+      "review_notes": [
+        "The rerun now answers the evidence-gap question directly: the current wiki only covers view access and does not authorize retry or delete for Admin.",
+        "The `INSUFFICIENT_EVIDENCE` issue shape, medium-risk partial status, and no-action boundary remain intact, and the accepted fallback text stays factual rather than explanatory meta prose.",
+        "No unsupported action is proposed, so this sample now passes broader review."
+      ],
       "exit_reason": null
     }
   ],
   "next_actions": [
-    "Run both broader review execution segments from the runbook in the local terminal.",
-    "Read the two candidate summaries, two offline eval runs, two natural-language audits, and candidate responses from tmp/ before changing any per-sample status.",
-    "Only after machine gate, deterministic audit, human review, and holdout leakage all pass may this record set move out of pending_review."
+    "Treat this 15-sample broader review pass as current tooling-route evidence for task-scoped response builder / tooling split, not as raw promotion, training acceptance, or production contract acceptance.",
+    "Keep docs QA short-title warnings and accepted deterministic fallback usage visible in future review surfaces, but do not reopen this batch unless a new non-redundant drift hypothesis appears.",
+    "Use this reviewed_pass batch as the current broader reference surface before any new sample expansion, model-size comparison, or service-slice route change."
   ]
 }

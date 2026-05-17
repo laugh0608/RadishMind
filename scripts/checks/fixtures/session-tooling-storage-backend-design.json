@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_storage_backend_design",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "design_only_not_connected",
+  "source_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_independent_audit_records_design": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
+  "source_result_materialization_policy_design": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
+  "source_executor_boundary_design": "scripts/checks/fixtures/session-tooling-executor-boundary-design.json",
+  "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "task_card": "docs/task-cards/session-tooling-storage-backend-design.md",
+  "scope": {
+    "area": "storage_backend_design",
+    "current_boundary": "metadata_refs_only_no_durable_store",
+    "durable_session_store_enabled": false,
+    "durable_checkpoint_store_enabled": false,
+    "durable_audit_store_enabled": false,
+    "durable_result_store_enabled": false,
+    "long_term_memory_enabled": false,
+    "materialized_result_reader_enabled": false,
+    "writes_business_truth": false,
+    "replay_enabled": false
+  },
+  "storage_responsibilities": [
+    {
+      "store": "session_store",
+      "current_status": "future_only_disabled",
+      "responsibility": "persist bounded session metadata and history policy state after storage backend design is implemented",
+      "allowed_current_refs": [
+        "session_id",
+        "turn_id",
+        "history_policy",
+        "state_policy_summary"
+      ],
+      "forbidden_current_data": [
+        "full_user_history",
+        "long_term_memory",
+        "raw_tool_output",
+        "credentials",
+        "business_truth_state"
+      ]
+    },
+    {
+      "store": "checkpoint_store",
+      "current_status": "future_only_disabled",
+      "responsibility": "persist recovery checkpoint refs and metadata summaries without materialized results",
+      "allowed_current_refs": [
+        "checkpoint_id",
+        "request_ref",
+        "session_record_ref",
+        "tool_audit_ref",
+        "tool_state_metadata_ref"
+      ],
+      "forbidden_current_data": [
+        "materialized_results",
+        "result_ref",
+        "executor_ref",
+        "durable_memory",
+        "replay_plan"
+      ]
+    },
+    {
+      "store": "audit_store",
+      "current_status": "future_only_disabled",
+      "responsibility": "persist independent audit records after audit retention and redaction policy exists",
+      "allowed_current_refs": [
+        "audit_record_id",
+        "event_type",
+        "event_source",
+        "payload_hash",
+        "correlation_refs"
+      ],
+      "forbidden_current_data": [
+        "raw_tool_output",
+        "credentials",
+        "unredacted_payload",
+        "business_truth_state",
+        "materialized_result_payload"
+      ]
+    },
+    {
+      "store": "result_store",
+      "current_status": "future_only_disabled",
+      "responsibility": "persist tool execution result refs only after executor, audit, retention, redaction, and reader authorization are implemented",
+      "allowed_current_refs": [],
+      "forbidden_current_data": [
+        "result_ref",
+        "output_ref",
+        "raw_tool_output",
+        "materialized_result_uri",
+        "executor_ref",
+        "business_truth_write"
+      ]
+    }
+  ],
+  "retention_redaction_secret_policy": {
+    "current_status": "not_defined",
+    "required_before_enablement": [
+      "retention_policy",
+      "redaction_policy",
+      "secret_handling_policy",
+      "encryption_at_rest_policy",
+      "access_control_policy",
+      "deletion_policy"
+    ],
+    "current_forbidden_scope": [
+      "store_credentials",
+      "store_raw_tool_output",
+      "store_unredacted_payload",
+      "store_full_user_history_as_long_term_memory",
+      "store_business_truth_state"
+    ]
+  },
+  "write_boundaries": {
+    "allowed_current_writes": [
+      "committed_fixture_files",
+      "tmp_check_artifacts",
+      "metadata_only_test_outputs"
+    ],
+    "forbidden_current_writes": [
+      "durable_session_store_write",
+      "durable_checkpoint_store_write",
+      "durable_audit_store_write",
+      "durable_result_store_write",
+      "long_term_memory_write",
+      "business_truth_write",
+      "replay_state_write"
+    ],
+    "business_truth_sources": [
+      "RadishFlow",
+      "Radish",
+      "RadishCatalyst"
+    ]
+  },
+  "failure_boundaries": [
+    {
+      "case_id": "materialized-result-read-denied",
+      "expected_failure_boundary": "northbound_request",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+      "mirrors_denied_query_category": "materialized_results",
+      "forbidden_outputs": [
+        "materialized_results_included=true",
+        "result_ref",
+        "output_ref",
+        "raw_tool_output"
+      ]
+    },
+    {
+      "case_id": "durable-memory-write-denied",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "mirrors_denied_query_category": "durable_memory",
+      "forbidden_outputs": [
+        "durable_memory_written=true",
+        "long_term_memory",
+        "business_truth_write"
+      ]
+    },
+    {
+      "case_id": "business-truth-write-denied",
+      "expected_failure_boundary": "policy_gate",
+      "expected_error_code": "BUSINESS_TRUTH_WRITE_DISABLED",
+      "forbidden_outputs": [
+        "writes_business_truth=true",
+        "confirmed_action_execution",
+        "durable_memory_written=true"
+      ]
+    }
+  ],
+  "boundary_alignment": {
+    "session": [
+      "session metadata may be referenced by checkpoint read but no durable session store exists",
+      "history policy remains bounded and does not create long_term_memory",
+      "session storage cannot write upper-layer business truth"
+    ],
+    "checkpoint": [
+      "checkpoint read remains metadata-only and fixture-backed",
+      "checkpoint store design does not create materialized_result_reader",
+      "checkpoint refs cannot include executor_ref, result_ref, or replay plan in current scope"
+    ],
+    "audit": [
+      "audit store is future_only_disabled until retention and redaction policies exist",
+      "independent audit records may be referenced as metadata but are not durable writes",
+      "audit records do not store raw tool output or credentials"
+    ],
+    "result": [
+      "result store is future_only_disabled while durable_result_store_enabled=false",
+      "result_ref and materialized_result_uri are forbidden in current scope",
+      "future result storage requires executor boundary, result materialization policy, audit records, and reader authorization"
+    ],
+    "executor": [
+      "executor boundary does not create durable stores",
+      "execution output cannot be persisted while real_tool_executor is disabled",
+      "storage writes must not be used to bypass sandbox, allowlist, or confirmation gates"
+    ]
+  },
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "durable_tool_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "result_ref_reader",
+    "replay_state_store"
+  ],
+  "precondition_status_after_design": {
+    "storage_backend_design": "design_boundary_defined_not_implemented",
+    "executor_boundary": "design_boundary_defined_not_implemented",
+    "result_materialization_policy": "design_boundary_defined_not_implemented",
+    "independent_audit_records": "design_boundary_defined_not_implemented",
+    "upper_layer_confirmation_flow": "not_satisfied",
+    "negative_regression_suite": "not_satisfied"
+  },
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-storage-backend-design.py",
+      "coverage": "validates_storage_backend_design_store_responsibilities_write_boundaries_and_blocked_capabilities"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

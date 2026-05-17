@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_close_candidate_readiness_rollup",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "close_candidate_governance_only",
+  "implementation_status": "not_ready",
+  "source_foundation_status_summary": "scripts/checks/fixtures/session-tooling-foundation-status-summary.json",
+  "source_readiness_summary": "scripts/checks/fixtures/session-tooling-readiness-summary.json",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+  "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "source_executor_storage_confirmation_enablement_plan": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+  "design_gate_rollup": [
+    {
+      "gate_id": "confirmation_flow",
+      "source": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json",
+      "status": "design_only_not_connected",
+      "implementation_ready": false,
+      "current_claim": "approve/reject/defer record shape and negative confirmation cases are design-checkable",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "independent_audit_records",
+        "negative_regression_suite",
+        "result_materialization_policy"
+      ]
+    },
+    {
+      "gate_id": "independent_audit_records",
+      "source": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
+      "status": "design_boundary_defined_not_implemented",
+      "implementation_ready": false,
+      "current_claim": "audit record shape, event sources, and correlation boundaries are design-checkable",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "executor_boundary",
+        "storage_backend_design",
+        "result_materialization_policy",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "gate_id": "result_materialization_policy",
+      "source": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
+      "status": "design_boundary_defined_not_implemented",
+      "implementation_ready": false,
+      "current_claim": "metadata-only, future result_ref, and future materialized result boundaries are design-checkable",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "executor_boundary",
+        "storage_backend_design",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "gate_id": "executor_boundary",
+      "source": "scripts/checks/fixtures/session-tooling-executor-boundary-design.json",
+      "status": "design_boundary_defined_not_implemented",
+      "implementation_ready": false,
+      "current_claim": "sandbox, allowlist, execution envelope, timeout/retry, and failure boundaries are design-checkable",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "storage_backend_design",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "gate_id": "storage_backend_design",
+      "source": "scripts/checks/fixtures/session-tooling-storage-backend-design.json",
+      "status": "design_boundary_defined_not_implemented",
+      "implementation_ready": false,
+      "current_claim": "session, checkpoint, audit, and result store responsibilities are design-checkable",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "gate_id": "negative_regression_skeleton",
+      "source": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+      "status": "skeleton_only_implementation_blocked",
+      "implementation_ready": false,
+      "current_claim": "blocked executor, storage/materialization, and confirmation cases have skeleton coverage",
+      "remaining_blockers": [
+        "complete_negative_regression_suite"
+      ]
+    },
+    {
+      "gate_id": "negative_regression_governance_suite",
+      "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+      "status": "governance_suite_consumed_deny_by_default_gates_defined",
+      "implementation_ready": false,
+      "current_claim": "negative cases have governance consumers, audit non-write assertions, side-effect absence assertions, and deny-by-default gate contract alignment",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations"
+      ]
+    },
+    {
+      "gate_id": "negative_regression_suite_readiness",
+      "source": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+      "status": "governance_suite_consumed_deny_by_default_gates_defined",
+      "implementation_ready": false,
+      "current_claim": "suite acceptance is consumed at governance level and aligned to deny-by-default gate contracts, but real implementation consumers remain missing",
+      "remaining_blockers": [
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations"
+      ]
+    },
+    {
+      "gate_id": "deny_by_default_implementation_gates",
+      "source": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+      "status": "deny_by_default_gates_defined_implementation_blocked",
+      "implementation_ready": false,
+      "current_claim": "executor, storage, and confirmation deny-by-default gate contracts are checkable",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations"
+      ]
+    },
+    {
+      "gate_id": "negative_coverage_rollup",
+      "source": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+      "status": "negative_coverage_rollup_governance_only",
+      "implementation_ready": false,
+      "current_claim": "negative fixture, route smoke, governance suite, and gate contract coverage is checkable",
+      "remaining_blockers": [
+        "complete_negative_regression_suite",
+        "real_executor_storage_confirmation_implementations",
+        "upper_layer_confirmation_flow"
+      ]
+    },
+    {
+      "gate_id": "implementation_preconditions",
+      "source": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+      "status": "preconditions_not_satisfied",
+      "implementation_ready": false,
+      "current_claim": "executor, storage, and confirmation are explicitly not_ready",
+      "remaining_blockers": [
+        "executor",
+        "storage",
+        "confirmation"
+      ]
+    },
+    {
+      "gate_id": "executor_storage_confirmation_enablement_plan",
+      "source": "scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json",
+      "status": "enablement_plan_defined_blocked",
+      "implementation_ready": false,
+      "current_claim": "executor, storage, and confirmation gated-plan entry conditions are checkable while current implementation remains blocked",
+      "remaining_blockers": [
+        "upper_layer_confirmation_flow",
+        "complete_negative_regression_suite",
+        "durable_store_and_result_reader_policy"
+      ]
+    }
+  ],
+  "not_ready_areas": [
+    {
+      "area": "executor",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "executor_boundary",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "area": "storage",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "storage_backend_design",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ]
+    },
+    {
+      "area": "confirmation",
+      "status": "not_ready",
+      "required_before_enablement": [
+        "upper_layer_confirmation_flow",
+        "result_materialization_policy",
+        "independent_audit_records",
+        "negative_regression_suite"
+      ]
+    }
+  ],
+  "short_close_prerequisites": [
+    {
+      "condition": "upper_layer_confirmation_flow",
+      "status": "not_satisfied",
+      "reason": "no upper-layer approve/reject/defer integration exists"
+    },
+    {
+      "condition": "complete_negative_regression_suite",
+      "status": "not_satisfied",
+      "reason": "governance suite and deny-by-default gate contracts exist, but no real implementation consumers prove executor/storage/confirmation denial"
+    },
+    {
+      "condition": "executor_storage_confirmation_enablement_plan",
+      "status": "not_satisfied",
+      "reason": "executor, storage, and confirmation preconditions remain not_ready"
+    },
+    {
+      "condition": "durable_store_and_result_reader_policy",
+      "status": "not_satisfied",
+      "reason": "durable stores and materialized result readers are not implemented or enabled"
+    }
+  ],
+  "current_allowed_claims": [
+    "contract_and_metadata_smoke_ready",
+    "design_gates_checkable",
+    "negative_regression_skeleton_exists",
+    "deny_by_default_implementation_gates_checkable",
+    "short_close_delta_checkable",
+    "close_candidate_governance_only"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "real_tool_executor_ready",
+    "durable_storage_ready",
+    "confirmation_flow_connected",
+    "materialized_result_reader_ready",
+    "automatic_replay_ready",
+    "complete_negative_regression_suite"
+  ],
+  "blocked_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "durable_tool_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_checkpoint_storage_backend",
+    "real_tool_executor",
+    "replay_executor"
+  ],
+  "short_close_delta": {
+    "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+    "target_state": "p2_short_close",
+    "status": "short_close_blocked",
+    "hard_prerequisite_count": 4
+  },
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-close-candidate-readiness-rollup.py",
+      "coverage": "regenerates_and_compares_this_close_candidate_rollup"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

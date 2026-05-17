@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/session-recovery-checkpoint-read.schema.json",
+  "title": "RadishMindSessionRecoveryCheckpointReadResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "read_id",
+    "api_boundary",
+    "request",
+    "result",
+    "access_policy",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "session_recovery_checkpoint_read_result"
+    },
+    "read_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "api_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surface",
+        "route",
+        "implemented",
+        "response_shape"
+      ],
+      "properties": {
+        "surface": {
+          "type": "string",
+          "enum": [
+            "platform_metadata",
+            "northbound_metadata"
+          ]
+        },
+        "route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "implemented": {
+          "type": "boolean",
+          "const": false
+        },
+        "response_shape": {
+          "type": "string",
+          "enum": [
+            "metadata_refs_only"
+          ]
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkpoint_id",
+        "session_id",
+        "include_refs",
+        "include_materialized_results"
+      ],
+      "properties": {
+        "checkpoint_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "turn_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "include_refs": {
+          "type": "boolean"
+        },
+        "include_materialized_results": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "checkpoint_id",
+        "session_id",
+        "turn_id",
+        "checkpoint_ref",
+        "refs",
+        "tool_audit_summary",
+        "replay_policy",
+        "state_summary"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "found",
+            "not_found",
+            "blocked"
+          ]
+        },
+        "checkpoint_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "turn_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checkpoint_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "ref",
+              "required_for_recovery"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "request",
+                  "response",
+                  "session_record",
+                  "session_audit",
+                  "tool_audit",
+                  "tool_state",
+                  "tool_result_metadata"
+                ]
+              },
+              "ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_for_recovery": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "tool_audit_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "audit_id",
+            "tool_id",
+            "policy_decision",
+            "requires_confirmation",
+            "execution_enabled",
+            "execution_status",
+            "result_cache_mode",
+            "result_ref",
+            "durable_memory_written",
+            "writes_business_truth"
+          ],
+          "properties": {
+            "audit_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tool_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "policy_decision": {
+              "type": "string",
+              "enum": [
+                "allowed_contract_only",
+                "blocked_tool_execution_disabled",
+                "blocked_requires_confirmation",
+                "blocked_policy"
+              ]
+            },
+            "requires_confirmation": {
+              "type": "boolean"
+            },
+            "execution_enabled": {
+              "type": "boolean",
+              "const": false
+            },
+            "execution_status": {
+              "type": "string",
+              "enum": [
+                "not_executed",
+                "blocked"
+              ]
+            },
+            "result_cache_mode": {
+              "type": "string",
+              "enum": [
+                "none",
+                "metadata_only"
+              ]
+            },
+            "result_ref": {
+              "type": "null"
+            },
+            "durable_memory_written": {
+              "type": "boolean",
+              "const": false
+            },
+            "writes_business_truth": {
+              "type": "boolean",
+              "const": false
+            }
+          }
+        },
+        "replay_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "replayable",
+            "auto_replay_enabled",
+            "requires_confirmation_for_actions"
+          ],
+          "properties": {
+            "replayable": {
+              "type": "boolean"
+            },
+            "auto_replay_enabled": {
+              "type": "boolean",
+              "const": false
+            },
+            "requires_confirmation_for_actions": {
+              "type": "boolean"
+            }
+          }
+        },
+        "state_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "contains_tool_result_metadata",
+            "contains_materialized_tool_results",
+            "contains_business_truth"
+          ],
+          "properties": {
+            "contains_tool_result_metadata": {
+              "type": "boolean"
+            },
+            "contains_materialized_tool_results": {
+              "type": "boolean",
+              "const": false
+            },
+            "contains_business_truth": {
+              "type": "boolean",
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "access_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metadata_only",
+        "materialized_results_included",
+        "durable_memory_enabled",
+        "writes_business_truth",
+        "auto_replay_enabled"
+      ],
+      "properties": {
+        "metadata_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "materialized_results_included": {
+          "type": "boolean",
+          "const": false
+        },
+        "durable_memory_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "writes_business_truth": {
+          "type": "boolean",
+          "const": false
+        },
+        "auto_replay_enabled": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "advisory_only",
+        "notes"
+      ],
+      "properties": {
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

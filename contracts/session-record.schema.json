@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/session-record.schema.json",
+  "title": "RadishMindSessionRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "session_id",
+    "turn_id",
+    "source",
+    "history_policy",
+    "recovery_record",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "conversation_session_record"
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conversation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "turn_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_turn_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "enum": [
+        "radishflow",
+        "radish"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1
+    },
+    "route": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocol": {
+      "type": "string",
+      "enum": [
+        "copilot-request",
+        "openai-chat-completions",
+        "openai-responses",
+        "anthropic-messages",
+        "adapter-snapshot"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "copilot_request",
+        "northbound_compat",
+        "adapter_snapshot",
+        "manual_fixture"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "history_policy": {
+      "$ref": "#/$defs/history_policy"
+    },
+    "state_policy": {
+      "$ref": "#/$defs/state_policy"
+    },
+    "recovery_record": {
+      "$ref": "#/$defs/recovery_record"
+    },
+    "audit": {
+      "$ref": "#/$defs/audit"
+    }
+  },
+  "$defs": {
+    "history_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "max_turns",
+        "include_system",
+        "include_tool_results",
+        "compression"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "stateless",
+            "windowed",
+            "summary_only",
+            "disabled"
+          ]
+        },
+        "max_turns": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50
+        },
+        "include_system": {
+          "type": "boolean"
+        },
+        "include_tool_results": {
+          "type": "boolean"
+        },
+        "compression": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "strategy",
+            "summary_artifact_id"
+          ],
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": [
+                "none",
+                "rolling_summary",
+                "semantic_summary"
+              ]
+            },
+            "summary_artifact_id": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "recovery_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "last_stable_turn_id",
+        "replayable",
+        "reason",
+        "checkpoints"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_required",
+            "available",
+            "blocked"
+          ]
+        },
+        "last_stable_turn_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "replayable": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "checkpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "ref"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "request",
+                  "response",
+                  "summary",
+                  "audit",
+                  "tool_audit",
+                  "tool_state",
+                  "external"
+                ]
+              },
+              "ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "state_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_state_scope",
+        "tool_result_cache_scope",
+        "recovery_checkpoint_scope",
+        "durable_memory_enabled"
+      ],
+      "properties": {
+        "session_state_scope": {
+          "type": "string",
+          "enum": [
+            "request_local",
+            "northbound_metadata"
+          ]
+        },
+        "tool_result_cache_scope": {
+          "type": "string",
+          "enum": [
+            "disabled",
+            "request_local",
+            "session_recovery_checkpoint"
+          ]
+        },
+        "recovery_checkpoint_scope": {
+          "type": "string",
+          "enum": [
+            "none",
+            "audit_refs_only",
+            "audit_and_result_refs"
+          ]
+        },
+        "durable_memory_enabled": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "advisory_only",
+        "writes_business_truth",
+        "requires_confirmation_for_actions",
+        "notes"
+      ],
+      "properties": {
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "writes_business_truth": {
+          "type": "boolean",
+          "const": false
+        },
+        "requires_confirmation_for_actions": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

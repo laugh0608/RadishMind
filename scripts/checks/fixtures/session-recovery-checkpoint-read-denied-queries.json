@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "session_recovery_checkpoint_read_denied_queries",
+  "route": "/v1/session/recovery/checkpoints/{checkpoint_id}",
+  "checkpoint_id": "session-checkpoint-0001",
+  "default_session_id": "radishflow-session-001",
+  "default_turn_id": "turn-0003",
+  "cases": [
+    {
+      "name": "include materialized results",
+      "category": "materialized_results",
+      "query": "include_materialized_results=true",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    },
+    {
+      "name": "include tool results",
+      "category": "materialized_results",
+      "query": "include_tool_results=1",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    },
+    {
+      "name": "materialize results",
+      "category": "materialized_results",
+      "query": "materialize_results=on",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    },
+    {
+      "name": "include result ref",
+      "category": "materialized_results",
+      "query": "include_result_ref=true",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    },
+    {
+      "name": "result ref",
+      "category": "materialized_results",
+      "query": "result_ref=tool-result-001",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    },
+    {
+      "name": "output ref",
+      "category": "materialized_results",
+      "query": "output_ref=tool-output-001",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    },
+    {
+      "name": "executor ref",
+      "category": "materialized_results",
+      "query": "executor_ref=local-tool-executor",
+      "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED"
+    },
+    {
+      "name": "auto replay",
+      "category": "replay",
+      "query": "auto_replay=true",
+      "expected_error_code": "CHECKPOINT_AUTO_REPLAY_DISABLED"
+    },
+    {
+      "name": "auto replay enabled",
+      "category": "replay",
+      "query": "auto_replay_enabled=1",
+      "expected_error_code": "CHECKPOINT_AUTO_REPLAY_DISABLED"
+    },
+    {
+      "name": "execute replay",
+      "category": "replay",
+      "query": "execute_replay=yes",
+      "expected_error_code": "CHECKPOINT_AUTO_REPLAY_DISABLED"
+    },
+    {
+      "name": "replay",
+      "category": "replay",
+      "query": "replay=on",
+      "expected_error_code": "CHECKPOINT_AUTO_REPLAY_DISABLED"
+    },
+    {
+      "name": "durable memory",
+      "category": "durable_memory",
+      "query": "durable_memory=true",
+      "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED"
+    },
+    {
+      "name": "durable memory enabled",
+      "category": "durable_memory",
+      "query": "durable_memory_enabled=1",
+      "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED"
+    },
+    {
+      "name": "include durable memory",
+      "category": "durable_memory",
+      "query": "include_durable_memory=yes",
+      "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED"
+    }
+  ]
+}

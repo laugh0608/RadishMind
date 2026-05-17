@@ -1,0 +1,516 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_negative_regression_suite",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "governance_suite_consumed_deny_by_default_gates_defined",
+  "implementation_status": "not_ready",
+  "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "source_independent_audit_records_design": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json",
+  "source_result_materialization_policy_design": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json",
+  "source_confirmation_flow_design": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json",
+  "source_tool_registry_fixture": "scripts/checks/fixtures/tool-registry-basic.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "coverage_summary": {
+    "group_count": 3,
+    "case_count": 9,
+    "consumer_assertions": "governance_consumers_present_for_all_cases",
+    "audit_assertions": "audit_non_write_boundary_asserted_for_all_cases",
+    "side_effect_absence_assertions": "forbidden_side_effect_absence_asserted_for_all_cases",
+    "implementation_gate_alignment": "satisfied_by_deny_by_default_gate_contracts"
+  },
+  "groups": [
+    {
+      "group_id": "executor_blocked",
+      "precondition_area": "executor",
+      "current_status": "governance_consumed_implementation_blocked",
+      "cases": [
+        {
+          "case_id": "executor-disabled-tool-run",
+          "source_skeleton_intent": "execute_registered_tool",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "TOOL_EXECUTOR_DISABLED",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "implementation_preconditions",
+              "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
+            },
+            {
+              "consumer_id": "tool_registry_policy",
+              "path": "scripts/checks/fixtures/tool-registry-basic.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "executor_policy_gate",
+            "expected_event": "executor_execution_not_enabled",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_execution_side_effects",
+            "no_executor_ref",
+            "no_result_ref",
+            "no_business_truth_write_side_effects"
+          ],
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "executor_ref",
+            "result_ref",
+            "writes_business_truth=true"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "executor",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        },
+        {
+          "case_id": "executor-network-disabled",
+          "source_skeleton_intent": "execute_network_tool_without_policy",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "TOOL_NETWORK_DISABLED",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "tool_registry_policy",
+              "path": "scripts/checks/fixtures/tool-registry-basic.json"
+            },
+            {
+              "consumer_id": "independent_audit_records_design",
+              "path": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "tool_registry_policy",
+            "expected_event": "tool_network_denied",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_network_side_effects",
+            "no_execution_side_effects",
+            "no_result_ref",
+            "no_durable_memory_write_side_effects"
+          ],
+          "forbidden_outputs": [
+            "network_request_sent=true",
+            "execution_status=executed",
+            "result_ref",
+            "durable_memory_written=true"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "executor",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        },
+        {
+          "case_id": "executor-ref-checkpoint-read-denied",
+          "source_skeleton_intent": "read_executor_ref_from_checkpoint",
+          "expected_failure_boundary": "northbound_request",
+          "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "checkpoint_denied_query_fixture",
+              "path": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
+            },
+            {
+              "consumer_id": "result_materialization_policy",
+              "path": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "checkpoint_read_route",
+            "expected_event": "checkpoint_read_query_denied",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_executor_ref",
+            "no_execution_side_effects",
+            "no_materialized_result_side_effects"
+          ],
+          "forbidden_outputs": [
+            "executor_ref",
+            "execution_status=executed",
+            "materialized_results_included=true"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "executor",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        }
+      ]
+    },
+    {
+      "group_id": "storage_materialization_blocked",
+      "precondition_area": "storage",
+      "current_status": "governance_consumed_implementation_blocked",
+      "cases": [
+        {
+          "case_id": "materialized-result-read-denied",
+          "source_skeleton_intent": "read_materialized_tool_result",
+          "expected_failure_boundary": "northbound_request",
+          "expected_error_code": "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "checkpoint_denied_query_fixture",
+              "path": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json"
+            },
+            {
+              "consumer_id": "result_materialization_policy",
+              "path": "scripts/checks/fixtures/session-tooling-result-materialization-policy-design.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "checkpoint_read_route",
+            "expected_event": "checkpoint_read_query_denied",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_materialized_result_side_effects",
+            "no_result_ref",
+            "no_output_ref"
+          ],
+          "forbidden_outputs": [
+            "materialized_results_included=true",
+            "result_ref",
+            "output_ref"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "storage",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        },
+        {
+          "case_id": "durable-memory-write-denied",
+          "source_skeleton_intent": "write_tool_state_to_durable_memory",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "implementation_preconditions",
+              "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
+            },
+            {
+              "consumer_id": "independent_audit_records_design",
+              "path": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "storage_policy_gate",
+            "expected_event": "durable_memory_write_denied",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_durable_memory_write_side_effects",
+            "no_long_term_memory",
+            "no_business_truth_write_side_effects"
+          ],
+          "forbidden_outputs": [
+            "durable_memory_written=true",
+            "long_term_memory",
+            "business_truth_write"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "storage",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        },
+        {
+          "case_id": "business-truth-write-denied",
+          "source_skeleton_intent": "write_candidate_action_to_upper_layer_truth_source",
+          "expected_failure_boundary": "policy_gate",
+          "expected_error_code": "BUSINESS_TRUTH_WRITE_DISABLED",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "implementation_preconditions",
+              "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
+            },
+            {
+              "consumer_id": "independent_audit_records_design",
+              "path": "scripts/checks/fixtures/session-tooling-independent-audit-records-design.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "storage_policy_gate",
+            "expected_event": "business_truth_write_denied",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_business_truth_write_side_effects",
+            "no_confirmed_action_execution",
+            "no_durable_memory_write_side_effects"
+          ],
+          "forbidden_outputs": [
+            "writes_business_truth=true",
+            "confirmed_action_execution",
+            "durable_memory_written=true"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "storage",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        }
+      ]
+    },
+    {
+      "group_id": "confirmation_blocked",
+      "precondition_area": "confirmation",
+      "current_status": "governance_consumed_implementation_blocked",
+      "cases": [
+        {
+          "case_id": "missing-confirmation-denied",
+          "source_skeleton_intent": "execute_high_risk_action_without_confirmation",
+          "expected_failure_boundary": "confirmation_gate",
+          "expected_error_code": "CONFIRMATION_REQUIRED",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "confirmation_flow_design",
+              "path": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json"
+            },
+            {
+              "consumer_id": "implementation_preconditions",
+              "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "confirmation_flow",
+            "expected_event": "confirmation_requested",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_execution_side_effects",
+            "no_confirmed_action_execution",
+            "no_business_truth_write_side_effects"
+          ],
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "confirmed_action_execution",
+            "writes_business_truth=true"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "confirmation",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        },
+        {
+          "case_id": "stale-confirmation-denied",
+          "source_skeleton_intent": "execute_action_with_stale_confirmation",
+          "expected_failure_boundary": "confirmation_gate",
+          "expected_error_code": "CONFIRMATION_STALE",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "confirmation_flow_design",
+              "path": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json"
+            },
+            {
+              "consumer_id": "implementation_preconditions",
+              "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "confirmation_flow",
+            "expected_event": "confirmation_invalidated",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_execution_side_effects",
+            "no_replay_side_effects",
+            "no_business_truth_write_side_effects"
+          ],
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "replay_executor",
+            "writes_business_truth=true"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "confirmation",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        },
+        {
+          "case_id": "mismatched-confirmation-payload-denied",
+          "source_skeleton_intent": "execute_action_with_mismatched_confirmation_payload",
+          "expected_failure_boundary": "confirmation_gate",
+          "expected_error_code": "CONFIRMATION_PAYLOAD_MISMATCH",
+          "consumers": [
+            {
+              "consumer_id": "deny_by_default_implementation_gates",
+              "path": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json"
+            },
+            {
+              "consumer_id": "confirmation_flow_design",
+              "path": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json"
+            },
+            {
+              "consumer_id": "implementation_preconditions",
+              "path": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json"
+            },
+            {
+              "consumer_id": "negative_regression_suite_check",
+              "path": "scripts/check-session-tooling-negative-regression-suite.py"
+            }
+          ],
+          "audit_assertion": {
+            "mode": "audit_non_write_boundary",
+            "expected_event_source": "confirmation_flow",
+            "expected_event": "confirmation_invalidated",
+            "durable_audit_store_write": false,
+            "raw_payload_stored": false
+          },
+          "side_effect_absence_assertions": [
+            "no_execution_side_effects",
+            "no_confirmed_action_execution",
+            "no_result_ref"
+          ],
+          "forbidden_outputs": [
+            "execution_status=executed",
+            "confirmed_action_execution",
+            "result_ref"
+          ],
+          "implementation_gate_alignment": {
+            "gate_area": "confirmation",
+            "current_status": "deny_by_default_gate_contract_defined_implementation_blocked",
+            "required_before_suite_completion": true
+          }
+        }
+      ]
+    }
+  ],
+  "suite_acceptance_progress": [
+    {
+      "requirement_id": "real_consumers_before_completion",
+      "status": "partially_satisfied_by_governance_suite"
+    },
+    {
+      "requirement_id": "independent_audit_assertions",
+      "status": "satisfied_by_audit_non_write_boundary"
+    },
+    {
+      "requirement_id": "side_effect_absence_assertions",
+      "status": "satisfied_by_forbidden_side_effect_assertions"
+    },
+    {
+      "requirement_id": "checkpoint_denied_query_alignment",
+      "status": "satisfied_by_denied_query_fixture_and_suite_cases"
+    },
+    {
+      "requirement_id": "implementation_gate_alignment",
+      "status": "satisfied_by_deny_by_default_gate_contracts"
+    }
+  ],
+  "blocked_completion_reasons": [
+    "real_executor_storage_confirmation_implementations_missing",
+    "executor_storage_confirmation_still_not_ready",
+    "upper_layer_confirmation_flow_missing",
+    "durable_store_and_result_reader_still_disabled"
+  ],
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_memory",
+    "durable_result_store",
+    "durable_session_store",
+    "durable_tool_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "result_ref_reader"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-negative-regression-suite.py",
+      "coverage": "regenerates_and_compares_this_negative_regression_suite"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

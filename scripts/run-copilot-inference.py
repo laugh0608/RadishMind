@@ -18,9 +18,16 @@ from services.runtime.inference import (  # noqa: E402
     validate_request_document,
     validate_response_document,
 )
+from services.runtime.provider_registry import (  # noqa: E402
+    MOCK_PROVIDER_ID,
+    OPENAI_COMPATIBLE_PROVIDER_ID,
+    get_provider_spec,
+    list_provider_ids,
+)
 from services.runtime.inference_support import (  # noqa: E402
     ENV_FILE_PATH,
     load_env_file,
+    resolve_provider_profile_chain,
     resolve_openai_compatible_profile_chain,
 )
 from services.runtime.candidate_records import (  # noqa: E402
@@ -46,7 +53,7 @@ def parse_args() -> argparse.Namespace:
     input_group.add_argument("--sample", help="Path to an eval sample file; inference uses sample.input_request.")
     input_group.add_argument("--request", help="Path to a CopilotRequest json file.")
     input_group.add_argument("--sample-dir", help="Directory containing eval sample json files for batch inference.")
-    parser.add_argument("--provider", choices=["mock", "openai-compatible"], default="mock")
+    parser.add_argument("--provider", choices=list_provider_ids(), default="mock")
     parser.add_argument(
         "--provider-profile",
         default="",
@@ -149,7 +156,7 @@ def normalize_capture_tags(values: list[str]) -> list[str]:
 
 
 def build_batch_record_id(provider: str, sample_id: str) -> str:
-    prefix = "simulated" if provider == "mock" else "captured"
+    prefix = "simulated" if provider == MOCK_PROVIDER_ID else "captured"
     return f"{prefix}-{sample_id}"
 
 
@@ -180,20 +187,25 @@ def is_retryable_inference_error(exc: Exception) -> bool:
 def should_fallback_to_next_profile(exc: Exception) -> bool:
     if isinstance(exc, RuntimeError) and "provider request failed" in str(exc):
         return True
-    if isinstance(exc, ValueError) and "provider=openai-compatible requires" in str(exc):
+    if isinstance(exc, ValueError) and "provider=" in str(exc) and "requires" in str(exc):
         return True
     return False
 
 
 def resolve_provider_profile_sequence(args: argparse.Namespace) -> list[str | None]:
-    if args.provider != "openai-compatible":
+    provider_spec = get_provider_spec(args.provider)
+    if not provider_spec.profile_driven:
         return [None]
     if args.provider_profile.strip():
         return [args.provider_profile.strip()]
     if args.model.strip() or args.base_url.strip() or args.api_key.strip():
         return [None]
     load_env_file(ENV_FILE_PATH)
-    return [profile for profile in resolve_openai_compatible_profile_chain(None) if profile]
+    if args.provider == OPENAI_COMPATIBLE_PROVIDER_ID:
+        profiles = [profile for profile in resolve_openai_compatible_profile_chain(None) if profile]
+    else:
+        profiles = [profile for profile in resolve_provider_profile_chain(args.provider, None) if profile]
+    return profiles or [None]
 
 
 def run_inference_with_retry(
@@ -209,7 +221,7 @@ def run_inference_with_retry(
 
     for profile_index, profile_name in enumerate(profile_sequence, start=1):
         profile_label = profile_name or "default"
-        if args.provider == "openai-compatible" and len(profile_sequence) > 1:
+        if len(profile_sequence) > 1:
             print(
                 f"[provider-profile {profile_index}/{len(profile_sequence)}] {sample_label}: using {profile_label}",
                 file=sys.stderr,

@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_negative_regression_suite_readiness",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "governance_suite_consumed_deny_by_default_gates_defined",
+  "implementation_status": "not_ready",
+  "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+  "source_negative_regression_skeleton": "scripts/checks/fixtures/session-tooling-negative-regression-skeleton.json",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_denied_query_fixture": "scripts/checks/fixtures/session-recovery-checkpoint-read-denied-queries.json",
+  "source_close_candidate_rollup": "scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json",
+  "source_deny_by_default_implementation_gates": "scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json",
+  "source_negative_coverage_rollup": "scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json",
+  "source_route_negative_coverage_matrix": "scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json",
+  "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
+  "minimum_suite_groups": [
+    {
+      "group_id": "executor_blocked",
+      "precondition_area": "executor",
+      "source_skeleton_group": "executor_blocked",
+      "required_case_ids": [
+        "executor-disabled-tool-run",
+        "executor-network-disabled",
+        "executor-ref-checkpoint-read-denied"
+      ],
+      "required_suite_coverage": [
+        "policy_gate_consumer",
+        "tool_registry_policy_consumer",
+        "independent_audit_expectation",
+        "no_execution_side_effects",
+        "no_network_side_effects"
+      ],
+      "current_status": "governance_consumed_implementation_blocked"
+    },
+    {
+      "group_id": "storage_materialization_blocked",
+      "precondition_area": "storage",
+      "source_skeleton_group": "storage_materialization_blocked",
+      "required_case_ids": [
+        "materialized-result-read-denied",
+        "durable-memory-write-denied",
+        "business-truth-write-denied"
+      ],
+      "required_suite_coverage": [
+        "checkpoint_read_route_consumer",
+        "storage_policy_gate_consumer",
+        "independent_audit_expectation",
+        "no_materialized_result_side_effects",
+        "no_business_truth_write_side_effects"
+      ],
+      "current_status": "governance_consumed_implementation_blocked"
+    },
+    {
+      "group_id": "confirmation_blocked",
+      "precondition_area": "confirmation",
+      "source_skeleton_group": "confirmation_blocked",
+      "required_case_ids": [
+        "missing-confirmation-denied",
+        "stale-confirmation-denied",
+        "mismatched-confirmation-payload-denied"
+      ],
+      "required_suite_coverage": [
+        "confirmation_gate_consumer",
+        "action_payload_hash_consumer",
+        "independent_audit_expectation",
+        "no_confirmed_action_execution",
+        "no_replay_side_effects"
+      ],
+      "current_status": "governance_consumed_implementation_blocked"
+    }
+  ],
+  "suite_acceptance_requirements": [
+    {
+      "requirement_id": "real_consumers_before_completion",
+      "status": "partially_satisfied_by_governance_suite",
+      "description": "Each negative case now has governance consumers, but implementation gates are still missing"
+    },
+    {
+      "requirement_id": "independent_audit_assertions",
+      "status": "satisfied_by_audit_non_write_boundary",
+      "description": "Each blocked action asserts the expected event source and explicit audit non-write boundary"
+    },
+    {
+      "requirement_id": "side_effect_absence_assertions",
+      "status": "satisfied_by_forbidden_side_effect_assertions",
+      "description": "Each case asserts absence of execution, storage, materialized result, business truth write, or replay side effects"
+    },
+    {
+      "requirement_id": "checkpoint_denied_query_alignment",
+      "status": "satisfied_by_denied_query_fixture_and_suite_cases",
+      "description": "Committed checkpoint denied query cases are consumed by route/contract checks and mirrored by suite cases"
+    },
+    {
+      "requirement_id": "implementation_gate_alignment",
+      "status": "satisfied_by_deny_by_default_gate_contracts",
+      "description": "Executor, storage, and confirmation deny-by-default gate contracts exist, but real implementations are still blocked"
+    },
+    {
+      "requirement_id": "negative_coverage_rollup_alignment",
+      "status": "satisfied_by_governance_only_negative_coverage_rollup",
+      "description": "Route smoke, fixture consumers, governance suite cases, and deny-by-default gates are checkable, but real implementation consumers remain missing"
+    },
+    {
+      "requirement_id": "route_negative_coverage_matrix_alignment",
+      "status": "satisfied_by_governance_only_route_negative_coverage_matrix",
+      "description": "The route negative coverage matrix confirms only two suite cases are covered by the current metadata-only route while seven remain future-route-required"
+    },
+    {
+      "requirement_id": "short_close_delta_alignment",
+      "status": "satisfied_by_blocked_short_close_delta",
+      "description": "The short close readiness delta consumes this suite readiness and keeps complete_negative_regression_suite as not_satisfied"
+    }
+  ],
+  "current_skeleton_coverage": {
+    "group_count": 3,
+    "case_count": 9,
+    "failure_boundaries": [
+      "confirmation_gate",
+      "northbound_request",
+      "policy_gate"
+    ],
+    "error_codes": [
+      "BUSINESS_TRUTH_WRITE_DISABLED",
+      "CHECKPOINT_DURABLE_MEMORY_DISABLED",
+      "CHECKPOINT_MATERIALIZED_RESULTS_DISABLED",
+      "CONFIRMATION_PAYLOAD_MISMATCH",
+      "CONFIRMATION_REQUIRED",
+      "CONFIRMATION_STALE",
+      "TOOL_EXECUTOR_DISABLED",
+      "TOOL_NETWORK_DISABLED"
+    ]
+  },
+  "route_negative_coverage_summary": {
+    "current_route_covered_suite_cases": 2,
+    "governance_only_future_route_required_cases": 7,
+    "future_route_requirements_satisfied": 0,
+    "suite_completion_blocker_cases": 7
+  },
+  "blocked_completion_reasons": [
+    "real_executor_storage_confirmation_implementations_missing",
+    "executor_storage_confirmation_still_not_ready",
+    "upper_layer_confirmation_flow_missing",
+    "durable_store_and_result_reader_still_disabled"
+  ],
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_audit_store",
+    "durable_checkpoint_store",
+    "durable_result_store",
+    "durable_session_store",
+    "durable_tool_store",
+    "long_term_memory",
+    "materialized_result_reader",
+    "real_tool_executor",
+    "result_ref_reader"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-negative-regression-suite-readiness.py",
+      "coverage": "validates_negative_regression_suite_acceptance_without_marking_suite_complete"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}
