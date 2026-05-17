@@ -165,6 +165,54 @@ export type ToolActionBlockedView = {
   noSideEffects: boolean;
 };
 
+export type SessionStatusViewModel = {
+  stateScope: "northbound_metadata";
+  metadataOnly: true;
+  disabledCapabilities: Array<
+    | "durable_session_store"
+    | "durable_checkpoint_store"
+    | "long_term_memory"
+    | "automatic_replay"
+    | "business_truth_write"
+  >;
+  durableSessionStoreEnabled: false;
+  longTermMemoryEnabled: false;
+  automaticReplayEnabled: false;
+};
+
+export type ToolRegistryViewModel = {
+  registryId: string;
+  executionEnabled: false;
+  networkDefault: "disabled";
+  tools: Array<{
+    toolId: string;
+    displayName: string;
+    projectScope: string;
+    riskLevel: string;
+    requiresConfirmation: boolean;
+    canRequestAction: true;
+    executionEnabled: false;
+    executionMode: "contract_only";
+  }>;
+};
+
+export type BlockedActionBannerViewModel = {
+  toolId: string;
+  action: string;
+  visible: true;
+  tone: "blocked";
+  canExecute: false;
+  primaryCode: ToolActionBlockedResponse["policy_decision"]["primary_code"];
+  requiresConfirmation: boolean;
+  noSideEffects: boolean;
+};
+
+export type SessionToolingUIViewModel = {
+  sessionStatus: SessionStatusViewModel;
+  toolRegistry: ToolRegistryViewModel;
+  blockedActionBanner: BlockedActionBannerViewModel;
+};
+
 export function isToolActionBlockedResponse(value: unknown): value is ToolActionBlockedResponse {
   if (!isRecord(value)) {
     return false;
@@ -195,6 +243,66 @@ export function listToolActionOptions(metadata: ToolingMetadataResponse): ToolAc
     tool_id: tool.tool_id,
     action: "execute",
   }));
+}
+
+export function toSessionStatusViewModel(metadata: SessionMetadataResponse): SessionStatusViewModel {
+  const disabledCapabilities = Object.entries(metadata.capabilities)
+    .filter(([, enabled]) => enabled === false)
+    .map(([capability]) => capability) as SessionStatusViewModel["disabledCapabilities"];
+  return {
+    stateScope: metadata.state_policy.session_state_scope,
+    metadataOnly: true,
+    disabledCapabilities,
+    durableSessionStoreEnabled: false,
+    longTermMemoryEnabled: false,
+    automaticReplayEnabled: false,
+  };
+}
+
+export function toToolRegistryViewModel(metadata: ToolingMetadataResponse): ToolRegistryViewModel {
+  return {
+    registryId: metadata.registry_id,
+    executionEnabled: false,
+    networkDefault: metadata.registry_policy.network_default,
+    tools: metadata.tools.map((tool) => ({
+      toolId: tool.tool_id,
+      displayName: tool.display_name,
+      projectScope: tool.project_scope,
+      riskLevel: tool.risk_level,
+      requiresConfirmation: tool.requires_confirmation_for_actions,
+      canRequestAction: true,
+      executionEnabled: false,
+      executionMode: tool.execution.mode,
+    })),
+  };
+}
+
+export function toBlockedActionBannerViewModel(
+  response: ToolActionBlockedResponse,
+): BlockedActionBannerViewModel {
+  const blockedView = toToolActionBlockedView(response);
+  return {
+    toolId: blockedView.toolId,
+    action: blockedView.action,
+    visible: true,
+    tone: "blocked",
+    canExecute: false,
+    primaryCode: blockedView.primaryCode,
+    requiresConfirmation: blockedView.requiresConfirmation,
+    noSideEffects: blockedView.noSideEffects,
+  };
+}
+
+export function toSessionToolingUIViewModel(
+  sessionMetadata: SessionMetadataResponse,
+  toolingMetadata: ToolingMetadataResponse,
+  blockedAction: ToolActionBlockedResponse,
+): SessionToolingUIViewModel {
+  return {
+    sessionStatus: toSessionStatusViewModel(sessionMetadata),
+    toolRegistry: toToolRegistryViewModel(toolingMetadata),
+    blockedActionBanner: toBlockedActionBannerViewModel(blockedAction),
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

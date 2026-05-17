@@ -9,6 +9,7 @@
 - [服务/API 接入契约](service-api.md)
 - [会话记录契约](session.md)
 - [工具框架契约](tooling.md)
+- [Session / Tooling UI View 契约](session-tooling-ui-view.md)
 - [训练 / 蒸馏样本契约](training-samples.md)
 - [图片生成契约](image-generation.md)
 - [输入与项目上下文契约](input-context.md)

@@ -26,6 +26,10 @@ EXPECTED_LITERALS = (
     "writes_business_truth: false",
     "automatic_replay_started: false",
     "canExecute: false",
+    "SessionStatusViewModel",
+    "ToolRegistryViewModel",
+    "BlockedActionBannerViewModel",
+    "toSessionToolingUIViewModel",
 )
 
 FORBIDDEN_LITERALS = (

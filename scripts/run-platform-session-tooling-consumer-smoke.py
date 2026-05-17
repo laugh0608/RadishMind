@@ -184,18 +184,23 @@ def build_blocked_action_view(response: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_consumer_view(
-    *,
-    source: str,
-    session_metadata: dict[str, Any],
-    tools_metadata: dict[str, Any],
-    blocked_action: dict[str, Any],
-) -> dict[str, Any]:
+def build_session_status_view(session_metadata: dict[str, Any]) -> dict[str, Any]:
     disabled_capabilities = [
         key
         for key, enabled in sorted((session_metadata.get("capabilities") or {}).items())
         if enabled is False
     ]
+    return {
+        "state_scope": (session_metadata.get("state_policy") or {}).get("session_state_scope"),
+        "metadata_only": True,
+        "disabled_capabilities": disabled_capabilities,
+        "durable_session_store_enabled": False,
+        "long_term_memory_enabled": False,
+        "automatic_replay_enabled": False,
+    }
+
+
+def build_tool_registry_view(tools_metadata: dict[str, Any]) -> dict[str, Any]:
     tool_views = []
     for tool in tools_metadata.get("tools") or []:
         execution = tool.get("execution") or {}
@@ -207,12 +212,42 @@ def build_consumer_view(
                 "risk_level": tool.get("risk_level"),
                 "requires_confirmation": tool.get("requires_confirmation_for_actions") is True,
                 "can_request_action": True,
-                "execution_enabled": execution.get("execution_enabled") is True,
+                "execution_enabled": False,
                 "execution_mode": execution.get("mode"),
             }
         )
+    return {
+        "registry_id": tools_metadata.get("registry_id"),
+        "execution_enabled": False,
+        "network_default": (tools_metadata.get("registry_policy") or {}).get("network_default"),
+        "tools": tool_views,
+    }
 
+
+def build_blocked_action_banner_view(blocked_action: dict[str, Any]) -> dict[str, Any]:
     blocked_view = build_blocked_action_view(blocked_action)
+    return {
+        "tool_id": blocked_view.get("tool_id"),
+        "action": blocked_view.get("action"),
+        "visible": True,
+        "tone": "blocked",
+        "can_execute": False,
+        "primary_code": blocked_view.get("primary_code"),
+        "requires_confirmation": blocked_view.get("requires_confirmation"),
+        "no_side_effects": blocked_view.get("no_side_effects"),
+    }
+
+
+def build_consumer_view(
+    *,
+    source: str,
+    session_metadata: dict[str, Any],
+    tools_metadata: dict[str, Any],
+    blocked_action: dict[str, Any],
+) -> dict[str, Any]:
+    session_status = build_session_status_view(session_metadata)
+    tool_registry = build_tool_registry_view(tools_metadata)
+    blocked_action_banner = build_blocked_action_banner_view(blocked_action)
     return {
         "schema_version": 1,
         "kind": "session_tooling_consumer_smoke_view",
@@ -222,17 +257,18 @@ def build_consumer_view(
             "tools_metadata": TOOLS_METADATA_ROUTE,
             "tool_actions": TOOL_ACTIONS_ROUTE,
         },
-        "session": {
-            "state_scope": (session_metadata.get("state_policy") or {}).get("session_state_scope"),
-            "disabled_capabilities": disabled_capabilities,
+        "view_models": {
+            "session_status": session_status,
+            "tool_registry": tool_registry,
+            "blocked_action_banner": blocked_action_banner,
         },
-        "tools": tool_views,
-        "blocked_action": blocked_view,
         "invariants": {
             "metadata_only": True,
-            "all_tools_execution_disabled": all(tool.get("execution_enabled") is False for tool in tool_views),
-            "blocked_action_cannot_execute": blocked_view.get("can_execute") is False,
-            "blocked_action_has_no_side_effects": blocked_view.get("no_side_effects") is True,
+            "all_tools_execution_disabled": all(
+                tool.get("execution_enabled") is False for tool in tool_registry.get("tools") or []
+            ),
+            "blocked_action_cannot_execute": blocked_action_banner.get("can_execute") is False,
+            "blocked_action_has_no_side_effects": blocked_action_banner.get("no_side_effects") is True,
         },
     }
 
@@ -249,8 +285,15 @@ def assert_consumer_view(document: dict[str, Any]) -> None:
     ):
         if invariants.get(key) is not True:
             raise SystemExit(f"consumer view invariant failed: {key}")
-    blocked_action = document.get("blocked_action") or {}
-    if blocked_action.get("status_label") != "blocked" or blocked_action.get("can_execute") is not False:
+    view_models = document.get("view_models") or {}
+    session_status = view_models.get("session_status") or {}
+    tool_registry = view_models.get("tool_registry") or {}
+    blocked_action_banner = view_models.get("blocked_action_banner") or {}
+    if session_status.get("metadata_only") is not True:
+        raise SystemExit("session status view is not metadata-only")
+    if tool_registry.get("execution_enabled") is not False:
+        raise SystemExit("tool registry view incorrectly enables execution")
+    if blocked_action_banner.get("tone") != "blocked" or blocked_action_banner.get("can_execute") is not False:
         raise SystemExit("blocked action view is not safe to display")
 
 
