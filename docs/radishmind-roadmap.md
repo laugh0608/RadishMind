@@ -103,7 +103,7 @@
 
 目标：让本地长驻服务、启动脚本、观测、故障边界和 deployment smoke 具备正式口径。
 
-状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check 和 `GET /v1/platform/overview` 只读产品 overview；尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
+状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview 和 overview console consumer smoke；尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
 
 ### `P4`：Model Adaptation & Training
 
@@ -119,7 +119,7 @@
 
 ## 下一步
 
-1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：先让 `GET /v1/platform/overview`、`/v1/models`、session metadata、tool metadata 和 blocked action route 形成可展示闭环。
+1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`/v1/models`、session metadata、tool metadata、blocked action route 和 overview consumer smoke 已形成只读可展示闭环；下一步补最小本地 console 壳，只消费该 overview。
 2. 只为新增产品面补行为贴近的轻量门禁，例如平台 route 单元测试、runbook drift check 和 fast baseline；不再默认扩 P2 readiness、rollup、manifest 或 task card。
 3. 只有在 P3 本地产品面稳定后，才定义新的训练 / 蒸馏主线或真实上层接入切片。
 4. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。

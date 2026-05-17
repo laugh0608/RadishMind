@@ -104,9 +104,11 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 当前 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口。它聚合服务状态、`/v1/models` provider/profile inventory、session metadata route、tool metadata route、blocked action route 和停止线，供未来本地控制台或上层 UI 一次读取当前平台可展示能力。该 overview 只消费已有 metadata / blocked shell，不引入第二套业务真相源，也不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
+上层或未来本地 console 的 overview 消费口径已固定在 `contracts/typescript/platform-overview-api.ts`。该文件只提供 `PlatformOverviewResponse`、`PlatformOverviewConsoleViewModel` 和只读 view helper，调用侧应把 service status、model inventory、session/tooling surface 和 stop-lines 作为展示字段；不得把 overview 投影成可执行命令、durable store 状态、业务写回能力或 replay 能力。
+
 上层或未来 UI 的最小 TypeScript 消费口径已固定在 `contracts/typescript/session-tooling-api.ts`。该文件只提供 `SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse` 类型和 blocked view helper，调用侧应把 `canExecute=false`、`statusLabel=blocked`、`primaryCode`、`requiresConfirmation` 与 `noSideEffects` 作为展示字段；不得把 metadata shell 或 blocked response 转成可执行命令。
 
-开发者可用 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 在离线 fixture 模式下生成同样的消费视图；如果本地平台服务已经启动，可加 `--base-url http://127.0.0.1:8080` 直接请求真实 API surface。该脚本只验证上层展示语义，不启动或模拟 executor。
+开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 和 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 在离线 fixture 模式下生成同样的消费视图；如果本地平台服务已经启动，可加 `--base-url http://127.0.0.1:8080` 直接请求真实 API surface。这两个脚本只验证上层展示语义，不启动或模拟 executor。
 
 未来平台控制台或上层 UI 的首版视图模型固定在 [Session / Tooling UI View 契约](session-tooling-ui-view.md)：`SessionStatusViewModel`、`ToolRegistryViewModel` 和 `BlockedActionBannerViewModel`。这些 view model 只用于展示 metadata-only 与 blocked 状态，不声明真实执行、确认流、持久化或业务写回能力。
 
