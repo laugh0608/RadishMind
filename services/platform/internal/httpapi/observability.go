@@ -163,6 +163,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryNorthboundRequest,
 			defaultMessage:  "checkpoint id is required",
 		},
+		"MISSING_TOOL_ID": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "tool_id is required",
+		},
 		"CHECKPOINT_NOT_FOUND": {
 			statusCode:      http.StatusNotFound,
 			errorType:       "invalid_request_error",
