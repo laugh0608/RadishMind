@@ -21,7 +21,7 @@
 
 ## 当前优先做什么
 
-1. `P3 Local Product Shell / Ops Surface`：在现有本地平台服务上补只读可消费入口。`GET /v1/platform/overview` 作为第一刀，应汇总服务状态、`/v1/models` provider/profile inventory、session metadata、tool metadata、blocked action route 和当前停止线，让未来本地控制台或上层 UI 能一次判断“平台能展示什么、哪些动作仍被阻断”。
+1. `P3 Local Product Shell / Ops Surface`：围绕现有本地平台服务补只读可消费入口和最小 console 消费面。`GET /v1/platform/overview` 已作为第一刀汇总服务状态、`/v1/models` provider/profile inventory、session metadata、tool metadata、blocked action route 和当前停止线；当前也已有 overview console consumer smoke，可把 overview 投影为 service status、model inventory、session/tooling surface 和 stop-line view model。下一步只继续补实际本地 console 壳或更贴近 UI 的 overview 消费，不实现真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 2. `Conversation & Session` 与 `Tooling Framework`：保持 `P2 close candidate / governance-only`，既有 `scripts/checks/fixtures/session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json` 继续作为 `P2 short close` 停止线证据保留，相关 `not_satisfied`、`negative_regression_suite`、不实现真实工具执行器、不启用 automatic replay 的边界不变，但不再默认新增 readiness、rollup、manifest 或 task card。当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 已足够支撑最小 metadata / blocked shell；下一步只允许作为 P3 overview 或 UI 消费面的一部分被复用。
 3. `Evaluation & Governance`：只为新产品面补贴近行为的轻量门禁，例如平台 route 单元测试、runbook drift check 和 fast baseline；不再为了 P2 状态本身继续横向扩治理附件。
 4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
@@ -32,7 +32,7 @@
 - 仓库里已经有 runtime、gateway、adapter、eval 和 governance 资产，可以先把平台骨架做完整。
 - `provider registry`、northbound bridge、本地 wrapper、config layering、diagnostics、deployment smoke、request observability 和 error taxonomy 已经给出 P1 short close 基础；继续在同一层增加更多别名、兜底和配置分支会开始降低边际收益。
 - 平台表层语言边界已固定为：`UI` 用 `React + Vite + TypeScript`，平台服务层用 `Go`，模型侧继续保留 `Python`，所有层只共享 `contracts/` 里的 canonical protocol。
-- 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` bridge，并能解释一次请求命中了哪个 route、provider/profile、model、耗时和失败边界；后续不再回头把模型逻辑写回 `Go`。
+- 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/platform/overview`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` bridge，并能解释一次请求命中了哪个 route、provider/profile、model、耗时和失败边界；overview console consumer smoke 已能离线或指向本地服务消费只读产品面；后续不再回头把模型逻辑写回 `Go`。
 - 如果在 service、session、tooling 边界还没稳定前继续深挖模型实验，容易再次陷入局部优化。
 
 ## 当前已有可直接利用的基础
