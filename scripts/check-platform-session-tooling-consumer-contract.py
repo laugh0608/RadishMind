@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TS_CONTRACT = REPO_ROOT / "contracts/typescript/session-tooling-api.ts"
 GO_ROUTE_SOURCE = REPO_ROOT / "services/platform/internal/httpapi/session_tooling_metadata.go"
+CONSUMER_SMOKE = REPO_ROOT / "scripts/run-platform-session-tooling-consumer-smoke.py"
 
 EXPECTED_LITERALS = (
     "/v1/session/metadata",
@@ -66,6 +69,18 @@ def main() -> int:
         "listToolActionOptions" in ts_content,
         "typescript consumer contract must expose tool action option mapping",
     )
+    smoke_result = subprocess.run(
+        [sys.executable, str(CONSUMER_SMOKE), "--check"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if smoke_result.returncode != 0:
+        if smoke_result.stdout:
+            print(smoke_result.stdout, end="")
+        if smoke_result.stderr:
+            print(smoke_result.stderr, end="", file=sys.stderr)
+        raise SystemExit(smoke_result.returncode)
 
     print("platform session/tooling consumer contract check passed.")
     return 0

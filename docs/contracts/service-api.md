@@ -104,6 +104,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 上层或未来 UI 的最小 TypeScript 消费口径已固定在 `contracts/typescript/session-tooling-api.ts`。该文件只提供 `SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse` 类型和 blocked view helper，调用侧应把 `canExecute=false`、`statusLabel=blocked`、`primaryCode`、`requiresConfirmation` 与 `noSideEffects` 作为展示字段；不得把 metadata shell 或 blocked response 转成可执行命令。
 
+开发者可用 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 在离线 fixture 模式下生成同样的消费视图；如果本地平台服务已经启动，可加 `--base-url http://127.0.0.1:8080` 直接请求真实 API surface。该脚本只验证上层展示语义，不启动或模拟 executor。
+
 当前本地启动 runbook 固定在 `services/platform/README.md`，并由 `scripts/check-platform-runbook.py` 防止配置、路由和命令说明漂移。该检查会对齐 `RADISHMIND_PLATFORM_*` 环境变量、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions` 和最小 curl smoke 命令；它只保证本地开发入口可复验，不代表 secret 管理、进程守护、部署观测或生产鉴权已经完成。
 
 ### `RadishFlow` UI 消费口径

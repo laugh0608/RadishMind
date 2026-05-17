@@ -146,6 +146,22 @@ pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
 pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
+上层消费 smoke 可以先用离线 fixture 生成展示视图，不要求启动服务：
+
+```bash
+python scripts/run-platform-session-tooling-consumer-smoke.py --check
+```
+
+服务启动后，也可以指向本地平台 API 生成同一份消费视图：
+
+```bash
+python scripts/run-platform-session-tooling-consumer-smoke.py \
+  --base-url http://127.0.0.1:8080 \
+  --check
+```
+
+该 smoke 只读取 `session metadata`、`tools metadata` 并提交一次会被阻断的 tool action 请求，用于验证上层可展示 `blocked`、`requires_confirmation` 与 `no_side_effects`；它不会启用真实 executor、durable store、confirmation、replay 或业务写回。
+
 生产前仍需要单独补 secret 管理、部署环境隔离和观测策略；当前只固定本地开发入口和最小 deployment smoke。
 
 可用一次性命令检查本地配置摘要，输出不会暴露 secret：
