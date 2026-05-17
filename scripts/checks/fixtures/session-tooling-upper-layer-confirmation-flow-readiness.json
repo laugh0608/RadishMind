@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "session_tooling_upper_layer_confirmation_flow_readiness",
+  "stage": "P2 Session & Tooling Foundation",
+  "status": "readiness_defined_not_connected",
+  "implementation_status": "not_ready",
+  "source_confirmation_flow_design": "scripts/checks/fixtures/session-tooling-confirmation-flow-design.json",
+  "source_implementation_preconditions": "scripts/checks/fixtures/session-tooling-implementation-preconditions.json",
+  "source_negative_regression_suite": "scripts/checks/fixtures/session-tooling-negative-regression-suite.json",
+  "source_short_close_entry_checklist": "scripts/checks/fixtures/session-tooling-short-close-entry-checklist.json",
+  "task_card": "docs/task-cards/session-tooling-upper-layer-confirmation-flow-readiness.md",
+  "readiness_scope": {
+    "entry_condition": "upper_layer_confirmation_flow",
+    "current_status": "not_satisfied",
+    "upper_layer_integration": "not_connected",
+    "execution_enabled": false,
+    "writes_business_truth": false,
+    "durable_confirmation_store_enabled": false
+  },
+  "handoff_readiness_gates": [
+    {
+      "gate_id": "confirmation_request_handoff_contract",
+      "status": "not_satisfied",
+      "current_evidence": "confirmation record shape and approve/reject/defer outcomes are design-checkable only",
+      "required_evidence_before_connection": [
+        "upper layer request handoff shape includes session_id, turn_id, action_ref, action_hash, risk_level, candidate_action_summary, and expires_at",
+        "handoff explicitly separates advisory candidate output from confirmed action execution",
+        "high-risk action requests cannot bypass confirmation_request_handoff"
+      ],
+      "blocked_claims": [
+        "confirmation_flow_connected",
+        "confirmed_action_execution",
+        "p2_short_close"
+      ]
+    },
+    {
+      "gate_id": "confirmation_decision_binding",
+      "status": "not_satisfied",
+      "current_evidence": "confirmation record requires audit_ref, but no upper-layer decision binding exists",
+      "required_evidence_before_connection": [
+        "approve, reject, and defer decisions are bound to confirmation_id and action_hash",
+        "decision actor_ref and confirmed_at are recorded without writing business truth",
+        "decision audit_ref points to an independent audit event rather than checkpoint read metadata"
+      ],
+      "blocked_claims": [
+        "confirmation_flow_connected",
+        "independent_audit_records_ready",
+        "p2_short_close"
+      ]
+    },
+    {
+      "gate_id": "confirmation_negative_gate_consumers",
+      "status": "not_satisfied",
+      "current_evidence": "missing, stale, and mismatched confirmation cases are present in governance suite only",
+      "required_evidence_before_connection": [
+        "missing confirmation denial is consumed by a real confirmation gate before action execution",
+        "stale confirmation denial is consumed by a real confirmation gate before replay or action execution",
+        "mismatched action_hash denial is consumed before executor, result ref, or business truth write side effects"
+      ],
+      "blocked_claims": [
+        "complete_negative_regression_suite",
+        "confirmation_flow_connected",
+        "confirmed_action_execution"
+      ]
+    },
+    {
+      "gate_id": "confirmed_action_handoff_boundary",
+      "status": "not_satisfied",
+      "current_evidence": "approve outcome records approval only and stops at approved_pending_execution_boundary",
+      "required_evidence_before_connection": [
+        "approved decisions remain pending until executor/storage enablement gates are satisfied",
+        "confirmed action handoff cannot write RadishFlow, Radish, or RadishCatalyst truth sources",
+        "automatic replay remains disabled even when confirmation exists"
+      ],
+      "blocked_claims": [
+        "confirmed_action_execution",
+        "business_truth_write",
+        "automatic_replay"
+      ]
+    }
+  ],
+  "negative_case_alignment": [
+    {
+      "case_id": "missing-confirmation-denied",
+      "expected_error_code": "CONFIRMATION_REQUIRED",
+      "current_consumer_status": "governance_consumed_implementation_blocked",
+      "future_consumer_required": true
+    },
+    {
+      "case_id": "stale-confirmation-denied",
+      "expected_error_code": "CONFIRMATION_STALE",
+      "current_consumer_status": "governance_consumed_implementation_blocked",
+      "future_consumer_required": true
+    },
+    {
+      "case_id": "mismatched-confirmation-payload-denied",
+      "expected_error_code": "CONFIRMATION_PAYLOAD_MISMATCH",
+      "current_consumer_status": "governance_consumed_implementation_blocked",
+      "future_consumer_required": true
+    }
+  ],
+  "entry_checklist_alignment": {
+    "condition_id": "upper_layer_confirmation_flow",
+    "status": "not_satisfied",
+    "source": "scripts/checks/fixtures/session-tooling-short-close-entry-checklist.json"
+  },
+  "readiness_totals": {
+    "gate_count": 4,
+    "satisfied_count": 0,
+    "not_satisfied_count": 4,
+    "negative_case_count": 3,
+    "future_consumer_required_count": 3
+  },
+  "current_allowed_claims": [
+    "upper_layer_confirmation_readiness_checkable",
+    "confirmation_handoff_required_evidence_identified",
+    "confirmation_negative_gate_consumers_identified",
+    "governance_only_readiness_status"
+  ],
+  "prohibited_claims": [
+    "p2_short_close",
+    "confirmation_flow_connected",
+    "confirmed_action_execution",
+    "business_truth_write",
+    "automatic_replay",
+    "complete_negative_regression_suite"
+  ],
+  "not_enabled_capabilities": [
+    "automatic_replay",
+    "business_truth_write",
+    "confirmed_action_execution",
+    "durable_confirmation_store",
+    "real_tool_executor",
+    "upper_layer_confirmation_flow_connection"
+  ],
+  "consumers": [
+    {
+      "path": "scripts/check-session-tooling-upper-layer-confirmation-flow-readiness.py",
+      "coverage": "regenerates_and_compares_this_upper_layer_confirmation_flow_readiness"
+    },
+    {
+      "path": "scripts/check-repo.py",
+      "coverage": "fast_baseline_entrypoint"
+    }
+  ]
+}

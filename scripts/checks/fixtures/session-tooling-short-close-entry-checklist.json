@@ -10,12 +10,14 @@
   "source_short_close_readiness_delta": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
   "source_route_smoke_readiness_rollup": "scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json",
   "source_negative_regression_suite_readiness": "scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json",
+  "source_upper_layer_confirmation_flow_readiness": "scripts/checks/fixtures/session-tooling-upper-layer-confirmation-flow-readiness.json",
   "entry_conditions": [
     {
       "condition_id": "upper_layer_confirmation_flow",
       "status": "not_satisfied",
       "source": "scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json",
       "stop_line_source": "scripts/checks/fixtures/session-tooling-stop-line-manifest.json",
+      "readiness_source": "scripts/checks/fixtures/session-tooling-upper-layer-confirmation-flow-readiness.json",
       "current_evidence": "confirmation flow design exists, but no approve/reject/defer integration is connected",
       "must_satisfy_before_entry": [
         "define upper-layer confirmation request/decision handoff",

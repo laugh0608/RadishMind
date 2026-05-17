@@ -14,6 +14,7 @@ STOP_LINE_MANIFEST = FIXTURE_DIR / "session-tooling-stop-line-manifest.json"
 SHORT_CLOSE_DELTA = FIXTURE_DIR / "session-tooling-short-close-readiness-delta.json"
 ROUTE_SMOKE_READINESS = FIXTURE_DIR / "session-tooling-route-smoke-readiness-rollup.json"
 NEGATIVE_SUITE_READINESS = FIXTURE_DIR / "session-tooling-negative-regression-suite-readiness.json"
+UPPER_LAYER_CONFIRMATION_READINESS = FIXTURE_DIR / "session-tooling-upper-layer-confirmation-flow-readiness.json"
 
 TASK_CARD = REPO_ROOT / "docs/task-cards/session-tooling-short-close-entry-checklist.md"
 TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
@@ -142,6 +143,7 @@ def build_entry_conditions(
     delta: dict[str, Any],
     stop_line_manifest: dict[str, Any],
     suite_readiness: dict[str, Any],
+    upper_layer_confirmation_readiness: dict[str, Any],
 ) -> list[dict[str, Any]]:
     delta_rows = hard_prerequisites_by_id(delta)
     stop_rows = stop_line_blockers_by_id(stop_line_manifest)
@@ -155,8 +157,27 @@ def build_entry_conditions(
         suite_readiness.get("implementation_status") == "not_ready",
         "negative suite readiness must keep implementation not_ready",
     )
+    require(
+        upper_layer_confirmation_readiness.get("status") == "readiness_defined_not_connected",
+        "upper-layer confirmation readiness must remain not connected",
+    )
+    upper_layer_scope = require_object(
+        upper_layer_confirmation_readiness.get("readiness_scope"),
+        "upper-layer confirmation readiness scope required",
+    )
+    require(
+        upper_layer_scope.get("entry_condition") == "upper_layer_confirmation_flow"
+        and upper_layer_scope.get("current_status") == "not_satisfied",
+        "upper-layer confirmation readiness must keep entry condition not_satisfied",
+    )
+    upper_layer_condition = build_entry_condition(
+        "upper_layer_confirmation_flow",
+        delta_rows["upper_layer_confirmation_flow"],
+        source=SHORT_CLOSE_DELTA,
+    )
+    upper_layer_condition["readiness_source"] = relative_path(UPPER_LAYER_CONFIRMATION_READINESS)
     return [
-        build_entry_condition("upper_layer_confirmation_flow", delta_rows["upper_layer_confirmation_flow"], source=SHORT_CLOSE_DELTA),
+        upper_layer_condition,
         build_entry_condition(
             "complete_negative_regression_suite",
             delta_rows["complete_negative_regression_suite"],
@@ -222,6 +243,10 @@ def build_checklist() -> dict[str, Any]:
     delta = require_object(load_json_document(SHORT_CLOSE_DELTA), "short close delta must be object")
     route_smoke = require_object(load_json_document(ROUTE_SMOKE_READINESS), "route smoke readiness must be object")
     suite_readiness = require_object(load_json_document(NEGATIVE_SUITE_READINESS), "negative suite readiness must be object")
+    upper_layer_confirmation_readiness = require_object(
+        load_json_document(UPPER_LAYER_CONFIRMATION_READINESS),
+        "upper-layer confirmation readiness must be object",
+    )
 
     require(stop_line.get("status") == "stop_lines_governance_only", "stop-line manifest must stay governance-only")
     require(delta.get("status") == "short_close_blocked", "short close delta must remain blocked")
@@ -236,7 +261,7 @@ def build_checklist() -> dict[str, Any]:
     require(route_totals.get("future_requirements_satisfied") == 0, "future route smoke requirements must remain unsatisfied")
     require(route_totals.get("short_close_hard_prerequisites_not_satisfied") == 4, "short close blocker count drifted")
 
-    entry_conditions = build_entry_conditions(delta, stop_line, suite_readiness)
+    entry_conditions = build_entry_conditions(delta, stop_line, suite_readiness, upper_layer_confirmation_readiness)
     route_requirements = build_route_smoke_requirements(route_smoke)
 
     return {
@@ -251,6 +276,7 @@ def build_checklist() -> dict[str, Any]:
         "source_short_close_readiness_delta": relative_path(SHORT_CLOSE_DELTA),
         "source_route_smoke_readiness_rollup": relative_path(ROUTE_SMOKE_READINESS),
         "source_negative_regression_suite_readiness": relative_path(NEGATIVE_SUITE_READINESS),
+        "source_upper_layer_confirmation_flow_readiness": relative_path(UPPER_LAYER_CONFIRMATION_READINESS),
         "entry_conditions": entry_conditions,
         "route_smoke_entry_requirements": route_requirements,
         "negative_suite_entry_summary": build_negative_suite_summary(suite_readiness),
@@ -309,6 +335,10 @@ def check_checklist_shape(document: dict[str, Any]) -> None:
     require(document.get("target_state") == "p2_short_close", "entry checklist target state drifted")
     require(document.get("status") == "entry_blocked_governance_only", "entry checklist must remain blocked")
     require(document.get("implementation_status") == "not_ready", "entry checklist must not claim implementation readiness")
+    require(
+        document.get("source_upper_layer_confirmation_flow_readiness") == relative_path(UPPER_LAYER_CONFIRMATION_READINESS),
+        "entry checklist must reference upper-layer confirmation readiness",
+    )
 
     conditions = document.get("entry_conditions")
     require(isinstance(conditions, list) and len(conditions) == len(ENTRY_CONDITIONS), "entry condition count drifted")
@@ -321,6 +351,11 @@ def check_checklist_shape(document: dict[str, Any]) -> None:
         require(row.get("status") == "not_satisfied", "entry condition must remain not_satisfied")
         require_string_list(row.get("must_satisfy_before_entry"), "entry condition must include required evidence")
         require_string_list(row.get("blocks_claims"), "entry condition must include blocked claims")
+        if row.get("condition_id") == "upper_layer_confirmation_flow":
+            require(
+                row.get("readiness_source") == relative_path(UPPER_LAYER_CONFIRMATION_READINESS),
+                "upper_layer_confirmation_flow entry condition must reference readiness fixture",
+            )
 
     route_requirements = document.get("route_smoke_entry_requirements")
     require(

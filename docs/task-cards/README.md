@@ -44,6 +44,7 @@
 17. [`P2 Session & Tooling` route negative coverage matrix](session-tooling-route-negative-coverage-matrix.md)
 18. [`P2 Session & Tooling` stop-line manifest](session-tooling-stop-line-manifest.md)
 19. [`P2 Session & Tooling` short close entry checklist](session-tooling-short-close-entry-checklist.md)
+20. [`P2 Session & Tooling` upper-layer confirmation flow readiness](session-tooling-upper-layer-confirmation-flow-readiness.md)
 
 使用原则：
 
