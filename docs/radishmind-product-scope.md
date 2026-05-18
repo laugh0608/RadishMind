@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-05-17
+更新时间：2026-05-18
 
 ## 核心定义
 
@@ -24,7 +24,7 @@
 ### 1. `Runtime Service`
 
 - 提供最小可运行的推理入口、gateway、route 识别、provider/profile 选择、响应封装和本地产品 discovery 面。
-- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、session/tooling metadata shell 和 blocked action shell；后续要补更完整的本地 console、生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
+- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、session/tooling metadata shell、blocked action shell 和 `apps/radishmind-console/` 最小本地 console 壳；后续要补更完整的本地 console 运行/打包边界、生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
 - 这一层必须同时覆盖两条方向：
   - 北向协议兼容：对外提供 native Copilot API，以及 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、session/tooling metadata shell 这类常见兼容接口和只读产品发现接口。
   - 南向模型接入：对内接入 `RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages 等 provider / transport。
@@ -64,7 +64,7 @@
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
-- 当前实现焦点已进入 `P3 Local Product Shell / Ops Surface`：先用 `/v1/platform/overview` 和 overview consumer smoke 固定本地 console 可展示能力，再补真正的只读 console 壳。
+- 当前实现焦点已进入 `P3 Local Product Shell / Ops Surface`：已用 `/v1/platform/overview`、overview consumer smoke 和最小本地 console 壳固定本地 console 可展示能力，后续只继续完善只读消费体验和轻量门禁。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面

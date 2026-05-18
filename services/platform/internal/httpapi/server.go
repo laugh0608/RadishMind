@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
@@ -65,7 +66,7 @@ func NewServer(cfg config.Config, options Options) *Server {
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           mux,
+		Handler:           withLocalConsoleCORS(mux),
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}
@@ -83,6 +84,38 @@ func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request
 		"version": s.options.BuildVersion,
 		"path":    request.URL.Path,
 	})
+}
+
+func withLocalConsoleCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if applyLocalConsoleCORS(writer, request) && request.Method == http.MethodOptions {
+			writer.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(writer, request)
+	})
+}
+
+func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bool {
+	origin := strings.TrimSpace(request.Header.Get("Origin"))
+	if !isAllowedLocalConsoleOrigin(origin) {
+		return false
+	}
+	headers := writer.Header()
+	headers.Set("Access-Control-Allow-Origin", origin)
+	headers.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	headers.Set("Access-Control-Allow-Headers", "Accept, Content-Type, X-Request-Id")
+	headers.Set("Vary", "Origin")
+	return true
+}
+
+func isAllowedLocalConsoleOrigin(origin string) bool {
+	switch origin {
+	case "http://127.0.0.1:5173", "http://localhost:5173":
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Server) handleModels(writer http.ResponseWriter, request *http.Request) {

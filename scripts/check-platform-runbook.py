@@ -60,6 +60,7 @@ def main() -> int:
     require("scripts/check-platform-diagnostics.py" in readme, "platform README must mention diagnostics smoke")
     require("scripts/run-platform-service.sh" in readme, "platform README must mention platform service shell wrapper")
     require("scripts/run-platform-service.ps1" in readme, "platform README must mention platform service PowerShell wrapper")
+    require(".venv" in readme and "RADISHMIND_PLATFORM_PYTHON_BIN" in readme, "platform README must document wrapper Python bridge default")
 
     env_keys = extract_platform_env_keys(config_content)
     missing_env_keys = sorted(key for key in env_keys if key not in readme)

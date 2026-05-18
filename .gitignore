@@ -228,3 +228,7 @@ __marimo__/
 
 # Local temporary artifacts
 tmp/
+
+# Frontend dependencies and build output
+node_modules/
+apps/radishmind-console/dist/

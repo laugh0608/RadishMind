@@ -130,6 +130,59 @@ func checkpointDeniedQueryPath(fixture checkpointDeniedQueriesFixture, query str
 	return basePath + "?" + query
 }
 
+func TestLocalConsoleCORS(t *testing.T) {
+	routeServer := NewServer(config.Config{}, Options{BuildVersion: "test"})
+
+	t.Run("allows local console origin on simple request", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+		req.Header.Set("Origin", "http://127.0.0.1:5173")
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:5173" {
+			t.Fatalf("unexpected allow origin: %q", got)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, POST, OPTIONS" {
+			t.Fatalf("unexpected allow methods: %q", got)
+		}
+	})
+
+	t.Run("handles platform overview preflight", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodOptions, "/v1/platform/overview", nil)
+		req.Header.Set("Origin", "http://localhost:5173")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:5173" {
+			t.Fatalf("unexpected allow origin: %q", got)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(got, "Content-Type") {
+			t.Fatalf("unexpected allow headers: %q", got)
+		}
+	})
+
+	t.Run("does not allow arbitrary origin", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+		req.Header.Set("Origin", "https://example.com")
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+			t.Fatalf("unexpected allow origin: %q", got)
+		}
+	})
+}
+
 func TestPlatformNorthboundRoutes(t *testing.T) {
 	providerDescriptions := []bridge.ProviderDescription{
 		{
