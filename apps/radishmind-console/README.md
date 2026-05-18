@@ -47,6 +47,7 @@ $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:8080"
 ```powershell
 npm run build
 python ../../scripts/check-radishmind-console-shell.py
+python ../../scripts/check-radishmind-console-behavior.py
 ```
 
 ## 停止线

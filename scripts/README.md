@@ -24,6 +24,7 @@
   - 当前还提供 `check-platform-runbook.py`，用于校验 platform 本地运行说明与脚本入口之间的 runbook drift
   - 当前还提供 `check-platform-overview-consumer-contract.py`，用于校验 `contracts/typescript/platform-overview-api.ts` 与 Go platform overview route 的只读路由、停止线和 console view model 保持一致，并在离线模式下运行 `run-platform-overview-consumer-smoke.py --check`；它只固定 overview 消费视图，不实现 UI、executor、durable store 或 confirmation 接线
   - 当前还提供 `check-radishmind-console-shell.py`，用于校验 `apps/radishmind-console/` 的 React + Vite + TypeScript 本地 console 壳仍只消费共享 overview contract 和 `GET /v1/platform/overview`，并保持 executor、durable store、confirmation、业务写回和 replay 停止线关闭
+  - 当前还提供 `check-radishmind-console-behavior.py`，用于校验本地 console 的 ready path、refresh stale overview、连接失败诊断、overview 可读字段和只读停止线；该检查不启动浏览器、不启动长驻服务，也不调用真实 executor、store、confirmation 或 replay
   - 当前还提供 `check-platform-session-tooling-consumer-contract.py`，用于校验 `contracts/typescript/session-tooling-api.ts` 与 Go session/tooling metadata shell 的路由、拒绝码和 blocked action 无副作用字段保持一致，并在离线模式下运行 `run-platform-session-tooling-consumer-smoke.py --check`；它只固定上层消费视图，不实现 UI、executor、durable store 或 confirmation 接线
   - 当前还提供 `check-session-record-contract.py`，用于校验 `SessionRecord` schema、fixture、history/state policy、recovery record、northbound metadata 和不写业务真相源边界
   - 当前还提供 `check-tooling-framework-contract.py`，用于校验 tool definition、registry policy、tool audit、session binding、metadata-only result cache、不启用 executor 和不写 durable memory 边界

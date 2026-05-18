@@ -6,7 +6,7 @@
 
 本文档固定本地 console 或上层 UI 消费 `P3 Local Product Shell / Ops Surface` overview 时的首版视图边界。当前目标是说明 UI 应如何展示平台状态、model/profile inventory、session/tooling 产品面、停止线、refresh 状态和连接失败诊断；`apps/radishmind-console/` 已提供 React + Vite + TypeScript console 壳，但仍不接入真实 executor、durable store、confirmation flow 或 replay。
 
-TypeScript 消费类型真相源为 `contracts/typescript/platform-overview-api.ts`。开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:8080` 请求真实 `GET /v1/platform/overview`，或启动 `apps/radishmind-console/` 查看同一只读视图。
+TypeScript 消费类型真相源为 `contracts/typescript/platform-overview-api.ts`。开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:8080` 请求真实 `GET /v1/platform/overview`，或启动 `apps/radishmind-console/` 查看同一只读视图。`scripts/check-radishmind-console-behavior.py` 固定 ready、refresh、连接失败诊断和只读停止线，不需要启动浏览器或长驻服务。
 
 平台服务当前只允许 `http://127.0.0.1:5173` 与 `http://localhost:5173` 作为本地 console origin 读取 API，并处理 `OPTIONS` preflight；这只是本地开发边界，不代表 production CORS policy 或正式鉴权。
 
