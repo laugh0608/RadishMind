@@ -254,10 +254,32 @@ h2 {
 }
 
 .notice p,
-.audit-band p,
 .empty-state {
   margin-bottom: 0;
   color: #60766a;
+}
+
+.diagnostic-list,
+.audit-notes {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: #60766a;
+}
+
+.section-label {
+  margin: 18px 0 -8px;
+  color: #60766a;
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.inline-warning {
+  margin: 14px 0 0;
+  color: #7c1f22;
+  font-size: 0.9rem;
 }
 
 .audit-band {

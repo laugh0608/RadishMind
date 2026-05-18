@@ -16,7 +16,7 @@ def build_offline_platform_overview() -> dict[str, Any]:
     return {
         "schema_version": 1,
         "kind": "platform_overview",
-        "stage": "P3 Local Product Shell",
+        "stage": "P3 Local Product Shell / Ops Surface",
         "route": PLATFORM_OVERVIEW_ROUTE,
         "service": {
             "name": "radishmind-platform",

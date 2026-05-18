@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   DEFAULT_PLATFORM_BASE_URL,
   buildPlatformOverviewEndpoint,
+  getPlatformOverviewDiagnostics,
   loadPlatformOverview,
   resolvePlatformBaseUrl,
   type PlatformOverviewLoadState,
+  type PlatformOverviewReadyState,
 } from "./platformOverviewClient";
 
 const STOP_LINE_LABELS: Record<string, string> = {
@@ -27,17 +29,23 @@ export function App() {
     status: "idle",
     endpoint: buildPlatformOverviewEndpoint(initialBaseUrl),
   });
+  const lastReadyState = useRef<PlatformOverviewReadyState | null>(null);
 
   const refreshOverview = useCallback(async () => {
     const endpoint = buildPlatformOverviewEndpoint(baseUrl);
-    setLoadState({ status: "loading", endpoint });
+    const previousReadyState = lastReadyState.current ?? undefined;
+    setLoadState({ status: "loading", endpoint, previous: previousReadyState });
     try {
-      setLoadState(await loadPlatformOverview(baseUrl));
+      const readyState = await loadPlatformOverview(baseUrl);
+      lastReadyState.current = readyState;
+      setLoadState(readyState);
     } catch (error) {
       setLoadState({
         status: "error",
         endpoint,
         message: error instanceof Error ? error.message : "overview request failed",
+        diagnostics: getPlatformOverviewDiagnostics(error),
+        previous: previousReadyState,
       });
     }
   }, [baseUrl]);
@@ -46,8 +54,10 @@ export function App() {
     void refreshOverview();
   }, [refreshOverview]);
 
-  const viewModel = loadState.status === "ready" ? loadState.viewModel : null;
-  const overview = loadState.status === "ready" ? loadState.overview : null;
+  const readyState = latestReadyState(loadState);
+  const viewModel = readyState?.viewModel ?? null;
+  const overview = readyState?.overview ?? null;
+  const showingStaleOverview = loadState.status === "error" && readyState !== null;
   const stopLineItems = useMemo(
     () =>
       viewModel?.stopLines.blockedCapabilityIds.map((capabilityId) => ({
@@ -84,13 +94,20 @@ export function App() {
           {loadState.status}
         </StatusPill>
         <span className="endpoint">{loadState.endpoint}</span>
-        {loadState.status === "ready" ? <span>Loaded {formatTimestamp(loadState.loadedAt)}</span> : null}
+        {readyState ? <span>Loaded {formatTimestamp(readyState.loadedAt)}</span> : null}
+        {loadState.status === "loading" && readyState ? <span>Refreshing; showing last overview</span> : null}
+        {showingStaleOverview ? <span>Connection failed; showing last overview</span> : null}
       </section>
 
       {loadState.status === "error" ? (
         <section className="notice" role="alert">
           <h2>Platform service unavailable</h2>
           <p>{loadState.message}</p>
+          <ul className="diagnostic-list">
+            {loadState.diagnostics.map((diagnostic) => (
+              <li key={diagnostic}>{diagnostic}</li>
+            ))}
+          </ul>
         </section>
       ) : null}
 
@@ -102,6 +119,7 @@ export function App() {
               <Metric label="Version" value={viewModel.serviceStatus.version} />
               <Metric label="Stage" value={viewModel.serviceStatus.stage} />
               <Metric label="Mode" value={viewModel.serviceStatus.mode} />
+              <Metric label="Overview route" value={viewModel.serviceStatus.overviewRoute} />
               <Metric
                 label="Console health"
                 value={viewModel.serviceStatus.healthyForLocalConsole ? "ready" : "not ready"}
@@ -126,7 +144,13 @@ export function App() {
                 <Metric label="Default profile" value={viewModel.modelInventory.defaultProfile || "unset"} />
                 <Metric label="Default model" value={viewModel.modelInventory.defaultModel || "unset"} />
               </dl>
+              {viewModel.modelInventory.status !== "ok" ? (
+                <p className="inline-warning">Provider inventory is unavailable; check platform diagnostics.</p>
+              ) : null}
+              <p className="section-label">Selectable model IDs</p>
               <TokenList items={viewModel.modelInventory.selectableModelIds} emptyLabel="No selectable models" />
+              <p className="section-label">Active profile chain</p>
+              <TokenList items={viewModel.modelInventory.activeProfileChain} emptyLabel="No active profile chain" />
             </>
           ) : (
             <SkeletonRows count={4} />
@@ -145,6 +169,7 @@ export function App() {
                 <Metric label="Tools metadata" value={viewModel.sessionTooling.toolsMetadataRoute} />
                 <Metric label="Blocked action" value={viewModel.sessionTooling.blockedActionRoute} />
                 <Metric label="Execution" value={viewModel.sessionTooling.executionEnabled ? "enabled" : "disabled"} />
+                <Metric label="Confirmation path" value={viewModel.sessionTooling.requiresConfirmationPath} />
               </dl>
             </>
           ) : (
@@ -181,7 +206,11 @@ export function App() {
         <section className="audit-band">
           <div>
             <h2>Audit Boundary</h2>
-            <p>{overview.audit.notes.join(" ")}</p>
+            <ul className="audit-notes">
+              {overview.audit.notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
           </div>
           <StatusPill tone={overview.audit.writes_business_truth ? "bad" : "good"}>
             {overview.audit.writes_business_truth ? "write enabled" : "advisory only"}
@@ -190,6 +219,16 @@ export function App() {
       ) : null}
     </main>
   );
+}
+
+function latestReadyState(loadState: PlatformOverviewLoadState): PlatformOverviewReadyState | null {
+  if (loadState.status === "ready") {
+    return loadState;
+  }
+  if (loadState.status === "loading" || loadState.status === "error") {
+    return loadState.previous ?? null;
+  }
+  return null;
 }
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {

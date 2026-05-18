@@ -3,7 +3,7 @@ export const PLATFORM_OVERVIEW_ROUTE = "/v1/platform/overview" as const;
 export type PlatformOverviewResponse = {
   schema_version: 1;
   kind: "platform_overview";
-  stage: "P3 Local Product Shell" | string;
+  stage: "P3 Local Product Shell / Ops Surface" | string;
   route: typeof PLATFORM_OVERVIEW_ROUTE;
   service: {
     name: "radishmind-platform" | string;

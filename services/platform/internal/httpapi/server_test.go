@@ -1317,7 +1317,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
 			t.Fatalf("decode response: %v", err)
 		}
-		if response["kind"] != "platform_overview" || response["stage"] != "P3 Local Product Shell" {
+		if response["kind"] != "platform_overview" || response["stage"] != "P3 Local Product Shell / Ops Surface" {
 			t.Fatalf("unexpected overview identity: %#v", response)
 		}
 		productSurface, ok := response["product_surface"].(map[string]any)

@@ -22,7 +22,7 @@ EXPECTED_LITERALS = (
     "/v1/tools/metadata",
     "/v1/tools/actions",
     "platform_overview",
-    "P3 Local Product Shell",
+    "P3 Local Product Shell / Ops Surface",
     "local_read_only_product_shell",
     "bridge_backed_provider_profile_inventory",
     "P2 close candidate shell",

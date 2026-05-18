@@ -17,7 +17,7 @@ func (s *Server) handlePlatformOverview(writer http.ResponseWriter, request *htt
 	document := map[string]any{
 		"schema_version": 1,
 		"kind":           "platform_overview",
-		"stage":          "P3 Local Product Shell",
+		"stage":          "P3 Local Product Shell / Ops Surface",
 		"route":          platformOverviewRoute,
 		"service": map[string]any{
 			"name":    serviceName,

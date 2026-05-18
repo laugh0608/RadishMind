@@ -2,11 +2,17 @@
 
 本目录是 `P3 Local Product Shell / Ops Surface` 的最小本地 console 壳。
 
-它只读取 `GET /v1/platform/overview`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` 与 `toPlatformOverviewConsoleViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态和 stop-lines。
+它只读取 `GET /v1/platform/overview`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` 与 `toPlatformOverviewConsoleViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、stop-lines、refresh 状态和连接失败诊断。
 
 ## 本地运行
 
-先启动平台服务：
+在本目录安装依赖：
+
+```powershell
+npm install
+```
+
+先从本目录启动平台服务：
 
 ```powershell
 pwsh ../../scripts/run-platform-service.ps1 serve
@@ -15,7 +21,6 @@ pwsh ../../scripts/run-platform-service.ps1 serve
 再启动 console：
 
 ```powershell
-npm install
 npm run dev
 ```
 
@@ -26,6 +31,23 @@ $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:8080"
 ```
 
 平台服务只允许 `http://127.0.0.1:5173` 与 `http://localhost:5173` 这两个本地 console origin 读取 API；这只是本地开发 CORS 边界，不代表生产鉴权或公开部署已完成。
+
+## 连接失败诊断
+
+页面会在 refresh 期间保留上一份已加载 overview；如果连接失败，会继续展示上一份只读视图并显示诊断项。常见处理顺序：
+
+1. 确认平台服务已通过 `pwsh ../../scripts/run-platform-service.ps1 serve` 启动。
+2. 打开 `http://127.0.0.1:8080/v1/platform/overview`，确认返回 JSON。
+3. 若服务端口或主机不同，更新页面里的 `Platform URL` 或设置 `VITE_RADISHMIND_PLATFORM_BASE_URL`。
+4. 若浏览器报 CORS / preflight，确认 console 使用 `http://127.0.0.1:5173` 或 `http://localhost:5173`。
+5. 若提示 overview contract 不匹配，运行 `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url http://127.0.0.1:8080 --check`。
+
+## 验证
+
+```powershell
+npm run build
+python ../../scripts/check-radishmind-console-shell.py
+```
 
 ## 停止线
 

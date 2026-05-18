@@ -4,7 +4,7 @@
 
 ## 文档目的
 
-本文档固定本地 console 或上层 UI 消费 `P3 Local Product Shell / Ops Surface` overview 时的首版视图边界。当前目标是说明 UI 应如何展示平台状态、model/profile inventory、session/tooling 产品面和停止线；`apps/radishmind-console/` 已提供最小 React + Vite + TypeScript console 壳，但仍不接入真实 executor、durable store、confirmation flow 或 replay。
+本文档固定本地 console 或上层 UI 消费 `P3 Local Product Shell / Ops Surface` overview 时的首版视图边界。当前目标是说明 UI 应如何展示平台状态、model/profile inventory、session/tooling 产品面、停止线、refresh 状态和连接失败诊断；`apps/radishmind-console/` 已提供 React + Vite + TypeScript console 壳，但仍不接入真实 executor、durable store、confirmation flow 或 replay。
 
 TypeScript 消费类型真相源为 `contracts/typescript/platform-overview-api.ts`。开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:8080` 请求真实 `GET /v1/platform/overview`，或启动 `apps/radishmind-console/` 查看同一只读视图。
 

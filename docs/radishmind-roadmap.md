@@ -99,11 +99,11 @@
 
 停止线证据仍以 governance-only fixture 保留：`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-short-close-entry-checklist.json` 等继续固定 `P2 short close` 前的 `not_satisfied` 条件和 `negative_regression_suite` 边界；这些文件不再作为默认新增工作方向。
 
-### `P3`：Local Deployment & Ops Governance
+### `P3`：Local Product Shell / Ops Surface
 
-目标：让本地长驻服务、启动脚本、观测、故障边界和 deployment smoke 具备正式口径。
+目标：让本地长驻服务、启动说明、只读 console、观测、故障边界和 ops surface 具备正式口径。
 
-状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、overview console consumer smoke 和 `apps/radishmind-console/` 最小本地 console 壳；尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
+状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、overview console consumer smoke 和 `apps/radishmind-console/` 本地 console 壳；console 当前已补启动说明、refresh 状态、连接失败诊断和更可读的 overview 展示。尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
 
 ### `P4`：Model Adaptation & Training
 
@@ -119,7 +119,7 @@
 
 ## 下一步
 
-1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`/v1/models`、session metadata、tool metadata、blocked action route、overview consumer smoke 和 `apps/radishmind-console/` 已形成只读可展示闭环；下一步完善 console 运行说明、轻量门禁和更贴近 UI 的 overview 消费。
+1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`/v1/models`、session metadata、tool metadata、blocked action route、overview consumer smoke 和 `apps/radishmind-console/` 已形成只读可展示闭环；下一步继续完善轻量门禁和更贴近真实使用路径的只读 overview 消费。
 2. 只为新增产品面补行为贴近的轻量门禁，例如平台 route 单元测试、runbook drift check 和 fast baseline；不再默认扩 P2 readiness、rollup、manifest 或 task card。
 3. 只有在 P3 本地产品面稳定后，才定义新的训练 / 蒸馏主线或真实上层接入切片。
 4. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
