@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "kind": "p3_local_product_shell_short_close_checklist",
+  "stage": {
+    "id": "p3_local_product_shell_ops_surface",
+    "preferred_name": "P3 Local Product Shell / Ops Surface",
+    "accepted_aliases": [
+      "P3 Local Deployment & Ops Governance"
+    ],
+    "naming_policy": "Use the preferred stage name in primary docs. The deployment/governance wording may describe missing production prerequisites, but it is not a separate roadmap phase."
+  },
+  "short_close_state": {
+    "status": "not_ready",
+    "reason": "The local read-only product shell is usable, but P3 short close still requires production operations prerequisites to remain explicit and unsatisfied.",
+    "must_not_claim": [
+      "production_deployment_ready",
+      "console_production_package_ready",
+      "real_executor_ready",
+      "durable_store_ready",
+      "confirmation_flow_connected",
+      "business_truth_write_enabled",
+      "replay_enabled"
+    ]
+  },
+  "satisfied_conditions": [
+    {
+      "id": "platform_overview_readonly_route",
+      "status": "satisfied",
+      "evidence": [
+        "services/platform/internal/httpapi/platform_overview.go",
+        "scripts/check-platform-overview-consumer-contract.py"
+      ]
+    },
+    {
+      "id": "typescript_overview_consumer_contract",
+      "status": "satisfied",
+      "evidence": [
+        "contracts/typescript/platform-overview-api.ts",
+        "scripts/run-platform-overview-consumer-smoke.py"
+      ]
+    },
+    {
+      "id": "local_console_shell",
+      "status": "satisfied",
+      "evidence": [
+        "apps/radishmind-console/README.md",
+        "scripts/check-radishmind-console-shell.py"
+      ]
+    },
+    {
+      "id": "console_behavior_gate",
+      "status": "satisfied",
+      "evidence": [
+        "apps/radishmind-console/src/App.tsx",
+        "scripts/check-radishmind-console-behavior.py"
+      ]
+    },
+    {
+      "id": "console_production_boundary_gate",
+      "status": "satisfied",
+      "evidence": [
+        "apps/radishmind-console/package.json",
+        "scripts/check-radishmind-console-production-boundary.py"
+      ]
+    },
+    {
+      "id": "fast_baseline_consumes_p3_gates",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/check-repo.py"
+      ]
+    }
+  ],
+  "blocked_conditions": [
+    {
+      "id": "production_secret_backend",
+      "status": "not_satisfied",
+      "required_before_short_close": true,
+      "current_scope": "blocked"
+    },
+    {
+      "id": "process_supervisor",
+      "status": "not_satisfied",
+      "required_before_short_close": true,
+      "current_scope": "blocked"
+    },
+    {
+      "id": "deployment_environment_isolation",
+      "status": "not_satisfied",
+      "required_before_short_close": true,
+      "current_scope": "blocked"
+    },
+    {
+      "id": "console_production_packaging",
+      "status": "not_satisfied",
+      "required_before_short_close": true,
+      "current_scope": "blocked"
+    },
+    {
+      "id": "external_provider_health_probe",
+      "status": "not_satisfied",
+      "required_before_short_close": false,
+      "current_scope": "future_product_hardening"
+    }
+  ],
+  "stop_lines": [
+    {
+      "id": "real_executor",
+      "status": "disabled"
+    },
+    {
+      "id": "durable_session_checkpoint_audit_result_store",
+      "status": "disabled"
+    },
+    {
+      "id": "confirmation_flow_connection",
+      "status": "disabled"
+    },
+    {
+      "id": "materialized_result_reader",
+      "status": "disabled"
+    },
+    {
+      "id": "long_term_memory",
+      "status": "disabled"
+    },
+    {
+      "id": "business_truth_write",
+      "status": "disabled"
+    },
+    {
+      "id": "automatic_replay",
+      "status": "disabled"
+    }
+  ],
+  "required_consumers": [
+    "scripts/check-p3-local-product-shell-short-close-checklist.py",
+    "scripts/check-repo.py",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-architecture.md",
+    "scripts/README.md"
+  ]
+}
