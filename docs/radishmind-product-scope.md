@@ -64,7 +64,7 @@
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
-- 当前实现焦点已进入 `P3 Local Product Shell / Ops Surface`：已用 `/v1/platform/overview`、overview consumer smoke 和最小本地 console 壳固定本地 console 可展示能力，后续只继续完善只读消费体验和轻量门禁。
+- 当前实现焦点已进入 `P3 Local Product Shell / Ops Surface`：已用 `/v1/platform/overview`、overview consumer smoke、最小本地 console 壳、console behavior / production boundary gate 和 P3 short-close checklist 固定本地 console 可展示能力与未满足的生产前置条件，后续只继续完善只读消费体验、视觉 QA 和轻量门禁。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面
