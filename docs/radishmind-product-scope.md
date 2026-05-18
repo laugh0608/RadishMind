@@ -24,7 +24,7 @@
 ### 1. `Runtime Service`
 
 - 提供最小可运行的推理入口、gateway、route 识别、provider/profile 选择、响应封装和本地产品 discovery 面。
-- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、session/tooling metadata shell、blocked action shell 和 `apps/radishmind-console/` 最小本地 console 壳；后续要补更完整的本地 console 运行/打包边界、生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
+- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、session/tooling metadata shell、blocked action shell、`apps/radishmind-console/` 本地 console 壳、console behavior / production boundary gate 和 P3 short-close checklist；后续要补浏览器视觉 QA、生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
 - 这一层必须同时覆盖两条方向：
   - 北向协议兼容：对外提供 native Copilot API，以及 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、session/tooling metadata shell 这类常见兼容接口和只读产品发现接口。
   - 南向模型接入：对内接入 `RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages 等 provider / transport。

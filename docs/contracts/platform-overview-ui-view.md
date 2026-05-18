@@ -89,6 +89,23 @@ UI 只展示：
 
 停止线必须被展示为不可用能力或当前阻塞能力，不得被转成隐藏的执行按钮、重试执行按钮、写回按钮或 replay 控件。
 
+### Refresh / error state
+
+本地 console 可维护最近一次成功加载的 overview，并在 refresh 或连接失败时继续展示上一份只读视图。UI 只允许展示：
+
+- 当前 load status：`idle / loading / ready / error`
+- 当前请求的 `endpoint`
+- 最近一次成功加载时间
+- refresh 期间的 `showing last overview` 状态
+- 连接失败后的 `showing last overview` 状态
+- 面向开发者的诊断项，例如服务未启动、URL 不匹配、CORS / preflight 或 overview contract mismatch
+
+连接失败诊断只能帮助开发者恢复本地只读连接；不得触发自动重试执行、工具 action、业务写回或 replay。
+
+### Audit boundary
+
+UI 可展示 overview 中的 `audit.notes`，并把 `writes_business_truth=false` 显示为 advisory-only 状态。该区域只用于解释当前平台输出边界，不得变成确认按钮、执行按钮、写回入口或长期审计存储入口。
+
 ## 当前停止线
 
 - `apps/radishmind-console/` 只能作为只读消费壳，不能承载执行器、store、confirmation 或 replay 逻辑。
@@ -97,3 +114,4 @@ UI 只展示：
 - 不把 `blockedActionRoute` 解释成可执行工具入口。
 - 不在 UI 层模拟 executor、durable store、confirmation、replay 或业务写回。
 - 不把 stop-line false 值隐藏成“尚未加载”或“稍后自动启用”状态。
+- 不把 refresh/error 诊断解释成自动恢复执行链路。

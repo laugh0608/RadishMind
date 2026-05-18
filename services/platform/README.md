@@ -178,11 +178,11 @@ npm install
 npm run dev
 ```
 
-该 console 只展示 service status、model/profile inventory、session/tooling blocked 状态和 stop-lines，不调用 `/v1/tools/actions`，也不实现 executor、durable store、confirmation、业务写回或 replay。
+该 console 只展示 service status、model/profile inventory、session/tooling blocked 状态、stop-lines、audit boundary、refresh 状态和连接失败诊断，不调用 `/v1/tools/actions`，也不实现 executor、durable store、confirmation、业务写回或 replay。refresh 期间和连接失败后可以保留上一份只读 overview，用于排障，不代表平台会自动恢复执行。
 
 平台服务当前只为 `http://127.0.0.1:5173` 与 `http://localhost:5173` 返回本地 console CORS header，并处理 `OPTIONS` preflight；该能力只服务本地 console 开发，不等同于 production CORS policy、正式鉴权或外部公开部署。
 
-生产前仍需要单独补 secret 管理、部署环境隔离和观测策略；当前只固定本地开发入口和最小 deployment smoke。
+console production packaging 仍未完成：`apps/radishmind-console/package.json` 必须保持 `private=true`，不添加 deploy / publish / release 脚本，不提交 `dist/` 或 `node_modules/`。P3 short-close checklist 继续把 production secret backend、process supervisor、部署环境隔离和 console production packaging 标为 `not_satisfied`；当前只固定本地开发入口和最小 deployment smoke。
 
 可用一次性命令检查本地配置摘要，输出不会暴露 secret：
 

@@ -2,7 +2,7 @@
 
 本目录是 `P3 Local Product Shell / Ops Surface` 的最小本地 console 壳。
 
-它只读取 `GET /v1/platform/overview`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` 与 `toPlatformOverviewConsoleViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、stop-lines、refresh 状态和连接失败诊断。
+它只读取 `GET /v1/platform/overview`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` 与 `toPlatformOverviewConsoleViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、stop-lines、audit boundary、refresh 状态和连接失败诊断。
 
 ## 本地运行
 
@@ -59,6 +59,7 @@ npm run build
 python ../../scripts/check-radishmind-console-shell.py
 python ../../scripts/check-radishmind-console-behavior.py
 python ../../scripts/check-radishmind-console-production-boundary.py
+python ../../scripts/check-p3-local-product-shell-short-close-checklist.py
 ```
 
 ## 停止线
