@@ -32,6 +32,16 @@ $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:8080"
 
 平台服务只允许 `http://127.0.0.1:5173` 与 `http://localhost:5173` 这两个本地 console origin 读取 API；这只是本地开发 CORS 边界，不代表生产鉴权或公开部署已完成。
 
+## Production packaging 边界
+
+当前 console production packaging 仍未完成，本目录仍是本地只读产品壳，不是 production package。当前边界：
+
+- `package.json` 必须保持 `private=true`
+- 不生成、提交或发布 production package
+- 不添加 deploy / publish / release 脚本
+- 不提交 `dist/` 或 `node_modules/`
+- 不声明 production secret backend、正式鉴权、进程守护或环境隔离已完成
+
 ## 连接失败诊断
 
 页面会在 refresh 期间保留上一份已加载 overview；如果连接失败，会继续展示上一份只读视图并显示诊断项。常见处理顺序：
@@ -48,6 +58,7 @@ $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:8080"
 npm run build
 python ../../scripts/check-radishmind-console-shell.py
 python ../../scripts/check-radishmind-console-behavior.py
+python ../../scripts/check-radishmind-console-production-boundary.py
 ```
 
 ## 停止线

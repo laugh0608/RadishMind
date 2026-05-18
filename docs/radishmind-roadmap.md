@@ -103,7 +103,7 @@
 
 目标：让本地长驻服务、启动说明、只读 console、观测、故障边界和 ops surface 具备正式口径。
 
-状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、overview console consumer smoke 和 `apps/radishmind-console/` 本地 console 壳；console 当前已补启动说明、refresh 状态、连接失败诊断、更可读的 overview 展示和 `scripts/check-radishmind-console-behavior.py` 行为门禁。尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
+状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、overview console consumer smoke 和 `apps/radishmind-console/` 本地 console 壳；console 当前已补启动说明、refresh 状态、连接失败诊断、更可读的 overview 展示、`scripts/check-radishmind-console-behavior.py` 行为门禁和 console production packaging 边界门禁。尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
 
 ### `P4`：Model Adaptation & Training
 
@@ -119,7 +119,7 @@
 
 ## 下一步
 
-1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`/v1/models`、session metadata、tool metadata、blocked action route、overview consumer smoke、console shell check、console behavior gate 和 `apps/radishmind-console/` 已形成只读可展示闭环；下一步继续完善更贴近真实使用路径的只读 overview 消费。
+1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`/v1/models`、session metadata、tool metadata、blocked action route、overview consumer smoke、console shell check、console behavior gate、console production packaging boundary gate 和 `apps/radishmind-console/` 已形成只读可展示闭环；下一步继续完善更贴近真实使用路径的只读 overview 消费。
 2. 只为新增产品面补行为贴近的轻量门禁，例如平台 route 单元测试、runbook drift check 和 fast baseline；不再默认扩 P2 readiness、rollup、manifest 或 task card。
 3. 只有在 P3 本地产品面稳定后，才定义新的训练 / 蒸馏主线或真实上层接入切片。
 4. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。

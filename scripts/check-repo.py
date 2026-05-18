@@ -1075,6 +1075,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-platform-overview-consumer-contract.py", [])
     run_python_script("check-radishmind-console-shell.py", [])
     run_python_script("check-radishmind-console-behavior.py", [])
+    run_python_script("check-radishmind-console-production-boundary.py", [])
     run_python_script("check-platform-session-tooling-consumer-contract.py", [])
     run_python_script("check-session-record-contract.py", [])
     run_python_script("check-tooling-framework-contract.py", [])

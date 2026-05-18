@@ -174,7 +174,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
 - 真实工具执行器、materialized tool result cache、上层确认流接线和完整 session/tooling 负向回归 implementation consumer
 
-所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、overview consumer smoke、本地 console 壳、console shell / behavior checks、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面、console production packaging、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、overview consumer smoke、本地 console 壳、console shell / behavior / production boundary checks、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面、console production packaging、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
 
 ## 读文档顺序
 
