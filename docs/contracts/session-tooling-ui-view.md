@@ -6,7 +6,7 @@
 
 本文档固定未来平台控制台或上层 UI 消费 `P2 Session & Tooling Foundation` metadata shell 时的首版视图边界。当前目标是定义 UI 应如何展示 session 状态、tool registry 和 blocked action，而不是创建前端工程、接入真实 executor、接入 durable store 或实现确认流。
 
-TypeScript 消费类型真相源为 `contracts/typescript/session-tooling-api.ts`。开发者可用 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:8080` 请求真实 API surface。
+TypeScript 消费类型真相源为 `contracts/typescript/session-tooling-api.ts`。开发者可用 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:6000` 请求真实 API surface。
 
 ## 视图模型
 

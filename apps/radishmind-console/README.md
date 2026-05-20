@@ -24,13 +24,13 @@ pwsh ../../scripts/run-platform-service.ps1 serve
 npm run dev
 ```
 
-默认读取 `http://127.0.0.1:8080/v1/platform/overview`。如需改地址，可设置：
+默认读取 `http://127.0.0.1:6000/v1/platform/overview`。如需改地址，可设置：
 
 ```powershell
-$env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:8080"
+$env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:6000"
 ```
 
-平台服务只允许 `http://127.0.0.1:5173` 与 `http://localhost:5173` 这两个本地 console origin 读取 API；这只是本地开发 CORS 边界，不代表生产鉴权或公开部署已完成。
+平台服务只允许 `http://127.0.0.1:4000` 与 `http://localhost:4000` 这两个本地 console origin 读取 API；这只是本地开发 CORS 边界，不代表生产鉴权或公开部署已完成。
 
 ## Production packaging 边界
 
@@ -47,10 +47,10 @@ $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:8080"
 页面会在 refresh 期间保留上一份已加载 overview；如果连接失败，会继续展示上一份只读视图并显示诊断项。常见处理顺序：
 
 1. 确认平台服务已通过 `pwsh ../../scripts/run-platform-service.ps1 serve` 启动。
-2. 打开 `http://127.0.0.1:8080/v1/platform/overview`，确认返回 JSON。
+2. 打开 `http://127.0.0.1:6000/v1/platform/overview`，确认返回 JSON。
 3. 若服务端口或主机不同，更新页面里的 `Platform URL` 或设置 `VITE_RADISHMIND_PLATFORM_BASE_URL`。
-4. 若浏览器报 CORS / preflight，确认 console 使用 `http://127.0.0.1:5173` 或 `http://localhost:5173`。
-5. 若提示 overview contract 不匹配，运行 `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url http://127.0.0.1:8080 --check`。
+4. 若浏览器报 CORS / preflight，确认 console 使用 `http://127.0.0.1:4000` 或 `http://localhost:4000`。
+5. 若提示 overview contract 不匹配，运行 `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url http://127.0.0.1:6000 --check`。
 
 ## 验证
 

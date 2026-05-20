@@ -135,7 +135,7 @@ func TestLocalConsoleCORS(t *testing.T) {
 
 	t.Run("allows local console origin on simple request", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
-		req.Header.Set("Origin", "http://127.0.0.1:5173")
+		req.Header.Set("Origin", "http://127.0.0.1:4000")
 		rec := httptest.NewRecorder()
 
 		routeServer.httpServer.Handler.ServeHTTP(rec, req)
@@ -143,7 +143,7 @@ func TestLocalConsoleCORS(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
 		}
-		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:5173" {
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:4000" {
 			t.Fatalf("unexpected allow origin: %q", got)
 		}
 		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, POST, OPTIONS" {
@@ -153,7 +153,7 @@ func TestLocalConsoleCORS(t *testing.T) {
 
 	t.Run("handles platform overview preflight", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodOptions, "/v1/platform/overview", nil)
-		req.Header.Set("Origin", "http://localhost:5173")
+		req.Header.Set("Origin", "http://localhost:4000")
 		req.Header.Set("Access-Control-Request-Method", "GET")
 		rec := httptest.NewRecorder()
 
@@ -162,7 +162,7 @@ func TestLocalConsoleCORS(t *testing.T) {
 		if rec.Code != http.StatusNoContent {
 			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
 		}
-		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:5173" {
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:4000" {
 			t.Fatalf("unexpected allow origin: %q", got)
 		}
 		if got := rec.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(got, "Content-Type") {

@@ -80,7 +80,7 @@ GOCACHE=/tmp/radishmind-go-build-cache go test ./...
 从仓库根目录启动本地平台服务：
 
 ```bash
-RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:8080 \
+RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:6000 \
 RADISHMIND_PLATFORM_PROVIDER=mock \
 RADISHMIND_PLATFORM_MODEL=radishmind-local-dev \
 go run ./services/platform/cmd/radishmind-platform
@@ -89,7 +89,7 @@ go run ./services/platform/cmd/radishmind-platform
 如果已经进入 `services/platform` 目录，也可以使用：
 
 ```bash
-RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:8080 \
+RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:6000 \
 RADISHMIND_PLATFORM_PROVIDER=mock \
 RADISHMIND_PLATFORM_MODEL=radishmind-local-dev \
 go run ./cmd/radishmind-platform
@@ -102,7 +102,7 @@ go run ./cmd/radishmind-platform
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
 | `RADISHMIND_PLATFORM_CONFIG` | 空 | 可选 JSON 配置文件路径 |
-| `RADISHMIND_PLATFORM_LISTEN_ADDR` | `:8080` | 本地 HTTP 监听地址 |
+| `RADISHMIND_PLATFORM_LISTEN_ADDR` | `:6000` | 本地 HTTP 监听地址 |
 | `RADISHMIND_PLATFORM_READ_HEADER_TIMEOUT` | `5s` | HTTP header 读取超时 |
 | `RADISHMIND_PLATFORM_WRITE_TIMEOUT` | `30s` | HTTP 写响应超时 |
 | `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT` | `30s` | Go 调 Python bridge 的超时 |
@@ -119,7 +119,7 @@ go run ./cmd/radishmind-platform
 
 ```json
 {
-  "listen_addr": "127.0.0.1:8080",
+  "listen_addr": "127.0.0.1:6000",
   "provider": "mock",
   "model": "radishmind-local-dev",
   "bridge_timeout": "30s"
@@ -160,17 +160,17 @@ python scripts/run-platform-session-tooling-consumer-smoke.py --check
 
 ```bash
 python scripts/run-platform-overview-consumer-smoke.py \
-  --base-url http://127.0.0.1:8080 \
+  --base-url http://127.0.0.1:6000 \
   --check
 
 python scripts/run-platform-session-tooling-consumer-smoke.py \
-  --base-url http://127.0.0.1:8080 \
+  --base-url http://127.0.0.1:6000 \
   --check
 ```
 
 overview consumer smoke 只读取 `GET /v1/platform/overview`，把 service status、model inventory、session/tooling surface 和 stop-lines 投影成本地 console view model；session/tooling consumer smoke 只读取 `session metadata`、`tools metadata` 并提交一次会被阻断的 tool action 请求，用于验证上层可展示 `blocked`、`requires_confirmation` 与 `no_side_effects`。二者都不会启用真实 executor、durable store、confirmation、replay 或业务写回。
 
-最小本地 console 壳位于 `apps/radishmind-console/`。它复用 `contracts/typescript/platform-overview-api.ts`，默认读取 `http://127.0.0.1:8080/v1/platform/overview`：
+最小本地 console 壳位于 `apps/radishmind-console/`。它复用 `contracts/typescript/platform-overview-api.ts`，默认读取 `http://127.0.0.1:6000/v1/platform/overview`：
 
 ```bash
 cd apps/radishmind-console
@@ -180,7 +180,7 @@ npm run dev
 
 该 console 只展示 service status、model/profile inventory、session/tooling blocked 状态、stop-lines、audit boundary、refresh 状态和连接失败诊断，不调用 `/v1/tools/actions`，也不实现 executor、durable store、confirmation、业务写回或 replay。refresh 期间和连接失败后可以保留上一份只读 overview，用于排障，不代表平台会自动恢复执行。
 
-平台服务当前只为 `http://127.0.0.1:5173` 与 `http://localhost:5173` 返回本地 console CORS header，并处理 `OPTIONS` preflight；该能力只服务本地 console 开发，不等同于 production CORS policy、正式鉴权或外部公开部署。
+平台服务当前只为 `http://127.0.0.1:4000` 与 `http://localhost:4000` 返回本地 console CORS header，并处理 `OPTIONS` preflight；该能力只服务本地 console 开发，不等同于 production CORS policy、正式鉴权或外部公开部署。
 
 console production packaging 仍未完成：`apps/radishmind-console/package.json` 必须保持 `private=true`，不添加 deploy / publish / release 脚本，不提交 `dist/` 或 `node_modules/`。P3 short-close checklist 继续把 production secret backend、process supervisor、部署环境隔离和 console production packaging 标为 `not_satisfied`；当前只固定本地开发入口和最小 deployment smoke。
 
@@ -207,17 +207,17 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 服务启动后，在另一个终端执行：
 
 ```bash
-curl -sS http://127.0.0.1:8080/healthz
-curl -sS http://127.0.0.1:8080/v1/platform/overview
-curl -sS http://127.0.0.1:8080/v1/models
-curl -sS http://127.0.0.1:8080/v1/models/mock
-curl -sS http://127.0.0.1:8080/v1/session/metadata
-curl -sS 'http://127.0.0.1:8080/v1/session/recovery/checkpoints/session-checkpoint-0001?session_id=radishflow-session-001&turn_id=turn-0003'
-curl -sS http://127.0.0.1:8080/v1/tools/metadata
-curl -sS http://127.0.0.1:8080/v1/tools/actions \
+curl -sS http://127.0.0.1:6000/healthz
+curl -sS http://127.0.0.1:6000/v1/platform/overview
+curl -sS http://127.0.0.1:6000/v1/models
+curl -sS http://127.0.0.1:6000/v1/models/mock
+curl -sS http://127.0.0.1:6000/v1/session/metadata
+curl -sS 'http://127.0.0.1:6000/v1/session/recovery/checkpoints/session-checkpoint-0001?session_id=radishflow-session-001&turn_id=turn-0003'
+curl -sS http://127.0.0.1:6000/v1/tools/metadata
+curl -sS http://127.0.0.1:6000/v1/tools/actions \
   -H 'Content-Type: application/json' \
   -d '{"tool_id":"radishflow.suggest_edits.candidate_builder.v1","action":"execute","session_id":"radishflow-session-001","turn_id":"turn-0003"}'
-curl -sS http://127.0.0.1:8080/v1/chat/completions \
+curl -sS http://127.0.0.1:6000/v1/chat/completions \
   -H 'Content-Type: application/json' \
   -d '{"model":"radishmind-local-dev","messages":[{"role":"user","content":"请简要说明当前 RadishMind 平台状态。"}]}'
 ```

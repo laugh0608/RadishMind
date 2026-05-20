@@ -10,7 +10,7 @@ import (
 
 func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 	cfg := Config{
-		ListenAddr:        "127.0.0.1:8080",
+		ListenAddr:        "127.0.0.1:6000",
 		ReadHeaderTimeout: 5 * time.Second,
 		WriteTimeout:      30 * time.Second,
 		BridgeTimeout:     45 * time.Second,
@@ -137,7 +137,7 @@ func TestSanitizedSummaryCredentialStates(t *testing.T) {
 		{
 			name: "mock does not require credential",
 			config: Config{
-				ListenAddr: ":8080",
+				ListenAddr: ":6000",
 				Provider:   "mock",
 			},
 			expectedState:   "not_required",
@@ -146,7 +146,7 @@ func TestSanitizedSummaryCredentialStates(t *testing.T) {
 		{
 			name: "remote provider requires model base url and credential",
 			config: Config{
-				ListenAddr: ":8080",
+				ListenAddr: ":6000",
 				Provider:   "huggingface",
 			},
 			expectedState:   "missing",
@@ -155,7 +155,7 @@ func TestSanitizedSummaryCredentialStates(t *testing.T) {
 		{
 			name: "ollama credential is optional but model and base url are required",
 			config: Config{
-				ListenAddr: ":8080",
+				ListenAddr: ":6000",
 				Provider:   "ollama",
 				BaseURL:    "http://localhost:11434",
 			},

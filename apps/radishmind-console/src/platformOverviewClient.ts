@@ -6,7 +6,7 @@ import {
   type PlatformOverviewResponse,
 } from "../../../contracts/typescript/platform-overview-api.ts";
 
-export const DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:8080";
+export const DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:6000";
 
 export type PlatformOverviewReadyState = {
   status: "ready";
@@ -109,7 +109,7 @@ export function getPlatformOverviewDiagnostics(error: unknown): string[] {
   return [
     "Confirm the platform service is running and reachable from this browser.",
     "Confirm the configured Platform URL uses the same host and port as the service.",
-    "Confirm local CORS allows `http://127.0.0.1:5173` or `http://localhost:5173`.",
+    "Confirm local CORS allows `http://127.0.0.1:4000` or `http://localhost:4000`.",
   ];
 }
 

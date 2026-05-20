@@ -29,7 +29,7 @@ EXPECTED_SOURCE_LITERALS = (
     "PLATFORM_OVERVIEW_ROUTE",
     "toPlatformOverviewConsoleViewModel",
     "loadPlatformOverview",
-    "http://127.0.0.1:8080",
+    "http://127.0.0.1:6000",
     "Service Status",
     "Model Inventory",
     "Session And Tooling",
@@ -103,7 +103,7 @@ def main() -> int:
         "local console must fetch the platform overview JSON endpoint directly",
     )
     go_server = GO_SERVER_SOURCE.read_text(encoding="utf-8")
-    for origin in ("http://127.0.0.1:5173", "http://localhost:5173"):
+    for origin in ("http://127.0.0.1:4000", "http://localhost:4000"):
         require(origin in go_server, f"platform server missing local console CORS origin: {origin}")
     require(
         "http.MethodOptions" in go_server
