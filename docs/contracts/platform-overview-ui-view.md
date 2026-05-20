@@ -1,6 +1,6 @@
 # Platform Overview UI View 契约
 
-更新时间：2026-05-18
+更新时间：2026-05-20
 
 ## 文档目的
 
@@ -9,6 +9,8 @@
 TypeScript 消费类型真相源为 `contracts/typescript/platform-overview-api.ts`。开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:7000` 请求真实 `GET /v1/platform/overview`，或启动 `apps/radishmind-console/` 查看同一只读视图。`scripts/check-radishmind-console-behavior.py` 固定 ready、refresh、连接失败诊断和只读停止线；`scripts/check-radishmind-console-production-boundary.py` 固定 console production packaging 仍未完成；`scripts/check-p3-local-product-shell-short-close-checklist.py` 固定 P3 short close 仍为 `not_ready`，不需要启动浏览器或长驻服务。
 
 平台服务当前只允许 `http://127.0.0.1:4000` 与 `http://localhost:4000` 作为本地 console origin 读取 API，并处理 `OPTIONS` preflight；这只是本地开发边界，不代表 production CORS policy 或正式鉴权。
+
+`GET /v1/platform/local-smoke` 是 overview 的本地 readiness 配套入口。它不替代 overview，也不提供更多产品能力；它只把 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 CORS origin、默认端口和停止线汇总成开发期可读状态。UI 如要展示 local-smoke，应按 [Platform Local Smoke UI View 契约](platform-local-smoke-ui-view.md) 消费，不得把 `local_console_ready=true` 展示成 production ready、supervisor ready 或 executor ready。
 
 ## 输入来源
 
@@ -114,8 +116,9 @@ UI 只展示：
 - console connection 状态
 - 本地 probe 命令：`pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly` 与 `./scripts/run-radishmind-console-dev.sh --verify-only`
 - 本地失败分类：端口冲突、CORS / preflight、浏览器 unsafe port、overview contract mismatch
+- 可选 local-smoke readiness 链接或摘要：`/v1/platform/local-smoke`、默认端口 `7000/4000`、local CORS origin 和停止线状态
 
-该区域只是本地开发排障面，不是 production ops supervisor、process supervisor、provider health dashboard、正式部署环境隔离或自动恢复控制面。不得在该区域添加执行按钮、确认按钮、写回按钮、replay 控件、后台 supervisor 状态或 durable store 状态。
+该区域只是本地开发排障面，不是 production ops supervisor、process supervisor、provider health dashboard、正式部署环境隔离或自动恢复控制面。不得在该区域添加执行按钮、确认按钮、写回按钮、replay 控件、后台 supervisor 状态或 durable store 状态。即使 local-smoke 显示 `local_console_ready=true`，也只能解释为本地只读 console 链路可读。
 
 ### Audit boundary
 

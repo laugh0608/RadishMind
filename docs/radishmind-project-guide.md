@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-17
+更新时间：2026-05-20
 
 ## 这份文档讲什么
 
@@ -72,7 +72,7 @@ python3 scripts/run-copilot-inference.py \
   --response-output tmp/rf-suggest-edit.response.json
 ```
 
-如果后续要接真实 provider，再显式传 `--provider openai-compatible|huggingface|ollama`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议；`services/platform/` 也已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、SSE bridge、provider/profile inventory、request-side selection、`HuggingFace` / `Ollama` coverage、本地启动 wrapper、JSON 配置层级、deployment smoke、diagnostics / failure boundary 和 discoverability 对齐纳入第一版 runtime foundation。
+如果后续要接真实 provider，再显式传 `--provider openai-compatible|huggingface|ollama`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议；`services/platform/` 也已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke`、SSE bridge、provider/profile inventory、request-side selection、`HuggingFace` / `Ollama` coverage、本地启动 wrapper、JSON 配置层级、deployment smoke、diagnostics / failure boundary 和 discoverability 对齐纳入第一版 runtime foundation。
 
 ### 2. 跑进程内 gateway demo
 
@@ -119,6 +119,8 @@ Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 co
 当前它固定以下 northbound / health 路由：
 
 - `GET /healthz`
+- `GET /v1/platform/overview`
+- `GET /v1/platform/local-smoke`
 - `GET /v1/models`
 - `GET /v1/models/{id}`
 - `POST /v1/chat/completions`
@@ -130,7 +132,35 @@ Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 co
 
 `GET /v1/session/recovery/checkpoints/{checkpoint_id}` 当前只是 fixture-backed metadata-only route smoke：它返回 checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，并拒绝 materialized result、result ref、output ref、executor ref、durable memory 与 replay 类查询；它不是 durable checkpoint store、materialized result reader、executor ref reader、durable memory reader 或 replay executor。
 
+`GET /v1/platform/overview` 是本地只读产品 overview，供 console 展示 service status、model inventory、session/tooling surface、stop-lines 和 audit boundary。`GET /v1/platform/local-smoke` 是本地开发 readiness 摘要，供 Dev Diagnostics、脚本 smoke 或排障页确认 healthz、overview contract、model inventory、session/tooling metadata、CORS origin、默认 `7000/4000` 端口和停止线是否可读。
+
 这仍然不是 production deployment：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级 secret backend、进程监管、环境隔离和正式发布包。
+
+### 3.6 运行本地 console 产品壳
+
+本地 console 位于 `apps/radishmind-console/`，默认前端端口为 `4000`，后端平台端口为 `7000`。最省事的开发入口是从仓库根目录运行：
+
+```powershell
+pwsh ./scripts/run-radishmind-console-dev.ps1
+```
+
+Linux / WSL 使用：
+
+```bash
+./scripts/run-radishmind-console-dev.sh
+```
+
+该入口会启动或复用 platform 后端和 console 前端，并探测 `/healthz`、`/v1/platform/overview`、本地 CORS preflight 和前端页面。它不是 production supervisor，不负责长期守护进程，也不实现 executor、durable store、confirmation、业务写回或 replay。
+
+如果只想验证已有 platform 服务的本地 readiness，可运行：
+
+```bash
+python scripts/run-platform-local-smoke.py \
+  --base-url http://127.0.0.1:7000 \
+  --check
+```
+
+console 页面当前直接消费 `/v1/platform/overview`；`/v1/platform/local-smoke` 是配套排障和 readiness 摘要，后续可被 Dev Diagnostics 或只读 readiness 区域消费。
 
 ### 4. 跑本地候选模型输出
 
@@ -157,7 +187,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 当前真实状态是：
 
 - 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
-- 北向已有第一版兼容面和只读产品面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/session/metadata`、`/v1/tools/metadata`、blocked `/v1/tools/actions`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
+- 北向已有第一版兼容面和只读产品面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/tools/metadata`、blocked `/v1/tools/actions`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
 - `P1 Runtime Foundation` 已达到 short close，当前不应继续把 provider/config/diagnostics/observability 同层细节当作主线
 - 当前仍是窄切片：还缺 production secret backend、部署隔离、外部 provider health check、console production packaging，以及 session/tooling 的真实确认流接线、存储、执行和完整负向回归；P3 short-close checklist 已把这些生产前置条件保持为 `not_satisfied`，P2 现有 route / gate / negative regression 资产仍是 governance-only
 
@@ -174,7 +204,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
 - 真实工具执行器、materialized tool result cache、上层确认流接线和完整 session/tooling 负向回归 implementation consumer
 
-所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、overview consumer smoke、本地 console 壳、console shell / behavior / production boundary checks、P3 short-close checklist、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面、console production packaging、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke、本地 console 壳、Dev Diagnostics、console shell / behavior / visual smoke record / dev entry / production boundary checks、P3 short-close checklist、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面、console production packaging、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
 
 ## 读文档顺序
 
