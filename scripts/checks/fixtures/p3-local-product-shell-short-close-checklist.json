@@ -68,6 +68,7 @@
       "status": "satisfied",
       "evidence": [
         "scripts/run-radishmind-console-dev.ps1",
+        "scripts/run-radishmind-console-dev.sh",
         "scripts/check-radishmind-console-dev-entry.py"
       ]
     },

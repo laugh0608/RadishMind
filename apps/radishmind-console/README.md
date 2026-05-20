@@ -38,13 +38,25 @@ $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:7000"
 pwsh ./scripts/run-radishmind-console-dev.ps1
 ```
 
-该入口按既有 `scripts/run-platform-service.ps1` 启动或复用 platform 后端，按 `npm run dev` 启动或复用本目录前端，然后探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview` 和 `http://127.0.0.1:4000`。如只验证已有进程，可执行：
+Linux / WSL 使用：
+
+```bash
+./scripts/run-radishmind-console-dev.sh
+```
+
+该入口按既有 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 启动或复用 platform 后端，按 `npm run dev` 启动或复用本目录前端，然后探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview` 和 `http://127.0.0.1:4000`。如只验证已有进程，可执行：
 
 ```powershell
 pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 ```
 
-如需做一次启动后自动清理的本地验证，可执行 `pwsh ./scripts/run-radishmind-console-dev.ps1 -ExitAfterProbe`。
+或：
+
+```bash
+./scripts/run-radishmind-console-dev.sh --verify-only
+```
+
+如需做一次启动后自动清理的本地验证，可执行 `pwsh ./scripts/run-radishmind-console-dev.ps1 -ExitAfterProbe` 或 `./scripts/run-radishmind-console-dev.sh --exit-after-probe`。
 
 常见失败边界：端口冲突时先确认 `7000` 和 `4000` 是否被其他进程占用；CORS / preflight 失败时确认浏览器 origin 是 `http://127.0.0.1:4000` 或 `http://localhost:4000`；浏览器报 `ERR_UNSAFE_PORT` / `unsafe port` 时改回默认 `4000/7000`。该脚本只是本地 dev wrapper，不是 production supervisor，不实现真实 executor、durable store、confirmation、业务写回或 replay。
 
