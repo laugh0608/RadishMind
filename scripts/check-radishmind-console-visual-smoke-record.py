@@ -41,24 +41,33 @@ PORT_SOURCE_FILES = {
         "vite preview --host 127.0.0.1 --port 4000",
     ],
     "apps/radishmind-console/src/platformOverviewClient.ts": [
-        'DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:6000"',
+        'DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:7000"',
         "http://127.0.0.1:4000",
         "http://localhost:4000",
     ],
     "services/platform/internal/config/config.go": [
-        'defaultListenAddr        = ":6000"',
+        'defaultListenAddr        = ":7000"',
     ],
     "services/platform/internal/httpapi/server.go": [
         "http://127.0.0.1:4000",
         "http://localhost:4000",
     ],
     "apps/radishmind-console/README.md": [
-        "http://127.0.0.1:6000/v1/platform/overview",
+        "http://127.0.0.1:7000/v1/platform/overview",
         "http://127.0.0.1:4000",
     ],
 }
 
-OLD_PORT_LITERALS = ("127.0.0.1:8080", "localhost:8080", "127.0.0.1:5173", "localhost:5173")
+OLD_PORT_LITERALS = (
+    "127.0.0.1:8080",
+    "localhost:8080",
+    "127.0.0.1:5173",
+    "localhost:5173",
+    "127.0.0.1:6000",
+    "localhost:6000",
+    "127.0.0.1:6001",
+    "localhost:6001",
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -81,11 +90,11 @@ def require_literals(path: Path, literals: list[str]) -> None:
 def assert_scope(fixture: dict[str, Any]) -> None:
     scope = fixture.get("qa_scope") or {}
     require(scope.get("surface") == "apps/radishmind-console", "visual smoke must target local console")
-    require(scope.get("backend_default_url") == "http://127.0.0.1:6000", "backend default port must be 6000")
+    require(scope.get("backend_default_url") == "http://127.0.0.1:7000", "backend default port must be 7000")
     require(scope.get("frontend_default_url") == "http://127.0.0.1:4000", "frontend default port must be 4000")
     require(
-        scope.get("overview_endpoint") == "http://127.0.0.1:6000/v1/platform/overview",
-        "overview endpoint must use backend port 6000",
+        scope.get("overview_endpoint") == "http://127.0.0.1:7000/v1/platform/overview",
+        "overview endpoint must use backend port 7000",
     )
     require(scope.get("read_only") is True, "visual smoke must stay read-only")
     require(scope.get("production_packaging_ready") is False, "visual smoke must not claim production packaging")

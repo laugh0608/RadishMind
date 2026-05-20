@@ -4,9 +4,9 @@
   "stage": "P3 Local Product Shell / Ops Surface",
   "qa_scope": {
     "surface": "apps/radishmind-console",
-    "backend_default_url": "http://127.0.0.1:6000",
+    "backend_default_url": "http://127.0.0.1:7000",
     "frontend_default_url": "http://127.0.0.1:4000",
-    "overview_endpoint": "http://127.0.0.1:6000/v1/platform/overview",
+    "overview_endpoint": "http://127.0.0.1:7000/v1/platform/overview",
     "read_only": true,
     "production_packaging_ready": false
   },

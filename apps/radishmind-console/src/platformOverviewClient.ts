@@ -6,7 +6,7 @@ import {
   type PlatformOverviewResponse,
 } from "../../../contracts/typescript/platform-overview-api.ts";
 
-export const DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:6000";
+export const DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:7000";
 
 export type PlatformOverviewReadyState = {
   status: "ready";

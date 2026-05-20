@@ -108,7 +108,7 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 上层或未来 UI 的最小 TypeScript 消费口径已固定在 `contracts/typescript/session-tooling-api.ts`。该文件只提供 `SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse` 类型和 blocked view helper，调用侧应把 `canExecute=false`、`statusLabel=blocked`、`primaryCode`、`requiresConfirmation` 与 `noSideEffects` 作为展示字段；不得把 metadata shell 或 blocked response 转成可执行命令。
 
-开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 和 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 在离线 fixture 模式下生成同样的消费视图；如果本地平台服务已经启动，可加 `--base-url http://127.0.0.1:6000` 直接请求真实 API surface。这两个脚本只验证上层展示语义，不启动或模拟 executor。
+开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 和 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 在离线 fixture 模式下生成同样的消费视图；如果本地平台服务已经启动，可加 `--base-url http://127.0.0.1:7000` 直接请求真实 API surface。这两个脚本只验证上层展示语义，不启动或模拟 executor。
 
 未来平台控制台或上层 UI 的首版视图模型固定在 [Session / Tooling UI View 契约](session-tooling-ui-view.md)：`SessionStatusViewModel`、`ToolRegistryViewModel` 和 `BlockedActionBannerViewModel`。这些 view model 只用于展示 metadata-only 与 blocked 状态，不声明真实执行、确认流、持久化或业务写回能力。
 

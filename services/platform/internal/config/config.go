@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultListenAddr        = ":6000"
+	defaultListenAddr        = ":7000"
 	defaultReadHeaderTimeout = 5 * time.Second
 	defaultWriteTimeout      = 30 * time.Second
 	defaultBridgeTimeout     = 30 * time.Second

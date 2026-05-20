@@ -29,7 +29,7 @@ EXPECTED_SOURCE_LITERALS = (
     "PLATFORM_OVERVIEW_ROUTE",
     "toPlatformOverviewConsoleViewModel",
     "loadPlatformOverview",
-    "http://127.0.0.1:6000",
+    "http://127.0.0.1:7000",
     "Service Status",
     "Model Inventory",
     "Session And Tooling",

@@ -28,7 +28,7 @@ func (client fakeBridgeClient) DescribeInventory(context.Context) (bridge.Provid
 
 func TestBuildReportReturnsSanitizedOKDiagnostics(t *testing.T) {
 	cfg := config.Config{
-		ListenAddr:    "127.0.0.1:6000",
+		ListenAddr:    "127.0.0.1:7000",
 		BridgeTimeout: time.Second,
 		PythonBinary:  "python3",
 		BridgeScript:  "scripts/run-platform-bridge.py",
@@ -85,7 +85,7 @@ func TestBuildReportReturnsSanitizedOKDiagnostics(t *testing.T) {
 
 func TestBuildReportSurfacesFailureBoundary(t *testing.T) {
 	cfg := config.Config{
-		ListenAddr:    "127.0.0.1:6000",
+		ListenAddr:    "127.0.0.1:7000",
 		BridgeTimeout: time.Second,
 		PythonBinary:  "python3",
 		BridgeScript:  "missing.py",
