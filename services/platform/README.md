@@ -184,6 +184,16 @@ npm run dev
 
 console production packaging 仍未完成：`apps/radishmind-console/package.json` 必须保持 `private=true`，不添加 deploy / publish / release 脚本，不提交 `dist/` 或 `node_modules/`。P3 short-close checklist 继续把 production secret backend、process supervisor、部署环境隔离和 console production packaging 标为 `not_satisfied`；当前只固定本地开发入口和最小 deployment smoke。
 
+如果要同时启动并验证 platform 后端和本地 console，可从仓库根目录使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-console-dev.ps1
+```
+
+该入口复用 `scripts/run-platform-service.ps1` 和 `apps/radishmind-console/` 的 `npm run dev`，启动或复用 `http://127.0.0.1:7000` 与 `http://127.0.0.1:4000`，并探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、本地 console CORS preflight 和 `http://127.0.0.1:4000`。端口冲突时先释放 `7000/4000` 或确认现有服务就是 RadishMind；CORS 失败时确认 console origin 是允许的本地 origin；浏览器 `unsafe port` / `ERR_UNSAFE_PORT` 通常表示端口被浏览器直接拦截，优先回到默认 `4000/7000`。该入口不是 production supervisor，不实现真实 executor、durable store、confirmation、业务写回或 replay。
+
+验证脚本本身时可加 `-ExitAfterProbe`，让它启动、探测成功后自动停止本次创建的本地进程。
+
 可用一次性命令检查本地配置摘要，输出不会暴露 secret：
 
 ```bash

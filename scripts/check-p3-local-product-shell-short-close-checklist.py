@@ -16,6 +16,7 @@ REQUIRED_SATISFIED_CONDITIONS = {
     "local_console_shell",
     "console_behavior_gate",
     "console_visual_smoke_record",
+    "local_console_dev_entry",
     "console_production_boundary_gate",
     "fast_baseline_consumes_p3_gates",
 }

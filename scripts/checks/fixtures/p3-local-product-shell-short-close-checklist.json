@@ -64,6 +64,14 @@
       ]
     },
     {
+      "id": "local_console_dev_entry",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/run-radishmind-console-dev.ps1",
+        "scripts/check-radishmind-console-dev-entry.py"
+      ]
+    },
+    {
       "id": "console_production_boundary_gate",
       "status": "satisfied",
       "evidence": [
