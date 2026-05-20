@@ -253,6 +253,61 @@ h2 {
   background: #fff5f5;
 }
 
+.diagnostics-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.95fr);
+  gap: 18px;
+  border: 1px solid #d8ded5;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.diagnostics-grid {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.45fr) minmax(0, 1fr);
+  gap: 10px 16px;
+  margin: 0;
+}
+
+.diagnostics-grid dt {
+  color: #60766a;
+  font-size: 0.86rem;
+}
+
+.diagnostics-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #17211b;
+  font-weight: 650;
+}
+
+.diagnostics-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+}
+
+.command-list {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.command-list li {
+  border: 1px solid #c7d1c8;
+  border-radius: 6px;
+  padding: 8px 10px;
+  overflow-wrap: anywhere;
+  color: #213f34;
+  background: #f4f7f2;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.8rem;
+}
+
 .notice p,
 .empty-state {
   margin-bottom: 0;
@@ -266,6 +321,11 @@ h2 {
   margin: 12px 0 0;
   padding-left: 20px;
   color: #60766a;
+}
+
+.compact-list {
+  margin-top: 18px;
+  padding-left: 18px;
 }
 
 .section-label {
@@ -314,8 +374,16 @@ h2 {
 
   .topbar,
   .connection-controls,
+  .diagnostics-band,
+  .diagnostics-columns,
   .audit-band {
     align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .connection-controls,
+  .audit-band {
     flex-direction: column;
   }
 

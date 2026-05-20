@@ -22,6 +22,16 @@ const STOP_LINE_LABELS: Record<string, string> = {
 };
 
 const initialBaseUrl = resolvePlatformBaseUrl();
+const DEV_LAUNCHER_COMMANDS = [
+  "pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly",
+  "./scripts/run-radishmind-console-dev.sh --verify-only",
+];
+const DEV_DIAGNOSTIC_HINTS = [
+  "Port conflict: keep backend on 7000 and frontend on 4000, or stop the other local process.",
+  "CORS / preflight: platform only allows http://127.0.0.1:4000 and http://localhost:4000.",
+  "Unsafe port: ERR_UNSAFE_PORT means the browser blocked the port before RadishMind received the request.",
+  "Contract mismatch: run the overview consumer smoke against the configured Platform URL.",
+];
 
 export function App() {
   const [baseUrl, setBaseUrl] = useState(initialBaseUrl);
@@ -97,6 +107,41 @@ export function App() {
         {readyState ? <span>Loaded {formatTimestamp(readyState.loadedAt)}</span> : null}
         {loadState.status === "loading" && readyState ? <span>Refreshing; showing last overview</span> : null}
         {showingStaleOverview ? <span>Connection failed; showing last overview</span> : null}
+      </section>
+
+      <section className="diagnostics-band" aria-label="Dev Diagnostics">
+        <div>
+          <h2>Dev Diagnostics</h2>
+          <dl className="diagnostics-grid">
+            <Metric label="Platform URL" value={baseUrl} />
+            <Metric label="Overview endpoint" value={loadState.endpoint} />
+            <Metric label="Load status" value={loadState.status} />
+            <Metric label="Last loaded" value={readyState ? formatTimestamp(readyState.loadedAt) : "not loaded"} />
+            <Metric label="Service status" value={viewModel?.serviceStatus.status ?? "unknown"} />
+            <Metric
+              label="Console connection"
+              value={viewModel?.serviceStatus.healthyForLocalConsole ? "ready" : "not ready"}
+            />
+          </dl>
+        </div>
+        <div className="diagnostics-columns">
+          <div>
+            <p className="section-label">Local probes</p>
+            <ul className="command-list">
+              {DEV_LAUNCHER_COMMANDS.map((command) => (
+                <li key={command}>{command}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="section-label">Failure classes</p>
+            <ul className="diagnostic-list compact-list">
+              {DEV_DIAGNOSTIC_HINTS.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
       {loadState.status === "error" ? (

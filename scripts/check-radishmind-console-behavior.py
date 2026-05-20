@@ -41,6 +41,21 @@ ERROR_DIAGNOSTIC_LITERALS = (
     "Confirm local CORS allows",
     "run-platform-overview-consumer-smoke.py --base-url",
     "diagnostic-list",
+    "Dev Diagnostics",
+    "diagnostics-band",
+    "Platform URL",
+    "Overview endpoint",
+    "Load status",
+    "Last loaded",
+    "Console connection",
+    "Local probes",
+    "Failure classes",
+    "pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly",
+    "./scripts/run-radishmind-console-dev.sh --verify-only",
+    "Port conflict: keep backend on 7000 and frontend on 4000",
+    "CORS / preflight: platform only allows http://127.0.0.1:4000",
+    "Unsafe port: ERR_UNSAFE_PORT",
+    "Contract mismatch: run the overview consumer smoke",
     "Platform service unavailable",
 )
 
@@ -71,7 +86,11 @@ FORBIDDEN_LITERALS = (
 
 README_LITERALS = (
     "连接失败诊断",
+    "Dev Diagnostics",
     "refresh 期间保留上一份已加载 overview",
+    "端口冲突",
+    "CORS / preflight",
+    "unsafe port",
     "python ../../scripts/check-radishmind-console-shell.py",
     "python ../../scripts/check-radishmind-console-behavior.py",
     "不实现真实工具执行器",

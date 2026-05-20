@@ -29,6 +29,7 @@
         "model_inventory",
         "session_tooling_surface",
         "stop_lines",
+        "dev_diagnostics",
         "audit_boundary"
       ],
       "must_not_show": [
@@ -43,6 +44,8 @@
       "state": "ready",
       "must_show": [
         "platform_url_control",
+        "dev_diagnostics",
+        "local_probe_commands",
         "service_status",
         "model_inventory",
         "session_tooling_surface",
@@ -61,6 +64,7 @@
       "layout_expectations": [
         "scroll_width_matches_viewport_width",
         "heading_wraps_without_occluding_controls",
+        "dev_diagnostics_commands_wrap",
         "overview_endpoint_wraps"
       ]
     },
@@ -71,6 +75,7 @@
       "must_show": [
         "platform_service_unavailable_notice",
         "connection_failed_showing_last_overview",
+        "dev_diagnostics_failure_classes",
         "diagnostic_list",
         "previous_service_status",
         "previous_stop_lines"

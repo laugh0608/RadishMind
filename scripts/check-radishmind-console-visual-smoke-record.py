@@ -23,6 +23,7 @@ REQUIRED_READY_SURFACES = {
     "model_inventory",
     "session_tooling_surface",
     "stop_lines",
+    "dev_diagnostics",
 }
 
 REQUIRED_STOP_LINES = {
@@ -120,6 +121,8 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
     require(not missing_surfaces, f"ready visual smoke missing surfaces: {missing_surfaces}")
 
     narrow_expectations = set(scenario_by_id["narrow_ready_overview"].get("layout_expectations") or [])
+    narrow_surfaces = set(scenario_by_id["narrow_ready_overview"].get("must_show") or [])
+    require("local_probe_commands" in narrow_surfaces, "narrow visual smoke must show local probe commands")
     require("no_horizontal_overflow" in narrow_expectations, "narrow visual smoke must assert no horizontal overflow")
     require("long_routes_wrap" in narrow_expectations, "narrow visual smoke must assert route wrapping")
 
@@ -129,12 +132,17 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
         "scroll_width_matches_viewport_width" in set(min_width.get("layout_expectations") or []),
         "minimum width scenario must assert scroll width",
     )
+    require(
+        "dev_diagnostics_commands_wrap" in set(min_width.get("layout_expectations") or []),
+        "minimum width scenario must assert dev diagnostics command wrapping",
+    )
 
     error_state = scenario_by_id["connection_failure_stale_overview"]
     require(error_state.get("state") == "error_with_previous_overview", "error scenario must keep previous overview")
     required_error_surfaces = {
         "platform_service_unavailable_notice",
         "connection_failed_showing_last_overview",
+        "dev_diagnostics_failure_classes",
         "diagnostic_list",
         "previous_stop_lines",
     }

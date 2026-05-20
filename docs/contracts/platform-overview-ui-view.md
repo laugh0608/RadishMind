@@ -4,7 +4,7 @@
 
 ## 文档目的
 
-本文档固定本地 console 或上层 UI 消费 `P3 Local Product Shell / Ops Surface` overview 时的首版视图边界。当前目标是说明 UI 应如何展示平台状态、model/profile inventory、session/tooling 产品面、停止线、refresh 状态和连接失败诊断；`apps/radishmind-console/` 已提供 React + Vite + TypeScript console 壳，但仍不接入真实 executor、durable store、confirmation flow 或 replay。
+本文档固定本地 console 或上层 UI 消费 `P3 Local Product Shell / Ops Surface` overview 时的首版视图边界。当前目标是说明 UI 应如何展示平台状态、model/profile inventory、session/tooling 产品面、停止线、refresh 状态、Dev Diagnostics 和连接失败诊断；`apps/radishmind-console/` 已提供 React + Vite + TypeScript console 壳，但仍不接入真实 executor、durable store、confirmation flow 或 replay。
 
 TypeScript 消费类型真相源为 `contracts/typescript/platform-overview-api.ts`。开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:7000` 请求真实 `GET /v1/platform/overview`，或启动 `apps/radishmind-console/` 查看同一只读视图。`scripts/check-radishmind-console-behavior.py` 固定 ready、refresh、连接失败诊断和只读停止线；`scripts/check-radishmind-console-production-boundary.py` 固定 console production packaging 仍未完成；`scripts/check-p3-local-product-shell-short-close-checklist.py` 固定 P3 short close 仍为 `not_ready`，不需要启动浏览器或长驻服务。
 
@@ -101,6 +101,21 @@ UI 只展示：
 - 面向开发者的诊断项，例如服务未启动、URL 不匹配、CORS / preflight 或 overview contract mismatch
 
 连接失败诊断只能帮助开发者恢复本地只读连接；不得触发自动重试执行、工具 action、业务写回或 replay。
+
+### Dev Diagnostics / Connection Surface
+
+本地 console 可额外展示只读 Dev Diagnostics，用于把本地开发连接状态和常见排障路径放在同一视图中。UI 只允许展示：
+
+- 当前 `Platform URL`
+- 当前 overview endpoint
+- 当前 load status
+- 最近一次成功加载时间
+- service status
+- console connection 状态
+- 本地 probe 命令：`pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly` 与 `./scripts/run-radishmind-console-dev.sh --verify-only`
+- 本地失败分类：端口冲突、CORS / preflight、浏览器 unsafe port、overview contract mismatch
+
+该区域只是本地开发排障面，不是 production ops supervisor、process supervisor、provider health dashboard、正式部署环境隔离或自动恢复控制面。不得在该区域添加执行按钮、确认按钮、写回按钮、replay 控件、后台 supervisor 状态或 durable store 状态。
 
 ### Audit boundary
 
