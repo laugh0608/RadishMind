@@ -26,6 +26,7 @@ EXPECTED_COMMAND_PATTERNS = (
     "go run ./services/platform/cmd/radishmind-platform config-check",
     "go run ./services/platform/cmd/radishmind-platform diagnostics",
     "curl -sS http://127.0.0.1:7000/healthz",
+    "curl -sS http://127.0.0.1:7000/v1/platform/local-smoke",
     "curl -sS http://127.0.0.1:7000/v1/models",
     "curl -sS http://127.0.0.1:7000/v1/models/mock",
     "curl -sS http://127.0.0.1:7000/v1/chat/completions",

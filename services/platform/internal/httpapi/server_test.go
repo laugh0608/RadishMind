@@ -170,6 +170,22 @@ func TestLocalConsoleCORS(t *testing.T) {
 		}
 	})
 
+	t.Run("handles local smoke preflight", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodOptions, "/v1/platform/local-smoke", nil)
+		req.Header.Set("Origin", "http://127.0.0.1:4000")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:4000" {
+			t.Fatalf("unexpected allow origin: %q", got)
+		}
+	})
+
 	t.Run("does not allow arbitrary origin", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 		req.Header.Set("Origin", "https://example.com")
@@ -1331,7 +1347,7 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if !ok {
 			t.Fatalf("missing product surface routes: %#v", productSurface["routes"])
 		}
-		for _, expectedRoute := range []string{"/v1/platform/overview", "/v1/session/metadata", "/v1/tools/metadata", "/v1/tools/actions"} {
+		for _, expectedRoute := range []string{"/v1/platform/overview", "/v1/platform/local-smoke", "/v1/session/metadata", "/v1/tools/metadata", "/v1/tools/actions"} {
 			found := false
 			for _, route := range routes {
 				if route == expectedRoute {
@@ -1400,6 +1416,100 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		} {
 			if strings.Contains(rawBody, forbidden) {
 				t.Fatalf("platform overview leaked forbidden state %s: %s", forbidden, rawBody)
+			}
+		}
+	})
+
+	t.Run("platform local smoke summarizes dev readiness", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/platform/local-smoke", nil)
+		req.Header.Set("X-Request-Id", "req-platform-local-smoke-001")
+		rec := httptest.NewRecorder()
+
+		server.handlePlatformLocalSmoke(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("X-Request-Id"); got != "req-platform-local-smoke-001" {
+			t.Fatalf("unexpected request id header: %s", got)
+		}
+		var response map[string]any
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+		if response["kind"] != "platform_local_smoke" || response["route"] != "/v1/platform/local-smoke" {
+			t.Fatalf("unexpected local smoke identity: %#v", response)
+		}
+		summary, ok := response["summary"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing local smoke summary: %#v", response["summary"])
+		}
+		if summary["status"] != "ok" || summary["local_console_ready"] != true || summary["read_only"] != true {
+			t.Fatalf("unexpected local smoke summary: %#v", summary)
+		}
+		checks, ok := response["checks"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing local smoke checks: %#v", response["checks"])
+		}
+		modelInventory, ok := checks["model_inventory"].(map[string]any)
+		if !ok || modelInventory["readable"] != true || modelInventory["status"] != "ok" {
+			t.Fatalf("unexpected model inventory check: %#v", checks["model_inventory"])
+		}
+		sessionTooling, ok := checks["session_tooling"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing session tooling check: %#v", checks["session_tooling"])
+		}
+		if sessionTooling["session_metadata_readable"] != true ||
+			sessionTooling["tools_metadata_readable"] != true ||
+			sessionTooling["execution_enabled"] != false ||
+			sessionTooling["blocked_action_status"] != "blocked" ||
+			sessionTooling["blocked_action_no_side_effects"] != true {
+			t.Fatalf("unexpected session tooling check: %#v", sessionTooling)
+		}
+		localConsole, ok := checks["local_console"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing local console check: %#v", checks["local_console"])
+		}
+		allowedOrigins, ok := localConsole["allowed_cors_origins"].([]any)
+		if !ok {
+			t.Fatalf("missing allowed origins: %#v", localConsole["allowed_cors_origins"])
+		}
+		hasConsoleOrigin := false
+		for _, origin := range allowedOrigins {
+			if origin == "http://127.0.0.1:4000" {
+				hasConsoleOrigin = true
+			}
+		}
+		if !hasConsoleOrigin {
+			t.Fatalf("local smoke missing console origin: %#v", allowedOrigins)
+		}
+		stopLines, ok := response["stop_lines"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing stop lines: %#v", response["stop_lines"])
+		}
+		for _, disabled := range []string{
+			"real_executor_enabled",
+			"durable_store_enabled",
+			"confirmation_flow_connected",
+			"materialized_result_reader",
+			"long_term_memory_enabled",
+			"business_truth_write_enabled",
+			"automatic_replay_enabled",
+		} {
+			if stopLines[disabled] != false {
+				t.Fatalf("expected stop line %s=false: %#v", disabled, stopLines)
+			}
+		}
+
+		rawBody := rec.Body.String()
+		for _, forbidden := range []string{
+			`"execution_enabled":true`,
+			`"read_only":false`,
+			`"writes_business_truth":true`,
+			`"automatic_replay_enabled":true`,
+		} {
+			if strings.Contains(rawBody, forbidden) {
+				t.Fatalf("platform local smoke leaked forbidden state %s: %s", forbidden, rawBody)
 			}
 		}
 	})

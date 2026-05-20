@@ -12,6 +12,7 @@ CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
 REQUIRED_SATISFIED_CONDITIONS = {
     "platform_overview_readonly_route",
+    "platform_local_smoke_readiness_route",
     "typescript_overview_consumer_contract",
     "local_console_shell",
     "console_behavior_gate",
@@ -56,6 +57,7 @@ REQUIRED_DOC_REFERENCES = {
     "scripts/README.md": [
         "check-p3-local-product-shell-short-close-checklist.py",
         "P3 Local Product Shell / Ops Surface",
+        "check-platform-local-smoke-contract.py",
     ],
 }
 

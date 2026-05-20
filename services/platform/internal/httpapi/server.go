@@ -54,6 +54,7 @@ func NewServer(cfg config.Config, options Options) *Server {
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
 	mux.HandleFunc("GET /v1/platform/overview", server.handlePlatformOverview)
+	mux.HandleFunc("GET /v1/platform/local-smoke", server.handlePlatformLocalSmoke)
 	mux.HandleFunc("GET /v1/models", server.handleModels)
 	mux.HandleFunc("GET /v1/models/{id}", server.handleModel)
 	mux.HandleFunc("POST /v1/chat/completions", server.handleChatCompletions)
@@ -110,12 +111,16 @@ func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bo
 }
 
 func isAllowedLocalConsoleOrigin(origin string) bool {
-	switch origin {
-	case "http://127.0.0.1:4000", "http://localhost:4000":
-		return true
-	default:
-		return false
+	for _, allowedOrigin := range localConsoleAllowedOrigins() {
+		if origin == allowedOrigin {
+			return true
+		}
 	}
+	return false
+}
+
+func localConsoleAllowedOrigins() []string {
+	return []string{"http://127.0.0.1:4000", "http://localhost:4000"}
 }
 
 func (s *Server) handleModels(writer http.ResponseWriter, request *http.Request) {

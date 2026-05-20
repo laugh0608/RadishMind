@@ -30,6 +30,7 @@ def build_offline_platform_overview() -> dict[str, Any]:
             "routes": [
                 "/healthz",
                 PLATFORM_OVERVIEW_ROUTE,
+                "/v1/platform/local-smoke",
                 "/v1/models",
                 "/v1/models/{id}",
                 "/v1/session/metadata",

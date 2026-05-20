@@ -28,15 +28,7 @@ func (s *Server) handlePlatformOverview(writer http.ResponseWriter, request *htt
 			"mode":          "local_read_only_product_shell",
 			"implemented":   true,
 			"ui_consumable": true,
-			"routes": []string{
-				"/healthz",
-				platformOverviewRoute,
-				"/v1/models",
-				"/v1/models/{id}",
-				sessionMetadataRoute,
-				toolsMetadataRoute,
-				toolActionsRoute,
-			},
+			"routes":        platformProductSurfaceRoutes(),
 		},
 		"models": models,
 		"session_tooling": map[string]any{
@@ -50,16 +42,7 @@ func (s *Server) handlePlatformOverview(writer http.ResponseWriter, request *htt
 			"tool_action_status":         "blocked",
 			"requires_confirmation_path": "future_upper_layer_confirmation_flow",
 		},
-		"stop_lines": map[string]any{
-			"real_executor_enabled":           false,
-			"durable_store_enabled":           false,
-			"confirmation_flow_connected":     false,
-			"materialized_result_reader":      false,
-			"long_term_memory_enabled":        false,
-			"business_truth_write_enabled":    false,
-			"automatic_replay_enabled":        false,
-			"production_secret_backend_ready": false,
-		},
+		"stop_lines": buildPlatformStopLinesDocument(),
 		"audit": map[string]any{
 			"advisory_only":         true,
 			"writes_business_truth": false,
@@ -70,6 +53,32 @@ func (s *Server) handlePlatformOverview(writer http.ResponseWriter, request *htt
 		},
 	}
 	writeObservedJSON(writer, http.StatusOK, trace, document)
+}
+
+func platformProductSurfaceRoutes() []string {
+	return []string{
+		"/healthz",
+		platformOverviewRoute,
+		platformLocalSmokeRoute,
+		"/v1/models",
+		"/v1/models/{id}",
+		sessionMetadataRoute,
+		toolsMetadataRoute,
+		toolActionsRoute,
+	}
+}
+
+func buildPlatformStopLinesDocument() map[string]any {
+	return map[string]any{
+		"real_executor_enabled":           false,
+		"durable_store_enabled":           false,
+		"confirmation_flow_connected":     false,
+		"materialized_result_reader":      false,
+		"long_term_memory_enabled":        false,
+		"business_truth_write_enabled":    false,
+		"automatic_replay_enabled":        false,
+		"production_secret_backend_ready": false,
+	}
 }
 
 func (s *Server) buildPlatformOverviewModels(ctx context.Context) map[string]any {

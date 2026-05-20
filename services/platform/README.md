@@ -19,6 +19,7 @@
 
 - `GET /healthz`
 - `GET /v1/platform/overview`
+- `GET /v1/platform/local-smoke`
 - `GET /v1/models`
 - `GET /v1/models/{id}`
 - `POST /v1/chat/completions`
@@ -30,6 +31,8 @@
 - `POST /v1/tools/actions`
 
 其中 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口：它汇总服务状态、可选 model/profile、session/tooling metadata route、blocked action route 和当前停止线，供 `apps/radishmind-console/` 本地控制台或上层 UI 一次读取。它不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
+
+`GET /v1/platform/local-smoke` 是本地开发 readiness 摘要入口：它聚合 `/healthz`、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、local console CORS origin 和停止线状态，便于开发者或轻量脚本一次判断默认 `7000/4000` 本地 console 链路是否可读。它不启动或守护进程，不实现 production health dashboard、executor、durable store、confirmation、业务写回或 replay。
 
 `/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 已接到最小 canonical bridge：`Go` 只负责 northbound 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
 
@@ -153,6 +156,7 @@ pwsh ./scripts/run-platform-service.ps1 -Command serve
 
 ```bash
 python scripts/run-platform-overview-consumer-smoke.py --check
+python scripts/run-platform-local-smoke.py --check
 python scripts/run-platform-session-tooling-consumer-smoke.py --check
 ```
 
@@ -163,12 +167,16 @@ python scripts/run-platform-overview-consumer-smoke.py \
   --base-url http://127.0.0.1:7000 \
   --check
 
+python scripts/run-platform-local-smoke.py \
+  --base-url http://127.0.0.1:7000 \
+  --check
+
 python scripts/run-platform-session-tooling-consumer-smoke.py \
   --base-url http://127.0.0.1:7000 \
   --check
 ```
 
-overview consumer smoke 只读取 `GET /v1/platform/overview`，把 service status、model inventory、session/tooling surface 和 stop-lines 投影成本地 console view model；session/tooling consumer smoke 只读取 `session metadata`、`tools metadata` 并提交一次会被阻断的 tool action 请求，用于验证上层可展示 `blocked`、`requires_confirmation` 与 `no_side_effects`。二者都不会启用真实 executor、durable store、confirmation、replay 或业务写回。
+overview consumer smoke 只读取 `GET /v1/platform/overview`，把 service status、model inventory、session/tooling surface 和 stop-lines 投影成本地 console view model；local smoke consumer 只读取 `GET /v1/platform/local-smoke`，把本地 readiness 摘要投影为 healthz、overview、model inventory、session/tooling、CORS 和停止线检查；session/tooling consumer smoke 只读取 `session metadata`、`tools metadata` 并提交一次会被阻断的 tool action 请求，用于验证上层可展示 `blocked`、`requires_confirmation` 与 `no_side_effects`。这些 smoke 都不会启用真实 executor、durable store、confirmation、replay 或业务写回。
 
 最小本地 console 壳位于 `apps/radishmind-console/`。它复用 `contracts/typescript/platform-overview-api.ts`，默认读取 `http://127.0.0.1:7000/v1/platform/overview`：
 
@@ -225,6 +233,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 ```bash
 curl -sS http://127.0.0.1:7000/healthz
 curl -sS http://127.0.0.1:7000/v1/platform/overview
+curl -sS http://127.0.0.1:7000/v1/platform/local-smoke
 curl -sS http://127.0.0.1:7000/v1/models
 curl -sS http://127.0.0.1:7000/v1/models/mock
 curl -sS http://127.0.0.1:7000/v1/session/metadata
@@ -242,6 +251,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 
 - `/healthz` 返回 `status=ok`、`service=radishmind-platform`。
 - `/v1/platform/overview` 返回 `platform_overview`，其中 `product_surface.mode=local_read_only_product_shell`，并汇总 `/v1/models`、session metadata、tool metadata 和 blocked action route；所有 executor / durable store / confirmation / writeback / replay 停止线均为 `false`。
+- `/v1/platform/local-smoke` 返回 `platform_local_smoke`，其中 `summary.local_console_ready=true` 表示本地只读 console 所需的 healthz、overview、model inventory、session/tooling metadata、blocked action no-side-effects、local CORS origin 和停止线均可读；该 route 只做摘要，不启动服务、不守护进程、不表示生产部署 ready。
 - `/v1/models` 返回 OpenAI-compatible `object=list`，并包含 provider registry 与 profile inventory。
 - `/v1/models/mock` 可通过精确 lookup 返回 mock provider model。
 - `/v1/session/metadata` 返回 `session_metadata`，其中 durable session/checkpoint store、long-term memory、automatic replay 和 business truth write 均为 `false`。

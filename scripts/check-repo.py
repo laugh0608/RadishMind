@@ -1073,6 +1073,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-platform-diagnostics.py", [])
     run_python_script("check-platform-runbook.py", [])
     run_python_script("check-platform-overview-consumer-contract.py", [])
+    run_python_script("check-platform-local-smoke-contract.py", [])
     run_python_script("check-radishmind-console-shell.py", [])
     run_python_script("check-radishmind-console-behavior.py", [])
     run_python_script("check-radishmind-console-visual-smoke-record.py", [])

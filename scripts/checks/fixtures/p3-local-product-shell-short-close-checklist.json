@@ -32,6 +32,16 @@
       ]
     },
     {
+      "id": "platform_local_smoke_readiness_route",
+      "status": "satisfied",
+      "evidence": [
+        "services/platform/internal/httpapi/platform_local_smoke.go",
+        "contracts/typescript/platform-local-smoke-api.ts",
+        "scripts/run-platform-local-smoke.py",
+        "scripts/check-platform-local-smoke-contract.py"
+      ]
+    },
+    {
       "id": "typescript_overview_consumer_contract",
       "status": "satisfied",
       "evidence": [
