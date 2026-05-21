@@ -150,7 +150,7 @@ Linux / WSL 使用：
 ./scripts/run-radishmind-console-dev.sh
 ```
 
-该入口会启动或复用 platform 后端和 console 前端，并探测 `/healthz`、`/v1/platform/overview`、本地 CORS preflight 和前端页面。它不是 production supervisor，不负责长期守护进程，也不实现 executor、durable store、confirmation、业务写回或 replay。
+该入口会启动或复用 platform 后端和 console 前端，并探测 `/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、本地 CORS preflight 和前端页面。它不是 production supervisor，不负责长期守护进程，也不实现 executor、durable store、confirmation、业务写回或 replay。
 
 如果只想验证已有 platform 服务的本地 readiness，可运行：
 
@@ -160,7 +160,7 @@ python scripts/run-platform-local-smoke.py \
   --check
 ```
 
-console 页面当前直接消费 `/v1/platform/overview`；`/v1/platform/local-smoke` 是配套排障和 readiness 摘要，后续可被 Dev Diagnostics 或只读 readiness 区域消费。
+console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`；后者是配套排障和 readiness 摘要，会投影到 Dev Diagnostics 和只读 readiness 区域。
 
 ### 4. 跑本地候选模型输出
 

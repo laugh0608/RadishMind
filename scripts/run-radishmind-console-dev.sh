@@ -270,6 +270,7 @@ assert_browser_safe_port "${frontend_url}" "${frontend_port}"
 
 healthz_url="${backend_url%/}/healthz"
 overview_url="${backend_url%/}/v1/platform/overview"
+local_smoke_url="${backend_url%/}/v1/platform/local-smoke"
 frontend_origin="${frontend_url%/}"
 
 if [[ ! -f "${platform_wrapper}" ]]; then
@@ -319,6 +320,10 @@ if ! wait_until "platform overview" probe_json "${overview_url}" "platform_overv
   show_failure_help "platform overview probe failed"
   exit 1
 fi
+if ! wait_until "platform local-smoke" probe_json "${local_smoke_url}" "platform_local_smoke"; then
+  show_failure_help "platform local-smoke probe failed"
+  exit 1
+fi
 if ! wait_until "local console CORS" probe_cors "${overview_url}" "${frontend_origin}"; then
   show_failure_help "local console CORS probe failed"
   exit 1
@@ -329,7 +334,7 @@ if ! wait_until "frontend console" probe_page "${frontend_url}"; then
 fi
 
 step "Local console is ready: ${frontend_url}"
-step "Backend probes passed: ${healthz_url} ; ${overview_url}"
+step "Backend probes passed: ${healthz_url} ; ${overview_url} ; ${local_smoke_url}"
 step "This is a dev-only launcher, not a production supervisor. It does not implement executor, durable store, confirmation, writeback, or replay."
 
 if [[ "${verify_only}" -eq 0 && "${exit_after_probe}" -eq 0 && "${#spawned_pids[@]}" -gt 0 ]]; then

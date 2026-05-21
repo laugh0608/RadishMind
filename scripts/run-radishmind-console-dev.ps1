@@ -226,6 +226,7 @@ Assert-BrowserSafeLocalUrl -Uri $frontendUri
 
 $healthzUrl = "$BackendUrl/healthz"
 $overviewUrl = "$BackendUrl/v1/platform/overview"
+$localSmokeUrl = "$BackendUrl/v1/platform/local-smoke"
 $frontendOrigin = $FrontendUrl.TrimEnd("/")
 
 try {
@@ -280,11 +281,12 @@ try {
 
     Wait-Until -Name "backend healthz" -Probe { Invoke-JsonProbe -Url $healthzUrl -ExpectedKind "" | Out-Null }
     Wait-Until -Name "platform overview" -Probe { Invoke-JsonProbe -Url $overviewUrl -ExpectedKind "platform_overview" | Out-Null }
+    Wait-Until -Name "platform local-smoke" -Probe { Invoke-JsonProbe -Url $localSmokeUrl -ExpectedKind "platform_local_smoke" | Out-Null }
     Wait-Until -Name "local console CORS" -Probe { Invoke-CorsProbe -OverviewUrl $overviewUrl -Origin $frontendOrigin }
     Wait-Until -Name "frontend console" -Probe { Invoke-PageProbe -Url $FrontendUrl }
 
     Write-Step "Local console is ready: $FrontendUrl"
-    Write-Step "Backend probes passed: $healthzUrl ; $overviewUrl"
+    Write-Step "Backend probes passed: $healthzUrl ; $overviewUrl ; $localSmokeUrl"
     Write-Step "This is a dev-only launcher, not a production supervisor. It does not implement executor, durable store, confirmation, writeback, or replay."
 
     if (-not $VerifyOnly -and -not $ExitAfterProbe -and $spawnedProcesses.Count -gt 0) {
