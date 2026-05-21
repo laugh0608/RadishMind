@@ -2,9 +2,9 @@
 
 本目录是 `P3 Local Product Shell / Ops Surface` 的最小本地 console 壳。
 
-它当前只读取 `GET /v1/platform/overview`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` 与 `toPlatformOverviewConsoleViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、stop-lines、audit boundary、refresh 状态、Dev Diagnostics 和连接失败诊断。
+它当前读取 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` / `toPlatformOverviewConsoleViewModel` 以及 `contracts/typescript/platform-local-smoke-api.ts` 中的 `PlatformLocalSmokeResponse` / `toPlatformLocalSmokeReadinessViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、local readiness、stop-lines、audit boundary、refresh 状态、Dev Diagnostics 和连接失败诊断。
 
-平台后端还提供 `GET /v1/platform/local-smoke` 作为本地开发 readiness 摘要，可用于排查 healthz、overview contract、model inventory、session/tooling metadata、CORS 和停止线状态。当前 console UI 尚未直接消费该 route；如需验证，可从仓库根目录运行 `python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check`。
+`GET /v1/platform/local-smoke` 只作为本地开发 readiness 摘要，用于排查 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、CORS 和停止线状态。它不是 production health、process supervisor、真实 executor 或 durable store。
 
 ## 本地运行
 
@@ -26,7 +26,7 @@ pwsh ../../scripts/run-platform-service.ps1 serve
 npm run dev
 ```
 
-默认读取 `http://127.0.0.1:7000/v1/platform/overview`。如需改地址，可设置：
+默认读取 `http://127.0.0.1:7000/v1/platform/overview` 与 `http://127.0.0.1:7000/v1/platform/local-smoke`。如需改地址，可设置：
 
 ```powershell
 $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:7000"
@@ -46,7 +46,7 @@ Linux / WSL 使用：
 ./scripts/run-radishmind-console-dev.sh
 ```
 
-该入口按既有 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 启动或复用 platform 后端，按 `npm run dev` 启动或复用本目录前端，然后探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview` 和 `http://127.0.0.1:4000`。本地 readiness 摘要可另用 `python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check` 验证。如只验证已有进程，可执行：
+该入口按既有 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 启动或复用 platform 后端，按 `npm run dev` 启动或复用本目录前端，然后探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview` 和 `http://127.0.0.1:4000`。本地 readiness 摘要仍可用 `python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check` 做脚本验证。如只验证已有进程，可执行：
 
 ```powershell
 pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
@@ -74,7 +74,7 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 
 ## 连接失败诊断
 
-页面会在 refresh 期间保留上一份已加载 overview；如果连接失败，会继续展示上一份只读视图并显示诊断项。`Dev Diagnostics` 区域会展示当前 `Platform URL`、overview endpoint、load status、最近加载时间、service status、console connection、`ps1` / `sh` 本地 probe 命令，以及端口冲突、CORS / preflight、unsafe port 和 overview contract mismatch 的本地排障分类。它只是本地连接排障面，不是 production ops supervisor。
+页面会在 refresh 期间保留上一份已加载 overview 和 local-smoke readiness；如果连接失败，会继续展示上一份只读视图并显示诊断项。`Dev Diagnostics` 区域会展示当前 `Platform URL`、overview endpoint、local-smoke endpoint、load status、最近加载时间、service status、console connection、readiness status、`ps1` / `sh` 本地 probe 命令，以及端口冲突、CORS / preflight、unsafe port、overview contract mismatch 和 local-smoke contract mismatch 的本地排障分类。它只是本地连接排障面，不是 production ops supervisor。
 
 常见处理顺序：
 
@@ -84,7 +84,7 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 4. 若服务端口或主机不同，更新页面里的 `Platform URL` 或设置 `VITE_RADISHMIND_PLATFORM_BASE_URL`。
 5. 若浏览器报 CORS / preflight，确认 console 使用 `http://127.0.0.1:4000` 或 `http://localhost:4000`。
 6. 若提示 overview contract 不匹配，运行 `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url http://127.0.0.1:7000 --check`。
-7. 若需要一次性确认本地 readiness，运行 `python ../../scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check`。
+7. 若提示 local-smoke contract 不匹配，运行 `python ../../scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check`。
 
 ## 验证
 

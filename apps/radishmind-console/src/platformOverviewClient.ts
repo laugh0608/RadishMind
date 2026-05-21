@@ -5,14 +5,24 @@ import {
   type PlatformOverviewConsoleViewModel,
   type PlatformOverviewResponse,
 } from "../../../contracts/typescript/platform-overview-api.ts";
+import {
+  isPlatformLocalSmokeResponse,
+  PLATFORM_LOCAL_SMOKE_ROUTE,
+  toPlatformLocalSmokeReadinessViewModel,
+  type PlatformLocalSmokeReadinessViewModel,
+  type PlatformLocalSmokeResponse,
+} from "../../../contracts/typescript/platform-local-smoke-api.ts";
 
 export const DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:7000";
 
 export type PlatformOverviewReadyState = {
   status: "ready";
   endpoint: string;
+  localSmokeEndpoint: string;
   overview: PlatformOverviewResponse;
+  localSmoke: PlatformLocalSmokeResponse;
   viewModel: PlatformOverviewConsoleViewModel;
+  readinessViewModel: PlatformLocalSmokeReadinessViewModel;
   loadedAt: string;
 };
 
@@ -47,10 +57,31 @@ export function buildPlatformOverviewEndpoint(baseUrl: string): string {
   return `${baseUrl.replace(/\/+$/, "")}${PLATFORM_OVERVIEW_ROUTE}`;
 }
 
+export function buildPlatformLocalSmokeEndpoint(baseUrl: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}${PLATFORM_LOCAL_SMOKE_ROUTE}`;
+}
+
 export async function loadPlatformOverview(
   baseUrl = resolvePlatformBaseUrl(),
 ): Promise<PlatformOverviewReadyState> {
   const endpoint = buildPlatformOverviewEndpoint(baseUrl);
+  const localSmokeEndpoint = buildPlatformLocalSmokeEndpoint(baseUrl);
+  const overview = await fetchPlatformOverview(endpoint);
+  const localSmoke = await fetchPlatformLocalSmoke(localSmokeEndpoint);
+
+  return {
+    status: "ready",
+    endpoint,
+    localSmokeEndpoint,
+    overview,
+    localSmoke,
+    viewModel: toPlatformOverviewConsoleViewModel(overview),
+    readinessViewModel: toPlatformLocalSmokeReadinessViewModel(localSmoke),
+    loadedAt: new Date().toISOString(),
+  };
+}
+
+async function fetchPlatformOverview(endpoint: string): Promise<PlatformOverviewResponse> {
   let response: Response;
   try {
     response = await fetch(endpoint, {
@@ -83,13 +114,43 @@ export async function loadPlatformOverview(
     ]);
   }
 
-  return {
-    status: "ready",
-    endpoint,
-    overview: document,
-    viewModel: toPlatformOverviewConsoleViewModel(document),
-    loadedAt: new Date().toISOString(),
-  };
+  return document;
+}
+
+async function fetchPlatformLocalSmoke(endpoint: string): Promise<PlatformLocalSmokeResponse> {
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+  } catch (error) {
+    throw new PlatformOverviewRequestError(
+      `could not reach platform local-smoke at ${endpoint}`,
+      buildLocalSmokeConnectionDiagnostics(endpoint, error),
+    );
+  }
+
+  if (!response.ok) {
+    throw new PlatformOverviewRequestError(`local-smoke request failed with HTTP ${response.status}`, [
+      "Confirm the platform service exposes `/v1/platform/local-smoke` on the configured Platform URL.",
+      "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+      "If overview works but local-smoke fails, inspect the platform readiness route and local smoke contract.",
+    ]);
+  }
+
+  const document: unknown = await response.json();
+  if (!isPlatformLocalSmokeResponse(document)) {
+    throw new PlatformOverviewRequestError("local-smoke response does not match platform local-smoke contract", [
+      "Confirm the service exposes the current `/v1/platform/local-smoke` schema.",
+      "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+      "Rebuild the console after changing `contracts/typescript/platform-local-smoke-api.ts`.",
+    ]);
+  }
+
+  return document;
 }
 
 export class PlatformOverviewRequestError extends Error {
@@ -119,6 +180,16 @@ function buildConnectionDiagnostics(endpoint: string, error: unknown): string[] 
     "Start the platform service with `pwsh ../../scripts/run-platform-service.ps1 serve`.",
     `Confirm ${endpoint} opens and returns JSON.`,
     "If the service is already running, check the local console origin and CORS preflight.",
+    `Browser fetch detail: ${details}`,
+  ];
+}
+
+function buildLocalSmokeConnectionDiagnostics(endpoint: string, error: unknown): string[] {
+  const details = error instanceof Error ? error.message : String(error);
+  return [
+    "Confirm the platform service is new enough to expose `/v1/platform/local-smoke`.",
+    `Confirm ${endpoint} opens and returns JSON with kind \`platform_local_smoke\`.`,
+    "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
     `Browser fetch detail: ${details}`,
   ];
 }

@@ -211,7 +211,8 @@ export function allPlatformOverviewStopLinesEnforced(stopLines: PlatformOverview
     stopLines.materialized_result_reader === false &&
     stopLines.long_term_memory_enabled === false &&
     stopLines.business_truth_write_enabled === false &&
-    stopLines.automatic_replay_enabled === false
+    stopLines.automatic_replay_enabled === false &&
+    stopLines.production_secret_backend_ready === false
   );
 }
 

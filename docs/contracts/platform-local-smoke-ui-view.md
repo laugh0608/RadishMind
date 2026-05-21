@@ -4,7 +4,7 @@
 
 ## 文档目的
 
-本文档固定本地 console、开发者脚本或未来上层 UI 消费 `GET /v1/platform/local-smoke` 时的只读视图边界。
+本文档固定本地 console、开发者脚本或未来上层 UI 消费 `GET /v1/platform/local-smoke` 时的只读视图边界。当前 `apps/radishmind-console/` 已在 Dev Diagnostics 和 `Local Readiness` 面板中消费该摘要。
 
 `local-smoke` 是 `P3 Local Product Shell / Ops Surface` 的本地开发 readiness 摘要，不是生产健康面，也不是 supervisor。它用于回答“当前默认本地 console 链路是否可读、失败时先查哪里”，而不是声明平台可以执行工具、写业务真相源或自动恢复。
 

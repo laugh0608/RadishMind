@@ -18,5 +18,9 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "../../contracts/typescript/platform-overview-api.ts"]
+  "include": [
+    "src",
+    "../../contracts/typescript/platform-overview-api.ts",
+    "../../contracts/typescript/platform-local-smoke-api.ts"
+  ]
 }

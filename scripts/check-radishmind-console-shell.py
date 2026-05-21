@@ -27,14 +27,18 @@ EXPECTED_FILES = (
 
 EXPECTED_SOURCE_LITERALS = (
     "PLATFORM_OVERVIEW_ROUTE",
+    "PLATFORM_LOCAL_SMOKE_ROUTE",
     "toPlatformOverviewConsoleViewModel",
+    "toPlatformLocalSmokeReadinessViewModel",
     "loadPlatformOverview",
     "http://127.0.0.1:7000",
     "Service Status",
     "Model Inventory",
     "Session And Tooling",
+    "Local Readiness",
     "Stop Lines",
     "Active profile chain",
+    "Local-smoke endpoint",
     "Platform service unavailable",
     "Refreshing; showing last overview",
     "getPlatformOverviewDiagnostics",
@@ -98,9 +102,13 @@ def main() -> int:
         "local console must consume the shared overview TypeScript contract",
     )
     require(
+        "../../../contracts/typescript/platform-local-smoke-api.ts" in CLIENT_SOURCE.read_text(encoding="utf-8"),
+        "local console must consume the shared local-smoke TypeScript contract",
+    )
+    require(
         "fetch(endpoint" in CLIENT_SOURCE.read_text(encoding="utf-8")
         and "Accept: \"application/json\"" in CLIENT_SOURCE.read_text(encoding="utf-8"),
-        "local console must fetch the platform overview JSON endpoint directly",
+        "local console must fetch platform JSON endpoints directly",
     )
     go_server = GO_SERVER_SOURCE.read_text(encoding="utf-8")
     for origin in ("http://127.0.0.1:4000", "http://localhost:4000"):

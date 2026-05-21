@@ -10,13 +10,17 @@ APP_SOURCE = CONSOLE_ROOT / "src/App.tsx"
 CLIENT_SOURCE = CONSOLE_ROOT / "src/platformOverviewClient.ts"
 README = CONSOLE_ROOT / "README.md"
 OVERVIEW_CONTRACT = REPO_ROOT / "contracts/typescript/platform-overview-api.ts"
+LOCAL_SMOKE_CONTRACT = REPO_ROOT / "contracts/typescript/platform-local-smoke-api.ts"
 OVERVIEW_ROUTE = REPO_ROOT / "services/platform/internal/httpapi/platform_overview.go"
 
 READY_PATH_LITERALS = (
     "readyState?.viewModel",
+    "readyState?.readinessViewModel",
     "readyState?.overview",
+    "readyState?.localSmoke",
     "Loaded {formatTimestamp(readyState.loadedAt)}",
     "Overview route",
+    "Local Readiness",
     "Active profile chain",
     "Confirmation path",
     "Audit Boundary",
@@ -56,6 +60,9 @@ ERROR_DIAGNOSTIC_LITERALS = (
     "CORS / preflight: platform only allows http://127.0.0.1:4000",
     "Unsafe port: ERR_UNSAFE_PORT",
     "Contract mismatch: run the overview consumer smoke",
+    "Local-smoke mismatch: run the local-smoke readiness check",
+    "Local-smoke endpoint",
+    "Readiness status",
     "Platform service unavailable",
 )
 
@@ -66,6 +73,11 @@ READ_ONLY_BOUNDARY_LITERALS = (
     "writes_business_truth ? \"write enabled\" : \"advisory only\"",
     "P3 Local Product Shell / Ops Surface",
     "local_read_only_product_shell",
+    "blockedActionNoSideEffects",
+    "canExecuteActions: false",
+    "canUseDurableStore: false",
+    "canWriteBusinessTruth: false",
+    "canReplayAutomatically: false",
 )
 
 FORBIDDEN_LITERALS = (
@@ -91,6 +103,7 @@ README_LITERALS = (
     "端口冲突",
     "CORS / preflight",
     "unsafe port",
+    "local-smoke contract mismatch",
     "python ../../scripts/check-radishmind-console-shell.py",
     "python ../../scripts/check-radishmind-console-behavior.py",
     "不实现真实工具执行器",
@@ -118,8 +131,9 @@ def main() -> int:
     client_content = CLIENT_SOURCE.read_text(encoding="utf-8")
     readme_content = README.read_text(encoding="utf-8")
     contract_content = OVERVIEW_CONTRACT.read_text(encoding="utf-8")
+    local_smoke_contract_content = LOCAL_SMOKE_CONTRACT.read_text(encoding="utf-8")
     route_content = OVERVIEW_ROUTE.read_text(encoding="utf-8")
-    combined_source = "\n".join([app_content, client_content, contract_content, route_content])
+    combined_source = "\n".join([app_content, client_content, contract_content, local_smoke_contract_content, route_content])
 
     require_literals(app_content, READY_PATH_LITERALS, label="console ready path")
     require_literals(app_content, REFRESH_PATH_LITERALS, label="console refresh path")
@@ -130,7 +144,7 @@ def main() -> int:
 
     require(
         "fetch(endpoint" in client_content and "response.json()" in client_content,
-        "console behavior gate expects direct overview JSON fetch",
+        "console behavior gate expects direct platform JSON fetch",
     )
     require(
         "loadState.status === \"error\" && readyState !== null" in app_content,
@@ -143,6 +157,10 @@ def main() -> int:
     require(
         "viewModel.modelInventory.activeProfileChain" in app_content,
         "console must expose active profile chain from overview",
+    )
+    require(
+        "readinessViewModel.blockedActionNoSideEffects" in app_content,
+        "console must expose blocked action no-side-effects from local-smoke",
     )
 
     print("platform local console behavior check passed.")

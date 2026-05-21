@@ -183,6 +183,7 @@ h2 {
 }
 
 .token-list,
+.readiness-list,
 .stop-line-list {
   display: flex;
   flex-wrap: wrap;
@@ -208,6 +209,12 @@ h2 {
   display: grid;
 }
 
+.readiness-list {
+  display: grid;
+  margin-top: 0;
+}
+
+.readiness-list li,
 .stop-line-list li {
   display: flex;
   align-items: center;

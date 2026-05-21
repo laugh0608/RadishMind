@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   DEFAULT_PLATFORM_BASE_URL,
+  buildPlatformLocalSmokeEndpoint,
   buildPlatformOverviewEndpoint,
   getPlatformOverviewDiagnostics,
   loadPlatformOverview,
@@ -31,6 +32,7 @@ const DEV_DIAGNOSTIC_HINTS = [
   "CORS / preflight: platform only allows http://127.0.0.1:4000 and http://localhost:4000.",
   "Unsafe port: ERR_UNSAFE_PORT means the browser blocked the port before RadishMind received the request.",
   "Contract mismatch: run the overview consumer smoke against the configured Platform URL.",
+  "Local-smoke mismatch: run the local-smoke readiness check against the configured Platform URL.",
 ];
 
 export function App() {
@@ -66,7 +68,10 @@ export function App() {
 
   const readyState = latestReadyState(loadState);
   const viewModel = readyState?.viewModel ?? null;
+  const readinessViewModel = readyState?.readinessViewModel ?? null;
   const overview = readyState?.overview ?? null;
+  const localSmoke = readyState?.localSmoke ?? null;
+  const localSmokeEndpoint = readyState?.localSmokeEndpoint ?? buildPlatformLocalSmokeEndpoint(baseUrl);
   const showingStaleOverview = loadState.status === "error" && readyState !== null;
   const stopLineItems = useMemo(
     () =>
@@ -115,13 +120,15 @@ export function App() {
           <dl className="diagnostics-grid">
             <Metric label="Platform URL" value={baseUrl} />
             <Metric label="Overview endpoint" value={loadState.endpoint} />
+            <Metric label="Local-smoke endpoint" value={localSmokeEndpoint} />
             <Metric label="Load status" value={loadState.status} />
             <Metric label="Last loaded" value={readyState ? formatTimestamp(readyState.loadedAt) : "not loaded"} />
             <Metric label="Service status" value={viewModel?.serviceStatus.status ?? "unknown"} />
             <Metric
               label="Console connection"
-              value={viewModel?.serviceStatus.healthyForLocalConsole ? "ready" : "not ready"}
+              value={readinessViewModel?.localConsoleReady ? "ready" : "not ready"}
             />
+            <Metric label="Readiness status" value={readinessViewModel?.status ?? "unknown"} />
           </dl>
         </div>
         <div className="diagnostics-columns">
@@ -222,6 +229,44 @@ export function App() {
           )}
         </Panel>
 
+        <Panel title="Local Readiness">
+          {readinessViewModel && localSmoke ? (
+            <>
+              <div className="summary-row">
+                <SummaryItem label="Readiness" value={readinessViewModel.status} />
+                <SummaryItem
+                  label="Console"
+                  value={readinessViewModel.localConsoleReady ? "ready" : "not ready"}
+                />
+                <SummaryItem label="Mode" value={readinessViewModel.readOnly ? "read only" : "write capable"} />
+              </div>
+              <ul className="readiness-list">
+                <ReadinessItem label="Healthz" ready={readinessViewModel.healthzOk} />
+                <ReadinessItem label="Overview contract" ready={readinessViewModel.overviewContractReadable} />
+                <ReadinessItem label="Model inventory" ready={readinessViewModel.modelInventoryReadable} />
+                <ReadinessItem
+                  label="Session/tooling metadata"
+                  ready={readinessViewModel.sessionToolingMetadataReadable}
+                />
+                <ReadinessItem
+                  label="Blocked action no side effects"
+                  ready={readinessViewModel.blockedActionNoSideEffects}
+                />
+                <ReadinessItem label="Stop lines enforced" ready={readinessViewModel.allStopLinesEnforced} />
+              </ul>
+              <p className="section-label">Local CORS origins</p>
+              <TokenList items={readinessViewModel.allowedCorsOrigins} emptyLabel="No local origins declared" />
+              <p className="section-label">Failure hints</p>
+              <TokenList
+                items={localSmoke.failure_hints.map((hint) => `${hint.code}: ${hint.message}`)}
+                emptyLabel="No failure hints"
+              />
+            </>
+          ) : (
+            <SkeletonRows count={5} />
+          )}
+        </Panel>
+
         <Panel title="Stop Lines">
           {viewModel ? (
             <>
@@ -305,6 +350,15 @@ function SummaryItem({ label, value }: { label: string; value: string | number }
 
 function StatusPill({ tone, children }: { tone: "good" | "bad" | "neutral"; children: ReactNode }) {
   return <span className={`status-pill status-pill-${tone}`}>{children}</span>;
+}
+
+function ReadinessItem({ label, ready }: { label: string; ready: boolean }) {
+  return (
+    <li>
+      <span>{label}</span>
+      <StatusPill tone={ready ? "good" : "bad"}>{ready ? "ready" : "not ready"}</StatusPill>
+    </li>
+  );
 }
 
 function TokenList({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
