@@ -7,6 +7,7 @@
     "backend_default_url": "http://127.0.0.1:7000",
     "frontend_default_url": "http://127.0.0.1:4000",
     "overview_endpoint": "http://127.0.0.1:7000/v1/platform/overview",
+    "local_smoke_endpoint": "http://127.0.0.1:7000/v1/platform/local-smoke",
     "read_only": true,
     "production_packaging_ready": false
   },
@@ -28,6 +29,12 @@
         "service_status",
         "model_inventory",
         "session_tooling_surface",
+        "local_readiness_panel",
+        "local_smoke_readiness_status",
+        "local_console_ready_summary",
+        "readiness_checks",
+        "local_cors_origins",
+        "local_smoke_failure_hints",
         "stop_lines",
         "dev_diagnostics",
         "audit_boundary"
@@ -46,6 +53,10 @@
         "platform_url_control",
         "dev_diagnostics",
         "local_probe_commands",
+        "local_readiness_panel",
+        "local_smoke_readiness_status",
+        "readiness_checks",
+        "local_cors_origins",
         "service_status",
         "model_inventory",
         "session_tooling_surface",
@@ -65,7 +76,36 @@
         "scroll_width_matches_viewport_width",
         "heading_wraps_without_occluding_controls",
         "dev_diagnostics_commands_wrap",
-        "overview_endpoint_wraps"
+        "overview_endpoint_wraps",
+        "local_smoke_endpoint_wraps",
+        "local_readiness_tokens_wrap"
+      ]
+    },
+    {
+      "id": "desktop_ready_local_readiness",
+      "viewport": "desktop",
+      "state": "ready",
+      "must_show": [
+        "local_readiness_panel",
+        "local_smoke_readiness_status",
+        "local_console_ready_summary",
+        "healthz_readiness",
+        "overview_contract_readiness",
+        "model_inventory_readiness",
+        "session_tooling_metadata_readiness",
+        "blocked_action_no_side_effects",
+        "stop_lines_enforced",
+        "local_cors_origins",
+        "local_smoke_failure_hints"
+      ],
+      "must_not_show": [
+        "production_health_dashboard",
+        "process_supervisor",
+        "executor_action_button",
+        "confirmation_button",
+        "durable_store_control",
+        "business_truth_write_button",
+        "automatic_replay_control"
       ]
     },
     {
@@ -76,6 +116,8 @@
         "platform_service_unavailable_notice",
         "connection_failed_showing_last_overview",
         "dev_diagnostics_failure_classes",
+        "previous_local_readiness_panel",
+        "previous_local_smoke_readiness_status",
         "diagnostic_list",
         "previous_service_status",
         "previous_stop_lines"

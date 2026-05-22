@@ -15,6 +15,7 @@ REQUIRED_SCENARIOS = {
     "desktop_ready_overview",
     "narrow_ready_overview",
     "minimum_width_320_ready_overview",
+    "desktop_ready_local_readiness",
     "connection_failure_stale_overview",
 }
 
@@ -24,6 +25,36 @@ REQUIRED_READY_SURFACES = {
     "session_tooling_surface",
     "stop_lines",
     "dev_diagnostics",
+    "local_readiness_panel",
+    "local_smoke_readiness_status",
+    "local_console_ready_summary",
+    "readiness_checks",
+    "local_cors_origins",
+    "local_smoke_failure_hints",
+}
+
+REQUIRED_LOCAL_READINESS_SURFACES = {
+    "local_readiness_panel",
+    "local_smoke_readiness_status",
+    "local_console_ready_summary",
+    "healthz_readiness",
+    "overview_contract_readiness",
+    "model_inventory_readiness",
+    "session_tooling_metadata_readiness",
+    "blocked_action_no_side_effects",
+    "stop_lines_enforced",
+    "local_cors_origins",
+    "local_smoke_failure_hints",
+}
+
+FORBIDDEN_LOCAL_READINESS_SURFACES = {
+    "production_health_dashboard",
+    "process_supervisor",
+    "executor_action_button",
+    "confirmation_button",
+    "durable_store_control",
+    "business_truth_write_button",
+    "automatic_replay_control",
 }
 
 REQUIRED_STOP_LINES = {
@@ -55,7 +86,42 @@ PORT_SOURCE_FILES = {
     ],
     "apps/radishmind-console/README.md": [
         "http://127.0.0.1:7000/v1/platform/overview",
+        "http://127.0.0.1:7000/v1/platform/local-smoke",
         "http://127.0.0.1:4000",
+    ],
+}
+
+LOCAL_READINESS_SOURCE_LITERALS = {
+    "apps/radishmind-console/src/App.tsx": [
+        'Panel title="Local Readiness"',
+        "readinessViewModel?.status",
+        "readinessViewModel?.localConsoleReady",
+        "readinessViewModel.healthzOk",
+        "readinessViewModel.overviewContractReadable",
+        "readinessViewModel.modelInventoryReadable",
+        "readinessViewModel.sessionToolingMetadataReadable",
+        "readinessViewModel.blockedActionNoSideEffects",
+        "readinessViewModel.allStopLinesEnforced",
+        "readinessViewModel.allowedCorsOrigins",
+        "localSmoke.failure_hints.map",
+        "Local CORS origins",
+        "Failure hints",
+    ],
+    "apps/radishmind-console/src/platformOverviewClient.ts": [
+        "buildPlatformLocalSmokeEndpoint",
+        "fetchPlatformLocalSmoke",
+        "toPlatformLocalSmokeReadinessViewModel",
+        "localSmokeEndpoint",
+        "readinessViewModel",
+    ],
+    "contracts/typescript/platform-local-smoke-api.ts": [
+        "PlatformLocalSmokeReadinessViewModel",
+        "localConsoleReady",
+        "blockedActionNoSideEffects",
+        "canExecuteActions: false",
+        "canUseDurableStore: false",
+        "canWriteBusinessTruth: false",
+        "canReplayAutomatically: false",
     ],
 }
 
@@ -97,6 +163,10 @@ def assert_scope(fixture: dict[str, Any]) -> None:
         scope.get("overview_endpoint") == "http://127.0.0.1:7000/v1/platform/overview",
         "overview endpoint must use backend port 7000",
     )
+    require(
+        scope.get("local_smoke_endpoint") == "http://127.0.0.1:7000/v1/platform/local-smoke",
+        "local-smoke endpoint must use backend port 7000",
+    )
     require(scope.get("read_only") is True, "visual smoke must stay read-only")
     require(scope.get("production_packaging_ready") is False, "visual smoke must not claim production packaging")
 
@@ -115,16 +185,32 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
     require(not missing, f"missing visual smoke scenarios: {missing}")
 
     ready_surfaces = set()
-    for scenario_id in ("desktop_ready_overview", "narrow_ready_overview"):
+    for scenario_id in ("desktop_ready_overview", "narrow_ready_overview", "desktop_ready_local_readiness"):
         ready_surfaces.update(scenario_by_id[scenario_id].get("must_show") or [])
     missing_surfaces = sorted(REQUIRED_READY_SURFACES - ready_surfaces)
     require(not missing_surfaces, f"ready visual smoke missing surfaces: {missing_surfaces}")
 
+    local_readiness = scenario_by_id["desktop_ready_local_readiness"]
+    require(local_readiness.get("state") == "ready", "local readiness visual smoke must use ready state")
+    missing_local_readiness = sorted(
+        REQUIRED_LOCAL_READINESS_SURFACES - set(local_readiness.get("must_show") or [])
+    )
+    require(not missing_local_readiness, f"local readiness visual smoke missing surfaces: {missing_local_readiness}")
+    missing_forbidden = sorted(
+        FORBIDDEN_LOCAL_READINESS_SURFACES - set(local_readiness.get("must_not_show") or [])
+    )
+    require(not missing_forbidden, f"local readiness visual smoke missing forbidden surfaces: {missing_forbidden}")
+
     narrow_expectations = set(scenario_by_id["narrow_ready_overview"].get("layout_expectations") or [])
     narrow_surfaces = set(scenario_by_id["narrow_ready_overview"].get("must_show") or [])
     require("local_probe_commands" in narrow_surfaces, "narrow visual smoke must show local probe commands")
+    require("local_readiness_panel" in narrow_surfaces, "narrow visual smoke must show local readiness panel")
     require("no_horizontal_overflow" in narrow_expectations, "narrow visual smoke must assert no horizontal overflow")
     require("long_routes_wrap" in narrow_expectations, "narrow visual smoke must assert route wrapping")
+    require(
+        "local_cors_origins" in narrow_surfaces,
+        "narrow visual smoke must show local CORS origins from local-smoke",
+    )
 
     min_width = scenario_by_id["minimum_width_320_ready_overview"]
     require(min_width.get("viewport") == "320px", "minimum width scenario must be 320px")
@@ -136,6 +222,14 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
         "dev_diagnostics_commands_wrap" in set(min_width.get("layout_expectations") or []),
         "minimum width scenario must assert dev diagnostics command wrapping",
     )
+    require(
+        "local_smoke_endpoint_wraps" in set(min_width.get("layout_expectations") or []),
+        "minimum width scenario must assert local-smoke endpoint wrapping",
+    )
+    require(
+        "local_readiness_tokens_wrap" in set(min_width.get("layout_expectations") or []),
+        "minimum width scenario must assert local readiness token wrapping",
+    )
 
     error_state = scenario_by_id["connection_failure_stale_overview"]
     require(error_state.get("state") == "error_with_previous_overview", "error scenario must keep previous overview")
@@ -144,6 +238,8 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
         "connection_failed_showing_last_overview",
         "dev_diagnostics_failure_classes",
         "diagnostic_list",
+        "previous_local_readiness_panel",
+        "previous_local_smoke_readiness_status",
         "previous_stop_lines",
     }
     missing_error_surfaces = sorted(required_error_surfaces - set(error_state.get("must_show") or []))
@@ -155,6 +251,9 @@ def assert_source_evidence(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / str(relpath)).is_file(), f"missing visual smoke evidence: {relpath}")
 
     for relpath, literals in PORT_SOURCE_FILES.items():
+        require_literals(REPO_ROOT / relpath, literals)
+
+    for relpath, literals in LOCAL_READINESS_SOURCE_LITERALS.items():
         require_literals(REPO_ROOT / relpath, literals)
 
 
