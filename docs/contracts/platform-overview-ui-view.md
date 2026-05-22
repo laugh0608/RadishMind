@@ -1,10 +1,10 @@
 # Platform Overview UI View 契约
 
-更新时间：2026-05-20
+更新时间：2026-05-22
 
 ## 文档目的
 
-本文档固定本地 console 或上层 UI 消费 `P3 Local Product Shell / Ops Surface` overview 时的首版视图边界。当前目标是说明 UI 应如何展示平台状态、model/profile inventory、session/tooling 产品面、local-smoke readiness、停止线、refresh 状态、Dev Diagnostics 和连接失败诊断；`apps/radishmind-console/` 已提供 React + Vite + TypeScript console 壳，但仍不接入真实 executor、durable store、confirmation flow 或 replay。
+本文档固定本地 console 或上层 UI 消费 `P3 Local Product Shell / Ops Surface` overview 时的首版视图边界。当前目标是说明 UI 应如何展示平台状态、model/profile inventory、session/tooling 产品面、local-smoke readiness、停止线、refresh 状态、Dev Diagnostics、连接失败诊断和 local-smoke failure surface；`apps/radishmind-console/` 已提供 React + Vite + TypeScript console 壳，但仍不接入真实 executor、durable store、confirmation flow 或 replay。
 
 TypeScript 消费类型真相源为 `contracts/typescript/platform-overview-api.ts`。开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check` 生成离线消费视图；本地平台服务启动后可加 `--base-url http://127.0.0.1:7000` 请求真实 `GET /v1/platform/overview`，或启动 `apps/radishmind-console/` 查看同一只读视图。`scripts/check-radishmind-console-behavior.py` 固定 ready、refresh、连接失败诊断和只读停止线；`scripts/check-radishmind-console-production-boundary.py` 固定 console production packaging 仍未完成；`scripts/check-p3-local-product-shell-short-close-checklist.py` 固定 P3 short close 仍为 `not_ready`，不需要启动浏览器或长驻服务。
 
@@ -97,10 +97,12 @@ UI 只展示：
 
 - 当前 load status：`idle / loading / ready / error`
 - 当前请求的 `endpoint`
+- 当前失败面：`platform_overview / platform_local_smoke / unknown`
 - 最近一次成功加载时间
 - refresh 期间的 `showing last overview` 状态
 - 连接失败后的 `showing last overview` 状态
 - 面向开发者的诊断项，例如服务未启动、URL 不匹配、CORS / preflight 或 overview contract mismatch
+- overview 可读但 local-smoke readiness / contract 失败时的 `Local-smoke readiness unavailable` 诊断
 
 连接失败诊断只能帮助开发者恢复本地只读连接；不得触发自动重试执行、工具 action、业务写回或 replay。
 
@@ -110,7 +112,9 @@ UI 只展示：
 
 - 当前 `Platform URL`
 - 当前 overview endpoint
+- 当前 local-smoke endpoint
 - 当前 load status
+- 当前 failure surface
 - 最近一次成功加载时间
 - service status
 - console connection 状态

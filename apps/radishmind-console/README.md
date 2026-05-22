@@ -74,7 +74,7 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 
 ## 连接失败诊断
 
-页面会在 refresh 期间保留上一份已加载 overview 和 local-smoke readiness；如果连接失败，会继续展示上一份只读视图并显示诊断项。`Dev Diagnostics` 区域会展示当前 `Platform URL`、overview endpoint、local-smoke endpoint、load status、最近加载时间、service status、console connection、readiness status、`ps1` / `sh` 本地 probe 命令，以及端口冲突、CORS / preflight、unsafe port、overview contract mismatch 和 local-smoke contract mismatch 的本地排障分类。它只是本地连接排障面，不是 production ops supervisor。
+页面会在 refresh 期间保留上一份已加载 overview 和 local-smoke readiness；如果连接失败，会继续展示上一份只读视图并显示诊断项。`Dev Diagnostics` 区域会展示当前 `Platform URL`、overview endpoint、local-smoke endpoint、load status、failure surface、最近加载时间、service status、console connection、readiness status、`ps1` / `sh` 本地 probe 命令，以及端口冲突、CORS / preflight、unsafe port、overview contract mismatch 和 local-smoke contract mismatch 的本地排障分类。若 overview 可读但 local-smoke readiness 或 contract 失败，页面只显示 `Local-smoke readiness unavailable` 和 local-smoke 专属诊断，不升级为 production incident、supervisor 或执行链路状态。它只是本地连接排障面，不是 production ops supervisor。
 
 常见处理顺序：
 

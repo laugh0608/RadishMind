@@ -20,7 +20,7 @@
 - 当前 southbound 已开始由统一 `provider registry` 收口：现有 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流都归到同一条 provider truth；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
 - 当前 northbound 对外形态已经开始由 `Go` 承载最小正式 `HTTP` 服务壳；`Python` 继续保留 CLI runtime 和 canonical gateway 语义，`Go` 只做协议兼容与进程调度，避免把平台服务层锁死在 `Python`。本地 console origin 的 CORS / preflight 只服务 `P3` 本地消费面，不代表 production 鉴权或公开部署策略。
 - `UI` 层默认 `React + Vite + TypeScript`，通过北向协议消费平台能力，不直接承载模型实现逻辑。
-- 当前 `P3 Local Product Shell / Ops Surface` 已开始在平台服务层暴露只读 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，并用 TypeScript overview / local-smoke consumer contract、consumer smoke、console shell check、console behavior gate、console visual smoke record、dev entry check、console production packaging boundary gate、P3 short-close checklist 与 `apps/radishmind-console/` 本地 console 壳固定 service status、model inventory、session/tooling surface、stop-line view model、Dev Diagnostics、refresh 状态、连接失败诊断、production packaging 停止线和 P3 短收口缺口。
+- 当前 `P3 Local Product Shell / Ops Surface` 已开始在平台服务层暴露只读 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，并用 TypeScript overview / local-smoke consumer contract、consumer smoke、console shell check、console behavior gate、console visual smoke record、dev entry check、console production packaging boundary gate、P3 short-close checklist 与 `apps/radishmind-console/` 本地 console 壳固定 service status、model inventory、session/tooling surface、stop-line view model、Dev Diagnostics、`Local Readiness` 面板、refresh 状态、overview / local-smoke failure surface、连接失败诊断、production packaging 停止线和 P3 短收口缺口。
 
 ### 2. `Conversation & Session`
 

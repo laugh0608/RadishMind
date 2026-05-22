@@ -1,6 +1,6 @@
 # Platform Local Smoke UI View 契约
 
-更新时间：2026-05-20
+更新时间：2026-05-22
 
 ## 文档目的
 
@@ -87,6 +87,12 @@ UI 可把 `failure_hints` 映射为开发者排障提示：
 
 这些提示只解释本地读取失败，不触发自动修复、后台重启、进程杀停或系统配置修改。
 
+### Console Failure Surface
+
+本地 console 同时读取 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`。如果 overview 已经可读，但 local-smoke 请求失败或 contract mismatch，UI 只能显示 `Local-smoke readiness unavailable`、`failureSurface=platform_local_smoke` 和 local-smoke 专属诊断；如已有上一份成功加载的只读视图，可继续展示该 stale view。
+
+该失败态不表示 production incident、process supervisor 失效或 executor 状态变化，也不得触发自动重启、执行按钮、确认按钮、durable store 控件、业务写回或 replay 控件。
+
 ### Stop Lines
 
 UI 或脚本只展示：
@@ -105,7 +111,7 @@ UI 或脚本只展示：
 
 `GET /v1/platform/local-smoke` 是本地开发 readiness 摘要，适合 Dev Diagnostics、脚本 smoke 或排障页展示当前本地链路是否可读。
 
-两者都只读、无副作用。overview 不能被解释为业务真相源；local-smoke 不能被解释为 production health 或 supervisor。
+两者都只读、无副作用。overview 不能被解释为业务真相源；local-smoke 不能被解释为 production health 或 supervisor。overview 可读但 local-smoke 失败时，UI 仍只进入只读诊断态，不升级为执行链路或生产运维状态。
 
 ## 当前停止线
 
