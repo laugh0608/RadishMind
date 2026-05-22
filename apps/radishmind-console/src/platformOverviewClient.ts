@@ -15,6 +15,8 @@ import {
 
 export const DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:7000";
 
+export type PlatformOverviewFailureSurface = "platform_overview" | "platform_local_smoke" | "unknown";
+
 export type PlatformOverviewReadyState = {
   status: "ready";
   endpoint: string;
@@ -41,6 +43,7 @@ export type PlatformOverviewLoadState =
       status: "error";
       endpoint: string;
       message: string;
+      failureSurface: PlatformOverviewFailureSurface;
       diagnostics: string[];
       previous?: PlatformOverviewReadyState;
     };
@@ -94,6 +97,7 @@ async function fetchPlatformOverview(endpoint: string): Promise<PlatformOverview
     throw new PlatformOverviewRequestError(
       `could not reach platform overview at ${endpoint}`,
       buildConnectionDiagnostics(endpoint, error),
+      "platform_overview",
     );
   }
 
@@ -102,7 +106,7 @@ async function fetchPlatformOverview(endpoint: string): Promise<PlatformOverview
       "Confirm the platform service is listening at the configured Platform URL.",
       "Run `pwsh ../../scripts/run-platform-service.ps1 serve` from apps/radishmind-console.",
       "If the service is running, inspect its response body or platform logs for the HTTP failure.",
-    ]);
+    ], "platform_overview");
   }
 
   const document: unknown = await response.json();
@@ -111,7 +115,7 @@ async function fetchPlatformOverview(endpoint: string): Promise<PlatformOverview
       "Confirm the service exposes the current `/v1/platform/overview` schema.",
       "Run `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url <platform-url> --check`.",
       "Rebuild the console after changing `contracts/typescript/platform-overview-api.ts`.",
-    ]);
+    ], "platform_overview");
   }
 
   return document;
@@ -130,24 +134,27 @@ async function fetchPlatformLocalSmoke(endpoint: string): Promise<PlatformLocalS
     throw new PlatformOverviewRequestError(
       `could not reach platform local-smoke at ${endpoint}`,
       buildLocalSmokeConnectionDiagnostics(endpoint, error),
+      "platform_local_smoke",
     );
   }
 
   if (!response.ok) {
     throw new PlatformOverviewRequestError(`local-smoke request failed with HTTP ${response.status}`, [
+      "Overview was readable; local-smoke readiness failed before the console could refresh readiness.",
       "Confirm the platform service exposes `/v1/platform/local-smoke` on the configured Platform URL.",
       "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
       "If overview works but local-smoke fails, inspect the platform readiness route and local smoke contract.",
-    ]);
+    ], "platform_local_smoke");
   }
 
   const document: unknown = await response.json();
   if (!isPlatformLocalSmokeResponse(document)) {
     throw new PlatformOverviewRequestError("local-smoke response does not match platform local-smoke contract", [
+      "Overview was readable; local-smoke contract validation failed before the console could refresh readiness.",
       "Confirm the service exposes the current `/v1/platform/local-smoke` schema.",
       "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
       "Rebuild the console after changing `contracts/typescript/platform-local-smoke-api.ts`.",
-    ]);
+    ], "platform_local_smoke");
   }
 
   return document;
@@ -155,12 +162,25 @@ async function fetchPlatformLocalSmoke(endpoint: string): Promise<PlatformLocalS
 
 export class PlatformOverviewRequestError extends Error {
   diagnostics: string[];
+  failureSurface: PlatformOverviewFailureSurface;
 
-  constructor(message: string, diagnostics: string[]) {
+  constructor(
+    message: string,
+    diagnostics: string[],
+    failureSurface: PlatformOverviewFailureSurface,
+  ) {
     super(message);
     this.name = "PlatformOverviewRequestError";
     this.diagnostics = diagnostics;
+    this.failureSurface = failureSurface;
   }
+}
+
+export function getPlatformOverviewFailureSurface(error: unknown): PlatformOverviewFailureSurface {
+  if (error instanceof PlatformOverviewRequestError) {
+    return error.failureSurface;
+  }
+  return "unknown";
 }
 
 export function getPlatformOverviewDiagnostics(error: unknown): string[] {

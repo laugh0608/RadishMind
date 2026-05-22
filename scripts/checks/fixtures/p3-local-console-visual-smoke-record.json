@@ -127,6 +127,34 @@
         "automatic_replay",
         "business_truth_write"
       ]
+    },
+    {
+      "id": "local_smoke_failure_stale_overview",
+      "viewport": "desktop",
+      "state": "error_with_previous_overview",
+      "must_show": [
+        "local_smoke_readiness_unavailable_notice",
+        "overview_readable_local_smoke_failed_message",
+        "failure_surface_local_smoke_readiness",
+        "connection_failed_showing_last_overview",
+        "previous_local_readiness_panel",
+        "previous_local_smoke_readiness_status",
+        "local_smoke_contract_diagnostics",
+        "previous_service_status",
+        "previous_stop_lines"
+      ],
+      "must_not_show": [
+        "production_health_dashboard",
+        "process_supervisor",
+        "executor_action_button",
+        "retry_executor",
+        "confirmation_button",
+        "durable_store_control",
+        "business_truth_write_button",
+        "business_truth_write",
+        "automatic_replay_control",
+        "automatic_replay"
+      ]
     }
   ],
   "source_evidence": [

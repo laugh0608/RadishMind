@@ -17,6 +17,7 @@ REQUIRED_SCENARIOS = {
     "minimum_width_320_ready_overview",
     "desktop_ready_local_readiness",
     "connection_failure_stale_overview",
+    "local_smoke_failure_stale_overview",
 }
 
 REQUIRED_READY_SURFACES = {
@@ -55,6 +56,18 @@ FORBIDDEN_LOCAL_READINESS_SURFACES = {
     "durable_store_control",
     "business_truth_write_button",
     "automatic_replay_control",
+}
+
+REQUIRED_LOCAL_SMOKE_FAILURE_SURFACES = {
+    "local_smoke_readiness_unavailable_notice",
+    "overview_readable_local_smoke_failed_message",
+    "failure_surface_local_smoke_readiness",
+    "connection_failed_showing_last_overview",
+    "previous_local_readiness_panel",
+    "previous_local_smoke_readiness_status",
+    "local_smoke_contract_diagnostics",
+    "previous_service_status",
+    "previous_stop_lines",
 }
 
 REQUIRED_STOP_LINES = {
@@ -104,12 +117,17 @@ LOCAL_READINESS_SOURCE_LITERALS = {
         "readinessViewModel.allStopLinesEnforced",
         "readinessViewModel.allowedCorsOrigins",
         "localSmoke.failure_hints.map",
+        "Local-smoke readiness unavailable",
+        "Overview was readable; local-smoke readiness failed",
+        "Failure surface",
         "Local CORS origins",
         "Failure hints",
     ],
     "apps/radishmind-console/src/platformOverviewClient.ts": [
         "buildPlatformLocalSmokeEndpoint",
         "fetchPlatformLocalSmoke",
+        "failureSurface",
+        "platform_local_smoke",
         "toPlatformLocalSmokeReadinessViewModel",
         "localSmokeEndpoint",
         "readinessViewModel",
@@ -244,6 +262,26 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
     }
     missing_error_surfaces = sorted(required_error_surfaces - set(error_state.get("must_show") or []))
     require(not missing_error_surfaces, f"error visual smoke missing surfaces: {missing_error_surfaces}")
+
+    local_smoke_failure = scenario_by_id["local_smoke_failure_stale_overview"]
+    require(
+        local_smoke_failure.get("state") == "error_with_previous_overview",
+        "local-smoke failure scenario must keep previous overview",
+    )
+    missing_local_smoke_failure = sorted(
+        REQUIRED_LOCAL_SMOKE_FAILURE_SURFACES - set(local_smoke_failure.get("must_show") or [])
+    )
+    require(
+        not missing_local_smoke_failure,
+        f"local-smoke failure visual smoke missing surfaces: {missing_local_smoke_failure}",
+    )
+    missing_forbidden = sorted(
+        FORBIDDEN_LOCAL_READINESS_SURFACES - set(local_smoke_failure.get("must_not_show") or [])
+    )
+    require(
+        not missing_forbidden,
+        f"local-smoke failure visual smoke missing forbidden surfaces: {missing_forbidden}",
+    )
 
 
 def assert_source_evidence(fixture: dict[str, Any]) -> None:

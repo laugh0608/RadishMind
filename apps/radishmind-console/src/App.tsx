@@ -4,6 +4,7 @@ import {
   DEFAULT_PLATFORM_BASE_URL,
   buildPlatformLocalSmokeEndpoint,
   buildPlatformOverviewEndpoint,
+  getPlatformOverviewFailureSurface,
   getPlatformOverviewDiagnostics,
   loadPlatformOverview,
   resolvePlatformBaseUrl,
@@ -56,6 +57,7 @@ export function App() {
         status: "error",
         endpoint,
         message: error instanceof Error ? error.message : "overview request failed",
+        failureSurface: getPlatformOverviewFailureSurface(error),
         diagnostics: getPlatformOverviewDiagnostics(error),
         previous: previousReadyState,
       });
@@ -73,6 +75,7 @@ export function App() {
   const localSmoke = readyState?.localSmoke ?? null;
   const localSmokeEndpoint = readyState?.localSmokeEndpoint ?? buildPlatformLocalSmokeEndpoint(baseUrl);
   const showingStaleOverview = loadState.status === "error" && readyState !== null;
+  const localSmokeFailure = loadState.status === "error" && loadState.failureSurface === "platform_local_smoke";
   const stopLineItems = useMemo(
     () =>
       viewModel?.stopLines.blockedCapabilityIds.map((capabilityId) => ({
@@ -122,6 +125,10 @@ export function App() {
             <Metric label="Overview endpoint" value={loadState.endpoint} />
             <Metric label="Local-smoke endpoint" value={localSmokeEndpoint} />
             <Metric label="Load status" value={loadState.status} />
+            <Metric
+              label="Failure surface"
+              value={loadState.status === "error" ? formatFailureSurface(loadState.failureSurface) : "none"}
+            />
             <Metric label="Last loaded" value={readyState ? formatTimestamp(readyState.loadedAt) : "not loaded"} />
             <Metric label="Service status" value={viewModel?.serviceStatus.status ?? "unknown"} />
             <Metric
@@ -153,7 +160,13 @@ export function App() {
 
       {loadState.status === "error" ? (
         <section className="notice" role="alert">
-          <h2>Platform service unavailable</h2>
+          <h2>{localSmokeFailure ? "Local-smoke readiness unavailable" : "Platform service unavailable"}</h2>
+          {localSmokeFailure ? (
+            <p>
+              Overview was readable; local-smoke readiness failed, so the console keeps the last read-only view when
+              available.
+            </p>
+          ) : null}
           <p>{loadState.message}</p>
           <ul className="diagnostic-list">
             {loadState.diagnostics.map((diagnostic) => (
@@ -391,4 +404,14 @@ function formatTimestamp(value: string): string {
     minute: "2-digit",
     second: "2-digit",
   }).format(new Date(value));
+}
+
+function formatFailureSurface(value: string): string {
+  if (value === "platform_local_smoke") {
+    return "local-smoke readiness";
+  }
+  if (value === "platform_overview") {
+    return "platform overview";
+  }
+  return "unknown";
 }

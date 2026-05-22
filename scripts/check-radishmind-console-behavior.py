@@ -37,10 +37,14 @@ REFRESH_PATH_LITERALS = (
 
 ERROR_DIAGNOSTIC_LITERALS = (
     "PlatformOverviewRequestError",
+    "getPlatformOverviewFailureSurface",
+    "failureSurface",
     "getPlatformOverviewDiagnostics",
     "could not reach platform overview",
     "overview request failed with HTTP",
     "overview response does not match platform overview contract",
+    "Overview was readable; local-smoke readiness failed",
+    "Overview was readable; local-smoke contract validation failed",
     "Start the platform service",
     "Confirm local CORS allows",
     "run-platform-overview-consumer-smoke.py --base-url",
@@ -49,6 +53,7 @@ ERROR_DIAGNOSTIC_LITERALS = (
     "diagnostics-band",
     "Platform URL",
     "Overview endpoint",
+    "Failure surface",
     "Load status",
     "Last loaded",
     "Console connection",
@@ -63,6 +68,8 @@ ERROR_DIAGNOSTIC_LITERALS = (
     "Local-smoke mismatch: run the local-smoke readiness check",
     "Local-smoke endpoint",
     "Readiness status",
+    "Local-smoke readiness unavailable",
+    "local-smoke readiness",
     "Platform service unavailable",
 )
 
@@ -161,6 +168,14 @@ def main() -> int:
     require(
         "readinessViewModel.blockedActionNoSideEffects" in app_content,
         "console must expose blocked action no-side-effects from local-smoke",
+    )
+    require(
+        'loadState.failureSurface === "platform_local_smoke"' in app_content,
+        "console must distinguish local-smoke readiness failures from overview outages",
+    )
+    require(
+        '"platform_local_smoke"' in client_content and '"platform_overview"' in client_content,
+        "console client must classify overview and local-smoke failure surfaces",
     )
 
     print("platform local console behavior check passed.")
