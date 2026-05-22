@@ -2,7 +2,7 @@
 
 本目录是 `P3 Local Product Shell / Ops Surface` 的最小本地 console 壳。
 
-它当前读取 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` / `toPlatformOverviewConsoleViewModel` 以及 `contracts/typescript/platform-local-smoke-api.ts` 中的 `PlatformLocalSmokeResponse` / `toPlatformLocalSmokeReadinessViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、local readiness、stop-lines、audit boundary、refresh 状态、Dev Diagnostics 和连接失败诊断。
+它当前读取 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` / `toPlatformOverviewConsoleViewModel` 以及 `contracts/typescript/platform-local-smoke-api.ts` 中的 `PlatformLocalSmokeResponse` / `toPlatformLocalSmokeReadinessViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、`Local Readiness` 面板、stop-lines、audit boundary、refresh 状态、Dev Diagnostics、failure surface 和连接失败诊断。
 
 `GET /v1/platform/local-smoke` 只作为本地开发 readiness 摘要，用于排查 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、CORS 和停止线状态。它不是 production health、process supervisor、真实 executor 或 durable store。
 

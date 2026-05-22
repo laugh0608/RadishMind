@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-20
+更新时间：2026-05-22
 
 ## 这份文档讲什么
 
@@ -132,7 +132,7 @@ Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 co
 
 `GET /v1/session/recovery/checkpoints/{checkpoint_id}` 当前只是 fixture-backed metadata-only route smoke：它返回 checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，并拒绝 materialized result、result ref、output ref、executor ref、durable memory 与 replay 类查询；它不是 durable checkpoint store、materialized result reader、executor ref reader、durable memory reader 或 replay executor。
 
-`GET /v1/platform/overview` 是本地只读产品 overview，供 console 展示 service status、model inventory、session/tooling surface、stop-lines 和 audit boundary。`GET /v1/platform/local-smoke` 是本地开发 readiness 摘要，供 Dev Diagnostics、脚本 smoke 或排障页确认 healthz、overview contract、model inventory、session/tooling metadata、CORS origin、默认 `7000/4000` 端口和停止线是否可读。
+`GET /v1/platform/overview` 是本地只读产品 overview，供 console 展示 service status、model inventory、session/tooling surface、stop-lines 和 audit boundary。`GET /v1/platform/local-smoke` 是本地开发 readiness 摘要，供 Dev Diagnostics、`Local Readiness` 面板、脚本 smoke 或排障页确认 healthz、overview contract、model inventory、session/tooling metadata、CORS origin、默认 `7000/4000` 端口和停止线是否可读。console 会区分 overview 失败与 overview 可读但 local-smoke readiness / contract 失败的 failure surface；后者只显示 `Local-smoke readiness unavailable` 和 local-smoke 专属诊断，不升级为 production incident、supervisor 或执行链路状态。
 
 这仍然不是 production deployment：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级 secret backend、进程监管、环境隔离和正式发布包。
 
@@ -160,7 +160,7 @@ python scripts/run-platform-local-smoke.py \
   --check
 ```
 
-console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`；后者是配套排障和 readiness 摘要，会投影到 Dev Diagnostics 和只读 readiness 区域。
+console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`；后者是配套排障和 readiness 摘要，会投影到 Dev Diagnostics 和 `Local Readiness` 只读面板。refresh 或连接失败时，页面可保留上一份已加载的只读 overview / local-smoke readiness；如果 overview 可读但 local-smoke 失败，页面会显示 local-smoke failure surface 和对应诊断，而不是提供执行、确认、写回或 replay 控件。
 
 ### 4. 跑本地候选模型输出
 
@@ -204,7 +204,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
 - 真实工具执行器、materialized tool result cache、上层确认流接线和完整 session/tooling 负向回归 implementation consumer
 
-所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke、本地 console 壳、Dev Diagnostics、console shell / behavior / visual smoke record / dev entry / production boundary checks、P3 short-close checklist、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面、console production packaging、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke、本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、overview / local-smoke failure surface、console shell / behavior / visual smoke record / dev entry / production boundary checks、P3 short-close checklist、session/tooling metadata smoke、P2 design gates 和 P2 governance rollup checks，但还没有完整 production deployment 面、console production packaging、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
 
 ## 读文档顺序
 
