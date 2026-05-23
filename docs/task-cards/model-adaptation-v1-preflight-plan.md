@@ -18,6 +18,7 @@
 - [RadishMind-Core 基线评估](../radishmind-core-baseline-evaluation.md)
 - [训练样本契约](../contracts/training-samples.md)
 - `training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json`
+- `training/datasets/radishmind-core-model-adaptation-v1-governance-review-v0.json`
 
 ## v1 能力目标
 
@@ -101,21 +102,34 @@ P4 v1 预检 runbook 已落到 `training/experiments/radishmind-core-model-adapt
 
 当前第一版只规划 `raw_student` 与 `repaired_student_comparison` 两条 full-holdout 预检轨；`repaired` 仅用于对照，不作为 raw 晋级证据。在数据治理复核完成前，不要求人工执行本地模型长跑、不下载权重、不生成训练 JSONL。
 
+## 样本治理复核
+
+P4 v1 首轮治理复核已落到 `training/datasets/radishmind-core-model-adaptation-v1-governance-review-v0.json`。
+
+当前结论：
+
+- `golden_response`、`teacher_capture` 与 `holdout` 均覆盖三条 v1 任务，每条任务各有 3 条 seed / teacher / holdout 样本。
+- holdout split 仍声明不与当前训练 seed manifest 重叠，并显式排除两份训练转换 manifest。
+- `copilot-training-review-record-v0.json` 的 planned review batch 仍保持 `pending_review`；本次复核不伪造 reviewer、timestamp、逐样本维度结果或 `reviewed_pass`。
+- 在选择本地 `model-dir` 且确认人工可接受本机 CPU/GPU 负载后，可以先请求一次 `raw_student_probe`；`repair_boundary_probe` 必须排在 raw 之后，只能作为后处理对照。
+
 ## 验收口径
 
 本任务卡首轮验收只要求：
 
 - P4 v1 目标、teacher/student 边界、样本分层和晋级门槛已写清。
 - P4 v1 预检 runbook 已明确 manifest、provider/model-dir、output-dir、summary-output、timeout、raw/repaired 边界和 `tmp/` 产物政策。
+- P4 v1 样本治理复核记录已明确 seed / teacher / holdout 覆盖、holdout 泄漏边界、人工复核未完成状态和 raw-first 执行顺序。
 - 停止线明确禁止训练放量、权重下载、真实大产物入仓和 builder/guided/repaired 冒充 raw 晋级。
+- `scripts/check-radishmind-core-model-adaptation-v1-governance-review.py` 已接入 fast baseline，固定该复核记录不能漂成训练启动许可。
 - `docs/radishmind-current-focus.md` 与 `docs/radishmind-roadmap.md` 指向 P4 前置计划。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
 ## 下一步
 
-1. 复核现有训练样本治理 manifest、review record 模板与 holdout split 是否足够支撑 v1 目标。
-2. 补一份小型治理复核记录后，再判断是否要求人工执行 runbook 中的 raw student 单批脚本。
-3. 人工执行完成后，读取 `tmp/` 下 summary、candidate response、prompt、audit 或 offline eval 产物，再更新结论。
+1. 选择一个已存在的本地 `model-dir`，确认不下载权重并能接受本机 CPU/GPU 负载。
+2. 按 runbook 请求人工先执行 `raw_student_probe`，不要同时启用 `--repair-hard-fields`、guided、injected 或 builder。
+3. 人工执行完成后，读取 `tmp/` 下 summary、candidate response、prompt、audit 或 offline eval 产物，再决定是否运行 repaired comparison。
 
 ## 停止线
 

@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_model_adaptation_v1_governance_review",
+  "review_id": "radishmind-core-model-adaptation-v1-governance-review-v0",
+  "status": "preflight_reviewed_waiting_for_human_sample_review",
+  "phase": "P4-preflight",
+  "created_for": "model-adaptation-v1-preflight",
+  "does_not_run_models": true,
+  "does_not_download_model_artifacts": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_sample_review_pass": true,
+  "does_not_mark_raw_promotion": true,
+  "inputs": {
+    "dataset_governance": "training/datasets/copilot-training-dataset-governance-v0.json",
+    "review_record_template": "training/datasets/copilot-training-review-record-v0.json",
+    "holdout_split": "training/datasets/copilot-training-holdout-split-v0.json",
+    "preflight_runbook": "training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json",
+    "golden_response_manifest": "scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json",
+    "teacher_capture_manifest": "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json"
+  },
+  "v1_task_surface": {
+    "tasks": [
+      {
+        "project": "radishflow",
+        "task": "suggest_flowsheet_edits",
+        "seed_golden_count": 3,
+        "teacher_capture_count": 3,
+        "holdout_count": 3,
+        "coverage_notes": [
+          "Covers reconnect, multi-selection focus, citation/action ordering, parameter update ordering, and local-vs-global advisory boundaries.",
+          "Requires confirmation and patch/action shape review before any sample is treated as training-ready."
+        ]
+      },
+      {
+        "project": "radishflow",
+        "task": "suggest_ghost_completion",
+        "seed_golden_count": 3,
+        "teacher_capture_count": 3,
+        "holdout_count": 3,
+        "coverage_notes": [
+          "Covers default Tab, ambiguous manual-only, empty candidates, cooldown recovery, mixed history, naming, and topology completion.",
+          "Manual-only and no-legal-candidate samples remain boundary evidence, not writeback permission."
+        ]
+      },
+      {
+        "project": "radish",
+        "task": "answer_docs_question",
+        "seed_golden_count": 3,
+        "teacher_capture_count": 3,
+        "holdout_count": 3,
+        "coverage_notes": [
+          "Covers official docs answers, evidence gaps, source conflicts, attachments, FAQ supplement, and navigation questions.",
+          "Citation alignment and evidence-gap behavior must be reviewed before distillation use."
+        ]
+      }
+    ],
+    "summary": {
+      "seed_golden_total": 9,
+      "teacher_capture_total": 9,
+      "holdout_total": 9,
+      "tasks_have_minimum_three_holdout_samples": true
+    }
+  },
+  "governance_findings": [
+    {
+      "finding_id": "source_layering_complete_for_v1",
+      "status": "satisfied_for_preflight",
+      "evidence": [
+        "golden_response seed manifest covers all three v1 tasks with three samples per task",
+        "teacher_capture manifest covers all three v1 tasks with three audited candidate records per task",
+        "holdout split covers all three v1 tasks with three samples per task"
+      ]
+    },
+    {
+      "finding_id": "holdout_is_declared_outside_seed_manifests",
+      "status": "satisfied_for_preflight",
+      "evidence": [
+        "training/datasets/copilot-training-holdout-split-v0.json declares overlaps_current_training_seed=false",
+        "holdout split lists both current training conversion manifests under excluded_training_conversion_manifests"
+      ]
+    },
+    {
+      "finding_id": "human_sample_review_not_complete",
+      "status": "not_satisfied_for_training_acceptance",
+      "evidence": [
+        "training/datasets/copilot-training-review-record-v0.json keeps planned review batches at pending_review",
+        "no concrete reviewer, timestamp, per-sample dimension results, or leakage decision is recorded in this preflight review",
+        "this preflight review does not mark any sample or batch as reviewed_pass"
+      ]
+    },
+    {
+      "finding_id": "raw_student_probe_order_is_ready",
+      "status": "satisfied_for_operator_decision",
+      "evidence": [
+        "preflight runbook defines raw_student_probe before repair_boundary_probe",
+        "raw_student_probe uses the full holdout candidate manifest with --validate-task and 300 second sample timeout",
+        "repair_boundary_probe is explicitly postprocess comparison and not raw promotion evidence"
+      ]
+    },
+    {
+      "finding_id": "artifact_policy_blocks_large_or_real_model_outputs",
+      "status": "satisfied_for_preflight",
+      "evidence": [
+        "generated candidate responses, provider raw dump, JSONL, model weights, checkpoints, adapter binaries, and downloaded model cache remain disallowed committed artifacts",
+        "planned local outputs stay under tmp/radishmind-core-v1-preflight/"
+      ]
+    }
+  ],
+  "required_before_requesting_operator_run": [
+    "Choose an existing local model directory; the wrapper must use local files only and must not download model artifacts.",
+    "Confirm the operator accepts local CPU/GPU load and 300 second per-sample timeout.",
+    "Run raw_student_probe before repair_boundary_probe.",
+    "Do not generate training JSONL before human sample review has concrete reviewer, timestamp, per-dimension results, and leakage decision."
+  ],
+  "allowed_next_operator_run": {
+    "status": "allowed_after_model_dir_selection",
+    "track": "raw_student_probe",
+    "command_source": "training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json",
+    "must_include_flags": [
+      "--manifest",
+      "--provider",
+      "--model-dir",
+      "--output-dir",
+      "--summary-output",
+      "--allow-invalid-output",
+      "--validate-task",
+      "--sample-timeout-seconds"
+    ],
+    "must_not_include_flags": [
+      "--repair-hard-fields",
+      "--inject-hard-fields",
+      "--build-suggest-edits-response",
+      "--build-task-scoped-response",
+      "--guided-decoding"
+    ]
+  },
+  "blocked_next_steps": [
+    "training JSONL generation",
+    "model weight download",
+    "large batch training",
+    "committing raw candidate outputs",
+    "marking teacher_capture seed samples as reviewed_pass",
+    "marking repaired or builder output as raw student promotion"
+  ],
+  "next_review_action": "After a local model directory is selected, request the operator to run raw_student_probe exactly once, then inspect tmp summary, candidate response, prompt, and offline eval artifacts before deciding whether to run repaired comparison."
+}
