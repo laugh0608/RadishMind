@@ -25,6 +25,8 @@ REQUIRED_READY_SURFACES = {
     "model_inventory",
     "session_tooling_surface",
     "stop_lines",
+    "stop_line_details",
+    "stop_line_enforcement_summary",
     "dev_diagnostics",
     "local_readiness_panel",
     "local_smoke_readiness_status",
@@ -68,6 +70,7 @@ REQUIRED_LOCAL_SMOKE_FAILURE_SURFACES = {
     "local_smoke_contract_diagnostics",
     "previous_service_status",
     "previous_stop_lines",
+    "previous_stop_line_details",
 }
 
 REQUIRED_STOP_LINES = {
@@ -115,6 +118,12 @@ LOCAL_READINESS_SOURCE_LITERALS = {
         "readinessViewModel.sessionToolingMetadataReadable",
         "readinessViewModel.blockedActionNoSideEffects",
         "readinessViewModel.allStopLinesEnforced",
+        "Stop-line Details",
+        "Overview enforcement",
+        "Local-smoke enforcement",
+        "Blocked action",
+        "Audit mode",
+        "STOP_LINE_DETAILS",
         "readinessViewModel.allowedCorsOrigins",
         "localSmoke.failure_hints.map",
         "Local-smoke readiness unavailable",
@@ -223,6 +232,7 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
     narrow_surfaces = set(scenario_by_id["narrow_ready_overview"].get("must_show") or [])
     require("local_probe_commands" in narrow_surfaces, "narrow visual smoke must show local probe commands")
     require("local_readiness_panel" in narrow_surfaces, "narrow visual smoke must show local readiness panel")
+    require("stop_line_details" in narrow_surfaces, "narrow visual smoke must show stop-line details")
     require("no_horizontal_overflow" in narrow_expectations, "narrow visual smoke must assert no horizontal overflow")
     require("long_routes_wrap" in narrow_expectations, "narrow visual smoke must assert route wrapping")
     require(
@@ -259,6 +269,7 @@ def assert_scenarios(fixture: dict[str, Any]) -> None:
         "previous_local_readiness_panel",
         "previous_local_smoke_readiness_status",
         "previous_stop_lines",
+        "previous_stop_line_details",
     }
     missing_error_surfaces = sorted(required_error_surfaces - set(error_state.get("must_show") or []))
     require(not missing_error_surfaces, f"error visual smoke missing surfaces: {missing_error_surfaces}")

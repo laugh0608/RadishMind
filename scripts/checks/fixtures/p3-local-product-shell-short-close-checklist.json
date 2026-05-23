@@ -74,6 +74,16 @@
       ]
     },
     {
+      "id": "console_stop_line_details",
+      "status": "satisfied",
+      "evidence": [
+        "apps/radishmind-console/src/App.tsx",
+        "apps/radishmind-console/README.md",
+        "scripts/check-radishmind-console-behavior.py",
+        "scripts/checks/fixtures/p3-local-console-visual-smoke-record.json"
+      ]
+    },
+    {
       "id": "local_console_dev_entry",
       "status": "satisfied",
       "evidence": [

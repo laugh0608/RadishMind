@@ -23,6 +23,41 @@ const STOP_LINE_LABELS: Record<string, string> = {
   production_secret_backend_ready: "Production secret backend",
 };
 
+const STOP_LINE_DETAILS: Record<string, { reason: string; evidence: string }> = {
+  real_executor_enabled: {
+    reason: "Tool execution is intentionally blocked until executor and confirmation gates are ready.",
+    evidence: "Session/tooling action status stays blocked and local-smoke confirms no side effects.",
+  },
+  durable_store_enabled: {
+    reason: "Durable session, checkpoint, audit, and result storage are not implemented in P3.",
+    evidence: "Overview and local-smoke both report stop-lines enforced before any store is exposed.",
+  },
+  confirmation_flow_connected: {
+    reason: "Upper-layer confirmation is still a future path, so the console cannot approve actions.",
+    evidence: "Confirmation path remains future_upper_layer_confirmation_flow.",
+  },
+  materialized_result_reader: {
+    reason: "Tool result materialization is not available from the metadata-only shell.",
+    evidence: "Session/tooling routes expose metadata and blocked responses only.",
+  },
+  long_term_memory_enabled: {
+    reason: "Long-term memory is outside the current local product shell.",
+    evidence: "No durable memory route or replay source is exposed in overview.",
+  },
+  business_truth_write_enabled: {
+    reason: "RadishMind remains advisory-only and must not write upstream truth sources.",
+    evidence: "Audit boundary reports advisory only and writes_business_truth=false.",
+  },
+  automatic_replay_enabled: {
+    reason: "Automatic replay is blocked until durable execution and recovery policies exist.",
+    evidence: "Overview stop-lines and local-smoke readiness keep replay disabled.",
+  },
+  production_secret_backend_ready: {
+    reason: "Production secret handling is not part of the local development shell.",
+    evidence: "P3 short-close still marks production secret backend as not satisfied.",
+  },
+};
+
 const initialBaseUrl = resolvePlatformBaseUrl();
 const DEV_LAUNCHER_COMMANDS = [
   "pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly",
@@ -298,6 +333,42 @@ export function App() {
                   </li>
                 ))}
               </ul>
+              <div className="stop-line-details" aria-label="Stop-line Details">
+                <p className="section-label">Stop-line Details</p>
+                <dl className="stop-line-evidence">
+                  <Metric
+                    label="Overview enforcement"
+                    value={viewModel.stopLines.allStopLinesEnforced ? "enforced" : "not enforced"}
+                  />
+                  <Metric
+                    label="Local-smoke enforcement"
+                    value={readinessViewModel?.allStopLinesEnforced ? "enforced" : "unknown"}
+                  />
+                  <Metric
+                    label="Blocked action"
+                    value={readinessViewModel?.blockedActionNoSideEffects ? "no side effects" : "unknown"}
+                  />
+                  <Metric label="Audit mode" value={overview?.audit.advisory_only ? "advisory only" : "unknown"} />
+                </dl>
+                <ul className="stop-line-detail-list">
+                  {stopLineItems.map((item) => {
+                    const details = STOP_LINE_DETAILS[item.id] ?? {
+                      reason: "Capability remains disabled by the current platform stop-lines.",
+                      evidence: "Overview stop-lines report this capability as blocked.",
+                    };
+                    return (
+                      <li key={`${item.id}-details`}>
+                        <div>
+                          <strong>{item.label}</strong>
+                          <p>{details.reason}</p>
+                          <p className="evidence-note">{details.evidence}</p>
+                        </div>
+                        <StatusPill tone="neutral">blocked</StatusPill>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </>
           ) : (
             <SkeletonRows count={6} />

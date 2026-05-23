@@ -21,6 +21,11 @@ READY_PATH_LITERALS = (
     "Loaded {formatTimestamp(readyState.loadedAt)}",
     "Overview route",
     "Local Readiness",
+    "Stop-line Details",
+    "Overview enforcement",
+    "Local-smoke enforcement",
+    "Blocked action",
+    "Audit mode",
     "Active profile chain",
     "Confirmation path",
     "Audit Boundary",
@@ -81,6 +86,9 @@ READ_ONLY_BOUNDARY_LITERALS = (
     "P3 Local Product Shell / Ops Surface",
     "local_read_only_product_shell",
     "blockedActionNoSideEffects",
+    "STOP_LINE_DETAILS",
+    "readinessViewModel?.allStopLinesEnforced",
+    "overview?.audit.advisory_only",
     "canExecuteActions: false",
     "canUseDurableStore: false",
     "canWriteBusinessTruth: false",
@@ -168,6 +176,14 @@ def main() -> int:
     require(
         "readinessViewModel.blockedActionNoSideEffects" in app_content,
         "console must expose blocked action no-side-effects from local-smoke",
+    )
+    require(
+        "STOP_LINE_DETAILS[item.id]" in app_content,
+        "console must render stop-line details for blocked capabilities",
+    )
+    require(
+        "readinessViewModel?.allStopLinesEnforced" in app_content and "overview?.audit.advisory_only" in app_content,
+        "console must expose stop-line enforcement evidence",
     )
     require(
         'loadState.failureSurface === "platform_local_smoke"' in app_content,

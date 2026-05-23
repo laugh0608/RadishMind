@@ -36,6 +36,8 @@
         "local_cors_origins",
         "local_smoke_failure_hints",
         "stop_lines",
+        "stop_line_details",
+        "stop_line_enforcement_summary",
         "dev_diagnostics",
         "audit_boundary"
       ],
@@ -60,12 +62,14 @@
         "service_status",
         "model_inventory",
         "session_tooling_surface",
-        "stop_lines"
+        "stop_lines",
+        "stop_line_details"
       ],
       "layout_expectations": [
         "no_horizontal_overflow",
         "long_routes_wrap",
-        "stop_line_badges_do_not_overlap_text"
+        "stop_line_badges_do_not_overlap_text",
+        "stop_line_details_wrap"
       ]
     },
     {
@@ -120,7 +124,8 @@
         "previous_local_smoke_readiness_status",
         "diagnostic_list",
         "previous_service_status",
-        "previous_stop_lines"
+        "previous_stop_lines",
+        "previous_stop_line_details"
       ],
       "must_not_show": [
         "retry_executor",
@@ -141,7 +146,8 @@
         "previous_local_smoke_readiness_status",
         "local_smoke_contract_diagnostics",
         "previous_service_status",
-        "previous_stop_lines"
+        "previous_stop_lines",
+        "previous_stop_line_details"
       ],
       "must_not_show": [
         "production_health_dashboard",
