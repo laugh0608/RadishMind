@@ -6,6 +6,8 @@
 
 `GET /v1/platform/local-smoke` 只作为本地开发 readiness 摘要，用于排查 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、CORS 和停止线状态。它不是 production health、process supervisor、真实 executor 或 durable store。
 
+当前样式已开始按 [RadishMind UI 设计规范](../../docs/radishmind-ui-design-spec.md) 收敛到 `--rm-*` 语义 token。后续视觉调整应优先复用这些 token，不在页面样式中继续散落硬编码颜色；token 收敛不等于正式 ops surface UI 定稿。
+
 ## 本地运行
 
 在本目录安装依赖：

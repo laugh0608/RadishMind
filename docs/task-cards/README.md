@@ -46,6 +46,10 @@
 19. [`P2 Session & Tooling` short close entry checklist](session-tooling-short-close-entry-checklist.md)
 20. [`P2 Session & Tooling` upper-layer confirmation flow readiness](session-tooling-upper-layer-confirmation-flow-readiness.md)
 
+## UI 设计专题
+
+1. [`UI Design Topic` ops surface 设计到实现计划](ui-design-ops-surface-implementation-plan.md)
+
 使用原则：
 
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码

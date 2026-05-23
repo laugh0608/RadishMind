@@ -68,6 +68,9 @@ RadishMind UI 是面向开发者、维护者和本地部署者的 AI runtime ops
 | `--rm-bg-app` | 应用背景 | 浅冷灰或近白 |
 | `--rm-bg-surface` | 卡片、面板、弹窗底 | 白色或极浅灰 |
 | `--rm-bg-muted` | 次级分区、表格行底 | 浅灰 |
+| `--rm-bg-sidebar` | 左侧导航背景 | 浅中性灰绿，不使用大面积深绿 |
+| `--rm-bg-sidebar-active` | 当前导航项背景 | 白色或极浅灰，配合轻边框 |
+| `--rm-bg-sidebar-note` | 侧栏说明块背景 | 比侧栏略深的中性灰绿 |
 | `--rm-text-primary` | 主文本、标题 | 深灰黑 |
 | `--rm-text-secondary` | 辅助说明、时间、metadata | 中性灰 |
 | `--rm-border-soft` | 卡片和分区边框 | 低对比灰 |
