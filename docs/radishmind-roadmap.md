@@ -61,7 +61,7 @@
 
 状态：raw、repair、injection、guided、task-scoped builder、offline eval 和 training sample conversion 已有资产，但当前还不具备“直接扩大训练规模”的时机。
 
-下一步：先以平台契约为前提锁定 v1 训练目标，再决定新的实验或蒸馏路线；没有新能力假设前，不继续重跑同一批 `M4` 实验。
+下一步：真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题；保留现有 P4 v1 runbook、治理复核和预检结果作为未来重开依据。当前主线优先推进 `Production Ops Hardening v1`。
 
 ## 辅助支线
 
@@ -123,11 +123,23 @@
 
 退出条件：已达到 close candidate。核心页面、状态层级、只读/可执行边界、错误诊断、窄屏布局和 React 第二批实现切片已收口；后续只在真实使用暴露问题时做定向修正。
 
+### `P3 后续专题`：Production Ops Hardening v1
+
+目标：把 P3 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 缺口拆成可验证前置条件。
+
+状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。
+
+进入条件：已满足。P3 本地只读产品壳已经可用，且 checklist 已明确 production hardening 缺口。
+
+下一步：先启动 `config-secret-boundary` 切片，读取现有 platform config、deployment smoke、diagnostics、P3 checklist 和 console dev entry，再决定是否新增小型 fixture / checker。
+
+停止线：不实现真实 secret backend、不实现 process supervisor、不新增 executor、confirmation、writeback、replay 或 materialized result reader；不把 local-smoke、mock provider、demo profile 写成 production ready。
+
 ### `P4`：Model Adaptation & Training
 
 目标：在平台边界稳定后，定义首版基座、蒸馏和训练升级计划。
 
-状态：正在进入前置计划定义，但不提前放量。v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛、预检 runbook、治理复核记录和 `Qwen2.5-1.5B-Instruct` full-holdout-9 预检结果已有首版记录。raw student 在 docs QA 与 ghost completion 上通过，但在 `suggest_flowsheet_edits` 上 3/3 blocked；repaired comparison 可通过机器门禁，但只作为后处理证据。不启动大规模训练、不下载模型权重、不把 builder / guided / repaired 结果写成 raw 晋级。
+状态：前置计划已形成阶段证据并转入后置专题。v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛、预检 runbook、治理复核记录和 `Qwen2.5-1.5B-Instruct` full-holdout-9 预检结果已有首版记录。raw student 在 docs QA 与 ghost completion 上通过，但在 `suggest_flowsheet_edits` 上 3/3 blocked；repaired comparison 可通过机器门禁，但只作为后处理证据。`Qwen2.5-3B-Instruct` CPU 单样本 probe 300 秒 timeout，当前不继续默认长跑。
 
 ### `P5`：Real Upstream Integration
 
@@ -137,11 +149,12 @@
 
 ## 下一步
 
-1. 推进 P4 模型适配前置计划：基于 `Qwen2.5-1.5B-Instruct` raw blocked / repaired pass 结论，决定是否在同一 full-holdout-9 边界上比较更大 raw 模型；不训练放量、不下载权重。
+1. 推进 `Production Ops Hardening v1`：优先启动 `config-secret-boundary`，固定 production config、secret boundary 和不可提交项。
 2. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
-3. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。
-4. 只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁；普通 UI 展示改动优先复用现有 console behavior / visual smoke / fast baseline。
-5. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
+3. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。
+4. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。
+5. 只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁；普通 UI 展示改动优先复用现有 console behavior / visual smoke / fast baseline。
+6. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
 
 ## 停止线
 
@@ -152,5 +165,6 @@
 - 不把 `P1` 继续扩成无止境的 provider/config/diagnostics 细化阶段。
 - 不把 P3 继续扩成无止境的本地只读 console 小切片阶段。
 - 不把当前本地 console 壳扩成 production console、大面积复杂交互或真实确认 / 写回 / replay UI。
+- 不把真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏或权重相关工作作为当前默认主线。
 - 不让模型直接写上层业务真相源。
 - 不用晦涩抽象、空泛 helper 或多层 fallback 掩盖代码职责不清。

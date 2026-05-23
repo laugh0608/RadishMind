@@ -140,11 +140,22 @@ P4 v1 首轮治理复核已落到 `training/datasets/radishmind-core-model-adapt
 - `docs/radishmind-current-focus.md` 与 `docs/radishmind-roadmap.md` 指向 P4 前置计划。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
+## 后续专题状态
+
+真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作已转入后置专题。当前 P4 v1 前置计划保留为证据源，不作为当前默认主线。
+
+重开条件：
+
+- GPU 执行环境可用，或明确接受更长 timeout / 成本窗口。
+- 已提出新的非重复能力假设，而不是重复同一批 blocked 观察。
+- 仍先跑 raw 单样本 probe，再决定是否进入 full-holdout-9。
+- 不启用 `--repair-hard-fields`、guided、injected 或 builder 来替代 raw 晋级。
+
 ## 下一步
 
-1. 不在同一 CPU 路径上直接运行 `Qwen2.5-3B-Instruct` full-holdout-9。
-2. 若 GPU 可用，或明确接受更长 timeout 成本，则先重跑同一已知 edits blocker 的 3B raw 单样本 probe；仍不启用 `--repair-hard-fields`、guided、injected 或 builder。
-3. 若 3B raw 单样本仍 timeout 或仍出现 scaffold 泄漏，则停止继续容量探测，转向 raw 输出 scaffold 泄漏治理策略。
+1. 当前不继续推进真实模型产出专题。
+2. 当前主线转向 `Production Ops Hardening v1`。
+3. 未来重开 P4 时，不在同一 CPU 路径上直接运行 `Qwen2.5-3B-Instruct` full-holdout-9。
 4. 只有新的 raw 结果和人工复核同时支持时，才讨论训练样本或蒸馏路线；当前不生成训练 JSONL。
 
 ## 停止线
