@@ -22,6 +22,15 @@ READY_PATH_LITERALS = (
     "Overview route",
     "Local Readiness",
     "Stop-line Details",
+    "Provider/Profile Details",
+    "Inventory kind",
+    "Models route",
+    "Detail route",
+    "Selector boundary",
+    "display only; no health check or credential readiness",
+    "buildModelInventoryDetails",
+    "parseSelectableModelId",
+    "formatModelInventoryKind",
     "Overview enforcement",
     "Local-smoke enforcement",
     "Blocked action",
@@ -172,6 +181,16 @@ def main() -> int:
     require(
         "viewModel.modelInventory.activeProfileChain" in app_content,
         "console must expose active profile chain from overview",
+    )
+    require(
+        "viewModel.modelInventory.canShowProfileSelector" in app_content
+        and "modelInventoryDetails.map" in app_content,
+        "console must render provider/profile inventory details without extra execution capability",
+    )
+    require(
+        "id.startsWith(\"provider:\") && id.includes(\":profile:\")" in app_content
+        and "id.startsWith(\"profile:\")" in app_content,
+        "console must explain provider/profile selectable model ids",
     )
     require(
         "readinessViewModel.blockedActionNoSideEffects" in app_content,

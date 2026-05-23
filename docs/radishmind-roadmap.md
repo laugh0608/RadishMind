@@ -111,7 +111,7 @@
 
 目标：让本地长驻服务、启动说明、只读 console、观测、故障边界和 ops surface 具备正式口径。
 
-状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke 和 `apps/radishmind-console/` 本地 console 壳；console 当前已补一键 dev 启动/验证入口、refresh 状态、Dev Diagnostics、`Local Readiness` 面板、Stop-line Details 只读详情、overview / local-smoke failure surface、连接失败诊断、更可读的 overview 展示、`scripts/check-radishmind-console-behavior.py` 行为门禁、`scripts/check-radishmind-console-visual-smoke-record.py` 视觉 smoke 记录门禁和 console production packaging 边界门禁。`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已把 `P3 Local Product Shell / Ops Surface` 短收口预检固定为 `not_ready`：本地只读产品面已满足，但 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 仍为 `not_satisfied`。尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
+状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke 和 `apps/radishmind-console/` 本地 console 壳；console 当前已补一键 dev 启动/验证入口、refresh 状态、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details 只读详情、Stop-line Details 只读详情、overview / local-smoke failure surface、连接失败诊断、更可读的 overview 展示、`scripts/check-radishmind-console-behavior.py` 行为门禁、`scripts/check-radishmind-console-visual-smoke-record.py` 视觉 smoke 记录门禁和 console production packaging 边界门禁。`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已把 `P3 Local Product Shell / Ops Surface` 短收口预检固定为 `not_ready`：本地只读产品面已满足，但 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 仍为 `not_satisfied`。尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
 
 ### `P3 后置专题`：UI Design Topic / Pencil Draft
 
@@ -137,7 +137,7 @@
 
 ## 下一步
 
-1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`/v1/models`、session metadata、tool metadata、blocked action route、overview / local-smoke consumer smoke、console shell check、console behavior gate、console visual smoke record、console dev entry、console production packaging boundary gate、`p3-local-product-shell-short-close-checklist.json` 和 `apps/radishmind-console/` 已形成只读可展示闭环；console 当前已增加 Stop-line Details，只解释 blocked capability 的禁用原因和只读证据，不提供执行入口。下一步继续完善更贴近真实使用路径的只读 overview / local-smoke 消费或轻量门禁。
+1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`/v1/models`、session metadata、tool metadata、blocked action route、overview / local-smoke consumer smoke、console shell check、console behavior gate、console visual smoke record、console dev entry、console production packaging boundary gate、`p3-local-product-shell-short-close-checklist.json` 和 `apps/radishmind-console/` 已形成只读可展示闭环；console 当前已增加 Provider/Profile Details 和 Stop-line Details，只解释 provider/profile inventory、blocked capability 的禁用原因和只读证据，不提供执行入口。下一步继续完善更贴近真实使用路径的只读 overview / local-smoke 消费或轻量门禁。
 2. 只为新增产品面补行为贴近的轻量门禁，例如平台 route 单元测试、runbook drift check 和 fast baseline；不再默认扩 P2 readiness、rollup、manifest 或 task card。
 3. 当 P3 基础建设和本地只读产品壳接近稳定时，进入 `UI Design Topic / Pencil Draft`：先基于 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 画出并评审 `.pen` 设计稿，定稿后再拆分正式 UI 实现。
 4. 只有在 P3 本地产品面和 UI 设计口径稳定后，才定义新的训练 / 蒸馏主线或真实上层接入切片。

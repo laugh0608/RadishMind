@@ -2,7 +2,7 @@
 
 本目录是 `P3 Local Product Shell / Ops Surface` 的最小本地 console 壳。
 
-它当前读取 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` / `toPlatformOverviewConsoleViewModel` 以及 `contracts/typescript/platform-local-smoke-api.ts` 中的 `PlatformLocalSmokeResponse` / `toPlatformLocalSmokeReadinessViewModel`。当前页面只展示 service status、model/profile inventory、session/tooling blocked 状态、`Local Readiness` 面板、stop-lines、`Stop-line Details` 只读详情、audit boundary、refresh 状态、Dev Diagnostics、failure surface 和连接失败诊断。
+它当前读取 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并复用 `contracts/typescript/platform-overview-api.ts` 中的 `PlatformOverviewResponse` / `toPlatformOverviewConsoleViewModel` 以及 `contracts/typescript/platform-local-smoke-api.ts` 中的 `PlatformLocalSmokeResponse` / `toPlatformLocalSmokeReadinessViewModel`。当前页面只展示 service status、model/profile inventory、`Provider/Profile Details` 只读详情、session/tooling blocked 状态、`Local Readiness` 面板、stop-lines、`Stop-line Details` 只读详情、audit boundary、refresh 状态、Dev Diagnostics、failure surface 和连接失败诊断。
 
 `GET /v1/platform/local-smoke` 只作为本地开发 readiness 摘要，用于排查 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、CORS 和停止线状态。它不是 production health、process supervisor、真实 executor 或 durable store。
 
@@ -77,6 +77,8 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 页面会在 refresh 期间保留上一份已加载 overview 和 local-smoke readiness；如果连接失败，会继续展示上一份只读视图并显示诊断项。`Dev Diagnostics` 区域会展示当前 `Platform URL`、overview endpoint、local-smoke endpoint、load status、failure surface、最近加载时间、service status、console connection、readiness status、`ps1` / `sh` 本地 probe 命令，以及端口冲突、CORS / preflight、unsafe port、overview contract mismatch 和 local-smoke contract mismatch 的本地排障分类。若 overview 可读但 local-smoke readiness 或 contract 失败，页面只显示 `Local-smoke readiness unavailable` 和 local-smoke 专属诊断，不升级为 production incident、supervisor 或执行链路状态。它只是本地连接排障面，不是 production ops supervisor。
 
 `Stop-line Details` 只解释每个 blocked capability 为什么保持禁用，以及 overview、local-smoke 和 audit boundary 中哪些只读证据支撑该结论。它不提供 action button，不调用 `POST /v1/tools/actions`，也不把 executor、durable store、confirmation、业务写回或 replay 标成 ready。
+
+`Provider/Profile Details` 只解释 overview 已返回的 `selectable_model_ids`、默认 provider/profile/model、inventory kind、`/v1/models` 和 `/v1/models/{id}` route。它不会额外请求模型详情 route，也不会把 `canShowProfileSelector=true` 解释成 provider health check、credential readiness、production secret backend 或真实外部调用策略已经完成。
 
 常见处理顺序：
 

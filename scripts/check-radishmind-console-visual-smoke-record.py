@@ -23,6 +23,8 @@ REQUIRED_SCENARIOS = {
 REQUIRED_READY_SURFACES = {
     "service_status",
     "model_inventory",
+    "provider_profile_details",
+    "provider_profile_selector_boundary",
     "session_tooling_surface",
     "stop_lines",
     "stop_line_details",
@@ -110,6 +112,11 @@ PORT_SOURCE_FILES = {
 LOCAL_READINESS_SOURCE_LITERALS = {
     "apps/radishmind-console/src/App.tsx": [
         'Panel title="Local Readiness"',
+        "Provider/Profile Details",
+        "viewModel.modelInventory.canShowProfileSelector",
+        "buildModelInventoryDetails",
+        "parseSelectableModelId",
+        "display only; no health check or credential readiness",
         "readinessViewModel?.status",
         "readinessViewModel?.localConsoleReady",
         "readinessViewModel.healthzOk",

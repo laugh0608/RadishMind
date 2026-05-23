@@ -71,6 +71,13 @@ const DEV_DIAGNOSTIC_HINTS = [
   "Local-smoke mismatch: run the local-smoke readiness check against the configured Platform URL.",
 ];
 
+type ModelInventoryDetail = {
+  id: string;
+  kind: "configured_default" | "provider_profile" | "provider_registry" | "unknown";
+  provider: string;
+  profile: string;
+};
+
 export function App() {
   const [baseUrl, setBaseUrl] = useState(initialBaseUrl);
   const [loadState, setLoadState] = useState<PlatformOverviewLoadState>({
@@ -117,6 +124,18 @@ export function App() {
         id: capabilityId,
         label: STOP_LINE_LABELS[capabilityId] ?? capabilityId,
       })) ?? [],
+    [viewModel],
+  );
+  const modelInventoryDetails = useMemo(
+    () =>
+      viewModel
+        ? buildModelInventoryDetails(
+            viewModel.modelInventory.selectableModelIds,
+            viewModel.modelInventory.defaultProvider,
+            viewModel.modelInventory.defaultProfile,
+            viewModel.modelInventory.defaultModel,
+          )
+        : [],
     [viewModel],
   );
 
@@ -251,6 +270,37 @@ export function App() {
               <TokenList items={viewModel.modelInventory.selectableModelIds} emptyLabel="No selectable models" />
               <p className="section-label">Active profile chain</p>
               <TokenList items={viewModel.modelInventory.activeProfileChain} emptyLabel="No active profile chain" />
+              <div className="inventory-details" aria-label="Provider/Profile Details">
+                <p className="section-label">Provider/Profile Details</p>
+                <dl className="compact-metric-list">
+                  <Metric label="Inventory kind" value={viewModel.modelInventory.inventoryKind} />
+                  <Metric label="Models route" value={viewModel.modelInventory.modelsRoute} />
+                  <Metric label="Detail route" value={viewModel.modelInventory.detailRoute} />
+                  <Metric
+                    label="Selector boundary"
+                    value={
+                      viewModel.modelInventory.canShowProfileSelector
+                        ? "display only; no health check or credential readiness"
+                        : "hidden until inventory is readable"
+                    }
+                  />
+                </dl>
+                <ul className="inventory-detail-list">
+                  {modelInventoryDetails.map((item) => (
+                    <li key={item.id}>
+                      <div>
+                        <strong>{item.id}</strong>
+                        <dl className="compact-metric-list nested">
+                          <Metric label="Source" value={formatModelInventoryKind(item.kind)} />
+                          <Metric label="Provider" value={item.provider} />
+                          <Metric label="Profile" value={item.profile} />
+                        </dl>
+                      </div>
+                      <StatusPill tone="neutral">read only</StatusPill>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </>
           ) : (
             <SkeletonRows count={4} />
@@ -457,6 +507,75 @@ function TokenList({ items, emptyLabel }: { items: string[]; emptyLabel: string 
       ))}
     </ul>
   );
+}
+
+function buildModelInventoryDetails(
+  selectableModelIds: string[],
+  defaultProvider: string,
+  defaultProfile: string,
+  defaultModel: string,
+): ModelInventoryDetail[] {
+  return selectableModelIds.map((id) => parseSelectableModelId(id, defaultProvider, defaultProfile, defaultModel));
+}
+
+function parseSelectableModelId(
+  id: string,
+  defaultProvider: string,
+  defaultProfile: string,
+  defaultModel: string,
+): ModelInventoryDetail {
+  if (id === defaultModel) {
+    return {
+      id,
+      kind: "configured_default",
+      provider: defaultProvider || "unset",
+      profile: defaultProfile || "unset",
+    };
+  }
+  if (id.startsWith("provider:") && id.includes(":profile:")) {
+    const [provider, profile] = id.replace(/^provider:/, "").split(":profile:", 2);
+    return {
+      id,
+      kind: "provider_profile",
+      provider: provider || "unset",
+      profile: profile || "default",
+    };
+  }
+  if (id.startsWith("profile:")) {
+    return {
+      id,
+      kind: "provider_profile",
+      provider: "openai-compatible",
+      profile: id.replace(/^profile:/, "") || "default",
+    };
+  }
+  if (id.startsWith("provider:")) {
+    return {
+      id,
+      kind: "provider_registry",
+      provider: id.replace(/^provider:/, "") || "unset",
+      profile: "not profile-specific",
+    };
+  }
+  return {
+    id,
+    kind: "unknown",
+    provider: defaultProvider || "unset",
+    profile: defaultProfile || "unset",
+  };
+}
+
+function formatModelInventoryKind(kind: ModelInventoryDetail["kind"]): string {
+  if (kind === "configured_default") {
+    return "configured default";
+  }
+  if (kind === "provider_profile") {
+    return "provider profile";
+  }
+  if (kind === "provider_registry") {
+    return "provider registry";
+  }
+  return "unknown";
 }
 
 function SkeletonRows({ count }: { count: number }) {

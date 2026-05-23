@@ -28,6 +28,8 @@
       "must_show": [
         "service_status",
         "model_inventory",
+        "provider_profile_details",
+        "provider_profile_selector_boundary",
         "session_tooling_surface",
         "local_readiness_panel",
         "local_smoke_readiness_status",
@@ -61,6 +63,8 @@
         "local_cors_origins",
         "service_status",
         "model_inventory",
+        "provider_profile_details",
+        "provider_profile_selector_boundary",
         "session_tooling_surface",
         "stop_lines",
         "stop_line_details"

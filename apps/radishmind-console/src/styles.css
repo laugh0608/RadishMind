@@ -213,6 +213,10 @@ h2 {
   margin-top: 20px;
 }
 
+.inventory-details {
+  margin-top: 20px;
+}
+
 .stop-line-evidence {
   display: grid;
   grid-template-columns: minmax(130px, 0.62fr) minmax(0, 1fr);
@@ -234,6 +238,61 @@ h2 {
   overflow-wrap: anywhere;
   color: #17211b;
   font-weight: 650;
+}
+
+.compact-metric-list {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.54fr) minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 14px 0 0;
+  border: 1px solid #e0e5dc;
+  border-radius: 7px;
+  padding: 12px;
+  background: #f9faf8;
+}
+
+.compact-metric-list.nested {
+  grid-template-columns: minmax(84px, 0.44fr) minmax(0, 1fr);
+  margin-top: 8px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.compact-metric-list dt {
+  color: #60766a;
+  font-size: 0.84rem;
+}
+
+.compact-metric-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #17211b;
+  font-weight: 650;
+}
+
+.inventory-detail-list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inventory-detail-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border: 1px solid #edf0eb;
+  border-radius: 7px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.inventory-detail-list strong {
+  display: block;
+  overflow-wrap: anywhere;
 }
 
 .stop-line-detail-list {
@@ -473,6 +532,9 @@ h2 {
   }
 
   .stop-line-evidence,
+  .compact-metric-list,
+  .compact-metric-list.nested,
+  .inventory-detail-list li,
   .stop-line-detail-list li {
     grid-template-columns: 1fr;
   }

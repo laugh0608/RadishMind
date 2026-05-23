@@ -63,6 +63,8 @@ UI 只展示：
 
 `canShowProfileSelector=true` 只表示 UI 可展示 provider/profile 选择信息；它不表示 provider health check、production secret backend、真实外部调用策略或成本/重试策略已经完成。
 
+本地 console 可在同一只读块中把 `selectableModelIds` 解析成 `configured default`、`provider registry` 或 `provider profile`，用于解释 `profile:<profile>` 与 `provider:<provider>:profile:<profile>` 这类 ID 的来源。该解析只能来自 overview 已返回字段，不额外请求 `/v1/models/{id}`，也不得把 selector 展示升级成 provider health、credential readiness、secret backend、外部调用策略或可执行模型切换。
+
 ### Session / tooling surface
 
 UI 只展示：

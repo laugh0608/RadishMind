@@ -18,6 +18,7 @@ REQUIRED_SATISFIED_CONDITIONS = {
     "console_behavior_gate",
     "console_visual_smoke_record",
     "console_stop_line_details",
+    "console_provider_profile_inventory_details",
     "local_console_dev_entry",
     "console_production_boundary_gate",
     "fast_baseline_consumes_p3_gates",
