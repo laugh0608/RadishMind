@@ -58,7 +58,15 @@
 
 ## 设计稿剩余缺口
 
-当前 `.pen` 已补齐正式 React UI 重排前要求的主要状态画面。后续进入第二批实现前，还需要人工评审上述新增画面与导出的可读截图，并确认是否需要追加更细的窄屏 loading / empty 专页。
+当前 `.pen` 已补齐正式 React UI 重排前要求的主要状态画面。
+
+2026-05-23 评审结论：
+
+- Pencil `snapshot_layout` 返回 `No layout problems.`
+- 7 个正式页面均已存在：ready、failure/stale、narrow、loading/empty、settings/permissions、blocked action detail、token mapping notes。
+- `get_variables` 已包含 `rm-*` 语义 token，React 实现应继续复用 token，不直接消费设计稿散落色值。
+- 画布上曾有一个旧会话提示文本节点，不属于正式页面内容；评审后已从 `.pen` 清理。
+- 暂不追加更细的窄屏 loading / empty 专页；第二批先实现单列窄屏信息优先级、loading skeleton 和 stale/failure 只读诊断。
 
 ## 第一批实现切片
 
@@ -91,6 +99,13 @@
 - 窄屏单列布局
 
 第二批仍不改变接口语义，只调整信息架构和视觉层级。
+
+2026-05-23 已启动第二批 React 实现：
+
+- `apps/radishmind-console/src/App.tsx` 已重排为浅色侧栏、主工作区、readiness / stop-line 辅助栏结构。
+- 保留 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke` 消费逻辑，不新增 API。
+- `Blocked Action Detail` 仅解释 blocked response，不渲染 execute、confirm、writeback、apply 或 replay 控件。
+- failure/stale 仍保留 last good snapshot，并继续区分 overview failure 与 local-smoke readiness failure。
 
 ## 验收口径
 

@@ -21,11 +21,11 @@
 
 如果今天继续推进，默认进入 `UI Design Topic / Pencil Draft` 或 P4 前置的模型适配目标定义，而不是继续重跑模型、扩同层配置兜底、细化 P2 readiness / rollup / manifest / task card、补 P3 console 小展示项，或补想象中的上层接入细节。
 
-`UI Design Topic / Pencil Draft` 当前可以启动：先基于 [UI 设计规范](radishmind-ui-design-spec.md) 和 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 绘制 `.pen` 设计稿，定稿本地 console / ops surface 的信息架构、状态层级、只读与可执行边界、错误诊断和窄屏布局，再拆分正式 UI 实现任务。设计稿定稿前，不把当前 console 壳扩成正式产品 UI。
+`UI Design Topic / Pencil Draft` 已完成正式 React 第二批前的主要设计覆盖：`docs/designs/radishmind-console-ops-surface-v0.pen` 已包含 ready、failure/stale、narrow、loading/empty、settings/permissions、blocked action detail 与 token mapping notes。2026-05-23 Pencil `snapshot_layout` 已无 layout problems，当前可以按 [UI 设计任务卡](task-cards/ui-design-ops-surface-implementation-plan.md) 进入第二批 `apps/radishmind-console/` ops surface 结构重排。第二批只调整信息架构和视觉层级，不新增 API、不接 executor、不做 confirmation、writeback 或 replay。
 
 ## 当前优先做什么
 
-1. `UI Design Topic / Pencil Draft`：P3 本地只读产品壳已经能说明正式界面要承载的状态，下一步默认启动设计专题。先按 [UI 设计规范](radishmind-ui-design-spec.md) 和 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 绘制 `.pen` 设计稿，覆盖本地 console / ops surface 的信息架构、状态层级、只读与可执行边界、错误诊断、Provider/Profile inventory、Stop-line Details、Local Readiness 和窄屏布局。设计定稿前不做正式 React UI 重构，不新增确认流、业务写回或 replay UI。
+1. `UI Design Topic / Pencil Draft` -> React 第二批实现：`.pen` 已完成 7 个主要页面覆盖并通过 layout 检查，当前优先按任务卡推进 `apps/radishmind-console/` ops surface 结构重排。实现范围限于全局状态条、readiness summary、provider/profile inventory、dev diagnostics、session/tooling surface、stop-line details、failure/stale view 和窄屏单列布局；不新增 API、不新增确认流、不新增工具执行器、不新增 replay、writeback、apply、execute 或 confirm 类入口。
 2. `P3 Local Product Shell / Ops Surface`：状态调整为 `local usable / read-only close`。`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、overview / local-smoke consumer smoke、`apps/radishmind-console/`、Dev Diagnostics、`Local Readiness`、overview / local-smoke failure surface、Stop-line Details、Provider/Profile Details、console dev entry、behavior / visual smoke 和 production boundary gate 已可复验；不再默认继续补同类只读 console 小切片。`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 与 `scripts/check-p3-local-product-shell-short-close-checklist.py` 继续固定 production hardening 未完成：production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 3. `Conversation & Session` 与 `Tooling Framework`：保持 `P2 close candidate / governance-only`，既有 `scripts/checks/fixtures/session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json` 继续作为 `P2 short close` 停止线证据保留，相关 `not_satisfied`、`negative_regression_suite`、不实现真实工具执行器、不启用 automatic replay 的边界不变，但不再默认新增 readiness、rollup、manifest 或 task card。当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 已足够支撑最小 metadata / blocked shell；下一步只允许作为 P3 overview 或 UI 消费面的一部分被复用。
 4. `Model Adaptation`：可以开始定义 P4 前置计划，包括 v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛和训练 runbook；仍不启动训练放量，不下载模型权重，不把 builder / guided / repaired 结果写成 raw 晋级。
@@ -61,7 +61,7 @@
 - 不扩 `RadishFlow` 同类真实 capture，除非先写清楚非重复 drift 假设。
 - 不把 `RadishCatalyst` 从文档预留提前扩成真实 schema、adapter 或 gateway smoke。
 - 不在 runtime、session、tooling 契约还没稳定前启动训练放量。
-- 不在 Pencil UI 设计稿定稿前，把当前本地 console 壳扩成正式产品 UI 或大面积实现复杂交互。
+- 不在设计任务卡停止线外扩当前 console：第二批 React 只做 ops surface 结构重排，不新增 API、真实工具执行器、confirmation、业务写回、replay 或 production packaging。
 - 不默认下载大于当前决策所需范围的模型、数据集或权重。
 - 不把真实模型输出、训练 JSONL 或大体积实验产物提交入仓。
 - 不直接修改 `RadishFlow`、`Radish` 或 `RadishCatalyst` 外部工作区。
