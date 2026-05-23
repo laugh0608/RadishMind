@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-20
+更新时间：2026-05-23
 
 ## 路线图原则
 
@@ -77,6 +77,14 @@
 
 下一步：先推进平台本体；待上层具备真实挂载点、确认流和命令承接接口后，再只选一个切片真实接入。
 
+### `UI Design Topic / Pencil Draft`
+
+状态：未来规划专题，当前尚未进入。现有 `apps/radishmind-console/` 只是 P3 本地只读产品壳，用来验证 overview、local-smoke、Dev Diagnostics 和停止线是否能被安全消费，不等同于正式产品 UI 定稿。
+
+触发条件：当 `P3 Local Product Shell / Ops Surface` 的基础建设和短收口缺口足够清晰后，先进入专门的 UI 设计专题，而不是直接继续扩正式 UI 代码。该专题应使用 `pencil` 绘制 `.pen` 设计稿，覆盖本地 console、ops surface、session/tooling metadata、blocked action、readiness、错误诊断和未来可确认动作的界面信息架构；设计参考素材和设计语言约束见 [UI 设计参考](radishmind-ui-design-reference.md)。
+
+停止线：Pencil 设计稿定稿前，不把当前本地 console 壳扩成正式产品界面，不提前实现大面积视觉重构、复杂交互、生产导航、确认流或业务写回 UI。设计定稿后，再按设计稿拆分可验证的 React + Vite + TypeScript 实现任务。
+
 ## 阶段顺序
 
 ### `P0`：项目重定义与能力盘点
@@ -105,6 +113,16 @@
 
 状态：本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke 和 `apps/radishmind-console/` 本地 console 壳；console 当前已补一键 dev 启动/验证入口、refresh 状态、Dev Diagnostics、`Local Readiness` 面板、overview / local-smoke failure surface、连接失败诊断、更可读的 overview 展示、`scripts/check-radishmind-console-behavior.py` 行为门禁、`scripts/check-radishmind-console-visual-smoke-record.py` 视觉 smoke 记录门禁和 console production packaging 边界门禁。`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已把 `P3 Local Product Shell / Ops Surface` 短收口预检固定为 `not_ready`：本地只读产品面已满足，但 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 仍为 `not_satisfied`。尚未进入 production secret backend、进程守护、正式部署环境隔离或可发布部署包。
 
+### `P3 后置专题`：UI Design Topic / Pencil Draft
+
+目标：在基础平台和本地只读产品壳足够稳定后，先用 `pencil` 完成 UI 信息架构和界面设计稿，再进入正式 UI 实现。
+
+状态：未来专题，未启动。当前只保留规划入口和 [UI 设计参考](radishmind-ui-design-reference.md)，不要求现在创建 `.pen` 文件或改造 console 代码。
+
+进入条件：P3 的 overview、local-smoke、Dev Diagnostics、只读失败态和 short-close checklist 已足以说明真实界面要承载哪些状态；同时 production packaging、supervisor、secret backend、confirmation flow 等边界仍清楚标记为未完成。
+
+退出条件：Pencil 设计稿定稿，明确核心页面、状态层级、只读/可执行边界、错误诊断、窄屏布局和后续 React 实现切片。未定稿前，不直接把当前 console 壳扩成正式 UI。
+
 ### `P4`：Model Adaptation & Training
 
 目标：在平台边界稳定后，定义首版基座、蒸馏和训练升级计划。
@@ -121,8 +139,9 @@
 
 1. 围绕 `P3 Local Product Shell / Ops Surface` 推进最小本地产品面：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`/v1/models`、session metadata、tool metadata、blocked action route、overview / local-smoke consumer smoke、console shell check、console behavior gate、console visual smoke record、console dev entry、console production packaging boundary gate、`p3-local-product-shell-short-close-checklist.json` 和 `apps/radishmind-console/` 已形成只读可展示闭环；下一步继续完善更贴近真实使用路径的只读 overview / local-smoke 消费或轻量门禁。
 2. 只为新增产品面补行为贴近的轻量门禁，例如平台 route 单元测试、runbook drift check 和 fast baseline；不再默认扩 P2 readiness、rollup、manifest 或 task card。
-3. 只有在 P3 本地产品面稳定后，才定义新的训练 / 蒸馏主线或真实上层接入切片。
-4. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
+3. 当 P3 基础建设和本地只读产品壳接近稳定时，进入 `UI Design Topic / Pencil Draft`：先基于 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 画出并评审 `.pen` 设计稿，定稿后再拆分正式 UI 实现。
+4. 只有在 P3 本地产品面和 UI 设计口径稳定后，才定义新的训练 / 蒸馏主线或真实上层接入切片。
+5. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
 
 ## 停止线
 
@@ -131,5 +150,6 @@
 - 不在没有非重复能力假设时继续扩同一批 `M4` 实验。
 - 不在上层项目没有真实挂载点时继续细化假想接线设计。
 - 不把 `P1` 继续扩成无止境的 provider/config/diagnostics 细化阶段。
+- 不在 Pencil UI 设计稿定稿前，把当前本地 console 壳扩成正式产品 UI 或大面积实现复杂交互。
 - 不让模型直接写上层业务真相源。
 - 不用晦涩抽象、空泛 helper 或多层 fallback 掩盖代码职责不清。

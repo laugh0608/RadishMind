@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-22
+更新时间：2026-05-23
 
 ## 文档目的
 
@@ -19,12 +19,15 @@
 
 如果今天继续写代码，默认进入 `P3 Local Product Shell / Ops Surface`，而不是继续重跑模型、扩同层配置兜底、细化 P2 readiness / rollup / manifest / task card，或补想象中的上层接入细节。
 
+P3 基础建设和本地只读产品壳接近稳定后，应进入后置 `UI Design Topic / Pencil Draft`：先基于 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 绘制 `.pen` 设计稿，定稿本地 console / ops surface 的信息架构、状态层级、只读与可执行边界、错误诊断和窄屏布局，再拆分正式 UI 实现任务。该专题尚未启动，不改变今天默认继续补 P3 只读消费面和轻量门禁的顺序。
+
 ## 当前优先做什么
 
 1. `P3 Local Product Shell / Ops Surface`：围绕现有本地平台服务补只读可消费入口和最小 console 消费面。`GET /v1/platform/overview` 已作为第一刀汇总服务状态、`/v1/models` provider/profile inventory、session metadata、tool metadata、blocked action route 和当前停止线；`GET /v1/platform/local-smoke` 现在作为本地开发 readiness 摘要，汇总 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS origin、默认 `7000/4000` 端口和停止线状态。当前也已有 overview / local-smoke console consumer smoke 与 `apps/radishmind-console/` React + Vite + TypeScript 本地 console 壳，可把 overview 投影为 service status、model inventory、session/tooling surface 和 stop-line view model，并把 local-smoke readiness 投影到 Dev Diagnostics 和 `Local Readiness` 只读区域；同时已补启动说明、refresh 状态、Dev Diagnostics、连接失败诊断、更可读的 overview 展示、console behavior gate、console visual smoke record 和 console production packaging 边界门禁。visual smoke 记录已明确覆盖 `Local Readiness` 面板；console 也能区分 overview 失败与 overview 可读但 local-smoke readiness / contract 失败的只读诊断态，并保留上一份可用只读视图。`scripts/run-radishmind-console-dev.ps1` 与 `scripts/run-radishmind-console-dev.sh` 现在作为本地开发用一键 console 启动/验证入口，会按既有 wrapper 启动或复用 platform 后端和 console 前端，并探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、`http://127.0.0.1:7000/v1/platform/local-smoke`、本地 console CORS preflight 与 `http://127.0.0.1:4000`；端口冲突、CORS / preflight 和浏览器 `unsafe port` 失败只作为本地排障说明，该入口不是 production supervisor，不实现真实 executor、durable store、confirmation、业务写回或 replay。`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 与 `scripts/check-p3-local-product-shell-short-close-checklist.py` 现在固定 P3 短收口预检：本地只读产品壳和 local smoke readiness route 已可用，但 production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。下一步继续只补贴近真实使用路径的轻量门禁与只读可观测体验，不实现真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 2. `Conversation & Session` 与 `Tooling Framework`：保持 `P2 close candidate / governance-only`，既有 `scripts/checks/fixtures/session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json` 继续作为 `P2 short close` 停止线证据保留，相关 `not_satisfied`、`negative_regression_suite`、不实现真实工具执行器、不启用 automatic replay 的边界不变，但不再默认新增 readiness、rollup、manifest 或 task card。当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 已足够支撑最小 metadata / blocked shell；下一步只允许作为 P3 overview 或 UI 消费面的一部分被复用。
 3. `Evaluation & Governance`：只为新产品面补贴近行为的轻量门禁，例如平台 route 单元测试、runbook drift check 和 fast baseline；不再为了 P2 状态本身继续横向扩治理附件。
-4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
+4. `UI Design Topic / Pencil Draft`：作为 P3 后置专题保留。等基础建设差不多、界面承载状态足够明确后，再基于 [UI 设计参考](radishmind-ui-design-reference.md) 使用 `pencil` 画设计稿并评审；设计稿定稿前，不把当前 console 壳扩成正式产品 UI。
+5. `Model Adaptation`：在前三项和 UI 设计口径稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
 
 ## 为什么是这些任务
 
@@ -54,6 +57,7 @@
 - 不扩 `RadishFlow` 同类真实 capture，除非先写清楚非重复 drift 假设。
 - 不把 `RadishCatalyst` 从文档预留提前扩成真实 schema、adapter 或 gateway smoke。
 - 不在 runtime、session、tooling 契约还没稳定前启动训练放量。
+- 不在 Pencil UI 设计稿定稿前，把当前本地 console 壳扩成正式产品 UI 或大面积实现复杂交互。
 - 不默认下载大于当前决策所需范围的模型、数据集或权重。
 - 不把真实模型输出、训练 JSONL 或大体积实验产物提交入仓。
 - 不直接修改 `RadishFlow`、`Radish` 或 `RadishCatalyst` 外部工作区。
