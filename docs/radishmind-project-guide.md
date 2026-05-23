@@ -46,7 +46,7 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，默认从 `UI Design Topic / Pencil Draft` 或 P4 模型适配前置计划开始。`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`，只在真实使用暴露新缺口时继续补；production boundary、secret backend、supervisor、环境隔离和 console packaging 仍作为后续 hardening 缺口保留。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+如果你今天想推进开发，默认从 `Production Ops Hardening v1` 的 `config-secret-boundary` 切片开始。`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出转入后置专题。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
 
 ## 目录速览
 

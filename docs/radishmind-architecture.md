@@ -145,16 +145,16 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory 和 diagnostics 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
 - 已有 session/tooling 首版契约、metadata-only 门禁、close-candidate status summary、negative regression governance suite、route/gate coverage rollup、readiness consistency rollup、short close delta、enablement plan、stop-line manifest、五类设计级边界门禁和只读本地 console 消费壳，但没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器
 - 已有 tool registry、tool audit、metadata-only result cache、result materialization policy design、executor boundary design 和 deny-by-default gate contract，但没有真实工具执行器、materialized result reader、durable tool store、durable result store 或上层确认流接线
-- 尚未具备 production secret backend、process supervisor、正式部署环境隔离和可发布部署包；这些属于后续 production ops hardening，不再阻塞 UI 设计专题启动
+- 尚未具备 production secret backend、process supervisor、正式部署环境隔离和可发布部署包；这些属于当前 `Production Ops Hardening v1` 的主线缺口，不再混在 P3 只读 console 小切片或真实模型产出专题中推进
 
-这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 的本地只读壳已达到 `local usable / read-only close`。下一步应启动 `UI Design Topic / Pencil Draft` 并准备 P4 模型适配前置计划，而不是继续补 P3 console 同类小展示项、回头扩 P2 readiness、真实 executor、durable store 或 confirmation 接线。
+这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 的本地只读壳已达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 和 P4 前置证据已进入 close / 后置专题状态。下一步应启动 `Production Ops Hardening v1`，优先固定 production config / secret boundary，而不是继续补 P3 console 同类小展示项、回头扩 P2 readiness、真实 executor、durable store、confirmation 接线或真实模型长跑。
 
 ## 当前进度
 
 - `contracts/` 已具备 Copilot request / response / gateway envelope / training sample / image generation intent / backend request / artifact schema。
 - `RadishFlow` 的 gateway demo、service smoke matrix、UI consumption 和 candidate edit handoff 已作为未来接入门禁保留；在上层项目尚未具备真实接入能力前，当前只收口前置条件与阻塞项，不继续细化新的接线设计或模拟接入 summary。
 - `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 的真实 candidate record、audit、replay 和治理链已阶段性收口；新增真实 capture 需要先说明非重复 drift 假设。
-- `RadishMind-Core` 本地小模型观测显示 raw 仍 blocked；broader review 的 15/15 `reviewed_pass` 与 `3B/4B` guided capacity review 当前只保留为路线证据，在没有新假设前不再默认继续扩 `M4` 实验面。
+- `RadishMind-Core` 本地小模型观测显示 raw 仍 blocked；broader review 的 15/15 `reviewed_pass`、`3B/4B` guided capacity review、1.5B full-holdout-9 raw / repaired comparison 和 3B CPU 单样本 timeout 当前只保留为路线证据，在没有 GPU / 明确实验窗口 / 新能力假设前不再默认继续真实模型产出专题。
 - `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata 与最小评测 manifest；暂不调用真实生图 backend。
 
 ## 工程约束
