@@ -50,6 +50,12 @@
 
 1. [`UI Design Topic` ops surface 设计到实现计划](ui-design-ops-surface-implementation-plan.md)
 
+## Model Adaptation
+
+1. [`P4 Model Adaptation` v1 前置计划](model-adaptation-v1-preflight-plan.md)
+
+配套 runbook：`training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json`
+
 使用原则：
 
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码

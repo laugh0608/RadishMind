@@ -79,11 +79,11 @@
 
 ### `UI Design Topic / Pencil Draft`
 
-状态：下一步默认专题，当前可以启动。现有 `apps/radishmind-console/` 已经完成 P3 本地只读产品壳的 `local usable / read-only close`，足以说明正式界面要承载 overview、local-smoke、Dev Diagnostics、Local Readiness、Provider/Profile Details、Stop-line Details、session/tooling metadata、blocked action 和停止线状态；它仍不等同于正式产品 UI 定稿。
+状态：`close candidate`。`docs/designs/radishmind-console-ops-surface-v0.pen` 已覆盖 7 个主要页面并通过 Pencil layout 检查；`apps/radishmind-console/` 第二批 React 已重排为浅色侧栏、主工作区和 readiness / stop-line 辅助栏结构，并完成本地 mock platform ready 态桌面 / 窄屏临时截图复核。它仍不等同于 production console 或 production packaging。
 
-触发条件：已经满足。该专题应按 [UI 设计规范](radishmind-ui-design-spec.md) 使用 `pencil` 绘制 `.pen` 设计稿，覆盖本地 console、ops surface、session/tooling metadata、blocked action、readiness、错误诊断、窄屏布局和未来可确认动作的界面信息架构；外部参考素材见 [UI 设计参考](radishmind-ui-design-reference.md)。
+触发条件：已经满足并完成首轮 close candidate。后续只在真实使用暴露新可读性缺口时继续做 UI polish；外部参考素材见 [UI 设计参考](radishmind-ui-design-reference.md)。
 
-停止线：Pencil 设计稿定稿前，不把当前本地 console 壳扩成正式产品界面，不提前实现大面积视觉重构、复杂交互、生产导航、确认流或业务写回 UI。设计定稿后，再按设计稿拆分可验证的 React + Vite + TypeScript 实现任务。
+停止线：不把当前本地 console 壳写成 production console，不提前实现复杂交互、生产导航、确认流或业务写回 UI。后续任何 UI 能力扩张仍必须先回到设计稿或任务卡说明范围。
 
 ## 阶段顺序
 
@@ -117,17 +117,17 @@
 
 目标：在基础平台和本地只读产品壳足够稳定后，先用 `pencil` 完成 UI 信息架构和界面设计稿，再进入正式 UI 实现。
 
-状态：可启动专题。当前已有 [UI 设计参考](radishmind-ui-design-reference.md) 和足够的本地只读产品状态输入；下一步应创建并评审 `.pen` 设计稿，而不是继续扩当前 console 小功能。
+状态：`close candidate`。当前已有 [UI 设计参考](radishmind-ui-design-reference.md)、[UI 设计规范](radishmind-ui-design-spec.md)、`.pen` 设计稿和第二批 React ops surface 结构重排；后续不再默认扩当前 console 小功能。
 
 进入条件：已满足。P3 的 overview、local-smoke、Dev Diagnostics、只读失败态、Provider/Profile Details、Stop-line Details 和 P3 checklist 已足以说明真实界面要承载哪些状态；同时 production packaging、supervisor、secret backend、confirmation flow 等边界仍清楚标记为未完成。
 
-退出条件：Pencil 设计稿定稿，明确核心页面、状态层级、只读/可执行边界、错误诊断、窄屏布局和后续 React 实现切片。未定稿前，不直接把当前 console 壳扩成正式 UI。
+退出条件：已达到 close candidate。核心页面、状态层级、只读/可执行边界、错误诊断、窄屏布局和 React 第二批实现切片已收口；后续只在真实使用暴露问题时做定向修正。
 
 ### `P4`：Model Adaptation & Training
 
 目标：在平台边界稳定后，定义首版基座、蒸馏和训练升级计划。
 
-状态：可以进入前置计划定义，但不提前放量。下一步只定义 v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛和训练 runbook；不启动大规模训练、不下载模型权重、不把 builder / guided / repaired 结果写成 raw 晋级。
+状态：正在进入前置计划定义，但不提前放量。v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛和预检 runbook 已有首版草案；下一步先复核样本治理、review record 模板和 holdout split，再决定是否要求人工执行 raw student 单批脚本。不启动大规模训练、不下载模型权重、不把 builder / guided / repaired 结果写成 raw 晋级。
 
 ### `P5`：Real Upstream Integration
 
@@ -137,9 +137,9 @@
 
 ## 下一步
 
-1. 启动 `UI Design Topic / Pencil Draft`：基于 [UI 设计规范](radishmind-ui-design-spec.md) 和 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 画出并评审 `.pen` 设计稿，定稿后再拆分正式 React 实现任务。
-2. 将 `P3 Local Product Shell / Ops Surface` 维持在 `local usable / read-only close`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
-3. 准备 P4 模型适配前置计划：定义 v1 能力目标、样本分层、teacher/student 边界、晋级门槛和训练 runbook，但不训练放量。
+1. 推进 P4 模型适配前置计划：复核 v1 样本治理、holdout split 和预检 runbook，再决定是否要求人工执行 raw student 单批脚本；不训练放量。
+2. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
+3. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。
 4. 只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁；普通 UI 展示改动优先复用现有 console behavior / visual smoke / fast baseline。
 5. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
 
@@ -151,6 +151,6 @@
 - 不在上层项目没有真实挂载点时继续细化假想接线设计。
 - 不把 `P1` 继续扩成无止境的 provider/config/diagnostics 细化阶段。
 - 不把 P3 继续扩成无止境的本地只读 console 小切片阶段。
-- 不在 Pencil UI 设计稿定稿前，把当前本地 console 壳扩成正式产品 UI 或大面积实现复杂交互。
+- 不把当前本地 console 壳扩成 production console、大面积复杂交互或真实确认 / 写回 / replay UI。
 - 不让模型直接写上层业务真相源。
 - 不用晦涩抽象、空泛 helper 或多层 fallback 掩盖代码职责不清。

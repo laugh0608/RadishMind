@@ -100,12 +100,16 @@
 
 第二批仍不改变接口语义，只调整信息架构和视觉层级。
 
-2026-05-23 已启动第二批 React 实现：
+2026-05-23 第二批 React 实现已进入 `close candidate`：
 
 - `apps/radishmind-console/src/App.tsx` 已重排为浅色侧栏、主工作区、readiness / stop-line 辅助栏结构。
 - 保留 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke` 消费逻辑，不新增 API。
 - `Blocked Action Detail` 仅解释 blocked response，不渲染 execute、confirm、writeback、apply 或 replay 控件。
 - failure/stale 仍保留 last good snapshot，并继续区分 overview failure 与 local-smoke readiness failure。
+- 已用本地 mock platform ready 态复核 `overview=200`、`local-smoke=200`、console page `200`，并完成桌面与窄屏临时截图复核。
+- 已通过 `npm run build`、`scripts/check-radishmind-console-behavior.py`、`scripts/check-radishmind-console-visual-smoke-record.py`、`git diff --check` 与 `pwsh ./scripts/check-repo.ps1 -Fast`。
+
+后续只在真实使用暴露新可读性缺口时继续做 UI polish；不再默认补同类只读 console 小展示项。
 
 ## 验收口径
 
