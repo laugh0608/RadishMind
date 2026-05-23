@@ -81,7 +81,7 @@
 
 状态：下一步默认专题，当前可以启动。现有 `apps/radishmind-console/` 已经完成 P3 本地只读产品壳的 `local usable / read-only close`，足以说明正式界面要承载 overview、local-smoke、Dev Diagnostics、Local Readiness、Provider/Profile Details、Stop-line Details、session/tooling metadata、blocked action 和停止线状态；它仍不等同于正式产品 UI 定稿。
 
-触发条件：已经满足。该专题应使用 `pencil` 绘制 `.pen` 设计稿，覆盖本地 console、ops surface、session/tooling metadata、blocked action、readiness、错误诊断、窄屏布局和未来可确认动作的界面信息架构；设计参考素材和设计语言约束见 [UI 设计参考](radishmind-ui-design-reference.md)。
+触发条件：已经满足。该专题应按 [UI 设计规范](radishmind-ui-design-spec.md) 使用 `pencil` 绘制 `.pen` 设计稿，覆盖本地 console、ops surface、session/tooling metadata、blocked action、readiness、错误诊断、窄屏布局和未来可确认动作的界面信息架构；外部参考素材见 [UI 设计参考](radishmind-ui-design-reference.md)。
 
 停止线：Pencil 设计稿定稿前，不把当前本地 console 壳扩成正式产品界面，不提前实现大面积视觉重构、复杂交互、生产导航、确认流或业务写回 UI。设计定稿后，再按设计稿拆分可验证的 React + Vite + TypeScript 实现任务。
 
@@ -137,7 +137,7 @@
 
 ## 下一步
 
-1. 启动 `UI Design Topic / Pencil Draft`：基于 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 画出并评审 `.pen` 设计稿，定稿后再拆分正式 React 实现任务。
+1. 启动 `UI Design Topic / Pencil Draft`：基于 [UI 设计规范](radishmind-ui-design-spec.md) 和 [UI 设计参考](radishmind-ui-design-reference.md) 用 `pencil` 画出并评审 `.pen` 设计稿，定稿后再拆分正式 React 实现任务。
 2. 将 `P3 Local Product Shell / Ops Surface` 维持在 `local usable / read-only close`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 3. 准备 P4 模型适配前置计划：定义 v1 能力目标、样本分层、teacher/student 边界、晋级门槛和训练 runbook，但不训练放量。
 4. 只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁；普通 UI 展示改动优先复用现有 console behavior / visual smoke / fast baseline。

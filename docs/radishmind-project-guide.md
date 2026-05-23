@@ -217,10 +217,11 @@ python3 scripts/run-radishmind-core-candidate.py \
 5. [战略定义](radishmind-strategy.md)
 6. [能力矩阵](radishmind-capability-matrix.md)
 7. [系统架构](radishmind-architecture.md)
-8. [跨项目集成契约](radishmind-integration-contracts.md)
-9. [脚本目录说明](../scripts/README.md)
-10. [数据集目录说明](../datasets/README.md)
-11. [训练目录说明](../training/README.md)
+8. [UI 设计规范](radishmind-ui-design-spec.md)
+9. [跨项目集成契约](radishmind-integration-contracts.md)
+10. [脚本目录说明](../scripts/README.md)
+11. [数据集目录说明](../datasets/README.md)
+12. [训练目录说明](../training/README.md)
 
 ## 默认不要做
 

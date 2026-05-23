@@ -62,6 +62,7 @@
 - [能力矩阵](radishmind-capability-matrix.md)
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
+- [UI 设计规范](radishmind-ui-design-spec.md)
 - [UI 设计参考](radishmind-ui-design-reference.md)
 - [代码规范](radishmind-code-standards.md)
 - [跨项目集成契约](radishmind-integration-contracts.md)
