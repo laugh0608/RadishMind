@@ -117,15 +117,65 @@ def check_repaired_comparison(document: dict[str, Any]) -> None:
     require(decision.get("requires_human_review") is True, "repaired result must require human review")
 
 
+def check_larger_raw_model_probe(document: dict[str, Any]) -> None:
+    probe = document.get("larger_raw_model_probe")
+    require(isinstance(probe, dict), "larger_raw_model_probe must be an object")
+    require(probe.get("candidate_track") == "raw_student", "larger probe candidate_track mismatch")
+    require(probe.get("probe_id") == "qwen25-3b-edits-single-timeout-001", "larger probe id mismatch")
+
+    model = probe.get("model")
+    require(isinstance(model, dict), "larger probe model must be an object")
+    require(model.get("provider") == "local_transformers", "larger probe provider mismatch")
+    require(model.get("model_id") == "Qwen2.5-3B-Instruct", "larger probe model_id mismatch")
+    require(model.get("device") == "cpu", "larger probe device mismatch")
+    require(model.get("does_not_download_model_artifacts") is True, "larger probe must not download model artifacts")
+
+    scope = probe.get("scope")
+    require(isinstance(scope, dict), "larger probe scope must be an object")
+    require(scope.get("sample_count") == 1, "larger probe sample_count must be 1")
+    require(
+        scope.get("sample_id") == "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+        "larger probe sample_id mismatch",
+    )
+    require(scope.get("task") == "radishflow/suggest_flowsheet_edits", "larger probe task mismatch")
+
+    artifact_paths = probe.get("artifact_paths")
+    require(isinstance(artifact_paths, dict), "larger probe artifact_paths must be an object")
+    for key in ("candidate_output_dir", "candidate_summary"):
+        require_tmp_path(str(artifact_paths.get(key) or ""), field_name=f"larger_raw_model_probe.{key}")
+
+    observation = probe.get("candidate_summary_observation")
+    require(isinstance(observation, dict), "larger probe observation must be an object")
+    require(observation.get("schema_valid_rate") == 0.0, "larger probe schema_valid_rate must be 0")
+    require(observation.get("schema_invalid_rate") == 1.0, "larger probe schema_invalid_rate must be 1")
+    require(observation.get("task_validation_attempted") == 0, "larger probe task_validation_attempted must be 0")
+    require(observation.get("timeout_count") == 1, "larger probe timeout_count must be 1")
+    require(observation.get("hit_max_new_tokens_count") == 0, "larger probe hit_max_new_tokens_count must be 0")
+    require(observation.get("json_extracted_count") == 0, "larger probe json_extracted_count must be 0")
+    require(observation.get("total_output_tokens") == 0, "larger probe total_output_tokens must be 0")
+
+    decision = probe.get("decision")
+    require(isinstance(decision, dict), "larger probe decision must be an object")
+    require(decision.get("promotion_status") == "not_evaluable", "larger probe must be not_evaluable")
+    require(decision.get("full_holdout_raw_comparison_status") == "deferred", "larger probe full holdout status mismatch")
+    blocking_reason = str(decision.get("blocking_reason") or "")
+    require("timed out after 300 seconds" in blocking_reason, "larger probe blocker must mention timeout")
+
+
 def check_decision_and_policy(document: dict[str, Any]) -> None:
     decision = document.get("decision")
     require(isinstance(decision, dict), "decision must be an object")
     require(decision.get("raw_student_promotion_status") == "blocked", "raw_student_promotion_status must be blocked")
     require(decision.get("repaired_result_role") == "postprocess_comparison_only", "repaired result role mismatch")
+    require(
+        decision.get("larger_raw_model_probe_status") == "qwen25_3b_cpu_single_timeout",
+        "larger raw model probe status mismatch",
+    )
     route_conclusion = str(decision.get("route_conclusion") or "")
     require("raw" in route_conclusion and "blocked" in route_conclusion, "route conclusion must keep raw blocked")
     require("must not be treated as raw model promotion" in route_conclusion, "route conclusion must reject raw promotion")
     require("training acceptance" in route_conclusion, "route conclusion must reject training acceptance")
+    require("3B raw CPU probe" in route_conclusion and "timed out" in route_conclusion, "route conclusion must record 3B timeout")
 
     artifact_policy = document.get("artifact_policy")
     require(isinstance(artifact_policy, dict), "artifact_policy must be an object")
@@ -163,6 +213,7 @@ def main() -> int:
     check_scope(document)
     check_raw_student(document)
     check_repaired_comparison(document)
+    check_larger_raw_model_probe(document)
     check_decision_and_policy(document)
 
     print("radishmind core model adaptation v1 preflight result check passed.")

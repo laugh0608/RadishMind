@@ -124,6 +124,7 @@ P4 v1 首轮治理复核已落到 `training/datasets/radishmind-core-model-adapt
 - raw student 总体 `schema_valid_rate=0.6667`，`radishflow/suggest_flowsheet_edits` 3/3 因 `citations` scaffold 引用泄漏 blocked；ghost completion 与 docs QA 6/6 schema/task valid。
 - repaired comparison 使用 `--repair-hard-fields` 后 9/9 schema/task valid，修复集中在 3 条 edits 的 `$.citations`，并额外修复部分 `$.status`、`$.answers`、`$.issues`。
 - repaired comparison 只能证明后处理有价值，不代表 raw 模型晋级、训练准入或 production model ready。
+- 后续 `Qwen2.5-3B-Instruct` raw CPU 单样本 probe 选取同一已知 edits blocker，300 秒内未产出 token 并 timeout；该结果不可评价 3B 输出质量，但足以阻止在同一 CPU 路径上直接启动 3B full-holdout-9。
 
 ## 验收口径
 
@@ -141,9 +142,10 @@ P4 v1 首轮治理复核已落到 `training/datasets/radishmind-core-model-adapt
 
 ## 下一步
 
-1. 基于 1.5B raw blocked / repaired pass 结论，决定是否在同一 full-holdout-9 边界上比较 `Qwen2.5-3B-Instruct` raw。
-2. 若比较更大 raw 模型，继续只运行 raw，不启用 `--repair-hard-fields`、guided、injected 或 builder。
-3. 只有新的 raw 结果和人工复核同时支持时，才讨论训练样本或蒸馏路线；当前不生成训练 JSONL。
+1. 不在同一 CPU 路径上直接运行 `Qwen2.5-3B-Instruct` full-holdout-9。
+2. 若 GPU 可用，或明确接受更长 timeout 成本，则先重跑同一已知 edits blocker 的 3B raw 单样本 probe；仍不启用 `--repair-hard-fields`、guided、injected 或 builder。
+3. 若 3B raw 单样本仍 timeout 或仍出现 scaffold 泄漏，则停止继续容量探测，转向 raw 输出 scaffold 泄漏治理策略。
+4. 只有新的 raw 结果和人工复核同时支持时，才讨论训练样本或蒸馏路线；当前不生成训练 JSONL。
 
 ## 停止线
 

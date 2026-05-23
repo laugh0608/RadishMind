@@ -111,11 +111,51 @@
       "requires_human_review": true
     }
   },
+  "larger_raw_model_probe": {
+    "candidate_track": "raw_student",
+    "probe_id": "qwen25-3b-edits-single-timeout-001",
+    "model": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-3B-Instruct",
+      "model_dir": "/home/luobo/Code/Models/Qwen2.5-3B-Instruct",
+      "device": "cpu",
+      "does_not_download_model_artifacts": true
+    },
+    "scope": {
+      "sample_count": 1,
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "task": "radishflow/suggest_flowsheet_edits",
+      "reason": "Known 1.5B raw blocker sample used to test whether a larger raw student removes the citations scaffold leakage before running full-holdout-9."
+    },
+    "artifact_paths": {
+      "candidate_output_dir": "tmp/radishmind-core-v1-preflight/raw-student-qwen25-3b-single/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "candidate_summary": "tmp/radishmind-core-v1-preflight/raw-student-qwen25-3b-single/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001/summary.json"
+    },
+    "candidate_summary_observation": {
+      "schema_valid_rate": 0.0,
+      "schema_invalid_rate": 1.0,
+      "task_validation_attempted": 0,
+      "timeout_count": 1,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 0,
+      "total_generation_seconds": 300.018,
+      "avg_generation_seconds": 300.018,
+      "total_input_tokens": 3615,
+      "total_output_tokens": 0
+    },
+    "decision": {
+      "promotion_status": "not_evaluable",
+      "blocking_reason": "Qwen2.5-3B-Instruct on CPU timed out after 300 seconds before producing any output tokens for the known edits blocker sample.",
+      "full_holdout_raw_comparison_status": "deferred",
+      "recommended_next_step": "Do not run Qwen2.5-3B-Instruct full-holdout-9 on the same CPU path. Continue only if GPU execution is available or an explicit longer-timeout cost decision is made; otherwise shift from capacity probing to raw-output scaffold leakage mitigation strategy."
+    }
+  },
   "decision": {
     "raw_student_promotion_status": "blocked",
     "repaired_result_role": "postprocess_comparison_only",
-    "route_conclusion": "Qwen2.5-1.5B raw can complete docs QA and ghost completion on full-holdout-9, but remains blocked on suggest_flowsheet_edits due scaffold citation reference leakage. Repaired comparison eliminates the machine-gate blocker but must not be treated as raw model promotion or training acceptance.",
-    "recommended_next_step": "Record the run as P4 preflight evidence, then decide whether to compare a larger raw model such as Qwen2.5-3B-Instruct on the same full-holdout-9 boundary before any training JSONL generation."
+    "larger_raw_model_probe_status": "qwen25_3b_cpu_single_timeout",
+    "route_conclusion": "Qwen2.5-1.5B raw can complete docs QA and ghost completion on full-holdout-9, but remains blocked on suggest_flowsheet_edits due scaffold citation reference leakage. Repaired comparison eliminates the machine-gate blocker but must not be treated as raw model promotion or training acceptance. A follow-up Qwen2.5-3B raw CPU probe on the known edits blocker sample timed out before producing output, so full-holdout-9 3B CPU comparison is deferred.",
+    "recommended_next_step": "Do not launch Qwen2.5-3B full-holdout-9 on the same CPU path. If GPU execution is available, rerun the same single raw probe under GPU before full-batch comparison; otherwise shift to raw-output scaffold leakage mitigation planning without generating training JSONL."
   },
   "artifact_policy": {
     "committed_allowed": [
