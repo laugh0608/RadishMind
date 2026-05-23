@@ -9,9 +9,27 @@
     ],
     "naming_policy": "Use the preferred stage name in primary docs. The deployment/governance wording may describe missing production prerequisites, but it is not a separate roadmap phase."
   },
+  "local_readonly_close_state": {
+    "status": "satisfied",
+    "label": "local usable / read-only close",
+    "reason": "The local read-only product shell can be consumed through overview, local-smoke, the console shell, Dev Diagnostics, Local Readiness, Provider/Profile Details, Stop-line Details, stale overview diagnostics, and fast gates.",
+    "does_not_unlock": [
+      "production_deployment_ready",
+      "console_production_package_ready",
+      "real_executor_ready",
+      "durable_store_ready",
+      "confirmation_flow_connected",
+      "business_truth_write_enabled",
+      "replay_enabled"
+    ],
+    "next_default": [
+      "ui_design_topic_pencil_draft",
+      "p4_model_adaptation_plan"
+    ]
+  },
   "short_close_state": {
     "status": "not_ready",
-    "reason": "The local read-only product shell is usable, but P3 short close still requires production operations prerequisites to remain explicit and unsatisfied.",
+    "reason": "The local read-only product shell is usable; production operations hardening still requires production prerequisites to remain explicit and unsatisfied.",
     "must_not_claim": [
       "production_deployment_ready",
       "console_production_package_ready",

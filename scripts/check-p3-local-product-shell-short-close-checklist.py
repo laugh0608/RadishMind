@@ -44,21 +44,27 @@ REQUIRED_STOP_LINES = {
 REQUIRED_DOC_REFERENCES = {
     "docs/radishmind-current-focus.md": [
         "P3 Local Product Shell / Ops Surface",
+        "local usable / read-only close",
+        "UI Design Topic / Pencil Draft",
         "p3-local-product-shell-short-close-checklist.json",
         "check-p3-local-product-shell-short-close-checklist.py",
     ],
     "docs/radishmind-roadmap.md": [
         "P3 Local Product Shell / Ops Surface",
+        "local usable / read-only close",
+        "UI Design Topic / Pencil Draft",
         "p3-local-product-shell-short-close-checklist.json",
         "not_satisfied",
     ],
     "docs/radishmind-architecture.md": [
         "P3 Local Product Shell / Ops Surface",
+        "local usable / read-only close",
         "check-p3-local-product-shell-short-close-checklist.py",
     ],
     "scripts/README.md": [
         "check-p3-local-product-shell-short-close-checklist.py",
         "P3 Local Product Shell / Ops Surface",
+        "local usable / read-only close",
         "check-platform-local-smoke-contract.py",
     ],
 }
@@ -94,6 +100,30 @@ def assert_stage_naming(fixture: dict[str, Any]) -> None:
 
 
 def assert_short_close_state(fixture: dict[str, Any]) -> None:
+    local_close = fixture.get("local_readonly_close_state") or {}
+    require(local_close.get("status") == "satisfied", "P3 local read-only close must be satisfied")
+    require(
+        local_close.get("label") == "local usable / read-only close",
+        "P3 local read-only close label must stay explicit",
+    )
+    next_default = set(local_close.get("next_default") or [])
+    require(
+        {"ui_design_topic_pencil_draft", "p4_model_adaptation_plan"}.issubset(next_default),
+        "P3 local close must point to UI design topic and P4 model adaptation plan",
+    )
+    locked_claims = set(local_close.get("does_not_unlock") or [])
+    required_locked_claims = {
+        "production_deployment_ready",
+        "console_production_package_ready",
+        "real_executor_ready",
+        "durable_store_ready",
+        "confirmation_flow_connected",
+        "business_truth_write_enabled",
+        "replay_enabled",
+    }
+    missing_locked_claims = sorted(required_locked_claims - locked_claims)
+    require(not missing_locked_claims, f"P3 local close missing locked claims: {missing_locked_claims}")
+
     state = fixture.get("short_close_state") or {}
     require(state.get("status") == "not_ready", "P3 short close must remain not_ready")
     forbidden_claims = set(state.get("must_not_claim") or [])

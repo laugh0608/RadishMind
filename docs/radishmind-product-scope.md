@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-05-22
+更新时间：2026-05-23
 
 ## 核心定义
 
@@ -24,7 +24,7 @@
 ### 1. `Runtime Service`
 
 - 提供最小可运行的推理入口、gateway、route 识别、provider/profile 选择、响应封装和本地产品 discovery 面。
-- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、session/tooling metadata shell、blocked action shell、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 short-close checklist；后续要补生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
+- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、session/tooling metadata shell、blocked action shell、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist；本地只读产品壳已达到 `local usable / read-only close`，后续要补生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
 - 这一层必须同时覆盖两条方向：
   - 北向协议兼容：对外提供 native Copilot API，以及 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke`、session/tooling metadata shell 这类常见兼容接口和只读产品发现接口。
   - 南向模型接入：对内接入 `RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages 等 provider / transport。
@@ -64,7 +64,7 @@
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
-- 当前实现焦点已进入 `P3 Local Product Shell / Ops Surface`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 short-close checklist 固定本地 console 可展示能力与未满足的生产前置条件，后续只继续完善只读消费体验和轻量门禁。
+- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。下一步默认进入 UI 设计专题和 P4 模型适配前置计划，而不是继续补同类只读 console 小切片。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面
@@ -117,7 +117,7 @@
 - 不让模型替代 `RadishFlow` 求解、`Radish` 权限判定或 `RadishCatalyst` 游戏权威。
 - 不把通用 unrestricted tool calling 当成当前默认能力。
 - 不把平台锁死在单一模型、单一 provider、单一上游协议或单一对外接口上。
-- 不在 runtime、session、tooling 契约还没稳定前扩大训练规模。
+- 不在 runtime、session、tooling 契约还没稳定前扩大训练规模；当前只允许先定义 P4 v1 训练路线和晋级门槛。
 - 不默认下载大模型、数据集或权重。
 - 不把 `14B/32B` 写成当前自研主模型默认目标；首版仍优先本地可承受的小中型路线，长期本地部署上限暂定 `7B`。
 

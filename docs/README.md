@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-05-20
+更新时间：2026-05-23
 
 ## 阅读原则
 
@@ -29,7 +29,8 @@
 - `P1 Runtime Foundation` 已达到 short close：`services/platform/` 下的最小 `Go` 平台服务层 bootstrap 已落地，当前已固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 的第一版 bridge，并补齐本地 wrapper、配置文件层级、deployment smoke、结构化 diagnostics、provider/profile discoverability、request-level observability 与 error taxonomy。
 - `P2 Session & Tooling Foundation` 已进入 close candidate / governance-only，并已补上最小可消费产品骨架：`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 能返回 session/tool metadata 和明确 blocked action response。当前仍不实现真实工具执行器、长期记忆、durable session/checkpoint/audit/result store、materialized result reader、业务写回或 replay executor，也不声明完整 `negative_regression_suite` 已完成。
 - `session-tooling-negative-regression-suite-readiness.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json`、`session-tooling-short-close-entry-checklist.json` 等 P2 fixture 继续作为 governance-only 停止线证据保留，固定 `P2 short close` 前的 `not_satisfied` 条件；它们不再是默认新增工作方向。
-- 当前主要实现重心切到 `P3 Local Product Shell / Ops Surface`：`GET /v1/platform/overview` 作为首个只读产品 overview，汇总服务状态、model/profile inventory、session/tooling metadata、blocked action route 和停止线；`GET /v1/platform/local-smoke` 作为本地开发 readiness 摘要，汇总 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS 和停止线。当前已补 overview / local-smoke consumer smoke、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 与 P3 short-close checklist，供本地控制台或上层 UI 只读消费。
+- `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已达到 `local usable / read-only close`：`GET /v1/platform/overview` 作为首个只读产品 overview，汇总服务状态、model/profile inventory、session/tooling metadata、blocked action route 和停止线；`GET /v1/platform/local-smoke` 作为本地开发 readiness 摘要，汇总 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS 和停止线。当前已补 overview / local-smoke consumer smoke、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 与 P3 checklist，供本地控制台或上层 UI 只读消费；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍作为后续 hardening 缺口保留。
+- 当前默认下一步切到 `UI Design Topic / Pencil Draft` 与 P4 模型适配前置计划：先定稿本地 console / ops surface 的信息架构、状态层级、错误诊断和只读/可执行边界，再拆分正式 UI 实现；同时可定义 v1 模型能力目标、样本分层和晋级门槛，但不训练放量。
 - 既有 `M3` service/API smoke matrix 与 `M4` broader review、`3B/4B` capacity review 继续保留为冻结证据和门禁；它们不再是当前唯一主线，也不再默认继续深挖同一批样本。
 - `RadishFlow` 仍是第一优先应用面，但当前只冻结 gateway、UI consumption 和 candidate handoff 门禁；上层尚未具备真实接入能力前，不继续细化假想接线。
 - `Radish` 当前保留 docs QA、文档检索增强和结构化问答资产；真实上层接入仍等待。

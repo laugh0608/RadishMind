@@ -79,6 +79,13 @@ REQUIRED_DOC_LITERALS = (
     "不实现真实 executor、durable store、confirmation、业务写回或 replay",
 )
 
+REQUIRED_CURRENT_FOCUS_LITERALS = (
+    "local usable / read-only close",
+    "不再默认继续补同类只读 console 小切片",
+    "process supervisor",
+    "production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`",
+)
+
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -110,8 +117,9 @@ def main() -> int:
             else:
                 require(literal not in script, f"{script_path.relative_to(REPO_ROOT).as_posix()} contains forbidden production literal: {literal}")
 
-    for doc_path in (SCRIPTS_README, CONSOLE_README, PLATFORM_README, CURRENT_FOCUS):
+    for doc_path in (SCRIPTS_README, CONSOLE_README, PLATFORM_README):
         require_all(doc_path.read_text(encoding="utf-8"), REQUIRED_DOC_LITERALS, doc_path)
+    require_all(CURRENT_FOCUS.read_text(encoding="utf-8"), REQUIRED_CURRENT_FOCUS_LITERALS, CURRENT_FOCUS)
 
     check_repo = CHECK_REPO.read_text(encoding="utf-8")
     require(
