@@ -178,7 +178,7 @@ python scripts/run-platform-session-tooling-consumer-smoke.py \
 
 overview consumer smoke 只读取 `GET /v1/platform/overview`，把 service status、model inventory、session/tooling surface 和 stop-lines 投影成本地 console view model；local smoke consumer 只读取 `GET /v1/platform/local-smoke`，把本地 readiness 摘要投影为 healthz、overview、model inventory、session/tooling、CORS 和停止线检查；session/tooling consumer smoke 只读取 `session metadata`、`tools metadata` 并提交一次会被阻断的 tool action 请求，用于验证上层可展示 `blocked`、`requires_confirmation` 与 `no_side_effects`。这些 smoke 都不会启用真实 executor、durable store、confirmation、replay 或业务写回。
 
-最小本地 console 壳位于 `apps/radishmind-console/`。它复用 `contracts/typescript/platform-overview-api.ts`，默认读取 `http://127.0.0.1:7000/v1/platform/overview`：
+最小本地 console 壳位于 `apps/radishmind-console/`。它复用 `contracts/typescript/platform-overview-api.ts` 与 `contracts/typescript/platform-local-smoke-api.ts`，默认读取 `http://127.0.0.1:7000/v1/platform/overview` 和 `http://127.0.0.1:7000/v1/platform/local-smoke`：
 
 ```bash
 cd apps/radishmind-console
@@ -186,7 +186,9 @@ npm install
 npm run dev
 ```
 
-该 console 只展示 service status、model/profile inventory、session/tooling blocked 状态、stop-lines、audit boundary、refresh 状态和连接失败诊断，不调用 `/v1/tools/actions`，也不实现 executor、durable store、confirmation、业务写回或 replay。refresh 期间和连接失败后可以保留上一份只读 overview，用于排障，不代表平台会自动恢复执行。
+该 console 只展示 service status、model/profile inventory、Provider/Profile Details、session/tooling blocked 状态、Blocked Action Detail、Local Readiness、stop-lines、Stop-line Details、audit boundary、Dev Diagnostics、refresh 状态和连接失败诊断，不调用 `/v1/tools/actions`，也不实现 executor、durable store、confirmation、业务写回或 replay。refresh 期间和连接失败后可以保留上一份只读 overview / local-smoke readiness，用于排障，不代表平台会自动恢复执行。
+
+当前页面结构是浅色左侧导航栏、主工作区和右侧 readiness / stop-line 辅助栏；窄屏下改为单列信息顺序。该结构来自 `docs/designs/radishmind-console-ops-surface-v0.pen` 和 [UI 设计规范](../../docs/radishmind-ui-design-spec.md)，但仍只表示本地 ops surface，不表示 production console 或 production packaging 已完成。
 
 平台服务当前只为 `http://127.0.0.1:4000` 与 `http://localhost:4000` 返回本地 console CORS header，并处理 `OPTIONS` preflight；该能力只服务本地 console 开发，不等同于 production CORS policy、正式鉴权或外部公开部署。
 

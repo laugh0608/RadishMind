@@ -47,7 +47,7 @@
 ### 5. `Model Adaptation`
 
 - 负责基座选型、prompt/runtime 协同、蒸馏、训练样本治理、模型晋级与回归。
-- 当前重点仍是“配合平台契约收口模型路线”，不是先扩大训练规模。
+- 当前已形成 P4 v1 前置证据：1.5B raw 在 docs / ghost 上可跑但 edits blocked，repaired comparison 只作后处理证据，3B CPU 单样本 timeout。真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
 - 自研模型只是平台的一类 provider，不应和 `HuggingFace`、`Ollama`、OpenAI-compatible 或其它外部模型接入能力互相替代。
 
 ### 6. `Image Path`
@@ -117,7 +117,7 @@
 - 不让模型替代 `RadishFlow` 求解、`Radish` 权限判定或 `RadishCatalyst` 游戏权威。
 - 不把通用 unrestricted tool calling 当成当前默认能力。
 - 不把平台锁死在单一模型、单一 provider、单一上游协议或单一对外接口上。
-- 不在 runtime、session、tooling 契约还没稳定前扩大训练规模；当前只允许先定义 P4 v1 训练路线和晋级门槛。
+- 不默认继续真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏或权重相关工作；这些内容后续作为独立专题重开。
 - 不默认下载大模型、数据集或权重。
 - 不把 `14B/32B` 写成当前自研主模型默认目标；首版仍优先本地可承受的小中型路线，长期本地部署上限暂定 `7B`。
 

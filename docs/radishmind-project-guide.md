@@ -160,7 +160,9 @@ python scripts/run-platform-local-smoke.py \
   --check
 ```
 
-console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`；后者是配套排障和 readiness 摘要，会投影到 Dev Diagnostics 和 `Local Readiness` 只读面板。refresh 或连接失败时，页面可保留上一份已加载的只读 overview / local-smoke readiness；如果 overview 可读但 local-smoke 失败，页面会显示 local-smoke failure surface 和对应诊断，而不是提供执行、确认、写回或 replay 控件。当前 console 还展示 Provider/Profile Details 与 Stop-line Details，用于解释只读 inventory 和停止线证据；这些能力已经足以支撑后续 UI 设计专题。
+console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`；后者是配套排障和 readiness 摘要，会投影到 Dev Diagnostics 和 `Local Readiness` 只读面板。refresh 或连接失败时，页面可保留上一份已加载的只读 overview / local-smoke readiness；如果 overview 可读但 local-smoke 失败，页面会显示 local-smoke failure surface 和对应诊断，而不是提供执行、确认、写回或 replay 控件。
+
+当前 console 已重排为浅色侧栏、主工作区和 readiness / stop-line 辅助栏。主工作区展示 Runtime overview、Service Status、Model Inventory、Provider/Profile Details、Session And Tooling、Blocked Action Detail 和 Dev Diagnostics；右侧辅助栏展示 Local Readiness、Stop Lines、Stop-line Details 和 Audit Boundary。窄屏下这些区域按单列顺序展示。它仍是本地只读 ops surface，不是 production console。
 
 ### 4. 跑本地候选模型输出
 

@@ -8,6 +8,36 @@
 
 当前样式已开始按 [RadishMind UI 设计规范](../../docs/radishmind-ui-design-spec.md) 收敛到 `--rm-*` 语义 token。后续视觉调整应优先复用这些 token，不在页面样式中继续散落硬编码颜色；token 收敛不等于正式 ops surface UI 定稿。
 
+## 界面结构
+
+当前 console 是 `P3` 本地只读 ops surface，不是营销页、管理后台或 production console。页面固定为三层信息结构：
+
+1. 左侧导航栏
+   - 展示 `RadishMind Console` 产品身份。
+   - 提供 Overview、Local Readiness、Provider/Profile、Session & Tooling、Stop-line Details 的锚点导航。
+   - 显示当前加载状态和 `read-only shell` 边界。
+2. 主工作区
+   - `Runtime overview` 标题区提供 `Platform URL` 输入和 refresh 按钮。
+   - 全局状态条展示 overview endpoint、local-smoke endpoint、最近加载时间和 stale 状态。
+   - 摘要指标卡展示 Service、Boundary、Readiness 和 Stop lines。
+   - 主列依次展示 Service Status、Model Inventory、Session And Tooling 和 Dev Diagnostics。
+3. 右侧辅助栏
+   - `Local Readiness` 展示 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、CORS origin 和 failure hints。
+   - `Stop Lines` 与 `Stop-line Details` 展示当前被阻止的能力、原因和 evidence。
+   - `Audit Boundary` 展示 advisory-only 和 writes_business_truth 边界。
+
+窄屏下页面改为单列顺序展示，而不是压缩桌面三栏。长 endpoint、provider id、profile id 和诊断命令允许换行，不应横向撑破页面。
+
+## 当前面板说明
+
+- `Service Status`：只读展示 service name、version、stage、mode 和 overview route。
+- `Model Inventory`：只读展示 model / provider / profile 计数、默认 provider/profile/model、selectable model ids、active profile chain 和 Provider/Profile Details。
+- `Provider/Profile Details`：只解析 overview 已返回的 model id 来源，不额外请求详情 route，不声明 credential readiness。
+- `Session And Tooling`：只读展示 session/tooling metadata route 和 blocked action route；Blocked Action Detail 明确不渲染 execute / confirm / apply / replay 控件。
+- `Dev Diagnostics`：展示本地排障字段、verify-only 命令和端口 / CORS / unsafe port / contract mismatch 分类。
+- `Local Readiness`：展示 `GET /v1/platform/local-smoke` 生成的本地 readiness 摘要，不表示 production ready。
+- `Stop Lines`：展示 executor、durable store、confirmation、materialized result reader、long-term memory、business truth write、automatic replay 和 production secret backend 等停止线。
+
 ## 本地运行
 
 在本目录安装依赖：

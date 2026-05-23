@@ -212,6 +212,19 @@ RadishMind UI 是面向开发者、维护者和本地部署者的 AI runtime ops
    - `1080x1920` 竖屏基准
    - 单列信息优先级
 
+## React Ops Surface 映射
+
+`apps/radishmind-console/` 第二批实现已按当前 `.pen` 设计稿收敛为浅色侧栏 + 主工作区 + 右侧辅助栏结构。该结构是当前 console 说明书和后续 polish 的默认基线：
+
+- 左侧导航栏只提供页面锚点、产品身份和 read-only 边界，不展示复杂状态树。
+- 顶部标题区只提供 `Platform URL`、refresh 和 endpoint / stale 状态，不提供执行类命令。
+- 摘要指标卡固定为 service、boundary、readiness、stop-lines 四组。
+- 主工作区优先放 service status、model inventory、session/tooling 和 Dev Diagnostics。
+- 右侧辅助栏优先放 local readiness、stop-line evidence 和 audit boundary。
+- 窄屏采用单列顺序重排，不能把桌面侧栏和右栏压缩成不可读的窄列。
+
+实现仍只消费 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`。任何新增页面或控件如果会暗示 executor、confirmation、writeback、replay、provider health、credential readiness 或 production readiness，必须先更新设计稿和对应契约说明。
+
 ## Pencil 设计稿治理
 
 `.pen` 是 UI 设计源文件，必须进入 `docs/designs/`。

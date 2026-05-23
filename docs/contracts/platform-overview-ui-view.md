@@ -12,6 +12,20 @@ TypeScript 消费类型真相源为 `contracts/typescript/platform-overview-api.
 
 `GET /v1/platform/local-smoke` 是 overview 的本地 readiness 配套入口。它不替代 overview，也不提供更多产品能力；它只把 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 CORS origin、默认端口和停止线汇总成开发期可读状态。UI 如要展示 local-smoke，应按 [Platform Local Smoke UI View 契约](platform-local-smoke-ui-view.md) 消费，不得把 `local_console_ready=true` 展示成 production ready、supervisor ready 或 executor ready。
 
+## Console 信息架构
+
+`apps/radishmind-console/` 当前按 ops surface 结构消费 overview 与 local-smoke，而不是按单个 API 字段直接平铺。稳定信息架构如下：
+
+- 左侧导航栏：产品身份、页面锚点、当前只读状态和停止线摘要。
+- 顶部标题区：`Platform URL`、refresh 按钮、overview endpoint、local-smoke endpoint、最近加载时间和 stale 提示。
+- 摘要指标卡：service status、blocked action boundary、local readiness 和 stop-line count。
+- 主工作区：Service Status、Model Inventory / Provider/Profile Details、Session And Tooling / Blocked Action Detail、Dev Diagnostics。
+- 右侧辅助栏：Local Readiness、Stop Lines / Stop-line Details、Audit Boundary。
+
+UI 可以维护上一份成功加载的 overview / local-smoke ready state，并在 refresh 或连接失败时继续展示 stale read-only snapshot。该 stale snapshot 只能用于排障和读取，不得提供执行、确认、写回、replay 或自动恢复控件。
+
+窄屏布局必须改为单列信息顺序：标题区、摘要指标、service status、local readiness、model inventory、session/tooling、stop-lines、Dev Diagnostics、audit boundary。不得把桌面三栏直接压缩到不可读宽度。
+
 ## 输入来源
 
 来源：`GET /v1/platform/overview`
