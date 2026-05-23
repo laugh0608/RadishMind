@@ -19,6 +19,7 @@
 - [训练样本契约](../contracts/training-samples.md)
 - `training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json`
 - `training/datasets/radishmind-core-model-adaptation-v1-governance-review-v0.json`
+- `training/experiments/radishmind-core-model-adaptation-v1-preflight-result-v0.json`
 
 ## v1 能力目标
 
@@ -113,6 +114,17 @@ P4 v1 首轮治理复核已落到 `training/datasets/radishmind-core-model-adapt
 - `copilot-training-review-record-v0.json` 的 planned review batch 仍保持 `pending_review`；本次复核不伪造 reviewer、timestamp、逐样本维度结果或 `reviewed_pass`。
 - 在选择本地 `model-dir` 且确认人工可接受本机 CPU/GPU 负载后，可以先请求一次 `raw_student_probe`；`repair_boundary_probe` 必须排在 raw 之后，只能作为后处理对照。
 
+## 本地预检结果
+
+2026-05-23 已完成 `Qwen2.5-1.5B-Instruct` full-holdout-9 raw / repaired comparison，摘要落到 `training/experiments/radishmind-core-model-adaptation-v1-preflight-result-v0.json`。
+
+结论：
+
+- raw student 完成 9 条样本，`timeout_count=0`、`hit_max_new_tokens_count=0`、`json_extracted_count=9`。
+- raw student 总体 `schema_valid_rate=0.6667`，`radishflow/suggest_flowsheet_edits` 3/3 因 `citations` scaffold 引用泄漏 blocked；ghost completion 与 docs QA 6/6 schema/task valid。
+- repaired comparison 使用 `--repair-hard-fields` 后 9/9 schema/task valid，修复集中在 3 条 edits 的 `$.citations`，并额外修复部分 `$.status`、`$.answers`、`$.issues`。
+- repaired comparison 只能证明后处理有价值，不代表 raw 模型晋级、训练准入或 production model ready。
+
 ## 验收口径
 
 本任务卡首轮验收只要求：
@@ -120,16 +132,18 @@ P4 v1 首轮治理复核已落到 `training/datasets/radishmind-core-model-adapt
 - P4 v1 目标、teacher/student 边界、样本分层和晋级门槛已写清。
 - P4 v1 预检 runbook 已明确 manifest、provider/model-dir、output-dir、summary-output、timeout、raw/repaired 边界和 `tmp/` 产物政策。
 - P4 v1 样本治理复核记录已明确 seed / teacher / holdout 覆盖、holdout 泄漏边界、人工复核未完成状态和 raw-first 执行顺序。
+- P4 v1 预检结果摘要已明确 raw blocked、repaired comparison pass 以及不晋级边界。
 - 停止线明确禁止训练放量、权重下载、真实大产物入仓和 builder/guided/repaired 冒充 raw 晋级。
 - `scripts/check-radishmind-core-model-adaptation-v1-governance-review.py` 已接入 fast baseline，固定该复核记录不能漂成训练启动许可。
+- `scripts/check-radishmind-core-model-adaptation-v1-preflight-result.py` 已接入 fast baseline，固定 raw blocked 与 repaired-only 口径。
 - `docs/radishmind-current-focus.md` 与 `docs/radishmind-roadmap.md` 指向 P4 前置计划。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
 ## 下一步
 
-1. 选择一个已存在的本地 `model-dir`，确认不下载权重并能接受本机 CPU/GPU 负载。
-2. 按 runbook 请求人工先执行 `raw_student_probe`，不要同时启用 `--repair-hard-fields`、guided、injected 或 builder。
-3. 人工执行完成后，读取 `tmp/` 下 summary、candidate response、prompt、audit 或 offline eval 产物，再决定是否运行 repaired comparison。
+1. 基于 1.5B raw blocked / repaired pass 结论，决定是否在同一 full-holdout-9 边界上比较 `Qwen2.5-3B-Instruct` raw。
+2. 若比较更大 raw 模型，继续只运行 raw，不启用 `--repair-hard-fields`、guided、injected 或 builder。
+3. 只有新的 raw 结果和人工复核同时支持时，才讨论训练样本或蒸馏路线；当前不生成训练 JSONL。
 
 ## 停止线
 

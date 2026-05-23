@@ -127,7 +127,7 @@
 
 目标：在平台边界稳定后，定义首版基座、蒸馏和训练升级计划。
 
-状态：正在进入前置计划定义，但不提前放量。v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛、预检 runbook 和治理复核记录已有首版草案；下一步选择已存在的本地 `model-dir` 后，再决定是否要求人工执行 raw student 单批脚本。不启动大规模训练、不下载模型权重、不把 builder / guided / repaired 结果写成 raw 晋级。
+状态：正在进入前置计划定义，但不提前放量。v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛、预检 runbook、治理复核记录和 `Qwen2.5-1.5B-Instruct` full-holdout-9 预检结果已有首版记录。raw student 在 docs QA 与 ghost completion 上通过，但在 `suggest_flowsheet_edits` 上 3/3 blocked；repaired comparison 可通过机器门禁，但只作为后处理证据。不启动大规模训练、不下载模型权重、不把 builder / guided / repaired 结果写成 raw 晋级。
 
 ### `P5`：Real Upstream Integration
 
@@ -137,7 +137,7 @@
 
 ## 下一步
 
-1. 推进 P4 模型适配前置计划：选择已存在的本地 `model-dir` 后，再决定是否要求人工执行 raw student 单批脚本；不训练放量、不下载权重。
+1. 推进 P4 模型适配前置计划：基于 `Qwen2.5-1.5B-Instruct` raw blocked / repaired pass 结论，决定是否在同一 full-holdout-9 边界上比较更大 raw 模型；不训练放量、不下载权重。
 2. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 3. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。
 4. 只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁；普通 UI 展示改动优先复用现有 console behavior / visual smoke / fast baseline。
