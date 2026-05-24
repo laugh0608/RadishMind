@@ -89,7 +89,7 @@
 
 ## 下一步
 
-进入 `production_ops_hardening_v1_governance_close_review`：复核是否需要另开真实 production 实现任务。除非新任务卡明确存储方案、部署目标和验证边界，否则不实现 production secret backend、process supervisor、deployment environment isolation 或 console production packaging。
+已根据 Radish 的 docker local/test/prod 模式新增 [Production Ops Docker Deployment v1 计划](production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定后续部署方向：开发期宿主机直跑，本地容器验证使用 `docker-local-compose`，测试和生产共用部署态 compose。下一步推进 `docker-local-compose`；除非新任务卡明确存储方案、部署目标和验证边界，否则不实现 production secret backend、process supervisor、deployment environment isolation 或 console production packaging。
 
 ## 停止线
 

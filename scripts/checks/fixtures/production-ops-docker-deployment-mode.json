@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_docker_deployment_mode",
+  "decision": {
+    "id": "docker-deployment-mode-definition",
+    "track": "Production Ops Hardening v1",
+    "status": "deployment_mode_definition_satisfied",
+    "selected_mode": "radish_style_docker_local_test_prod",
+    "source_reference": {
+      "project": "Radish",
+      "url": "https://github.com/laugh0608/Radish",
+      "local_path_policy": "do_not_commit_local_external_project_path"
+    },
+    "does_not_claim": [
+      "dockerfiles_ready",
+      "compose_ready",
+      "image_publish_ready",
+      "production_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "console_production_package_ready"
+    ]
+  },
+  "environment_modes": [
+    {
+      "id": "host_dev",
+      "status": "supported",
+      "compose_use": "forbidden_by_default",
+      "entrypoints": [
+        "scripts/run-platform-service.ps1",
+        "scripts/run-platform-service.sh",
+        "scripts/run-radishmind-console-dev.ps1",
+        "scripts/run-radishmind-console-dev.sh",
+        "go run ./services/platform/cmd/radishmind-platform",
+        "npm run dev"
+      ],
+      "readiness_scope": "developer_loop_only"
+    },
+    {
+      "id": "docker_local",
+      "status": "planned",
+      "compose_file": "deploy/docker-compose.local.yaml",
+      "image_source": "local_build",
+      "default_provider": "mock",
+      "secret_policy": "dev_only_placeholders_or_local_env",
+      "production_use": "forbidden"
+    },
+    {
+      "id": "docker_test",
+      "status": "planned",
+      "compose_file": "deploy/docker-compose.yaml",
+      "image_track": "test",
+      "image_tag_policy": "RADISHMIND_IMAGE_TAG may pin a v*-test tag; otherwise RADISHMIND_IMAGE_TRACK=test may resolve to test-latest",
+      "secret_policy": "test_secret_source_required_before_use",
+      "production_use": "forbidden"
+    },
+    {
+      "id": "docker_prod",
+      "status": "planned",
+      "compose_file": "deploy/docker-compose.yaml",
+      "image_track": "release",
+      "image_tag_policy": "RADISHMIND_IMAGE_TAG may pin a v*-release tag; otherwise RADISHMIND_IMAGE_TRACK=release may resolve to release-latest",
+      "secret_policy": "production_secret_backend_required_before_ready",
+      "production_use": "allowed_only_after_readiness_gates"
+    }
+  ],
+  "required_future_assets": [
+    "services/platform/Dockerfile",
+    "apps/radishmind-console/Dockerfile",
+    "deploy/docker-compose.local.yaml",
+    "deploy/docker-compose.yaml",
+    "deploy/.env.example",
+    ".github/workflows/docker-images.yml"
+  ],
+  "blocked_conditions": [
+    {
+      "id": "docker_local_compose",
+      "status": "not_satisfied",
+      "required_before_docker_local_ready": true
+    },
+    {
+      "id": "docker_test_prod_compose",
+      "status": "not_satisfied",
+      "required_before_docker_test_prod_ready": true
+    },
+    {
+      "id": "docker_image_publish_workflow",
+      "status": "not_satisfied",
+      "required_before_docker_test_prod_ready": true
+    },
+    {
+      "id": "console_runtime_config",
+      "status": "not_satisfied",
+      "required_before_console_production_package_ready": true
+    },
+    {
+      "id": "production_secret_backend",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "mode_principles": [
+    "Development remains host-run by default; Compose is not the normal dev loop.",
+    "Local Docker mode may build images on the developer machine and may use mock provider only.",
+    "Test and production share the same deploy compose shape; track, tag, URL, secret source and provider profile distinguish environments.",
+    "Production expects external HTTPS termination and container-internal HTTP unless a later task defines end-to-end TLS.",
+    "No local external project path may be committed as source reference."
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md",
+    "docs/task-cards/production-ops-docker-deployment-v1-plan.md"
+  ]
+}

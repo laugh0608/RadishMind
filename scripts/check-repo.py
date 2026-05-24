@@ -1075,6 +1075,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-production-ops-startup-supervisor-boundary.py", [])
     run_python_script("check-production-ops-environment-isolation-boundary.py", [])
     run_python_script("check-production-ops-console-package-smoke.py", [])
+    run_python_script("check-production-ops-docker-deployment-mode.py", [])
     run_python_script("check-platform-runbook.py", [])
     run_python_script("check-platform-overview-consumer-contract.py", [])
     run_python_script("check-platform-local-smoke-contract.py", [])
