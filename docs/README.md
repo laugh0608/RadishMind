@@ -66,6 +66,7 @@
 - [UI 设计参考](radishmind-ui-design-reference.md)
 - [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)
 - [Production Ops Docker Deployment v1 任务卡](task-cards/production-ops-docker-deployment-v1-plan.md)
+- [部署目录说明](../deploy/README.md)
 - [代码规范](radishmind-code-standards.md)
 - [跨项目集成契约](radishmind-integration-contracts.md)
 - [契约专题目录](contracts/README.md)

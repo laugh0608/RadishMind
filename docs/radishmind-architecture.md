@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-05-23
+更新时间：2026-05-24
 
 ## 架构目标
 
@@ -21,6 +21,7 @@
 - 当前 northbound 对外形态已经开始由 `Go` 承载最小正式 `HTTP` 服务壳；`Python` 继续保留 CLI runtime 和 canonical gateway 语义，`Go` 只做协议兼容与进程调度，避免把平台服务层锁死在 `Python`。本地 console origin 的 CORS / preflight 只服务 `P3` 本地消费面，不代表 production 鉴权或公开部署策略。
 - `UI` 层默认 `React + Vite + TypeScript`，通过北向协议消费平台能力，不直接承载模型实现逻辑。
 - 当前 `P3 Local Product Shell / Ops Surface` 已在平台服务层暴露只读 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，并用 TypeScript overview / local-smoke consumer contract、consumer smoke、console shell check、console behavior gate、console visual smoke record、dev entry check、console production packaging boundary gate、P3 checklist 与 `apps/radishmind-console/` 本地 console 壳固定 service status、model inventory、Provider/Profile Details、session/tooling surface、stop-line view model、Stop-line Details、Dev Diagnostics、`Local Readiness` 面板、refresh 状态、overview / local-smoke failure surface、连接失败诊断、production packaging 停止线和 P3 hardening 缺口。该本地只读产品壳已达到 `local usable / read-only close`。
+- 当前 `Production Ops Hardening v1` 已把部署边界拆成独立层：`host_dev` 仍使用宿主机 wrapper，`docker_local` 使用 `deploy/docker-compose.local.yaml` 本地 build 与 mock provider，`docker_test` / `docker_prod` 共用 `deploy/docker-compose.yaml` 并通过镜像 track / tag、provider profile、secret 来源和外部反代配置区分环境。该层已有 Dockerfile、compose、`.env.example`、镜像命名治理、静态 compose 展开、container smoke runbook 和运行记录模板，但仍不声明 production ready。
 
 ### 2. `Conversation & Session`
 
@@ -51,7 +52,7 @@
 
 平台内部真相源仍应保持 `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`，兼容接口只做翻译层，不另起第二套真相源。
 
-当前单次请求的主流程仍保持六层：
+当前单次请求的主流程仍保持六层，部署边界作为包裹平台进程的运行层存在：
 
 1. Client Adapters & Context Packers
 2. Copilot Gateway / Task Router
@@ -61,6 +62,8 @@
 6. Data / Evaluation / Training Pipeline
 
 这个拆分用于隔离项目语义、工具编排、模型推理、安全校验和评测闭环，让 `RadishFlow`、`Radish` 与后续 `RadishCatalyst` 能通过统一协议接入，而不是各自私接模型。
+
+部署层不改变 canonical request / response 流程。Docker compose 只负责启动 platform 和 console 容器，不成为 secret backend、process supervisor、confirmation flow、tool executor 或业务写回层。
 
 ## 请求流程
 
@@ -126,12 +129,21 @@ Protocol Compatibility Layer 翻译回 northbound response
 - 真实模型输出、生成 JSONL 和大体积实验产物默认留在 `tmp/`。
 - 训练、蒸馏和模型晋级必须同时看 raw 输出、后处理轨、离线评测、自然语言 audit、人工 review 和 holdout 泄漏边界。
 
+### 7. Deployment Boundary Layer
+
+- `host_dev` 是默认开发形态，使用宿主机 wrapper 启动 platform / console，不走 Compose。
+- `docker_local` 是本地容器 smoke 形态，允许本机 build，默认 `mock` provider，只能证明本地容器编排和 health probe 可运行。
+- `docker_test` 与 `docker_prod` 共用部署态 compose，只引用预构建镜像，通过 `RADISHMIND_IMAGE_TRACK` 或 `RADISHMIND_IMAGE_TAG` 区分 test / release 轨道。
+- 部署态 compose 只定义 platform / console 容器、端口、healthcheck 和必要环境变量，不定义 Compose secrets，不执行本地 build，不用 `restart` 策略伪装 process supervisor。
+- 真实运行证据应写到 `tmp/production-ops/container-smoke/`，按 record template 记录命令、probe、container、cleanup、result 和运行后 blocked condition；committed fixture 只描述模板，不保存实际运行结果。
+
 ## 当前架构映射
 
 - `Frontend UI`：`React + Vite + TypeScript`
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py`
 - `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound、session/tooling metadata shell、blocked action shell、只读 platform overview 和 local smoke readiness route
 - `P3 Local Product Shell / Ops Surface`：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、`scripts/run-platform-overview-consumer-smoke.py`、`scripts/run-platform-local-smoke.py`、`scripts/check-radishmind-console-behavior.py`、`scripts/check-radishmind-console-visual-smoke-record.py`、`scripts/check-radishmind-console-dev-entry.py`、`scripts/check-radishmind-console-production-boundary.py`、`scripts/check-p3-local-product-shell-short-close-checklist.py`、`apps/radishmind-console/`、`docs/contracts/platform-overview-ui-view.md`；当前本地只读壳已达到 `local usable / read-only close`
+- `Deployment Boundary Layer`：`deploy/README.md`、`deploy/docker-compose.local.yaml`、`deploy/docker-compose.yaml`、`deploy/.env.example`、`services/platform/Dockerfile`、`apps/radishmind-console/Dockerfile`、`apps/radishmind-console/nginx.local.conf`、`scripts/check-production-ops-docker-*.py`、`scripts/check-production-ops-deployment-readiness-smoke.py`、`scripts/check-production-ops-container-smoke-*.py`；当前只固定 docker local/test/prod 边界、镜像命名、静态展开、runbook 和记录模板
 - `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`
 - `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata、平台 checkpoint metadata-only route smoke、readiness summary、implementation preconditions、route smoke readiness rollup、short close readiness delta、stop-line manifest 和 storage / audit / result 边界 fixture
 - `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py`、confirmation flow design、executor boundary design、result materialization policy design、negative regression suite、deny-by-default gates、enablement plan 和各类 deterministic builder/check
@@ -140,14 +152,14 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 ## 当前缺口
 
-- 当前只有 first-pass `Go` platform service 和 bridge-backed `HTTP API`，还不是 production deployment
-- northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke` 和 session/tooling metadata shell 已具备第一版兼容 / discovery 接口；当前已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics、discoverability 对齐、请求级观测、错误分类、overview consumer smoke 和 local-smoke readiness smoke，但生产部署边界还未正式落地
+- 当前只有 first-pass `Go` platform service、bridge-backed `HTTP API` 和可检查 Docker 部署边界，还不是 production deployment
+- northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke` 和 session/tooling metadata shell 已具备第一版兼容 / discovery 接口；当前已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics、discoverability 对齐、请求级观测、错误分类、overview consumer smoke、local-smoke readiness smoke 和 Docker 静态部署边界，但真实容器运行 smoke、测试环境 smoke、镜像发布和生产前复核仍未完成
 - `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory 和 diagnostics 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
 - 已有 session/tooling 首版契约、metadata-only 门禁、close-candidate status summary、negative regression governance suite、route/gate coverage rollup、readiness consistency rollup、short close delta、enablement plan、stop-line manifest、五类设计级边界门禁和只读本地 console 消费壳，但没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器
 - 已有 tool registry、tool audit、metadata-only result cache、result materialization policy design、executor boundary design 和 deny-by-default gate contract，但没有真实工具执行器、materialized result reader、durable tool store、durable result store 或上层确认流接线
-- 尚未具备 production secret backend、process supervisor、正式部署环境隔离和可发布部署包；这些属于当前 `Production Ops Hardening v1` 的主线缺口，不再混在 P3 只读 console 小切片或真实模型产出专题中推进
+- 尚未具备 production secret backend、process supervisor、正式部署环境隔离、真实镜像发布 workflow、container smoke 通过记录、测试环境 smoke、生产前复核记录、console runtime config 和可发布部署包；这些属于当前 `Production Ops Hardening v1` 的主线缺口，不再混在 P3 只读 console 小切片或真实模型产出专题中推进
 
-这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 的本地只读壳已达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 和 P4 前置证据已进入 close / 后置专题状态。下一步应启动 `Production Ops Hardening v1`，优先固定 production config / secret boundary，而不是继续补 P3 console 同类小展示项、回头扩 P2 readiness、真实 executor、durable store、confirmation 接线或真实模型长跑。
+这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 的本地只读壳已达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 和 P4 前置证据已进入 close / 后置专题状态。下一步应在明确运行窗口后执行容器 smoke 或测试环境 smoke，并按运行记录模板沉淀证据；没有运行窗口时，只做离线 validator / audit 设计，不继续补 P3 console 同类小展示项、回头扩 P2 readiness、真实 executor、durable store、confirmation 接线或真实模型长跑。
 
 ## 当前进度
 

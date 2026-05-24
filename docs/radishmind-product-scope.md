@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-05-23
+更新时间：2026-05-24
 
 ## 核心定义
 
@@ -24,7 +24,7 @@
 ### 1. `Runtime Service`
 
 - 提供最小可运行的推理入口、gateway、route 识别、provider/profile 选择、响应封装和本地产品 discovery 面。
-- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、session/tooling metadata shell、blocked action shell、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist；本地只读产品壳已达到 `local usable / read-only close`，后续要补生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
+- 当前已有 CLI runtime、进程内 Python gateway、最小 `Go` HTTP bridge、本地启动 runbook、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、session/tooling metadata shell、blocked action shell、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate、P3 checklist、Docker local compose、测试 / 生产共用部署态 compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和运行记录模板；本地只读产品壳已达到 `local usable / read-only close`，Docker 静态部署边界已可检查。后续还要补真实镜像发布 workflow、container smoke 运行记录、生产部署边界和外部 provider health check，服务层与 `gateway` 不锁死在单一语言上，可按职责采用 `Go`。
 - 这一层必须同时覆盖两条方向：
   - 北向协议兼容：对外提供 native Copilot API，以及 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke`、session/tooling metadata shell 这类常见兼容接口和只读产品发现接口。
   - 南向模型接入：对内接入 `RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages 等 provider / transport。
@@ -64,7 +64,7 @@
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
-- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。下一步默认进入 `Production Ops Hardening v1`，而不是继续补同类只读 console 小切片、重开真实模型长跑或提前设计不存在的上层接线。
+- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板；下一步只有在明确运行窗口后才执行容器 smoke 或测试环境 smoke，而不是继续补同类只读 console 小切片、重开真实模型长跑或提前设计不存在的上层接线。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面
