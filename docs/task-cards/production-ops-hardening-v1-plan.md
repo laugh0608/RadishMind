@@ -89,7 +89,7 @@
 
 ## 下一步
 
-已根据 Radish 的 docker local/test/prod 模式新增 [Production Ops Docker Deployment v1 计划](production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定后续部署方向：开发期宿主机直跑，本地容器验证使用 `docker-local-compose`，测试和生产共用部署态 compose。下一步推进 `docker-local-compose`；除非新任务卡明确存储方案、部署目标和验证边界，否则不实现 production secret backend、process supervisor、deployment environment isolation 或 console production packaging。
+已根据 Radish 的 docker local/test/prod 模式新增 [Production Ops Docker Deployment v1 计划](production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定后续部署方向：开发期宿主机直跑，本地容器验证使用 `docker-local-compose`，测试和生产共用部署态 compose。当前 `docker-local-compose` 与 `docker-test-prod-compose` 已分别用 `production-ops-docker-local-compose.json` 和 `production-ops-docker-test-prod-compose.json` 固定为可检查边界，部署态资产为 `deploy/docker-compose.yaml` 与 `deploy/.env.example`；下一步推进镜像命名与发布治理。除非新任务卡明确存储方案、部署目标和验证边界，否则不实现 production secret backend、process supervisor、deployment environment isolation 或 console production packaging。
 
 ## 停止线
 

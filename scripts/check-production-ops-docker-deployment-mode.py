@@ -19,7 +19,6 @@ REQUIRED_ENVIRONMENT_MODES = {
 }
 
 REQUIRED_BLOCKED_CONDITIONS = {
-    "docker_test_prod_compose",
     "docker_image_publish_workflow",
     "console_runtime_config",
     "production_secret_backend",
@@ -27,13 +26,12 @@ REQUIRED_BLOCKED_CONDITIONS = {
 }
 
 REQUIRED_FUTURE_ASSETS = {
-    "deploy/docker-compose.yaml",
-    "deploy/.env.example",
     ".github/workflows/docker-images.yml",
 }
 
 REQUIRED_SATISFIED_CONDITIONS = {
     "docker_local_compose",
+    "docker_test_prod_compose",
 }
 
 REQUIRED_DOC_REFERENCES = {
@@ -45,6 +43,7 @@ REQUIRED_DOC_REFERENCES = {
         "docker_prod",
         "RADISHMIND_IMAGE_TRACK=test",
         "RADISHMIND_IMAGE_TRACK=release",
+        "docker-test-prod-compose",
         "不写入长期文档",
     ],
     "docs/radishmind-current-focus.md": [
@@ -52,21 +51,27 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-docker-deployment-mode.json",
         "docker-local-compose",
         "production-ops-docker-local-compose.json",
+        "docker-test-prod-compose",
+        "production-ops-docker-test-prod-compose.json",
     ],
     "docs/radishmind-roadmap.md": [
         "docker-deployment-mode-definition",
         "production-ops-docker-deployment-v1-plan.md",
         "docker-local-compose",
         "production-ops-docker-local-compose.json",
+        "docker-test-prod-compose",
+        "production-ops-docker-test-prod-compose.json",
     ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "docker-deployment-mode-definition",
         "docker-local-compose",
+        "docker-test-prod-compose",
         "Production Ops Docker Deployment",
     ],
     "scripts/README.md": [
         "check-production-ops-docker-deployment-mode.py",
         "check-production-ops-docker-local-compose.py",
+        "check-production-ops-docker-test-prod-compose.py",
         "docker local/test/prod",
         "production-ops-docker-deployment-mode.json",
     ],
@@ -107,7 +112,6 @@ def assert_decision(fixture: dict[str, Any]) -> None:
     )
     does_not_claim = set(decision.get("does_not_claim") or [])
     required_forbidden_claims = {
-        "docker_test_prod_compose_ready",
         "image_publish_ready",
         "production_ready",
         "production_secret_backend_ready",
@@ -139,13 +143,19 @@ def assert_environment_modes(fixture: dict[str, Any]) -> None:
     require(docker_local.get("production_use") == "forbidden", "docker_local must be forbidden for production")
 
     docker_test = modes_by_id["docker_test"]
-    require(docker_test.get("status") == "planned", "docker_test must remain planned")
+    require(
+        docker_test.get("status") == "deploy_compose_boundary_available",
+        "docker_test deploy compose boundary must be available",
+    )
     require(docker_test.get("compose_file") == "deploy/docker-compose.yaml", "unexpected test compose path")
     require(docker_test.get("image_track") == "test", "docker_test must use test track")
     require("v*-test" in str(docker_test.get("image_tag_policy") or ""), "docker_test must allow fixed test tag")
 
     docker_prod = modes_by_id["docker_prod"]
-    require(docker_prod.get("status") == "planned", "docker_prod must remain planned")
+    require(
+        docker_prod.get("status") == "deploy_compose_boundary_available_but_not_ready",
+        "docker_prod deploy compose boundary must be available but not ready",
+    )
     require(docker_prod.get("compose_file") == "deploy/docker-compose.yaml", "unexpected prod compose path")
     require(docker_prod.get("image_track") == "release", "docker_prod must use release track")
     require("v*-release" in str(docker_prod.get("image_tag_policy") or ""), "docker_prod must allow fixed release tag")
@@ -174,6 +184,18 @@ def assert_future_assets_and_blocks(fixture: dict[str, Any]) -> None:
         require(evidence in local_evidence, f"docker_local_compose missing evidence: {evidence}")
         require((REPO_ROOT / evidence).exists(), f"docker_local_compose evidence missing on disk: {evidence}")
 
+    test_prod_compose = satisfied_by_id["docker_test_prod_compose"]
+    require(test_prod_compose.get("status") == "satisfied", "docker_test_prod_compose must be satisfied")
+    test_prod_evidence = set(test_prod_compose.get("evidence") or [])
+    for evidence in {
+        "deploy/docker-compose.yaml",
+        "deploy/.env.example",
+        "scripts/checks/fixtures/production-ops-docker-test-prod-compose.json",
+        "scripts/check-production-ops-docker-test-prod-compose.py",
+    }:
+        require(evidence in test_prod_evidence, f"docker_test_prod_compose missing evidence: {evidence}")
+        require((REPO_ROOT / evidence).exists(), f"docker_test_prod_compose evidence missing on disk: {evidence}")
+
     future_assets = set(fixture.get("required_future_assets") or [])
     missing_assets = sorted(REQUIRED_FUTURE_ASSETS - future_assets)
     require(not missing_assets, f"missing future assets: {missing_assets}")
@@ -194,6 +216,7 @@ def assert_consumers_and_docs(fixture: dict[str, Any]) -> None:
     expected_consumers = {
         "scripts/check-production-ops-docker-deployment-mode.py",
         "scripts/check-production-ops-docker-local-compose.py",
+        "scripts/check-production-ops-docker-test-prod-compose.py",
         "scripts/check-repo.py",
         "scripts/README.md",
         "docs/radishmind-current-focus.md",

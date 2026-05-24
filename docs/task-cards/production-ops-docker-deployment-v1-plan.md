@@ -31,6 +31,7 @@
    - 新增测试 / 生产共用部署态 compose。
    - 通过 `RADISHMIND_IMAGE_TRACK=test/release` 或固定 `RADISHMIND_IMAGE_TAG` 区分镜像。
    - 生产必须等待 secret backend、正式 CORS / auth policy、外部反代和 provider health policy。
+   - 当前已落地：`deploy/docker-compose.yaml` 与 `deploy/.env.example` 固定测试 / 生产共用部署态 compose 边界；`scripts/checks/fixtures/production-ops-docker-test-prod-compose.json` 与 `scripts/check-production-ops-docker-test-prod-compose.py` 固定其只引用预构建镜像、不执行本地 build、不写入 secret、不声明 production ready。
 4. `docker-image-build-publish`
    - 为 platform 和 console 补 Dockerfile 与镜像命名规则。
    - CI 镜像发布规则后续对齐 tag 后缀：`v*-dev`、`v*-test`、`v*-release`。
@@ -56,4 +57,4 @@
 
 ## 下一步
 
-推进 `docker-test-prod-compose`：补测试 / 生产共用部署态 compose、`.env.example` 和静态展开检查，继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流和 console runtime config 为后续条件。
+推进 `docker-image-build-publish`：固定 platform / console 镜像命名、tag 后缀和后续 CI 发布门禁。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose 边界声明为 production ready。

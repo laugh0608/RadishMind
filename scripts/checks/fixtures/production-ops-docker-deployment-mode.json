@@ -12,7 +12,6 @@
       "local_path_policy": "do_not_commit_local_external_project_path"
     },
     "does_not_claim": [
-      "docker_test_prod_compose_ready",
       "image_publish_ready",
       "production_ready",
       "production_secret_backend_ready",
@@ -46,7 +45,7 @@
     },
     {
       "id": "docker_test",
-      "status": "planned",
+      "status": "deploy_compose_boundary_available",
       "compose_file": "deploy/docker-compose.yaml",
       "image_track": "test",
       "image_tag_policy": "RADISHMIND_IMAGE_TAG may pin a v*-test tag; otherwise RADISHMIND_IMAGE_TRACK=test may resolve to test-latest",
@@ -55,7 +54,7 @@
     },
     {
       "id": "docker_prod",
-      "status": "planned",
+      "status": "deploy_compose_boundary_available_but_not_ready",
       "compose_file": "deploy/docker-compose.yaml",
       "image_track": "release",
       "image_tag_policy": "RADISHMIND_IMAGE_TAG may pin a v*-release tag; otherwise RADISHMIND_IMAGE_TRACK=release may resolve to release-latest",
@@ -75,19 +74,22 @@
         "scripts/checks/fixtures/production-ops-docker-local-compose.json",
         "scripts/check-production-ops-docker-local-compose.py"
       ]
+    },
+    {
+      "id": "docker_test_prod_compose",
+      "status": "satisfied",
+      "evidence": [
+        "deploy/docker-compose.yaml",
+        "deploy/.env.example",
+        "scripts/checks/fixtures/production-ops-docker-test-prod-compose.json",
+        "scripts/check-production-ops-docker-test-prod-compose.py"
+      ]
     }
   ],
   "required_future_assets": [
-    "deploy/docker-compose.yaml",
-    "deploy/.env.example",
     ".github/workflows/docker-images.yml"
   ],
   "blocked_conditions": [
-    {
-      "id": "docker_test_prod_compose",
-      "status": "not_satisfied",
-      "required_before_docker_test_prod_ready": true
-    },
     {
       "id": "docker_image_publish_workflow",
       "status": "not_satisfied",
@@ -119,6 +121,7 @@
   "required_consumers": [
     "scripts/check-production-ops-docker-deployment-mode.py",
     "scripts/check-production-ops-docker-local-compose.py",
+    "scripts/check-production-ops-docker-test-prod-compose.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/radishmind-current-focus.md",

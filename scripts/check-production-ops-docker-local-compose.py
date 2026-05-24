@@ -19,7 +19,6 @@ REQUIRED_ASSETS = {
 }
 
 REQUIRED_BLOCKED_CONDITIONS = {
-    "docker_test_prod_compose",
     "docker_image_publish_workflow",
     "console_runtime_config",
     "production_secret_backend",
