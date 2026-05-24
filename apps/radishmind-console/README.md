@@ -99,10 +99,14 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 当前 console production packaging 仍未完成，本目录仍是本地只读产品壳，不是 production package。当前边界：
 
 - `package.json` 必须保持 `private=true`
+- `npm run build` 只做本地或 CI smoke：执行 `tsc --noEmit && vite build`，生成的 `dist/` 仍不得提交
+- `npm run preview` 只做本地 build preview：固定 `127.0.0.1:4000`，不是 production hosting
 - 不生成、提交或发布 production package
 - 不添加 deploy / publish / release 脚本
 - 不提交 `dist/` 或 `node_modules/`
 - 不声明 production secret backend、正式鉴权、进程守护或环境隔离已完成
+
+`scripts/checks/fixtures/production-ops-console-package-smoke.json` 与 `scripts/check-production-ops-console-package-smoke.py` 固定上述 package smoke 边界。该检查不发布、不上传、不启动公开服务，也不把 Vite preview 解释为 production deployment。
 
 ## 连接失败诊断
 

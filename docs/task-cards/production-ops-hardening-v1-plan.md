@@ -72,6 +72,7 @@
 4. `console-production-package-smoke`
    - 给 console production build / preview / package 形成最小可复验入口。
    - 继续保持只读边界。
+   - 当前已落地 governance boundary：`scripts/checks/fixtures/production-ops-console-package-smoke.json` 与 `scripts/check-production-ops-console-package-smoke.py` 固定 build / preview / private package / artifact policy；这不等于 console production package ready。
 5. `short-close-checklist-refresh`
    - 更新 P3 checklist，将已完成项和仍 blocked 项分清。
    - 只在新增生产声明、配置格式或执行边界时补专项门禁。
@@ -87,7 +88,7 @@
 
 ## 下一步
 
-继续推进 `console-production-package-smoke` 切片：先读取 `apps/radishmind-console/package.json`、console production boundary gate、`.gitignore` 和 console README，固定 production build / preview / package 的最低可复验入口。`config-secret-boundary`、`startup-supervisor-boundary` 与 `environment-isolation` 已有最小门禁，但 production secret backend、process supervisor 和 deployment environment isolation 仍为 `not_satisfied`。
+继续推进 `short-close-checklist-refresh` 切片：复核 P3 checklist、当前焦点、路线图和四个 production ops boundary fixture，确认已完成的是 governance boundary，仍 blocked 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 不被误写成 satisfied。
 
 ## 停止线
 

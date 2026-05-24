@@ -24,6 +24,7 @@ REQUIRED_SATISFIED_CONDITIONS = {
     "production_config_secret_boundary_gate",
     "startup_supervisor_boundary_gate",
     "environment_isolation_boundary_gate",
+    "console_production_package_smoke_gate",
     "fast_baseline_consumes_p3_gates",
 }
 
@@ -111,8 +112,8 @@ def assert_short_close_state(fixture: dict[str, Any]) -> None:
     )
     next_default = set(local_close.get("next_default") or [])
     require(
-        {"production_ops_hardening_v1", "console_production_package_smoke"}.issubset(next_default),
-        "P3 local close must point to Production Ops Hardening v1 console-production-package-smoke",
+        {"production_ops_hardening_v1", "short_close_checklist_refresh"}.issubset(next_default),
+        "P3 local close must point to Production Ops Hardening v1 short-close-checklist-refresh",
     )
     locked_claims = set(local_close.get("does_not_unlock") or [])
     required_locked_claims = {
@@ -172,6 +173,7 @@ def assert_consumers(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-config-secret-boundary.py",
         "scripts/check-production-ops-startup-supervisor-boundary.py",
         "scripts/check-production-ops-environment-isolation-boundary.py",
+        "scripts/check-production-ops-console-package-smoke.py",
         "scripts/check-repo.py",
         "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",

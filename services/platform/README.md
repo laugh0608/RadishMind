@@ -85,6 +85,12 @@ platform wrapper 只支持 `serve`、`config-summary`、`config-check` 和 `diag
 
 production readiness 仍必须等待 deployment environment isolation、production auth policy、production CORS policy、provider health policy、secret backend、process supervisor 和 console production packaging。当前任何 local / dev smoke 通过都不得升级为 production ready。
 
+## Console package smoke boundary
+
+`console-production-package-smoke` 已由 `scripts/checks/fixtures/production-ops-console-package-smoke.json` 与 `scripts/check-production-ops-console-package-smoke.py` 固定为 governance boundary。当前 console package 只允许 `dev`、`build` 和 `preview` 三个 npm script：`npm run build` 用于本地或 CI smoke，执行 `tsc --noEmit && vite build`；`npm run preview` 只允许绑定 `127.0.0.1:4000` 做本地 build preview。
+
+这些入口不等于 production package 或 production hosting。`apps/radishmind-console/package.json` 必须保持 `private=true`，不得添加 deploy / publish / release / package / docker 类脚本，不得提交 `apps/radishmind-console/dist/` 或 `apps/radishmind-console/node_modules/`。console production packaging 仍为 `not_satisfied`，直到另有生产发布目标、静态资产策略、正式鉴权 / CORS policy 和部署门禁。
+
 本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时优先使用仓库 `.venv` Python，再回退系统 `python3` / `python`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
