@@ -39,6 +39,7 @@
 5. `deployment-readiness-smoke`
    - 先做 `docker compose config` / 静态展开检查。
    - 再逐步引入本地容器 smoke、测试环境 smoke 和生产前复核记录。
+   - 当前已落地：`scripts/checks/fixtures/production-ops-deployment-readiness-smoke.json` 与 `scripts/check-production-ops-deployment-readiness-smoke.py` 固定 docker_test / docker_prod 的静态展开场景和后续可执行的 `docker compose config` 命令；该检查不启动 Docker、不拉镜像、不声明 container smoke、测试环境 smoke、production preflight 或 production ready。
 
 ## 非目标
 
@@ -58,4 +59,4 @@
 
 ## 下一步
 
-推进 `deployment-readiness-smoke`：先做 `docker compose config` / 静态展开检查。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose 或镜像命名边界声明为 production ready。
+后续只在明确运行窗口下推进本地容器 smoke、测试环境 smoke 或生产前复核记录。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose、镜像命名或静态展开边界声明为 production ready。

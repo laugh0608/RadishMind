@@ -94,6 +94,16 @@
         "scripts/checks/fixtures/production-ops-docker-image-build-publish.json",
         "scripts/check-production-ops-docker-image-build-publish.py"
       ]
+    },
+    {
+      "id": "deployment_readiness_static_smoke",
+      "status": "satisfied",
+      "evidence": [
+        "deploy/docker-compose.yaml",
+        "deploy/.env.example",
+        "scripts/checks/fixtures/production-ops-deployment-readiness-smoke.json",
+        "scripts/check-production-ops-deployment-readiness-smoke.py"
+      ]
     }
   ],
   "required_future_assets": [
@@ -119,6 +129,21 @@
       "id": "production_auth_cors_policy",
       "status": "not_satisfied",
       "required_before_production_ready": true
+    },
+    {
+      "id": "container_smoke_ready",
+      "status": "not_satisfied",
+      "required_before_test_environment_smoke_ready": true
+    },
+    {
+      "id": "test_environment_smoke",
+      "status": "not_satisfied",
+      "required_before_production_preflight_ready": true
+    },
+    {
+      "id": "production_preflight_record",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
     }
   ],
   "mode_principles": [
@@ -133,6 +158,7 @@
     "scripts/check-production-ops-docker-local-compose.py",
     "scripts/check-production-ops-docker-test-prod-compose.py",
     "scripts/check-production-ops-docker-image-build-publish.py",
+    "scripts/check-production-ops-deployment-readiness-smoke.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/radishmind-current-focus.md",
