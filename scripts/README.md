@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-05-16
+更新时间：2026-05-18
 
 ## 目录目标
 
@@ -15,11 +15,24 @@
   - 例如 `check-repo.py`、`run-eval-regression.py`、`check-repo.sh`、`check-repo-fast.sh`
   - `check-repo.py` 支持 `--fast`，用于日常快速验证；`check-repo.sh --fast`、`check-repo-fast.sh`、`pwsh ./scripts/check-repo.ps1 -Fast` 与 `pwsh ./scripts/check-repo-fast.ps1` 都会跳过慢速回归和批量元数据重跑，但仍保留核心静态门禁
   - 当前还提供 `run-platform-service.sh` 与 `run-platform-service.ps1`，作为本地 Go platform service wrapper；支持 `serve`、`config-summary`、`config-check` 与 `diagnostics`，并统一处理 repo root、`services/platform` 工作目录、默认 `GOCACHE` 和默认本地配置文件
+  - 当前还提供 `run-platform-overview-consumer-smoke.py`，用于把 `GET /v1/platform/overview` 转成未来本地 console 可展示的 overview view model；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回
+  - 当前还提供 `run-platform-local-smoke.py`，用于把 `GET /v1/platform/local-smoke` 转成本地 readiness view model；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，只汇总 healthz、overview、model inventory、session/tooling、CORS 和停止线状态，不启动服务、不实现 supervisor、executor、durable store、confirmation、replay 或业务写回
+  - 当前还提供 `run-platform-session-tooling-consumer-smoke.py`，用于把 session/tooling metadata shell 与 blocked action response 转成上层可展示的消费视图；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回
   - 当前还提供 `check-platform-ops-smoke.py`，用于固定 Go platform service 的测试入口、bridge registry 和 provider/profile inventory 基线
   - 当前还提供 `check-platform-config.py`，用于校验 platform config summary / config check 的脱敏输出、配置来源和 secret 不泄露边界
   - 当前还提供 `check-platform-deployment-smoke.py`，用于校验 JSON 配置文件层级、环境变量覆盖、wrapper unknown command failure boundary 和 secret 不泄露边界
   - 当前还提供 `check-platform-diagnostics.py`，用于校验 structured diagnostics、startup/config/bridge/provider registry failure boundary 和 discoverability selectable model ids
   - 当前还提供 `check-platform-runbook.py`，用于校验 platform 本地运行说明与脚本入口之间的 runbook drift
+  - 当前还提供 `check-platform-overview-consumer-contract.py`，用于校验 `contracts/typescript/platform-overview-api.ts` 与 Go platform overview route 的只读路由、停止线和 console view model 保持一致，并在离线模式下运行 `run-platform-overview-consumer-smoke.py --check`；它只固定 overview 消费视图，不实现 UI、executor、durable store 或 confirmation 接线
+  - 当前还提供 `check-platform-local-smoke-contract.py`，用于校验 `contracts/typescript/platform-local-smoke-api.ts`、Go `GET /v1/platform/local-smoke` route 和 `run-platform-local-smoke.py --check` 保持一致；它只固定本地开发 readiness 摘要，不实现 production supervisor、executor、durable store、confirmation、业务写回或 replay
+  - 当前还提供 `check-radishmind-console-shell.py`，用于校验 `apps/radishmind-console/` 的 React + Vite + TypeScript 本地 console 壳仍只消费共享 overview contract 和 `GET /v1/platform/overview`，并保持 executor、durable store、confirmation、业务写回和 replay 停止线关闭
+  - 当前还提供 `check-radishmind-console-behavior.py`，用于校验本地 console 的 ready path、refresh stale overview、Dev Diagnostics、Stop-line Details、连接失败诊断、overview 可读字段和只读停止线；该检查不启动浏览器、不启动长驻服务，也不调用真实 executor、store、confirmation 或 replay
+  - 当前还提供 `check-radishmind-console-visual-smoke-record.py`，用于校验 P3 本地 console 视觉 smoke 记录：默认端口固定为前端 `4000` / 后端 `7000`，覆盖 desktop ready、narrow ready、`320px` 最小宽度、Dev Diagnostics、`Local Readiness` 面板、Stop-line Details、连接失败 stale overview 和 local-smoke failure stale overview 人工浏览器 QA 路径；该检查不启动浏览器、不提交截图，也不启用 executor、durable store、confirmation、业务写回或 replay
+  - 当前还提供 `scripts/run-radishmind-console-dev.ps1` 与 `scripts/run-radishmind-console-dev.sh`，作为本地开发用的一键 console 启动/验证入口：按既有 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 启动或复用 platform 后端，按 `npm run dev` 启动或复用 `apps/radishmind-console/` 前端，并探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、`http://127.0.0.1:7000/v1/platform/local-smoke`、本地 console CORS preflight 和 `http://127.0.0.1:4000`；它会说明端口冲突、CORS / preflight 与浏览器 `unsafe port` 常见失败，且明确不是 production supervisor，不实现真实 executor、durable store、confirmation、业务写回或 replay
+  - 当前还提供 `check-radishmind-console-dev-entry.py`，用于校验一键 console dev 入口、README 和 P3 checklist 的端口、探测 URL、CORS / unsafe port 诊断、dev-only 边界和 fast baseline 接入
+  - 当前还提供 `check-radishmind-console-production-boundary.py`，用于校验本地 console 仍不是 production package：包必须保持 private、不添加 deploy / publish / release 脚本、不提交 `dist/` 或 `node_modules/`，并保持 production secret backend、正式鉴权、进程守护和环境隔离未完成的文档口径
+  - 当前还提供 `check-p3-local-product-shell-short-close-checklist.py`，用于校验 `P3 Local Product Shell / Ops Surface` 的阶段预检：overview route、local smoke readiness route、TypeScript consumer、本地 console shell、console behavior gate、Provider/Profile Details、Stop-line Details 和 production boundary gate 已满足，本地只读产品壳达到 `local usable / read-only close`；但 production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`，后续默认进入 UI 设计专题和 P4 模型适配计划；该检查只固定口径，不启用真实 executor、durable store、confirmation、业务写回或 replay
+  - 当前还提供 `check-platform-session-tooling-consumer-contract.py`，用于校验 `contracts/typescript/session-tooling-api.ts` 与 Go session/tooling metadata shell 的路由、拒绝码和 blocked action 无副作用字段保持一致，并在离线模式下运行 `run-platform-session-tooling-consumer-smoke.py --check`；它只固定上层消费视图，不实现 UI、executor、durable store 或 confirmation 接线
   - 当前还提供 `check-session-record-contract.py`，用于校验 `SessionRecord` schema、fixture、history/state policy、recovery record、northbound metadata 和不写业务真相源边界
   - 当前还提供 `check-tooling-framework-contract.py`，用于校验 tool definition、registry policy、tool audit、session binding、metadata-only result cache、不启用 executor 和不写 durable memory 边界
   - 当前还提供 `check-session-recovery-checkpoint-contract.py`，用于校验 recovery checkpoint record/manifest/read result、tool audit summary、metadata-only read boundary、无 materialized result、无 durable memory 和无 automatic replay 边界

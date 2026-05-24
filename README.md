@@ -11,6 +11,7 @@
 - [阶段路线图](docs/radishmind-roadmap.md)
 - [跨项目集成契约](docs/radishmind-integration-contracts.md)
 - [代码规范](docs/radishmind-code-standards.md)
+- [本地 Console 说明](apps/radishmind-console/README.md)
 
 ## 仓库约定
 

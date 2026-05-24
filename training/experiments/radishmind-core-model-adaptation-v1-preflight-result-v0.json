@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_model_adaptation_v1_preflight_result",
+  "result_id": "radishmind-core-model-adaptation-v1-preflight-result-v0",
+  "status": "completed_no_raw_promotion",
+  "phase": "P4-preflight",
+  "created_for": "model-adaptation-v1-raw-vs-repaired-comparison",
+  "model": {
+    "provider": "local_transformers",
+    "model_id": "Qwen2.5-1.5B-Instruct",
+    "model_dir": "/home/luobo/Code/Models/Qwen2.5-1.5B-Instruct",
+    "device": "cpu",
+    "does_not_download_model_artifacts": true
+  },
+  "scope": {
+    "sample_set_id": "full-holdout-9",
+    "candidate_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+    "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+    "sample_count": 9,
+    "task_counts": {
+      "radish/answer_docs_question": 3,
+      "radishflow/suggest_flowsheet_edits": 3,
+      "radishflow/suggest_ghost_completion": 3
+    }
+  },
+  "raw_student": {
+    "candidate_track": "raw_student",
+    "artifact_paths": {
+      "candidate_output_dir": "tmp/radishmind-core-v1-preflight/raw-student",
+      "candidate_summary": "tmp/radishmind-core-v1-preflight/raw-student/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-v1-preflight/raw-student-offline-eval.json"
+    },
+    "candidate_summary_observation": {
+      "sample_count": 9,
+      "schema_valid_rate": 0.6666666666666666,
+      "schema_invalid_rate": 0.3333333333333333,
+      "task_valid_rate_for_valid_responses": 1.0,
+      "task_validation_attempted": 6,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 9,
+      "total_generation_seconds": 864.117,
+      "avg_generation_seconds": 96.013,
+      "total_input_tokens": 22242,
+      "total_output_tokens": 3989
+    },
+    "task_results": [
+      {
+        "project": "radishflow",
+        "task": "suggest_flowsheet_edits",
+        "sample_count": 3,
+        "schema_valid_rate": 0.0,
+        "task_valid_rate": 0.0,
+        "status": "blocked",
+        "blocking_reason": "All three raw outputs rendered citations as {'copy_from_hard_field_freeze': '$.citations'} instead of a citations array."
+      },
+      {
+        "project": "radishflow",
+        "task": "suggest_ghost_completion",
+        "sample_count": 3,
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "status": "passed_machine_gate"
+      },
+      {
+        "project": "radish",
+        "task": "answer_docs_question",
+        "sample_count": 3,
+        "schema_valid_rate": 1.0,
+        "task_valid_rate": 1.0,
+        "status": "passed_machine_gate"
+      }
+    ],
+    "offline_eval_decision": {
+      "promotion_status": "blocked",
+      "requires_human_review": true
+    }
+  },
+  "repaired_student_comparison": {
+    "candidate_track": "repair_hard_fields",
+    "artifact_paths": {
+      "candidate_output_dir": "tmp/radishmind-core-v1-preflight/repaired-student",
+      "candidate_summary": "tmp/radishmind-core-v1-preflight/repaired-student/summary.json",
+      "offline_eval_run": "tmp/radishmind-core-v1-preflight/repaired-student-offline-eval.json"
+    },
+    "candidate_summary_observation": {
+      "sample_count": 9,
+      "schema_valid_rate": 1.0,
+      "schema_invalid_rate": 0.0,
+      "task_valid_rate": 1.0,
+      "task_validation_attempted": 9,
+      "timeout_count": 0,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 9,
+      "total_generation_seconds": 830.312,
+      "avg_generation_seconds": 92.257,
+      "total_input_tokens": 22242,
+      "total_output_tokens": 3989
+    },
+    "postprocess_observation": {
+      "repaired_output_count": 3,
+      "repaired_path_counts": {
+        "$.answers": 2,
+        "$.citations": 3,
+        "$.issues": 2,
+        "$.status": 2
+      }
+    },
+    "offline_eval_decision": {
+      "promotion_status": "no_promotion_planned",
+      "requires_human_review": true
+    }
+  },
+  "larger_raw_model_probe": {
+    "candidate_track": "raw_student",
+    "probe_id": "qwen25-3b-edits-single-timeout-001",
+    "model": {
+      "provider": "local_transformers",
+      "model_id": "Qwen2.5-3B-Instruct",
+      "model_dir": "/home/luobo/Code/Models/Qwen2.5-3B-Instruct",
+      "device": "cpu",
+      "does_not_download_model_artifacts": true
+    },
+    "scope": {
+      "sample_count": 1,
+      "sample_id": "radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "task": "radishflow/suggest_flowsheet_edits",
+      "reason": "Known 1.5B raw blocker sample used to test whether a larger raw student removes the citations scaffold leakage before running full-holdout-9."
+    },
+    "artifact_paths": {
+      "candidate_output_dir": "tmp/radishmind-core-v1-preflight/raw-student-qwen25-3b-single/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001",
+      "candidate_summary": "tmp/radishmind-core-v1-preflight/raw-student-qwen25-3b-single/radishflow-suggest-flowsheet-edits-compressor-parameter-update-ordering-001/summary.json"
+    },
+    "candidate_summary_observation": {
+      "schema_valid_rate": 0.0,
+      "schema_invalid_rate": 1.0,
+      "task_validation_attempted": 0,
+      "timeout_count": 1,
+      "hit_max_new_tokens_count": 0,
+      "json_extracted_count": 0,
+      "total_generation_seconds": 300.018,
+      "avg_generation_seconds": 300.018,
+      "total_input_tokens": 3615,
+      "total_output_tokens": 0
+    },
+    "decision": {
+      "promotion_status": "not_evaluable",
+      "blocking_reason": "Qwen2.5-3B-Instruct on CPU timed out after 300 seconds before producing any output tokens for the known edits blocker sample.",
+      "full_holdout_raw_comparison_status": "deferred",
+      "recommended_next_step": "Do not run Qwen2.5-3B-Instruct full-holdout-9 on the same CPU path. Continue only if GPU execution is available or an explicit longer-timeout cost decision is made; otherwise shift from capacity probing to raw-output scaffold leakage mitigation strategy."
+    }
+  },
+  "decision": {
+    "raw_student_promotion_status": "blocked",
+    "repaired_result_role": "postprocess_comparison_only",
+    "larger_raw_model_probe_status": "qwen25_3b_cpu_single_timeout",
+    "route_conclusion": "Qwen2.5-1.5B raw can complete docs QA and ghost completion on full-holdout-9, but remains blocked on suggest_flowsheet_edits due scaffold citation reference leakage. Repaired comparison eliminates the machine-gate blocker but must not be treated as raw model promotion or training acceptance. A follow-up Qwen2.5-3B raw CPU probe on the known edits blocker sample timed out before producing output, so full-holdout-9 3B CPU comparison is deferred.",
+    "recommended_next_step": "Do not launch Qwen2.5-3B full-holdout-9 on the same CPU path. If GPU execution is available, rerun the same single raw probe under GPU before full-batch comparison; otherwise shift to raw-output scaffold leakage mitigation planning without generating training JSONL."
+  },
+  "artifact_policy": {
+    "committed_allowed": [
+      "this small result summary",
+      "task-card progress update",
+      "devlog progress update"
+    ],
+    "committed_disallowed": [
+      "candidate response files",
+      "prompt files",
+      "provider raw dump",
+      "training JSONL",
+      "model weights",
+      "checkpoint",
+      "adapter binary"
+    ],
+    "generated_outputs_default_location": "tmp/"
+  }
+}

@@ -23,11 +23,14 @@
 - `training/datasets/copilot-training-dataset-governance-v0.json` 是首个训练集合治理 manifest 草案，用于固定 candidate record 入选、抽样复核、质量门禁、holdout 和退场条件
 - `training/datasets/copilot-training-review-record-v0.json` 是首个 planned 人工复核记录模板，用于后续记录 reviewer、逐维度结果和泄漏判断
 - `training/datasets/copilot-training-holdout-split-v0.json` 是首个 planned offline eval holdout split，当前每条主任务各保留 3 条且不与现有训练 seed manifest 重叠
+- `training/datasets/radishmind-core-model-adaptation-v1-governance-review-v0.json` 是 `P4` v1 预检治理复核记录，用于确认 seed / teacher / holdout 覆盖、holdout 泄漏边界、人工样本复核未完成状态和 raw-first 执行顺序；它不运行模型、不生成 JSONL、不声明样本 `reviewed_pass`
+- `training/experiments/radishmind-core-model-adaptation-v1-preflight-result-v0.json` 是 `P4` v1 首轮本地 raw / repaired comparison 结果摘要：`Qwen2.5-1.5B-Instruct` raw 在 full-holdout-9 上总体 `schema_valid_rate=0.6667`，edits 3/3 blocked；repaired comparison 9/9 机器通过但只作为后处理证据
 - `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json` 固定 task-scoped builder 扩样前的 planned review 维度、批次和准入 / 阻断规则；它只做计划，不记任何真实 `reviewed_pass`
 - `training/experiments/radishmind-core-qwen15b-offline-eval-v0.json` 是首个本地 `Qwen2.5-1.5B-Instruct` raw / repaired 双轨离线评测观察摘要；它只记录指标、修复路径和 `tmp/` artifact 位置，不提交候选输出本体
 - `training/experiments/radishmind-core-structured-output-decision-experiment-v0.json` 是当前 `M4` 主线的决策型实验骨架，用于固定“结构化输出约束是否足以改变路线判断”这一问题的样本面、对照变体、退出条件和本地复跑命令；`3B/4B` 对照已收口，后续只在新假设下再开新对照
 - `training/datasets/radishmind-core-guided-capacity-review-records-v0.json` 是 `3B guided` vs `4B guided` 的正式 review records；它固定 `holdout6-v2-non-overlap` 上的 6 条对照样本、4 个审计维度和 `reviewed_changes_required` 结论，不代表 raw 晋级或训练准入
 - `training/experiments/radishmind-core-constrained-guided-decoding-runbook-v0.json` 固定 broader builder 15/15 `reviewed_pass` 之后的下一轮优先路线：先在同一 `holdout6-v2-non-overlap`、同一 `300s` 边界上验证 constrained/guided decoding，再决定是否扩样或切 `3B/4B`
+- `training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json` 固定 `P4` v1 模型适配前的 teacher/student、seed/teacher/holdout 样本面、raw student 与 repaired comparison 执行清单；它只描述计划，不运行模型、不下载权重、不生成 JSONL、不声明 raw 晋级
 - `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json` 固定 full-holdout-9 task-scoped builder 的本地执行清单、`tmp/` 产物路径、offline eval 和自然语言 audit 顺序；它只描述计划，不声明结果
 - `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json` 固定 broader task-scoped builder review 的 15 样本 surface、现有证据来源和验证入口；它不运行模型、不生成 JSONL、不声明新的 `reviewed_pass`
 - `training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 固定 broader task-scoped builder review 的两段本地执行清单、`tmp/` 产物路径、offline eval、自然语言 audit 和后续 review record 口径；它只描述计划，不声明结果
@@ -82,6 +85,10 @@ python3 scripts/build-copilot-training-samples.py \
 
 `scripts/check-copilot-training-dataset-governance.py` 已接入 `check-repo`，用于检查该治理 manifest 的关键字段、来源 summary、抽样比例、artifact 禁入仓规则和离线评测接线。
 
+`scripts/check-radishmind-core-model-adaptation-v1-governance-review.py` 已接入 `check-repo`，用于固定 `P4` v1 治理复核记录仍只是 preflight，不运行模型、不生成 JSONL、不标记样本 `reviewed_pass`，且下一步只能是选择本地 `model-dir` 后的 raw student probe。
+
+`scripts/check-radishmind-core-model-adaptation-v1-preflight-result.py` 已接入 `check-repo`，用于固定 `P4` v1 首轮本地结果仍是 raw blocked / repaired-only comparison，不得漂成 raw 晋级或训练准入。
+
 当前还补了两份 planned 资产：
 
 - `training/datasets/copilot-training-review-record-v0.json`：记录 seed set 全量复核、teacher_capture 全量复核和 holdout 泄漏检查的模板；在没有真实 reviewer、timestamp 与逐维度结果前，保持 `pending_review`
@@ -111,6 +118,7 @@ python3 scripts/build-copilot-training-samples.py \
 - 继续保留 raw / repaired 双轨、同 timeout、`tmp/` artifact 禁入仓
 - 已比较 raw baseline、prompt-time hard-field freeze、`--inject-hard-fields` 硬字段外部注入、`--build-suggest-edits-response` 单任务 builder 与 `--build-task-scoped-response` 组合 builder 轨
 - 2026-05-08 的阶段结论是：broader 15 样本 review 的 machine gate、offline eval、natural-language audit 和人工复核都已完成，records 现为 15/15 `reviewed_pass`；这能作为 builder/tooling 路线的更强人工复核证据，但仍不能当作 raw 晋级或训练准入证据
-- 当前下一步不是继续重跑同一批 broader review，也不是继续扩同一 1.5B guided 样本面；`Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 已完成机器通过，`Qwen2.5-3B-Instruct` 与 `Qwen3-4B-Instruct-2507` 的 raw / guided 也已完成并收口为正式记录。当前更高优先级是回到 `M3` service/API smoke 维护；`M4` 的 `3B/4B` 对照已收口，后续只在出现新假设时再开新对照
+- 当前下一步不是继续重跑同一批 broader review，也不是继续扩同一 1.5B guided 样本面；`Qwen2.5-1.5B-Instruct` guided / `holdout6-v2-non-overlap` 已完成机器通过，`Qwen2.5-3B-Instruct` 与 `Qwen3-4B-Instruct-2507` 的 raw / guided 也已完成并收口为正式记录。当前更高优先级是基于 `P4` v1 预检结果决定是否在 full-holdout-9 上比较更大 raw 模型；`M4` 的 `3B/4B` 对照已收口，后续只在出现新假设时再开新对照
 - 当前 task-scoped builder 扩样前复核口径已单独落到 `training/datasets/radishmind-core-task-scoped-builder-review-plan-v0.json`，后续扩大样本面前必须先满足该 planned review 维度和阻断规则
 - full-holdout-9 的执行准备已落到 `training/experiments/radishmind-core-task-scoped-builder-full-holdout-runbook-v0.json`，broader review 的 15 样本入口、两段执行清单和 review records 分别落到 `training/experiments/radishmind-core-task-scoped-builder-broader-review-entry-v0.json`、`training/experiments/radishmind-core-task-scoped-builder-broader-review-runbook-v0.json` 和 `training/datasets/radishmind-core-task-scoped-builder-broader-review-records-v0.json`；当前这批 broader review records 已完成从 `reviewed_changes_required` 到 15/15 `reviewed_pass` 的推进，下一步应基于这批通过结果稳定 builder/tooling 路线，而不是重新回到同一批 blocked 样本修复循环
+- `P4` v1 预检执行准备已落到 `training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json`；后续真实本地模型脚本仍由人工在本机终端执行，AI 只负责读取 `tmp/` 下 summary、candidate response、prompt、audit 或 offline eval 产物并更新结论

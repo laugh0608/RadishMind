@@ -19,6 +19,22 @@ if (-not $env:GOCACHE) {
     $env:GOCACHE = Join-Path ([System.IO.Path]::GetTempPath()) "radishmind-go-build-cache"
 }
 
+if (-not $env:RADISHMIND_PLATFORM_PYTHON_BIN) {
+    $venvPython = Join-Path $repoRoot ".venv/Scripts/python.exe"
+    if (Test-Path -LiteralPath $venvPython -PathType Leaf) {
+        $env:RADISHMIND_PLATFORM_PYTHON_BIN = $venvPython
+    }
+    else {
+        foreach ($candidate in @("python", "python3")) {
+            $pythonCommand = Get-Command $candidate -ErrorAction SilentlyContinue
+            if ($null -ne $pythonCommand) {
+                $env:RADISHMIND_PLATFORM_PYTHON_BIN = $pythonCommand.Source
+                break
+            }
+        }
+    }
+}
+
 if (-not $env:RADISHMIND_PLATFORM_CONFIG) {
     $defaultConfig = Join-Path $repoRoot "tmp/radishmind-platform.local.json"
     if (Test-Path -LiteralPath $defaultConfig -PathType Leaf) {

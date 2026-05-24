@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "kind": "radishmind_core_model_adaptation_v1_preflight_runbook",
+  "runbook_id": "radishmind-core-model-adaptation-v1-preflight-runbook-v0",
+  "status": "planned",
+  "phase": "P4-preflight",
+  "created_for": "model-adaptation-v1-teacher-student-boundary",
+  "does_not_run_models": true,
+  "does_not_download_model_artifacts": true,
+  "does_not_generate_jsonl": true,
+  "does_not_mark_raw_promotion": true,
+  "does_not_mark_training_acceptance": true,
+  "planning_sources": {
+    "task_card": "docs/task-cards/model-adaptation-v1-preflight-plan.md",
+    "training_contract": "docs/contracts/training-samples.md",
+    "dataset_governance": "training/datasets/copilot-training-dataset-governance-v0.json",
+    "holdout_split": "training/datasets/copilot-training-holdout-split-v0.json"
+  },
+  "v1_scope": {
+    "tasks": [
+      "radishflow/suggest_flowsheet_edits",
+      "radishflow/suggest_ghost_completion",
+      "radish/answer_docs_question"
+    ],
+    "excluded_from_v1": [
+      "RadishCatalyst real schema or adapter expansion",
+      "image pixel generation",
+      "production tool execution",
+      "confirmation flow",
+      "writeback",
+      "automatic replay"
+    ]
+  },
+  "sample_inputs": {
+    "golden_response_seed_manifest": {
+      "manifest": "scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json",
+      "current_sample_count": 9,
+      "role": "small reviewed seed surface"
+    },
+    "teacher_capture_seed_manifest": {
+      "manifest": "scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json",
+      "current_sample_count": 9,
+      "role": "audited candidate-record distillation surface"
+    },
+    "holdout_eval_manifest": {
+      "manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+      "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+      "holdout_sample_count": 9,
+      "role": "training-outside offline evaluation surface"
+    },
+    "non_overlap_probe_manifest": {
+      "manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-manifest.json",
+      "candidate_eval_manifest": "scripts/checks/fixtures/radishmind-core-holdout-probe-v2-candidate-eval-manifest.json",
+      "sample_count": 6,
+      "role": "non-overlap regression probe"
+    }
+  },
+  "preflight_sequence": [
+    {
+      "step_id": "dataset_governance_review",
+      "purpose": "Confirm that seed, teacher capture, and holdout surfaces are still traceable before any JSONL generation.",
+      "required_inputs": [
+        "training/datasets/copilot-training-dataset-governance-v0.json",
+        "training/datasets/copilot-training-review-record-v0.json",
+        "training/datasets/copilot-training-holdout-split-v0.json"
+      ],
+      "output": "manual review notes or a small committed review update only after reviewer fields are known"
+    },
+    {
+      "step_id": "raw_student_probe",
+      "purpose": "Collect raw student baseline on the full holdout without repair, injection, guided decoding, or builders.",
+      "candidate_track": "raw_student",
+      "allowed_after": [
+        "dataset_governance_review"
+      ],
+      "planned_artifact_paths": {
+        "candidate_output_dir": "tmp/radishmind-core-v1-preflight/raw-student",
+        "candidate_summary": "tmp/radishmind-core-v1-preflight/raw-student/summary.json",
+        "offline_eval_run": "tmp/radishmind-core-v1-preflight/raw-student-offline-eval.json"
+      },
+      "planned_local_run": {
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-candidate.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+          "--provider",
+          "local_transformers",
+          "--model-dir",
+          "<local-model-dir>",
+          "--output-dir",
+          "tmp/radishmind-core-v1-preflight/raw-student",
+          "--summary-output",
+          "tmp/radishmind-core-v1-preflight/raw-student/summary.json",
+          "--allow-invalid-output",
+          "--validate-task",
+          "--sample-timeout-seconds",
+          "300"
+        ]
+      },
+      "planned_offline_eval": {
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-offline-eval.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+          "--candidate-summary",
+          "tmp/radishmind-core-v1-preflight/raw-student/summary.json",
+          "--candidate-output-dir",
+          "tmp/radishmind-core-v1-preflight/raw-student",
+          "--output",
+          "tmp/radishmind-core-v1-preflight/raw-student-offline-eval.json",
+          "--check-output",
+          "tmp/radishmind-core-v1-preflight/raw-student-offline-eval.json"
+        ]
+      }
+    },
+    {
+      "step_id": "repair_boundary_probe",
+      "purpose": "Run the same holdout with hard-field repair only as a postprocess comparison, not as raw promotion evidence.",
+      "candidate_track": "repaired_student_comparison",
+      "allowed_after": [
+        "raw_student_probe"
+      ],
+      "planned_artifact_paths": {
+        "candidate_output_dir": "tmp/radishmind-core-v1-preflight/repaired-student",
+        "candidate_summary": "tmp/radishmind-core-v1-preflight/repaired-student/summary.json",
+        "offline_eval_run": "tmp/radishmind-core-v1-preflight/repaired-student-offline-eval.json"
+      },
+      "planned_local_run": {
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-candidate.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-manifest.json",
+          "--provider",
+          "local_transformers",
+          "--model-dir",
+          "<local-model-dir>",
+          "--output-dir",
+          "tmp/radishmind-core-v1-preflight/repaired-student",
+          "--summary-output",
+          "tmp/radishmind-core-v1-preflight/repaired-student/summary.json",
+          "--allow-invalid-output",
+          "--repair-hard-fields",
+          "--validate-task",
+          "--sample-timeout-seconds",
+          "300"
+        ]
+      },
+      "planned_offline_eval": {
+        "command_args": [
+          "python3",
+          "scripts/run-radishmind-core-offline-eval.py",
+          "--manifest",
+          "scripts/checks/fixtures/radishmind-core-full-holdout-candidate-eval-manifest.json",
+          "--candidate-summary",
+          "tmp/radishmind-core-v1-preflight/repaired-student/summary.json",
+          "--candidate-output-dir",
+          "tmp/radishmind-core-v1-preflight/repaired-student",
+          "--output",
+          "tmp/radishmind-core-v1-preflight/repaired-student-offline-eval.json",
+          "--check-output",
+          "tmp/radishmind-core-v1-preflight/repaired-student-offline-eval.json"
+        ]
+      }
+    }
+  ],
+  "promotion_gates": {
+    "raw_student_required": [
+      "schema_valid_rate and task_valid_rate are recorded from raw_student_probe",
+      "high-risk proposed_actions preserve requires_confirmation=true",
+      "citation and evidence-gap behavior pass deterministic audit",
+      "advisory-only boundaries are not weakened",
+      "non-overlap holdout is inspected separately from seed manifests",
+      "human review accepts key samples before any promotion statement"
+    ],
+    "explicitly_not_promotion": [
+      "repair_boundary_probe",
+      "guided decoding",
+      "hard-field injection",
+      "task-scoped builder",
+      "golden fixture provider"
+    ]
+  },
+  "artifact_policy": {
+    "committed_allowed": [
+      "runbook",
+      "small reviewed summary after explicit audit",
+      "task-card progress update"
+    ],
+    "committed_disallowed": [
+      "training JSONL generated from the seed manifests",
+      "candidate response files",
+      "provider raw dump",
+      "model weights",
+      "checkpoint",
+      "adapter binary",
+      "downloaded model cache"
+    ],
+    "generated_outputs_default_location": "tmp/"
+  },
+  "operator_notes": [
+    "Replace <local-model-dir> with an existing local model directory; the wrapper must not download model artifacts.",
+    "Keep raw_student_probe and repair_boundary_probe on the same manifest, timeout, provider, and model directory so their differences stay attributable to postprocess policy.",
+    "Do not request a batch run until the dataset governance review is resolved and the operator can tolerate local CPU/GPU load.",
+    "If a run times out or is interrupted, inspect the existing tmp summary, prompt, candidate response, audit, and offline eval artifacts before rerunning."
+  ]
+}

@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-05-13
+更新时间：2026-05-20
 
 ## 协议兼容边界
 
@@ -17,13 +17,13 @@
 
 当前目标口径应固定为：
 
-- 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`
+- 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
 
 当前真实状态是：
 
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
-- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/session/recovery/checkpoints/{checkpoint_id}`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
+- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata` 与 `/v1/tools/actions`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
 - `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；正式 secret backend、环境隔离和外部 provider health check 仍未落地
 
@@ -100,7 +100,23 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 当前 `GET /v1/session/recovery/checkpoints/{checkpoint_id}` 只承接 session recovery checkpoint 的 metadata-only route smoke。它返回固定 fixture 边界、checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，并显式拒绝 materialized result / replay 类查询；这条路由不是 durable checkpoint store、materialized result reader 或 replay executor。
 
-当前本地启动 runbook 固定在 `services/platform/README.md`，并由 `scripts/check-platform-runbook.py` 防止配置、路由和命令说明漂移。该检查会对齐 `RADISHMIND_PLATFORM_*` 环境变量、`/healthz`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/recovery/checkpoints/{checkpoint_id}` 和最小 curl smoke 命令；它只保证本地开发入口可复验，不代表 secret 管理、进程守护、部署观测或生产鉴权已经完成。
+当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 只承接最小 session/tooling 产品骨架。session metadata route 返回 northbound `radishmind` 扩展字段、history/state/recovery 边界和 disabled capability；tools metadata route 返回当前 contract-only registry view；tool action route 对工具 action 请求返回 `tool_action_blocked_response`，用于上层或 UI 消费 `status=blocked`、denial code、confirmation requirement 和 side-effect absence。该 blocked response 不代表 confirmation 接线、executor、durable store、materialized result reader、长期记忆、业务写回或 replay 已启用。
+
+当前 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口。它聚合服务状态、`/v1/models` provider/profile inventory、session metadata route、tool metadata route、blocked action route 和停止线，供未来本地控制台或上层 UI 一次读取当前平台可展示能力。该 overview 只消费已有 metadata / blocked shell，不引入第二套业务真相源，也不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
+
+当前 `GET /v1/platform/local-smoke` 是 P3 本地开发 readiness 摘要入口。它聚合 `/healthz`、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS origin、默认 `7000/4000` 端口和停止线状态，供开发者或轻量脚本快速判断本地只读 console 链路是否可消费。该 route 只读、无副作用，不是 production health dashboard、process supervisor、executor、durable store、confirmation flow、业务写回或 replay。
+
+上层或未来本地 console 的 overview 消费口径已固定在 [Platform Overview UI View 契约](platform-overview-ui-view.md) 与 `contracts/typescript/platform-overview-api.ts`。该 TypeScript 文件只提供 `PlatformOverviewResponse`、`PlatformOverviewConsoleViewModel` 和只读 view helper，调用侧应把 service status、model inventory、session/tooling surface 和 stop-lines 作为展示字段；不得把 overview 投影成可执行命令、durable store 状态、业务写回能力或 replay 能力。
+
+上层或轻量脚本的本地 readiness 消费口径已固定在 `contracts/typescript/platform-local-smoke-api.ts`。该 TypeScript 文件只提供 `PlatformLocalSmokeResponse`、`PlatformLocalSmokeReadinessViewModel` 和只读 view helper，调用侧应把 local smoke 视为开发期可读性摘要；不得把 `local_console_ready=true` 解释成生产部署 ready、进程守护 ready 或真实执行链路 ready。
+
+上层或未来 UI 的最小 TypeScript 消费口径已固定在 `contracts/typescript/session-tooling-api.ts`。该文件只提供 `SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse` 类型和 blocked view helper，调用侧应把 `canExecute=false`、`statusLabel=blocked`、`primaryCode`、`requiresConfirmation` 与 `noSideEffects` 作为展示字段；不得把 metadata shell 或 blocked response 转成可执行命令。
+
+开发者可用 `scripts/run-platform-overview-consumer-smoke.py --check`、`scripts/run-platform-local-smoke.py --check` 和 `scripts/run-platform-session-tooling-consumer-smoke.py --check` 在离线 fixture 模式下生成同样的消费视图；如果本地平台服务已经启动，可加 `--base-url http://127.0.0.1:7000` 直接请求真实 API surface。这些脚本只验证上层展示语义或本地 readiness 摘要，不启动或模拟 executor。
+
+未来平台控制台或上层 UI 的首版视图模型固定在 [Session / Tooling UI View 契约](session-tooling-ui-view.md)：`SessionStatusViewModel`、`ToolRegistryViewModel` 和 `BlockedActionBannerViewModel`。这些 view model 只用于展示 metadata-only 与 blocked 状态，不声明真实执行、确认流、持久化或业务写回能力。
+
+当前本地启动 runbook 固定在 `services/platform/README.md`，并由 `scripts/check-platform-runbook.py` 防止配置、路由和命令说明漂移。该检查会对齐 `RADISHMIND_PLATFORM_*` 环境变量、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions` 和最小 curl smoke 命令；它只保证本地开发入口可复验，不代表 secret 管理、进程守护、部署观测或生产鉴权已经完成。
 
 ### `RadishFlow` UI 消费口径
 

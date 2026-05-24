@@ -7,7 +7,7 @@
 - 启动最小本地 `HTTP` 服务
 - 承载 northbound `API` / `gateway` 入口
 - 通过 Python bridge 调用 canonical `CopilotGatewayEnvelope`
-- 提供结构化诊断、观测、部署壳和后续鉴权 / 流式转发落点
+- 提供结构化诊断、观测、本地产品 overview、部署壳和后续鉴权 / 流式转发落点
 
 当前明确不做：
 
@@ -18,16 +18,27 @@
 当前最小路由：
 
 - `GET /healthz`
+- `GET /v1/platform/overview`
+- `GET /v1/platform/local-smoke`
 - `GET /v1/models`
 - `GET /v1/models/{id}`
 - `POST /v1/chat/completions`
 - `POST /v1/responses`
 - `POST /v1/messages`
+- `GET /v1/session/metadata`
 - `GET /v1/session/recovery/checkpoints/{checkpoint_id}`
+- `GET /v1/tools/metadata`
+- `POST /v1/tools/actions`
 
-其中 `/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 已接到最小 canonical bridge：`Go` 只负责 northbound 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
+其中 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口：它汇总服务状态、可选 model/profile、session/tooling metadata route、blocked action route 和当前停止线，供 `apps/radishmind-console/` 本地控制台或上层 UI 一次读取。它不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
+
+`GET /v1/platform/local-smoke` 是本地开发 readiness 摘要入口：它聚合 `/healthz`、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、local console CORS origin 和停止线状态，便于开发者或轻量脚本一次判断默认 `7000/4000` 本地 console 链路是否可读。它不启动或守护进程，不实现 production health dashboard、executor、durable store、confirmation、业务写回或 replay。
+
+`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 已接到最小 canonical bridge：`Go` 只负责 northbound 请求翻译、provider 选择和进程调度，真正的 canonical request / response 语义仍由 Python runtime 与 gateway 维持。
 
 `GET /v1/session/recovery/checkpoints/{checkpoint_id}` 当前只是 session recovery checkpoint 的 metadata-only route smoke：它返回固定 fixture 边界、checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，不读取 durable checkpoint store，不返回 materialized tool result，也不执行跨轮 replay。该 route 会拒绝 materialized result 和 replay 类查询参数，例如 `include_materialized_results=true`、`include_tool_results=true` 或 `auto_replay=true`。
+
+`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 当前构成最小 session/tooling 可用外壳：前两者返回平台可消费的 session 扩展字段、history/state/recovery 边界、tool registry metadata 和 contract-only execution policy；后者对任何工具 action 请求都返回 `tool_action_blocked_response`，明确 `status=blocked`、`execution_enabled=false`、`executed=false`、`result_ref=null`、`durable_memory_written=false`、`writes_business_truth=false`。这些路由只用于上层或 UI 发现能力和展示 blocked action 状态，不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
 当前第一版 bridge 仍是窄切片：
 
@@ -40,6 +51,7 @@
 当前平台级 `ops smoke` 已由 `scripts/check-platform-ops-smoke.py` 固定为快速门禁。它不启动长期驻留服务、不访问外部 provider，只验证三类可运行边界：
 
 - `go test ./...` 能覆盖平台服务层的 `healthz`、northbound 路由、provider/profile selection、session recovery checkpoint metadata-only read route 和 SSE 兼容行为。
+- `go test ./...` 也覆盖最小 session/tooling metadata shell 和 blocked action response，确保它们不暴露 executor、materialized result、durable memory 或业务写回能力。
 - `scripts/run-platform-bridge.py providers` 能从 Python registry 输出 `mock`、`openai-compatible`、`huggingface` 与 `ollama` provider 能力。
 - `scripts/run-platform-bridge.py inventory` 能在受控环境变量下暴露 openai-compatible fallback chain、HuggingFace profile 和 Ollama local profile，并且只暴露 `has_api_key` / `credential_state`，不泄漏 key 原文。
 
@@ -49,7 +61,7 @@
 
 结构化诊断 smoke 由 `scripts/check-platform-diagnostics.py` 固定到快速检查中。它通过一次性 `diagnostics` 命令聚合启动配置、必填字段、Python bridge provider registry 和 provider/profile inventory，不启动长驻服务、不访问外部 provider，并只输出 `credential_state`、计数和状态字段，不输出 secret、token 或 provider URL 原文。
 
-本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
+本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时优先使用仓库 `.venv` Python，再回退系统 `python3` / `python`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
 
@@ -71,7 +83,7 @@ GOCACHE=/tmp/radishmind-go-build-cache go test ./...
 从仓库根目录启动本地平台服务：
 
 ```bash
-RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:8080 \
+RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:7000 \
 RADISHMIND_PLATFORM_PROVIDER=mock \
 RADISHMIND_PLATFORM_MODEL=radishmind-local-dev \
 go run ./services/platform/cmd/radishmind-platform
@@ -80,7 +92,7 @@ go run ./services/platform/cmd/radishmind-platform
 如果已经进入 `services/platform` 目录，也可以使用：
 
 ```bash
-RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:8080 \
+RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:7000 \
 RADISHMIND_PLATFORM_PROVIDER=mock \
 RADISHMIND_PLATFORM_MODEL=radishmind-local-dev \
 go run ./cmd/radishmind-platform
@@ -93,7 +105,7 @@ go run ./cmd/radishmind-platform
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
 | `RADISHMIND_PLATFORM_CONFIG` | 空 | 可选 JSON 配置文件路径 |
-| `RADISHMIND_PLATFORM_LISTEN_ADDR` | `:8080` | 本地 HTTP 监听地址 |
+| `RADISHMIND_PLATFORM_LISTEN_ADDR` | `:7000` | 本地 HTTP 监听地址 |
 | `RADISHMIND_PLATFORM_READ_HEADER_TIMEOUT` | `5s` | HTTP header 读取超时 |
 | `RADISHMIND_PLATFORM_WRITE_TIMEOUT` | `30s` | HTTP 写响应超时 |
 | `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT` | `30s` | Go 调 Python bridge 的超时 |
@@ -110,7 +122,7 @@ go run ./cmd/radishmind-platform
 
 ```json
 {
-  "listen_addr": "127.0.0.1:8080",
+  "listen_addr": "127.0.0.1:7000",
   "provider": "mock",
   "model": "radishmind-local-dev",
   "bridge_timeout": "30s"
@@ -140,7 +152,63 @@ pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
 pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
-生产前仍需要单独补 secret 管理、部署环境隔离和观测策略；当前只固定本地开发入口和最小 deployment smoke。
+上层消费 smoke 可以先用离线 fixture 生成展示视图，不要求启动服务：
+
+```bash
+python scripts/run-platform-overview-consumer-smoke.py --check
+python scripts/run-platform-local-smoke.py --check
+python scripts/run-platform-session-tooling-consumer-smoke.py --check
+```
+
+服务启动后，也可以指向本地平台 API 生成同一份消费视图：
+
+```bash
+python scripts/run-platform-overview-consumer-smoke.py \
+  --base-url http://127.0.0.1:7000 \
+  --check
+
+python scripts/run-platform-local-smoke.py \
+  --base-url http://127.0.0.1:7000 \
+  --check
+
+python scripts/run-platform-session-tooling-consumer-smoke.py \
+  --base-url http://127.0.0.1:7000 \
+  --check
+```
+
+overview consumer smoke 只读取 `GET /v1/platform/overview`，把 service status、model inventory、session/tooling surface 和 stop-lines 投影成本地 console view model；local smoke consumer 只读取 `GET /v1/platform/local-smoke`，把本地 readiness 摘要投影为 healthz、overview、model inventory、session/tooling、CORS 和停止线检查；session/tooling consumer smoke 只读取 `session metadata`、`tools metadata` 并提交一次会被阻断的 tool action 请求，用于验证上层可展示 `blocked`、`requires_confirmation` 与 `no_side_effects`。这些 smoke 都不会启用真实 executor、durable store、confirmation、replay 或业务写回。
+
+最小本地 console 壳位于 `apps/radishmind-console/`。它复用 `contracts/typescript/platform-overview-api.ts` 与 `contracts/typescript/platform-local-smoke-api.ts`，默认读取 `http://127.0.0.1:7000/v1/platform/overview` 和 `http://127.0.0.1:7000/v1/platform/local-smoke`：
+
+```bash
+cd apps/radishmind-console
+npm install
+npm run dev
+```
+
+该 console 只展示 service status、model/profile inventory、Provider/Profile Details、session/tooling blocked 状态、Blocked Action Detail、Local Readiness、stop-lines、Stop-line Details、audit boundary、Dev Diagnostics、refresh 状态和连接失败诊断，不调用 `/v1/tools/actions`，也不实现 executor、durable store、confirmation、业务写回或 replay。refresh 期间和连接失败后可以保留上一份只读 overview / local-smoke readiness，用于排障，不代表平台会自动恢复执行。
+
+当前页面结构是浅色左侧导航栏、主工作区和右侧 readiness / stop-line 辅助栏；窄屏下改为单列信息顺序。该结构来自 `docs/designs/radishmind-console-ops-surface-v0.pen` 和 [UI 设计规范](../../docs/radishmind-ui-design-spec.md)，但仍只表示本地 ops surface，不表示 production console 或 production packaging 已完成。
+
+平台服务当前只为 `http://127.0.0.1:4000` 与 `http://localhost:4000` 返回本地 console CORS header，并处理 `OPTIONS` preflight；该能力只服务本地 console 开发，不等同于 production CORS policy、正式鉴权或外部公开部署。
+
+console production packaging 仍未完成：`apps/radishmind-console/package.json` 必须保持 `private=true`，不添加 deploy / publish / release 脚本，不提交 `dist/` 或 `node_modules/`。P3 short-close checklist 继续把 production secret backend、process supervisor、部署环境隔离和 console production packaging 标为 `not_satisfied`；当前只固定本地开发入口和最小 deployment smoke。
+
+如果要同时启动并验证 platform 后端和本地 console，可从仓库根目录使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-console-dev.ps1
+```
+
+Linux / WSL 使用：
+
+```bash
+./scripts/run-radishmind-console-dev.sh
+```
+
+该入口复用 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 和 `apps/radishmind-console/` 的 `npm run dev`，启动或复用 `http://127.0.0.1:7000` 与 `http://127.0.0.1:4000`，并探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、`http://127.0.0.1:7000/v1/platform/local-smoke`、本地 console CORS preflight 和 `http://127.0.0.1:4000`。端口冲突时先释放 `7000/4000` 或确认现有服务就是 RadishMind；CORS 失败时确认 console origin 是允许的本地 origin；浏览器 `unsafe port` / `ERR_UNSAFE_PORT` 通常表示端口被浏览器直接拦截，优先回到默认 `4000/7000`。该入口不是 production supervisor，不实现真实 executor、durable store、confirmation、业务写回或 replay。
+
+验证脚本本身时可加 `-ExitAfterProbe` 或 `--exit-after-probe`，让它启动、探测成功后自动停止本次创建的本地进程。
 
 可用一次性命令检查本地配置摘要，输出不会暴露 secret：
 
@@ -165,11 +233,18 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 服务启动后，在另一个终端执行：
 
 ```bash
-curl -sS http://127.0.0.1:8080/healthz
-curl -sS http://127.0.0.1:8080/v1/models
-curl -sS http://127.0.0.1:8080/v1/models/mock
-curl -sS 'http://127.0.0.1:8080/v1/session/recovery/checkpoints/session-checkpoint-0001?session_id=radishflow-session-001&turn_id=turn-0003'
-curl -sS http://127.0.0.1:8080/v1/chat/completions \
+curl -sS http://127.0.0.1:7000/healthz
+curl -sS http://127.0.0.1:7000/v1/platform/overview
+curl -sS http://127.0.0.1:7000/v1/platform/local-smoke
+curl -sS http://127.0.0.1:7000/v1/models
+curl -sS http://127.0.0.1:7000/v1/models/mock
+curl -sS http://127.0.0.1:7000/v1/session/metadata
+curl -sS 'http://127.0.0.1:7000/v1/session/recovery/checkpoints/session-checkpoint-0001?session_id=radishflow-session-001&turn_id=turn-0003'
+curl -sS http://127.0.0.1:7000/v1/tools/metadata
+curl -sS http://127.0.0.1:7000/v1/tools/actions \
+  -H 'Content-Type: application/json' \
+  -d '{"tool_id":"radishflow.suggest_edits.candidate_builder.v1","action":"execute","session_id":"radishflow-session-001","turn_id":"turn-0003"}'
+curl -sS http://127.0.0.1:7000/v1/chat/completions \
   -H 'Content-Type: application/json' \
   -d '{"model":"radishmind-local-dev","messages":[{"role":"user","content":"请简要说明当前 RadishMind 平台状态。"}]}'
 ```
@@ -177,9 +252,14 @@ curl -sS http://127.0.0.1:8080/v1/chat/completions \
 预期边界：
 
 - `/healthz` 返回 `status=ok`、`service=radishmind-platform`。
+- `/v1/platform/overview` 返回 `platform_overview`，其中 `product_surface.mode=local_read_only_product_shell`，并汇总 `/v1/models`、session metadata、tool metadata 和 blocked action route；所有 executor / durable store / confirmation / writeback / replay 停止线均为 `false`。
+- `/v1/platform/local-smoke` 返回 `platform_local_smoke`，其中 `summary.local_console_ready=true` 表示本地只读 console 所需的 healthz、overview、model inventory、session/tooling metadata、blocked action no-side-effects、local CORS origin 和停止线均可读；该 route 只做摘要，不启动服务、不守护进程、不表示生产部署 ready。
 - `/v1/models` 返回 OpenAI-compatible `object=list`，并包含 provider registry 与 profile inventory。
 - `/v1/models/mock` 可通过精确 lookup 返回 mock provider model。
+- `/v1/session/metadata` 返回 `session_metadata`，其中 durable session/checkpoint store、long-term memory、automatic replay 和 business truth write 均为 `false`。
 - `/v1/session/recovery/checkpoints/session-checkpoint-0001` 返回 `session_recovery_checkpoint_read_result`，且 `access_policy.metadata_only=true`、`materialized_results_included=false`、`auto_replay_enabled=false`，`result.tool_audit_summary.execution_enabled=false`。
+- `/v1/tools/metadata` 返回 `tooling_metadata`，其中 `registry_policy.execution_enabled=false`，每个工具的 execution mode 为 `contract_only`。
+- `/v1/tools/actions` 返回 `tool_action_blocked_response`，且不会运行工具、返回 materialized result、写 durable memory 或写业务真相源。
 - `/v1/chat/completions` 在 `mock` provider 下返回 advisory 文本，不访问外部 provider，不写回任何上层项目。
 
 ## 故障边界

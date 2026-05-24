@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-05-17
+更新时间：2026-05-23
 
 ## 阅读原则
 
@@ -26,8 +26,11 @@
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Middleware / AI Runtime`，核心价值是把多模型、多协议、多任务收口成可控产品能力。
 - 平台后续必须同时具备两类兼容能力：南向接入自研模型与外部模型，北向对外提供常见 AI 协议接口；当前仓库已落地最小 `provider registry` 骨架，并由同一 southbound 入口收口 `openai-compatible / HuggingFace / Ollama / gemini-native / anthropic-messages` 调用基础，同时已落地 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的第一版 bridge-backed 兼容面，其中 `/v1/models` 已暴露 provider-qualified profile inventory 和 `/v1/models/{id}` lookup，并与请求选择、diagnostics 共享 selectable profile metadata。
 - 平台表层实现分工已固定为：`UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`，并且所有层都只消费 `contracts/` 里的 canonical protocol。
-- `P1 Runtime Foundation` 已达到 short close：`services/platform/` 下的最小 `Go` 平台服务层 bootstrap 已落地，当前已固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 的第一版 bridge，并补齐本地 wrapper、配置文件层级、deployment smoke、结构化 diagnostics、provider/profile discoverability、request-level observability 与 error taxonomy；下一步把主要实现重心切到 `P2 Session & Tooling Foundation`。
-- `P2 Session & Tooling Foundation` 已进入 close candidate / governance-only：session record、recovery checkpoint record/manifest/read result、tool registry、tool audit、metadata-only result cache、northbound session metadata、checkpoint metadata-only route smoke、negative regression skeleton、governance-only negative regression suite、deny-by-default implementation gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、readiness consistency rollup、executor/storage/confirmation enablement plan、stop-line manifest、confirmation flow design、upper-layer confirmation readiness、independent audit records design、result materialization policy design、executor boundary design、storage backend design、foundation status summary、`scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json`、`scripts/checks/fixtures/session-tooling-upper-layer-confirmation-flow-readiness.json` 和 `scripts/checks/fixtures/session-tooling-short-close-entry-checklist.json` 已有首版门禁；short close delta、upper-layer confirmation readiness、stop-line manifest 与 entry checklist 明确当前到 `P2 short close` 仍有 `not_satisfied` 硬前置条件。当前仍不实现真实工具执行器、长期记忆、durable session/checkpoint/audit/result store、materialized result reader、业务写回或 replay executor，也不声明完整 `negative_regression_suite` 已完成。
+- `P1 Runtime Foundation` 已达到 short close：`services/platform/` 下的最小 `Go` 平台服务层 bootstrap 已落地，当前已固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 的第一版 bridge，并补齐本地 wrapper、配置文件层级、deployment smoke、结构化 diagnostics、provider/profile discoverability、request-level observability 与 error taxonomy。
+- `P2 Session & Tooling Foundation` 已进入 close candidate / governance-only，并已补上最小可消费产品骨架：`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 能返回 session/tool metadata 和明确 blocked action response。当前仍不实现真实工具执行器、长期记忆、durable session/checkpoint/audit/result store、materialized result reader、业务写回或 replay executor，也不声明完整 `negative_regression_suite` 已完成。
+- `session-tooling-negative-regression-suite-readiness.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json`、`session-tooling-short-close-entry-checklist.json` 等 P2 fixture 继续作为 governance-only 停止线证据保留，固定 `P2 short close` 前的 `not_satisfied` 条件；它们不再是默认新增工作方向。
+- `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已达到 `local usable / read-only close`：`GET /v1/platform/overview` 作为首个只读产品 overview，汇总服务状态、model/profile inventory、session/tooling metadata、blocked action route 和停止线；`GET /v1/platform/local-smoke` 作为本地开发 readiness 摘要，汇总 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS 和停止线。当前已补 overview / local-smoke consumer smoke、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 与 P3 checklist，供本地控制台或上层 UI 只读消费；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍作为后续 hardening 缺口保留。
+- 当前默认下一步切到 `Production Ops Hardening v1`：先把 production config / secret boundary、process supervisor / startup、deployment environment isolation 和 console production packaging 拆成可验证前置条件。`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
 - 既有 `M3` service/API smoke matrix 与 `M4` broader review、`3B/4B` capacity review 继续保留为冻结证据和门禁；它们不再是当前唯一主线，也不再默认继续深挖同一批样本。
 - `RadishFlow` 仍是第一优先应用面，但当前只冻结 gateway、UI consumption 和 candidate handoff 门禁；上层尚未具备真实接入能力前，不继续细化假想接线。
 - `Radish` 当前保留 docs QA、文档检索增强和结构化问答资产；真实上层接入仍等待。
@@ -59,6 +62,9 @@
 - [能力矩阵](radishmind-capability-matrix.md)
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
+- [UI 设计规范](radishmind-ui-design-spec.md)
+- [UI 设计参考](radishmind-ui-design-reference.md)
+- [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)
 - [代码规范](radishmind-code-standards.md)
 - [跨项目集成契约](radishmind-integration-contracts.md)
 - [契约专题目录](contracts/README.md)

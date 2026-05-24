@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-05-17
+更新时间：2026-05-23
 
 ## 文档目的
 
@@ -15,25 +15,32 @@
 - `M3` 的 gateway、service smoke、UI consumption 与 candidate handoff 继续作为冻结门禁保留。
 - `M4` 的 broader 15/15 `reviewed_pass` 与 `3B/4B` guided capacity review 继续作为路线证据保留。
 - 当前不继续扩同一批 `M4` 实验，不提前设计不存在的上层真实接线。
-- 平台请求级观测和错误分类短收口已进入 `Go` northbound 层与平台单元测试，主要实现重心可以切到 `P2 Session & Tooling Foundation`。
+- 平台请求级观测和错误分类短收口已进入 `Go` northbound 层与平台单元测试，`P2 Session & Tooling Foundation` 也已从治理链路推进到最小 metadata / blocked 产品外壳。
 
-如果今天继续写代码，默认进入 `Conversation & Session` 与 `Tooling Framework`，而不是继续重跑模型、扩同层配置兜底或补想象中的接入细节。
+`P3 Local Product Shell / Ops Surface` 的本地只读产品壳已经达到 `local usable / read-only close`：overview、local-smoke、console dev entry、Dev Diagnostics、Local Readiness、failure surface、Stop-line Details、Provider/Profile Details 和对应轻量门禁已形成可复验闭环。后续不再默认继续补同类只读 console 小切片，除非真实使用暴露新的可观测缺口。
+
+如果今天继续推进，默认进入 `Production Ops Hardening v1`，把 P3 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 缺口拆成可验证前置条件；真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
+
+`UI Design Topic / Pencil Draft` 已完成正式 React 第二批前的主要设计覆盖：`docs/designs/radishmind-console-ops-surface-v0.pen` 已包含 ready、failure/stale、narrow、loading/empty、settings/permissions、blocked action detail 与 token mapping notes。2026-05-23 Pencil `snapshot_layout` 已无 layout problems，`apps/radishmind-console/` 第二批 ops surface 结构重排已进入 `close candidate`，本地 mock platform ready 态和桌面 / 窄屏临时截图已复核。第二批只调整信息架构和视觉层级，不新增 API、不接 executor、不做 confirmation、writeback 或 replay。
 
 ## 当前优先做什么
 
-1. `Conversation & Session`：首版 session contract、history policy、state policy、recovery record、recovery checkpoint record/manifest/read result、fixture、northbound session metadata 和平台 metadata-only route smoke 已开始落地；checkpoint read route 已通过负向 fixture 固定 materialized result、result ref、executor ref、durable memory 与 replay 类查询参数拒绝口径。`scripts/checks/fixtures/session-tooling-readiness-summary.json` 已把当前已完成门禁和 storage / replay 停止线收口为可检查 summary；`docs/task-cards/session-tooling-implementation-preconditions.md` 已把 executor / storage / confirmation 的实现前置条件拆开。`scripts/checks/fixtures/session-tooling-negative-regression-suite.json` 已把 9 个 skeleton case 收口为 governance-only suite 消费，固定治理消费者、audit non-write 边界、side-effect absence 断言，并对齐 `scripts/checks/fixtures/session-tooling-deny-by-default-implementation-gates.json` 中三类默认拒绝 implementation gate contract；`scripts/checks/fixtures/session-tooling-negative-coverage-rollup.json` 已把 route smoke、负向 fixture consumer、governance suite 和 deny-by-default gate contract 的覆盖关系收口为 governance-only 可检查 rollup；`scripts/checks/fixtures/session-tooling-route-negative-coverage-matrix.json` 已把 9 个 negative suite case 与当前 checkpoint read metadata-only route、future route requirement 的覆盖矩阵收口为可检查事实，其中 2 个 case 当前 route-covered、7 个仍是 governance-only 且 future requirement 为 `not_satisfied`，并已被 `scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json` 消费；`scripts/checks/fixtures/session-tooling-route-smoke-readiness-rollup.json` 已把当前 checkpoint read metadata-only route smoke 与未来 executor / storage / confirmation route smoke 缺口收口为 `not_satisfied` 报告；`scripts/checks/fixtures/session-tooling-readiness-consistency-rollup.json` 已把 close-candidate readiness rollup、route smoke readiness rollup、short close readiness delta、negative coverage rollup、route negative coverage matrix 与 `negative_regression_suite` readiness 的 status、source reference、`not_satisfied` hard prerequisite 和覆盖计数收口为 drift 检查；`scripts/checks/fixtures/session-tooling-executor-storage-confirmation-enablement-plan.json` 已把 executor / storage / confirmation 进入未来 gated plan 前的证据拆成可检查治理条件，但三类能力仍是 `blocked_not_gated_plan`；`scripts/checks/fixtures/session-tooling-stop-line-manifest.json` 已把 hard prerequisite blocker、stop-line capability 和放宽停止线前必须同步的证据源收口为 governance-only 清单；`scripts/checks/fixtures/session-tooling-upper-layer-confirmation-flow-readiness.json` 已把 `upper_layer_confirmation_flow` 从 design-only 到可接线前需要的 handoff contract、decision binding、negative gate consumers 和 confirmed action handoff boundary 收口为可检查 readiness，但四项 gate 仍为 `not_satisfied`；`scripts/checks/fixtures/session-tooling-short-close-entry-checklist.json` 已把 stop-line manifest、short close delta、route smoke readiness 和 suite readiness 聚合为 `P2 short close` 进入条件预检，四项 entry condition 和四项 future route smoke requirement 仍为 `not_satisfied`；`scripts/checks/fixtures/session-tooling-foundation-status-summary.json`、`scripts/checks/fixtures/session-tooling-close-candidate-readiness-rollup.json`、`scripts/checks/fixtures/session-tooling-negative-regression-suite-readiness.json` 与 `scripts/checks/fixtures/session-tooling-short-close-readiness-delta.json` 已把当前状态收口为 P2 close candidate，并把到 `P2 short close` 仍缺的硬前置条件保持为 `not_satisfied`，但只代表 governance-only、deny-by-default gate contract、负向覆盖 rollup、route smoke gap、route negative coverage matrix、完整 `negative_regression_suite` 验收口径、upper-layer confirmation readiness、short close delta、entry checklist、readiness drift、enablement plan 和 stop-line manifest 可检查，不代表 P2 short close 或真实实现完成。下一步仍不引入长期记忆。
-2. `Tooling Framework`：最小 tool schema、registry fixture、policy/audit record、session binding、metadata-only result cache 和快速门禁已开始落地；tool audit summary 已进入 checkpoint read metadata smoke，session/tooling promotion gate 分层、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions check、negative regression skeleton、governance-only negative regression suite、negative regression suite readiness、deny-by-default implementation gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、readiness consistency rollup、executor/storage/confirmation enablement plan、stop-line manifest、upper-layer confirmation readiness、short close entry checklist、close candidate status summary、close-candidate readiness rollup、short close readiness delta、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design 和 storage backend design 已进入快速门禁。下一步仍只推进契约和治理边界，不实现真实工具执行器。
-3. `Evaluation & Governance`：把已有 schema、offline eval、service smoke、runtime provider dispatch smoke 和 platform config/deployment/diagnostics/request-observability checks 扩展到 session 与 tooling 门禁。
-4. `Model Adaptation`：在前三项稳定后再定义首版基座、蒸馏和训练计划；当前不启动训练放量。
+1. `Production Ops Hardening v1`：新增 [任务卡](task-cards/production-ops-hardening-v1-plan.md)，当前主线切到 production config / secret boundary、process supervisor / startup、deployment environment isolation、console production packaging 和 P3 checklist alignment。第一切片建议从 `config-secret-boundary` 开始，先固定生产配置与密钥边界，不实现真实 secret backend，不声明 production ready。
+2. `Model Adaptation` P4 前置计划：P4 v1 runbook、治理复核记录和本地 `Qwen2.5-1.5B-Instruct` full-holdout-9 预检结果已落地。当前结论是 raw student 总体 `schema_valid_rate=0.6667`、`radishflow/suggest_flowsheet_edits` 3/3 因 `citations` scaffold 引用泄漏 blocked，ghost/docs 两类任务 6/6 通过；`--repair-hard-fields` comparison 可达到 9/9 schema/task valid，但只能作为后处理证据，不是 raw 晋级或训练准入。后续 `Qwen2.5-3B-Instruct` raw CPU 单样本 probe 在已知 edits blocker 上 300 秒 timeout 且未产出 token。真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
+3. `P3 Local Product Shell / Ops Surface`：状态保持 `local usable / read-only close`。`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、overview / local-smoke consumer smoke、`apps/radishmind-console/`、Dev Diagnostics、`Local Readiness`、overview / local-smoke failure surface、Stop-line Details、Provider/Profile Details、console dev entry、behavior / visual smoke 和 production boundary gate 已可复验；不再默认继续补同类只读 console 小切片。`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 与 `scripts/check-p3-local-product-shell-short-close-checklist.py` 继续固定 production hardening 未完成：production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
+4. `Conversation & Session` 与 `Tooling Framework`：保持 `P2 close candidate / governance-only`，既有 `scripts/checks/fixtures/session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json` 继续作为 `P2 short close` 停止线证据保留，相关 `negative_regression_suite` 边界不变，真实 executor、durable storage、confirmation、materialized result reader、长期记忆和 replay 仍 blocked。
+5. `UI Design Topic / React 第二批`：保持 `close candidate`，后续只在真实使用暴露可读性缺口时做 UI polish；不继续默认补同类只读 console 展示项。
+6. `Evaluation & Governance`：后续门禁从“每个小 UI 展示项新增 fixture”放宽为“聚合门禁优先”。只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项门禁；普通 UI 展示改动优先复用 console behavior / visual smoke / fast baseline。
 
 ## 为什么是这些任务
 
+- P3 本地只读产品壳已经能被开发者实际读取、排障和复验，继续补同类小面板会降低边际收益。
 - 上层项目目前没有真实挂载点、确认流和命令承接接口，继续细化接线设计收益很低。
 - 仓库里已经有 runtime、gateway、adapter、eval 和 governance 资产，可以先把平台骨架做完整。
 - `provider registry`、northbound bridge、本地 wrapper、config layering、diagnostics、deployment smoke、request observability 和 error taxonomy 已经给出 P1 short close 基础；继续在同一层增加更多别名、兜底和配置分支会开始降低边际收益。
 - 平台表层语言边界已固定为：`UI` 用 `React + Vite + TypeScript`，平台服务层用 `Go`，模型侧继续保留 `Python`，所有层只共享 `contracts/` 里的 canonical protocol。
-- 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` bridge，并能解释一次请求命中了哪个 route、provider/profile、model、耗时和失败边界；后续不再回头把模型逻辑写回 `Go`。
-- 如果在 service、session、tooling 边界还没稳定前继续深挖模型实验，容易再次陷入局部优化。
+- 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/platform/overview`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` bridge，并能解释一次请求命中了哪个 route、provider/profile、model、耗时和失败边界；overview console consumer smoke 与最小本地 console 壳已能消费只读产品面；后续不再回头把模型逻辑写回 `Go`。
+- 真实模型产出已经暴露出当前本机 CPU 路径的成本边界，继续深挖模型实验会压低平台功能建设收益；先推进 production ops hardening 更能提高项目可用性。
 
 ## 当前已有可直接利用的基础
 
@@ -48,12 +55,15 @@
 ## 默认不要做
 
 - 不继续加长同一批 prompt/scaffold 当作默认推进。
+- 不再默认补 P3 console 同类只读小切片；发现真实使用缺口时再补。
 - 不在 tool registry v1 后立即接真实工具执行器、长期记忆或新的 provider/model 实验。
 - 不在 recovery checkpoint v1 后立即实现跨轮自动 replay。
 - 不把 checkpoint read route smoke 升级为 durable checkpoint store、materialized result reader 或跨轮 replay executor。
 - 不扩 `RadishFlow` 同类真实 capture，除非先写清楚非重复 drift 假设。
 - 不把 `RadishCatalyst` 从文档预留提前扩成真实 schema、adapter 或 gateway smoke。
 - 不在 runtime、session、tooling 契约还没稳定前启动训练放量。
+- 不在设计任务卡停止线外扩当前 console：第二批 React 只做 ops surface 结构重排，不新增 API、真实工具执行器、confirmation、业务写回、replay 或 production packaging。
+- 不默认继续真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏或权重相关工作；这些内容后续作为独立专题重开。
 - 不默认下载大于当前决策所需范围的模型、数据集或权重。
 - 不把真实模型输出、训练 JSONL 或大体积实验产物提交入仓。
 - 不直接修改 `RadishFlow`、`Radish` 或 `RadishCatalyst` 外部工作区。
@@ -75,7 +85,7 @@
 - 动协议、schema 或 API：读 `docs/radishmind-integration-contracts.md`
 - 动 `RadishMind-Core` 评测：读 `docs/radishmind-core-baseline-evaluation.md`
 - 动代码风格、抽象或脚本组织：读 `docs/radishmind-code-standards.md`
-- 查最近执行细节：读本周周志 `docs/devlogs/2026-W20.md`
+- 查最近执行细节：读本周周志 `docs/devlogs/2026-W21.md`
 
 ## 验证基线
 

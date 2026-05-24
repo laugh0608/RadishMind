@@ -134,11 +134,23 @@ def check_wrapper_rejects_unknown_command() -> None:
     require("unsupported platform service command" in result.stderr, "wrapper failure should explain unsupported command")
 
 
+def check_wrapper_sets_python_bridge_default() -> None:
+    sh_content = PLATFORM_WRAPPER_SH.read_text(encoding="utf-8")
+    ps1_content = PLATFORM_WRAPPER_PS1.read_text(encoding="utf-8")
+    for content, name in ((sh_content, "shell"), (ps1_content, "PowerShell")):
+        require(
+            "RADISHMIND_PLATFORM_PYTHON_BIN" in content,
+            f"{name} wrapper must set RADISHMIND_PLATFORM_PYTHON_BIN default",
+        )
+        require(".venv" in content, f"{name} wrapper must prefer repository .venv Python")
+
+
 def main() -> int:
     check_mock_deployment_config()
     check_env_override()
     check_invalid_deployment_config()
     check_wrapper_rejects_unknown_command()
+    check_wrapper_sets_python_bridge_default()
     print("platform deployment smoke checks passed.")
     return 0
 

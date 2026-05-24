@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "kind": "p3_local_console_visual_smoke_record",
+  "stage": "P3 Local Product Shell / Ops Surface",
+  "qa_scope": {
+    "surface": "apps/radishmind-console",
+    "backend_default_url": "http://127.0.0.1:7000",
+    "frontend_default_url": "http://127.0.0.1:4000",
+    "overview_endpoint": "http://127.0.0.1:7000/v1/platform/overview",
+    "local_smoke_endpoint": "http://127.0.0.1:7000/v1/platform/local-smoke",
+    "read_only": true,
+    "production_packaging_ready": false
+  },
+  "qa_method": {
+    "kind": "browser_visual_qa_record",
+    "automated_browser_required": false,
+    "committed_screenshots_required": false,
+    "notes": [
+      "Manual browser QA may store temporary screenshots under tmp/, but screenshots are not committed evidence.",
+      "This record fixes the required visual smoke paths and local port contract for repeatable P3 review."
+    ]
+  },
+  "required_scenarios": [
+    {
+      "id": "desktop_ready_overview",
+      "viewport": "desktop",
+      "state": "ready",
+      "must_show": [
+        "service_status",
+        "model_inventory",
+        "provider_profile_details",
+        "provider_profile_selector_boundary",
+        "session_tooling_surface",
+        "local_readiness_panel",
+        "local_smoke_readiness_status",
+        "local_console_ready_summary",
+        "readiness_checks",
+        "local_cors_origins",
+        "local_smoke_failure_hints",
+        "stop_lines",
+        "stop_line_details",
+        "stop_line_enforcement_summary",
+        "dev_diagnostics",
+        "audit_boundary"
+      ],
+      "must_not_show": [
+        "executor_enabled",
+        "business_truth_write_enabled",
+        "automatic_replay_enabled"
+      ]
+    },
+    {
+      "id": "narrow_ready_overview",
+      "viewport": "narrow",
+      "state": "ready",
+      "must_show": [
+        "platform_url_control",
+        "dev_diagnostics",
+        "local_probe_commands",
+        "local_readiness_panel",
+        "local_smoke_readiness_status",
+        "readiness_checks",
+        "local_cors_origins",
+        "service_status",
+        "model_inventory",
+        "provider_profile_details",
+        "provider_profile_selector_boundary",
+        "session_tooling_surface",
+        "stop_lines",
+        "stop_line_details"
+      ],
+      "layout_expectations": [
+        "no_horizontal_overflow",
+        "long_routes_wrap",
+        "stop_line_badges_do_not_overlap_text",
+        "stop_line_details_wrap"
+      ]
+    },
+    {
+      "id": "minimum_width_320_ready_overview",
+      "viewport": "320px",
+      "state": "ready",
+      "layout_expectations": [
+        "scroll_width_matches_viewport_width",
+        "heading_wraps_without_occluding_controls",
+        "dev_diagnostics_commands_wrap",
+        "overview_endpoint_wraps",
+        "local_smoke_endpoint_wraps",
+        "local_readiness_tokens_wrap"
+      ]
+    },
+    {
+      "id": "desktop_ready_local_readiness",
+      "viewport": "desktop",
+      "state": "ready",
+      "must_show": [
+        "local_readiness_panel",
+        "local_smoke_readiness_status",
+        "local_console_ready_summary",
+        "healthz_readiness",
+        "overview_contract_readiness",
+        "model_inventory_readiness",
+        "session_tooling_metadata_readiness",
+        "blocked_action_no_side_effects",
+        "stop_lines_enforced",
+        "local_cors_origins",
+        "local_smoke_failure_hints"
+      ],
+      "must_not_show": [
+        "production_health_dashboard",
+        "process_supervisor",
+        "executor_action_button",
+        "confirmation_button",
+        "durable_store_control",
+        "business_truth_write_button",
+        "automatic_replay_control"
+      ]
+    },
+    {
+      "id": "connection_failure_stale_overview",
+      "viewport": "narrow",
+      "state": "error_with_previous_overview",
+      "must_show": [
+        "platform_service_unavailable_notice",
+        "connection_failed_showing_last_overview",
+        "dev_diagnostics_failure_classes",
+        "previous_local_readiness_panel",
+        "previous_local_smoke_readiness_status",
+        "diagnostic_list",
+        "previous_service_status",
+        "previous_stop_lines",
+        "previous_stop_line_details"
+      ],
+      "must_not_show": [
+        "retry_executor",
+        "automatic_replay",
+        "business_truth_write"
+      ]
+    },
+    {
+      "id": "local_smoke_failure_stale_overview",
+      "viewport": "desktop",
+      "state": "error_with_previous_overview",
+      "must_show": [
+        "local_smoke_readiness_unavailable_notice",
+        "overview_readable_local_smoke_failed_message",
+        "failure_surface_local_smoke_readiness",
+        "connection_failed_showing_last_overview",
+        "previous_local_readiness_panel",
+        "previous_local_smoke_readiness_status",
+        "local_smoke_contract_diagnostics",
+        "previous_service_status",
+        "previous_stop_lines",
+        "previous_stop_line_details"
+      ],
+      "must_not_show": [
+        "production_health_dashboard",
+        "process_supervisor",
+        "executor_action_button",
+        "retry_executor",
+        "confirmation_button",
+        "durable_store_control",
+        "business_truth_write_button",
+        "business_truth_write",
+        "automatic_replay_control",
+        "automatic_replay"
+      ]
+    }
+  ],
+  "source_evidence": [
+    "apps/radishmind-console/src/App.tsx",
+    "apps/radishmind-console/src/styles.css",
+    "apps/radishmind-console/src/platformOverviewClient.ts",
+    "apps/radishmind-console/package.json",
+    "services/platform/internal/httpapi/server.go",
+    "scripts/check-radishmind-console-visual-smoke-record.py"
+  ],
+  "stop_lines": {
+    "real_executor_enabled": false,
+    "durable_store_enabled": false,
+    "confirmation_flow_connected": false,
+    "materialized_result_reader": false,
+    "long_term_memory_enabled": false,
+    "business_truth_write_enabled": false,
+    "automatic_replay_enabled": false
+  },
+  "required_consumers": [
+    "scripts/check-radishmind-console-visual-smoke-record.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json"
+  ]
+}

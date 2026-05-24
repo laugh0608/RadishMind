@@ -1,0 +1,215 @@
+import {
+  isPlatformOverviewResponse,
+  PLATFORM_OVERVIEW_ROUTE,
+  toPlatformOverviewConsoleViewModel,
+  type PlatformOverviewConsoleViewModel,
+  type PlatformOverviewResponse,
+} from "../../../contracts/typescript/platform-overview-api.ts";
+import {
+  isPlatformLocalSmokeResponse,
+  PLATFORM_LOCAL_SMOKE_ROUTE,
+  toPlatformLocalSmokeReadinessViewModel,
+  type PlatformLocalSmokeReadinessViewModel,
+  type PlatformLocalSmokeResponse,
+} from "../../../contracts/typescript/platform-local-smoke-api.ts";
+
+export const DEFAULT_PLATFORM_BASE_URL = "http://127.0.0.1:7000";
+
+export type PlatformOverviewFailureSurface = "platform_overview" | "platform_local_smoke" | "unknown";
+
+export type PlatformOverviewReadyState = {
+  status: "ready";
+  endpoint: string;
+  localSmokeEndpoint: string;
+  overview: PlatformOverviewResponse;
+  localSmoke: PlatformLocalSmokeResponse;
+  viewModel: PlatformOverviewConsoleViewModel;
+  readinessViewModel: PlatformLocalSmokeReadinessViewModel;
+  loadedAt: string;
+};
+
+export type PlatformOverviewLoadState =
+  | {
+      status: "idle";
+      endpoint: string;
+    }
+  | {
+      status: "loading";
+      endpoint: string;
+      previous?: PlatformOverviewReadyState;
+    }
+  | PlatformOverviewReadyState
+  | {
+      status: "error";
+      endpoint: string;
+      message: string;
+      failureSurface: PlatformOverviewFailureSurface;
+      diagnostics: string[];
+      previous?: PlatformOverviewReadyState;
+    };
+
+export function resolvePlatformBaseUrl(): string {
+  const configuredBaseUrl = import.meta.env.VITE_RADISHMIND_PLATFORM_BASE_URL;
+  if (typeof configuredBaseUrl === "string" && configuredBaseUrl.trim() !== "") {
+    return configuredBaseUrl.trim().replace(/\/+$/, "");
+  }
+  return DEFAULT_PLATFORM_BASE_URL;
+}
+
+export function buildPlatformOverviewEndpoint(baseUrl: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}${PLATFORM_OVERVIEW_ROUTE}`;
+}
+
+export function buildPlatformLocalSmokeEndpoint(baseUrl: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}${PLATFORM_LOCAL_SMOKE_ROUTE}`;
+}
+
+export async function loadPlatformOverview(
+  baseUrl = resolvePlatformBaseUrl(),
+): Promise<PlatformOverviewReadyState> {
+  const endpoint = buildPlatformOverviewEndpoint(baseUrl);
+  const localSmokeEndpoint = buildPlatformLocalSmokeEndpoint(baseUrl);
+  const overview = await fetchPlatformOverview(endpoint);
+  const localSmoke = await fetchPlatformLocalSmoke(localSmokeEndpoint);
+
+  return {
+    status: "ready",
+    endpoint,
+    localSmokeEndpoint,
+    overview,
+    localSmoke,
+    viewModel: toPlatformOverviewConsoleViewModel(overview),
+    readinessViewModel: toPlatformLocalSmokeReadinessViewModel(localSmoke),
+    loadedAt: new Date().toISOString(),
+  };
+}
+
+async function fetchPlatformOverview(endpoint: string): Promise<PlatformOverviewResponse> {
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+  } catch (error) {
+    throw new PlatformOverviewRequestError(
+      `could not reach platform overview at ${endpoint}`,
+      buildConnectionDiagnostics(endpoint, error),
+      "platform_overview",
+    );
+  }
+
+  if (!response.ok) {
+    throw new PlatformOverviewRequestError(`overview request failed with HTTP ${response.status}`, [
+      "Confirm the platform service is listening at the configured Platform URL.",
+      "Run `pwsh ../../scripts/run-platform-service.ps1 serve` from apps/radishmind-console.",
+      "If the service is running, inspect its response body or platform logs for the HTTP failure.",
+    ], "platform_overview");
+  }
+
+  const document: unknown = await response.json();
+  if (!isPlatformOverviewResponse(document)) {
+    throw new PlatformOverviewRequestError("overview response does not match platform overview contract", [
+      "Confirm the service exposes the current `/v1/platform/overview` schema.",
+      "Run `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url <platform-url> --check`.",
+      "Rebuild the console after changing `contracts/typescript/platform-overview-api.ts`.",
+    ], "platform_overview");
+  }
+
+  return document;
+}
+
+async function fetchPlatformLocalSmoke(endpoint: string): Promise<PlatformLocalSmokeResponse> {
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+  } catch (error) {
+    throw new PlatformOverviewRequestError(
+      `could not reach platform local-smoke at ${endpoint}`,
+      buildLocalSmokeConnectionDiagnostics(endpoint, error),
+      "platform_local_smoke",
+    );
+  }
+
+  if (!response.ok) {
+    throw new PlatformOverviewRequestError(`local-smoke request failed with HTTP ${response.status}`, [
+      "Overview was readable; local-smoke readiness failed before the console could refresh readiness.",
+      "Confirm the platform service exposes `/v1/platform/local-smoke` on the configured Platform URL.",
+      "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+      "If overview works but local-smoke fails, inspect the platform readiness route and local smoke contract.",
+    ], "platform_local_smoke");
+  }
+
+  const document: unknown = await response.json();
+  if (!isPlatformLocalSmokeResponse(document)) {
+    throw new PlatformOverviewRequestError("local-smoke response does not match platform local-smoke contract", [
+      "Overview was readable; local-smoke contract validation failed before the console could refresh readiness.",
+      "Confirm the service exposes the current `/v1/platform/local-smoke` schema.",
+      "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+      "Rebuild the console after changing `contracts/typescript/platform-local-smoke-api.ts`.",
+    ], "platform_local_smoke");
+  }
+
+  return document;
+}
+
+export class PlatformOverviewRequestError extends Error {
+  diagnostics: string[];
+  failureSurface: PlatformOverviewFailureSurface;
+
+  constructor(
+    message: string,
+    diagnostics: string[],
+    failureSurface: PlatformOverviewFailureSurface,
+  ) {
+    super(message);
+    this.name = "PlatformOverviewRequestError";
+    this.diagnostics = diagnostics;
+    this.failureSurface = failureSurface;
+  }
+}
+
+export function getPlatformOverviewFailureSurface(error: unknown): PlatformOverviewFailureSurface {
+  if (error instanceof PlatformOverviewRequestError) {
+    return error.failureSurface;
+  }
+  return "unknown";
+}
+
+export function getPlatformOverviewDiagnostics(error: unknown): string[] {
+  if (error instanceof PlatformOverviewRequestError) {
+    return error.diagnostics;
+  }
+  return [
+    "Confirm the platform service is running and reachable from this browser.",
+    "Confirm the configured Platform URL uses the same host and port as the service.",
+    "Confirm local CORS allows `http://127.0.0.1:4000` or `http://localhost:4000`.",
+  ];
+}
+
+function buildConnectionDiagnostics(endpoint: string, error: unknown): string[] {
+  const details = error instanceof Error ? error.message : String(error);
+  return [
+    "Start the platform service with `pwsh ../../scripts/run-platform-service.ps1 serve`.",
+    `Confirm ${endpoint} opens and returns JSON.`,
+    "If the service is already running, check the local console origin and CORS preflight.",
+    `Browser fetch detail: ${details}`,
+  ];
+}
+
+function buildLocalSmokeConnectionDiagnostics(endpoint: string, error: unknown): string[] {
+  const details = error instanceof Error ? error.message : String(error);
+  return [
+    "Confirm the platform service is new enough to expose `/v1/platform/local-smoke`.",
+    `Confirm ${endpoint} opens and returns JSON with kind \`platform_local_smoke\`.`,
+    "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+    `Browser fetch detail: ${details}`,
+  ];
+}

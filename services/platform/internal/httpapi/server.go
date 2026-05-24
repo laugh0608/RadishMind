@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
@@ -52,16 +53,21 @@ func NewServer(cfg config.Config, options Options) *Server {
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
+	mux.HandleFunc("GET /v1/platform/overview", server.handlePlatformOverview)
+	mux.HandleFunc("GET /v1/platform/local-smoke", server.handlePlatformLocalSmoke)
 	mux.HandleFunc("GET /v1/models", server.handleModels)
 	mux.HandleFunc("GET /v1/models/{id}", server.handleModel)
 	mux.HandleFunc("POST /v1/chat/completions", server.handleChatCompletions)
 	mux.HandleFunc("POST /v1/responses", server.handleResponses)
 	mux.HandleFunc("POST /v1/messages", server.handleMessages)
+	mux.HandleFunc("GET /v1/session/metadata", server.handleSessionMetadata)
 	mux.HandleFunc("GET /v1/session/recovery/checkpoints/{checkpoint_id}", server.handleSessionRecoveryCheckpoint)
+	mux.HandleFunc("GET /v1/tools/metadata", server.handleToolsMetadata)
+	mux.HandleFunc("POST /v1/tools/actions", server.handleToolAction)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           mux,
+		Handler:           withLocalConsoleCORS(mux),
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}
@@ -79,6 +85,42 @@ func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request
 		"version": s.options.BuildVersion,
 		"path":    request.URL.Path,
 	})
+}
+
+func withLocalConsoleCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if applyLocalConsoleCORS(writer, request) && request.Method == http.MethodOptions {
+			writer.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(writer, request)
+	})
+}
+
+func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bool {
+	origin := strings.TrimSpace(request.Header.Get("Origin"))
+	if !isAllowedLocalConsoleOrigin(origin) {
+		return false
+	}
+	headers := writer.Header()
+	headers.Set("Access-Control-Allow-Origin", origin)
+	headers.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	headers.Set("Access-Control-Allow-Headers", "Accept, Content-Type, X-Request-Id")
+	headers.Set("Vary", "Origin")
+	return true
+}
+
+func isAllowedLocalConsoleOrigin(origin string) bool {
+	for _, allowedOrigin := range localConsoleAllowedOrigins() {
+		if origin == allowedOrigin {
+			return true
+		}
+	}
+	return false
+}
+
+func localConsoleAllowedOrigins() []string {
+	return []string{"http://127.0.0.1:4000", "http://localhost:4000"}
 }
 
 func (s *Server) handleModels(writer http.ResponseWriter, request *http.Request) {

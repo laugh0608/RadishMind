@@ -11,6 +11,16 @@ if ! command -v go >/dev/null 2>&1; then
 fi
 
 export GOCACHE="${GOCACHE:-/tmp/radishmind-go-build-cache}"
+if [[ -z "${RADISHMIND_PLATFORM_PYTHON_BIN:-}" ]]; then
+  if [[ -x "${repo_root}/.venv/bin/python" ]]; then
+    export RADISHMIND_PLATFORM_PYTHON_BIN="${repo_root}/.venv/bin/python"
+  elif command -v python3 >/dev/null 2>&1; then
+    export RADISHMIND_PLATFORM_PYTHON_BIN="$(command -v python3)"
+  elif command -v python >/dev/null 2>&1; then
+    export RADISHMIND_PLATFORM_PYTHON_BIN="$(command -v python)"
+  fi
+fi
+
 if [[ -z "${RADISHMIND_PLATFORM_CONFIG:-}" ]]; then
   default_config="${repo_root}/tmp/radishmind-platform.local.json"
   if [[ -f "${default_config}" ]]; then
