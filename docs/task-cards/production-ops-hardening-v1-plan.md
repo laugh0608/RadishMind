@@ -76,6 +76,7 @@
 5. `short-close-checklist-refresh`
    - 更新 P3 checklist，将已完成项和仍 blocked 项分清。
    - 只在新增生产声明、配置格式或执行边界时补专项门禁。
+   - 当前已落地：`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 增加 `production_ops_hardening_refresh`，`scripts/check-p3-local-product-shell-short-close-checklist.py` 跨读四个 production ops boundary fixture，确认四个切片只是 governance boundary，真实 production 条件仍为 `not_satisfied`。
 
 ## 验收口径
 
@@ -88,7 +89,7 @@
 
 ## 下一步
 
-继续推进 `short-close-checklist-refresh` 切片：复核 P3 checklist、当前焦点、路线图和四个 production ops boundary fixture，确认已完成的是 governance boundary，仍 blocked 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 不被误写成 satisfied。
+进入 `production_ops_hardening_v1_governance_close_review`：复核是否需要另开真实 production 实现任务。除非新任务卡明确存储方案、部署目标和验证边界，否则不实现 production secret backend、process supervisor、deployment environment isolation 或 console production packaging。
 
 ## 停止线
 

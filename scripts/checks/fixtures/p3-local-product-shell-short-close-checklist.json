@@ -24,7 +24,7 @@
     ],
     "next_default": [
       "production_ops_hardening_v1",
-      "short_close_checklist_refresh"
+      "production_ops_hardening_v1_governance_close_review"
     ]
   },
   "short_close_state": {
@@ -38,6 +38,27 @@
       "confirmation_flow_connected",
       "business_truth_write_enabled",
       "replay_enabled"
+    ]
+  },
+  "production_ops_hardening_refresh": {
+    "status": "satisfied",
+    "slice": "short-close-checklist-refresh",
+    "refreshed_at": "2026-05-24",
+    "result": "P3 remains local usable / read-only close; Production Ops Hardening v1 has governance boundary evidence only and must not be read as production ready.",
+    "governance_boundaries": [
+      "config-secret-boundary",
+      "startup-supervisor-boundary",
+      "environment-isolation",
+      "console-production-package-smoke"
+    ],
+    "blocked_production_conditions": [
+      "production_secret_backend",
+      "process_supervisor",
+      "deployment_environment_isolation",
+      "console_production_packaging"
+    ],
+    "next_default": [
+      "production_ops_hardening_v1_governance_close_review"
     ]
   },
   "satisfied_conditions": [
