@@ -35,6 +35,7 @@
 4. `docker-image-build-publish`
    - 为 platform 和 console 补 Dockerfile 与镜像命名规则。
    - CI 镜像发布规则后续对齐 tag 后缀：`v*-dev`、`v*-test`、`v*-release`。
+   - 当前已落地：`scripts/checks/fixtures/production-ops-docker-image-build-publish.json` 与 `scripts/check-production-ops-docker-image-build-publish.py` 固定 platform / console 镜像命名、`v*-dev` / `v*-test` / `v*-release` tag 后缀和本地 `:local` tag 禁止发布口径；真实 `.github/workflows/docker-images.yml` 仍未创建，`docker_image_publish_workflow` 继续保持 `not_satisfied`。
 5. `deployment-readiness-smoke`
    - 先做 `docker compose config` / 静态展开检查。
    - 再逐步引入本地容器 smoke、测试环境 smoke 和生产前复核记录。
@@ -57,4 +58,4 @@
 
 ## 下一步
 
-推进 `docker-image-build-publish`：固定 platform / console 镜像命名、tag 后缀和后续 CI 发布门禁。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose 边界声明为 production ready。
+推进 `deployment-readiness-smoke`：先做 `docker compose config` / 静态展开检查。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose 或镜像命名边界声明为 production ready。

@@ -32,6 +32,7 @@ REQUIRED_FUTURE_ASSETS = {
 REQUIRED_SATISFIED_CONDITIONS = {
     "docker_local_compose",
     "docker_test_prod_compose",
+    "docker_image_build_publish_policy",
 }
 
 REQUIRED_DOC_REFERENCES = {
@@ -44,6 +45,7 @@ REQUIRED_DOC_REFERENCES = {
         "RADISHMIND_IMAGE_TRACK=test",
         "RADISHMIND_IMAGE_TRACK=release",
         "docker-test-prod-compose",
+        "docker-image-build-publish",
         "不写入长期文档",
     ],
     "docs/radishmind-current-focus.md": [
@@ -53,6 +55,8 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-docker-local-compose.json",
         "docker-test-prod-compose",
         "production-ops-docker-test-prod-compose.json",
+        "docker-image-build-publish",
+        "production-ops-docker-image-build-publish.json",
     ],
     "docs/radishmind-roadmap.md": [
         "docker-deployment-mode-definition",
@@ -61,17 +65,21 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-docker-local-compose.json",
         "docker-test-prod-compose",
         "production-ops-docker-test-prod-compose.json",
+        "docker-image-build-publish",
+        "production-ops-docker-image-build-publish.json",
     ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "docker-deployment-mode-definition",
         "docker-local-compose",
         "docker-test-prod-compose",
+        "docker-image-build-publish",
         "Production Ops Docker Deployment",
     ],
     "scripts/README.md": [
         "check-production-ops-docker-deployment-mode.py",
         "check-production-ops-docker-local-compose.py",
         "check-production-ops-docker-test-prod-compose.py",
+        "check-production-ops-docker-image-build-publish.py",
         "docker local/test/prod",
         "production-ops-docker-deployment-mode.json",
     ],
@@ -196,6 +204,18 @@ def assert_future_assets_and_blocks(fixture: dict[str, Any]) -> None:
         require(evidence in test_prod_evidence, f"docker_test_prod_compose missing evidence: {evidence}")
         require((REPO_ROOT / evidence).exists(), f"docker_test_prod_compose evidence missing on disk: {evidence}")
 
+    image_policy = satisfied_by_id["docker_image_build_publish_policy"]
+    require(image_policy.get("status") == "satisfied", "docker_image_build_publish_policy must be satisfied")
+    image_policy_evidence = set(image_policy.get("evidence") or [])
+    for evidence in {
+        "services/platform/Dockerfile",
+        "apps/radishmind-console/Dockerfile",
+        "scripts/checks/fixtures/production-ops-docker-image-build-publish.json",
+        "scripts/check-production-ops-docker-image-build-publish.py",
+    }:
+        require(evidence in image_policy_evidence, f"docker_image_build_publish_policy missing evidence: {evidence}")
+        require((REPO_ROOT / evidence).exists(), f"docker_image_build_publish_policy evidence missing on disk: {evidence}")
+
     future_assets = set(fixture.get("required_future_assets") or [])
     missing_assets = sorted(REQUIRED_FUTURE_ASSETS - future_assets)
     require(not missing_assets, f"missing future assets: {missing_assets}")
@@ -217,6 +237,7 @@ def assert_consumers_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-docker-deployment-mode.py",
         "scripts/check-production-ops-docker-local-compose.py",
         "scripts/check-production-ops-docker-test-prod-compose.py",
+        "scripts/check-production-ops-docker-image-build-publish.py",
         "scripts/check-repo.py",
         "scripts/README.md",
         "docs/radishmind-current-focus.md",

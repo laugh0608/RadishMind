@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_docker_image_build_publish",
+  "slice": {
+    "id": "docker-image-build-publish",
+    "track": "Production Ops Hardening v1",
+    "status": "image_naming_policy_satisfied",
+    "does_not_claim": [
+      "image_publish_ready",
+      "production_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "production_auth_cors_policy_ready",
+      "console_runtime_config_ready"
+    ]
+  },
+  "assets": [
+    {
+      "id": "platform_dockerfile",
+      "path": "services/platform/Dockerfile",
+      "image_repository": "RADISHMIND_IMAGE_REGISTRY/platform",
+      "local_image": "radishmind/platform:local",
+      "build_args": [
+        "BUILD_VERSION"
+      ]
+    },
+    {
+      "id": "console_dockerfile",
+      "path": "apps/radishmind-console/Dockerfile",
+      "image_repository": "RADISHMIND_IMAGE_REGISTRY/console",
+      "local_image": "radishmind/console:local",
+      "build_args": [
+        "VITE_RADISHMIND_PLATFORM_BASE_URL"
+      ]
+    },
+    {
+      "id": "local_compose",
+      "path": "deploy/docker-compose.local.yaml",
+      "purpose": "May build local images for smoke only."
+    },
+    {
+      "id": "deploy_compose",
+      "path": "deploy/docker-compose.yaml",
+      "purpose": "May pull prebuilt platform and console images by fixed tag or track-latest tag only."
+    }
+  ],
+  "image_policy": {
+    "registry_default": "ghcr.io/laugh0608/radishmind",
+    "registry_env": "RADISHMIND_IMAGE_REGISTRY",
+    "track_env": "RADISHMIND_IMAGE_TRACK",
+    "fixed_tag_env": "RADISHMIND_IMAGE_TAG",
+    "repositories": [
+      "platform",
+      "console"
+    ],
+    "tracks": [
+      "dev",
+      "test",
+      "release"
+    ],
+    "moving_tags": [
+      "dev-latest",
+      "test-latest",
+      "release-latest"
+    ],
+    "fixed_tag_patterns": [
+      "v*-dev",
+      "v*-test",
+      "v*-release"
+    ],
+    "local_tags": [
+      "radishmind/platform:local",
+      "radishmind/console:local"
+    ],
+    "local_tags_publishable": false
+  },
+  "publish_workflow": {
+    "status": "not_satisfied",
+    "future_asset": ".github/workflows/docker-images.yml",
+    "required_before_image_publish_ready": true,
+    "required_before_docker_test_prod_ready": true
+  },
+  "blocked_conditions": [
+    {
+      "id": "docker_image_publish_workflow",
+      "status": "not_satisfied",
+      "required_before_image_publish_ready": true
+    },
+    {
+      "id": "console_runtime_config",
+      "status": "not_satisfied",
+      "required_before_console_production_package_ready": true
+    },
+    {
+      "id": "production_secret_backend",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "process_supervisor",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "image naming policy is image publishing workflow",
+    "local image tag is publishable artifact",
+    "track-latest tag is release approval",
+    "Dockerfile existence is production package ready",
+    "GHCR registry name means images exist",
+    "release tag suffix means production ready"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-docker-image-build-publish.py",
+    "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md",
+    "docs/task-cards/production-ops-docker-deployment-v1-plan.md",
+    "docs/devlogs/2026-W21.md"
+  ]
+}

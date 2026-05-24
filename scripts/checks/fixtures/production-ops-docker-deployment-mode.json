@@ -84,6 +84,16 @@
         "scripts/checks/fixtures/production-ops-docker-test-prod-compose.json",
         "scripts/check-production-ops-docker-test-prod-compose.py"
       ]
+    },
+    {
+      "id": "docker_image_build_publish_policy",
+      "status": "satisfied",
+      "evidence": [
+        "services/platform/Dockerfile",
+        "apps/radishmind-console/Dockerfile",
+        "scripts/checks/fixtures/production-ops-docker-image-build-publish.json",
+        "scripts/check-production-ops-docker-image-build-publish.py"
+      ]
     }
   ],
   "required_future_assets": [
@@ -122,6 +132,7 @@
     "scripts/check-production-ops-docker-deployment-mode.py",
     "scripts/check-production-ops-docker-local-compose.py",
     "scripts/check-production-ops-docker-test-prod-compose.py",
+    "scripts/check-production-ops-docker-image-build-publish.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/radishmind-current-focus.md",
