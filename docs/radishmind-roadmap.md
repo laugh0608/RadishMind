@@ -127,11 +127,11 @@
 
 目标：把 P3 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 缺口拆成可验证前置条件。
 
-状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。`config-secret-boundary` 已用 `scripts/checks/fixtures/production-ops-config-secret-boundary.json` 与 `scripts/check-production-ops-config-secret-boundary.py` 固定为 governance boundary，说明 local / dev / production 配置来源、密钥注入、provider/profile 边界和生产未就绪条件，但 production secret backend 仍为 `not_satisfied`。
+状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。`config-secret-boundary` 已用 `scripts/checks/fixtures/production-ops-config-secret-boundary.json` 与 `scripts/check-production-ops-config-secret-boundary.py` 固定为 governance boundary，说明 local / dev / production 配置来源、密钥注入、provider/profile 边界和生产未就绪条件，但 production secret backend 仍为 `not_satisfied`。`startup-supervisor-boundary` 已用 `scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定 platform wrapper、console dev launcher、readiness probe、退出码、日志路径和 process supervisor 未完成口径，但 process supervisor 仍为 `not_satisfied`。
 
 进入条件：已满足。P3 本地只读产品壳已经可用，且 checklist 已明确 production hardening 缺口。
 
-下一步：转向 `startup-supervisor-boundary` 切片，读取现有 platform wrapper、deployment smoke、diagnostics、P3 checklist 和 console dev entry，固定人工启动 / smoke 与 process supervisor 的边界。
+下一步：转向 `environment-isolation` 切片，读取现有 local-smoke、platform overview、provider/profile metadata、P3 checklist 和 console production boundary，固定 local / dev / production readiness 的区分。
 
 停止线：不实现真实 secret backend、不实现 process supervisor、不新增 executor、confirmation、writeback、replay 或 materialized result reader；不把 local-smoke、mock provider、demo profile 写成 production ready。
 
@@ -149,7 +149,7 @@
 
 ## 下一步
 
-1. 推进 `Production Ops Hardening v1`：`config-secret-boundary` 已固定 production config、secret boundary 和不可提交项；下一步优先启动 `startup-supervisor-boundary`。
+1. 推进 `Production Ops Hardening v1`：`config-secret-boundary` 与 `startup-supervisor-boundary` 已固定为 governance boundary；下一步优先启动 `environment-isolation`。
 2. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 3. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。
 4. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。

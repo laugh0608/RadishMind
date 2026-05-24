@@ -22,6 +22,7 @@ REQUIRED_SATISFIED_CONDITIONS = {
     "local_console_dev_entry",
     "console_production_boundary_gate",
     "production_config_secret_boundary_gate",
+    "startup_supervisor_boundary_gate",
     "fast_baseline_consumes_p3_gates",
 }
 
@@ -168,6 +169,7 @@ def assert_consumers(fixture: dict[str, Any]) -> None:
     expected_consumers = {
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/check-production-ops-config-secret-boundary.py",
+        "scripts/check-production-ops-startup-supervisor-boundary.py",
         "scripts/check-repo.py",
         "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",

@@ -69,6 +69,14 @@
 
 生产环境仍缺少正式 secret backend、环境隔离、provider health policy、process supervisor 和 console production packaging。直到这些条件分别有任务卡、实现和门禁前，`config-summary`、`config-check`、`diagnostics` 和 provider inventory 只能输出 `credential_state`、`base_url_configured`、`secret_fields`、`field_sources` 这类脱敏字段，不输出原始 credential 或 provider URL。
 
+## Startup / supervisor boundary
+
+`startup-supervisor-boundary` 已由 `scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定为 governance boundary。当前支持的启动入口只有两类：`scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 的人工 platform wrapper，以及 `scripts/run-radishmind-console-dev.ps1` / `scripts/run-radishmind-console-dev.sh` 的本地 console dev launcher。
+
+platform wrapper 只支持 `serve`、`config-summary`、`config-check` 和 `diagnostics`，未知命令必须失败并返回退出码 `2`。console dev launcher 只负责启动或复用本地 backend / frontend，探测 `/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、本地 CORS preflight 和前端页面；`-ExitAfterProbe` / `--exit-after-probe` 只表示探测后清理本次创建的开发进程，不是 lifecycle management。
+
+当前仍没有 production process supervisor、automatic restart、production service manager 或 production log retention。`tmp/radishmind-console-dev` 下的日志只用于本地排障，不能解释为生产日志路径；port reuse 只表示开发期复用本机已有进程，不能解释为服务发现。`local-smoke` 仍不是 production health。
+
 本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时优先使用仓库 `.venv` Python，再回退系统 `python3` / `python`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
