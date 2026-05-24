@@ -41,6 +41,7 @@
    - 再逐步引入本地容器 smoke、测试环境 smoke 和生产前复核记录。
    - 当前已落地：`scripts/checks/fixtures/production-ops-deployment-readiness-smoke.json` 与 `scripts/check-production-ops-deployment-readiness-smoke.py` 固定 docker_test / docker_prod 的静态展开场景和后续可执行的 `docker compose config` 命令；该检查不启动 Docker、不拉镜像、不声明 container smoke、测试环境 smoke、production preflight 或 production ready。
    - 当前也已落地：`scripts/checks/fixtures/production-ops-container-smoke-runbook.json` 与 `scripts/check-production-ops-container-smoke-runbook.py` 固定 `container-smoke-runbook`，记录 `docker compose -f deploy/docker-compose.local.yaml up --build -d`、`run-platform-local-smoke.py` 探测和清理命令；该检查仍不启动 Docker、不拉镜像、不声明 `container_smoke_ready`。
+   - 当前也已落地：`scripts/checks/fixtures/production-ops-container-smoke-record-template.json` 与 `scripts/check-production-ops-container-smoke-record-template.py` 固定 `container-smoke-record-template`，约束未来运行窗口产生的记录写入 `tmp/production-ops/container-smoke/`，并必须包含命令、probe、container、cleanup、result 和运行后 blocked condition；该检查仍不启动 Docker、不拉镜像、不提交运行记录、不声明 `container_smoke_ready` 或 production ready。
 
 ## 非目标
 
@@ -60,4 +61,4 @@
 
 ## 下一步
 
-后续需要明确运行窗口后，才执行本地容器 smoke、测试环境 smoke 或生产前复核记录。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose、镜像命名、静态展开或 runbook 边界声明为 production ready。
+后续需要明确运行窗口后，才执行本地容器 smoke、测试环境 smoke 或生产前复核记录，并把实际运行证据按 `container-smoke-record-template` 写入 `tmp/production-ops/container-smoke/`。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose、镜像命名、静态展开、runbook 或记录模板边界声明为 production ready。

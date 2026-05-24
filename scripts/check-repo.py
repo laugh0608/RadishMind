@@ -1081,6 +1081,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-production-ops-docker-image-build-publish.py", [])
     run_python_script("check-production-ops-deployment-readiness-smoke.py", [])
     run_python_script("check-production-ops-container-smoke-runbook.py", [])
+    run_python_script("check-production-ops-container-smoke-record-template.py", [])
     run_python_script("check-platform-runbook.py", [])
     run_python_script("check-platform-overview-consumer-contract.py", [])
     run_python_script("check-platform-local-smoke-contract.py", [])

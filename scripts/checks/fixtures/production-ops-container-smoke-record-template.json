@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_container_smoke_record_template",
+  "slice": {
+    "id": "container-smoke-record-template",
+    "track": "Production Ops Hardening v1",
+    "status": "record_template_satisfied",
+    "does_not_claim": [
+      "container_smoke_ready",
+      "test_environment_smoke_ready",
+      "production_preflight_ready",
+      "production_ready",
+      "image_publish_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "production_auth_cors_policy_ready",
+      "console_runtime_config_ready"
+    ]
+  },
+  "record_scope": {
+    "records_future_runtime_evidence_only": true,
+    "committed_template_is_not_a_run_record": true,
+    "fast_baseline_executes_docker": false,
+    "requires_explicit_human_run_window": true,
+    "allowed_record_root": "tmp/production-ops/container-smoke/",
+    "committed_run_records_forbidden": true
+  },
+  "required_record_fields": [
+    "schema_version",
+    "kind",
+    "run_id",
+    "run_started_at",
+    "run_finished_at",
+    "operator",
+    "git_commit",
+    "environment",
+    "compose_file",
+    "provider",
+    "commands",
+    "probes",
+    "containers",
+    "cleanup",
+    "result",
+    "blocked_conditions_after_run"
+  ],
+  "local_container_smoke_record": {
+    "kind": "production_ops_container_smoke_record",
+    "environment": "docker_local",
+    "compose_file": "deploy/docker-compose.local.yaml",
+    "provider": "mock",
+    "expected_commands": [
+      {
+        "id": "compose_config",
+        "command": "docker compose -f deploy/docker-compose.local.yaml config",
+        "required": true
+      },
+      {
+        "id": "compose_up",
+        "command": "docker compose -f deploy/docker-compose.local.yaml up --build -d",
+        "required": true
+      },
+      {
+        "id": "platform_local_smoke",
+        "command": "python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check",
+        "required": true
+      },
+      {
+        "id": "compose_ps",
+        "command": "docker compose -f deploy/docker-compose.local.yaml ps",
+        "required": true
+      },
+      {
+        "id": "compose_down",
+        "command": "docker compose -f deploy/docker-compose.local.yaml down",
+        "required": true
+      }
+    ],
+    "expected_probes": [
+      {
+        "id": "platform_healthz",
+        "url": "http://127.0.0.1:7000/healthz",
+        "expected_status": 200
+      },
+      {
+        "id": "platform_local_smoke",
+        "url": "http://127.0.0.1:7000/v1/platform/local-smoke",
+        "expected_status": 200
+      },
+      {
+        "id": "console_root",
+        "url": "http://127.0.0.1:4000/",
+        "expected_status": 200
+      }
+    ],
+    "expected_containers": [
+      "radishmind-platform-local",
+      "radishmind-console-local"
+    ],
+    "required_cleanup": {
+      "command": "docker compose -f deploy/docker-compose.local.yaml down",
+      "must_record_exit_code": true,
+      "must_record_remaining_project_containers": true
+    }
+  },
+  "result_policy": {
+    "passing_local_record_may_satisfy": [
+      "container_smoke_ready"
+    ],
+    "passing_local_record_must_not_satisfy": [
+      "test_environment_smoke_ready",
+      "production_preflight_ready",
+      "production_ready",
+      "image_publish_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "production_auth_cors_policy_ready",
+      "console_runtime_config_ready"
+    ],
+    "failed_or_incomplete_record_keeps": [
+      "container_smoke_ready",
+      "test_environment_smoke",
+      "production_preflight_record"
+    ]
+  },
+  "blocked_conditions": [
+    {
+      "id": "container_smoke_ready",
+      "status": "not_satisfied",
+      "reason": "no runtime record has been produced in an explicit Docker run window"
+    },
+    {
+      "id": "test_environment_smoke",
+      "status": "not_satisfied",
+      "reason": "test deploy smoke still requires published test images and non-production secrets"
+    },
+    {
+      "id": "production_preflight_record",
+      "status": "not_satisfied",
+      "reason": "production preflight requires separate deployment target and readiness gates"
+    }
+  ],
+  "forbidden_interpretations": [
+    "record template is a completed smoke record",
+    "tmp record root is committed evidence",
+    "passing docker_local smoke is test environment smoke",
+    "mock provider is production provider",
+    "compose down cleanup is process supervisor"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-container-smoke-record-template.py",
+    "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md",
+    "docs/task-cards/production-ops-docker-deployment-v1-plan.md",
+    "docs/devlogs/2026-W21.md"
+  ]
+}
