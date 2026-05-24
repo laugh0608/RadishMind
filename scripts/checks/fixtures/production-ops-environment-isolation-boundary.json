@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_environment_isolation_boundary",
+  "slice": {
+    "id": "environment-isolation",
+    "track": "Production Ops Hardening v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "production_ready",
+      "production_environment_isolation_ready",
+      "production_auth_policy_ready",
+      "production_cors_policy_ready",
+      "provider_health_policy_ready",
+      "console_production_package_ready"
+    ]
+  },
+  "readiness_scopes": [
+    {
+      "id": "local_readiness",
+      "status": "supported",
+      "evidence_routes": [
+        "/healthz",
+        "/v1/platform/overview",
+        "/v1/platform/local-smoke"
+      ],
+      "allowed_profiles": [
+        "mock",
+        "local daemon dev profile"
+      ],
+      "must_not_claim": [
+        "production health",
+        "provider health",
+        "production authentication",
+        "production deployment"
+      ]
+    },
+    {
+      "id": "dev_smoke",
+      "status": "supported",
+      "evidence_routes": [
+        "config-check",
+        "diagnostics",
+        "console dev launcher probes"
+      ],
+      "allowed_profiles": [
+        "developer env override",
+        "developer config file",
+        "remote API provider with local credential injection"
+      ],
+      "must_not_claim": [
+        "production secret backend",
+        "production service manager",
+        "production CORS policy",
+        "provider SLO"
+      ]
+    },
+    {
+      "id": "production_readiness",
+      "status": "not_satisfied",
+      "evidence_routes": [],
+      "allowed_profiles": [],
+      "must_not_claim": [
+        "ready before environment isolation",
+        "ready before secret backend",
+        "ready before supervisor",
+        "ready before console production packaging"
+      ]
+    }
+  ],
+  "environment_boundaries": [
+    {
+      "id": "mock_provider",
+      "environment": "local",
+      "production_use": "forbidden",
+      "reason": "mock provider proves local protocol and UI readiness only"
+    },
+    {
+      "id": "local_smoke",
+      "environment": "local",
+      "production_use": "forbidden",
+      "reason": "local-smoke aggregates local routes and stop-lines but is not production health"
+    },
+    {
+      "id": "local_console_cors",
+      "environment": "local",
+      "production_use": "forbidden",
+      "reason": "allowed origins are limited to localhost console development"
+    },
+    {
+      "id": "developer_remote_profile",
+      "environment": "dev",
+      "production_use": "blocked_until_secret_backend_provider_health_and_environment_isolation_exist",
+      "reason": "developer credentials and provider profile overrides are smoke inputs, not deployable production config"
+    },
+    {
+      "id": "console_preview",
+      "environment": "dev",
+      "production_use": "blocked_until_console_production_packaging_exists",
+      "reason": "Vite build/preview is not a published production package"
+    }
+  ],
+  "blocked_conditions": [
+    {
+      "id": "deployment_environment_isolation",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_readiness_gate",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "provider_health_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "local-smoke is production health",
+    "mock provider is production provider",
+    "demo profile is production profile",
+    "developer env override is production secret backend",
+    "localhost CORS is production CORS policy",
+    "Vite preview is production package"
+  ],
+  "evidence": [
+    "services/platform/internal/httpapi/platform_local_smoke.go",
+    "services/platform/internal/httpapi/platform_overview.go",
+    "contracts/typescript/platform-local-smoke-api.ts",
+    "scripts/check-platform-local-smoke-contract.py",
+    "scripts/check-radishmind-console-production-boundary.py",
+    "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
+    "scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json",
+    "services/platform/README.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-environment-isolation-boundary.py",
+    "scripts/check-repo.py",
+    "scripts/check-p3-local-product-shell-short-close-checklist.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md"
+  ]
+}

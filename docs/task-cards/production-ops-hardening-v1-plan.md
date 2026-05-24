@@ -68,6 +68,7 @@
 3. `environment-isolation`
    - 固定 local/dev/prod profile 语义和禁止误用的负向场景。
    - 确认 local-smoke 只能代表本地 readiness。
+   - 当前已落地 governance boundary：`scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 与 `scripts/check-production-ops-environment-isolation-boundary.py` 固定 local readiness、dev smoke 和 production readiness 的区分；这不等于 deployment environment isolation ready。
 4. `console-production-package-smoke`
    - 给 console production build / preview / package 形成最小可复验入口。
    - 继续保持只读边界。
@@ -86,7 +87,7 @@
 
 ## 下一步
 
-继续推进 `environment-isolation` 切片：先读取 `local-smoke`、platform overview、provider/profile metadata、P3 checklist 和 console production boundary，固定 local / dev / production readiness 的区分，防止 `mock`、local-smoke 或 demo profile 被误读为 production ready。`config-secret-boundary` 与 `startup-supervisor-boundary` 已有最小门禁，但 production secret backend 与 process supervisor 仍为 `not_satisfied`。
+继续推进 `console-production-package-smoke` 切片：先读取 `apps/radishmind-console/package.json`、console production boundary gate、`.gitignore` 和 console README，固定 production build / preview / package 的最低可复验入口。`config-secret-boundary`、`startup-supervisor-boundary` 与 `environment-isolation` 已有最小门禁，但 production secret backend、process supervisor 和 deployment environment isolation 仍为 `not_satisfied`。
 
 ## 停止线
 

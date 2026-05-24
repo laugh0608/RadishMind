@@ -77,6 +77,14 @@ platform wrapper 只支持 `serve`、`config-summary`、`config-check` 和 `diag
 
 当前仍没有 production process supervisor、automatic restart、production service manager 或 production log retention。`tmp/radishmind-console-dev` 下的日志只用于本地排障，不能解释为生产日志路径；port reuse 只表示开发期复用本机已有进程，不能解释为服务发现。`local-smoke` 仍不是 production health。
 
+## Environment isolation boundary
+
+`environment-isolation` 已由 `scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 与 `scripts/check-production-ops-environment-isolation-boundary.py` 固定为 governance boundary。当前只区分三类 readiness：`local_readiness`、`dev_smoke` 和仍为 `not_satisfied` 的 `production_readiness`。
+
+`/v1/platform/local-smoke`、`mock` provider、本地 console CORS、developer env override 和 Vite preview 都只属于 local / dev 范围。`local-smoke` 只能说明本地只读 console 所需 route、contract、CORS 和 stop-lines 可读；它不是 production health。`mock` provider 和 demo profile 只能证明协议、UI 和本地排障链路可用，不能解释为 production provider / profile。`http://127.0.0.1:4000` 与 `http://localhost:4000` 的 CORS 允许列表只服务本地 console 开发，不是 production CORS policy。
+
+production readiness 仍必须等待 deployment environment isolation、production auth policy、production CORS policy、provider health policy、secret backend、process supervisor 和 console production packaging。当前任何 local / dev smoke 通过都不得升级为 production ready。
+
 本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时优先使用仓库 `.venv` Python，再回退系统 `python3` / `python`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。

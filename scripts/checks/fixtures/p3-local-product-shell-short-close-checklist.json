@@ -24,7 +24,7 @@
     ],
     "next_default": [
       "production_ops_hardening_v1",
-      "config_secret_boundary"
+      "console_production_package_smoke"
     ]
   },
   "short_close_state": {
@@ -145,6 +145,14 @@
       ]
     },
     {
+      "id": "environment_isolation_boundary_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-environment-isolation-boundary.json",
+        "scripts/check-production-ops-environment-isolation-boundary.py"
+      ]
+    },
+    {
       "id": "fast_baseline_consumes_p3_gates",
       "status": "satisfied",
       "evidence": [
@@ -177,7 +185,11 @@
       "id": "deployment_environment_isolation",
       "status": "not_satisfied",
       "required_before_short_close": true,
-      "current_scope": "blocked"
+      "current_scope": "blocked",
+      "boundary_evidence": [
+        "scripts/checks/fixtures/production-ops-environment-isolation-boundary.json",
+        "scripts/check-production-ops-environment-isolation-boundary.py"
+      ]
     },
     {
       "id": "console_production_packaging",
@@ -226,6 +238,7 @@
     "scripts/check-p3-local-product-shell-short-close-checklist.py",
     "scripts/check-production-ops-config-secret-boundary.py",
     "scripts/check-production-ops-startup-supervisor-boundary.py",
+    "scripts/check-production-ops-environment-isolation-boundary.py",
     "scripts/check-repo.py",
     "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",
