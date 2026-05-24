@@ -21,6 +21,7 @@ REQUIRED_SATISFIED_CONDITIONS = {
     "console_provider_profile_inventory_details",
     "local_console_dev_entry",
     "console_production_boundary_gate",
+    "production_config_secret_boundary_gate",
     "fast_baseline_consumes_p3_gates",
 }
 
@@ -108,8 +109,8 @@ def assert_short_close_state(fixture: dict[str, Any]) -> None:
     )
     next_default = set(local_close.get("next_default") or [])
     require(
-        {"ui_design_topic_pencil_draft", "p4_model_adaptation_plan"}.issubset(next_default),
-        "P3 local close must point to UI design topic and P4 model adaptation plan",
+        {"production_ops_hardening_v1", "config_secret_boundary"}.issubset(next_default),
+        "P3 local close must point to Production Ops Hardening v1 config-secret-boundary",
     )
     locked_claims = set(local_close.get("does_not_unlock") or [])
     required_locked_claims = {
@@ -166,6 +167,7 @@ def assert_consumers(fixture: dict[str, Any]) -> None:
     required_consumers = set(fixture.get("required_consumers") or [])
     expected_consumers = {
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
+        "scripts/check-production-ops-config-secret-boundary.py",
         "scripts/check-repo.py",
         "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",

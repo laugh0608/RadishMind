@@ -23,8 +23,8 @@
       "replay_enabled"
     ],
     "next_default": [
-      "ui_design_topic_pencil_draft",
-      "p4_model_adaptation_plan"
+      "production_ops_hardening_v1",
+      "config_secret_boundary"
     ]
   },
   "short_close_state": {
@@ -129,6 +129,14 @@
       ]
     },
     {
+      "id": "production_config_secret_boundary_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
+        "scripts/check-production-ops-config-secret-boundary.py"
+      ]
+    },
+    {
       "id": "fast_baseline_consumes_p3_gates",
       "status": "satisfied",
       "evidence": [
@@ -141,7 +149,11 @@
       "id": "production_secret_backend",
       "status": "not_satisfied",
       "required_before_short_close": true,
-      "current_scope": "blocked"
+      "current_scope": "blocked",
+      "boundary_evidence": [
+        "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
+        "scripts/check-production-ops-config-secret-boundary.py"
+      ]
     },
     {
       "id": "process_supervisor",
@@ -200,6 +212,7 @@
   ],
   "required_consumers": [
     "scripts/check-p3-local-product-shell-short-close-checklist.py",
+    "scripts/check-production-ops-config-secret-boundary.py",
     "scripts/check-repo.py",
     "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",

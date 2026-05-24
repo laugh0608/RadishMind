@@ -60,6 +60,7 @@
 1. `config-secret-boundary`
    - 梳理现有 config 文档、fixture 和平台检查。
    - 新增或更新最小门禁，固定 production secret backend 仍未实现但边界清楚。
+   - 当前已落地 governance boundary：`scripts/checks/fixtures/production-ops-config-secret-boundary.json` 与 `scripts/check-production-ops-config-secret-boundary.py` 固定 local / dev / production 配置来源、密钥注入、provider/profile 边界和生产未就绪声明；这不等于 production secret backend ready。
 2. `startup-supervisor-boundary`
    - 梳理本地启动脚本和 deployment smoke。
    - 固定当前只支持人工启动 / smoke，不声明 process supervisor。
@@ -84,7 +85,7 @@
 
 ## 下一步
 
-优先启动 `config-secret-boundary` 切片：先读取现有 platform config、deployment smoke、diagnostics、P3 checklist 和 console dev entry，再决定是否新增小型 fixture / checker。该切片不碰真实模型、不接 executor、不改变上层项目。
+继续推进 `startup-supervisor-boundary` 切片：先读取本地启动 wrapper、console dev entry、deployment smoke 和 diagnostics，再固定当前只支持人工启动 / smoke、不声明 process supervisor。`config-secret-boundary` 已有最小门禁，但 production secret backend 仍为 `not_satisfied`。
 
 ## 停止线
 

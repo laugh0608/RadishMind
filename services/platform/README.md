@@ -61,6 +61,14 @@
 
 结构化诊断 smoke 由 `scripts/check-platform-diagnostics.py` 固定到快速检查中。它通过一次性 `diagnostics` 命令聚合启动配置、必填字段、Python bridge provider registry 和 provider/profile inventory，不启动长驻服务、不访问外部 provider，并只输出 `credential_state`、计数和状态字段，不输出 secret、token 或 provider URL 原文。
 
+## Production config / secret boundary
+
+`Production Ops Hardening v1` 的第一切片是 `config-secret-boundary`。当前由 `scripts/checks/fixtures/production-ops-config-secret-boundary.json` 与 `scripts/check-production-ops-config-secret-boundary.py` 固定为 governance boundary：配置来源、密钥注入、provider/profile 覆盖和不可提交项已经有可检查口径，但 production secret backend 仍未实现，不能据此声明 production ready。
+
+配置来源继续按 `default < config file < env` 分层。`mock` provider、`local-smoke`、本地 wrapper 默认值和 `tmp/radishmind-platform.local.json` 只代表 local / dev readiness；远端 provider 的 `RADISHMIND_PLATFORM_API_KEY`、provider profile API key、token、cookie、authorization header 和真实 provider base URL 不得写入 committed 文档、fixture、日志样例或 console 包。
+
+生产环境仍缺少正式 secret backend、环境隔离、provider health policy、process supervisor 和 console production packaging。直到这些条件分别有任务卡、实现和门禁前，`config-summary`、`config-check`、`diagnostics` 和 provider inventory 只能输出 `credential_state`、`base_url_configured`、`secret_fields`、`field_sources` 这类脱敏字段，不输出原始 credential 或 provider URL。
+
 本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时优先使用仓库 `.venv` Python，再回退系统 `python3` / `python`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
