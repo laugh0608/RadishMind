@@ -91,6 +91,12 @@ production readiness 仍必须等待 deployment environment isolation、producti
 
 这些入口不等于 production package 或 production hosting。`apps/radishmind-console/package.json` 必须保持 `private=true`，不得添加 deploy / publish / release / package / docker 类脚本，不得提交 `apps/radishmind-console/dist/` 或 `apps/radishmind-console/node_modules/`。console production packaging 仍为 `not_satisfied`，直到另有生产发布目标、静态资产策略、正式鉴权 / CORS policy 和部署门禁。
 
+## Docker local compose boundary
+
+`docker-local-compose` 已由 `scripts/checks/fixtures/production-ops-docker-local-compose.json` 与 `scripts/check-production-ops-docker-local-compose.py` 固定为本地容器 smoke 资产。当前只新增 `services/platform/Dockerfile`、`apps/radishmind-console/Dockerfile`、`apps/radishmind-console/nginx.local.conf` 和 `deploy/docker-compose.local.yaml`，用于本机 build 并验证 platform + console 的容器组合。
+
+本地 compose 默认使用 `mock` provider，发布 `7000/4000` 到宿主机，console 构建期 `VITE_RADISHMIND_PLATFORM_BASE_URL` 默认指向 `http://127.0.0.1:7000`。它不包含 secret、不使用 `RADISHMIND_IMAGE_TRACK` / `RADISHMIND_IMAGE_TAG`，不定义测试 / 生产部署态，不实现 production secret backend、process supervisor、正式 auth / CORS policy、镜像发布或 production ready。
+
 本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时优先使用仓库 `.venv` Python，再回退系统 `python3` / `python`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。

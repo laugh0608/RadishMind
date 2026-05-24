@@ -108,6 +108,12 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 
 `scripts/checks/fixtures/production-ops-console-package-smoke.json` 与 `scripts/check-production-ops-console-package-smoke.py` 固定上述 package smoke 边界。该检查不发布、不上传、不启动公开服务，也不把 Vite preview 解释为 production deployment。
 
+## Docker local compose 边界
+
+`apps/radishmind-console/Dockerfile` 和 `apps/radishmind-console/nginx.local.conf` 只服务 `docker-local-compose` 本地容器 smoke。它们通过本地 nginx 容器托管 build 后的只读 console，默认把 `VITE_RADISHMIND_PLATFORM_BASE_URL` 固定到 `http://127.0.0.1:7000`，与 `deploy/docker-compose.local.yaml` 中发布到宿主机的 platform 端口配套。
+
+这不是 production hosting policy，也不是 console production package ready。测试 / 生产部署态、runtime config、正式 auth / CORS policy、镜像发布和外部反代仍待后续 `docker-test-prod-compose` 切片定义。
+
 ## 连接失败诊断
 
 页面会在 refresh 期间保留上一份已加载 overview 和 local-smoke readiness；如果连接失败，会继续展示上一份只读视图并显示诊断项。`Dev Diagnostics` 区域会展示当前 `Platform URL`、overview endpoint、local-smoke endpoint、load status、failure surface、最近加载时间、service status、console connection、readiness status、`ps1` / `sh` 本地 probe 命令，以及端口冲突、CORS / preflight、unsafe port、overview contract mismatch 和 local-smoke contract mismatch 的本地排障分类。若 overview 可读但 local-smoke readiness 或 contract 失败，页面只显示 `Local-smoke readiness unavailable` 和 local-smoke 专属诊断，不升级为 production incident、supervisor 或执行链路状态。它只是本地连接排障面，不是 production ops supervisor。

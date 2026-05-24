@@ -12,8 +12,7 @@
       "local_path_policy": "do_not_commit_local_external_project_path"
     },
     "does_not_claim": [
-      "dockerfiles_ready",
-      "compose_ready",
+      "docker_test_prod_compose_ready",
       "image_publish_ready",
       "production_ready",
       "production_secret_backend_ready",
@@ -38,7 +37,7 @@
     },
     {
       "id": "docker_local",
-      "status": "planned",
+      "status": "available_for_local_container_smoke",
       "compose_file": "deploy/docker-compose.local.yaml",
       "image_source": "local_build",
       "default_provider": "mock",
@@ -64,20 +63,26 @@
       "production_use": "allowed_only_after_readiness_gates"
     }
   ],
+  "satisfied_conditions": [
+    {
+      "id": "docker_local_compose",
+      "status": "satisfied",
+      "evidence": [
+        "services/platform/Dockerfile",
+        "apps/radishmind-console/Dockerfile",
+        "apps/radishmind-console/nginx.local.conf",
+        "deploy/docker-compose.local.yaml",
+        "scripts/checks/fixtures/production-ops-docker-local-compose.json",
+        "scripts/check-production-ops-docker-local-compose.py"
+      ]
+    }
+  ],
   "required_future_assets": [
-    "services/platform/Dockerfile",
-    "apps/radishmind-console/Dockerfile",
-    "deploy/docker-compose.local.yaml",
     "deploy/docker-compose.yaml",
     "deploy/.env.example",
     ".github/workflows/docker-images.yml"
   ],
   "blocked_conditions": [
-    {
-      "id": "docker_local_compose",
-      "status": "not_satisfied",
-      "required_before_docker_local_ready": true
-    },
     {
       "id": "docker_test_prod_compose",
       "status": "not_satisfied",
@@ -113,6 +118,7 @@
   ],
   "required_consumers": [
     "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-production-ops-docker-local-compose.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/radishmind-current-focus.md",

@@ -19,7 +19,6 @@ REQUIRED_ENVIRONMENT_MODES = {
 }
 
 REQUIRED_BLOCKED_CONDITIONS = {
-    "docker_local_compose",
     "docker_test_prod_compose",
     "docker_image_publish_workflow",
     "console_runtime_config",
@@ -28,12 +27,13 @@ REQUIRED_BLOCKED_CONDITIONS = {
 }
 
 REQUIRED_FUTURE_ASSETS = {
-    "services/platform/Dockerfile",
-    "apps/radishmind-console/Dockerfile",
-    "deploy/docker-compose.local.yaml",
     "deploy/docker-compose.yaml",
     "deploy/.env.example",
     ".github/workflows/docker-images.yml",
+}
+
+REQUIRED_SATISFIED_CONDITIONS = {
+    "docker_local_compose",
 }
 
 REQUIRED_DOC_REFERENCES = {
@@ -51,11 +51,13 @@ REQUIRED_DOC_REFERENCES = {
         "docker-deployment-mode-definition",
         "production-ops-docker-deployment-mode.json",
         "docker-local-compose",
+        "production-ops-docker-local-compose.json",
     ],
     "docs/radishmind-roadmap.md": [
         "docker-deployment-mode-definition",
         "production-ops-docker-deployment-v1-plan.md",
         "docker-local-compose",
+        "production-ops-docker-local-compose.json",
     ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "docker-deployment-mode-definition",
@@ -64,6 +66,7 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "scripts/README.md": [
         "check-production-ops-docker-deployment-mode.py",
+        "check-production-ops-docker-local-compose.py",
         "docker local/test/prod",
         "production-ops-docker-deployment-mode.json",
     ],
@@ -104,8 +107,7 @@ def assert_decision(fixture: dict[str, Any]) -> None:
     )
     does_not_claim = set(decision.get("does_not_claim") or [])
     required_forbidden_claims = {
-        "dockerfiles_ready",
-        "compose_ready",
+        "docker_test_prod_compose_ready",
         "image_publish_ready",
         "production_ready",
         "production_secret_backend_ready",
@@ -127,7 +129,10 @@ def assert_environment_modes(fixture: dict[str, Any]) -> None:
     require(host_dev.get("compose_use") == "forbidden_by_default", "host_dev must not default to Compose")
 
     docker_local = modes_by_id["docker_local"]
-    require(docker_local.get("status") == "planned", "docker_local must remain planned")
+    require(
+        docker_local.get("status") == "available_for_local_container_smoke",
+        "docker_local must be available for local container smoke",
+    )
     require(docker_local.get("compose_file") == "deploy/docker-compose.local.yaml", "unexpected local compose path")
     require(docker_local.get("image_source") == "local_build", "docker_local must use local build")
     require(docker_local.get("default_provider") == "mock", "docker_local must default to mock provider")
@@ -151,6 +156,24 @@ def assert_environment_modes(fixture: dict[str, Any]) -> None:
 
 
 def assert_future_assets_and_blocks(fixture: dict[str, Any]) -> None:
+    satisfied = fixture.get("satisfied_conditions") or []
+    satisfied_by_id = {str(item.get("id")): item for item in satisfied}
+    missing_satisfied = sorted(REQUIRED_SATISFIED_CONDITIONS - set(satisfied_by_id))
+    require(not missing_satisfied, f"missing satisfied conditions: {missing_satisfied}")
+    local_compose = satisfied_by_id["docker_local_compose"]
+    require(local_compose.get("status") == "satisfied", "docker_local_compose must be satisfied")
+    local_evidence = set(local_compose.get("evidence") or [])
+    for evidence in {
+        "services/platform/Dockerfile",
+        "apps/radishmind-console/Dockerfile",
+        "apps/radishmind-console/nginx.local.conf",
+        "deploy/docker-compose.local.yaml",
+        "scripts/checks/fixtures/production-ops-docker-local-compose.json",
+        "scripts/check-production-ops-docker-local-compose.py",
+    }:
+        require(evidence in local_evidence, f"docker_local_compose missing evidence: {evidence}")
+        require((REPO_ROOT / evidence).exists(), f"docker_local_compose evidence missing on disk: {evidence}")
+
     future_assets = set(fixture.get("required_future_assets") or [])
     missing_assets = sorted(REQUIRED_FUTURE_ASSETS - future_assets)
     require(not missing_assets, f"missing future assets: {missing_assets}")
@@ -170,6 +193,7 @@ def assert_consumers_and_docs(fixture: dict[str, Any]) -> None:
     required_consumers = set(fixture.get("required_consumers") or [])
     expected_consumers = {
         "scripts/check-production-ops-docker-deployment-mode.py",
+        "scripts/check-production-ops-docker-local-compose.py",
         "scripts/check-repo.py",
         "scripts/README.md",
         "docs/radishmind-current-focus.md",

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_docker_local_compose",
+  "slice": {
+    "id": "docker-local-compose",
+    "track": "Production Ops Hardening v1",
+    "status": "local_container_smoke_assets_satisfied",
+    "does_not_claim": [
+      "docker_test_prod_compose_ready",
+      "image_publish_ready",
+      "production_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "console_production_package_ready"
+    ]
+  },
+  "assets": [
+    {
+      "id": "platform_dockerfile",
+      "path": "services/platform/Dockerfile",
+      "purpose": "Build the Go platform binary and package the Python bridge runtime needed for local container smoke.",
+      "production_use": "not_a_published_image"
+    },
+    {
+      "id": "console_dockerfile",
+      "path": "apps/radishmind-console/Dockerfile",
+      "purpose": "Build the local read-only console static bundle and serve it through a local nginx container.",
+      "production_use": "not_a_production_package"
+    },
+    {
+      "id": "console_nginx_local_config",
+      "path": "apps/radishmind-console/nginx.local.conf",
+      "purpose": "Serve the local console SPA fallback for container smoke only.",
+      "production_use": "not_a_production_hosting_policy"
+    },
+    {
+      "id": "local_compose",
+      "path": "deploy/docker-compose.local.yaml",
+      "purpose": "Build and run platform plus console for local container verification.",
+      "production_use": "forbidden"
+    }
+  ],
+  "local_services": [
+    {
+      "id": "platform",
+      "build_context": "..",
+      "dockerfile": "services/platform/Dockerfile",
+      "image": "radishmind/platform:local",
+      "published_port": "7000",
+      "provider": "mock",
+      "healthcheck": "http://127.0.0.1:7000/healthz"
+    },
+    {
+      "id": "console",
+      "build_context": "..",
+      "dockerfile": "apps/radishmind-console/Dockerfile",
+      "image": "radishmind/console:local",
+      "published_port": "4000",
+      "platform_base_url": "http://127.0.0.1:7000",
+      "depends_on": "platform:service_healthy"
+    }
+  ],
+  "secret_policy": {
+    "allowed_secret_fields": [],
+    "forbidden_secret_fields": [
+      "RADISHMIND_PLATFORM_API_KEY",
+      "RADISHMIND_MODEL_API_KEY",
+      "token",
+      "authorization",
+      "cookie"
+    ],
+    "default_provider": "mock",
+    "external_provider_use": "forbidden_in_local_compose"
+  },
+  "blocked_conditions": [
+    {
+      "id": "docker_test_prod_compose",
+      "status": "not_satisfied",
+      "required_before_docker_test_prod_ready": true
+    },
+    {
+      "id": "docker_image_publish_workflow",
+      "status": "not_satisfied",
+      "required_before_docker_test_prod_ready": true
+    },
+    {
+      "id": "console_runtime_config",
+      "status": "not_satisfied",
+      "required_before_console_production_package_ready": true
+    },
+    {
+      "id": "production_secret_backend",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "docker compose local is production deployment",
+    "mock provider is production provider",
+    "local nginx config is production hosting policy",
+    "container restart is process supervisor",
+    "local image tag is publishable artifact",
+    "Vite build-time base URL is production runtime config"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-docker-local-compose.py",
+    "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/task-cards/production-ops-docker-deployment-v1-plan.md"
+  ]
+}

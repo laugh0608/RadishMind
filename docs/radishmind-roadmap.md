@@ -127,11 +127,11 @@
 
 目标：把 P3 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 缺口拆成可验证前置条件。
 
-状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。`config-secret-boundary`、`startup-supervisor-boundary`、`environment-isolation` 与 `console-production-package-smoke` 已分别用 production ops fixture / checker 固定为 governance boundary，证据包括 `scripts/checks/fixtures/production-ops-config-secret-boundary.json`、`scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json`、`scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 和 `scripts/checks/fixtures/production-ops-console-package-smoke.json`；`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已完成 `short-close-checklist-refresh`，跨读四个 boundary fixture 并确认 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 仍为 `not_satisfied`。已新增 [Production Ops Docker Deployment v1 计划](task-cards/production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定 Radish 风格 docker local/test/prod 部署方向。
+状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。`config-secret-boundary`、`startup-supervisor-boundary`、`environment-isolation` 与 `console-production-package-smoke` 已分别用 production ops fixture / checker 固定为 governance boundary，证据包括 `scripts/checks/fixtures/production-ops-config-secret-boundary.json`、`scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json`、`scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 和 `scripts/checks/fixtures/production-ops-console-package-smoke.json`；`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已完成 `short-close-checklist-refresh`，跨读四个 boundary fixture 并确认 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 仍为 `not_satisfied`。已新增 [Production Ops Docker Deployment v1 计划](task-cards/production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定 Radish 风格 docker local/test/prod 部署方向；`docker-local-compose` 已用 `scripts/checks/fixtures/production-ops-docker-local-compose.json` 固定为本地容器 smoke 资产。
 
 进入条件：已满足。P3 本地只读产品壳已经可用，且 checklist 已明确 production hardening 缺口。
 
-下一步：推进 `docker-local-compose`。先补本地容器验证的 platform / console Dockerfile 草案和 `deploy/docker-compose.local.yaml`，但不把它解释为 docker test/prod、secret backend、process supervisor 或 production ready。
+下一步：推进 `docker-test-prod-compose`。补测试 / 生产共用部署态 compose、`.env.example` 和静态展开检查，但不把它解释为 secret backend、process supervisor、镜像发布或 production ready。
 
 停止线：不实现真实 secret backend、不实现 process supervisor、不新增 executor、confirmation、writeback、replay 或 materialized result reader；不把 local-smoke、mock provider、demo profile 写成 production ready。
 
@@ -149,7 +149,7 @@
 
 ## 下一步
 
-1. 收口 `Production Ops Hardening v1`：`config-secret-boundary`、`startup-supervisor-boundary`、`environment-isolation`、`console-production-package-smoke`、`short-close-checklist-refresh` 和 `docker-deployment-mode-definition` 已固定为 governance boundary；下一步推进 `docker-local-compose`。
+1. 收口 `Production Ops Hardening v1`：`config-secret-boundary`、`startup-supervisor-boundary`、`environment-isolation`、`console-production-package-smoke`、`short-close-checklist-refresh`、`docker-deployment-mode-definition` 和 `docker-local-compose` 已固定为 governance boundary；下一步推进 `docker-test-prod-compose`。
 2. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 3. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。
 4. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。

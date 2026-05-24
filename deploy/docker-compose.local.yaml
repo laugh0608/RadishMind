@@ -1,0 +1,37 @@
+services:
+  platform:
+    image: ${RADISHMIND_PLATFORM_IMAGE:-radishmind/platform:local}
+    build:
+      context: ..
+      dockerfile: services/platform/Dockerfile
+      args:
+        BUILD_VERSION: ${RADISHMIND_BUILD_VERSION:-local}
+    environment:
+      RADISHMIND_PLATFORM_LISTEN_ADDR: 0.0.0.0:7000
+      RADISHMIND_PLATFORM_PROVIDER: mock
+      RADISHMIND_PLATFORM_MODEL: radishmind-local-docker
+      RADISHMIND_PLATFORM_BRIDGE_TIMEOUT: 30s
+    ports:
+      - "${RADISHMIND_PLATFORM_HTTP_PORT:-7000}:7000"
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7000/healthz', timeout=3).read()"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  console:
+    image: ${RADISHMIND_CONSOLE_IMAGE:-radishmind/console:local}
+    build:
+      context: ..
+      dockerfile: apps/radishmind-console/Dockerfile
+      args:
+        VITE_RADISHMIND_PLATFORM_BASE_URL: ${VITE_RADISHMIND_PLATFORM_BASE_URL:-http://127.0.0.1:7000}
+    ports:
+      - "${RADISHMIND_CONSOLE_HTTP_PORT:-4000}:80"
+    depends_on:
+      platform:
+        condition: service_healthy

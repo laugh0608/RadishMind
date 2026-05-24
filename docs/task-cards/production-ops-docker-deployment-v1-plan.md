@@ -11,7 +11,7 @@
 ## 当前结论
 
 - `host_dev`：继续使用现有 `scripts/run-platform-service.*`、`scripts/run-radishmind-console-dev.*`、`go run` 和 `npm run dev`，不走 Compose。
-- `docker_local`：后续使用 `deploy/docker-compose.local.yaml`，允许本地 build，只用于容器构建和启动验证。
+- `docker_local`：已新增 `deploy/docker-compose.local.yaml`，允许本地 build，只用于容器构建和启动验证。
 - `docker_test`：后续使用 `deploy/docker-compose.yaml`，默认使用 `RADISHMIND_IMAGE_TRACK=test` 或固定 `RADISHMIND_IMAGE_TAG` 拉取预构建镜像。
 - `docker_prod`：后续复用 `deploy/docker-compose.yaml`，默认使用 `RADISHMIND_IMAGE_TRACK=release` 或固定 `RADISHMIND_IMAGE_TAG`，外部反代负责 HTTPS，容器内部优先 HTTP。
 - 测试和生产的差异应收敛为镜像轨道 / 固定 tag、公开 URL、secret 来源、provider profile、反代证书、数据目录和日志目录。
@@ -26,6 +26,7 @@
    - 新增 platform 和 console 的本地容器验证编排。
    - 允许本地 build，默认 mock provider。
    - 不接真实 executor、confirmation、writeback 或 replay。
+   - 当前已落地：`services/platform/Dockerfile`、`apps/radishmind-console/Dockerfile`、`apps/radishmind-console/nginx.local.conf` 与 `deploy/docker-compose.local.yaml` 固定本地容器 smoke 资产；`scripts/checks/fixtures/production-ops-docker-local-compose.json` 与 `scripts/check-production-ops-docker-local-compose.py` 固定其不泄漏 secret、不声明 test/prod 或 production ready。
 3. `docker-test-prod-compose`
    - 新增测试 / 生产共用部署态 compose。
    - 通过 `RADISHMIND_IMAGE_TRACK=test/release` 或固定 `RADISHMIND_IMAGE_TAG` 区分镜像。
@@ -55,4 +56,4 @@
 
 ## 下一步
 
-推进 `docker-local-compose`：先补 platform / console 的 Dockerfile 草案和 `deploy/docker-compose.local.yaml`，并用静态 checker 固定不泄漏 secret、不提交 build 产物、不声明 production ready。
+推进 `docker-test-prod-compose`：补测试 / 生产共用部署态 compose、`.env.example` 和静态展开检查，继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流和 console runtime config 为后续条件。
