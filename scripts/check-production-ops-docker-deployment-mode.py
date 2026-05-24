@@ -37,6 +37,7 @@ REQUIRED_SATISFIED_CONDITIONS = {
     "docker_test_prod_compose",
     "docker_image_build_publish_policy",
     "deployment_readiness_static_smoke",
+    "container_smoke_runbook",
 }
 
 REQUIRED_DOC_REFERENCES = {
@@ -51,6 +52,7 @@ REQUIRED_DOC_REFERENCES = {
         "docker-test-prod-compose",
         "docker-image-build-publish",
         "deployment-readiness-smoke",
+        "container-smoke-runbook",
         "不写入长期文档",
     ],
     "docs/radishmind-current-focus.md": [
@@ -64,6 +66,8 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-docker-image-build-publish.json",
         "deployment-readiness-smoke",
         "production-ops-deployment-readiness-smoke.json",
+        "container-smoke-runbook",
+        "production-ops-container-smoke-runbook.json",
     ],
     "docs/radishmind-roadmap.md": [
         "docker-deployment-mode-definition",
@@ -76,6 +80,8 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-docker-image-build-publish.json",
         "deployment-readiness-smoke",
         "production-ops-deployment-readiness-smoke.json",
+        "container-smoke-runbook",
+        "production-ops-container-smoke-runbook.json",
     ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "docker-deployment-mode-definition",
@@ -83,6 +89,7 @@ REQUIRED_DOC_REFERENCES = {
         "docker-test-prod-compose",
         "docker-image-build-publish",
         "deployment-readiness-smoke",
+        "container-smoke-runbook",
         "Production Ops Docker Deployment",
     ],
     "scripts/README.md": [
@@ -91,6 +98,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-docker-test-prod-compose.py",
         "check-production-ops-docker-image-build-publish.py",
         "check-production-ops-deployment-readiness-smoke.py",
+        "check-production-ops-container-smoke-runbook.py",
         "docker local/test/prod",
         "production-ops-docker-deployment-mode.json",
     ],
@@ -239,6 +247,18 @@ def assert_future_assets_and_blocks(fixture: dict[str, Any]) -> None:
         require(evidence in static_smoke_evidence, f"deployment_readiness_static_smoke missing evidence: {evidence}")
         require((REPO_ROOT / evidence).exists(), f"deployment_readiness_static_smoke evidence missing on disk: {evidence}")
 
+    container_runbook = satisfied_by_id["container_smoke_runbook"]
+    require(container_runbook.get("status") == "satisfied", "container_smoke_runbook must be satisfied")
+    container_runbook_evidence = set(container_runbook.get("evidence") or [])
+    for evidence in {
+        "scripts/checks/fixtures/production-ops-container-smoke-runbook.json",
+        "scripts/check-production-ops-container-smoke-runbook.py",
+        "deploy/docker-compose.local.yaml",
+        "deploy/docker-compose.yaml",
+    }:
+        require(evidence in container_runbook_evidence, f"container_smoke_runbook missing evidence: {evidence}")
+        require((REPO_ROOT / evidence).exists(), f"container_smoke_runbook evidence missing on disk: {evidence}")
+
     future_assets = set(fixture.get("required_future_assets") or [])
     missing_assets = sorted(REQUIRED_FUTURE_ASSETS - future_assets)
     require(not missing_assets, f"missing future assets: {missing_assets}")
@@ -262,6 +282,7 @@ def assert_consumers_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-docker-test-prod-compose.py",
         "scripts/check-production-ops-docker-image-build-publish.py",
         "scripts/check-production-ops-deployment-readiness-smoke.py",
+        "scripts/check-production-ops-container-smoke-runbook.py",
         "scripts/check-repo.py",
         "scripts/README.md",
         "docs/radishmind-current-focus.md",

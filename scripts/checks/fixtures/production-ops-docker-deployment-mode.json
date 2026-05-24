@@ -104,6 +104,16 @@
         "scripts/checks/fixtures/production-ops-deployment-readiness-smoke.json",
         "scripts/check-production-ops-deployment-readiness-smoke.py"
       ]
+    },
+    {
+      "id": "container_smoke_runbook",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-container-smoke-runbook.json",
+        "scripts/check-production-ops-container-smoke-runbook.py",
+        "deploy/docker-compose.local.yaml",
+        "deploy/docker-compose.yaml"
+      ]
     }
   ],
   "required_future_assets": [
@@ -159,6 +169,7 @@
     "scripts/check-production-ops-docker-test-prod-compose.py",
     "scripts/check-production-ops-docker-image-build-publish.py",
     "scripts/check-production-ops-deployment-readiness-smoke.py",
+    "scripts/check-production-ops-container-smoke-runbook.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/radishmind-current-focus.md",
