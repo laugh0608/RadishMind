@@ -61,4 +61,4 @@
 
 ## 下一步
 
-后续需要明确运行窗口后，才执行本地容器 smoke、测试环境 smoke 或生产前复核记录，并把实际运行证据按 `container-smoke-record-template` 写入 `tmp/production-ops/container-smoke/`。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose、镜像命名、静态展开、runbook 或记录模板边界声明为 production ready。
+本任务卡的静态边界已经 close。后续只有在明确运行窗口后，才执行本地容器 smoke、测试环境 smoke 或生产前复核记录，并把实际运行证据按 `container-smoke-record-template` 写入 `tmp/production-ops/container-smoke/`。无运行窗口时，默认转入 `Provider Runtime & Health v1`，不继续新增同类静态 compose / runbook / fixture 切片。继续保持 production secret backend、正式 auth / CORS policy、镜像发布工作流、process supervisor 和 console runtime config 为后续条件，不把当前 compose、镜像命名、静态展开、runbook 或记录模板边界声明为 production ready。
