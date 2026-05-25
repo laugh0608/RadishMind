@@ -20,6 +20,7 @@
   - 当前还提供 `run-platform-session-tooling-consumer-smoke.py`，用于把 session/tooling metadata shell 与 blocked action response 转成上层可展示的消费视图；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回
   - 当前还提供 `check-platform-ops-smoke.py`，用于固定 Go platform service 的测试入口、bridge registry 和 provider/profile inventory 基线
   - 当前还提供 `check-provider-capability-matrix.py`，用于校验 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 固定的 `Provider Runtime & Health v1` 第一切片：provider capability matrix 必须逐项匹配 `services/runtime/provider_registry.py`，并固定 profile model id、northbound protocol / route、offline-only baseline、无默认联网、无 credential 要求、无模型下载和无隐式 fallback 口径；该检查不执行 provider health、不访问外部 provider、不声明 production ready
+  - 当前还提供 `check-provider-health-smoke.py`，用于校验 `scripts/checks/fixtures/provider-health-smoke-v1.json` 固定的 `Provider Runtime & Health v1` 第二切片：默认 fast baseline 只覆盖 mock runtime smoke 与 config-level inventory smoke，optional live health 保留为未来手动入口；该检查不联网、不要求真实 credential、不下载模型、不把 live probe 失败写成 production outage
   - 当前还提供 `check-platform-config.py`，用于校验 platform config summary / config check 的脱敏输出、配置来源和 secret 不泄露边界
   - 当前还提供 `check-platform-deployment-smoke.py`，用于校验 JSON 配置文件层级、环境变量覆盖、wrapper unknown command failure boundary 和 secret 不泄露边界
   - 当前还提供 `check-platform-diagnostics.py`，用于校验 structured diagnostics、startup/config/bridge/provider registry failure boundary 和 discoverability selectable model ids
