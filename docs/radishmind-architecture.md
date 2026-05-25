@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-05-24
+更新时间：2026-05-25
 
 ## 架构目标
 
@@ -144,7 +144,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound、session/tooling metadata shell、blocked action shell、只读 platform overview 和 local smoke readiness route
 - `P3 Local Product Shell / Ops Surface`：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、`scripts/run-platform-overview-consumer-smoke.py`、`scripts/run-platform-local-smoke.py`、`scripts/check-radishmind-console-behavior.py`、`scripts/check-radishmind-console-visual-smoke-record.py`、`scripts/check-radishmind-console-dev-entry.py`、`scripts/check-radishmind-console-production-boundary.py`、`scripts/check-p3-local-product-shell-short-close-checklist.py`、`apps/radishmind-console/`、`docs/contracts/platform-overview-ui-view.md`；当前本地只读壳已达到 `local usable / read-only close`
 - `Deployment Boundary Layer`：`deploy/README.md`、`deploy/docker-compose.local.yaml`、`deploy/docker-compose.yaml`、`deploy/.env.example`、`services/platform/Dockerfile`、`apps/radishmind-console/Dockerfile`、`apps/radishmind-console/nginx.local.conf`、`scripts/check-production-ops-docker-*.py`、`scripts/check-production-ops-deployment-readiness-smoke.py`、`scripts/check-production-ops-container-smoke-*.py`；当前只固定 docker local/test/prod 边界、镜像命名、静态展开、runbook 和记录模板
-- `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`
+- `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`、`scripts/checks/fixtures/provider-capability-matrix-v1.json`、`scripts/check-provider-capability-matrix.py`
 - `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata、平台 checkpoint metadata-only route smoke、readiness summary、implementation preconditions、route smoke readiness rollup、short close readiness delta、stop-line manifest 和 storage / audit / result 边界 fixture
 - `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py`、confirmation flow design、executor boundary design、result materialization policy design、negative regression suite、deny-by-default gates、enablement plan 和各类 deterministic builder/check
 - `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records、promotion gates、negative consumption summary、negative coverage rollup、route negative coverage matrix、readiness consistency rollup、foundation status summary 和 P2 design gate checks
@@ -154,7 +154,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 
 - 当前只有 first-pass `Go` platform service、bridge-backed `HTTP API` 和可检查 Docker 部署边界，还不是 production deployment
 - northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke` 和 session/tooling metadata shell 已具备第一版兼容 / discovery 接口；当前已补第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、request-side provider/profile selection、流式增量转发、`/v1/models` 列表 + 精确 lookup、结构化 diagnostics、discoverability 对齐、请求级观测、错误分类、overview consumer smoke、local-smoke readiness smoke 和 Docker 静态部署边界，但真实容器运行 smoke、测试环境 smoke、镜像发布和生产前复核仍未完成
-- `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory 和 diagnostics 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
+- `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory、diagnostics 和 provider capability matrix 门禁，但正式 secret backend、环境隔离和外部 provider 健康探测仍未补齐
 - 已有 session/tooling 首版契约、metadata-only 门禁、close-candidate status summary、negative regression governance suite、route/gate coverage rollup、readiness consistency rollup、short close delta、enablement plan、stop-line manifest、五类设计级边界门禁和只读本地 console 消费壳，但没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器
 - 已有 tool registry、tool audit、metadata-only result cache、result materialization policy design、executor boundary design 和 deny-by-default gate contract，但没有真实工具执行器、materialized result reader、durable tool store、durable result store 或上层确认流接线
 - 尚未具备 production secret backend、process supervisor、正式部署环境隔离、真实镜像发布 workflow、container smoke 通过记录、测试环境 smoke、生产前复核记录、console runtime config 和可发布部署包；这些属于当前 `Production Ops Hardening v1` 的主线缺口，不再混在 P3 只读 console 小切片或真实模型产出专题中推进

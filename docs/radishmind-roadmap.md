@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-24
+更新时间：2026-05-25
 
 ## 路线图原则
 
@@ -139,9 +139,9 @@
 
 目标：把 provider registry、provider/profile inventory、request-side selection、diagnostics 和 error taxonomy 收口为可解释、可检查、可继续接真实 provider 的 runtime/health 层。
 
-状态：已新增 [Provider Runtime & Health v1 任务卡](task-cards/provider-runtime-health-v1-plan.md)。当前只做 provider capability matrix、provider health smoke、provider selection policy 和相关文档刷新；不实现真实 tool executor、confirmation / writeback / replay、训练、production secret backend 或 production ready。
+状态：已新增 [Provider Runtime & Health v1 任务卡](task-cards/provider-runtime-health-v1-plan.md)。当前只做 provider capability matrix、provider health smoke、provider selection policy 和相关文档刷新；不实现真实 tool executor、confirmation / writeback / replay、训练、production secret backend 或 production ready。第一切片 `provider-capability-matrix-v1` 已落地为 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py`，并接入快速仓库检查。
 
-下一步：优先推进 `provider-capability-matrix-v1`，固定每类 provider/profile 的能力、协议、streaming、credential、deployment mode 和 stop-line evidence。随后再补 provider health smoke 与 selection policy。
+下一步：优先推进 `provider-health-smoke-v1`，固定 mock / config-level / optional live health 三层边界。随后再补 provider selection policy。
 
 停止线：capability 不等于 health；health smoke 不等于 production readiness；默认检查不联网、不要求 credential、不下载模型；不隐式 fallback，不把单一 provider 写成唯一方向。
 
@@ -159,7 +159,7 @@
 
 ## 下一步
 
-1. 启动 `Provider Runtime & Health v1`：优先推进 `provider-capability-matrix-v1`，再补 provider health smoke 与 provider selection policy。
+1. 继续 `Provider Runtime & Health v1`：`provider-capability-matrix-v1` 已接入 fast baseline，下一步补 provider health smoke 与 provider selection policy。
 2. 将 `Production Ops Hardening v1` 维持为 static boundary close；只有明确运行窗口后才补容器运行 smoke、测试环境 smoke 或生产前复核记录。
 3. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 4. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。

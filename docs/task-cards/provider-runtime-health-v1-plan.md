@@ -1,6 +1,6 @@
 # `Provider Runtime & Health` v1 计划
 
-更新时间：2026-05-24
+更新时间：2026-05-25
 
 ## 任务目标
 
@@ -27,6 +27,7 @@
 - `P3 Local Product Shell / Ops Surface` 已达到 `local usable / read-only close`。
 - `Production Ops Hardening v1` 的静态部署边界已 close：docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 已可检查；后续只保留一次明确运行窗口下的本地 container smoke 或测试环境 smoke。
 - 当前仍缺 provider capability matrix、provider health policy、profile selection policy、fallback / retry / timeout 口径和外部 provider 健康检查边界。
+- `provider-capability-matrix-v1` 已用 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py` 固定为第一版可检查证据；它逐项比对 `services/runtime/provider_registry.py`，不联网、不要求 credential、不下载模型，也不声明 provider health 或 production ready。
 
 ## v1 范围
 
@@ -56,7 +57,7 @@
 ## 建议切片
 
 1. `provider-capability-matrix-v1`
-   - 新增稳定 fixture / checker，固定 provider capability matrix 的字段、默认 provider/profile、可选择 model id 和不支持能力。
+   - 已新增稳定 fixture / checker，固定 provider capability matrix 的字段、默认 provider/profile、可选择 model id 和不支持能力。
    - 复用现有 provider registry / diagnostics 输出，不另起第二套 provider truth。
 2. `provider-health-smoke-v1`
    - 新增离线 health policy 与 mock health check。
@@ -70,6 +71,7 @@
 ## 验收口径
 
 - provider capability matrix 有结构化证据和 checker。
+- `provider-capability-matrix-v1.json` 与 `check-provider-capability-matrix.py` 已进入 `check-repo --fast`。
 - provider health 分清 offline / optional live / production readiness。
 - request-side selection 与 diagnostics / `/v1/models` 的 profile id 口径一致。
 - 默认快速检查不联网、不要求真实 credential、不下载模型。
@@ -78,7 +80,7 @@
 
 ## 下一步
 
-优先做 `provider-capability-matrix-v1`。如果在开始前有明确 Docker 运行窗口，可以先补一次本地 container smoke 运行记录；否则直接进入 provider runtime / health，不再继续补 production ops 静态边界。
+下一步优先做 `provider-health-smoke-v1`，固定 mock / config-level / optional live health 三层检查；随后再做 `provider-selection-policy-v1`。如果有明确 Docker 运行窗口，可以另行补一次本地 container smoke 运行记录；否则继续留在 provider runtime / health，不再补 production ops 同类静态边界。
 
 ## 停止线
 

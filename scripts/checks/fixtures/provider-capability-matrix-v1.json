@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "kind": "provider_capability_matrix_v1",
+  "decision": {
+    "id": "provider-capability-matrix-v1",
+    "track": "Provider Runtime & Health v1",
+    "status": "satisfied",
+    "source_of_truth": "services/runtime/provider_registry.py",
+    "does_not_claim": [
+      "provider_health_ready",
+      "optional_live_health_enabled_by_default",
+      "production_readiness",
+      "production_secret_backend_ready",
+      "implicit_provider_fallback_ready",
+      "tool_executor_ready",
+      "confirmation_writeback_replay_ready"
+    ]
+  },
+  "capability_fields": [
+    "transport",
+    "local_or_remote",
+    "chat",
+    "responses",
+    "messages",
+    "models_list",
+    "streaming",
+    "json_schema_output",
+    "tool_calling",
+    "image_input",
+    "image_output",
+    "auth_mode",
+    "timeout_policy",
+    "retry_policy",
+    "cost_profile",
+    "latency_profile",
+    "deployment_mode"
+  ],
+  "providers": [
+    {
+      "provider_id": "huggingface",
+      "display_name": "Hugging Face chat-completions provider",
+      "default_api_style": "huggingface-chat-completions",
+      "supported_api_styles": [
+        "huggingface-chat-completions"
+      ],
+      "profile_driven": true,
+      "profile_model_id_pattern": "provider:huggingface:profile:<profile>",
+      "northbound_protocols": [
+        "chat.completions"
+      ],
+      "northbound_routes": [
+        "/v1/models",
+        "/v1/chat/completions"
+      ],
+      "capabilities": {
+        "transport": "huggingface-chat-completions",
+        "local_or_remote": "remote",
+        "chat": true,
+        "responses": false,
+        "messages": false,
+        "models_list": false,
+        "streaming": true,
+        "json_schema_output": false,
+        "tool_calling": false,
+        "image_input": false,
+        "image_output": false,
+        "auth_mode": "profile",
+        "timeout_policy": "per-request",
+        "retry_policy": "caller-managed",
+        "cost_profile": "provider-defined",
+        "latency_profile": "provider-defined",
+        "deployment_mode": "remote_api"
+      }
+    },
+    {
+      "provider_id": "mock",
+      "display_name": "Mock provider",
+      "default_api_style": "mock",
+      "supported_api_styles": [
+        "mock"
+      ],
+      "profile_driven": false,
+      "profile_model_id_pattern": "not_profile_driven",
+      "northbound_protocols": [],
+      "northbound_routes": [
+        "/v1/models"
+      ],
+      "capabilities": {
+        "transport": "deterministic-rule-based",
+        "local_or_remote": "local",
+        "chat": false,
+        "responses": false,
+        "messages": false,
+        "models_list": false,
+        "streaming": false,
+        "json_schema_output": true,
+        "tool_calling": false,
+        "image_input": false,
+        "image_output": false,
+        "auth_mode": "none",
+        "timeout_policy": "none",
+        "retry_policy": "none",
+        "cost_profile": "none",
+        "latency_profile": "deterministic",
+        "deployment_mode": "embedded"
+      }
+    },
+    {
+      "provider_id": "ollama",
+      "display_name": "Ollama chat-completions provider",
+      "default_api_style": "ollama-chat-completions",
+      "supported_api_styles": [
+        "ollama-chat-completions"
+      ],
+      "profile_driven": true,
+      "profile_model_id_pattern": "provider:ollama:profile:<profile>",
+      "northbound_protocols": [
+        "chat.completions"
+      ],
+      "northbound_routes": [
+        "/v1/models",
+        "/v1/chat/completions"
+      ],
+      "capabilities": {
+        "transport": "ollama-chat-completions",
+        "local_or_remote": "local",
+        "chat": true,
+        "responses": false,
+        "messages": false,
+        "models_list": false,
+        "streaming": true,
+        "json_schema_output": false,
+        "tool_calling": false,
+        "image_input": false,
+        "image_output": false,
+        "auth_mode": "optional",
+        "timeout_policy": "per-request",
+        "retry_policy": "caller-managed",
+        "cost_profile": "local",
+        "latency_profile": "local_daemon",
+        "deployment_mode": "local_daemon"
+      }
+    },
+    {
+      "provider_id": "openai-compatible",
+      "display_name": "OpenAI-compatible provider family",
+      "default_api_style": "openai-compatible",
+      "supported_api_styles": [
+        "openai-compatible",
+        "gemini-native",
+        "anthropic-messages"
+      ],
+      "profile_driven": true,
+      "profile_model_id_pattern": "profile:<profile>",
+      "northbound_protocols": [
+        "chat.completions"
+      ],
+      "northbound_routes": [
+        "/v1/models",
+        "/v1/chat/completions"
+      ],
+      "capabilities": {
+        "transport": "openai-chat-completions",
+        "local_or_remote": "remote",
+        "chat": true,
+        "responses": false,
+        "messages": false,
+        "models_list": false,
+        "streaming": true,
+        "json_schema_output": false,
+        "tool_calling": false,
+        "image_input": false,
+        "image_output": false,
+        "auth_mode": "profile",
+        "timeout_policy": "per-request",
+        "retry_policy": "caller-managed",
+        "cost_profile": "provider-defined",
+        "latency_profile": "provider-defined",
+        "deployment_mode": "remote_api"
+      }
+    }
+  ],
+  "selection_identity_examples": [
+    {
+      "provider_id": "openai-compatible",
+      "profile": "anyrouter",
+      "model_id": "profile:anyrouter"
+    },
+    {
+      "provider_id": "huggingface",
+      "profile": "hf-chat",
+      "model_id": "provider:huggingface:profile:hf-chat"
+    },
+    {
+      "provider_id": "ollama",
+      "profile": "local",
+      "model_id": "provider:ollama:profile:local"
+    }
+  ],
+  "execution_policy": {
+    "default_fast_baseline": "offline_only",
+    "network_access": "forbidden_by_default",
+    "credential_required": false,
+    "model_download": "forbidden",
+    "optional_live_health": "manual_only_future_slice",
+    "fallback_policy": "disabled_unless_explicit_selection_policy_allows"
+  },
+  "required_consumers": [
+    "scripts/check-provider-capability-matrix.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-architecture.md",
+    "docs/task-cards/provider-runtime-health-v1-plan.md"
+  ]
+}
