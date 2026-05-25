@@ -241,6 +241,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 			selection.model = requestedModel
 			selection.upstreamModel = requestedModel
 			selection.source = "requested_concrete_model"
+			selection.inventoryKind = "runtime_override"
 		}
 	}
 
@@ -265,7 +266,7 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 		if explicitProfile == "" {
 			selection.providerProfile = ""
 		}
-		if !requestedConcreteModel {
+		if !requestedConcreteModel && explicitProfile == "" {
 			if activeProfile, ok := inventoryLookup.activeProfileByProvider[explicitProvider]; ok && activeProfile != "" {
 				selection.providerProfile = activeProfile
 				selection.model = buildNorthboundProfileModelID(explicitProvider, activeProfile)
@@ -296,8 +297,13 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 				selection.upstreamModel = strings.TrimSpace(profile.ResolvedModel)
 			}
 			selection.source = "radishmind.provider_profile+inventory"
+		} else if !requestedConcreteModel {
+			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
+			selection.upstreamModel = ""
+			selection.inventoryKind = "runtime_override"
 		} else if selection.model == "" || selection.model == selection.provider {
 			selection.model = buildNorthboundProfileModelID(selection.provider, selection.providerProfile)
+			selection.inventoryKind = "runtime_override"
 		}
 	}
 

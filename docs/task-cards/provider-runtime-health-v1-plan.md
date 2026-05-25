@@ -29,6 +29,7 @@
 - 当前仍缺 provider capability matrix、provider health policy、profile selection policy、fallback / retry / timeout 口径和外部 provider 健康检查边界。
 - `provider-capability-matrix-v1` 已用 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py` 固定为第一版可检查证据；它逐项比对 `services/runtime/provider_registry.py`，不联网、不要求 credential、不下载模型，也不声明 provider health 或 production ready。
 - `provider-health-smoke-v1` 已用 `scripts/checks/fixtures/provider-health-smoke-v1.json` 与 `scripts/check-provider-health-smoke.py` 固定为第二版可检查证据；默认 fast baseline 只跑 mock runtime smoke 与 config-level inventory smoke，optional live health 仍是未来手动切片。
+- `provider-selection-policy-v1` 已用 `scripts/checks/fixtures/provider-selection-policy-v1.json`、`scripts/check-provider-selection-policy.py` 与 Go 单元测试固定为第三版可检查证据；它锁住 request-side profile / provider / concrete model selection、未知 model/profile 负向边界、credential missing、unsupported capability、timeout 和无隐式 fallback 口径。
 
 ## v1 范围
 
@@ -64,7 +65,7 @@
    - 已新增离线 health policy、mock runtime smoke 与 config-level inventory smoke。
    - optional live health 只作为手动命令或显式参数，不进入默认 fast baseline。
 3. `provider-selection-policy-v1`
-   - 固定 profile/model selection 的负向场景：未知 profile、未知 model、credential missing、unsupported streaming / schema / tool capability、timeout。
+   - 已固定 profile/model selection 的负向场景：未知 profile、未知 model、credential missing、unsupported streaming / schema / tool capability、timeout。
    - 不启用自动 fallback，除非策略明确允许。
 4. `provider-runtime-docs-refresh`
    - 同步说明类文档和任务卡入口。
@@ -76,13 +77,14 @@
 - provider health 分清 offline / optional live / production readiness。
 - `provider-health-smoke-v1.json` 与 `check-provider-health-smoke.py` 已进入 `check-repo --fast`。
 - request-side selection 与 diagnostics / `/v1/models` 的 profile id 口径一致。
+- `provider-selection-policy-v1.json` 与 `check-provider-selection-policy.py` 已进入 `check-repo --fast`。
 - 默认快速检查不联网、不要求真实 credential、不下载模型。
 - 保持 `Production Ops Hardening v1` 静态边界 close，不继续新增同类静态 governance 切片。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
 ## 下一步
 
-下一步优先做 `provider-selection-policy-v1`，固定未知 profile / model、credential missing、unsupported capability、timeout 和 fallback 条件。若有明确 Docker 运行窗口，可以另行补一次本地 container smoke 运行记录；否则继续留在 provider runtime / health，不再补 production ops 同类静态边界。
+下一步进入 `provider-runtime-docs-refresh`，收口 Provider Runtime & Health v1 的阶段说明；若有明确 Docker 运行窗口，可以另行补一次本地 container smoke 运行记录。后续不继续补 production ops 同类静态边界，也不把 selection policy 写成 retry/fallback 已实现。
 
 ## 停止线
 

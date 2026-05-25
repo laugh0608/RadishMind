@@ -512,6 +512,94 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("provider selection policy", func(t *testing.T) {
+		policyCases := []struct {
+			name                  string
+			requestedModel        string
+			extension             *chatCompletionExtension
+			expectedProvider      string
+			expectedProfile       string
+			expectedModel         string
+			expectedUpstreamModel string
+			expectedSource        string
+			expectedInventoryKind string
+			expectedCredential    string
+		}{
+			{
+				name:                  "profile model uses inventory",
+				requestedModel:        "profile:anyrouter",
+				expectedProvider:      "openai-compatible",
+				expectedProfile:       "anyrouter",
+				expectedModel:         "profile:anyrouter",
+				expectedUpstreamModel: "deepseek-chat",
+				expectedSource:        "requested_profile_model",
+				expectedInventoryKind: "provider_profile",
+				expectedCredential:    "configured",
+			},
+			{
+				name:                  "provider alias uses active profile",
+				requestedModel:        "provider:huggingface",
+				expectedProvider:      "huggingface",
+				expectedProfile:       "hf-chat",
+				expectedModel:         "provider:huggingface:profile:hf-chat",
+				expectedUpstreamModel: "meta-llama/Meta-Llama-3.1-8B-Instruct",
+				expectedSource:        "requested_provider_model+inventory",
+				expectedInventoryKind: "provider_profile",
+				expectedCredential:    "configured",
+			},
+			{
+				name:                  "unknown concrete model stays runtime override",
+				requestedModel:        "unlisted-model",
+				expectedProvider:      "mock",
+				expectedProfile:       "default",
+				expectedModel:         "unlisted-model",
+				expectedUpstreamModel: "unlisted-model",
+				expectedSource:        "requested_concrete_model",
+				expectedInventoryKind: "runtime_override",
+				expectedCredential:    "",
+			},
+			{
+				name:                  "unknown explicit profile does not fallback",
+				requestedModel:        "",
+				extension:             &chatCompletionExtension{Provider: "huggingface", ProviderProfile: "missing-profile"},
+				expectedProvider:      "huggingface",
+				expectedProfile:       "missing-profile",
+				expectedModel:         "provider:huggingface:profile:missing-profile",
+				expectedUpstreamModel: "",
+				expectedSource:        "radishmind.provider_profile",
+				expectedInventoryKind: "runtime_override",
+				expectedCredential:    "",
+			},
+		}
+
+		for _, tc := range policyCases {
+			t.Run(tc.name, func(t *testing.T) {
+				selection := server.resolveNorthboundSelection(context.Background(), tc.requestedModel, tc.extension)
+				if selection.provider != tc.expectedProvider {
+					t.Fatalf("unexpected provider: %s", selection.provider)
+				}
+				if selection.providerProfile != tc.expectedProfile {
+					t.Fatalf("unexpected provider profile: %s", selection.providerProfile)
+				}
+				if selection.model != tc.expectedModel {
+					t.Fatalf("unexpected model: %s", selection.model)
+				}
+				if selection.upstreamModel != tc.expectedUpstreamModel {
+					t.Fatalf("unexpected upstream model: %s", selection.upstreamModel)
+				}
+				if selection.source != tc.expectedSource {
+					t.Fatalf("unexpected selection source: %s", selection.source)
+				}
+				if selection.inventoryKind != tc.expectedInventoryKind {
+					t.Fatalf("unexpected inventory kind: %s", selection.inventoryKind)
+				}
+				if selection.credentialState != tc.expectedCredential {
+					t.Fatalf("unexpected credential state: %s", selection.credentialState)
+				}
+			})
+		}
+	})
+
 	t.Run("northbound request observability", func(t *testing.T) {
 		cases := []struct {
 			name     string
