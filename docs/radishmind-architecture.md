@@ -159,7 +159,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - 已有 tool registry、tool audit、metadata-only result cache、result materialization policy design、executor boundary design 和 deny-by-default gate contract，但没有真实工具执行器、materialized result reader、durable tool store、durable result store 或上层确认流接线
 - 尚未具备 production secret backend、process supervisor、正式部署环境隔离、真实镜像发布 workflow、container smoke 通过记录、测试环境 smoke、生产前复核记录、console runtime config 和可发布部署包；这些属于当前 `Production Ops Hardening v1` 的主线缺口，不再混在 P3 只读 console 小切片或真实模型产出专题中推进
 
-这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 的本地只读壳已达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 和 P4 前置证据已进入 close / 后置专题状态。下一步应在明确运行窗口后执行容器 smoke 或测试环境 smoke，并按运行记录模板沉淀证据；没有运行窗口时，只做离线 validator / audit 设计，不继续补 P3 console 同类小展示项、回头扩 P2 readiness、真实 executor、durable store、confirmation 接线或真实模型长跑。
+这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 的本地只读壳已达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 和 P4 前置证据已进入 close / 后置专题状态，`Provider Runtime & Health v1` 也已进入 close candidate。下一步应在明确运行窗口后执行容器 smoke 或测试环境 smoke，并按运行记录模板沉淀证据；没有运行窗口时，先做下一条平台主线选择，不继续补 P3 console 同类小展示项、provider 同层小切片、回头扩 P2 readiness、真实 executor、durable store、confirmation 接线或真实模型长跑。
 
 ## 当前进度
 

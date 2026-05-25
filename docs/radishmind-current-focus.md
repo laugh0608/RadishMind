@@ -33,6 +33,13 @@ P3 checklist 继续由 `p3-local-product-shell-short-close-checklist.json` 与 `
 4. `P3 Local Product Shell / Ops Surface`、`Conversation & Session`、`Tooling Framework` 与 `UI Design Topic / React 第二批` 均保持 close / governance-only 状态，不再默认新增同类只读 UI、P2 readiness / rollup / manifest 或 UI polish。P2 停止线证据继续保留为 `session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json`；`P2 short close` 边界不变，相关 `negative_regression_suite` 边界不变，这些 fixture 不代表 executor、durable store、confirmation、materialized result reader、长期记忆或 replay 已完成。
 5. `Evaluation & Governance`：后续门禁从“每个小 UI 展示项新增 fixture”放宽为“聚合门禁优先”。只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项门禁；普通 UI 展示改动优先复用 console behavior / visual smoke / fast baseline。
 
+## 明天事项（2026-05-26）
+
+1. 先按协作约定检查 `git status`，读取本文档、[能力矩阵](radishmind-capability-matrix.md)、[路线图](radishmind-roadmap.md) 和本周周志，确认今天四个 provider runtime 提交仍是最新事实源。
+2. 不继续默认新增 provider 同层小切片。若明天有明确 Docker 运行窗口，优先按 `Production Ops Hardening v1` 的 container smoke runbook 执行一次本地容器 smoke，并把运行证据写入 `tmp/production-ops/container-smoke/`；若没有运行窗口，则只做下一条平台主线选择，不补新的静态 governance fixture。
+3. 可选独立重开方向只保留四类：optional live health 手动 runbook、真实 retry/fallback policy 设计、production secret backend 方案、container smoke / test smoke 运行记录。任何一类都必须先写清楚输入、输出、停止线和验证方式。
+4. 继续保持 P2 / P3 / UI / P4 的停止线：不接真实 executor、confirmation、writeback、replay，不重开真实模型长跑，不把 provider health、local-smoke 或 Docker 静态边界写成 production ready。
+
 ## 为什么是这些任务
 
 - P3 本地只读产品壳已经能被开发者实际读取、排障和复验，继续补同类小面板会降低边际收益。
@@ -41,7 +48,7 @@ P3 checklist 继续由 `p3-local-product-shell-short-close-checklist.json` 与 `
 - `provider registry`、northbound bridge、本地 wrapper、config layering、diagnostics、deployment smoke、request observability 和 error taxonomy 已经给出 P1 short close 基础；继续在同一层增加更多别名、兜底和配置分支会开始降低边际收益。
 - 平台表层语言边界已固定为：`UI` 用 `React + Vite + TypeScript`，平台服务层用 `Go`，模型侧继续保留 `Python`，所有层只共享 `contracts/` 里的 canonical protocol。
 - 平台服务层当前已经有最小 `Go HTTP` 壳、`/healthz`、`/v1/platform/overview`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` bridge，并能解释一次请求命中了哪个 route、provider/profile、model、耗时和失败边界；overview console consumer smoke 与最小本地 console 壳已能消费只读产品面；后续不再回头把模型逻辑写回 `Go`。
-- 真实模型产出已经暴露出当前本机 CPU 路径的成本边界，Production Ops 静态边界也已足够可检查；继续推进 provider runtime / health 更能贴合长期的 Model Access Layer 与多 provider 可替换路线。
+- 真实模型产出已经暴露出当前本机 CPU 路径的成本边界，Production Ops 静态边界也已足够可检查；Provider Runtime & Health v1 也已进入 close candidate，后续应转向明确运行窗口或下一条平台主线，而不是继续扩同层小切片。
 
 ## 当前已有可直接利用的基础
 
@@ -68,7 +75,7 @@ P3 checklist 继续由 `p3-local-product-shell-short-close-checklist.json` 与 `
 - 不默认下载大于当前决策所需范围的模型、数据集或权重。
 - 不把真实模型输出、训练 JSONL 或大体积实验产物提交入仓。
 - 不直接修改 `RadishFlow`、`Radish` 或 `RadishCatalyst` 外部工作区。
-- 不再默认新增 Production Ops 同类静态治理切片；除非有明确 Docker 运行窗口，否则直接进入 Provider Runtime & Health v1。
+- 不再默认新增 Production Ops 同类静态治理切片；除非有明确 Docker 运行窗口，否则不要把 provider runtime 同层小切片当作默认下一步。
 
 ## 最小读取路径
 

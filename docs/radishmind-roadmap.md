@@ -61,7 +61,7 @@
 
 状态：raw、repair、injection、guided、task-scoped builder、offline eval 和 training sample conversion 已有资产，但当前还不具备“直接扩大训练规模”的时机。
 
-下一步：真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题；保留现有 P4 v1 runbook、治理复核和预检结果作为未来重开依据。当前主线优先推进 `Provider Runtime & Health v1`。
+下一步：真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题；保留现有 P4 v1 runbook、治理复核和预检结果作为未来重开依据。当前不因 Provider Runtime & Health v1 close candidate 而重开模型长跑。
 
 ## 辅助支线
 
