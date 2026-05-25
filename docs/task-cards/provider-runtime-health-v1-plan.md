@@ -30,6 +30,7 @@
 - `provider-capability-matrix-v1` 已用 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py` 固定为第一版可检查证据；它逐项比对 `services/runtime/provider_registry.py`，不联网、不要求 credential、不下载模型，也不声明 provider health 或 production ready。
 - `provider-health-smoke-v1` 已用 `scripts/checks/fixtures/provider-health-smoke-v1.json` 与 `scripts/check-provider-health-smoke.py` 固定为第二版可检查证据；默认 fast baseline 只跑 mock runtime smoke 与 config-level inventory smoke，optional live health 仍是未来手动切片。
 - `provider-selection-policy-v1` 已用 `scripts/checks/fixtures/provider-selection-policy-v1.json`、`scripts/check-provider-selection-policy.py` 与 Go 单元测试固定为第三版可检查证据；它锁住 request-side profile / provider / concrete model selection、未知 model/profile 负向边界、credential missing、unsupported capability、timeout 和无隐式 fallback 口径。
+- `provider-runtime-docs-refresh` 已用 `scripts/checks/fixtures/provider-runtime-docs-refresh.json` 与 `scripts/check-provider-runtime-docs-refresh.py` 固定为文档收口证据；它确认入口文档已说明三项 provider gate 已完成、仍不声明 optional live health、真实 retry/fallback、production secret backend 或 production readiness。
 
 ## v1 范围
 
@@ -43,7 +44,7 @@
 3. `provider-selection-policy`
    - 固定 request-side profile/model selection、默认 profile、错误分类、fallback 禁止 / 允许条件。
    - 明确何时返回配置错误、credential 缺失、provider unavailable、timeout 或 unsupported capability。
-4. `runtime-provider-docs-refresh`
+4. `provider-runtime-docs-refresh`
    - 更新项目指南、架构、能力矩阵和脚本说明，让 provider runtime / health 不只存在于 fixture 或代码里。
 
 ## 非目标
@@ -68,7 +69,7 @@
    - 已固定 profile/model selection 的负向场景：未知 profile、未知 model、credential missing、unsupported streaming / schema / tool capability、timeout。
    - 不启用自动 fallback，除非策略明确允许。
 4. `provider-runtime-docs-refresh`
-   - 同步说明类文档和任务卡入口。
+   - 已同步说明类文档和任务卡入口，并接入 fast baseline。
 
 ## 验收口径
 
@@ -78,13 +79,14 @@
 - `provider-health-smoke-v1.json` 与 `check-provider-health-smoke.py` 已进入 `check-repo --fast`。
 - request-side selection 与 diagnostics / `/v1/models` 的 profile id 口径一致。
 - `provider-selection-policy-v1.json` 与 `check-provider-selection-policy.py` 已进入 `check-repo --fast`。
+- `provider-runtime-docs-refresh.json` 与 `check-provider-runtime-docs-refresh.py` 已进入 `check-repo --fast`。
 - 默认快速检查不联网、不要求真实 credential、不下载模型。
 - 保持 `Production Ops Hardening v1` 静态边界 close，不继续新增同类静态 governance 切片。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
 ## 下一步
 
-下一步进入 `provider-runtime-docs-refresh`，收口 Provider Runtime & Health v1 的阶段说明；若有明确 Docker 运行窗口，可以另行补一次本地 container smoke 运行记录。后续不继续补 production ops 同类静态边界，也不把 selection policy 写成 retry/fallback 已实现。
+Provider Runtime & Health v1 进入 close candidate。后续不继续默认新增 provider 同层小切片；若有明确 Docker 运行窗口，可以另行补一次本地 container smoke 运行记录。optional live health、真实 retry/fallback、production secret backend 或 live timeout probe 只作为独立任务重开，也不把 selection policy 写成 retry/fallback 已实现。
 
 ## 停止线
 

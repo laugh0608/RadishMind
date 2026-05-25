@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-05-24
+更新时间：2026-05-25
 
 ## 目录目标
 
@@ -22,6 +22,7 @@
   - 当前还提供 `check-provider-capability-matrix.py`，用于校验 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 固定的 `Provider Runtime & Health v1` 第一切片：provider capability matrix 必须逐项匹配 `services/runtime/provider_registry.py`，并固定 profile model id、northbound protocol / route、offline-only baseline、无默认联网、无 credential 要求、无模型下载和无隐式 fallback 口径；该检查不执行 provider health、不访问外部 provider、不声明 production ready
   - 当前还提供 `check-provider-health-smoke.py`，用于校验 `scripts/checks/fixtures/provider-health-smoke-v1.json` 固定的 `Provider Runtime & Health v1` 第二切片：默认 fast baseline 只覆盖 mock runtime smoke 与 config-level inventory smoke，optional live health 保留为未来手动入口；该检查不联网、不要求真实 credential、不下载模型、不把 live probe 失败写成 production outage
   - 当前还提供 `check-provider-selection-policy.py`，用于校验 `scripts/checks/fixtures/provider-selection-policy-v1.json` 固定的 `Provider Runtime & Health v1` 第三切片：request-side profile / provider / concrete model selection 与 Go 单元测试、`/v1/models/{id}` 负向边界、credential missing、unsupported capability、timeout 和 no implicit fallback 口径保持一致；该检查不访问 provider、不重试、不下载模型
+  - 当前还提供 `check-provider-runtime-docs-refresh.py`，用于校验 `scripts/checks/fixtures/provider-runtime-docs-refresh.json` 固定的 `Provider Runtime & Health v1` 文档收口切片：capability matrix、health smoke 与 selection policy 三个 gate 已进入 fast baseline，入口文档不再把它们写成下一步，且仍明确 optional live health、真实 retry/fallback、production secret backend、production readiness、tool executor、confirmation、writeback 和 replay 未完成
   - 当前还提供 `check-platform-config.py`，用于校验 platform config summary / config check 的脱敏输出、配置来源和 secret 不泄露边界
   - 当前还提供 `check-platform-deployment-smoke.py`，用于校验 JSON 配置文件层级、环境变量覆盖、wrapper unknown command failure boundary 和 secret 不泄露边界
   - 当前还提供 `check-platform-diagnostics.py`，用于校验 structured diagnostics、startup/config/bridge/provider registry failure boundary 和 discoverability selectable model ids

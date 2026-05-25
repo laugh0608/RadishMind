@@ -29,7 +29,7 @@
 
 状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary、provider/profile discoverability 对齐、request-level observability 与 error taxonomy 已补齐。`P1 Runtime Foundation` 已达到 short close；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，主要实现重心切到 `P2 Session & Tooling Foundation`。
 
-下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。默认主线切到 `Provider Runtime & Health v1`，把 provider capability、health smoke 与 selection policy 固定成可检查口径。
+下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。`Provider Runtime & Health v1` 已把 provider capability、health smoke、selection policy 与 docs refresh 固定成可检查口径，进入 close candidate；后续不再默认扩 provider runtime 同层切片。
 
 ### 2. `Conversation & Session`
 
@@ -139,9 +139,9 @@
 
 目标：把 provider registry、provider/profile inventory、request-side selection、diagnostics 和 error taxonomy 收口为可解释、可检查、可继续接真实 provider 的 runtime/health 层。
 
-状态：已新增 [Provider Runtime & Health v1 任务卡](task-cards/provider-runtime-health-v1-plan.md)。当前只做 provider capability matrix、provider health smoke、provider selection policy 和相关文档刷新；不实现真实 tool executor、confirmation / writeback / replay、训练、production secret backend 或 production ready。`provider-capability-matrix-v1` 已落地为 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py`；`provider-health-smoke-v1` 已落地为 `scripts/checks/fixtures/provider-health-smoke-v1.json` 与 `scripts/check-provider-health-smoke.py`；`provider-selection-policy-v1` 已落地为 `scripts/checks/fixtures/provider-selection-policy-v1.json`、`scripts/check-provider-selection-policy.py` 和 Go selection 单元测试。三者均已接入快速仓库检查。
+状态：已新增 [Provider Runtime & Health v1 任务卡](task-cards/provider-runtime-health-v1-plan.md)。当前只做 provider capability matrix、provider health smoke、provider selection policy 和相关文档刷新；不实现真实 tool executor、confirmation / writeback / replay、训练、production secret backend 或 production ready。`provider-capability-matrix-v1` 已落地为 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py`；`provider-health-smoke-v1` 已落地为 `scripts/checks/fixtures/provider-health-smoke-v1.json` 与 `scripts/check-provider-health-smoke.py`；`provider-selection-policy-v1` 已落地为 `scripts/checks/fixtures/provider-selection-policy-v1.json`、`scripts/check-provider-selection-policy.py` 和 Go selection 单元测试；`provider-runtime-docs-refresh` 已落地为 `scripts/checks/fixtures/provider-runtime-docs-refresh.json` 与 `scripts/check-provider-runtime-docs-refresh.py`。四者均已接入快速仓库检查，Provider Runtime & Health v1 进入 close candidate。
 
-下一步：做 `provider-runtime-docs-refresh`，收口 Provider Runtime & Health v1 的阶段说明；后续 retry/fallback、optional live health 或 production secret backend 作为独立任务，不混入当前切片。
+下一步：不再默认扩 provider runtime 同层切片；后续 retry/fallback、optional live health、container smoke 或 production secret backend 只作为明确独立任务重开。
 
 停止线：capability 不等于 health；health smoke 不等于 production readiness；默认检查不联网、不要求 credential、不下载模型；不隐式 fallback，不把单一 provider 写成唯一方向。
 
@@ -159,7 +159,7 @@
 
 ## 下一步
 
-1. 收口 `Provider Runtime & Health v1`：`provider-capability-matrix-v1`、`provider-health-smoke-v1` 与 `provider-selection-policy-v1` 已接入 fast baseline，下一步做文档刷新。
+1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
 2. 将 `Production Ops Hardening v1` 维持为 static boundary close；只有明确运行窗口后才补容器运行 smoke、测试环境 smoke 或生产前复核记录。
 3. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 4. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。

@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-05-24
+更新时间：2026-05-25
 
 ## 阅读原则
 
@@ -30,7 +30,8 @@
 - `P2 Session & Tooling Foundation` 已进入 close candidate / governance-only，并已补上最小可消费产品骨架：`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 能返回 session/tool metadata 和明确 blocked action response。当前仍不实现真实工具执行器、长期记忆、durable session/checkpoint/audit/result store、materialized result reader、业务写回或 replay executor，也不声明完整 `negative_regression_suite` 已完成。
 - `session-tooling-negative-regression-suite-readiness.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json`、`session-tooling-short-close-entry-checklist.json` 等 P2 fixture 继续作为 governance-only 停止线证据保留，固定 `P2 short close` 前的 `not_satisfied` 条件；它们不再是默认新增工作方向。
 - `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已达到 `local usable / read-only close`：`GET /v1/platform/overview` 作为首个只读产品 overview，汇总服务状态、model/profile inventory、session/tooling metadata、blocked action route 和停止线；`GET /v1/platform/local-smoke` 作为本地开发 readiness 摘要，汇总 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS 和停止线。当前已补 overview / local-smoke consumer smoke、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 与 P3 checklist，供本地控制台或上层 UI 只读消费；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍作为后续 hardening 缺口保留。
-- `Production Ops Hardening v1` 的静态边界已收口：production config / secret boundary、process supervisor / startup、deployment environment isolation、console production packaging、Docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 都已可检查。后续只有在明确 Docker 运行窗口时才补本地 container smoke 或测试环境 smoke 运行证据；无运行窗口时，默认主线切到 `Provider Runtime & Health v1`，优先补 provider capability matrix、health smoke 和 selection policy。`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
+- `Production Ops Hardening v1` 的静态边界已收口：production config / secret boundary、process supervisor / startup、deployment environment isolation、console production packaging、Docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 都已可检查。后续只有在明确 Docker 运行窗口时才补本地 container smoke 或测试环境 smoke 运行证据；无运行窗口时，不继续新增同类静态 governance 切片。
+- `Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1` 和 `provider-runtime-docs-refresh` 四个可检查切片，均已进入 fast baseline。当前结论是 provider capability、离线 health smoke、request-side selection 和文档收口已可复验；不把 provider health 写成 production readiness，也不把 optional live health、真实 retry/fallback 或 production secret backend 写成已完成。`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
 - 既有 `M3` service/API smoke matrix 与 `M4` broader review、`3B/4B` capacity review 继续保留为冻结证据和门禁；它们不再是当前唯一主线，也不再默认继续深挖同一批样本。
 - `RadishFlow` 仍是第一优先应用面，但当前只冻结 gateway、UI consumption 和 candidate handoff 门禁；上层尚未具备真实接入能力前，不继续细化假想接线。
 - `Radish` 当前保留 docs QA、文档检索增强和结构化问答资产；真实上层接入仍等待。
