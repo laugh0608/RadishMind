@@ -36,13 +36,17 @@ EXPECTED_REMAINING_BOUNDARIES = {
 }
 EXPECTED_REQUIRED_DOCUMENTS = {
     "docs/README.md",
+    "docs/contracts/service-api.md",
     "docs/radishmind-project-guide.md",
     "docs/radishmind-current-focus.md",
+    "docs/radishmind-integration-contracts.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
+    "docs/radishmind-strategy.md",
     "docs/task-cards/provider-runtime-health-v1-plan.md",
     "scripts/README.md",
+    "services/platform/README.md",
     "docs/devlogs/2026-W22.md",
 }
 EXPECTED_REQUIRED_CONSUMERS = {
@@ -79,6 +83,13 @@ REQUIRED_DOC_REFERENCES = {
         "真实 retry/fallback",
         "optional live health",
     ],
+    "docs/radishmind-integration-contracts.md": [
+        "Provider Runtime & Health v1",
+        "provider capability matrix",
+        "provider health smoke",
+        "provider selection policy",
+        "production readiness",
+    ],
     "docs/radishmind-roadmap.md": [
         "provider-runtime-docs-refresh",
         "Provider Runtime & Health v1",
@@ -91,6 +102,21 @@ REQUIRED_DOC_REFERENCES = {
         "外部 provider live health",
         "真实 retry/fallback",
     ],
+    "docs/radishmind-strategy.md": [
+        "Provider Health And Selection",
+        "provider-capability-matrix-v1",
+        "provider-health-smoke-v1",
+        "provider-selection-policy-v1",
+        "provider-runtime-docs-refresh",
+    ],
+    "docs/contracts/service-api.md": [
+        "Provider runtime / health 契约",
+        "provider-capability-matrix-v1",
+        "provider-health-smoke-v1",
+        "provider-selection-policy-v1",
+        "provider-runtime-docs-refresh",
+        "no implicit fallback",
+    ],
     "docs/task-cards/provider-runtime-health-v1-plan.md": [
         "provider-runtime-docs-refresh",
         "provider-runtime-docs-refresh.json",
@@ -100,6 +126,14 @@ REQUIRED_DOC_REFERENCES = {
     "scripts/README.md": [
         "check-provider-runtime-docs-refresh.py",
         "provider-runtime-docs-refresh.json",
+    ],
+    "services/platform/README.md": [
+        "Provider runtime / health boundary",
+        "provider-capability-matrix-v1",
+        "provider-health-smoke-v1",
+        "provider-selection-policy-v1",
+        "provider-runtime-docs-refresh",
+        "runtime_override",
     ],
     "docs/devlogs/2026-W22.md": [
         "provider-runtime-docs-refresh",

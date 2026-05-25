@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-05-20
+更新时间：2026-05-25
 
 ## 协议兼容边界
 
@@ -25,14 +25,45 @@
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
 - `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata` 与 `/v1/tools/actions`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
-- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；正式 secret backend、环境隔离和外部 provider health check 仍未落地
+- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；provider capability matrix、provider health smoke、provider selection policy 和 provider runtime docs refresh 已进入 fast baseline；正式 secret backend、环境隔离、外部 provider live health 和真实 retry/fallback 仍未落地
 
 当前第一版 `Go -> Python` bridge 的 northbound 切片仍然很窄：
 
 - 文本消息仍是主要切片，但 `/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` 已具备第一版 SSE 兼容与 bridge 增量转发 smoke
 - 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup；`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；provider/profile discoverability、request observability 和 error taxonomy 已进入平台门禁
+- `GET /v1/models` 已从 provider 目录推进到 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup；`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；provider/profile discoverability、request observability、error taxonomy、capability matrix、health smoke 和 selection policy 已进入平台门禁
 - 当前 northbound `model` 选择已经开始支持 configured default、provider id、legacy `profile:<name>` 与 provider-qualified `provider:<provider>:profile:<profile>`；同时 `radishmind.provider` / `radishmind.provider_profile` 扩展字段已具备显式覆盖能力
+
+## Provider runtime / health 契约
+
+Provider runtime / health 现在按四个可检查层次理解：
+
+1. `provider-capability-matrix-v1`
+   - 真相源：`services/runtime/provider_registry.py`
+   - 证据：`scripts/checks/fixtures/provider-capability-matrix-v1.json`
+   - 检查：`scripts/check-provider-capability-matrix.py`
+   - 含义：provider capability、profile model id、northbound protocol / route 和 offline-only baseline 可检查
+2. `provider-health-smoke-v1`
+   - 证据：`scripts/checks/fixtures/provider-health-smoke-v1.json`
+   - 检查：`scripts/check-provider-health-smoke.py`
+   - 含义：默认 fast baseline 只覆盖 mock runtime smoke 与 config-level inventory smoke，不访问外部 provider
+3. `provider-selection-policy-v1`
+   - 证据：`scripts/checks/fixtures/provider-selection-policy-v1.json`
+   - 检查：`scripts/check-provider-selection-policy.py`
+   - 含义：request-side profile / provider / concrete model selection、未知 model/profile 负向边界和 no implicit fallback 可检查
+4. `provider-runtime-docs-refresh`
+   - 证据：`scripts/checks/fixtures/provider-runtime-docs-refresh.json`
+   - 检查：`scripts/check-provider-runtime-docs-refresh.py`
+   - 含义：说明文档、入口文档和任务卡对 provider runtime v1 的已完成 / 未完成边界保持一致
+
+调用侧契约：
+
+- `/v1/models`、`/v1/models/{id}`、northbound request selection 和 `diagnostics.providers.selectable_model_ids` 必须复用同一套 profile id：`profile:<profile>` 或 `provider:<provider>:profile:<profile>`。
+- 请求选中 profile 后，`context.northbound` 必须记录脱敏 selection metadata，包括 `selected_provider`、`selected_provider_profile`、`selected_model`、`upstream_model`、`selection_source`、`selection_inventory_kind`、`credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 与 `northbound_protocols`。
+- 未知 `/v1/models/{id}` 返回 `MODEL_NOT_FOUND`。
+- 未知 concrete model 只可标记为 `runtime_override`，不得伪装成 inventory match。
+- 显式未知 provider profile 不得被 active profile 隐式替换。
+- 当前不声明隐式 provider fallback、真实 retry/fallback、optional live health 默认启用、production secret backend 或 production readiness。
 
 ## 当前服务/API 接入切片
 

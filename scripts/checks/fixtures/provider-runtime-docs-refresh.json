@@ -54,13 +54,17 @@
   "next_default_focus": "Do not add more same-layer provider runtime slices by default; only reopen live health, retry/fallback, container smoke, or production secrets as explicit independent tasks.",
   "required_documents": [
     "docs/README.md",
+    "docs/contracts/service-api.md",
     "docs/radishmind-project-guide.md",
     "docs/radishmind-current-focus.md",
+    "docs/radishmind-integration-contracts.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
+    "docs/radishmind-strategy.md",
     "docs/task-cards/provider-runtime-health-v1-plan.md",
     "scripts/README.md",
+    "services/platform/README.md",
     "docs/devlogs/2026-W22.md"
   ],
   "required_consumers": [

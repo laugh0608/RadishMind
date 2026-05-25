@@ -1,6 +1,6 @@
 # RadishMind 战略定义
 
-更新时间：2026-05-10
+更新时间：2026-05-25
 
 ## 这份文档回答什么
 
@@ -142,7 +142,7 @@
 
 ## Provider Capability Matrix
 
-`RadishMind` 后续需要一份独立的 provider capability matrix 文档或 fixture。最小维度应固定为：
+`RadishMind` 需要一份独立的 provider capability matrix 文档或 fixture。当前第一版已经落成 `scripts/checks/fixtures/provider-capability-matrix-v1.json`，并由 `scripts/check-provider-capability-matrix.py` 从 `services/runtime/provider_registry.py` 校验。最小维度固定为：
 
 - `provider_id`
 - `transport`
@@ -163,7 +163,18 @@
 - `latency_profile`
 - `deployment_mode`
 
-如果没有这张矩阵，后面的 routing、fallback、deployment 和训练路线都会继续凭印象推进。
+这张矩阵只证明 provider 能力声明和发现口径可检查，不证明 provider health、optional live health 或 production readiness。后续 routing、fallback、deployment 和训练路线必须继续复用这条 provider truth，不能各自凭印象推进。
+
+## Provider Health And Selection
+
+Provider capability、health 和 selection 必须分层理解：
+
+- `provider-capability-matrix-v1`：说明 provider 声明了什么能力。
+- `provider-health-smoke-v1`：说明 mock runtime 与 config-level inventory 在离线 fast baseline 下可检查。
+- `provider-selection-policy-v1`：说明请求侧如何选择 profile / provider / concrete model，以及未知 model/profile、credential missing、unsupported capability、timeout 和 no implicit fallback 如何分类。
+- `provider-runtime-docs-refresh`：说明入口文档、说明书和任务卡必须共同维护这些边界。
+
+当前不把 optional live health、真实 retry/fallback、production secret backend 或 production readiness 纳入默认完成声明。它们只能作为独立任务，在输入、输出、停止线和验证窗口明确后重开。
 
 ## Service Mode Tiers
 
@@ -260,13 +271,15 @@
 
 ## 当前最该做什么
 
-基于上面的定义，当前最高优先级不是继续扩旧实验，也不是继续补假想接线，而是把平台骨架补到可执行：
+基于上面的定义，当前最高优先级不是继续扩旧实验，也不是继续补假想接线，而是把平台骨架补到可执行。到 2026-05-25，以下骨架已经阶段性落地：
 
-1. 建立正式 `provider registry`
-2. 建立正式 `protocol compatibility layer`
-3. 先落地 northbound `/v1/chat/completions` 与 `/v1/models`
-4. 先落地 southbound `HuggingFace` 与 `Ollama`
-5. 把 capability matrix、compatibility smoke 和 governance gate 一起补齐
+1. 正式 `provider registry`
+2. `protocol compatibility layer` 的第一版 northbound bridge
+3. northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models`
+4. southbound `HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native 和 Anthropic messages 分流
+5. capability matrix、health smoke、selection policy、compatibility smoke 和 governance gate
+
+下一步不应继续在同层无限补 provider 小切片，而应在明确运行窗口下补 container smoke、optional live health、真实 retry/fallback 或 production secret backend，或转入下一条平台主线。
 
 ## 判断标准
 
