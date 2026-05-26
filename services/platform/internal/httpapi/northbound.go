@@ -14,6 +14,8 @@ const (
 	northboundProtocolChatCompletions = "openai-chat-completions"
 	northboundProtocolResponses       = "openai-responses"
 	northboundProtocolMessages        = "anthropic-messages"
+	retryPolicyCallerManaged          = "caller-managed"
+	fallbackPolicyDisabled            = "disabled"
 )
 
 type northboundSelection struct {
@@ -540,6 +542,8 @@ func buildNorthboundSelectionMetadata(selection northboundSelection) map[string]
 		"upstream_model":            strings.TrimSpace(selection.upstreamModel),
 		"selection_source":          strings.TrimSpace(selection.source),
 		"selection_inventory_kind":  strings.TrimSpace(selection.inventoryKind),
+		"retry_policy":              retryPolicyCallerManaged,
+		"fallback_policy":           fallbackPolicyDisabled,
 		"streaming":                 selection.streaming,
 	}
 	if selection.credentialState != "" {

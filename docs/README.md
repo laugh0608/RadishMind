@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-05-25
+更新时间：2026-05-26
 
 ## 阅读原则
 
@@ -31,7 +31,7 @@
 - `session-tooling-negative-regression-suite-readiness.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json`、`session-tooling-short-close-entry-checklist.json` 等 P2 fixture 继续作为 governance-only 停止线证据保留，固定 `P2 short close` 前的 `not_satisfied` 条件；它们不再是默认新增工作方向。
 - `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已达到 `local usable / read-only close`：`GET /v1/platform/overview` 作为首个只读产品 overview，汇总服务状态、model/profile inventory、session/tooling metadata、blocked action route 和停止线；`GET /v1/platform/local-smoke` 作为本地开发 readiness 摘要，汇总 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS 和停止线。当前已补 overview / local-smoke consumer smoke、`apps/radishmind-console/` 本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 与 P3 checklist，供本地控制台或上层 UI 只读消费；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍作为后续 hardening 缺口保留。
 - `Production Ops Hardening v1` 的静态边界已收口：production config / secret boundary、process supervisor / startup、deployment environment isolation、console production packaging、Docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 都已可检查。2026-05-26 已完成一次本地 `docker_local` container smoke 运行记录；后续只有在明确测试或生产前复核窗口时才补测试环境 smoke 或 production preflight 证据。
-- `Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1` 和 `provider-runtime-docs-refresh` 四个可检查切片，均已进入 fast baseline。当前结论是 provider capability、离线 health smoke、request-side selection 和文档收口已可复验；不把 provider health 写成 production readiness，也不把 optional live health、真实 retry/fallback 或 production secret backend 写成已完成。`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
+- `Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片，均已进入 fast baseline。当前结论是 provider capability、离线 health smoke、request-side selection、retry/fallback 审计策略和文档收口已可复验；不把 provider health 写成 production readiness，也不把 optional live health、retry/fallback execution 或 production secret backend 写成已完成。`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
 - 既有 `M3` service/API smoke matrix 与 `M4` broader review、`3B/4B` capacity review 继续保留为冻结证据和门禁；它们不再是当前唯一主线，也不再默认继续深挖同一批样本。
 - `RadishFlow` 仍是第一优先应用面，但当前只冻结 gateway、UI consumption 和 candidate handoff 门禁；上层尚未具备真实接入能力前，不继续细化假想接线。
 - `Radish` 当前保留 docs QA、文档检索增强和结构化问答资产；真实上层接入仍等待。

@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-25
+更新时间：2026-05-26
 
 ## 这份文档讲什么
 
@@ -46,7 +46,7 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1` 和 `provider-runtime-docs-refresh` 四个可检查切片，provider registry、profile inventory、request selection、diagnostics 和 error taxonomy 已收口为 capability / health / selection / docs 口径。当前进入 close candidate，不继续默认新增 provider 同层小切片；只有在明确任务窗口下，才单独推进 optional live health、真实 retry/fallback、production secret backend 或容器 smoke。`Production Ops Hardening v1` 的静态边界已经收口；只有在明确 Docker 运行窗口后，才补本地容器 smoke 或测试环境 smoke，并把运行证据写入 `tmp/production-ops/container-smoke/`。`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出转入后置专题。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+如果你今天想推进开发，`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片，provider registry、profile inventory、request selection、diagnostics、error taxonomy 和 retry/fallback 审计策略已收口为 capability / health / selection / policy / docs 口径。当前进入 close candidate，不继续默认新增 provider 同层小切片；只有在明确任务窗口下，才单独推进 optional live health、retry/fallback execution、production secret backend 或容器 smoke。`Production Ops Hardening v1` 的静态边界已经收口；只有在明确 Docker 运行窗口后，才补本地容器 smoke 或测试环境 smoke，并把运行证据写入 `tmp/production-ops/container-smoke/`。`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出转入后置专题。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
 
 ## 目录速览
 
@@ -214,7 +214,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 - 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
 - 北向已有第一版兼容面和只读产品面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/tools/metadata`、blocked `/v1/tools/actions`、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability 已对齐
 - `P1 Runtime Foundation` 已达到 short close，当前不应继续把 provider/config/diagnostics/observability 同层细节当作主线
-- 当前仍是窄切片：已经具备 Docker local/test/prod 的静态部署边界、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook、运行记录模板、一次 `docker_local` container smoke 运行记录、provider capability matrix、provider health smoke、provider selection policy 和 `provider-runtime-docs-refresh` 文档收口，但还缺真实镜像发布 workflow、production secret backend、部署隔离、外部 provider live health check、真实 retry/fallback policy、console runtime config、测试环境 smoke、生产前复核记录，以及 session/tooling 的真实确认流接线、存储、执行和完整负向回归；P3 checklist 已把本地只读产品壳标为可用，并把这些生产前置条件继续保持为 `not_satisfied`，P2 现有 route / gate / negative regression 资产仍是 governance-only
+- 当前仍是窄切片：已经具备 Docker local/test/prod 的静态部署边界、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook、运行记录模板、一次 `docker_local` container smoke 运行记录、provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 `provider-runtime-docs-refresh` 文档收口，但还缺真实镜像发布 workflow、production secret backend、部署隔离、外部 provider live health check、retry/fallback execution、console runtime config、测试环境 smoke、生产前复核记录，以及 session/tooling 的真实确认流接线、存储、执行和完整负向回归；P3 checklist 已把本地只读产品壳标为可用，并把这些生产前置条件继续保持为 `not_satisfied`，P2 现有 route / gate / negative regression 资产仍是 governance-only
 
 ## 今天还不能算完成的能力
 

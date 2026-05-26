@@ -50,11 +50,12 @@
 
 ## Provider runtime / health boundary
 
-`Provider Runtime & Health v1` 当前已经固定四个可复验边界：
+`Provider Runtime & Health v1` 当前已经固定五个可复验边界：
 
 - `provider-capability-matrix-v1`：`scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py` 从 `services/runtime/provider_registry.py` 校验 provider capability matrix。它只说明 provider 声明、profile model id、northbound route / protocol 和 capability metadata 可检查，不说明 provider health 或 production readiness。
 - `provider-health-smoke-v1`：`scripts/checks/fixtures/provider-health-smoke-v1.json` 与 `scripts/check-provider-health-smoke.py` 默认只跑 mock runtime smoke 和 config-level inventory smoke。它不联网、不要求真实 credential、不下载模型；optional live health 仍是手动未来切片，失败只能作为 provider health signal，不能写成 production outage。
 - `provider-selection-policy-v1`：`scripts/checks/fixtures/provider-selection-policy-v1.json` 与 `scripts/check-provider-selection-policy.py` 固定 request-side profile / provider / concrete model selection、`/v1/models/{id}` 负向边界、credential missing、unsupported capability、timeout 分类和 no implicit fallback 口径。
+- `provider-retry-fallback-policy-v1`：`scripts/checks/fixtures/provider-retry-fallback-policy-v1.json` 与 `scripts/check-provider-retry-fallback-policy.py` 固定 retry/fallback audit metadata。当前 `retry_policy=caller-managed`、`fallback_policy=disabled`，平台失败路径不自动重试、不隐式切换 provider。
 - `provider-runtime-docs-refresh`：`scripts/checks/fixtures/provider-runtime-docs-refresh.json` 与 `scripts/check-provider-runtime-docs-refresh.py` 固定说明文档、任务卡和入口文档的阶段口径，避免把 capability、health smoke 或 selection policy 误写成 live health、retry/fallback 或 production ready。
 
 调用方应把 `/v1/models` 中的 `credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 和 `northbound_protocols` 视为只读发现信息。请求选中某个 profile 后，平台会在 canonical request 的 `context.northbound` 中带出同源 selection metadata，便于审计和排障。
@@ -64,7 +65,7 @@
 - 未知 `/v1/models/{id}` 返回 `MODEL_NOT_FOUND`。
 - 未知 concrete model 可以作为 `runtime_override` 进入 canonical request，但不会被解释为 inventory match。
 - 显式未知 `radishmind.provider_profile` 不会被 active profile 隐式替换。
-- 当前不做隐式 provider fallback，也不声明真实 retry/fallback policy 已实现。
+- 当前不做隐式 provider fallback，也不声明 retry/fallback execution 已实现。
 
 这一层仍不是 production provider health system。正式 secret backend、外部 provider live health、live timeout probe、真实 retry/fallback、测试 / 生产环境 smoke 和 production readiness 仍需要独立任务、运行窗口和证据记录。
 

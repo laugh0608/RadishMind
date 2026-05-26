@@ -1070,6 +1070,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-provider-capability-matrix.py", [])
     run_python_script("check-provider-health-smoke.py", [])
     run_python_script("check-provider-selection-policy.py", [])
+    run_python_script("check-provider-retry-fallback-policy.py", [])
     run_python_script("check-provider-runtime-docs-refresh.py", [])
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])

@@ -1,6 +1,6 @@
 # RadishMind 战略定义
 
-更新时间：2026-05-25
+更新时间：2026-05-26
 
 ## 这份文档回答什么
 
@@ -172,9 +172,10 @@ Provider capability、health 和 selection 必须分层理解：
 - `provider-capability-matrix-v1`：说明 provider 声明了什么能力。
 - `provider-health-smoke-v1`：说明 mock runtime 与 config-level inventory 在离线 fast baseline 下可检查。
 - `provider-selection-policy-v1`：说明请求侧如何选择 profile / provider / concrete model，以及未知 model/profile、credential missing、unsupported capability、timeout 和 no implicit fallback 如何分类。
+- `provider-retry-fallback-policy-v1`：说明当前调用策略审计 metadata 固定为 `retry_policy=caller-managed` 与 `fallback_policy=disabled`，失败路径不自动重试、不隐式 fallback。
 - `provider-runtime-docs-refresh`：说明入口文档、说明书和任务卡必须共同维护这些边界。
 
-当前不把 optional live health、真实 retry/fallback、production secret backend 或 production readiness 纳入默认完成声明。它们只能作为独立任务，在输入、输出、停止线和验证窗口明确后重开。
+当前不把 optional live health、retry/fallback execution、production secret backend 或 production readiness 纳入默认完成声明。它们只能作为独立任务，在输入、输出、停止线和验证窗口明确后重开。
 
 ## Service Mode Tiers
 
@@ -277,9 +278,9 @@ Provider capability、health 和 selection 必须分层理解：
 2. `protocol compatibility layer` 的第一版 northbound bridge
 3. northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models`
 4. southbound `HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native 和 Anthropic messages 分流
-5. capability matrix、health smoke、selection policy、compatibility smoke 和 governance gate
+5. capability matrix、health smoke、selection policy、provider-retry-fallback-policy-v1、compatibility smoke 和 governance gate
 
-下一步不应继续在同层无限补 provider 小切片，而应在明确运行窗口下补 container smoke、optional live health、真实 retry/fallback 或 production secret backend，或转入下一条平台主线。
+下一步不应继续在同层无限补 provider 小切片，而应在明确运行窗口下补 container smoke、optional live health、retry/fallback execution 或 production secret backend，或转入下一条平台主线。
 
 ## 判断标准
 

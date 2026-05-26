@@ -21,6 +21,7 @@ type fakeBridge struct {
 	envelope     bridge.GatewayEnvelope
 	lastRequest  []byte
 	lastOptions  bridge.EnvelopeOptions
+	handleCalls  int
 	streamCalled bool
 	streamErr    error
 }
@@ -48,6 +49,7 @@ func (f *fakeBridge) DescribeInventory(context.Context) (bridge.ProviderInventor
 func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
+	f.handleCalls++
 	return f.envelope, nil
 }
 
@@ -596,7 +598,73 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 				if selection.credentialState != tc.expectedCredential {
 					t.Fatalf("unexpected credential state: %s", selection.credentialState)
 				}
+				metadata := buildNorthboundSelectionMetadata(selection)
+				if metadata["retry_policy"] != "caller-managed" {
+					t.Fatalf("unexpected retry policy audit metadata: %#v", metadata["retry_policy"])
+				}
+				if metadata["fallback_policy"] != "disabled" {
+					t.Fatalf("unexpected fallback policy audit metadata: %#v", metadata["fallback_policy"])
+				}
 			})
+		}
+	})
+
+	t.Run("retry/fallback policy audit metadata", func(t *testing.T) {
+		fb.handleCalls = 0
+		fb.envelope = bridge.GatewayEnvelope{
+			SchemaVersion: 1,
+			Status:        "failed",
+			RequestID:     "req-provider-timeout",
+			Error: &bridge.GatewayError{
+				Code:    "PLATFORM_BRIDGE_FAILED",
+				Message: "provider timeout from test",
+			},
+			Metadata: map[string]any{},
+		}
+		defer func() {
+			fb.envelope = bridge.GatewayEnvelope{
+				SchemaVersion: 1,
+				Status:        "ok",
+				RequestID:     "req-123",
+				Project:       "radish",
+				Task:          "answer_docs_question",
+				Response: map[string]any{
+					"summary": "bridge summary",
+				},
+				Metadata: map[string]any{},
+			}
+		}()
+
+		body := `{"model":"profile:anyrouter","messages":[{"role":"user","content":"hello"}]}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if fb.handleCalls != 1 {
+			t.Fatalf("expected no automatic retry, got handle calls: %d", fb.handleCalls)
+		}
+		if rec.Code != http.StatusBadGateway {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response errorDocument
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode error response: %v", err)
+		}
+		if response.Error.Code != "PLATFORM_BRIDGE_FAILED" {
+			t.Fatalf("unexpected error code: %#v", response.Error.Code)
+		}
+		if response.Error.Metadata["retry_policy"] != "caller-managed" {
+			t.Fatalf("unexpected retry policy metadata: %#v", response.Error.Metadata["retry_policy"])
+		}
+		if response.Error.Metadata["fallback_policy"] != "disabled" {
+			t.Fatalf("unexpected fallback policy metadata: %#v", response.Error.Metadata["fallback_policy"])
+		}
+		if response.Error.Metadata["selected_provider"] != "openai-compatible" {
+			t.Fatalf("unexpected selected provider metadata: %#v", response.Error.Metadata["selected_provider"])
+		}
+		if response.Error.Metadata["selected_provider_profile"] != "anyrouter" {
+			t.Fatalf("unexpected selected profile metadata: %#v", response.Error.Metadata["selected_provider_profile"])
 		}
 	})
 

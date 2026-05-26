@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "kind": "provider_retry_fallback_policy_v1",
+  "decision": {
+    "id": "provider-retry-fallback-policy-v1",
+    "track": "Provider Runtime & Health v1",
+    "status": "satisfied",
+    "source_of_truth": [
+      "services/runtime/provider_registry.py",
+      "services/platform/internal/httpapi/northbound.go",
+      "services/platform/internal/httpapi/observability.go",
+      "scripts/checks/fixtures/provider-selection-policy-v1.json",
+      "scripts/checks/fixtures/provider-health-smoke-v1.json"
+    ],
+    "does_not_claim": [
+      "automatic_retry_ready",
+      "implicit_provider_fallback_ready",
+      "external_provider_live_health_ready",
+      "live_timeout_probe_ready",
+      "production_readiness",
+      "production_secret_backend_ready",
+      "tool_executor_ready",
+      "confirmation_writeback_replay_ready"
+    ]
+  },
+  "audit_metadata": {
+    "retry_policy": "caller-managed",
+    "fallback_policy": "disabled",
+    "attached_to": [
+      "canonical_request.context.northbound",
+      "error.metadata"
+    ],
+    "required_selection_fields": [
+      "selected_provider",
+      "selected_provider_profile",
+      "selected_model",
+      "upstream_model",
+      "selection_source",
+      "selection_inventory_kind"
+    ]
+  },
+  "retry_policy": {
+    "automatic_retry": "disabled",
+    "max_attempts_by_platform": 1,
+    "caller_managed_retry": true,
+    "retry_after_confirmation_without_revalidation": "forbidden",
+    "background_retry": "forbidden",
+    "default_fast_baseline": "offline_policy_and_go_unit_tests",
+    "retry_signal_only_classifications": [
+      {
+        "classification": "live_provider_timeout",
+        "source": "provider-health-smoke-v1.failure_taxonomy",
+        "platform_action": "surface_error_without_retry"
+      },
+      {
+        "classification": "live_provider_unavailable",
+        "source": "provider-health-smoke-v1.failure_taxonomy",
+        "platform_action": "surface_error_without_retry"
+      },
+      {
+        "classification": "PLATFORM_BRIDGE_FAILED",
+        "source": "services/platform/internal/httpapi/observability.go",
+        "platform_action": "surface_error_without_retry"
+      },
+      {
+        "classification": "PROVIDER_INVENTORY_UNAVAILABLE",
+        "source": "services/platform/internal/httpapi/observability.go",
+        "platform_action": "surface_error_without_retry"
+      }
+    ],
+    "non_retryable_classifications": [
+      "INVALID_JSON",
+      "MISSING_MESSAGES",
+      "INVALID_CHAT_MESSAGES",
+      "INVALID_RESPONSES_REQUEST",
+      "INVALID_MESSAGES_REQUEST",
+      "REQUEST_SCHEMA_INVALID",
+      "MODEL_NOT_FOUND",
+      "CONFIG_REQUIRED_FIELDS_MISSING",
+      "UNSUPPORTED_PROVIDER",
+      "UNSUPPORTED_TASK",
+      "config_blocked_credential_missing",
+      "unsupported_capability"
+    ]
+  },
+  "fallback_policy": {
+    "implicit_fallback": "forbidden",
+    "profile_chain_use": "discovery_only_not_execution_chain",
+    "fallback_allowed_only_when": [
+      "future policy revision defines an ordered fallback chain",
+      "source provider failure classification is eligible",
+      "target provider/profile capability is compatible",
+      "credential state is configured or explicitly optional",
+      "audit record binds original and fallback selections",
+      "caller or policy explicitly allows fallback for the route"
+    ],
+    "current_allowed_fallback_cases": [],
+    "forbidden_cases": [
+      "unknown model or profile",
+      "credential missing",
+      "unsupported capability",
+      "schema or validation failure",
+      "tool executor or confirmation failure",
+      "business writeback or replay path"
+    ]
+  },
+  "execution_policy": {
+    "network_access": "forbidden_by_default",
+    "credential_required": false,
+    "model_download": "forbidden",
+    "default_check_executes_retry": false,
+    "default_check_executes_fallback": false
+  },
+  "required_consumers": [
+    "services/platform/internal/httpapi/server_test.go",
+    "scripts/check-provider-retry-fallback-policy.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "services/platform/README.md",
+    "docs/contracts/service-api.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-architecture.md",
+    "docs/task-cards/provider-runtime-health-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}
