@@ -96,6 +96,12 @@
 
 当前明确不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。`RADISHMIND_PLATFORM_API_KEY` 仍只允许作为 developer env override；`RADISHMIND_SECRET_SOURCE` 只能表示部署态外部 secret 来源要求，不是 secret backend 本身。真实 production secret backend、secret rotation policy、production secret audit store、provider health policy、environment isolation 和 process supervisor 仍为 `not_satisfied`。
 
+## Production secret backend implementation readiness
+
+`production-secret-backend-implementation-readiness` 已由 `docs/task-cards/production-secret-backend-implementation-v1-plan.md`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json` 与 `scripts/check-production-ops-secret-backend-implementation-readiness.py` 固定为下一步实现前置条件清单。它要求先定义 secret ref schema、config 注入点、provider profile binding、脱敏审计字段、failure taxonomy、fake resolver 测试策略、operator runbook 和 rotation / audit policy。
+
+该 readiness 不实现 resolver、不接云、不读取或写入真实 secret、不要求真实 credential，也不改变当前运行时默认状态。后续只有在单独实现切片中完成 schema、disabled resolver、负向门禁和运行手册后，才能继续讨论真实 production secret backend。
+
 ## Startup / supervisor boundary
 
 `startup-supervisor-boundary` 已由 `scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定为 governance boundary。当前支持的启动入口只有两类：`scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 的人工 platform wrapper，以及 `scripts/run-radishmind-console-dev.ps1` / `scripts/run-radishmind-console-dev.sh` 的本地 console dev launcher。
