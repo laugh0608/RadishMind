@@ -67,7 +67,7 @@
 - `RadishCatalyst` 仅保留文档级预留，不在未明确任务前扩真实 schema、adapter、gateway smoke 或模型接线。
 - `RadishMind-Core` 是基座适配型自研主模型，不是从零预训练基础大模型。
 - 图片生成能力默认由独立 `RadishMind-Image Adapter` 与生图 backend 承接，主模型只负责理解、规划、约束、审查和结构化意图输出。
-- 产品定位：`Radish` 体系下的 AI / Copilot / 模型服务独立仓库
+- 产品定位：`Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台
 - 工作区：只在本仓库工作区内工作
 - 外部参考默认使用在线仓库：`https://github.com/laugh0608/RadishFlow`、`https://github.com/laugh0608/Radish`、`https://github.com/laugh0608/RadishCatalyst`
 - 如需读取本地外部项目资料，应要求开发者在当次任务临时提供具体路径；该路径只作为临时输入，不写入正式文档
@@ -155,7 +155,7 @@
 
 - `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致；日常协作默认走它们的快速参数或对应 fast wrapper
 - `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
-- 仓库按职责分层：模型训练、评测与脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` 可按职责采用 `Go`；评测、回归与仓库级校验仍统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
+- 仓库按职责分层：模型训练、评测与脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` / `control plane` 默认采用 `Go`；不因参考 `Radish` 而默认引入 `.NET` / ASP.NET Core；评测、回归与仓库级校验仍统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
 - 执行验证链路时，应提供可用的 Python 启动器与 `jsonschema`
 - 基线重点是文本文件卫生、治理文件齐备性和 GitHub 规则/工作流口径一致性
 - 如果某一步改动只涉及文档，仍应至少确认工作区未引入额外脏改动，并执行快速验证入口；只有文档改动触及治理口径、阶段边界或真相源时，再补跑全量入口

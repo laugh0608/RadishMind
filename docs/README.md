@@ -21,11 +21,12 @@
 
 ## 当前状态
 
-- `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为“协议驱动、可审计、可本地部署、可工具化的 Copilot / Agent runtime platform”。
-- 当前仓库主线不再只是等待其他项目真实接入；接下来可以独立推进五条平台主线：`Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
-- 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Middleware / AI Runtime`，核心价值是把多模型、多协议、多任务收口成可控产品能力。
+- `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
+- 当前仓库主线不再只是等待其他项目真实接入；接下来按四个产品面和五条工程主线推进。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
+- 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。
+- 部署方式、数据库和登录 / 授权默认参考 `Radish`（https://github.com/laugh0608/Radish）；未来 RadishMind 应作为 OIDC client 接入 `Radish`，不自建第二套身份与权限真相源，也不因参考 Radish 默认引入 `.NET` / ASP.NET Core。
 - 平台后续必须同时具备两类兼容能力：南向接入自研模型与外部模型，北向对外提供常见 AI 协议接口；当前仓库已落地最小 `provider registry` 骨架，并由同一 southbound 入口收口 `openai-compatible / HuggingFace / Ollama / gemini-native / anthropic-messages` 调用基础，同时已落地 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的第一版 bridge-backed 兼容面，其中 `/v1/models` 已暴露 provider-qualified profile inventory 和 `/v1/models/{id}` lookup，并与请求选择、diagnostics 共享 selectable profile metadata。
-- 平台表层实现分工已固定为：`UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`，并且所有层都只消费 `contracts/` 里的 canonical protocol。
+- 平台表层实现分工已固定为：`UI=React + Vite + TypeScript`、`Platform / Control Plane / Gateway=Go`、`Model / Eval Side=Python`，并且所有层都只消费 `contracts/` 里的 canonical protocol。
 - `P1 Runtime Foundation` 已达到 short close：`services/platform/` 下的最小 `Go` 平台服务层 bootstrap 已落地，当前已固定 `HTTP` 服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` 的第一版 bridge，并补齐本地 wrapper、配置文件层级、deployment smoke、结构化 diagnostics、provider/profile discoverability、request-level observability 与 error taxonomy。
 - `P2 Session & Tooling Foundation` 已进入 close candidate / governance-only，并已补上最小可消费产品骨架：`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 能返回 session/tool metadata 和明确 blocked action response。当前仍不实现真实工具执行器、长期记忆、durable session/checkpoint/audit/result store、materialized result reader、业务写回或 replay executor，也不声明完整 `negative_regression_suite` 已完成。
 - `session-tooling-negative-regression-suite-readiness.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json`、`session-tooling-short-close-entry-checklist.json` 等 P2 fixture 继续作为 governance-only 停止线证据保留，固定 `P2 short close` 前的 `not_satisfied` 条件；它们不再是默认新增工作方向。
@@ -59,6 +60,7 @@
 - [当前推进焦点](radishmind-current-focus.md)
 - [项目总览与使用指南](radishmind-project-guide.md)
 - [产品范围与目标](radishmind-product-scope.md)
+- [产品机会池](radishmind-product-ideas.md)
 - [战略定义](radishmind-strategy.md)
 - [能力矩阵](radishmind-capability-matrix.md)
 - [系统架构](radishmind-architecture.md)

@@ -33,11 +33,11 @@ REQUIRED_PRECONDITIONS = {
 }
 
 REQUIRED_PLANNED_SLICES = {
-    "secret-ref-schema-and-fixtures",
-    "config-secret-ref-readiness",
-    "provider-profile-secret-binding",
-    "secret-resolver-interface-disabled",
-    "operator-runbook-and-negative-gates",
+    "secret-ref-schema-and-fixtures": "satisfied",
+    "config-secret-ref-readiness": "planned_not_started",
+    "provider-profile-secret-binding": "planned_not_started",
+    "secret-resolver-interface-disabled": "planned_not_started",
+    "operator-runbook-and-negative-gates": "planned_not_started",
 }
 
 REQUIRED_BLOCKED = {
@@ -51,6 +51,10 @@ REQUIRED_DOC_REFERENCES = {
     "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [
         "production-secret-backend-contract",
         "secret-ref-schema",
+        "secret-ref-schema-and-fixtures",
+        "contracts/production-secret-reference.schema.json",
+        "production-secret-reference-basic.json",
+        "check-production-secret-reference-contract.py",
         "config-injection-point",
         "provider-profile-binding",
         "sanitized-audit-fields",
@@ -146,12 +150,20 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
     missing = sorted(REQUIRED_PRECONDITIONS - set(preconditions))
     require(not missing, f"missing required preconditions: {missing}")
     for precondition_id, item in preconditions.items():
-        require(
-            str(item.get("status") or "").startswith("required_before_"),
-            f"{precondition_id} must be a required precondition",
-        )
+        status = str(item.get("status") or "")
+        require(status == "satisfied" or status.startswith("required_before_"), f"{precondition_id} has unexpected status")
         must_define = item.get("must_define") or []
         require(len(must_define) >= 3, f"{precondition_id} must define concrete requirements")
+        if precondition_id == "secret-ref-schema":
+            require(status == "satisfied", "secret-ref-schema precondition must be satisfied")
+            evidence = set(item.get("evidence") or [])
+            for path in {
+                "contracts/production-secret-reference.schema.json",
+                "scripts/checks/fixtures/production-secret-reference-basic.json",
+                "scripts/check-production-secret-reference-contract.py",
+            }:
+                require(path in evidence, f"secret-ref-schema missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"secret-ref-schema evidence missing on disk: {path}")
 
     sanitized_fields = set(preconditions["sanitized-audit-fields"].get("must_define") or [])
     for field in {
@@ -166,10 +178,19 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
 
 def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
     planned = {str(item.get("id")): item for item in fixture.get("planned_slices") or [] if isinstance(item, dict)}
-    missing_planned = sorted(REQUIRED_PLANNED_SLICES - set(planned))
+    missing_planned = sorted(set(REQUIRED_PLANNED_SLICES) - set(planned))
     require(not missing_planned, f"missing planned slices: {missing_planned}")
-    for slice_id in REQUIRED_PLANNED_SLICES:
-        require(planned[slice_id].get("status") == "planned_not_started", f"{slice_id} must not be started")
+    for slice_id, expected_status in REQUIRED_PLANNED_SLICES.items():
+        require(planned[slice_id].get("status") == expected_status, f"{slice_id} has unexpected status")
+        if expected_status == "satisfied":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "contracts/production-secret-reference.schema.json",
+                "scripts/checks/fixtures/production-secret-reference-basic.json",
+                "scripts/check-production-secret-reference-contract.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -193,6 +214,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
 
     expected_consumers = {
         "scripts/check-production-ops-secret-backend-implementation-readiness.py",
+        "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
         "docs/radishmind-current-focus.md",
@@ -210,6 +232,10 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
     require(
         'run_python_script("check-production-ops-secret-backend-implementation-readiness.py", [])' in check_repo,
         "check-repo.py must run secret backend implementation readiness check",
+    )
+    require(
+        'run_python_script("check-production-secret-reference-contract.py", [])' in check_repo,
+        "check-repo.py must run production secret reference contract check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

@@ -4,22 +4,51 @@
 
 ## 架构目标
 
-`RadishMind` 的正式架构目标不再只是“把单次模型推理接上去”，而是建设一个可本地运行、可审计、可工具化的 Copilot / Agent runtime platform。
+`RadishMind` 的正式架构目标不再只是“把单次模型推理接上去”，而是建设 `Radish` 体系下可本地运行、可审计、可工具化的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 
-这套平台当前从两个视角理解：
+这套平台当前从三个视角理解：
 
+- 产品视角：看用户端、管理端、模型网关和 workflow runtime 怎么分层
 - 平台视角：看五条主线怎么协同
 - 请求视角：看单次 `CopilotRequest -> CopilotResponse` 是怎么流动的
 
+## 产品视角
+
+### 1. `User Workspace`
+
+- 面向用户创建和运行 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG / 知识问答应用。
+- 消费模型网关、工作流 runtime、session metadata、运行记录、成本摘要和 API key 状态。
+- 当前尚未实现正式用户端；已有本地 console 不能替代用户 workspace。
+
+### 2. `Admin Control Plane`
+
+- 面向管理员管理租户、用户、角色、权限、provider/profile、模型路由、API key、quota、price、secret backend、审计和部署状态。
+- 登录 / 授权、数据库、部署方式优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth，不在 RadishMind 内部自建身份真相源。
+- Control Plane 默认使用 Go，可独立于 gateway 拆服务；当前不新增 `.NET` / ASP.NET Core 作为默认后端栈。
+- 当前本地 console 只是 ops surface，不等同于 production admin console。
+
+### 3. `Model Gateway / API Distribution`
+
+- 面向 API 调用者暴露 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 和后续 API key / quota / trace / cost 能力。
+- 对内统一调度 provider registry、provider profile、selection policy、health signal、secret reference 和后续 retry/fallback execution。
+- 当前已有 northbound bridge、provider/profile inventory、selection metadata 和 provider runtime gates；完整 API 分发、租户 quota、billing、load balancing 和 production secret backend 仍未实现。
+
+### 4. `Workflow / Agent Runtime`
+
+- 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和后续受控 code / sandbox / agent loop。
+- 每次运行必须保留 trace、输入输出摘要、错误分类、成本和风险边界。
+- 当前已有 session/tooling metadata 与 blocked action shell；真实 workflow builder、executor、durable store、confirmation flow 和 writeback 仍未实现。
+
 ## 平台视角
 
-### 1. `Runtime Service`
+### 1. `Runtime Service / Model Gateway`
 
 - 负责启动、配置、provider/profile 选择、route 识别、gateway 封装、协议兼容和部署边界。
 - 当前实现核心在 `scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py` 与 `services/platform/`。
 - 当前 southbound 已开始由统一 `provider registry` 收口：现有 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流都归到同一条 provider truth；`local_transformers` 目前主要停留在 candidate/runtime 评测链路。
 - 当前 northbound 对外形态已经开始由 `Go` 承载最小正式 `HTTP` 服务壳；`Python` 继续保留 CLI runtime 和 canonical gateway 语义，`Go` 只做协议兼容与进程调度，避免把平台服务层锁死在 `Python`。本地 console origin 的 CORS / preflight 只服务 `P3` 本地消费面，不代表 production 鉴权或公开部署策略。
 - `UI` 层默认 `React + Vite + TypeScript`，通过北向协议消费平台能力，不直接承载模型实现逻辑。
+- 未来 `Admin Control Plane` 的身份、权限和数据库应优先对齐 `Radish`；RadishMind 作为 OIDC client 消费 `Radish` 登录态，不在当前 gateway 内提前实现完整账号系统，也不为了对齐 Radish 复制其后端语言栈。
 - 当前 `P3 Local Product Shell / Ops Surface` 已在平台服务层暴露只读 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，并用 TypeScript overview / local-smoke consumer contract、consumer smoke、console shell check、console behavior gate、console visual smoke record、dev entry check、console production packaging boundary gate、P3 checklist 与 `apps/radishmind-console/` 本地 console 壳固定 service status、model inventory、Provider/Profile Details、session/tooling surface、stop-line view model、Stop-line Details、Dev Diagnostics、`Local Readiness` 面板、refresh 状态、overview / local-smoke failure surface、连接失败诊断、production packaging 停止线和 P3 hardening 缺口。该本地只读产品壳已达到 `local usable / read-only close`。
 - 当前 `Production Ops Hardening v1` 已把部署边界拆成独立层：`host_dev` 仍使用宿主机 wrapper，`docker_local` 使用 `deploy/docker-compose.local.yaml` 本地 build 与 mock provider，`docker_test` / `docker_prod` 共用 `deploy/docker-compose.yaml` 并通过镜像 track / tag、provider profile、secret 来源和外部反代配置区分环境。该层已有 Dockerfile、compose、`.env.example`、镜像命名治理、静态 compose 展开、container smoke runbook 和运行记录模板，但仍不声明 production ready。
 
@@ -142,6 +171,8 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `Frontend UI`：`React + Vite + TypeScript`
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py`
 - `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound、session/tooling metadata shell、blocked action shell、只读 platform overview 和 local smoke readiness route
+- `Control Plane`：长期默认使用 `Go`，可按职责拆出独立服务，覆盖 tenant、API key、quota、provider profile、OIDC client、audit 和 run records；不默认引入 `.NET`
+- `Product Surfaces`：目标形态包括 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution` 和 `Workflow / Agent Runtime`；当前只落地本地 ops console 壳和只读平台发现面
 - `P3 Local Product Shell / Ops Surface`：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、`scripts/run-platform-overview-consumer-smoke.py`、`scripts/run-platform-local-smoke.py`、`scripts/check-radishmind-console-behavior.py`、`scripts/check-radishmind-console-visual-smoke-record.py`、`scripts/check-radishmind-console-dev-entry.py`、`scripts/check-radishmind-console-production-boundary.py`、`scripts/check-p3-local-product-shell-short-close-checklist.py`、`apps/radishmind-console/`、`docs/contracts/platform-overview-ui-view.md`；当前本地只读壳已达到 `local usable / read-only close`
 - `Deployment Boundary Layer`：`deploy/README.md`、`deploy/docker-compose.local.yaml`、`deploy/docker-compose.yaml`、`deploy/.env.example`、`services/platform/Dockerfile`、`apps/radishmind-console/Dockerfile`、`apps/radishmind-console/nginx.local.conf`、`scripts/check-production-ops-docker-*.py`、`scripts/check-production-ops-deployment-readiness-smoke.py`、`scripts/check-production-ops-container-smoke-*.py`；当前只固定 docker local/test/prod 边界、镜像命名、静态展开、runbook 和记录模板
 - `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`、`services/platform/internal/httpapi/northbound.go`、`scripts/checks/fixtures/provider-capability-matrix-v1.json`、`scripts/check-provider-capability-matrix.py`、`scripts/checks/fixtures/provider-health-smoke-v1.json`、`scripts/check-provider-health-smoke.py`、`scripts/checks/fixtures/provider-selection-policy-v1.json`、`scripts/check-provider-selection-policy.py`、`scripts/checks/fixtures/provider-retry-fallback-policy-v1.json`、`scripts/check-provider-retry-fallback-policy.py`、`scripts/checks/fixtures/provider-runtime-docs-refresh.json`、`scripts/check-provider-runtime-docs-refresh.py`

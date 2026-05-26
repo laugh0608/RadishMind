@@ -17,12 +17,15 @@
 
 `RadishMind` 现在的正式定位是：
 
-协议驱动、可审计、可本地部署、可工具化的 Copilot / Agent runtime platform。
+`Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 
 它不是上层业务真相源，不替代 `RadishFlow`、`Radish` 或 `RadishCatalyst` 的业务决策权，也不是“只放模型实验”的仓库。
 
 当前主要职责是：
 
+- 提供用户端 AI 应用 / 工作流 / API key / 调用记录工作台。
+- 提供管理端 provider/profile / 模型路由 / 租户 / quota / secret / 审计控制面。
+- 提供模型 API 分发和兼容网关。
 - 接收结构化上下文
 - 运行最小推理链路
 - 兼容多种上游模型接入方式与多种下游协议接口
@@ -34,9 +37,17 @@
 ## 实现分工
 
 - `UI`：`React + Vite + TypeScript`
-- `平台服务层`：`Go`，覆盖 `HTTP API`、`gateway`、鉴权、流式转发、长驻进程、观测和部署壳
+- `平台服务层`：`Go`，覆盖 `HTTP API`、`gateway`、control plane、鉴权、流式转发、长驻进程、观测和部署壳
 - `模型侧`：`Python`，覆盖训练、评测、`prompt / builder`、离线推理和校验逻辑
 - `contracts/`：唯一 canonical protocol 真相源，所有语言只能消费，不得各自重新定义业务协议
+- `Radish` 集成：部署、数据库、登录 / 授权默认对齐 `Radish`；未来作为 OIDC client 接入 `Radish`；不默认引入 `.NET`
+
+## 当前四个产品面
+
+1. `User Workspace`：AI 应用、Workflow、Agent / Copilot、RAG、API key、调用量、成本和运行记录。
+2. `Admin Control Plane`：租户、用户、角色、权限、provider/profile、模型路由、quota、secret、审计和部署状态。
+3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API，多 provider / profile / model 分发。
+4. `Workflow / Agent Runtime`：Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和受控 agent loop。
 
 ## 当前五条主线
 
@@ -47,6 +58,8 @@
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
 如果你今天想推进开发，`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片，provider registry、profile inventory、request selection、diagnostics、error taxonomy 和 retry/fallback 审计策略已收口为 capability / health / selection / policy / docs 口径。当前进入 close candidate，不继续默认新增 provider 同层小切片；只有在明确任务窗口下，才单独推进 optional live health、retry/fallback execution、production secret backend 或容器 smoke。`Production Ops Hardening v1` 的静态边界已经收口；只有在明确 Docker 运行窗口后，才补本地容器 smoke 或测试环境 smoke，并把运行证据写入 `tmp/production-ops/container-smoke/`。`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出转入后置专题。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+
+正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳。
 
 ## 目录速览
 
@@ -107,7 +120,7 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 
 ### 3.5 运行 Go 平台服务层
 
-当前 `Go` 平台服务层已落在 `services/platform/`，用于承载 `HTTP API`、`gateway`、鉴权、流式转发、观测和部署壳。日常本地运行优先使用 wrapper，而不是手动切换目录：
+当前 `Go` 平台服务层已落在 `services/platform/`，用于承载 `HTTP API`、`gateway`、鉴权、流式转发、观测和部署壳。日常本地运行优先使用 wrapper：
 
 ```bash
 ./scripts/run-platform-service.sh config-check
@@ -117,23 +130,7 @@ python3 scripts/check-radishflow-service-smoke-matrix.py \
 
 Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 config-check|diagnostics|serve`。
 
-当前它固定以下 northbound / health 路由：
-
-- `GET /healthz`
-- `GET /v1/platform/overview`
-- `GET /v1/platform/local-smoke`
-- `GET /v1/models`
-- `GET /v1/models/{id}`
-- `POST /v1/chat/completions`
-- `POST /v1/responses`
-- `POST /v1/messages`
-- `GET /v1/session/recovery/checkpoints/{checkpoint_id}`
-
-其中 `/v1/chat/completions` 已接到第一版 bridge，并支持非流式与 SSE 增量转发；`/v1/models`、请求侧 provider/profile selection 与 `diagnostics.providers.selectable_model_ids` 共享同一套 discoverability 口径，包括 `profile:<profile>` 与 `provider:<provider>:profile:<profile>`。当请求选中 profile 时，响应 `context.northbound` 会带出脱敏后的 `credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes` 与 `northbound_protocols`，便于客户端和部署检查判断实际命中的 provider/profile。
-
-`GET /v1/session/recovery/checkpoints/{checkpoint_id}` 当前只是 fixture-backed metadata-only route smoke：它返回 checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，并拒绝 materialized result、result ref、output ref、executor ref、durable memory 与 replay 类查询；它不是 durable checkpoint store、materialized result reader、executor ref reader、durable memory reader 或 replay executor。
-
-`GET /v1/platform/overview` 是本地只读产品 overview，供 console 展示 service status、model inventory、session/tooling surface、stop-lines 和 audit boundary。`GET /v1/platform/local-smoke` 是本地开发 readiness 摘要，供 Dev Diagnostics、`Local Readiness` 面板、脚本 smoke 或排障页确认 healthz、overview contract、model inventory、session/tooling metadata、CORS origin、默认 `7000/4000` 端口和停止线是否可读。console 会区分 overview 失败与 overview 可读但 local-smoke readiness / contract 失败的 failure surface；后者只显示 `Local-smoke readiness unavailable` 和 local-smoke 专属诊断，不升级为 production incident、supervisor 或执行链路状态。
+当前固定 `/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages` 和 metadata-only checkpoint read。`/v1/platform/overview` 与 `/v1/platform/local-smoke` 只服务本地只读 console、Dev Diagnostics 和 readiness 摘要；checkpoint read 不是 durable store、materialized result reader 或 replay executor。
 
 这仍然不是 production deployment：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级 secret backend、进程监管、环境隔离和正式发布包。
 
@@ -161,9 +158,7 @@ python scripts/run-platform-local-smoke.py \
   --check
 ```
 
-console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`；后者是配套排障和 readiness 摘要，会投影到 Dev Diagnostics 和 `Local Readiness` 只读面板。refresh 或连接失败时，页面可保留上一份已加载的只读 overview / local-smoke readiness；如果 overview 可读但 local-smoke 失败，页面会显示 local-smoke failure surface 和对应诊断，而不是提供执行、确认、写回或 replay 控件。
-
-当前 console 已重排为浅色侧栏、主工作区和 readiness / stop-line 辅助栏。主工作区展示 Runtime overview、Service Status、Model Inventory、Provider/Profile Details、Session And Tooling、Blocked Action Detail 和 Dev Diagnostics；右侧辅助栏展示 Local Readiness、Stop Lines、Stop-line Details 和 Audit Boundary。窄屏下这些区域按单列顺序展示。它仍是本地只读 ops surface，不是 production console。
+console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，展示 Runtime overview、Service Status、Model Inventory、Provider/Profile Details、Session And Tooling、Blocked Action Detail、Dev Diagnostics、Local Readiness、Stop Lines 和 Audit Boundary。它仍是本地只读 ops surface，不是 production console、正式用户端或生产管理端。
 
 ### 3.7 使用 Docker 部署资产
 
@@ -243,12 +238,7 @@ python3 scripts/run-radishmind-core-candidate.py \
 5. [战略定义](radishmind-strategy.md)
 6. [能力矩阵](radishmind-capability-matrix.md)
 7. [系统架构](radishmind-architecture.md)
-8. [UI 设计规范](radishmind-ui-design-spec.md)
-9. [跨项目集成契约](radishmind-integration-contracts.md)
-10. [部署目录说明](../deploy/README.md)
-11. [脚本目录说明](../scripts/README.md)
-12. [数据集目录说明](../datasets/README.md)
-13. [训练目录说明](../training/README.md)
+8. 按任务需要继续读 UI、集成契约、部署、脚本、数据集或训练专题。
 
 ## 默认不要做
 

@@ -6,9 +6,11 @@
 
 路线图只记录阶段目标、当前进度、下一步和停止线。批次细节、历史失败、完整实验输出和长命令不放在本入口文档中，应进入周志、实验 manifest、run record 或任务卡。
 
-当前长期目标保持不变：`RadishMind` 是受控 Copilot / Agent runtime platform + 可替换模型能力，不是单一万能模型。
+当前长期目标更新为：`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台，不是单一万能模型，也不是只服务本地 demo 的 runtime 壳。
 
 若要理解“为什么路线这样排”，先读 [战略定义](radishmind-strategy.md)。
+
+长期产品机会单独维护在 [产品机会池](radishmind-product-ideas.md)。该文件只记录候选方向，不代表路线图承诺；进入实施前必须再拆任务卡。
 
 ## 当前路线切换
 
@@ -21,15 +23,26 @@
 
 这些资产继续保留，但不再等同于当前唯一主线。
 
+## 四个产品面
+
+长期产品路线按四个产品面展开：
+
+1. `User Workspace`：AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG / 知识问答应用、API key、调用量、运行记录和成本摘要。
+2. `Admin Control Plane`：租户、用户、角色、权限、provider/profile、模型路由、API key、quota、price、secret backend、审计和部署状态；未来作为 OIDC client 接入 `Radish`。Control Plane 默认使用 Go，可独立拆服务，不因参考 Radish 而默认引入 `.NET` / ASP.NET Core。
+3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models 等 API 分发，多 provider / profile / model 路由，后续补 quota、限流、成本、trace、fallback、load balancing 和 health。
+4. `Workflow / Agent Runtime`：Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和后续受控 agent loop；高风险动作默认要求确认。
+
+当前实现仍处在平台基础能力阶段。已有本地 console 只覆盖 ops surface 和只读发现面，不代表正式用户端、生产管理端或完整 workflow builder 已完成。
+
 ## 五条主线
 
-### 1. `Runtime Service`
+### 1. `Runtime Service / Model Gateway`
 
-目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动和部署基础。
+目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动、部署基础和模型 API 分发底座。
 
 状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary、provider/profile discoverability 对齐、request-level observability 与 error taxonomy 已补齐。`P1 Runtime Foundation` 已达到 short close；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，主要实现重心切到 `P2 Session & Tooling Foundation`。
 
-下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。`Provider Runtime & Health v1` 已把 provider capability、health smoke、selection policy、provider-retry-fallback-policy-v1 与 docs refresh 固定成可检查口径，进入 close candidate；后续不再默认扩 provider runtime 同层切片。
+下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。`Provider Runtime & Health v1` 已把 provider capability、health smoke、selection policy、provider-retry-fallback-policy-v1 与 docs refresh 固定成可检查口径，进入 close candidate；后续不再默认扩 provider runtime 同层切片。模型网关继续推进时，应围绕 API key、quota、trace、cost、tenant binding、secret ref readiness 和真实 production secret backend 的前置条件拆任务。
 
 ### 2. `Conversation & Session`
 
@@ -127,7 +140,7 @@
 
 目标：把 P3 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 缺口拆成可验证前置条件。
 
-状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、production secret backend contract、production-secret-backend-implementation-readiness、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。`config-secret-boundary`、`production-secret-backend-contract`、`production-secret-backend-implementation-readiness`、`startup-supervisor-boundary`、`environment-isolation` 与 `console-production-package-smoke` 已分别用 production ops fixture / checker 固定为 governance boundary 或 implementation readiness，证据包括 `scripts/checks/fixtures/production-ops-config-secret-boundary.json`、`scripts/checks/fixtures/production-ops-secret-backend-contract.json`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json`、`scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json`、`scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 和 `scripts/checks/fixtures/production-ops-console-package-smoke.json`；`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已完成 `short-close-checklist-refresh`，跨读这些 boundary fixture 并确认 production secret backend 仍为 not_satisfied，process supervisor、deployment environment isolation 和 console production packaging 也仍为 `not_satisfied`。`production-secret-backend-implementation-readiness` 对应 [Production Secret Backend Implementation v1 计划](task-cards/production-secret-backend-implementation-v1-plan.md)，只固定 secret ref schema、config 注入点、provider profile binding、脱敏审计字段、failure taxonomy、测试策略、operator runbook 和 rotation / audit policy 等前置条件；不实现 resolver、不接云、不写真实 secret、不声明 production ready。已新增 [Production Ops Docker Deployment v1 计划](task-cards/production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定 Radish 风格 docker local/test/prod 部署方向；`docker-local-compose` 已用 `scripts/checks/fixtures/production-ops-docker-local-compose.json` 固定为本地容器 smoke 资产；`docker-test-prod-compose` 已用 `scripts/checks/fixtures/production-ops-docker-test-prod-compose.json` 固定测试 / 生产共用部署态 compose 边界，资产包括 `deploy/docker-compose.yaml` 和 `deploy/.env.example`；`docker-image-build-publish` 已用 `scripts/checks/fixtures/production-ops-docker-image-build-publish.json` 固定镜像命名与 tag 后缀策略，真实发布 workflow 仍未实现；`deployment-readiness-smoke` 已用 `scripts/checks/fixtures/production-ops-deployment-readiness-smoke.json` 固定 `docker compose config` / 静态展开检查；`container-smoke-runbook` 已用 `scripts/checks/fixtures/production-ops-container-smoke-runbook.json` 固定容器 smoke 命令和清理边界；`container-smoke-record-template` 已用 `scripts/checks/fixtures/production-ops-container-smoke-record-template.json` 固定运行记录字段和 `tmp/production-ops/container-smoke/` 证据根。2026-05-26 已完成一次 `docker_local` container smoke 运行记录，`container_smoke_ready` 进入可审计证据状态；测试环境 smoke 和生产前复核仍未实现。
+状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、production secret backend contract、production-secret-backend-implementation-readiness、secret-ref-schema-and-fixtures、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。`config-secret-boundary`、`production-secret-backend-contract`、`production-secret-backend-implementation-readiness`、`secret-ref-schema-and-fixtures`、`startup-supervisor-boundary`、`environment-isolation` 与 `console-production-package-smoke` 已分别用 production ops fixture / checker 固定为 governance boundary、implementation readiness 或 secret ref schema evidence，证据包括 `scripts/checks/fixtures/production-ops-config-secret-boundary.json`、`scripts/checks/fixtures/production-ops-secret-backend-contract.json`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json`、`contracts/production-secret-reference.schema.json`、`scripts/checks/fixtures/production-secret-reference-basic.json`、`scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json`、`scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 和 `scripts/checks/fixtures/production-ops-console-package-smoke.json`；`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已完成 `short-close-checklist-refresh`，跨读这些 boundary fixture 并确认 production secret backend 仍为 not_satisfied，process supervisor、deployment environment isolation 和 console production packaging 也仍为 `not_satisfied`。`secret-ref-schema-and-fixtures` 只固定 committed secret reference schema 和 fixture，不保存 secret value、不实现 resolver、不接云、不声明 production ready。已新增 [Production Ops Docker Deployment v1 计划](task-cards/production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定 Radish 风格 docker local/test/prod 部署方向；`docker-local-compose` 已用 `scripts/checks/fixtures/production-ops-docker-local-compose.json` 固定为本地容器 smoke 资产；`docker-test-prod-compose` 已用 `scripts/checks/fixtures/production-ops-docker-test-prod-compose.json` 固定测试 / 生产共用部署态 compose 边界，资产包括 `deploy/docker-compose.yaml` 和 `deploy/.env.example`；`docker-image-build-publish` 已用 `scripts/checks/fixtures/production-ops-docker-image-build-publish.json` 固定镜像命名与 tag 后缀策略，真实发布 workflow 仍未实现；`deployment-readiness-smoke` 已用 `scripts/checks/fixtures/production-ops-deployment-readiness-smoke.json` 固定 `docker compose config` / 静态展开检查；`container-smoke-runbook` 已用 `scripts/checks/fixtures/production-ops-container-smoke-runbook.json` 固定容器 smoke 命令和清理边界；`container-smoke-record-template` 已用 `scripts/checks/fixtures/production-ops-container-smoke-record-template.json` 固定运行记录字段和 `tmp/production-ops/container-smoke/` 证据根。2026-05-26 已完成一次 `docker_local` container smoke 运行记录，`container_smoke_ready` 进入可审计证据状态；测试环境 smoke 和生产前复核仍未实现。
 
 进入条件：已满足。P3 本地只读产品壳已经可用，且 checklist 已明确 production hardening 缺口。
 
@@ -157,15 +170,29 @@
 
 状态：当前等待上层条件成熟。
 
+### `P6`：User Workspace & Workflow Builder
+
+目标：形成正式用户端，让用户创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用和 RAG / 知识问答应用，并查看 API key、调用量、运行记录和成本。
+
+状态：未开始。当前 `apps/radishmind-console/` 只是本地 ops surface，不是用户端产品。
+
+### `P7`：Admin Control Plane & Radish Auth Integration
+
+目标：形成正式管理端，管理租户、用户、角色、权限、provider/profile、模型路由、quota、price、secret、审计和部署状态，并作为 OIDC client 接入 `Radish`。
+
+状态：未开始。当前只保留 Radish 对齐方向，不实现账号系统、不接真实 OIDC、不声明 production ready。默认技术栈为 Go control plane + Go gateway + Python model/eval/worker + TypeScript/Vite frontend，不新增 `.NET` 作为默认后端语言。
+
 ## 下一步
 
 1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
-2. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
-3. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
-4. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。
-5. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。
-6. 只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁；普通 UI 展示改动优先复用现有 console behavior / visual smoke / fast baseline。
-7. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
+2. 将正式产品口径调整为 `User Workspace + Admin Control Plane + Model Gateway / API Distribution + Workflow / Agent Runtime`，并保持当前实现阶段说明：本地 console 只是 ops surface，不等同于正式用户端或生产管理端。
+3. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
+4. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
+5. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。
+6. UI 后续扩张必须先回到设计稿或任务卡，不直接增加 confirmation、writeback、replay 或 production packaging。
+7. 只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁；普通 UI 展示改动优先复用现有 console behavior / visual smoke / fast baseline。
+8. 继续维持上层项目接入前置条件总表，不提前细化不存在的真实接线。
+9. 产品机会池中近期优先只保留 `Model API Routing Studio`、`Workflow Marketplace`、`Eval-as-a-Feature`、`AI Cost Ledger` 和 `Policy Sandbox` 作为候选；进入实施前必须先写任务卡。
 
 ## 停止线
 
@@ -174,6 +201,9 @@
 - 不在没有非重复能力假设时继续扩同一批 `M4` 实验。
 - 不在上层项目没有真实挂载点时继续细化假想接线设计。
 - 不把 `P1` 继续扩成无止境的 provider/config/diagnostics 细化阶段。
+- 不把当前本地 console 写成正式用户端、生产管理端、完整 Dify-like workflow builder 或完整模型 API 分发平台。
+- 不自建与 `Radish` 冲突的身份、权限、数据库和部署真相源；Radish OIDC client 接入必须作为独立任务推进。
+- 不把 Control Plane、Gateway 和 Workflow Executor 混成单体，也不把微服务拆分变成新增语言栈的理由。
 - 不把 P3 继续扩成无止境的本地只读 console 小切片阶段。
 - 不把 Production Ops 继续扩成无止境的静态 governance fixture 阶段。
 - 不把 provider health smoke 写成 production readiness 或隐式 provider fallback。

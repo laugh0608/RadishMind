@@ -102,6 +102,12 @@
 
 该 readiness 不实现 resolver、不接云、不读取或写入真实 secret、不要求真实 credential，也不改变当前运行时默认状态。后续只有在单独实现切片中完成 schema、disabled resolver、负向门禁和运行手册后，才能继续讨论真实 production secret backend。
 
+## Production secret reference schema
+
+`secret-ref-schema-and-fixtures` 已由 `contracts/production-secret-reference.schema.json`、`scripts/checks/fixtures/production-secret-reference-basic.json` 与 `scripts/check-production-secret-reference-contract.py` 固定为 committed secret reference contract。该 schema 只允许保存 `environment`、`provider`、`provider_profile`、`secret_ref`、`required_fields` 和 `sanitized_fields`，并要求 fixture 明确 `stores_secret_values=false`、`resolver_enabled=false`、`cloud_calls_allowed=false` 和 `production_secret_backend_ready=false`。
+
+该 schema / fixture 只证明 secret reference 格式可检查，不实现 resolver，不接云，不包含 secret value、provider raw URL、API key、token、cookie、authorization header 或 credential 原文。下一步如继续推进，应进入 `config-secret-ref-readiness`，让 config summary / diagnostics 能报告 `secret_ref_present` 和 `missing_secret_refs` 等脱敏状态。
+
 ## Startup / supervisor boundary
 
 `startup-supervisor-boundary` 已由 `scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定为 governance boundary。当前支持的启动入口只有两类：`scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 的人工 platform wrapper，以及 `scripts/run-radishmind-console-dev.ps1` / `scripts/run-radishmind-console-dev.sh` 的本地 console dev launcher。

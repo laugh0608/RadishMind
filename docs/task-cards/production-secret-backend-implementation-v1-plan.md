@@ -68,6 +68,7 @@
 1. `secret-ref-schema-and-fixtures`
    - 新增 committed schema / fixture，只保存 secret reference 和脱敏状态。
    - 不保存 secret value。
+   - 当前已落地：`contracts/production-secret-reference.schema.json`、`scripts/checks/fixtures/production-secret-reference-basic.json` 与 `scripts/check-production-secret-reference-contract.py` 固定 `environment`、`provider`、`provider_profile`、`secret_ref`、`required_fields`、`sanitized_fields` 和禁止字段；这不实现 resolver，也不代表 production secret backend ready。
 2. `config-secret-ref-readiness`
    - 扩展 config summary / check 的脱敏字段，让缺失 secret ref 可被检查。
    - 不启用 resolver。
