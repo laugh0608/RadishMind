@@ -90,6 +90,12 @@
 
 生产环境仍缺少正式 secret backend、环境隔离、provider health policy、process supervisor 和 console production packaging。直到这些条件分别有任务卡、实现和门禁前，`config-summary`、`config-check`、`diagnostics` 和 provider inventory 只能输出 `credential_state`、`base_url_configured`、`secret_fields`、`field_sources` 这类脱敏字段，不输出原始 credential 或 provider URL。
 
+## Production secret backend contract
+
+`production-secret-backend-contract` 已由 `scripts/checks/fixtures/production-ops-secret-backend-contract.json` 与 `scripts/check-production-ops-secret-backend-contract.py` 固定为 Production Ops Hardening v1 的最小治理切片。该切片只定义未来 external secret backend adapter contract：按 `environment`、`provider`、`provider_profile` 与 `secret_ref` 识别 secret reference，并要求后续运行面只暴露 `credential_state`、`secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏字段。
+
+当前明确不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。`RADISHMIND_PLATFORM_API_KEY` 仍只允许作为 developer env override；`RADISHMIND_SECRET_SOURCE` 只能表示部署态外部 secret 来源要求，不是 secret backend 本身。真实 production secret backend、secret rotation policy、production secret audit store、provider health policy、environment isolation 和 process supervisor 仍为 `not_satisfied`。
+
 ## Startup / supervisor boundary
 
 `startup-supervisor-boundary` 已由 `scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定为 governance boundary。当前支持的启动入口只有两类：`scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 的人工 platform wrapper，以及 `scripts/run-radishmind-console-dev.ps1` / `scripts/run-radishmind-console-dev.sh` 的本地 console dev launcher。

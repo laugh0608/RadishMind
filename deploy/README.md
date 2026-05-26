@@ -74,6 +74,12 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `deploy/.env.example` 只保存非密钥配置样例。真实 credential、API key、生产 secret、证书路径和 provider token 不得提交。
 
+### Production secret backend contract
+
+`production-secret-backend-contract` 已由 `scripts/checks/fixtures/production-ops-secret-backend-contract.json` 与 `scripts/check-production-ops-secret-backend-contract.py` 固定为治理切片。当前只定义未来 external secret backend adapter contract、`RADISHMIND_SECRET_SOURCE` 这类 secret reference、脱敏输出和禁止项；`deploy/.env.example` 不是 secret backend，也不保存真实 credential。
+
+该切片不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。真实 production secret backend、secret rotation policy、production secret audit store 和 provider health policy 仍必须在后续任务中另行实现和验证。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`
@@ -98,6 +104,7 @@ python scripts/check-production-ops-docker-image-build-publish.py
 python scripts/check-production-ops-deployment-readiness-smoke.py
 python scripts/check-production-ops-container-smoke-runbook.py
 python scripts/check-production-ops-container-smoke-record-template.py
+python scripts/check-production-ops-secret-backend-contract.py
 ```
 
 仓库快速基线：

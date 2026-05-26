@@ -47,6 +47,7 @@
     "result": "P3 remains local usable / read-only close; Production Ops Hardening v1 has governance boundary evidence only and must not be read as production ready.",
     "governance_boundaries": [
       "config-secret-boundary",
+      "production-secret-backend-contract",
       "startup-supervisor-boundary",
       "environment-isolation",
       "console-production-package-smoke"
@@ -158,6 +159,14 @@
       ]
     },
     {
+      "id": "production_secret_backend_contract_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-secret-backend-contract.json",
+        "scripts/check-production-ops-secret-backend-contract.py"
+      ]
+    },
+    {
       "id": "startup_supervisor_boundary_gate",
       "status": "satisfied",
       "evidence": [
@@ -197,7 +206,9 @@
       "current_scope": "blocked",
       "boundary_evidence": [
         "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
-        "scripts/check-production-ops-config-secret-boundary.py"
+        "scripts/check-production-ops-config-secret-boundary.py",
+        "scripts/checks/fixtures/production-ops-secret-backend-contract.json",
+        "scripts/check-production-ops-secret-backend-contract.py"
       ]
     },
     {
@@ -270,6 +281,7 @@
   "required_consumers": [
     "scripts/check-p3-local-product-shell-short-close-checklist.py",
     "scripts/check-production-ops-config-secret-boundary.py",
+    "scripts/check-production-ops-secret-backend-contract.py",
     "scripts/check-production-ops-startup-supervisor-boundary.py",
     "scripts/check-production-ops-environment-isolation-boundary.py",
     "scripts/check-production-ops-console-package-smoke.py",
