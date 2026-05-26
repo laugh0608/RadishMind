@@ -1,6 +1,6 @@
 # RadishMind 部署目录说明
 
-更新时间：2026-05-24
+更新时间：2026-05-26
 
 ## 目录职责
 
@@ -80,6 +80,10 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 该切片不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。真实 production secret backend、secret rotation policy、production secret audit store 和 provider health policy 仍必须在后续任务中另行实现和验证。
 
+`contracts/production-secret-reference.schema.json` 进一步固定 provider profile 到 `secret_ref` 的 reference-only manifest。它只允许 `ref:` 引用、`credential_state`、`secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 这类脱敏字段；`scripts/checks/fixtures/production-secret-reference-basic.json` 只作为 test / production 两类环境的结构样例，不包含真实 key、token、cookie、authorization、provider raw URL 或 secret value。
+
+这层 schema 只说明未来部署配置应该如何引用 secret，不说明 secret backend 已经存在。部署或 readiness 文档不得把 `RADISHMIND_SECRET_SOURCE`、`.env.example`、secret reference fixture 写成 provider credential readiness。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`
@@ -105,6 +109,7 @@ python scripts/check-production-ops-deployment-readiness-smoke.py
 python scripts/check-production-ops-container-smoke-runbook.py
 python scripts/check-production-ops-container-smoke-record-template.py
 python scripts/check-production-ops-secret-backend-contract.py
+python scripts/check-production-secret-reference-contract.py
 ```
 
 仓库快速基线：

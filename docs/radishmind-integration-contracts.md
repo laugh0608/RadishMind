@@ -24,6 +24,7 @@
 - `contracts/image-generation-intent.schema.json`
 - `contracts/image-generation-backend-request.schema.json`
 - `contracts/image-generation-artifact.schema.json`
+- `contracts/production-secret-reference.schema.json`
 
 ## 当前协议原则
 
@@ -38,12 +39,14 @@
 - `P2 Session & Tooling Foundation` 当前只声明 close candidate / governance-only；negative regression governance suite、deny-by-default gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、short close readiness delta、readiness consistency rollup、enablement plan 和 stop-line manifest 都是治理证据链，不代表真实执行、持久化、结果读取、confirmation 接线或 replay 已启用。
 - `P3 Local Product Shell / Ops Surface` 已暴露只读 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并已有 overview / local-smoke console consumer smoke、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist；本地只读产品壳已达到 `local usable / read-only close`。它只聚合和消费服务状态、本地 readiness、model/profile inventory、session/tooling metadata、blocked action route 和停止线，不引入真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍是后续 hardening 缺口。
 - `Provider Runtime & Health v1` 已把 provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 docs refresh 五个切片接入 fast baseline。它固定 `/v1/models`、provider/profile selection、diagnostics selectable model ids、credential state、deployment mode、offline health smoke、no implicit fallback、`retry_policy=caller-managed` 与 `fallback_policy=disabled` 的说明口径；它不代表 optional live health、retry/fallback execution、production secret backend、tool executor、confirmation/writeback/replay 或 production readiness 已完成。
+- `Production Secret Reference` 已用 `contracts/production-secret-reference.schema.json` 固定 reference-only manifest：只允许 `ref:` 形式的 secret 引用和脱敏 readiness 字段，不保存 secret value，不启用 resolver，不调用云 API，也不声明 production secret backend ready。
 
 ## 专题索引
 
 - [服务/API 接入契约](contracts/service-api.md)：northbound / southbound 兼容边界、`CopilotGatewayEnvelope`、`RadishFlow` UI consumption、candidate edit handoff、上层接入等待口径和仓库集成边界。
 - [会话记录契约](contracts/session.md)：`Conversation & Session` 的 `session_id / turn_id`、history policy、recovery record、northbound session metadata、metadata-only checkpoint read、promotion gate、readiness rollup、stop-line manifest、负向查询和 advisory-only audit 边界。
 - [工具框架契约](contracts/tooling.md)：`Tooling Framework` 的 tool definition、registry、policy/audit record、metadata-only result cache、negative regression governance suite、deny-by-default gates、result materialization policy、executor/storage 边界和不执行真实工具的 v1 停止线。
+- [Production Secret Reference 契约](contracts/production-secret-reference.md)：provider profile 到 secret reference 的 reference-only manifest、脱敏字段、禁止字段和 production secret backend 未就绪停止线。
 - [训练 / 蒸馏样本契约](contracts/training-samples.md)：`CopilotTrainingSample`、训练集合治理、candidate record 转换、offline eval runner、本地模型 candidate wrapper 和 M4 builder/tooling 证据边界。
 - [图片生成契约](contracts/image-generation.md)：`RadishMind-Image Adapter`、image intent、backend request、artifact metadata 和最小评测 manifest。
 - [输入与项目上下文契约](contracts/input-context.md)：`CopilotRequest`、artifact 抽象和项目上下文专题索引。
@@ -65,6 +68,7 @@
 - 不让用户端、管理端、模型网关或 workflow runtime 私自分叉协议。
 - 不自建与 `Radish` 冲突的身份、授权、数据库和部署真相源。
 - 不把跨项目协议对齐解释成后端语言栈复制。
+- 不把 secret reference manifest 写成真实 secret backend、secret resolver、provider credential readiness 或 production ready。
 - 不让模型输出直接写回上层项目。
 - 不把 checkpoint read route smoke 写成 durable checkpoint store、materialized result reader、executor ref reader、durable memory reader 或 replay executor。
 - 不把 P2 design gate 写成上层确认流接线、真实 executor、durable session/checkpoint/audit/result store、长期记忆、业务写回或完整负向回归已经完成。

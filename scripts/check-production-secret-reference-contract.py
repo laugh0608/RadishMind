@@ -73,6 +73,32 @@ REQUIRED_DOC_REFERENCES = {
         "production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
     ],
+    "contracts/README.md": [
+        "production-secret-reference.schema.json",
+        "production-secret-reference-basic.json",
+        "reference-only manifest",
+    ],
+    "docs/contracts/README.md": [
+        "Production Secret Reference 契约",
+        "production-secret-reference.md",
+    ],
+    "docs/contracts/production-secret-reference.md": [
+        "Production Secret Reference 契约",
+        "contracts/production-secret-reference.schema.json",
+        "scripts/checks/fixtures/production-secret-reference-basic.json",
+        "不保存 secret value",
+        "不声明 production secret backend ready",
+    ],
+    "docs/radishmind-integration-contracts.md": [
+        "Production Secret Reference",
+        "production-secret-reference.schema.json",
+        "reference-only manifest",
+    ],
+    "deploy/README.md": [
+        "production-secret-reference.schema.json",
+        "production-secret-reference-basic.json",
+        "reference-only manifest",
+    ],
     "scripts/README.md": [
         "check-production-secret-reference-contract.py",
         "production-secret-reference.schema.json",
