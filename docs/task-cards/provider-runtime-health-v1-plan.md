@@ -25,7 +25,7 @@
 
 - `P1 Runtime Foundation` 已达到 short close，provider registry、northbound bridge、provider/profile inventory、diagnostics、request observability 和 error taxonomy 已有基础。
 - `P3 Local Product Shell / Ops Surface` 已达到 `local usable / read-only close`。
-- `Production Ops Hardening v1` 的静态部署边界已 close：docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 已可检查；后续只保留一次明确运行窗口下的本地 container smoke 或测试环境 smoke。
+- `Production Ops Hardening v1` 的静态部署边界已 close：docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 已可检查；2026-05-26 已完成一次本地 `docker_local` container smoke，后续只在明确窗口下推进测试环境 smoke 或 production preflight。
 - 当前仍缺 provider capability matrix、provider health policy、profile selection policy、fallback / retry / timeout 口径和外部 provider 健康检查边界。
 - `provider-capability-matrix-v1` 已用 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py` 固定为第一版可检查证据；它逐项比对 `services/runtime/provider_registry.py`，不联网、不要求 credential、不下载模型，也不声明 provider health 或 production ready。
 - `provider-health-smoke-v1` 已用 `scripts/checks/fixtures/provider-health-smoke-v1.json` 与 `scripts/check-provider-health-smoke.py` 固定为第二版可检查证据；默认 fast baseline 只跑 mock runtime smoke 与 config-level inventory smoke，optional live health 仍是未来手动切片。
@@ -86,7 +86,7 @@
 
 ## 下一步
 
-Provider Runtime & Health v1 进入 close candidate。后续不继续默认新增 provider 同层小切片；若有明确 Docker 运行窗口，可以另行补一次本地 container smoke 运行记录。optional live health、真实 retry/fallback、production secret backend 或 live timeout probe 只作为独立任务重开，也不把 selection policy 写成 retry/fallback 已实现。
+Provider Runtime & Health v1 进入 close candidate。后续不继续默认新增 provider 同层小切片；optional live health、真实 retry/fallback、production secret backend 或 live timeout probe 只作为独立任务重开，也不把 selection policy 写成 retry/fallback 已实现。Production Ops 后续只在明确测试或生产前复核窗口下推进 test smoke / production preflight。
 
 ## 停止线
 
