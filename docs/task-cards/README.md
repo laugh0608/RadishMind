@@ -49,6 +49,7 @@
 ## Product Platform
 
 1. [`Control Plane / User Workspace / Workflow` v1 计划](control-plane-user-workspace-workflow-v1-plan.md)
+2. [`Control Plane Read Model` v1 计划](control-plane-read-model-v1-plan.md)（`control-plane-read-model-v1`）
 
 ## UI 设计专题
 
