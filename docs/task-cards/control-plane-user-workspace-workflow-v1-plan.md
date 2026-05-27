@@ -99,6 +99,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 5. `workflow-definition-run-record-boundary`
    - 定义 workflow definition、run record、node execution、tool audit、result materialization 和 confirmation decision 的最小关系。
    - 不实现 executor。
+   - 当前已落地：`scripts/checks/fixtures/workflow-definition-run-record-boundary.json` 与 `scripts/check-workflow-definition-run-record-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线，不实现 workflow builder、workflow executor、node executor、tool calling、confirmation flow、business writeback、replay、durable run database 或 materialized result reader。
 
 ## 验收口径
 
@@ -107,6 +108,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 - `control-plane-data-boundary.json` 与 `check-control-plane-data-boundary.py` 已进入 `check-repo --fast`。
 - `radish-oidc-client-preconditions.json` 与 `check-radish-oidc-client-preconditions.py` 已进入 `check-repo --fast`。
 - `gateway-api-key-quota-readiness.json` 与 `check-gateway-api-key-quota-readiness.py` 已进入 `check-repo --fast`。
+- `workflow-definition-run-record-boundary.json` 与 `check-workflow-definition-run-record-boundary.py` 已进入 `check-repo --fast`。
 - 当前焦点、路线图、能力矩阵、任务卡入口和周志同步说明：下一条平台主线是先固定 control plane / user workspace / workflow v1 边界。
 - 文档继续明确本地 ops console 不等同于正式用户端或生产管理端。
 - 文档继续明确 `Provider Runtime & Health v1`、`Production Ops Hardening v1`、P2 / P3 / UI / P4 都不再默认扩同层小切片。

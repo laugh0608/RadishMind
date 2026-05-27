@@ -1076,6 +1076,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-control-plane-data-boundary.py", [])
     run_python_script("check-radish-oidc-client-preconditions.py", [])
     run_python_script("check-gateway-api-key-quota-readiness.py", [])
+    run_python_script("check-workflow-definition-run-record-boundary.py", [])
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])

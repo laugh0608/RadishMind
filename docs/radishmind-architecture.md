@@ -12,7 +12,7 @@
 - 平台视角：看五条主线怎么协同
 - 请求视角：看单次 `CopilotRequest -> CopilotResponse` 是怎么流动的
 
-2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，只固定四个产品面的服务边界、数据边界和停止线；`product-surface-v1-boundary` 已用 `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py` 固定资源、读模型、写边界和 shared stop-line；`control-plane-data-boundary` 已固定 control plane 对象 ownership，并继续要求 Radish remains identity truth；`radish-oidc-client-preconditions` 已固定未来 OIDC client 的 issuer、client、claim mapping、tenant binding、logout、audit 和 failure taxonomy；`gateway-api-key-quota-readiness` 已固定 API key、quota、rate limit、cost ledger 和 trace 前置条件。不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
+2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，只固定四个产品面的服务边界、数据边界和停止线；`product-surface-v1-boundary` 已用 `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py` 固定资源、读模型、写边界和 shared stop-line；`control-plane-data-boundary` 已固定 control plane 对象 ownership，并继续要求 Radish remains identity truth；`radish-oidc-client-preconditions` 已固定未来 OIDC client 的 issuer、client、claim mapping、tenant binding、logout、audit 和 failure taxonomy；`gateway-api-key-quota-readiness` 已固定 API key、quota、rate limit、cost ledger 和 trace 前置条件；`workflow-definition-run-record-boundary` 已固定 workflow definition、run record、状态流转、失败分类、审计证据和停止线。不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
 
 ## 产品视角
 
@@ -39,7 +39,7 @@
 
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和后续受控 code / sandbox / agent loop。
 - 每次运行必须保留 trace、输入输出摘要、错误分类、成本和风险边界。
-- 当前已有 session/tooling metadata 与 blocked action shell；真实 workflow builder、executor、durable store、confirmation flow 和 writeback 仍未实现。
+- 当前已有 session/tooling metadata 与 blocked action shell；`workflow-definition-run-record-boundary` 已把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转和审计证据固定为治理边界；真实 workflow builder、executor、durable store、confirmation flow、writeback 和 replay 仍未实现。
 
 ## 平台视角
 

@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_definition_run_record_boundary",
+  "slice": {
+    "id": "workflow-definition-run-record-boundary",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "workflow_builder_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "durable_run_store_ready",
+      "materialized_result_reader_ready",
+      "confirmation_flow_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "product-surface-v1-boundary",
+    "control-plane-data-boundary",
+    "radish-oidc-client-preconditions",
+    "gateway-api-key-quota-readiness"
+  ],
+  "resource_boundaries": [
+    {
+      "id": "workflow-definition",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "workflow_definition_id",
+        "tenant_ref",
+        "owner_subject_ref",
+        "version",
+        "definition_status",
+        "graph_nodes",
+        "graph_edges",
+        "input_schema_ref",
+        "output_schema_ref",
+        "risk_policy_ref",
+        "created_at",
+        "updated_at"
+      ],
+      "boundary": "workflow definition is future versioned metadata; this slice does not provide a builder, store, executor or scheduler"
+    },
+    {
+      "id": "run-record",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "run_id",
+        "workflow_definition_id",
+        "definition_version",
+        "tenant_ref",
+        "triggered_by_subject_ref",
+        "status",
+        "input_summary",
+        "output_summary",
+        "failure_code",
+        "cost_summary",
+        "trace_id",
+        "audit_refs",
+        "started_at",
+        "completed_at"
+      ],
+      "boundary": "run records are future audited summaries; this slice does not create durable run storage or materialized result reads"
+    },
+    {
+      "id": "node-execution",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "node_execution_id",
+        "run_id",
+        "node_id",
+        "node_type",
+        "status",
+        "input_summary",
+        "output_summary",
+        "failure_code",
+        "started_at",
+        "completed_at"
+      ],
+      "allowed_node_types": [
+        "prompt",
+        "llm",
+        "http_tool",
+        "rag_retrieval",
+        "condition",
+        "output",
+        "code_sandbox",
+        "agent_loop"
+      ],
+      "boundary": "node execution metadata is future audit evidence; this slice does not execute prompt, LLM, HTTP, RAG, sandbox or agent nodes"
+    },
+    {
+      "id": "tool-audit",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "tool_audit_id",
+        "run_id",
+        "node_execution_id",
+        "tool_ref",
+        "requires_confirmation",
+        "confirmation_decision_ref",
+        "request_summary",
+        "response_summary",
+        "failure_code",
+        "audit_ref"
+      ],
+      "boundary": "tool audit records must be append-only and sanitized; this slice does not enable tool calling or business writeback"
+    },
+    {
+      "id": "result-materialization",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "materialization_id",
+        "run_id",
+        "output_summary_ref",
+        "artifact_refs",
+        "retention_policy_ref",
+        "sanitized_payload_ref",
+        "created_at"
+      ],
+      "boundary": "result materialization is future sanitized output storage; this slice does not expose a materialized result reader"
+    },
+    {
+      "id": "confirmation-decision",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "confirmation_id",
+        "run_id",
+        "node_execution_id",
+        "required_action_ref",
+        "decision",
+        "decided_by_subject_ref",
+        "decided_at",
+        "audit_ref"
+      ],
+      "allowed_decisions": [
+        "approved",
+        "denied",
+        "expired",
+        "cancelled"
+      ],
+      "boundary": "confirmation decisions are future audited inputs; this slice does not wire a confirmation flow or execute confirmed actions"
+    }
+  ],
+  "state_machine": {
+    "allowed_states": [
+      "created",
+      "queued",
+      "running",
+      "blocked_confirmation_required",
+      "succeeded",
+      "failed",
+      "cancelled"
+    ],
+    "terminal_states": [
+      "succeeded",
+      "failed",
+      "cancelled"
+    ],
+    "allowed_transitions": [
+      {
+        "from": "created",
+        "to": "queued",
+        "audit_event": "run_queued"
+      },
+      {
+        "from": "queued",
+        "to": "running",
+        "audit_event": "run_started"
+      },
+      {
+        "from": "running",
+        "to": "blocked_confirmation_required",
+        "audit_event": "confirmation_required"
+      },
+      {
+        "from": "blocked_confirmation_required",
+        "to": "running",
+        "audit_event": "confirmation_approved"
+      },
+      {
+        "from": "blocked_confirmation_required",
+        "to": "cancelled",
+        "audit_event": "confirmation_denied_or_expired"
+      },
+      {
+        "from": "running",
+        "to": "succeeded",
+        "audit_event": "run_succeeded"
+      },
+      {
+        "from": "running",
+        "to": "failed",
+        "audit_event": "run_failed"
+      }
+    ],
+    "forbidden_transitions": [
+      "created->running",
+      "created->succeeded",
+      "blocked_confirmation_required->succeeded",
+      "failed->running",
+      "succeeded->running",
+      "cancelled->running"
+    ],
+    "transition_policy": "every state transition must include audit_event, actor_ref where available, timestamp, trace_id and failure_code when status is failed"
+  },
+  "failure_taxonomy": [
+    "definition_invalid",
+    "input_validation_failed",
+    "policy_denied",
+    "confirmation_required",
+    "confirmation_denied",
+    "tool_not_available",
+    "tool_execution_blocked",
+    "provider_error",
+    "timeout",
+    "output_validation_failed",
+    "result_materialization_blocked",
+    "writeback_forbidden",
+    "replay_forbidden"
+  ],
+  "audit_evidence_policy": {
+    "required_refs": [
+      "trace_id",
+      "run_id",
+      "workflow_definition_id",
+      "node_execution_id",
+      "tool_audit_id",
+      "confirmation_decision_ref",
+      "cost_event_id",
+      "failure_code"
+    ],
+    "sanitization_required": true,
+    "forbidden_evidence": [
+      "raw_secret_value",
+      "raw_api_key",
+      "authorization_header",
+      "cookie_value",
+      "unsanitized_tool_payload",
+      "full_prompt_dump_with_secret",
+      "business_writeback_payload"
+    ]
+  },
+  "stop_lines": [
+    "no workflow builder",
+    "no workflow executor",
+    "no node executor",
+    "no tool calling",
+    "no confirmation flow wiring",
+    "no business writeback",
+    "no replay execution",
+    "no durable run database",
+    "no materialized result reader",
+    "no production readiness claim"
+  ],
+  "forbidden_current_scope": [
+    "workflow builder",
+    "workflow executor",
+    "node execution engine",
+    "HTTP tool execution",
+    "RAG retrieval execution",
+    "code sandbox execution",
+    "agent loop execution",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "durable run database",
+    "materialized result reader"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "scripts/checks/fixtures/product-surface-v1-boundary.json",
+    "scripts/checks/fixtures/control-plane-data-boundary.json",
+    "scripts/checks/fixtures/radish-oidc-client-preconditions.json",
+    "scripts/checks/fixtures/gateway-api-key-quota-readiness.json",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md"
+  ],
+  "required_consumers": [
+    "scripts/check-workflow-definition-run-record-boundary.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}
