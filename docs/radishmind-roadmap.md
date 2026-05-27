@@ -34,6 +34,8 @@
 
 当前实现仍处在平台基础能力阶段。已有本地 console 只覆盖 ops surface 和只读发现面，不代表正式用户端、生产管理端或完整 workflow builder 已完成。
 
+2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，先固定四个产品面的服务边界、数据边界、建议切片和停止线；该任务卡不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
+
 ## 五条主线
 
 ### 1. `Runtime Service / Model Gateway`
@@ -43,6 +45,8 @@
 状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary、provider/profile discoverability 对齐、request-level observability 与 error taxonomy 已补齐。`P1 Runtime Foundation` 已达到 short close；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，主要实现重心切到 `P2 Session & Tooling Foundation`。
 
 下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。`Provider Runtime & Health v1` 已把 provider capability、health smoke、selection policy、provider-retry-fallback-policy-v1 与 docs refresh 固定成可检查口径，进入 close candidate；后续不再默认扩 provider runtime 同层切片。模型网关继续推进时，应围绕 API key、quota、trace、cost、tenant binding、secret ref readiness 和真实 production secret backend 的前置条件拆任务。
+
+上述拆任务应优先沿 `Control Plane / User Workspace / Workflow v1` 任务卡推进，避免把模型网关、用户端和管理端混入当前本地 ops console。
 
 ### 2. `Conversation & Session`
 
@@ -174,18 +178,18 @@
 
 目标：形成正式用户端，让用户创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用和 RAG / 知识问答应用，并查看 API key、调用量、运行记录和成本。
 
-状态：未开始。当前 `apps/radishmind-console/` 只是本地 ops surface，不是用户端产品。
+状态：边界任务卡已开始。当前 `apps/radishmind-console/` 只是本地 ops surface，不是用户端产品；`Control Plane / User Workspace / Workflow v1` 任务卡只定义用户工作区和 workflow builder 的资源边界、运行记录和停止线，不实现正式用户端或 executor。
 
 ### `P7`：Admin Control Plane & Radish Auth Integration
 
 目标：形成正式管理端，管理租户、用户、角色、权限、provider/profile、模型路由、quota、price、secret、审计和部署状态，并作为 OIDC client 接入 `Radish`。
 
-状态：未开始。当前只保留 Radish 对齐方向，不实现账号系统、不接真实 OIDC、不声明 production ready。默认技术栈为 Go control plane + Go gateway + Python model/eval/worker + TypeScript/Vite frontend，不新增 `.NET` 作为默认后端语言。
+状态：边界任务卡已开始。当前只保留 Radish 对齐方向，不实现账号系统、不接真实 OIDC、不声明 production ready。默认技术栈为 Go control plane + Go gateway + Python model/eval/worker + TypeScript/Vite frontend，不新增 `.NET` 作为默认后端语言；任务卡只固定 OIDC client、tenant、quota、API key、secret ref、audit 和 deployment status 的前置边界。
 
 ## 下一步
 
 1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
-2. 将正式产品口径调整为 `User Workspace + Admin Control Plane + Model Gateway / API Distribution + Workflow / Agent Runtime`，并保持当前实现阶段说明：本地 console 只是 ops surface，不等同于正式用户端或生产管理端。
+2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界，先固定正式用户端、管理端、模型网关和 workflow runtime 的服务 / 数据边界，不直接实现 OIDC、数据库、API key / quota、workflow executor 或 production console。
 3. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
 4. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 5. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。

@@ -12,6 +12,8 @@
 - 平台视角：看五条主线怎么协同
 - 请求视角：看单次 `CopilotRequest -> CopilotResponse` 是怎么流动的
 
+2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，只固定四个产品面的服务边界、数据边界和停止线；不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
+
 ## 产品视角
 
 ### 1. `User Workspace`

@@ -46,6 +46,10 @@
 19. [`P2 Session & Tooling` short close entry checklist](session-tooling-short-close-entry-checklist.md)
 20. [`P2 Session & Tooling` upper-layer confirmation flow readiness](session-tooling-upper-layer-confirmation-flow-readiness.md)
 
+## Product Platform
+
+1. [`Control Plane / User Workspace / Workflow` v1 计划](control-plane-user-workspace-workflow-v1-plan.md)
+
 ## UI 设计专题
 
 1. [`UI Design Topic` ops surface 设计到实现计划](ui-design-ops-surface-implementation-plan.md)
