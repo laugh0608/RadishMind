@@ -1074,6 +1074,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-provider-runtime-docs-refresh.py", [])
     run_python_script("check-product-surface-v1-boundary.py", [])
     run_python_script("check-control-plane-data-boundary.py", [])
+    run_python_script("check-radish-oidc-client-preconditions.py", [])
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])

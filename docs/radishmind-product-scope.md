@@ -24,7 +24,7 @@
 
 长期产品形态按四个一级面组织：
 
-2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，用于固定四个产品面的 v1 服务边界、数据边界和停止线；`product-surface-v1-boundary` 已进一步把 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution` 和 `Workflow / Agent Runtime` 的资源、读模型和写边界写入可检查 fixture；`control-plane-data-boundary` 已固定 tenant、user、role、permission、provider profile、model route、quota、price、audit、secret ref 与 deployment status 的 ownership。它不代表正式用户端、生产管理端、workflow executor、API key / quota 或 Radish OIDC 已实现。
+2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，用于固定四个产品面的 v1 服务边界、数据边界和停止线；`product-surface-v1-boundary` 已进一步把 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution` 和 `Workflow / Agent Runtime` 的资源、读模型和写边界写入可检查 fixture；`control-plane-data-boundary` 已固定 tenant、user、role、permission、provider profile、model route、quota、price、audit、secret ref 与 deployment status 的 ownership；`radish-oidc-client-preconditions` 已固定 issuer、client、claim mapping、tenant binding、logout、audit 和 failure taxonomy。它不代表正式用户端、生产管理端、workflow executor、API key / quota 或 Radish OIDC 已实现。
 
 1. `User Workspace`
 

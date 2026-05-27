@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "kind": "radish_oidc_client_preconditions",
+  "slice": {
+    "id": "radish-oidc-client-preconditions",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "radish_oidc_client_ready",
+      "login_flow_ready",
+      "logout_flow_ready",
+      "token_validation_ready",
+      "client_secret_configured",
+      "session_cookie_ready",
+      "tenant_auth_ready",
+      "permission_enforcement_ready",
+      "production_auth_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "product-surface-v1-boundary",
+    "control-plane-data-boundary"
+  ],
+  "preconditions": [
+    {
+      "id": "issuer-discovery",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "issuer_url",
+        "discovery_document_url",
+        "jwks_uri",
+        "supported_scopes",
+        "supported_response_types",
+        "supported_signing_algorithms"
+      ],
+      "boundary": "Radish issuer metadata must be discovered and pinned before token validation; this slice does not call the issuer"
+    },
+    {
+      "id": "client-registration",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "client_id",
+        "redirect_uris",
+        "post_logout_redirect_uris",
+        "allowed_origins",
+        "pkce_required",
+        "client_secret_ref"
+      ],
+      "boundary": "client_secret_ref may be referenced, but no client secret value is committed or resolved"
+    },
+    {
+      "id": "claim-mapping",
+      "status": "defined_not_implemented",
+      "required_claims": [
+        "sub",
+        "email",
+        "preferred_username",
+        "tenant_id",
+        "roles",
+        "permissions"
+      ],
+      "boundary": "Radish remains identity truth; RadishMind maps claims into future tenant/user/session metadata only"
+    },
+    {
+      "id": "tenant-binding",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "tenant_id_claim",
+        "tenant_membership_source",
+        "default_tenant_policy",
+        "missing_tenant_policy",
+        "cross_tenant_denial"
+      ],
+      "boundary": "tenant binding must fail closed when claim, membership or mapping is missing"
+    },
+    {
+      "id": "session-boundary",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "session_id",
+        "subject_ref",
+        "tenant_ref",
+        "claim_snapshot_ref",
+        "expires_at",
+        "revocation_state"
+      ],
+      "boundary": "future session metadata may store references and sanitized claim snapshots, not raw tokens"
+    },
+    {
+      "id": "logout-and-revocation",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "front_channel_logout",
+        "back_channel_logout",
+        "post_logout_redirect",
+        "token_revocation_signal",
+        "session_invalidation"
+      ],
+      "boundary": "logout and revocation are future requirements; this slice does not implement browser redirects or token calls"
+    },
+    {
+      "id": "audit-events",
+      "status": "defined_not_implemented",
+      "required_events": [
+        "oidc_login_started",
+        "oidc_login_succeeded",
+        "oidc_login_failed",
+        "oidc_logout_started",
+        "oidc_logout_succeeded",
+        "oidc_logout_failed",
+        "oidc_claim_mapping_failed",
+        "oidc_tenant_binding_denied"
+      ],
+      "boundary": "audit payloads must be sanitized and must not contain raw tokens, client secrets or authorization headers"
+    },
+    {
+      "id": "failure-taxonomy",
+      "status": "defined_not_implemented",
+      "required_failures": [
+        "issuer_unavailable",
+        "issuer_metadata_invalid",
+        "jwks_unavailable",
+        "token_signature_invalid",
+        "token_expired",
+        "required_claim_missing",
+        "tenant_binding_missing",
+        "tenant_binding_denied",
+        "permission_claim_denied",
+        "logout_failed"
+      ],
+      "boundary": "authorization and tenant failures must fail closed and must not fallback to local admin access"
+    }
+  ],
+  "forbidden_current_scope": [
+    "network call to Radish issuer",
+    "OIDC middleware implementation",
+    "token validation implementation",
+    "login redirect route",
+    "logout route",
+    "session cookie implementation",
+    "client secret storage",
+    "tenant permission enforcement",
+    "production auth policy",
+    "production admin console"
+  ],
+  "sanitization_policy": {
+    "allowed_outputs": [
+      "issuer_configured",
+      "client_id_present",
+      "client_secret_ref_present",
+      "claim_mapping_status",
+      "tenant_binding_status",
+      "auth_failure_code",
+      "audit_event_id"
+    ],
+    "forbidden_outputs": [
+      "id_token",
+      "access_token",
+      "refresh_token",
+      "client_secret",
+      "authorization_header",
+      "cookie_value",
+      "jwks_raw_dump"
+    ]
+  },
+  "required_next_slices": [
+    "gateway-api-key-quota-readiness",
+    "workflow-definition-run-record-boundary"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "scripts/checks/fixtures/product-surface-v1-boundary.json",
+    "scripts/checks/fixtures/control-plane-data-boundary.json",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md"
+  ],
+  "required_consumers": [
+    "scripts/check-radish-oidc-client-preconditions.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}
