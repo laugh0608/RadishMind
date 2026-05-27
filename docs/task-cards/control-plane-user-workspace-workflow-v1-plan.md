@@ -87,6 +87,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 2. `control-plane-data-boundary`
    - 明确 tenant、user、role、permission、provider profile、model route、quota、price、audit、secret ref、deployment status 的 ownership。
    - 不创建数据库迁移。
+   - 当前已落地：`scripts/checks/fixtures/control-plane-data-boundary.json` 与 `scripts/check-control-plane-data-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定 ownership、read surface、write boundary、blocked_until 和 shared policy，不创建数据库 schema 或 migration，不实现 control plane API、Radish OIDC、tenant / user CRUD、quota enforcement、billing、secret resolver、workflow executor 或 production admin console。
 3. `radish-oidc-client-preconditions`
    - 固定未来接入 `Radish` Auth 前必须具备的 issuer、client、claim mapping、tenant binding、logout、audit 和 failure taxonomy。
    - 不接真实 OIDC。
@@ -101,6 +102,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 
 - 有任务卡固定正式产品面的 v1 边界、输入事实源、建议切片、非目标和停止线。
 - `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py` 已进入 `check-repo --fast`。
+- `control-plane-data-boundary.json` 与 `check-control-plane-data-boundary.py` 已进入 `check-repo --fast`。
 - 当前焦点、路线图、能力矩阵、任务卡入口和周志同步说明：下一条平台主线是先固定 control plane / user workspace / workflow v1 边界。
 - 文档继续明确本地 ops console 不等同于正式用户端或生产管理端。
 - 文档继续明确 `Provider Runtime & Health v1`、`Production Ops Hardening v1`、P2 / P3 / UI / P4 都不再默认扩同层小切片。
