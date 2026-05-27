@@ -95,6 +95,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 4. `gateway-api-key-quota-readiness`
    - 定义 API key、quota、rate limit、cost ledger 和 trace 的契约前置条件。
    - 不发放真实 API key。
+   - 当前已落地：`scripts/checks/fixtures/gateway-api-key-quota-readiness.json` 与 `scripts/check-gateway-api-key-quota-readiness.py`，状态为 `governance_boundary_satisfied`；该切片只固定 API key lifecycle、tenant binding、scope policy、quota policy、rate limit policy、cost ledger、trace record 和 failure taxonomy，不生成、哈希、存储或验证真实 API key，不实现 quota enforcement、rate limiting、billing ledger、cost calculation、durable trace store 或 production gateway auth。
 5. `workflow-definition-run-record-boundary`
    - 定义 workflow definition、run record、node execution、tool audit、result materialization 和 confirmation decision 的最小关系。
    - 不实现 executor。
@@ -105,6 +106,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 - `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py` 已进入 `check-repo --fast`。
 - `control-plane-data-boundary.json` 与 `check-control-plane-data-boundary.py` 已进入 `check-repo --fast`。
 - `radish-oidc-client-preconditions.json` 与 `check-radish-oidc-client-preconditions.py` 已进入 `check-repo --fast`。
+- `gateway-api-key-quota-readiness.json` 与 `check-gateway-api-key-quota-readiness.py` 已进入 `check-repo --fast`。
 - 当前焦点、路线图、能力矩阵、任务卡入口和周志同步说明：下一条平台主线是先固定 control plane / user workspace / workflow v1 边界。
 - 文档继续明确本地 ops console 不等同于正式用户端或生产管理端。
 - 文档继续明确 `Provider Runtime & Health v1`、`Production Ops Hardening v1`、P2 / P3 / UI / P4 都不再默认扩同层小切片。

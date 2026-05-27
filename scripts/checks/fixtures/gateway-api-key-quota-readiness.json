@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "kind": "gateway_api_key_quota_readiness",
+  "slice": {
+    "id": "gateway-api-key-quota-readiness",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "api_key_lifecycle_ready",
+      "api_key_issuance_ready",
+      "api_key_storage_ready",
+      "quota_enforcement_ready",
+      "rate_limit_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "tenant_binding_enforced",
+      "production_gateway_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "product-surface-v1-boundary",
+    "control-plane-data-boundary",
+    "radish-oidc-client-preconditions"
+  ],
+  "readiness_domains": [
+    {
+      "id": "api-key-lifecycle",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "api_key_id",
+        "tenant_ref",
+        "owner_subject_ref",
+        "scopes",
+        "created_at",
+        "expires_at",
+        "revocation_state",
+        "last_used_at",
+        "credential_hash_ref"
+      ],
+      "boundary": "future API key lifecycle may store identifiers, hashes and metadata; this slice does not issue, hash, store or validate real keys"
+    },
+    {
+      "id": "tenant-binding",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "tenant_ref",
+        "api_key_id",
+        "subject_ref",
+        "allowed_project_refs",
+        "allowed_application_refs",
+        "cross_tenant_denial"
+      ],
+      "boundary": "tenant binding must fail closed when key ownership, subject, project or application mapping is missing"
+    },
+    {
+      "id": "scope-policy",
+      "status": "defined_not_implemented",
+      "required_scopes": [
+        "models:read",
+        "chat:invoke",
+        "responses:invoke",
+        "messages:invoke",
+        "usage:read",
+        "runs:read"
+      ],
+      "boundary": "scopes are future authorization inputs; this slice does not enforce scopes"
+    },
+    {
+      "id": "quota-policy",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "quota_id",
+        "tenant_ref",
+        "period",
+        "request_limit",
+        "token_limit",
+        "cost_limit",
+        "reset_policy",
+        "over_quota_failure_code"
+      ],
+      "boundary": "quota policy must be explicit and auditable; this slice does not enforce request, token or cost limits"
+    },
+    {
+      "id": "rate-limit-policy",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "rate_limit_id",
+        "tenant_ref",
+        "api_key_id",
+        "route",
+        "burst_limit",
+        "sustained_limit",
+        "window_seconds",
+        "throttle_failure_code"
+      ],
+      "boundary": "rate limits are future gateway policy inputs; this slice does not throttle requests"
+    },
+    {
+      "id": "cost-ledger",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "cost_event_id",
+        "tenant_ref",
+        "api_key_id",
+        "provider_profile",
+        "model_route",
+        "input_tokens",
+        "output_tokens",
+        "estimated_cost",
+        "currency",
+        "recorded_at"
+      ],
+      "boundary": "cost ledger records are future append-only summaries; this slice does not calculate bills or charge users"
+    },
+    {
+      "id": "trace-record",
+      "status": "defined_not_implemented",
+      "required_fields": [
+        "trace_id",
+        "request_id",
+        "tenant_ref",
+        "api_key_id",
+        "route",
+        "provider_profile",
+        "model_route",
+        "latency_ms",
+        "status",
+        "failure_code"
+      ],
+      "boundary": "trace records may reference request metadata and failure codes; this slice does not create durable trace storage"
+    },
+    {
+      "id": "failure-taxonomy",
+      "status": "defined_not_implemented",
+      "required_failures": [
+        "api_key_missing",
+        "api_key_invalid",
+        "api_key_revoked",
+        "api_key_expired",
+        "tenant_binding_missing",
+        "tenant_binding_denied",
+        "scope_denied",
+        "quota_exceeded",
+        "rate_limited",
+        "cost_limit_exceeded"
+      ],
+      "boundary": "auth, tenant, scope, quota and rate limit failures must fail closed and must not fallback to mock provider or anonymous access"
+    }
+  ],
+  "forbidden_current_scope": [
+    "API key generation",
+    "API key hashing",
+    "API key database storage",
+    "API key validation middleware",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "cost calculation",
+    "durable trace store",
+    "production gateway auth"
+  ],
+  "sanitization_policy": {
+    "allowed_outputs": [
+      "api_key_id",
+      "api_key_state",
+      "tenant_binding_status",
+      "scope_check_status",
+      "quota_policy_id",
+      "rate_limit_policy_id",
+      "cost_event_id",
+      "trace_id",
+      "failure_code"
+    ],
+    "forbidden_outputs": [
+      "api_key_value",
+      "api_key_hash",
+      "authorization_header",
+      "bearer_token",
+      "cookie_value",
+      "raw_request_body_dump",
+      "raw_provider_credential"
+    ]
+  },
+  "required_next_slices": [
+    "workflow-definition-run-record-boundary"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "scripts/checks/fixtures/product-surface-v1-boundary.json",
+    "scripts/checks/fixtures/control-plane-data-boundary.json",
+    "scripts/checks/fixtures/radish-oidc-client-preconditions.json",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md"
+  ],
+  "required_consumers": [
+    "scripts/check-gateway-api-key-quota-readiness.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}
