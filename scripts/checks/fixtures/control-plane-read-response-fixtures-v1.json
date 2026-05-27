@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_response_fixtures_v1",
+  "slice": {
+    "id": "control-plane-read-response-fixtures-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "control_plane_api_ready",
+      "go_handler_ready",
+      "typescript_consumer_ready",
+      "database_query_ready",
+      "radish_oidc_client_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-model-v1",
+    "control-plane-read-route-contract-v1"
+  ],
+  "response_envelope_fields": [
+    "request_id",
+    "tenant_ref",
+    "items",
+    "next_cursor",
+    "failure_code",
+    "audit_ref"
+  ],
+  "response_examples": [
+    {
+      "route_id": "tenant-summary-route",
+      "read_model": "tenant-summary",
+      "success": {
+        "request_id": "req_cp_tenant_summary_001",
+        "tenant_ref": "tenant_demo",
+        "items": [
+          {
+            "tenant_ref": "tenant_demo",
+            "tenant_display_name": "Demo Tenant",
+            "tenant_state": "active",
+            "plan_ref": "plan_dev",
+            "quota_summary_ref": "quota_demo_current",
+            "deployment_status_ref": "deployment_local_boundary",
+            "audit_summary_ref": "audit_tenant_demo_latest"
+          }
+        ],
+        "next_cursor": null,
+        "failure_code": null,
+        "audit_ref": "audit_read_tenant_summary_001"
+      },
+      "failure": {
+        "request_id": "req_cp_tenant_summary_fail_001",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "scope_denied",
+        "audit_ref": "audit_read_tenant_summary_denied_001"
+      }
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "read_model": "application-summary",
+      "success": {
+        "request_id": "req_workspace_apps_001",
+        "tenant_ref": "tenant_demo",
+        "items": [
+          {
+            "application_ref": "app_demo_workflow",
+            "tenant_ref": "tenant_demo",
+            "application_kind": "workflow",
+            "display_name": "Demo workflow",
+            "owner_subject_ref": "subject_demo_user",
+            "latest_workflow_definition_ref": "wf_demo_v1",
+            "last_run_status": "succeeded",
+            "updated_at": "2026-05-27T00:00:00Z"
+          }
+        ],
+        "next_cursor": "cursor_apps_next",
+        "failure_code": null,
+        "audit_ref": "audit_read_applications_001"
+      },
+      "failure": {
+        "request_id": "req_workspace_apps_fail_001",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "invalid_filter",
+        "audit_ref": "audit_read_applications_invalid_filter_001"
+      }
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "read_model": "api-key-summary",
+      "success": {
+        "request_id": "req_workspace_api_keys_001",
+        "tenant_ref": "tenant_demo",
+        "items": [
+          {
+            "api_key_id": "ak_demo_001",
+            "tenant_ref": "tenant_demo",
+            "owner_subject_ref": "subject_demo_user",
+            "scopes": [
+              "models:read",
+              "chat:invoke",
+              "usage:read"
+            ],
+            "state": "active",
+            "created_at": "2026-05-27T00:00:00Z",
+            "expires_at": "2026-06-27T00:00:00Z",
+            "last_used_at": null
+          }
+        ],
+        "next_cursor": null,
+        "failure_code": null,
+        "audit_ref": "audit_read_api_keys_001"
+      },
+      "failure": {
+        "request_id": "req_workspace_api_keys_fail_001",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "scope_denied",
+        "audit_ref": "audit_read_api_keys_denied_001"
+      }
+    },
+    {
+      "route_id": "quota-summary-route",
+      "read_model": "quota-summary",
+      "success": {
+        "request_id": "req_workspace_quota_001",
+        "tenant_ref": "tenant_demo",
+        "items": [
+          {
+            "quota_id": "quota_demo_current",
+            "tenant_ref": "tenant_demo",
+            "period": "monthly",
+            "request_limit": 10000,
+            "token_limit": 1000000,
+            "cost_limit": 100,
+            "usage_snapshot": {
+              "request_count": 12,
+              "token_count": 3456,
+              "estimated_cost": 0.42
+            },
+            "over_quota_failure_code": "quota_exceeded"
+          }
+        ],
+        "next_cursor": null,
+        "failure_code": null,
+        "audit_ref": "audit_read_quota_001"
+      },
+      "failure": {
+        "request_id": "req_workspace_quota_fail_001",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "quota_policy_missing",
+        "audit_ref": "audit_read_quota_missing_001"
+      }
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "read_model": "workflow-definition-summary",
+      "success": {
+        "request_id": "req_workspace_workflows_001",
+        "tenant_ref": "tenant_demo",
+        "items": [
+          {
+            "workflow_definition_id": "wf_demo_v1",
+            "tenant_ref": "tenant_demo",
+            "application_ref": "app_demo_workflow",
+            "version": 1,
+            "definition_status": "draft",
+            "node_count": 4,
+            "risk_level": "medium",
+            "requires_confirmation_capable": true,
+            "updated_at": "2026-05-27T00:00:00Z"
+          }
+        ],
+        "next_cursor": "cursor_workflows_next",
+        "failure_code": null,
+        "audit_ref": "audit_read_workflows_001"
+      },
+      "failure": {
+        "request_id": "req_workspace_workflows_fail_001",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "tenant_binding_missing",
+        "audit_ref": "audit_read_workflows_no_tenant_001"
+      }
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "read_model": "run-record-summary",
+      "success": {
+        "request_id": "req_workspace_runs_001",
+        "tenant_ref": "tenant_demo",
+        "items": [
+          {
+            "run_id": "run_demo_001",
+            "tenant_ref": "tenant_demo",
+            "workflow_definition_id": "wf_demo_v1",
+            "application_ref": "app_demo_workflow",
+            "status": "succeeded",
+            "failure_code": null,
+            "cost_summary": {
+              "estimated_cost": 0.08,
+              "currency": "USD"
+            },
+            "trace_id": "trace_demo_run_001",
+            "started_at": "2026-05-27T00:00:00Z",
+            "completed_at": "2026-05-27T00:00:02Z"
+          }
+        ],
+        "next_cursor": "cursor_runs_next",
+        "failure_code": null,
+        "audit_ref": "audit_read_runs_001"
+      },
+      "failure": {
+        "request_id": "req_workspace_runs_fail_001",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "scope_denied",
+        "audit_ref": "audit_read_runs_denied_001"
+      }
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "read_model": "audit-summary",
+      "success": {
+        "request_id": "req_control_plane_audit_001",
+        "tenant_ref": "tenant_demo",
+        "items": [
+          {
+            "audit_ref": "audit_read_runs_001",
+            "tenant_ref": "tenant_demo",
+            "actor_subject_ref": "subject_demo_admin",
+            "event_kind": "read_model_accessed",
+            "resource_ref": "run_demo_001",
+            "decision": "allowed",
+            "failure_code": null,
+            "trace_id": "trace_demo_run_001",
+            "recorded_at": "2026-05-27T00:00:03Z"
+          }
+        ],
+        "next_cursor": "cursor_audit_next",
+        "failure_code": null,
+        "audit_ref": "audit_read_audit_001"
+      },
+      "failure": {
+        "request_id": "req_control_plane_audit_fail_001",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "scope_denied",
+        "audit_ref": "audit_read_audit_denied_001"
+      }
+    }
+  ],
+  "forbidden_output_keys": [
+    "raw_secret_value",
+    "api_key_value",
+    "api_key_hash",
+    "authorization_header",
+    "bearer_token",
+    "cookie_value",
+    "raw_request_body_dump",
+    "raw_tool_payload",
+    "business_writeback_payload",
+    "full_prompt_dump_with_secret"
+  ],
+  "forbidden_current_scope": [
+    "Go route handler",
+    "TypeScript consumer contract",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "Radish OIDC integration",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console",
+    "user workspace UI"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-response-fixtures-v1-plan.md",
+    "docs/task-cards/control-plane-read-route-contract-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-model-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/check-control-plane-read-response-fixtures-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-response-fixtures-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}
