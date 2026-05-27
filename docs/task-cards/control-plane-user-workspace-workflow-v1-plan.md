@@ -101,6 +101,8 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
    - 不实现 executor。
    - 当前已落地：`scripts/checks/fixtures/workflow-definition-run-record-boundary.json` 与 `scripts/check-workflow-definition-run-record-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线，不实现 workflow builder、workflow executor、node executor、tool calling、confirmation flow、business writeback、replay、durable run database 或 materialized result reader。
 
+后续只读前置切片已沿本任务卡继续补齐：`control-plane-read-model-v1`、`control-plane-read-route-contract-v1`、`control-plane-read-response-fixtures-v1` 与 `control-plane-read-negative-contract-v1` 分别固定只读 read model、read-only route contract、response fixture 和 negative contract，仍不实现 API、数据库、executor、confirmation、writeback 或 replay。
+
 ## 验收口径
 
 - 有任务卡固定正式产品面的 v1 边界、输入事实源、建议切片、非目标和停止线。
@@ -109,6 +111,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 - `radish-oidc-client-preconditions.json` 与 `check-radish-oidc-client-preconditions.py` 已进入 `check-repo --fast`。
 - `gateway-api-key-quota-readiness.json` 与 `check-gateway-api-key-quota-readiness.py` 已进入 `check-repo --fast`。
 - `workflow-definition-run-record-boundary.json` 与 `check-workflow-definition-run-record-boundary.py` 已进入 `check-repo --fast`。
+- `control-plane-read-model-v1.json`、`control-plane-read-route-contract-v1.json`、`control-plane-read-response-fixtures-v1.json`、`control-plane-read-negative-contract-v1.json` 和对应 checker 已进入 `check-repo --fast`。
 - 当前焦点、路线图、能力矩阵、任务卡入口和周志同步说明：下一条平台主线是先固定 control plane / user workspace / workflow v1 边界。
 - 文档继续明确本地 ops console 不等同于正式用户端或生产管理端。
 - 文档继续明确 `Provider Runtime & Health v1`、`Production Ops Hardening v1`、P2 / P3 / UI / P4 都不再默认扩同层小切片。

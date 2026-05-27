@@ -1,0 +1,456 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_negative_contract_v1",
+  "slice": {
+    "id": "control-plane-read-negative-contract-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "control_plane_api_ready",
+      "go_handler_ready",
+      "typescript_consumer_ready",
+      "database_query_ready",
+      "radish_oidc_client_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-model-v1",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-response-fixtures-v1"
+  ],
+  "response_envelope_fields": [
+    "request_id",
+    "tenant_ref",
+    "items",
+    "next_cursor",
+    "failure_code",
+    "audit_ref"
+  ],
+  "required_denial_invariants": [
+    "fail_closed",
+    "no_items_returned",
+    "audit_ref_required",
+    "no_executor_invocation",
+    "no_database_write",
+    "no_business_writeback",
+    "no_confirmation_decision",
+    "no_replay"
+  ],
+  "route_negative_cases": [
+    {
+      "id": "tenant-summary-missing-identity",
+      "route_id": "tenant-summary-route",
+      "scenario": "missing_identity_context",
+      "denied_request": {
+        "method": "GET",
+        "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+        "identity_context": null,
+        "tenant_ref": "tenant_demo",
+        "requested_scope": "tenant:read"
+      },
+      "expected_response": {
+        "request_id": "req_negative_tenant_summary_missing_identity",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "identity_context_missing",
+        "audit_ref": "audit_negative_tenant_summary_missing_identity"
+      },
+      "expected_invariants": [
+        "fail_closed",
+        "no_items_returned",
+        "audit_ref_required",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "application-summary-cross-tenant",
+      "route_id": "application-summary-list-route",
+      "scenario": "cross_tenant_read_attempt",
+      "denied_request": {
+        "method": "GET",
+        "path": "/v1/user-workspace/applications",
+        "identity_context": "subject_demo_user",
+        "tenant_ref": "tenant_other",
+        "bound_tenant_ref": "tenant_demo",
+        "requested_scope": "applications:read"
+      },
+      "expected_response": {
+        "request_id": "req_negative_applications_cross_tenant",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "tenant_binding_missing",
+        "audit_ref": "audit_negative_applications_cross_tenant"
+      },
+      "expected_invariants": [
+        "fail_closed",
+        "no_items_returned",
+        "audit_ref_required",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "api-key-summary-scope-denied",
+      "route_id": "api-key-summary-list-route",
+      "scenario": "scope_denied_for_api_key_summary",
+      "denied_request": {
+        "method": "GET",
+        "path": "/v1/user-workspace/api-keys",
+        "identity_context": "subject_demo_user",
+        "tenant_ref": "tenant_demo",
+        "requested_scope": "api_keys:read",
+        "granted_scopes": [
+          "usage:read"
+        ]
+      },
+      "expected_response": {
+        "request_id": "req_negative_api_keys_scope_denied",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "scope_denied",
+        "audit_ref": "audit_negative_api_keys_scope_denied"
+      },
+      "expected_invariants": [
+        "fail_closed",
+        "no_items_returned",
+        "audit_ref_required",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "quota-summary-policy-missing",
+      "route_id": "quota-summary-route",
+      "scenario": "quota_policy_missing",
+      "denied_request": {
+        "method": "GET",
+        "path": "/v1/user-workspace/usage/quota-summary",
+        "identity_context": "subject_demo_user",
+        "tenant_ref": "tenant_demo",
+        "requested_scope": "usage:read",
+        "quota_policy_ref": null
+      },
+      "expected_response": {
+        "request_id": "req_negative_quota_policy_missing",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "quota_policy_missing",
+        "audit_ref": "audit_negative_quota_policy_missing"
+      },
+      "expected_invariants": [
+        "fail_closed",
+        "no_items_returned",
+        "audit_ref_required",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "workflow-definition-invalid-filter",
+      "route_id": "workflow-definition-summary-list-route",
+      "scenario": "invalid_filter_requests_executor_state",
+      "denied_request": {
+        "method": "GET",
+        "path": "/v1/user-workspace/workflow-definitions",
+        "identity_context": "subject_demo_user",
+        "tenant_ref": "tenant_demo",
+        "requested_scope": "applications:read",
+        "filters": {
+          "executor_state": "running"
+        }
+      },
+      "expected_response": {
+        "request_id": "req_negative_workflow_definitions_invalid_filter",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "invalid_filter",
+        "audit_ref": "audit_negative_workflow_definitions_invalid_filter"
+      },
+      "expected_invariants": [
+        "fail_closed",
+        "no_items_returned",
+        "audit_ref_required",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "run-record-invalid-filter",
+      "route_id": "run-record-summary-list-route",
+      "scenario": "invalid_filter_requests_raw_payload",
+      "denied_request": {
+        "method": "GET",
+        "path": "/v1/user-workspace/runs",
+        "identity_context": "subject_demo_user",
+        "tenant_ref": "tenant_demo",
+        "requested_scope": "runs:read",
+        "filters": {
+          "raw_tool_payload": "include"
+        }
+      },
+      "expected_response": {
+        "request_id": "req_negative_runs_invalid_filter",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "invalid_filter",
+        "audit_ref": "audit_negative_runs_invalid_filter"
+      },
+      "expected_invariants": [
+        "fail_closed",
+        "no_items_returned",
+        "audit_ref_required",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "audit-summary-scope-denied",
+      "route_id": "audit-summary-list-route",
+      "scenario": "scope_denied_for_audit_summary",
+      "denied_request": {
+        "method": "GET",
+        "path": "/v1/control-plane/audit",
+        "identity_context": "subject_demo_user",
+        "tenant_ref": "tenant_demo",
+        "requested_scope": "audit:read",
+        "granted_scopes": [
+          "runs:read",
+          "applications:read"
+        ]
+      },
+      "expected_response": {
+        "request_id": "req_negative_audit_scope_denied",
+        "tenant_ref": "tenant_demo",
+        "items": [],
+        "next_cursor": null,
+        "failure_code": "scope_denied",
+        "audit_ref": "audit_negative_audit_scope_denied"
+      },
+      "expected_invariants": [
+        "fail_closed",
+        "no_items_returned",
+        "audit_ref_required",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    }
+  ],
+  "shared_negative_cases": [
+    {
+      "id": "mutation-methods-denied-before-route-handler",
+      "case_type": "forbidden_method",
+      "route_ids": [
+        "tenant-summary-route",
+        "application-summary-list-route",
+        "api-key-summary-list-route",
+        "quota-summary-route",
+        "workflow-definition-summary-list-route",
+        "run-record-summary-list-route",
+        "audit-summary-list-route"
+      ],
+      "methods": [
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ],
+      "expected_handling": "blocked_by_read_only_route_contract",
+      "expected_side_effects": "none",
+      "expected_invariants": [
+        "fail_closed",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "write-query-parameters-denied",
+      "case_type": "forbidden_query_parameters",
+      "route_ids": [
+        "application-summary-list-route",
+        "workflow-definition-summary-list-route",
+        "run-record-summary-list-route"
+      ],
+      "query_parameters": [
+        "execute",
+        "replay",
+        "confirmation_decision_ref",
+        "writeback_payload",
+        "raw_tool_payload",
+        "include_secret"
+      ],
+      "expected_handling": "blocked_by_read_negative_contract",
+      "expected_side_effects": "none",
+      "expected_invariants": [
+        "fail_closed",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "sensitive-output-projection-denied",
+      "case_type": "forbidden_sensitive_projection",
+      "route_ids": [
+        "tenant-summary-route",
+        "api-key-summary-list-route",
+        "quota-summary-route",
+        "run-record-summary-list-route",
+        "audit-summary-list-route"
+      ],
+      "requested_output_keys": [
+        "raw_secret_value",
+        "api_key_value",
+        "api_key_hash",
+        "authorization_header",
+        "bearer_token",
+        "cookie_value",
+        "raw_request_body_dump",
+        "raw_tool_payload",
+        "business_writeback_payload",
+        "full_prompt_dump_with_secret"
+      ],
+      "expected_handling": "blocked_by_sanitization_policy",
+      "expected_side_effects": "none",
+      "expected_invariants": [
+        "fail_closed",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "forbidden-fallbacks-denied",
+      "case_type": "forbidden_fallbacks",
+      "route_ids": [
+        "tenant-summary-route",
+        "application-summary-list-route",
+        "api-key-summary-list-route",
+        "quota-summary-route",
+        "workflow-definition-summary-list-route",
+        "run-record-summary-list-route",
+        "audit-summary-list-route"
+      ],
+      "requested_fallbacks": [
+        "anonymous_read",
+        "cross_tenant_read",
+        "mock_provider_fallback",
+        "ops_console_elevation"
+      ],
+      "expected_handling": "blocked_by_fail_closed_policy",
+      "expected_side_effects": "none",
+      "expected_invariants": [
+        "fail_closed",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    },
+    {
+      "id": "execution-capability-request-denied",
+      "case_type": "forbidden_execution_capability",
+      "route_ids": [
+        "workflow-definition-summary-list-route",
+        "run-record-summary-list-route"
+      ],
+      "requested_capabilities": [
+        "workflow_execute",
+        "tool_execute",
+        "confirmation_decision",
+        "business_writeback",
+        "replay"
+      ],
+      "expected_handling": "blocked_by_workflow_stop_line",
+      "expected_side_effects": "none",
+      "expected_invariants": [
+        "fail_closed",
+        "no_executor_invocation",
+        "no_database_write",
+        "no_business_writeback",
+        "no_confirmation_decision",
+        "no_replay"
+      ]
+    }
+  ],
+  "forbidden_current_scope": [
+    "Go route handler",
+    "TypeScript consumer contract",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "Radish OIDC integration",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console",
+    "user workspace UI"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-negative-contract-v1-plan.md",
+    "docs/task-cards/control-plane-read-route-contract-v1-plan.md",
+    "docs/task-cards/control-plane-read-response-fixtures-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/check-control-plane-read-negative-contract-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-negative-contract-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

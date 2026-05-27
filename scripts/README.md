@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-05-25
+更新时间：2026-05-27
 
 ## 目录目标
 
@@ -32,6 +32,7 @@
   - 当前还提供 `check-control-plane-read-model-v1.py`，用于校验 `scripts/checks/fixtures/control-plane-read-model-v1.json` 固定的 control-plane-read-model-v1：tenant summary、application summary、API key summary、quota summary、workflow definition summary、run record summary 和 audit summary 的只读 read model、访问策略、脱敏策略和停止线已进入 fast baseline；该检查不实现 control plane API route、数据库 schema / query、Radish OIDC、API key lifecycle、quota enforcement、workflow executor、production admin console 或 user workspace UI
   - 当前还提供 `check-control-plane-read-route-contract-v1.py`，用于校验 `scripts/checks/fixtures/control-plane-read-route-contract-v1.json` 固定的 control-plane-read-route-contract-v1：七类 read-only route contract、tenant-scoped 访问策略、分页 / 过滤、失败分类、脱敏输出和停止线已进入 fast baseline；该检查不实现 Go route handler、TypeScript consumer contract、数据库 schema / query、Radish OIDC、API key lifecycle、quota enforcement、workflow executor、production admin console 或 user workspace UI
   - 当前还提供 `check-control-plane-read-response-fixtures-v1.py`，用于校验 `scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json` 固定的 control-plane-read-response-fixtures-v1：七类 read-only route 的 response fixture、统一 envelope、成功 / 失败样例、`failure_code` 和脱敏输出已进入 fast baseline；该检查不实现 Go route handler、TypeScript consumer contract、数据库 query、Radish OIDC、API key lifecycle、quota enforcement、workflow executor、production admin console 或 user workspace UI
+  - 当前还提供 `check-control-plane-read-negative-contract-v1.py`，用于校验 `scripts/checks/fixtures/control-plane-read-negative-contract-v1.json` 固定的 control-plane-read-negative-contract-v1 negative contract：七类 read-only route 的负向样例、forbidden method、forbidden query、forbidden fallback、敏感字段投影拒绝和 fail-closed envelope 已进入 fast baseline；该检查不实现 Go route handler、TypeScript consumer contract、数据库 query、Radish OIDC、API key lifecycle、quota enforcement、workflow executor、production admin console 或 user workspace UI
   - 当前还提供 `check-platform-config.py`，用于校验 platform config summary / config check 的脱敏输出、配置来源和 secret 不泄露边界
   - 当前还提供 `check-platform-deployment-smoke.py`，用于校验 JSON 配置文件层级、环境变量覆盖、wrapper unknown command failure boundary 和 secret 不泄露边界
   - 当前还提供 `check-platform-diagnostics.py`，用于校验 structured diagnostics、startup/config/bridge/provider registry failure boundary 和 discoverability selectable model ids

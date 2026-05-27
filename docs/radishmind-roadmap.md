@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-05-26
+更新时间：2026-05-27
 
 ## 路线图原则
 
@@ -34,7 +34,7 @@
 
 当前实现仍处在平台基础能力阶段。已有本地 console 只覆盖 ops surface 和只读发现面，不代表正式用户端、生产管理端或完整 workflow builder 已完成。
 
-2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，先固定四个产品面的服务边界、数据边界、建议切片和停止线；`product-surface-v1-boundary` 已落地为 `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py`，`control-plane-data-boundary` 已落地为 `control-plane-data-boundary.json` 与 `check-control-plane-data-boundary.py`，`radish-oidc-client-preconditions` 已落地为 `radish-oidc-client-preconditions.json` 与 `check-radish-oidc-client-preconditions.py`，`gateway-api-key-quota-readiness` 已落地为 `gateway-api-key-quota-readiness.json` 与 `check-gateway-api-key-quota-readiness.py`，`workflow-definition-run-record-boundary` 已落地为 `workflow-definition-run-record-boundary.json` 与 `check-workflow-definition-run-record-boundary.py`，`control-plane-read-model-v1` 已落地为 `control-plane-read-model-v1.json` 与 `check-control-plane-read-model-v1.py`，`control-plane-read-route-contract-v1` 已落地为 `control-plane-read-route-contract-v1.json` 与 `check-control-plane-read-route-contract-v1.py`，`control-plane-read-response-fixtures-v1` 已落地为 `control-plane-read-response-fixtures-v1.json` 与 `check-control-plane-read-response-fixtures-v1.py`；这些切片不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
+2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，先固定四个产品面的服务边界、数据边界、建议切片和停止线；`product-surface-v1-boundary` 已落地为 `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py`，`control-plane-data-boundary` 已落地为 `control-plane-data-boundary.json` 与 `check-control-plane-data-boundary.py`，`radish-oidc-client-preconditions` 已落地为 `radish-oidc-client-preconditions.json` 与 `check-radish-oidc-client-preconditions.py`，`gateway-api-key-quota-readiness` 已落地为 `gateway-api-key-quota-readiness.json` 与 `check-gateway-api-key-quota-readiness.py`，`workflow-definition-run-record-boundary` 已落地为 `workflow-definition-run-record-boundary.json` 与 `check-workflow-definition-run-record-boundary.py`，`control-plane-read-model-v1` 已落地为 `control-plane-read-model-v1.json` 与 `check-control-plane-read-model-v1.py`，`control-plane-read-route-contract-v1` 已落地为 `control-plane-read-route-contract-v1.json` 与 `check-control-plane-read-route-contract-v1.py`，`control-plane-read-response-fixtures-v1` 已落地为 `control-plane-read-response-fixtures-v1.json` 与 `check-control-plane-read-response-fixtures-v1.py`，`control-plane-read-negative-contract-v1` 已落地为 `control-plane-read-negative-contract-v1.json` 与 `check-control-plane-read-negative-contract-v1.py`；这些切片不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
 
 ## 五条主线
 
@@ -189,7 +189,7 @@
 ## 下一步
 
 1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
-2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；`product-surface-v1-boundary`、`control-plane-data-boundary`、`radish-oidc-client-preconditions`、`gateway-api-key-quota-readiness`、`workflow-definition-run-record-boundary`、`control-plane-read-model-v1`、`control-plane-read-route-contract-v1` 与 `control-plane-read-response-fixtures-v1` 已固定正式用户端、管理端、模型网关、workflow runtime、control plane 核心对象、未来 Radish OIDC client、gateway key / quota 前置条件、workflow definition / run record 边界、只读 read model、read-only route contract 和 response fixture；后续不默认进入 executor、confirmation、writeback 或 replay。
+2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；`product-surface-v1-boundary`、`control-plane-data-boundary`、`radish-oidc-client-preconditions`、`gateway-api-key-quota-readiness`、`workflow-definition-run-record-boundary`、`control-plane-read-model-v1`、`control-plane-read-route-contract-v1`、`control-plane-read-response-fixtures-v1` 与 `control-plane-read-negative-contract-v1` 已固定正式用户端、管理端、模型网关、workflow runtime、control plane 核心对象、未来 Radish OIDC client、gateway key / quota 前置条件、workflow definition / run record 边界、只读 read model、read-only route contract、response fixture 和 negative contract；后续不默认进入 executor、confirmation、writeback 或 replay。
 3. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
 4. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 5. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。

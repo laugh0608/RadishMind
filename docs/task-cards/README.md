@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-05-25
+更新时间：2026-05-27
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -52,6 +52,7 @@
 2. [`Control Plane Read Model` v1 计划](control-plane-read-model-v1-plan.md)（`control-plane-read-model-v1`）
 3. [`Control Plane Read Route Contract` v1 计划](control-plane-read-route-contract-v1-plan.md)（`control-plane-read-route-contract-v1`）
 4. [`Control Plane Read Response Fixtures` v1 计划](control-plane-read-response-fixtures-v1-plan.md)（`control-plane-read-response-fixtures-v1`）
+5. [`Control Plane Read Negative Contract` v1 计划](control-plane-read-negative-contract-v1-plan.md)（`control-plane-read-negative-contract-v1`）
 
 ## UI 设计专题
 
