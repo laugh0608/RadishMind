@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-26
+更新时间：2026-05-27
 
 ## 这份文档讲什么
 
@@ -57,7 +57,7 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片，provider registry、profile inventory、request selection、diagnostics、error taxonomy 和 retry/fallback 审计策略已收口为 capability / health / selection / policy / docs 口径。当前进入 close candidate，不继续默认新增 provider 同层小切片；只有在明确任务窗口下，才单独推进 optional live health、retry/fallback execution、production secret backend 或容器 smoke。`Production Ops Hardening v1` 的静态边界已经收口；只有在明确 Docker 运行窗口后，才补本地容器 smoke 或测试环境 smoke，并把运行证据写入 `tmp/production-ops/container-smoke/`。`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出转入后置专题。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+如果你今天想推进开发，当前主线已经切到 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture 和 negative contract；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
 
 正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳。
 

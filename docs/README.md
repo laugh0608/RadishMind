@@ -66,6 +66,7 @@
 - [能力矩阵](radishmind-capability-matrix.md)
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
+- [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)
 - [UI 设计规范](radishmind-ui-design-spec.md)
 - [UI 设计参考](radishmind-ui-design-reference.md)
 - [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)

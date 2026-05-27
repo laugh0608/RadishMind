@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-05-26
+更新时间：2026-05-27
 
 ## 协议兼容边界
 
@@ -19,6 +19,8 @@
 
 - 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
+
+未来 control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。这些 route 当前仍是契约和 fixture，不属于 `services/platform/` 已实现 HTTP surface。
 
 当前真实状态是：
 
