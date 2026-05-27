@@ -83,6 +83,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 1. `product-surface-v1-boundary`
    - 固定四个产品面的 v1 resource、read model、write boundary 和停止线。
    - 不新增 UI 或 API 实现。
+   - 当前已落地：`scripts/checks/fixtures/product-surface-v1-boundary.json` 与 `scripts/check-product-surface-v1-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定四个产品面的资源、读模型、写边界、blocked capability 和 shared stop-line，不实现正式用户端、生产管理端、OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
 2. `control-plane-data-boundary`
    - 明确 tenant、user、role、permission、provider profile、model route、quota、price、audit、secret ref、deployment status 的 ownership。
    - 不创建数据库迁移。
@@ -99,6 +100,7 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 ## 验收口径
 
 - 有任务卡固定正式产品面的 v1 边界、输入事实源、建议切片、非目标和停止线。
+- `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py` 已进入 `check-repo --fast`。
 - 当前焦点、路线图、能力矩阵、任务卡入口和周志同步说明：下一条平台主线是先固定 control plane / user workspace / workflow v1 边界。
 - 文档继续明确本地 ops console 不等同于正式用户端或生产管理端。
 - 文档继续明确 `Provider Runtime & Health v1`、`Production Ops Hardening v1`、P2 / P3 / UI / P4 都不再默认扩同层小切片。
@@ -124,4 +126,3 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 - 不把微服务拆分解释成新增后端语言栈的理由。
 - 不把 provider health、local smoke、Docker 静态边界或本地 mock smoke 写成 production ready。
 - 不让模型、workflow 或 tool 直接写上层业务真相源。
-
