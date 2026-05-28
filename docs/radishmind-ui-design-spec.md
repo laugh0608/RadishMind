@@ -10,6 +10,8 @@
 
 当前规范优先服务 `UI Design Topic / Pencil Draft` 与 `P3 Local Product Shell / Ops Surface`。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
 
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把未来正式只读产品 UI 的预留落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。后续若进入正式 user workspace / admin control plane React 实现，应先复用 `contracts/typescript/control-plane-read-api.ts`、read-only shell、route catalog binding、状态组件和 forbidden output guard；不得把当前本地 console 直接改成 production admin console。
+
 ## 设计定位
 
 RadishMind UI 是面向开发者、维护者和本地部署者的 AI runtime ops surface。它的核心任务不是展示品牌气氛，而是让平台状态、模型/provider/profile、session/tooling metadata、readiness、错误诊断和停止线一眼可读。

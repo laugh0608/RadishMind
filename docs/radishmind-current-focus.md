@@ -36,15 +36,15 @@ P3 checklist 继续由 `p3-local-product-shell-short-close-checklist.json` 与 `
 5. `P3 Local Product Shell / Ops Surface`、`Conversation & Session`、`Tooling Framework` 与 `UI Design Topic / React 第二批` 均保持 close / governance-only 状态，不再默认新增同类只读 UI、P2 readiness / rollup / manifest 或 UI polish。P2 停止线证据继续保留为 `session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json`；`P2 short close` 边界不变，相关 `negative_regression_suite` 边界不变，这些 fixture 不代表 executor、durable store、confirmation、materialized result reader、长期记忆或 replay 已完成。
 6. `Evaluation & Governance`：后续门禁从“每个小 UI 展示项新增 fixture”放宽为“聚合门禁优先”。只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项门禁；普通 UI 展示改动优先复用 console behavior / visual smoke / fast baseline。
 
-## 今日事项（2026-05-28）
+## 明天事项（2026-05-29）
 
-1. 先按协作约定检查 `git status`，读取本文档、[能力矩阵](radishmind-capability-matrix.md)、[路线图](radishmind-roadmap.md) 和本周周志，确认 2026-05-26 本地 container smoke 记录仍是最新运行事实。
+1. 先按协作约定检查 `git status`，读取本文档、[能力矩阵](radishmind-capability-matrix.md)、[路线图](radishmind-roadmap.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md) 和本周周志。
 2. 不继续默认新增 provider 同层小切片，也不重复跑同一 docker_local smoke，除非有新的失败假设或镜像 / compose 变更。
-3. `control-plane-read-fake-store-handler-implementation-v1` 已完成七条 fake-store-backed read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`，并补齐 test-only fake auth context、response envelope、cursor list filter、负向 smoke 和治理 checker。
-4. 下一步已补 `control-plane-read-formal-ui-implementation-readiness-v1`，用 `control-plane-read-formal-ui-implementation-readiness-v1.json` 与 `check-control-plane-read-formal-ui-implementation-readiness-v1.py` 固定正式 UI 实现前的工程落点、app 边界、页面顺序、consumer contract 复用、测试策略和停止线；仍不写 React 页面，不创建 `apps/radishmind-web/`，不把 `apps/radishmind-console/` 升级成生产管理端，也不直接实现 OIDC、数据库、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
-   - read-side UI 相关切片仍不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay；新增 readiness 只固定正式 UI 实现前的工程边界。
-5. 产品机会池见 [产品机会池](radishmind-product-ideas.md)，近期只把 `Model API Routing Studio`、`Workflow Marketplace`、`Eval-as-a-Feature`、`AI Cost Ledger` 和 `Policy Sandbox` 作为候选，不直接进入实现。
-6. 继续保持 P2 / P3 / UI / P4 的停止线：不接真实 executor、confirmation、writeback、replay，不重开真实模型长跑，不把 provider health、local-smoke 或 Docker 静态边界写成 production ready。
+3. 2026-05-28 已完成 control-plane read-side 的脚本治理、实现前置、fake-store plan、七条 fake-store-backed handler、auth/db preconditions、TypeScript consumer contract、formal UI boundary 和 formal UI implementation readiness；明天不要把这些 gate 误读成数据库、OIDC、正式 UI 或 production ready。
+4. 如果继续 read-side，先在任务卡中二选一明确下一条线：要么进入正式 UI 实现任务的首个 `shared-read-shell` 切片，要么审批真实 auth/db 实现前置任务；不要同时启动 React 页面、database query 和 OIDC 接线。
+5. 正式 UI 实现任务若启动，第一步仍只允许规划或创建未来 `apps/radishmind-web/` 的 read-only shell、route catalog binding、状态组件和 forbidden output guard；不得把 `apps/radishmind-console/` 改成 formal user workspace 或 production admin console。
+6. 真实 auth/db 方向若启动，先补 repository / auth middleware 任务卡和 checker，仍不直接写 database query、migration、Radish OIDC middleware、API key lifecycle 或 quota enforcement。
+7. read-side UI 相关切片仍不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay；产品机会池仍只作为候选，不写成 roadmap commitment。
 
 ## 为什么是这些任务
 
