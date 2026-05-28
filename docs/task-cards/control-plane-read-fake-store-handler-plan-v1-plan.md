@@ -6,7 +6,7 @@
 
 本任务卡用于把 `control-plane-read-implementation-preconditions-v1` 继续拆成下一步实现计划：如果开始写 read route，只允许先做 fake-store-backed handler 切片。
 
-该计划已被 `control-plane-read-fake-store-handler-implementation-v1` 消费前两条 single-resource route。计划本身仍只固定 Go package 落点、fake store 输入、test-only fake auth context、response conformance、route smoke 顺序和停止线；后续实现不得越过数据库、OIDC、executor、confirmation、writeback 或 replay 边界。
+该计划已被 `control-plane-read-fake-store-handler-implementation-v1` 消费。计划本身仍只固定 Go package 落点、fake store 输入、test-only fake auth context、response conformance、route smoke 顺序和停止线；后续实现不得越过数据库、OIDC、executor、confirmation、writeback 或 replay 边界。
 
 ## 输入事实源
 
@@ -24,7 +24,7 @@
 1. `Go package ownership`
    - 未来 read handler 只落在 `services/platform/internal/httpapi`。
    - 未来 route registration 只修改 `services/platform/internal/httpapi/server.go`。
-   - 建议文件名为 `control_plane_read.go`、`control_plane_read_fake_store.go` 与 `control_plane_read_test.go`；这些文件已由 `control-plane-read-fake-store-handler-implementation-v1` 创建并只覆盖首批 route。
+   - 建议文件名为 `control_plane_read.go`、`control_plane_read_fake_store.go` 与 `control_plane_read_test.go`；这些文件已由 `control-plane-read-fake-store-handler-implementation-v1` 创建并覆盖七条 fake-store-backed route。
 
 2. `Fixture-backed fake store`
    - fake store 只从已提交的 read model、route contract、response fixture 和 negative contract 取数。
@@ -46,7 +46,7 @@
 - `scripts/checks/fixtures/control-plane-read-fake-store-handler-plan-v1.json` 固定 future Go file layout、route plan、fake store、fake auth context、route smoke 和停止线。
 - `scripts/checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py` 校验该计划完全依赖前置 fixture，不漂移到数据库、OIDC、executor 或生产能力。
 - checker 接入 `scripts/check-repo.py --fast`。
-- 入口文档、read-side 契约、任务卡入口、脚本说明、platform README 和周志同步说明该计划已被 partial implementation 消费，但不代表完整 read-side API ready。
+- 入口文档、read-side 契约、任务卡入口、脚本说明、platform README 和周志同步说明该计划已被 implementation 消费，但不代表完整 read-side API ready。
 
 ## 非目标
 

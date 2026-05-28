@@ -61,7 +61,12 @@ EXPECTED_SIDE_EFFECT_COUNTERS = {
 }
 EXPECTED_ROUTE_REGISTRATION_LITERALS = {
     "tenant-summary-route": "controlPlaneTenantSummaryRoute",
+    "application-summary-list-route": "controlPlaneApplicationSummaryListRoute",
+    "api-key-summary-list-route": "controlPlaneAPIKeySummaryListRoute",
     "quota-summary-route": "controlPlaneQuotaSummaryRoute",
+    "workflow-definition-summary-list-route": "controlPlaneWorkflowDefinitionSummaryListRoute",
+    "run-record-summary-list-route": "controlPlaneRunRecordSummaryListRoute",
+    "audit-summary-list-route": "controlPlaneAuditSummaryListRoute",
 }
 EXPECTED_FORBIDDEN_SCOPE = {
     "Go route handler implementation",

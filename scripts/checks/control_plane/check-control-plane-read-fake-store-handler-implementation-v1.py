@@ -17,18 +17,22 @@ CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
 EXPECTED_IMPLEMENTED_ROUTE_IDS = {
     "tenant-summary-route",
-    "quota-summary-route",
-}
-EXPECTED_REMAINING_ROUTE_IDS = {
     "application-summary-list-route",
     "api-key-summary-list-route",
+    "quota-summary-route",
     "workflow-definition-summary-list-route",
     "run-record-summary-list-route",
     "audit-summary-list-route",
 }
+EXPECTED_REMAINING_ROUTE_IDS: set[str] = set()
 EXPECTED_ROUTE_REGISTRATION_LITERALS = {
     "tenant-summary-route": "controlPlaneTenantSummaryRoute",
+    "application-summary-list-route": "controlPlaneApplicationSummaryListRoute",
+    "api-key-summary-list-route": "controlPlaneAPIKeySummaryListRoute",
     "quota-summary-route": "controlPlaneQuotaSummaryRoute",
+    "workflow-definition-summary-list-route": "controlPlaneWorkflowDefinitionSummaryListRoute",
+    "run-record-summary-list-route": "controlPlaneRunRecordSummaryListRoute",
+    "audit-summary-list-route": "controlPlaneAuditSummaryListRoute",
 }
 EXPECTED_FORBIDDEN_CLAIMS = {
     "control_plane_api_ready",
@@ -61,10 +65,18 @@ EXPECTED_FORBIDDEN_PUBLIC_AUTH_INPUTS = {
 }
 EXPECTED_SMOKE_COVERAGE = {
     "tenant_summary_success",
+    "application_summary_list_success",
+    "api_key_summary_list_success",
     "quota_summary_success",
+    "workflow_definition_summary_list_success",
+    "run_record_summary_list_success",
+    "audit_summary_list_success",
     "missing_identity",
     "tenant_binding_missing",
     "scope_denied",
+    "cross_tenant_query_denied",
+    "invalid_filter",
+    "forbidden_sensitive_projection",
     "forbidden_method",
     "forbidden_query",
     "no_side_effects",
@@ -104,8 +116,8 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "docs/contracts/control-plane-read-side.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
-        "tenant-summary-route",
-        "quota-summary-route",
+        "application-summary-list-route",
+        "audit-summary-list-route",
     ],
     "docs/radishmind-current-focus.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
@@ -124,7 +136,7 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
-        "partial fake-store-backed",
+        "fake-store-backed",
         "handler implementation",
     ],
     "docs/task-cards/README.md": [
@@ -133,8 +145,8 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "docs/task-cards/control-plane-read-fake-store-handler-implementation-v1-plan.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
-        "tenant-summary-route",
-        "quota-summary-route",
+        "cursor list",
+        "audit-summary-list-route",
     ],
     "scripts/README.md": [
         "check-control-plane-read-fake-store-handler-implementation-v1.py",
@@ -143,8 +155,8 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "services/platform/README.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
-        "/v1/control-plane/tenants/{tenant_ref}/summary",
-        "/v1/user-workspace/usage/quota-summary",
+        "/v1/user-workspace/applications",
+        "/v1/control-plane/audit",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
@@ -223,8 +235,8 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     require(slice_info.get("id") == "control-plane-read-fake-store-handler-implementation-v1", "unexpected slice id")
     require(slice_info.get("track") == "Control Plane / User Workspace / Workflow v1", "unexpected track")
     require(
-        slice_info.get("status") == "partial_fake_store_handler_implemented",
-        "implementation slice must stay partial fake-store handler implementation",
+        slice_info.get("status") == "fake_store_handler_implemented",
+        "implementation slice must stay fake-store handler implementation",
     )
     missing_forbidden = sorted(EXPECTED_FORBIDDEN_CLAIMS - set(slice_info.get("does_not_claim") or []))
     require(not missing_forbidden, f"missing forbidden claims: {missing_forbidden}")
@@ -255,7 +267,8 @@ def assert_route_sets(fixture: dict[str, Any]) -> None:
         require(implementation.get("read_model") == route.get("read_model"), f"{route_id} read model drifted")
         require(implementation.get("scope") == route.get("required_scope"), f"{route_id} scope drifted")
         require(implementation.get("status") == "fake_store_backed_handler_implemented", f"{route_id} status drifted")
-        require(implementation.get("fake_store_mode") == "single_resource_summary", f"{route_id} fake store mode drifted")
+        expected_mode = "single_resource_summary" if route.get("pagination") == "single_resource" else "cursor_list_summary"
+        require(implementation.get("fake_store_mode") == expected_mode, f"{route_id} fake store mode drifted")
         require(implementation.get("auth_mode") == "test_only_context_injection", f"{route_id} auth mode drifted")
 
     for route_id, route in remaining.items():
@@ -275,9 +288,16 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
 
     for literal in (
         "handleControlPlaneTenantSummary",
+        "handleUserWorkspaceApplicationSummaryList",
+        "handleUserWorkspaceAPIKeySummaryList",
         "handleUserWorkspaceQuotaSummary",
+        "handleUserWorkspaceWorkflowDefinitionSummaryList",
+        "handleUserWorkspaceRunRecordSummaryList",
+        "handleControlPlaneAuditSummaryList",
+        "handleControlPlaneReadCursorList",
         "authorizeControlPlaneReadRequest",
         "forbiddenControlPlaneReadQueryParameter",
+        "controlPlaneReadFiltersFromQuery",
         "withControlPlaneReadFakeAuthContext",
         "controlPlaneReadEnvelope",
     ):
@@ -286,7 +306,14 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
     for literal in (
         "newControlPlaneReadFakeStore",
         "tenant_demo",
+        "app_demo_workflow",
+        "ak_demo_001",
         "quota_demo_current",
+        "wf_demo_v1",
+        "run_demo_001",
+        "audit_read_runs_001",
+        "controlPlaneReadCursorListSummaries",
+        "controlPlaneReadItemMatchesFilters",
         "SideEffects() controlPlaneReadSideEffects",
         "FakeStoreWriteCount",
         "ExecutorCallCount",
@@ -331,10 +358,19 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
     for literal in (
         "TestControlPlaneReadFakeStoreRoutes",
         "tenant summary succeeds",
+        "cursor list routes succeed",
+        "application summaries",
+        "api key summaries",
         "quota summary succeeds",
+        "workflow definition summaries",
+        "run record summaries",
+        "audit summaries",
         "identity_context_missing",
         "tenant_binding_missing",
         "scope_denied",
+        "cross-tenant",
+        "invalid_filter",
+        "forbidden sensitive projection",
         "CONTROL_PLANE_READ_METHOD_NOT_ALLOWED",
         "CONTROL_PLANE_READ_QUERY_FORBIDDEN",
         "assertControlPlaneReadNoForbiddenPayload",

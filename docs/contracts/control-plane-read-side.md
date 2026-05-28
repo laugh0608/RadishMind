@@ -4,9 +4,9 @@
 
 ## 契约目的
 
-本专题说明 `Control Plane / User Workspace / Workflow v1` 的只读控制面契约层。它把用户工作区和管理端会消费的 summary、route、response、negative contract、implementation preconditions、fake-store-backed read handler plan 和首个 partial handler implementation 固定为可检查治理边界，避免在正式数据库、OIDC 或 UI 尚未准备好时，从本地 ops console 直接堆出产品功能。
+本专题说明 `Control Plane / User Workspace / Workflow v1` 的只读控制面契约层。它把用户工作区和管理端会消费的 summary、route、response、negative contract、implementation preconditions、fake-store-backed read handler plan 和 fake-store-backed handler implementation 固定为可检查治理边界，避免在正式数据库、OIDC 或 UI 尚未准备好时，从本地 ops console 直接堆出产品功能。
 
-当前 read-side 只实现了 `tenant-summary-route` 与 `quota-summary-route` 两条 fake-store-backed Go route；其余 route 仍是未来 contract。不代表完整 read-side API、数据库 query、真实 OIDC、TypeScript consumer 或正式 UI 已实现。
+当前 read-side 已实现七条 fake-store-backed Go read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`。这些 route 只使用 in-memory fixture fake store 与 test-only fake auth context，不代表完整 read-side API、数据库 query、真实 OIDC、TypeScript consumer 或正式 UI 已实现。
 
 ## 分层关系
 
@@ -29,9 +29,9 @@
    - 固定首轮实现只能进入 fixture-backed fake store 与显式 fake auth context，不声明 Go handler、route smoke、数据库、OIDC、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay ready。
 6. `control-plane-read-fake-store-handler-plan-v1`
    - 固定未来 fake-store-backed read handler plan 的 Go package 落点、future file layout、test-only fake auth context、route smoke 顺序和 no-side-effect gate。
-   - 这是计划证据，本身不创建 handler；已被下一层 partial implementation 消费前两条 single-resource route。
+   - 这是计划证据，本身不创建 handler；已被下一层 implementation 消费。
 7. `control-plane-read-fake-store-handler-implementation-v1`
-   - 固定 `tenant-summary-route` 与 `quota-summary-route` 的 fake-store-backed handler implementation。
+   - 固定七条 read route 的 fake-store-backed handler implementation。
    - 只使用 `services/platform/internal/httpapi` 内的 in-memory fake store 与 test-only fake auth context，不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
 ## 程序化证据
@@ -53,7 +53,7 @@ read-side 契约当前由以下 fixture 和 checker 固定：
 - `scripts/checks/fixtures/control-plane-read-fake-store-handler-implementation-v1.json`
 - `scripts/checks/control_plane/check-control-plane-read-fake-store-handler-implementation-v1.py`
 
-这些 checker 已接入 `scripts/check-repo.py --fast`。它们的作用是防止契约、样例、负向边界、实现前置条件、fake-store-backed read handler plan、partial handler implementation 和文档说明互相漂移，不负责启动服务或模拟真实数据库。
+这些 checker 已接入 `scripts/check-repo.py --fast`。它们的作用是防止契约、样例、负向边界、实现前置条件、fake-store-backed read handler plan、handler implementation 和文档说明互相漂移，不负责启动服务或模拟真实数据库。
 
 ## 路由范围
 
@@ -67,7 +67,7 @@ read-side 契约当前由以下 fixture 和 checker 固定：
 - `GET /v1/user-workspace/runs`
 - `GET /v1/control-plane/audit`
 
-其中 `tenant-summary-route` 与 `quota-summary-route` 已由 `control-plane-read-fake-store-handler-implementation-v1` 注册为 fake-store-backed Go route，并由 Go 单元测试覆盖成功、missing identity、tenant binding missing、scope denied、forbidden method、forbidden query 和 no-side-effects。其余五条 route 仍是未来 contract，不是当前已实现的 Go route handler。
+这些 route 已由 `control-plane-read-fake-store-handler-implementation-v1` 注册为 fake-store-backed Go route，并由 Go 单元测试覆盖成功、missing identity、tenant binding missing、cross-tenant query denied、scope denied、invalid filter、forbidden sensitive projection、forbidden method、forbidden query 和 no-side-effects。它们仍不是数据库 read path、真实 OIDC auth path、正式 TypeScript consumer 或 UI consumer ready。
 
 ## 输出边界
 

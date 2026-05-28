@@ -8,8 +8,13 @@ import (
 )
 
 const (
-	controlPlaneTenantSummaryRoute = "/v1/control-plane/tenants/{tenant_ref}/summary"
-	controlPlaneQuotaSummaryRoute  = "/v1/user-workspace/usage/quota-summary"
+	controlPlaneTenantSummaryRoute                 = "/v1/control-plane/tenants/{tenant_ref}/summary"
+	controlPlaneApplicationSummaryListRoute        = "/v1/user-workspace/applications"
+	controlPlaneAPIKeySummaryListRoute             = "/v1/user-workspace/api-keys"
+	controlPlaneQuotaSummaryRoute                  = "/v1/user-workspace/usage/quota-summary"
+	controlPlaneWorkflowDefinitionSummaryListRoute = "/v1/user-workspace/workflow-definitions"
+	controlPlaneRunRecordSummaryListRoute          = "/v1/user-workspace/runs"
+	controlPlaneAuditSummaryListRoute              = "/v1/control-plane/audit"
 )
 
 type controlPlaneReadAuthContext struct {
@@ -29,6 +34,14 @@ type controlPlaneReadEnvelope struct {
 	NextCursor  *string          `json:"next_cursor"`
 	FailureCode *string          `json:"failure_code"`
 	AuditRef    string           `json:"audit_ref"`
+}
+
+type controlPlaneReadCursorListSpec struct {
+	RoutePattern  string
+	RequiredScope string
+	AuditSuffix   string
+	AllowedFilter []string
+	ReadItems     func(controlPlaneReadStore, string, map[string]string) ([]map[string]any, *string)
 }
 
 func withControlPlaneReadFakeAuthContext(ctx context.Context, auth controlPlaneReadAuthContext) context.Context {
@@ -60,6 +73,30 @@ func (s *Server) handleControlPlaneTenantSummary(writer http.ResponseWriter, req
 	writeControlPlaneReadSuccess(writer, trace, auth.TenantBinding, []map[string]any{item}, nil, auditRefForControlPlaneRead(trace, "tenant-summary"))
 }
 
+func (s *Server) handleUserWorkspaceApplicationSummaryList(writer http.ResponseWriter, request *http.Request) {
+	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
+		RoutePattern:  controlPlaneApplicationSummaryListRoute,
+		RequiredScope: "applications:read",
+		AuditSuffix:   "applications",
+		AllowedFilter: []string{"application_kind", "owner_subject_ref", "last_run_status"},
+		ReadItems: func(store controlPlaneReadStore, tenantRef string, filters map[string]string) ([]map[string]any, *string) {
+			return store.ApplicationSummaries(tenantRef, filters)
+		},
+	})
+}
+
+func (s *Server) handleUserWorkspaceAPIKeySummaryList(writer http.ResponseWriter, request *http.Request) {
+	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
+		RoutePattern:  controlPlaneAPIKeySummaryListRoute,
+		RequiredScope: "api_keys:read",
+		AuditSuffix:   "api-keys",
+		AllowedFilter: []string{"state", "owner_subject_ref", "scope"},
+		ReadItems: func(store controlPlaneReadStore, tenantRef string, filters map[string]string) ([]map[string]any, *string) {
+			return store.APIKeySummaries(tenantRef, filters)
+		},
+	})
+}
+
 func (s *Server) handleUserWorkspaceQuotaSummary(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, controlPlaneQuotaSummaryRoute)
 	if !s.allowControlPlaneReadMethod(writer, request, trace) {
@@ -82,6 +119,71 @@ func (s *Server) handleUserWorkspaceQuotaSummary(writer http.ResponseWriter, req
 	}
 
 	writeControlPlaneReadSuccess(writer, trace, auth.TenantBinding, []map[string]any{item}, nil, auditRefForControlPlaneRead(trace, "quota-summary"))
+}
+
+func (s *Server) handleUserWorkspaceWorkflowDefinitionSummaryList(writer http.ResponseWriter, request *http.Request) {
+	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
+		RoutePattern:  controlPlaneWorkflowDefinitionSummaryListRoute,
+		RequiredScope: "applications:read",
+		AuditSuffix:   "workflow-definitions",
+		AllowedFilter: []string{"application_ref", "definition_status", "risk_level"},
+		ReadItems: func(store controlPlaneReadStore, tenantRef string, filters map[string]string) ([]map[string]any, *string) {
+			return store.WorkflowDefinitionSummaries(tenantRef, filters)
+		},
+	})
+}
+
+func (s *Server) handleUserWorkspaceRunRecordSummaryList(writer http.ResponseWriter, request *http.Request) {
+	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
+		RoutePattern:  controlPlaneRunRecordSummaryListRoute,
+		RequiredScope: "runs:read",
+		AuditSuffix:   "runs",
+		AllowedFilter: []string{"application_ref", "workflow_definition_id", "status", "failure_code"},
+		ReadItems: func(store controlPlaneReadStore, tenantRef string, filters map[string]string) ([]map[string]any, *string) {
+			return store.RunRecordSummaries(tenantRef, filters)
+		},
+	})
+}
+
+func (s *Server) handleControlPlaneAuditSummaryList(writer http.ResponseWriter, request *http.Request) {
+	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
+		RoutePattern:  controlPlaneAuditSummaryListRoute,
+		RequiredScope: "audit:read",
+		AuditSuffix:   "audit",
+		AllowedFilter: []string{"event_kind", "resource_ref", "actor_subject_ref", "failure_code"},
+		ReadItems: func(store controlPlaneReadStore, tenantRef string, filters map[string]string) ([]map[string]any, *string) {
+			return store.AuditSummaries(tenantRef, filters)
+		},
+	})
+}
+
+func (s *Server) handleControlPlaneReadCursorList(writer http.ResponseWriter, request *http.Request, spec controlPlaneReadCursorListSpec) {
+	trace := newRequestTrace(request, spec.RoutePattern)
+	if !s.allowControlPlaneReadMethod(writer, request, trace) {
+		return
+	}
+	if !s.allowControlPlaneReadQuery(writer, request, trace) {
+		return
+	}
+
+	auth, failureCode := authorizeControlPlaneReadRequest(request, "", spec.RequiredScope)
+	if failureCode != "" {
+		writeControlPlaneReadFailure(writer, trace, controlPlaneReadTenantRefFromRequest(request), failureCode, auditRefForControlPlaneRead(trace, spec.AuditSuffix+"-denied"))
+		return
+	}
+	if requestedTenantRef := strings.TrimSpace(request.URL.Query().Get("tenant_ref")); requestedTenantRef != "" && requestedTenantRef != auth.TenantBinding {
+		writeControlPlaneReadFailure(writer, trace, auth.TenantBinding, "tenant_binding_missing", auditRefForControlPlaneRead(trace, spec.AuditSuffix+"-tenant-mismatch"))
+		return
+	}
+
+	filters, filterFailureCode := controlPlaneReadFiltersFromQuery(request, spec.AllowedFilter)
+	if filterFailureCode != "" {
+		writeControlPlaneReadFailure(writer, trace, auth.TenantBinding, filterFailureCode, auditRefForControlPlaneRead(trace, spec.AuditSuffix+"-invalid-filter"))
+		return
+	}
+
+	items, nextCursor := spec.ReadItems(s.controlPlaneReadDataStore(), auth.TenantBinding, filters)
+	writeControlPlaneReadSuccess(writer, trace, auth.TenantBinding, items, nextCursor, auditRefForControlPlaneRead(trace, spec.AuditSuffix))
 }
 
 func (s *Server) allowControlPlaneReadMethod(writer http.ResponseWriter, request *http.Request, trace requestTrace) bool {
@@ -154,6 +256,34 @@ func forbiddenControlPlaneReadQueryParameter(request *http.Request) (string, boo
 		}
 	}
 	return "", false
+}
+
+func controlPlaneReadFiltersFromQuery(request *http.Request, allowedFilters []string) (map[string]string, string) {
+	allowed := map[string]bool{
+		"limit":      true,
+		"cursor":     true,
+		"sort":       true,
+		"tenant_ref": true,
+	}
+	for _, filter := range allowedFilters {
+		allowed[strings.TrimSpace(filter)] = true
+	}
+
+	filters := map[string]string{}
+	for key, values := range request.URL.Query() {
+		normalizedKey := strings.TrimSpace(key)
+		if !allowed[normalizedKey] {
+			return nil, "invalid_filter"
+		}
+		if normalizedKey == "limit" || normalizedKey == "cursor" || normalizedKey == "sort" || normalizedKey == "tenant_ref" {
+			continue
+		}
+		if len(values) == 0 {
+			continue
+		}
+		filters[normalizedKey] = strings.TrimSpace(values[0])
+	}
+	return filters, ""
 }
 
 func controlPlaneReadTenantRefFromRequest(request *http.Request) string {

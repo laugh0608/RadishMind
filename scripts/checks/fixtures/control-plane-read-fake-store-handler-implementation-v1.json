@@ -4,7 +4,7 @@
   "slice": {
     "id": "control-plane-read-fake-store-handler-implementation-v1",
     "track": "Control Plane / User Workspace / Workflow v1",
-    "status": "partial_fake_store_handler_implemented",
+    "status": "fake_store_handler_implemented",
     "does_not_claim": [
       "control_plane_api_ready",
       "full_read_side_ready",
@@ -38,6 +38,28 @@
       "scope": "tenant:read"
     },
     {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "read_model": "application-summary",
+      "handler": "handleUserWorkspaceApplicationSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "applications:read"
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "read_model": "api-key-summary",
+      "handler": "handleUserWorkspaceAPIKeySummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "api_keys:read"
+    },
+    {
       "route_id": "quota-summary-route",
       "method": "GET",
       "path": "/v1/user-workspace/usage/quota-summary",
@@ -47,30 +69,42 @@
       "fake_store_mode": "single_resource_summary",
       "auth_mode": "test_only_context_injection",
       "scope": "usage:read"
-    }
-  ],
-  "remaining_routes": [
-    {
-      "route_id": "application-summary-list-route",
-      "status": "planned_not_implemented"
-    },
-    {
-      "route_id": "api-key-summary-list-route",
-      "status": "planned_not_implemented"
     },
     {
       "route_id": "workflow-definition-summary-list-route",
-      "status": "planned_not_implemented"
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "read_model": "workflow-definition-summary",
+      "handler": "handleUserWorkspaceWorkflowDefinitionSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "applications:read"
     },
     {
       "route_id": "run-record-summary-list-route",
-      "status": "planned_not_implemented"
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "read_model": "run-record-summary",
+      "handler": "handleUserWorkspaceRunRecordSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "runs:read"
     },
     {
       "route_id": "audit-summary-list-route",
-      "status": "planned_not_implemented"
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "read_model": "audit-summary",
+      "handler": "handleControlPlaneAuditSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "audit:read"
     }
   ],
+  "remaining_routes": [],
   "go_files": [
     "services/platform/internal/httpapi/control_plane_read.go",
     "services/platform/internal/httpapi/control_plane_read_fake_store.go",
@@ -82,15 +116,14 @@
     "file": "services/platform/internal/httpapi/server.go",
     "registered_route_ids": [
       "tenant-summary-route",
-      "quota-summary-route"
-    ],
-    "forbidden_registered_route_ids": [
       "application-summary-list-route",
       "api-key-summary-list-route",
+      "quota-summary-route",
       "workflow-definition-summary-list-route",
       "run-record-summary-list-route",
       "audit-summary-list-route"
-    ]
+    ],
+    "forbidden_registered_route_ids": []
   },
   "fake_store": {
     "status": "implemented_fixture_backed_only",
@@ -128,10 +161,18 @@
   },
   "smoke_coverage": [
     "tenant_summary_success",
+    "application_summary_list_success",
+    "api_key_summary_list_success",
     "quota_summary_success",
+    "workflow_definition_summary_list_success",
+    "run_record_summary_list_success",
+    "audit_summary_list_success",
     "missing_identity",
     "tenant_binding_missing",
     "scope_denied",
+    "cross_tenant_query_denied",
+    "invalid_filter",
+    "forbidden_sensitive_projection",
     "forbidden_method",
     "forbidden_query",
     "no_side_effects"

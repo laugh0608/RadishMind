@@ -71,6 +71,88 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
 	})
 
+	t.Run("cursor list routes succeed with test-only auth context", func(t *testing.T) {
+		for _, tc := range []struct {
+			name           string
+			path           string
+			scope          string
+			requestID      string
+			itemField      string
+			itemValue      string
+			expectedCursor *string
+		}{
+			{
+				name:           "application summaries",
+				path:           "/v1/user-workspace/applications?application_kind=workflow",
+				scope:          "applications:read",
+				requestID:      "req-applications",
+				itemField:      "application_ref",
+				itemValue:      "app_demo_workflow",
+				expectedCursor: stringPointerForTest("cursor_apps_next"),
+			},
+			{
+				name:      "api key summaries",
+				path:      "/v1/user-workspace/api-keys?scope=chat:invoke",
+				scope:     "api_keys:read",
+				requestID: "req-api-keys",
+				itemField: "api_key_id",
+				itemValue: "ak_demo_001",
+			},
+			{
+				name:           "workflow definition summaries",
+				path:           "/v1/user-workspace/workflow-definitions?risk_level=medium",
+				scope:          "applications:read",
+				requestID:      "req-workflow-definitions",
+				itemField:      "workflow_definition_id",
+				itemValue:      "wf_demo_v1",
+				expectedCursor: stringPointerForTest("cursor_workflows_next"),
+			},
+			{
+				name:           "run record summaries",
+				path:           "/v1/user-workspace/runs?status=succeeded",
+				scope:          "runs:read",
+				requestID:      "req-runs",
+				itemField:      "run_id",
+				itemValue:      "run_demo_001",
+				expectedCursor: stringPointerForTest("cursor_runs_next"),
+			},
+			{
+				name:           "audit summaries",
+				path:           "/v1/control-plane/audit?event_kind=read_model_accessed",
+				scope:          "audit:read",
+				requestID:      "req-audit",
+				itemField:      "audit_ref",
+				itemValue:      "audit_read_runs_001",
+				expectedCursor: stringPointerForTest("cursor_audit_next"),
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				req := newControlPlaneReadRequest(
+					http.MethodGet,
+					tc.path,
+					controlPlaneReadTestAuth("tenant_demo", tc.scope),
+				)
+				req.Header.Set("X-Request-Id", tc.requestID)
+				rec := httptest.NewRecorder()
+
+				server.httpServer.Handler.ServeHTTP(rec, req)
+
+				envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+				if envelope.RequestID != tc.requestID || envelope.TenantRef != "tenant_demo" {
+					t.Fatalf("unexpected envelope identity: %#v", envelope)
+				}
+				if envelope.FailureCode != nil || len(envelope.Items) != 1 {
+					t.Fatalf("unexpected cursor list response: %#v", envelope)
+				}
+				if got := envelope.Items[0][tc.itemField]; got != tc.itemValue {
+					t.Fatalf("unexpected %s: %#v", tc.itemField, got)
+				}
+				assertControlPlaneReadNextCursor(t, envelope.NextCursor, tc.expectedCursor)
+				assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
+			})
+		}
+	})
+
 	t.Run("missing identity fails closed", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/v1/control-plane/tenants/tenant_demo/summary", nil)
 		req.Header.Set("X-Request-Id", "req-missing-identity")
@@ -112,11 +194,57 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		assertControlPlaneReadFailure(t, envelope, "scope_denied")
 	})
 
+	t.Run("cursor list tenant query mismatch fails closed", func(t *testing.T) {
+		req := newControlPlaneReadRequest(
+			http.MethodGet,
+			"/v1/user-workspace/applications?tenant_ref=tenant_other",
+			controlPlaneReadTestAuth("tenant_demo", "applications:read"),
+		)
+		req.Header.Set("X-Request-Id", "req-cursor-cross-tenant")
+		rec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(rec, req)
+
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		assertControlPlaneReadFailure(t, envelope, "tenant_binding_missing")
+	})
+
+	t.Run("cursor list invalid filter fails closed", func(t *testing.T) {
+		req := newControlPlaneReadRequest(
+			http.MethodGet,
+			"/v1/user-workspace/workflow-definitions?executor_state=running",
+			controlPlaneReadTestAuth("tenant_demo", "applications:read"),
+		)
+		req.Header.Set("X-Request-Id", "req-cursor-invalid-filter")
+		rec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(rec, req)
+
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		assertControlPlaneReadFailure(t, envelope, "invalid_filter")
+	})
+
+	t.Run("forbidden sensitive projection fails closed", func(t *testing.T) {
+		req := newControlPlaneReadRequest(
+			http.MethodGet,
+			"/v1/user-workspace/api-keys?fields=api_key_value",
+			controlPlaneReadTestAuth("tenant_demo", "api_keys:read"),
+		)
+		req.Header.Set("X-Request-Id", "req-sensitive-projection")
+		rec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(rec, req)
+
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		assertControlPlaneReadFailure(t, envelope, "invalid_filter")
+		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
+	})
+
 	t.Run("forbidden method returns platform error without side effects", func(t *testing.T) {
 		req := newControlPlaneReadRequest(
 			http.MethodPost,
-			"/v1/control-plane/tenants/tenant_demo/summary",
-			controlPlaneReadTestAuth("tenant_demo", "tenant:read"),
+			"/v1/user-workspace/runs",
+			controlPlaneReadTestAuth("tenant_demo", "runs:read"),
 		)
 		rec := httptest.NewRecorder()
 
@@ -132,8 +260,8 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 	t.Run("forbidden query returns platform error without side effects", func(t *testing.T) {
 		req := newControlPlaneReadRequest(
 			http.MethodGet,
-			"/v1/user-workspace/usage/quota-summary?execute=true",
-			controlPlaneReadTestAuth("tenant_demo", "usage:read"),
+			"/v1/user-workspace/runs?execute=true",
+			controlPlaneReadTestAuth("tenant_demo", "runs:read"),
 		)
 		rec := httptest.NewRecorder()
 
@@ -166,6 +294,10 @@ func controlPlaneReadTestAuth(tenantRef string, scopes ...string) controlPlaneRe
 	}
 }
 
+func stringPointerForTest(value string) *string {
+	return &value
+}
+
 func decodeControlPlaneReadEnvelope(t *testing.T, rec *httptest.ResponseRecorder, expectedStatus int) controlPlaneReadEnvelopeForTest {
 	t.Helper()
 	if rec.Code != expectedStatus {
@@ -188,6 +320,19 @@ func decodePlatformError(t *testing.T, rec *httptest.ResponseRecorder, expectedS
 		t.Fatalf("decode platform error: %v", err)
 	}
 	return response
+}
+
+func assertControlPlaneReadNextCursor(t *testing.T, actual *string, expected *string) {
+	t.Helper()
+	if expected == nil {
+		if actual != nil {
+			t.Fatalf("unexpected next cursor: %#v", *actual)
+		}
+		return
+	}
+	if actual == nil || *actual != *expected {
+		t.Fatalf("unexpected next cursor: actual=%#v expected=%#v", actual, expected)
+	}
 }
 
 func assertControlPlaneReadFailure(t *testing.T, envelope controlPlaneReadEnvelopeForTest, expectedFailureCode string) {
