@@ -55,6 +55,8 @@
 
 `control-plane-read-formal-ui-boundary-v1` 当前只固定正式 UI 边界：`Admin Control Plane` 与 `User Workspace` 的页面划分、每个页面消费的 read route、loading / empty / denied / stale / partial failure / forbidden projection 状态和敏感字段停止线。它不修改 `apps/radishmind-console/`，不实现 React UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
+`control-plane-read-formal-ui-implementation-readiness-v1` 当前只固定正式 UI 实现 readiness：未来正式产品 UI 预留落点为 `apps/radishmind-web/`，`apps/radishmind-console/` 继续只是本地 ops surface，页面实现顺序、consumer contract 复用和测试策略均由 fixture/checker 固定。该 readiness 不创建 React 页面、不创建 `apps/radishmind-web/`、不修改当前 ops console、不新增 platform route、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
