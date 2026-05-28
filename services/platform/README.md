@@ -49,6 +49,8 @@
 
 `control-plane-read-fake-store-handler-plan-v1` 仍作为 fake-store-backed read handler plan 保留；`control-plane-read-fake-store-handler-implementation-v1` 当前实现七条 fake-store-backed read route：`GET /v1/control-plane/tenants/{tenant_ref}/summary`、`GET /v1/user-workspace/applications`、`GET /v1/user-workspace/api-keys`、`GET /v1/user-workspace/usage/quota-summary`、`GET /v1/user-workspace/workflow-definitions`、`GET /v1/user-workspace/runs` 与 `GET /v1/control-plane/audit`。它们使用 `services/platform/internal/httpapi` 内的 in-memory fake store 和 test-only fake auth context，Go route smoke 覆盖成功、missing identity、tenant binding mismatch、cross-tenant query denied、scope denied、invalid filter、forbidden sensitive projection、forbidden method、forbidden query 和 no-side-effects。该实现仍不接数据库 query、OIDC、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay，也不声明正式 user workspace / admin control plane UI ready。
 
+`control-plane-read-auth-db-preconditions-v1` 当前只固定未来替换 fake auth / fake store 前必须满足的前置条件：read route 必须等 `future Radish OIDC / auth middleware` 注入 identity、tenant、subject、scope、audit 和 request context，真实 read store 必须先定义 `future control plane read store repository` 的窄接口、tenant predicate、sanitized projection、failure taxonomy 和 smoke transition plan。它不实现 OIDC validation、数据库 schema / migration / query、repository、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
