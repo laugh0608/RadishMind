@@ -17,15 +17,15 @@
 
 当前目标口径应固定为：
 
-- 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`
+- 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及 Control Plane Read-Side 的七条 read-only route
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
 
-control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前 `tenant-summary-route` 与 `quota-summary-route` 已作为 fake-store-backed Go route 进入 `services/platform/` HTTP surface；其余 read-only route 仍是契约和 fixture。
+control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前七条 read-only route 均已作为 fake-store-backed Go route 注册到 `services/platform/` HTTP surface：tenant summary、applications、API keys、quota summary、workflow definitions、runs 与 audit。它们仍只依赖 in-memory fixture fake store 和 test-only fake auth context；长驻 HTTP 服务尚未接入真实 auth middleware，因此未注入身份上下文的请求必须 fail-closed，而不是被解释为正式可用 API。
 
 当前真实状态是：
 
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
-- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`、`/v1/control-plane/tenants/{tenant_ref}/summary` 与 `/v1/user-workspace/usage/quota-summary`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
+- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及七条 fake-store-backed Control Plane Read-Side route，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
 - `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；provider capability matrix、provider health smoke、provider selection policy、provider-retry-fallback-policy-v1 和 provider runtime docs refresh 已进入 fast baseline；正式 secret backend、环境隔离、外部 provider live health 和 retry/fallback execution 仍未落地
 
@@ -138,6 +138,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 当前 `GET /v1/session/recovery/checkpoints/{checkpoint_id}` 只承接 session recovery checkpoint 的 metadata-only route smoke。它返回固定 fixture 边界、checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，并显式拒绝 materialized result / replay 类查询；这条路由不是 durable checkpoint store、materialized result reader 或 replay executor。
 
 当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 只承接最小 session/tooling 产品骨架。session metadata route 返回 northbound `radishmind` 扩展字段、history/state/recovery 边界和 disabled capability；tools metadata route 返回当前 contract-only registry view；tool action route 对工具 action 请求返回 `tool_action_blocked_response`，用于上层或 UI 消费 `status=blocked`、denial code、confirmation requirement 和 side-effect absence。该 blocked response 不代表 confirmation 接线、executor、durable store、materialized result reader、长期记忆、业务写回或 replay 已启用。
+
+当前 Control Plane Read-Side 的七条 route 已注册到 Go platform mux，并统一返回 `request_id / tenant_ref / items / next_cursor / failure_code / audit_ref` envelope。成功路径只在 Go route smoke 中通过 test-only fake auth context 和 in-memory fake store 覆盖；真实 HTTP 入口在接入 `future Radish OIDC / auth middleware` 前没有可用的身份注入机制，缺少身份、跨租户、scope 不足、非法 filter、forbidden method / query 和敏感字段投影都必须 fail-closed。该 read-side surface 不启用数据库 query、repository、OIDC validation、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
 当前 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口。它聚合服务状态、`/v1/models` provider/profile inventory、session metadata route、tool metadata route、blocked action route 和停止线，供未来本地控制台或上层 UI 一次读取当前平台可展示能力。该 overview 只消费已有 metadata / blocked shell，不引入第二套业务真相源，也不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 

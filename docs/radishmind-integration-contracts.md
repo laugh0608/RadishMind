@@ -45,7 +45,7 @@
 ## 专题索引
 
 - [服务/API 接入契约](contracts/service-api.md)：northbound / southbound 兼容边界、`CopilotGatewayEnvelope`、`RadishFlow` UI consumption、candidate edit handoff、上层接入等待口径和仓库集成边界。
-- [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)：control plane / user workspace 的只读 summary、route、response fixture、negative contract、fake-store-backed handler implementation、auth/db preconditions、consumer contract、脱敏输出和停止线。
+- [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)：control plane / user workspace 的只读 summary、route、response fixture、negative contract、fake-store-backed handler implementation、auth/db preconditions、consumer contract、formal UI boundary/readiness、脱敏输出和停止线。
 - [会话记录契约](contracts/session.md)：`Conversation & Session` 的 `session_id / turn_id`、history policy、recovery record、northbound session metadata、metadata-only checkpoint read、promotion gate、readiness rollup、stop-line manifest、负向查询和 advisory-only audit 边界。
 - [工具框架契约](contracts/tooling.md)：`Tooling Framework` 的 tool definition、registry、policy/audit record、metadata-only result cache、negative regression governance suite、deny-by-default gates、result materialization policy、executor/storage 边界和不执行真实工具的 v1 停止线。
 - [Production Secret Reference 契约](contracts/production-secret-reference.md)：provider profile 到 secret reference 的 reference-only manifest、脱敏字段、禁止字段和 production secret backend 未就绪停止线。
