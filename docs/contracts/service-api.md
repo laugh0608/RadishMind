@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-05-27
+更新时间：2026-05-28
 
 ## 协议兼容边界
 
@@ -20,12 +20,12 @@
 - 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
 
-未来 control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。这些 route 当前仍是契约和 fixture，不属于 `services/platform/` 已实现 HTTP surface。
+control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前 `tenant-summary-route` 与 `quota-summary-route` 已作为 fake-store-backed Go route 进入 `services/platform/` HTTP surface；其余 read-only route 仍是契约和 fixture。
 
 当前真实状态是：
 
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
-- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata` 与 `/v1/tools/actions`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
+- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`、`/v1/control-plane/tenants/{tenant_ref}/summary` 与 `/v1/user-workspace/usage/quota-summary`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
 - `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；provider capability matrix、provider health smoke、provider selection policy、provider-retry-fallback-policy-v1 和 provider runtime docs refresh 已进入 fast baseline；正式 secret backend、环境隔离、外部 provider live health 和 retry/fallback execution 仍未落地
 

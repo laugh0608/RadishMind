@@ -24,10 +24,11 @@ type bridgeClient interface {
 }
 
 type Server struct {
-	httpServer *http.Server
-	options    Options
-	bridge     bridgeClient
-	config     config.Config
+	httpServer            *http.Server
+	options               Options
+	bridge                bridgeClient
+	config                config.Config
+	controlPlaneReadStore controlPlaneReadStore
 }
 
 type errorDocument struct {
@@ -64,6 +65,8 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux.HandleFunc("GET /v1/session/recovery/checkpoints/{checkpoint_id}", server.handleSessionRecoveryCheckpoint)
 	mux.HandleFunc("GET /v1/tools/metadata", server.handleToolsMetadata)
 	mux.HandleFunc("POST /v1/tools/actions", server.handleToolAction)
+	mux.HandleFunc(controlPlaneTenantSummaryRoute, server.handleControlPlaneTenantSummary)
+	mux.HandleFunc(controlPlaneQuotaSummaryRoute, server.handleUserWorkspaceQuotaSummary)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,

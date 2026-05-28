@@ -29,6 +29,8 @@
 - `GET /v1/session/recovery/checkpoints/{checkpoint_id}`
 - `GET /v1/tools/metadata`
 - `POST /v1/tools/actions`
+- `GET /v1/control-plane/tenants/{tenant_ref}/summary`
+- `GET /v1/user-workspace/usage/quota-summary`
 
 其中 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口：它汇总服务状态、可选 model/profile、session/tooling metadata route、blocked action route 和当前停止线，供 `apps/radishmind-console/` 本地控制台或上层 UI 一次读取。它不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
@@ -40,7 +42,7 @@
 
 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 当前构成最小 session/tooling 可用外壳：前两者返回平台可消费的 session 扩展字段、history/state/recovery 边界、tool registry metadata 和 contract-only execution policy；后者对任何工具 action 请求都返回 `tool_action_blocked_response`，明确 `status=blocked`、`execution_enabled=false`、`executed=false`、`result_ref=null`、`durable_memory_written=false`、`writes_business_truth=false`。这些路由只用于上层或 UI 发现能力和展示 blocked action 状态，不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
-`control-plane-read-fake-store-handler-plan-v1` 当前只是 plan-only 治理证据：未来 fake-store-backed read handler 仍计划落在 `services/platform/internal/httpapi`，但本目录还没有注册 `/v1/control-plane/tenants/{tenant_ref}/summary`、`/v1/user-workspace/applications`、`/v1/user-workspace/api-keys`、`/v1/user-workspace/usage/quota-summary`、`/v1/user-workspace/workflow-definitions`、`/v1/user-workspace/runs` 或 `/v1/control-plane/audit`。该计划不实现 Go handler、fake auth middleware、数据库 query、OIDC、executor、confirmation、writeback 或 replay。
+`control-plane-read-fake-store-handler-implementation-v1` 当前只实现两条 fake-store-backed read route：`GET /v1/control-plane/tenants/{tenant_ref}/summary` 与 `GET /v1/user-workspace/usage/quota-summary`。它们使用 `services/platform/internal/httpapi` 内的 in-memory fake store 和 test-only fake auth context，Go route smoke 覆盖成功、missing identity、tenant binding mismatch、scope denied、forbidden method、forbidden query 和 no-side-effects。`control-plane-read-fake-store-handler-plan-v1` 仍约束后续 route 顺序；`/v1/user-workspace/applications`、`/v1/user-workspace/api-keys`、`/v1/user-workspace/workflow-definitions`、`/v1/user-workspace/runs` 与 `/v1/control-plane/audit` 仍未注册。该实现不接数据库 query、OIDC、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay。
 
 当前第一版 bridge 仍是窄切片：
 
@@ -336,6 +338,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - `/v1/session/metadata` 返回 `session_metadata`，其中 durable session/checkpoint store、long-term memory、automatic replay 和 business truth write 均为 `false`。
 - `/v1/session/recovery/checkpoints/session-checkpoint-0001` 返回 `session_recovery_checkpoint_read_result`，且 `access_policy.metadata_only=true`、`materialized_results_included=false`、`auto_replay_enabled=false`，`result.tool_audit_summary.execution_enabled=false`。
 - `/v1/tools/metadata` 返回 `tooling_metadata`，其中 `registry_policy.execution_enabled=false`，每个工具的 execution mode 为 `contract_only`。
+- 两条 control-plane read route 目前只在 Go test 中通过 test-only fake auth context 验证；直接 curl 未带未来 auth context 时应 fail closed，而不是匿名返回跨租户数据。
 - `/v1/tools/actions` 返回 `tool_action_blocked_response`，且不会运行工具、返回 materialized result、写 durable memory 或写业务真相源。
 - `/v1/chat/completions` 在 `mock` provider 下返回 advisory 文本，不访问外部 provider，不写回任何上层项目。
 

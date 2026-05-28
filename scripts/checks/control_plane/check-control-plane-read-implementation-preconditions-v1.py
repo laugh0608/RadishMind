@@ -103,7 +103,7 @@ REQUIRED_DOC_REFERENCES = {
     "docs/README.md": [
         "control-plane-read-implementation-preconditions-v1",
         "fake store",
-        "不实现 Go handler",
+        "不实现完整 read-side API",
     ],
     "docs/contracts/control-plane-read-side.md": [
         "control-plane-read-implementation-preconditions-v1",

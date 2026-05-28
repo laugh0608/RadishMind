@@ -4,9 +4,9 @@
 
 ## 任务目标
 
-本任务卡用于把 `control-plane-read-implementation-preconditions-v1` 继续拆成下一步实现计划：未来如果开始写 read route，只允许先做 fake-store-backed handler 切片。
+本任务卡用于把 `control-plane-read-implementation-preconditions-v1` 继续拆成下一步实现计划：如果开始写 read route，只允许先做 fake-store-backed handler 切片。
 
-当前任务仍不实现 Go route handler、不注册 HTTP route、不创建 TypeScript consumer、不创建数据库 schema / query、不接 `Radish` OIDC、不实现 API key lifecycle / quota enforcement、不实现 workflow executor，也不新增 confirmation / writeback / replay。它只固定未来实现时的 Go package 落点、fake store 输入、test-only fake auth context、response conformance、route smoke 顺序和停止线。
+该计划已被 `control-plane-read-fake-store-handler-implementation-v1` 消费前两条 single-resource route。计划本身仍只固定 Go package 落点、fake store 输入、test-only fake auth context、response conformance、route smoke 顺序和停止线；后续实现不得越过数据库、OIDC、executor、confirmation、writeback 或 replay 边界。
 
 ## 输入事实源
 
@@ -24,7 +24,7 @@
 1. `Go package ownership`
    - 未来 read handler 只落在 `services/platform/internal/httpapi`。
    - 未来 route registration 只修改 `services/platform/internal/httpapi/server.go`。
-   - 未来建议文件名为 `control_plane_read.go`、`control_plane_read_fake_store.go` 与 `control_plane_read_test.go`；本任务不创建这些文件。
+   - 建议文件名为 `control_plane_read.go`、`control_plane_read_fake_store.go` 与 `control_plane_read_test.go`；这些文件已由 `control-plane-read-fake-store-handler-implementation-v1` 创建并只覆盖首批 route。
 
 2. `Fixture-backed fake store`
    - fake store 只从已提交的 read model、route contract、response fixture 和 negative contract 取数。
@@ -46,12 +46,12 @@
 - `scripts/checks/fixtures/control-plane-read-fake-store-handler-plan-v1.json` 固定 future Go file layout、route plan、fake store、fake auth context、route smoke 和停止线。
 - `scripts/checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py` 校验该计划完全依赖前置 fixture，不漂移到数据库、OIDC、executor 或生产能力。
 - checker 接入 `scripts/check-repo.py --fast`。
-- 入口文档、read-side 契约、任务卡入口、脚本说明、platform README 和周志同步说明该切片是 plan-only，不实现 handler。
+- 入口文档、read-side 契约、任务卡入口、脚本说明、platform README 和周志同步说明该计划已被 partial implementation 消费，但不代表完整 read-side API ready。
 
 ## 非目标
 
-- 不创建或修改 Go route handler。
-- 不注册 `/v1/control-plane/*` 或 `/v1/user-workspace/*` read route。
+- 不把计划本身写成完整 Go handler ready。
+- 不注册计划外的 `/v1/control-plane/*` 或 `/v1/user-workspace/*` read route。
 - 不创建 TypeScript consumer contract。
 - 不创建数据库 schema、migration、query、repository、durable store 或真实 data source。
 - 不接 `Radish` OIDC middleware，不新增公开 fake auth 入口。
@@ -60,7 +60,7 @@
 
 ## 停止线
 
-- 不把 fake-store-backed read handler plan 写成 Go handler ready。
+- 不把 fake-store-backed read handler plan 写成完整 read-side implementation ready。
 - 不把未来 fake store 写成 durable store、database adapter 或 production data source。
 - 不把 test-only fake auth context 写成 Radish OIDC client ready。
 - 不为了 route smoke 引入 executor、confirmation decision、business writeback、replay 或 database write。

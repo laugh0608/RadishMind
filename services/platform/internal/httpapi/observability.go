@@ -193,6 +193,18 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryNorthboundRequest,
 			defaultMessage:  "checkpoint read does not support durable memory",
 		},
+		"CONTROL_PLANE_READ_METHOD_NOT_ALLOWED": {
+			statusCode:      http.StatusMethodNotAllowed,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "control plane read route only supports GET",
+		},
+		"CONTROL_PLANE_READ_QUERY_FORBIDDEN": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "control plane read route rejected a forbidden query parameter",
+		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,
 			errorType:       "configuration_error",

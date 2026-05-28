@@ -8,6 +8,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-fake-store-handler-plan-v1.json"
+IMPLEMENTATION_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-fake-store-handler-implementation-v1.json"
 PRECONDITIONS_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-implementation-preconditions-v1.json"
 ROUTE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-route-contract-v1.json"
 RESPONSE_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
@@ -57,6 +58,10 @@ EXPECTED_SIDE_EFFECT_COUNTERS = {
     "confirmation_call_count=0",
     "business_writeback_count=0",
     "replay_call_count=0",
+}
+EXPECTED_ROUTE_REGISTRATION_LITERALS = {
+    "tenant-summary-route": "controlPlaneTenantSummaryRoute",
+    "quota-summary-route": "controlPlaneQuotaSummaryRoute",
 }
 EXPECTED_FORBIDDEN_SCOPE = {
     "Go route handler implementation",
@@ -137,6 +142,62 @@ REQUIRED_DOC_REFERENCES = {
         "check-control-plane-read-fake-store-handler-plan-v1.py",
     ],
 }
+IMPLEMENTED_DOC_REFERENCES = {
+    "docs/README.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "control-plane-read-fake-store-handler-implementation-v1",
+        "不实现完整 read-side API",
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "control-plane-read-fake-store-handler-implementation-v1",
+        "fake-store-backed",
+    ],
+    "docs/radishmind-current-focus.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "control-plane-read-fake-store-handler-implementation-v1",
+        "不直接实现数据库、OIDC、executor、confirmation、writeback 或 replay",
+    ],
+    "docs/radishmind-architecture.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "services/platform/internal/httpapi",
+        "fake store",
+    ],
+    "docs/radishmind-roadmap.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "control-plane-read-fake-store-handler-implementation-v1",
+        "不默认进入数据库",
+    ],
+    "docs/radishmind-capability-matrix.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "control-plane-read-fake-store-handler-implementation-v1",
+        "fake-store-backed",
+    ],
+    "docs/task-cards/README.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "Control Plane Read Fake-Store Handler Plan",
+    ],
+    "docs/task-cards/control-plane-read-fake-store-handler-plan-v1-plan.md": [
+        "test-only fake auth context",
+        "fake-store-backed handler",
+        "control-plane-read-fake-store-handler-implementation-v1",
+    ],
+    "scripts/README.md": [
+        "check-control-plane-read-fake-store-handler-plan-v1.py",
+        "control-plane-read-fake-store-handler-plan-v1.json",
+        "fake-store-backed read handler plan",
+    ],
+    "services/platform/README.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "control-plane-read-fake-store-handler-implementation-v1",
+        "/v1/control-plane/tenants/{tenant_ref}/summary",
+    ],
+    "docs/devlogs/2026-W22.md": [
+        "control-plane-read-fake-store-handler-plan-v1",
+        "control-plane-read-fake-store-handler-plan-v1.json",
+        "check-control-plane-read-fake-store-handler-plan-v1.py",
+    ],
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -163,6 +224,17 @@ def route_contracts_by_id() -> dict[str, dict[str, Any]]:
     }
     require(routes, "route contract fixture must contain routes")
     return routes
+
+
+def implemented_route_ids() -> set[str]:
+    if not IMPLEMENTATION_FIXTURE_PATH.exists():
+        return set()
+    implementation = load_json(IMPLEMENTATION_FIXTURE_PATH)
+    return {
+        str(route.get("route_id") or "")
+        for route in implementation.get("implemented_routes") or []
+        if isinstance(route, dict)
+    }
 
 
 def precondition_fake_store_bindings_by_route() -> dict[str, dict[str, Any]]:
@@ -234,6 +306,7 @@ def assert_go_ownership(fixture: dict[str, Any]) -> None:
     ownership = fixture.get("planned_go_ownership") or {}
     require(ownership.get("status") == "plan_only_not_implemented", "Go ownership must stay plan-only")
     require(ownership.get("handler_owner") == "go_platform_control_plane_read_side", "handler owner drifted")
+    implementation_route_ids = implemented_route_ids()
 
     package_path = REPO_ROOT / str(ownership.get("package") or "")
     require(package_path.is_dir(), "planned Go package must exist")
@@ -243,15 +316,24 @@ def assert_go_ownership(fixture: dict[str, Any]) -> None:
     for key in ("future_handler_file", "future_fake_store_file", "future_test_file"):
         future_path = REPO_ROOT / str(ownership.get(key) or "")
         require(future_path.parent == package_path, f"{key} must stay under planned Go package")
-        require(not future_path.exists(), f"{future_path.relative_to(REPO_ROOT)} must remain unimplemented in this slice")
+        if implementation_route_ids:
+            require(future_path.exists(), f"{future_path.relative_to(REPO_ROOT)} must exist once implementation slice is present")
+        else:
+            require(not future_path.exists(), f"{future_path.relative_to(REPO_ROOT)} must remain unimplemented in this slice")
 
     all_go = package_go_text(package_path)
     for helper in ownership.get("existing_helpers") or []:
         require(str(helper) in all_go, f"planned helper does not exist in Go package: {helper}")
 
     server_go = route_registration.read_text(encoding="utf-8")
-    for route in route_contracts_by_id().values():
-        require(str(route.get("path") or "") not in server_go, "read routes must not be registered in plan-only slice")
+    for route_id, route in route_contracts_by_id().items():
+        route_path = str(route.get("path") or "")
+        if route_id in implementation_route_ids:
+            registration_literal = EXPECTED_ROUTE_REGISTRATION_LITERALS.get(route_id, route_path)
+            require(route_path in all_go, f"implemented route path must be declared by implementation slice: {route_id}")
+            require(registration_literal in server_go, f"implemented route must be registered by implementation slice: {route_id}")
+        else:
+            require(route_path not in server_go, f"unimplemented read route must not be registered: {route_id}")
 
 
 def assert_phases(fixture: dict[str, Any]) -> None:
@@ -385,7 +467,8 @@ def assert_policy_and_docs(fixture: dict[str, Any]) -> None:
         "check-repo.py must run control plane read fake-store handler plan check",
     )
 
-    for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():
+    doc_references = IMPLEMENTED_DOC_REFERENCES if implemented_route_ids() else REQUIRED_DOC_REFERENCES
+    for relative_path, required_literals in doc_references.items():
         text = read(relative_path)
         missing = [literal for literal in required_literals if literal not in text]
         require(not missing, f"{relative_path} missing literals: {missing}")
