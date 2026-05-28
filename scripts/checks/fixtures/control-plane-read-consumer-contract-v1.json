@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_consumer_contract_v1",
+  "slice": {
+    "id": "control-plane-read-consumer-contract-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "consumer_contract_defined",
+    "does_not_claim": [
+      "formal_user_workspace_ui_ready",
+      "production_admin_console_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-fake-store-handler-implementation-v1",
+    "control-plane-read-auth-db-preconditions-v1",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-response-fixtures-v1",
+    "control-plane-read-negative-contract-v1"
+  ],
+  "typescript_contract": {
+    "status": "defined",
+    "file": "contracts/typescript/control-plane-read-api.ts",
+    "route_ids": [
+      "tenant-summary-route",
+      "application-summary-list-route",
+      "api-key-summary-list-route",
+      "quota-summary-route",
+      "workflow-definition-summary-list-route",
+      "run-record-summary-list-route",
+      "audit-summary-list-route"
+    ],
+    "exports": [
+      "CONTROL_PLANE_READ_ROUTES",
+      "CONTROL_PLANE_READ_ROUTE_IDS",
+      "CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS",
+      "ControlPlaneReadEnvelope",
+      "ControlPlaneReadResponseByRoute",
+      "ControlPlaneReadRequestByRoute",
+      "ControlPlaneReadRouteCatalogViewModel",
+      "ControlPlaneReadCollectionViewModel",
+      "listControlPlaneReadRouteCatalog",
+      "isControlPlaneReadEnvelope",
+      "toControlPlaneReadCollectionViewModel",
+      "controlPlaneReadResponseHasForbiddenOutput"
+    ],
+    "view_model_stop_lines": [
+      "databaseBacked: false",
+      "formalUiReady: false",
+      "canMutate: false",
+      "canExecuteWorkflow: false",
+      "canWriteBusinessTruth: false",
+      "canRevealSecrets: false"
+    ]
+  },
+  "route_catalog": [
+    {
+      "route_id": "tenant-summary-route",
+      "method": "GET",
+      "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+      "read_model": "tenant-summary",
+      "required_scope": "tenant:read",
+      "pagination": "single_resource",
+      "allowed_filters": []
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "read_model": "application-summary",
+      "required_scope": "applications:read",
+      "pagination": "cursor_required",
+      "allowed_filters": [
+        "application_kind",
+        "owner_subject_ref",
+        "last_run_status"
+      ]
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "read_model": "api-key-summary",
+      "required_scope": "api_keys:read",
+      "pagination": "cursor_required",
+      "allowed_filters": [
+        "state",
+        "owner_subject_ref",
+        "scope"
+      ]
+    },
+    {
+      "route_id": "quota-summary-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/usage/quota-summary",
+      "read_model": "quota-summary",
+      "required_scope": "usage:read",
+      "pagination": "single_resource",
+      "allowed_filters": [
+        "period"
+      ]
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "read_model": "workflow-definition-summary",
+      "required_scope": "applications:read",
+      "pagination": "cursor_required",
+      "allowed_filters": [
+        "application_ref",
+        "definition_status",
+        "risk_level"
+      ]
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "read_model": "run-record-summary",
+      "required_scope": "runs:read",
+      "pagination": "cursor_required",
+      "allowed_filters": [
+        "application_ref",
+        "workflow_definition_id",
+        "status",
+        "failure_code"
+      ]
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "read_model": "audit-summary",
+      "required_scope": "audit:read",
+      "pagination": "cursor_required",
+      "allowed_filters": [
+        "event_kind",
+        "resource_ref",
+        "actor_subject_ref",
+        "failure_code"
+      ]
+    }
+  ],
+  "consumer_smoke": {
+    "status": "offline_fixture_smoke_defined",
+    "script": "scripts/run-control-plane-read-consumer-smoke.py",
+    "source_fixtures": [
+      "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+      "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+      "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
+    ],
+    "required_invariants": [
+      "all_routes_consumed",
+      "all_envelopes_complete",
+      "failure_views_are_denied",
+      "failure_views_return_no_items",
+      "audit_ref_required",
+      "forbidden_output_absent",
+      "read_only_views",
+      "secret_projection_disabled",
+      "negative_contract_invariants_preserved"
+    ]
+  },
+  "forbidden_current_scope": [
+    "formal user workspace UI",
+    "production admin console",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "repository implementation",
+    "Radish OIDC integration",
+    "auth middleware implementation",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production ready"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-consumer-contract-v1-plan.md",
+    "contracts/typescript/control-plane-read-api.ts",
+    "scripts/run-control-plane-read-consumer-smoke.py",
+    "docs/contracts/control-plane-read-side.md",
+    "scripts/checks/fixtures/control-plane-read-fake-store-handler-implementation-v1.json",
+    "scripts/checks/fixtures/control-plane-read-auth-db-preconditions-v1.json",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+    "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-consumer-contract-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "contracts/README.md",
+    "docs/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-consumer-contract-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}
