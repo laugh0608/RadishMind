@@ -40,6 +40,8 @@
 
 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 当前构成最小 session/tooling 可用外壳：前两者返回平台可消费的 session 扩展字段、history/state/recovery 边界、tool registry metadata 和 contract-only execution policy；后者对任何工具 action 请求都返回 `tool_action_blocked_response`，明确 `status=blocked`、`execution_enabled=false`、`executed=false`、`result_ref=null`、`durable_memory_written=false`、`writes_business_truth=false`。这些路由只用于上层或 UI 发现能力和展示 blocked action 状态，不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
+`control-plane-read-fake-store-handler-plan-v1` 当前只是 plan-only 治理证据：未来 fake-store-backed read handler 仍计划落在 `services/platform/internal/httpapi`，但本目录还没有注册 `/v1/control-plane/tenants/{tenant_ref}/summary`、`/v1/user-workspace/applications`、`/v1/user-workspace/api-keys`、`/v1/user-workspace/usage/quota-summary`、`/v1/user-workspace/workflow-definitions`、`/v1/user-workspace/runs` 或 `/v1/control-plane/audit`。该计划不实现 Go handler、fake auth middleware、数据库 query、OIDC、executor、confirmation、writeback 或 replay。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发

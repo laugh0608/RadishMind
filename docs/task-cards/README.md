@@ -54,6 +54,7 @@
 4. [`Control Plane Read Response Fixtures` v1 计划](control-plane-read-response-fixtures-v1-plan.md)（`control-plane-read-response-fixtures-v1`）
 5. [`Control Plane Read Negative Contract` v1 计划](control-plane-read-negative-contract-v1-plan.md)（`control-plane-read-negative-contract-v1`）
 6. [`Control Plane Read Implementation Preconditions` v1 计划](control-plane-read-implementation-preconditions-v1-plan.md)（`control-plane-read-implementation-preconditions-v1`）
+7. [`Control Plane Read Fake-Store Handler Plan` v1 计划](control-plane-read-fake-store-handler-plan-v1-plan.md)（`control-plane-read-fake-store-handler-plan-v1`）
 
 ## UI 设计专题
 
