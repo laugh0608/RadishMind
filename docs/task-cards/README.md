@@ -58,6 +58,7 @@
 8. [`Control Plane Read Fake-Store Handler Implementation` v1 计划](control-plane-read-fake-store-handler-implementation-v1-plan.md)（`control-plane-read-fake-store-handler-implementation-v1`）
 9. [`Control Plane Read Auth/DB Preconditions` v1 计划](control-plane-read-auth-db-preconditions-v1-plan.md)（`control-plane-read-auth-db-preconditions-v1`）
 10. [`Control Plane Read Consumer Contract` v1 计划](control-plane-read-consumer-contract-v1-plan.md)（`control-plane-read-consumer-contract-v1`）
+11. [`Control Plane Read Formal UI Boundary` v1 计划](control-plane-read-formal-ui-boundary-v1-plan.md)（`control-plane-read-formal-ui-boundary-v1`）
 
 ## UI 设计专题
 
