@@ -30,13 +30,13 @@
 read-side 契约当前由以下 fixture 和 checker 固定：
 
 - `scripts/checks/fixtures/control-plane-read-model-v1.json`
-- `scripts/check-control-plane-read-model-v1.py`
+- `scripts/checks/control_plane/check-control-plane-read-model-v1.py`
 - `scripts/checks/fixtures/control-plane-read-route-contract-v1.json`
-- `scripts/check-control-plane-read-route-contract-v1.py`
+- `scripts/checks/control_plane/check-control-plane-read-route-contract-v1.py`
 - `scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json`
-- `scripts/check-control-plane-read-response-fixtures-v1.py`
+- `scripts/checks/control_plane/check-control-plane-read-response-fixtures-v1.py`
 - `scripts/checks/fixtures/control-plane-read-negative-contract-v1.json`
-- `scripts/check-control-plane-read-negative-contract-v1.py`
+- `scripts/checks/control_plane/check-control-plane-read-negative-contract-v1.py`
 
 这些 checker 已接入 `scripts/check-repo.py --fast`。它们的作用是防止契约、样例、负向边界和文档说明互相漂移，不负责启动服务或模拟真实数据库。
 

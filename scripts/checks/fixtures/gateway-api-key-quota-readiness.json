@@ -194,7 +194,7 @@
     "docs/radishmind-architecture.md"
   ],
   "required_consumers": [
-    "scripts/check-gateway-api-key-quota-readiness.py",
+    "scripts/checks/control_plane/check-gateway-api-key-quota-readiness.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",

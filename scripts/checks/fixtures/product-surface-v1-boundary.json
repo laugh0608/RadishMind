@@ -204,7 +204,7 @@
     "docs/radishmind-capability-matrix.md"
   ],
   "required_consumers": [
-    "scripts/check-product-surface-v1-boundary.py",
+    "scripts/checks/control_plane/check-product-surface-v1-boundary.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",

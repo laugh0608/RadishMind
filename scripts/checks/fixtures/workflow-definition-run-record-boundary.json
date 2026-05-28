@@ -280,7 +280,7 @@
     "docs/radishmind-architecture.md"
   ],
   "required_consumers": [
-    "scripts/check-workflow-definition-run-record-boundary.py",
+    "scripts/checks/control_plane/check-workflow-definition-run-record-boundary.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",

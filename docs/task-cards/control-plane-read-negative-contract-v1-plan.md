@@ -41,7 +41,7 @@ v1 为七类 route contract 固定负向样例：
 ## 验收口径
 
 - `scripts/checks/fixtures/control-plane-read-negative-contract-v1.json` 固定 route negative case、共享 negative case、拒绝不变量和停止线。
-- `scripts/check-control-plane-read-negative-contract-v1.py` 校验依赖切片已满足，并校验负向样例覆盖所有 read-only route。
+- `scripts/checks/control_plane/check-control-plane-read-negative-contract-v1.py` 校验依赖切片已满足，并校验负向样例覆盖所有 read-only route。
 - `check-control-plane-read-negative-contract-v1.py` 接入 `scripts/check-repo.py --fast`。
 - 入口文档、任务卡入口、脚本说明和周志同步说明该切片只固定 negative contract，不实现 API、数据库、executor、confirmation、writeback 或 replay。
 

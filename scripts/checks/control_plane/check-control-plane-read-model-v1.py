@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-model-v1.json"
 DEPENDENCY_FIXTURES = {
     "product-surface-v1-boundary": REPO_ROOT / "scripts/checks/fixtures/product-surface-v1-boundary.json",
@@ -267,7 +267,7 @@ def assert_evidence_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("check-control-plane-read-model-v1.py", [])' in check_repo,
+        'run_python_script("checks/control_plane/check-control-plane-read-model-v1.py", [])' in check_repo,
         "check-repo.py must run control plane read model check",
     )
 

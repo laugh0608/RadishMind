@@ -83,23 +83,23 @@ v1 只定义 workflow runtime 的资源边界和执行停止线：
 1. `product-surface-v1-boundary`
    - 固定四个产品面的 v1 resource、read model、write boundary 和停止线。
    - 不新增 UI 或 API 实现。
-   - 当前已落地：`scripts/checks/fixtures/product-surface-v1-boundary.json` 与 `scripts/check-product-surface-v1-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定四个产品面的资源、读模型、写边界、blocked capability 和 shared stop-line，不实现正式用户端、生产管理端、OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
+   - 当前已落地：`scripts/checks/fixtures/product-surface-v1-boundary.json` 与 `scripts/checks/control_plane/check-product-surface-v1-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定四个产品面的资源、读模型、写边界、blocked capability 和 shared stop-line，不实现正式用户端、生产管理端、OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
 2. `control-plane-data-boundary`
    - 明确 tenant、user、role、permission、provider profile、model route、quota、price、audit、secret ref、deployment status 的 ownership。
    - 不创建数据库迁移。
-   - 当前已落地：`scripts/checks/fixtures/control-plane-data-boundary.json` 与 `scripts/check-control-plane-data-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定 ownership、read surface、write boundary、blocked_until 和 shared policy，不创建数据库 schema 或 migration，不实现 control plane API、Radish OIDC、tenant / user CRUD、quota enforcement、billing、secret resolver、workflow executor 或 production admin console。
+   - 当前已落地：`scripts/checks/fixtures/control-plane-data-boundary.json` 与 `scripts/checks/control_plane/check-control-plane-data-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定 ownership、read surface、write boundary、blocked_until 和 shared policy，不创建数据库 schema 或 migration，不实现 control plane API、Radish OIDC、tenant / user CRUD、quota enforcement、billing、secret resolver、workflow executor 或 production admin console。
 3. `radish-oidc-client-preconditions`
    - 固定未来接入 `Radish` Auth 前必须具备的 issuer、client、claim mapping、tenant binding、logout、audit 和 failure taxonomy。
    - 不接真实 OIDC。
-   - 当前已落地：`scripts/checks/fixtures/radish-oidc-client-preconditions.json` 与 `scripts/check-radish-oidc-client-preconditions.py`，状态为 `governance_boundary_satisfied`；该切片只固定 issuer discovery、client registration、claim mapping、tenant binding、session boundary、logout / revocation、audit events 和 failure taxonomy，不进行网络调用、不实现 OIDC middleware、token validation、login / logout route、session cookie、client secret storage、tenant permission enforcement 或 production auth policy。
+   - 当前已落地：`scripts/checks/fixtures/radish-oidc-client-preconditions.json` 与 `scripts/checks/control_plane/check-radish-oidc-client-preconditions.py`，状态为 `governance_boundary_satisfied`；该切片只固定 issuer discovery、client registration、claim mapping、tenant binding、session boundary、logout / revocation、audit events 和 failure taxonomy，不进行网络调用、不实现 OIDC middleware、token validation、login / logout route、session cookie、client secret storage、tenant permission enforcement 或 production auth policy。
 4. `gateway-api-key-quota-readiness`
    - 定义 API key、quota、rate limit、cost ledger 和 trace 的契约前置条件。
    - 不发放真实 API key。
-   - 当前已落地：`scripts/checks/fixtures/gateway-api-key-quota-readiness.json` 与 `scripts/check-gateway-api-key-quota-readiness.py`，状态为 `governance_boundary_satisfied`；该切片只固定 API key lifecycle、tenant binding、scope policy、quota policy、rate limit policy、cost ledger、trace record 和 failure taxonomy，不生成、哈希、存储或验证真实 API key，不实现 quota enforcement、rate limiting、billing ledger、cost calculation、durable trace store 或 production gateway auth。
+   - 当前已落地：`scripts/checks/fixtures/gateway-api-key-quota-readiness.json` 与 `scripts/checks/control_plane/check-gateway-api-key-quota-readiness.py`，状态为 `governance_boundary_satisfied`；该切片只固定 API key lifecycle、tenant binding、scope policy、quota policy、rate limit policy、cost ledger、trace record 和 failure taxonomy，不生成、哈希、存储或验证真实 API key，不实现 quota enforcement、rate limiting、billing ledger、cost calculation、durable trace store 或 production gateway auth。
 5. `workflow-definition-run-record-boundary`
    - 定义 workflow definition、run record、node execution、tool audit、result materialization 和 confirmation decision 的最小关系。
    - 不实现 executor。
-   - 当前已落地：`scripts/checks/fixtures/workflow-definition-run-record-boundary.json` 与 `scripts/check-workflow-definition-run-record-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线，不实现 workflow builder、workflow executor、node executor、tool calling、confirmation flow、business writeback、replay、durable run database 或 materialized result reader。
+   - 当前已落地：`scripts/checks/fixtures/workflow-definition-run-record-boundary.json` 与 `scripts/checks/control_plane/check-workflow-definition-run-record-boundary.py`，状态为 `governance_boundary_satisfied`；该切片只固定 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线，不实现 workflow builder、workflow executor、node executor、tool calling、confirmation flow、business writeback、replay、durable run database 或 materialized result reader。
 
 后续只读前置切片已沿本任务卡继续补齐：`control-plane-read-model-v1`、`control-plane-read-route-contract-v1`、`control-plane-read-response-fixtures-v1` 与 `control-plane-read-negative-contract-v1` 分别固定只读 read model、read-only route contract、response fixture 和 negative contract，仍不实现 API、数据库、executor、confirmation、writeback 或 replay。
 

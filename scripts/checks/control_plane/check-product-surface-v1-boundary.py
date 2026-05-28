@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/product-surface-v1-boundary.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
@@ -174,7 +174,7 @@ def assert_boundaries_and_evidence(fixture: dict[str, Any]) -> None:
 def assert_docs_and_check_repo() -> None:
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("check-product-surface-v1-boundary.py", [])' in check_repo,
+        'run_python_script("checks/control_plane/check-product-surface-v1-boundary.py", [])' in check_repo,
         "check-repo.py must run product surface v1 boundary check",
     )
 

@@ -226,7 +226,7 @@
     "docs/radishmind-roadmap.md"
   ],
   "required_consumers": [
-    "scripts/check-control-plane-data-boundary.py",
+    "scripts/checks/control_plane/check-control-plane-data-boundary.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/radish-oidc-client-preconditions.json"
 PRODUCT_SURFACE_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/product-surface-v1-boundary.json"
 CONTROL_PLANE_DATA_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-data-boundary.json"
@@ -223,7 +223,7 @@ def assert_evidence_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("check-radish-oidc-client-preconditions.py", [])' in check_repo,
+        'run_python_script("checks/control_plane/check-radish-oidc-client-preconditions.py", [])' in check_repo,
         "check-repo.py must run Radish OIDC client preconditions check",
     )
 

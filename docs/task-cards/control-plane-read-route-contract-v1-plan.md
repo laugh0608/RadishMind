@@ -40,7 +40,7 @@ v1 只固定七类未来只读 route contract：
 ## 验收口径
 
 - `scripts/checks/fixtures/control-plane-read-route-contract-v1.json` 固定 route contract、scope、分页 / 过滤、失败分类、脱敏策略和停止线。
-- `scripts/check-control-plane-read-route-contract-v1.py` 校验依赖切片已满足，并校验本文档、入口文档、脚本说明和周志同步。
+- `scripts/checks/control_plane/check-control-plane-read-route-contract-v1.py` 校验依赖切片已满足，并校验本文档、入口文档、脚本说明和周志同步。
 - `check-control-plane-read-route-contract-v1.py` 接入 `scripts/check-repo.py --fast`。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 

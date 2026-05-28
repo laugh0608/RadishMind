@@ -440,7 +440,7 @@
     "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
   ],
   "required_consumers": [
-    "scripts/check-control-plane-read-negative-contract-v1.py",
+    "scripts/checks/control_plane/check-control-plane-read-negative-contract-v1.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",

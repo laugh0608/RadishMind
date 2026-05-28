@@ -176,7 +176,7 @@
     "docs/radishmind-architecture.md"
   ],
   "required_consumers": [
-    "scripts/check-radish-oidc-client-preconditions.py",
+    "scripts/checks/control_plane/check-radish-oidc-client-preconditions.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",
