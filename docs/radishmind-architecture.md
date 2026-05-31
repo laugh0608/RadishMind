@@ -16,6 +16,8 @@
 
 `control-plane-read-formal-ui-implementation-readiness-v1` 已进一步固定正式 UI 实现前的工程边界：product UI 落点为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍是本地 ops surface；页面实现顺序、consumer contract 复用和测试策略已可检查。2026-05-31 已创建 `apps/radishmind-web/` 的 read-only shared shell，并实现只读 `admin-tenant-overview`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。这些页面只消费离线 TypeScript view model，不改变 Go platform route，不请求 live backend，不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
+当前 read-side UI 的架构门禁调整为能力边界优先：先补 `admin-audit-log`，随后用聚合 surface matrix / checker 收口普通只读展示页，不再默认逐页新增专项门禁。后续如果进入 dev-only live read consumer，只能连接 fake-store-backed handler 与测试身份上下文；真实 Radish OIDC / auth middleware、read store repository、数据库 query / migration、API key / quota、workflow executor、confirmation、writeback 和 replay 仍独立排期。
+
 ## 产品视角
 
 ### 1. `User Workspace`
@@ -30,7 +32,7 @@
 - 面向管理员管理租户、用户、角色、权限、provider/profile、模型路由、API key、quota、price、secret backend、审计和部署状态。
 - 登录 / 授权、数据库、部署方式优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth，不在 RadishMind 内部自建身份真相源。
 - Control Plane 默认使用 Go，可独立于 gateway 拆服务；当前不新增 `.NET` / ASP.NET Core 作为默认后端栈。
-- 当前 `apps/radishmind-web/` 已实现只读 `admin-tenant-overview` 页面切片；`admin-audit-log` 仍是后续 read-side 页面。两者都不代表 production admin console。
+- 当前 `apps/radishmind-web/` 已实现只读 `admin-tenant-overview` 页面切片；`admin-audit-log` 仍是下一页 read-side 页面。两者都不代表 production admin console。
 - 当前本地 console 只是 ops surface，不等同于 production admin console。
 
 ### 3. `Model Gateway / API Distribution`
@@ -194,7 +196,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `HuggingFace` 与 `Ollama` 已进入 provider/profile inventory、diagnostics、provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 `provider-runtime-docs-refresh` 门禁；默认 health smoke 只覆盖 mock runtime 与 config-level inventory，selection policy 固定 no implicit fallback 与负向分类，retry/fallback policy 固定 `retry_policy=caller-managed` 与 `fallback_policy=disabled` 审计 metadata，docs refresh 固定入口文档口径，正式 secret backend、环境隔离、外部 provider live health 和 retry/fallback execution 仍未补齐
 - 已有 session/tooling 首版契约、metadata-only 门禁、close-candidate status summary、negative regression governance suite、route/gate coverage rollup、readiness consistency rollup、short close delta、enablement plan、stop-line manifest、五类设计级边界门禁和只读本地 console 消费壳，但没有 durable session/checkpoint/audit/result store、长期记忆、真实 checkpoint storage backend、materialized result reader 或跨轮恢复执行器
 - 已有 tool registry、tool audit、metadata-only result cache、result materialization policy design、executor boundary design 和 deny-by-default gate contract，但没有真实工具执行器、materialized result reader、durable tool store、durable result store 或上层确认流接线
-- 已有 Control Plane Read-Side 七条 fake-store-backed Go route、统一 response envelope、负向 route smoke、TypeScript consumer contract、auth/db preconditions、formal UI boundary/readiness 和 `apps/radishmind-web/` read-only React shell，但没有真实 Radish OIDC / auth middleware、read store repository、数据库 query / migration、`admin-audit-log` 页面、完整 user workspace 或 production admin console
+- 已有 Control Plane Read-Side 七条 fake-store-backed Go route、统一 response envelope、负向 route smoke、TypeScript consumer contract、auth/db preconditions、formal UI boundary/readiness 和 `apps/radishmind-web/` read-only React shell，但没有 `admin-audit-log` 页面、read-side UI 聚合收口、dev-only live read consumer、真实 Radish OIDC / auth middleware、read store repository、数据库 query / migration、完整 user workspace 或 production admin console
 - 尚未具备 production secret backend、process supervisor、正式部署环境隔离、真实镜像发布 workflow、测试环境 smoke、生产前复核记录、console runtime config 和可发布部署包；这些属于当前 `Production Ops Hardening v1` 的主线缺口，不再混在 P3 只读 console 小切片或真实模型产出专题中推进
 
 这些缺口说明：`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 当前是 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 的本地只读壳已达到 `local usable / read-only close`，`UI Design Topic / React 第二批` 和 P4 前置证据已进入 close / 后置专题状态，`Provider Runtime & Health v1` 也已进入 close candidate。下一步应在明确运行窗口后执行容器 smoke 或测试环境 smoke，并按运行记录模板沉淀证据；没有运行窗口时，先做下一条平台主线选择，不继续补 P3 console 同类小展示项、provider 同层小切片、回头扩 P2 readiness、真实 executor、durable store、confirmation 接线或真实模型长跑。

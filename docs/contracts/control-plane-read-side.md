@@ -30,6 +30,14 @@
 
 `control-plane-read-workspace-run-history-v1` 是正式 UI 的用户工作区 run history 页面切片：在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-run-history`，只消费 `run-record-summary-list-route` 的离线 consumer view model，展示 run id、workflow definition ref、application ref、status、failure code、cost summary、trace id、started / completed timestamp、route metadata、request / audit ref、cursor、页面状态和 forbidden output guard。该切片不请求 live backend、不接数据库 / OIDC、不实现 workflow executor、tool executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
 
+## 阶段门禁调整
+
+`admin-audit-log` 仍是当前 read-side UI 页面集合的优先补齐项：它应消费 `audit-summary-list-route` 的离线 consumer view model，并继续复用 `apps/radishmind-web/` 的 route catalog binding、共享状态组件和 forbidden output guard。
+
+`admin-audit-log` 完成后，普通 read-only UI 展示页不再默认逐项新增独立 task card、fixture 和 checker。后续应通过 `control-plane-read-formal-ui-readiness-close-v1` 一类聚合收口，统一校验页面到 `CONTROL_PLANE_READ_ROUTES` / `CONTROL_PLANE_READ_ROUTE_DEFINITIONS` 的绑定、状态组件、forbidden output guard、request / audit ref 和停止线。
+
+后续可以把“不请求 live backend”放宽为 dev-only live read path，但它只能用于验证 `apps/radishmind-web/` 通过 HTTP 消费现有 read API shape，并且只能连接 fake-store-backed handler 与测试身份上下文。该放宽不允许接入真实数据库、Radish OIDC、repository migration、API key lifecycle、quota enforcement、billing / cost ledger、workflow executor、confirmation、writeback 或 replay。
+
 ## 分层关系
 
 当前 read-side 契约按十八层固定：

@@ -71,6 +71,8 @@
 
 `control-plane-read-workspace-run-history-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-run-history` 页面切片。它只消费 `run-record-summary-list-route` 的离线 TypeScript view model，展示 run id、workflow definition ref、application ref、status、failure code、cost summary、trace id、started / completed timestamp、route metadata、request / audit ref、cursor、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、workflow executor、tool executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
 
+read-side UI 后续先补 `admin-audit-log`，只消费既有 `GET /v1/control-plane/audit` / `audit-summary-list-route`。该页面完成后，普通只读展示页应通过聚合 surface matrix / checker 收口，不再默认逐页新增专项门禁。后续如果放宽到 dev-only live read consumer，只能连接当前 fake-store-backed handler 与测试身份上下文；真实数据库、Radish OIDC、repository、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 和 replay 仍不是当前平台服务能力。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发

@@ -12,7 +12,9 @@
 - `workspace-usage-quota` 只消费 `quota-summary-route` 的离线 view model，展示 quota id、period、request / token / cost limit、usage snapshot、over quota failure code、route metadata、request / audit ref 和状态预览。
 - `workspace-workflow-definitions` 只消费 `workflow-definition-summary-list-route` 的离线 view model，展示 workflow definition id、application ref、version、definition status、node count、risk level、requires confirmation capable、updated at、route metadata、request / audit ref 和状态预览。
 - `workspace-run-history` 只消费 `run-record-summary-list-route` 的离线 view model，展示 run id、workflow definition ref、application ref、status、failure code、cost summary、trace id、started / completed timestamp、route metadata、request / audit ref、cursor 和状态预览。
+- 下一页优先补 `admin-audit-log`，只消费 `audit-summary-list-route`；完成后普通只读展示页应进入聚合 surface matrix / checker，不再默认逐页新增专项门禁。
 - 不请求真实后端，不接 `Radish` OIDC，不接数据库，不实现 API key lifecycle、quota enforcement、rate limit、billing、cost ledger、workflow builder、workflow executor、confirmation、writeback 或 replay。
+- 后续如果进入 dev-only live read consumer，也只能连接 fake-store-backed handler 和测试身份上下文；不得解释为 production API consumer、真实 auth/db、repository、API key / quota 或 workflow executor ready。
 - 不替代 `apps/radishmind-console/`；后者仍是本地 ops surface。
 
 本地命令：

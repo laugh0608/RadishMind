@@ -30,6 +30,8 @@
 
 2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。它不请求 live backend，不接数据库、OIDC、repository、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
 
+当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`admin-audit-log` 是下一页优先补齐项；完成后应进入 read-side UI 聚合收口，后续 dev-only live read consumer 只能连接 fake-store-backed handler 和测试身份上下文，不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota 或 workflow executor ready。
+
 1. `User Workspace`
 
 - 面向终端用户和项目成员。
@@ -44,7 +46,7 @@
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
 - 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
-- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview` 页面切片，`admin-audit-log` 仍是后续 read-side 页面；它不是 production admin console。
+- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview` 页面切片，`admin-audit-log` 仍是下一页 read-side 页面；它不是 production admin console。
 
 3. `Model Gateway / API Distribution`
 
