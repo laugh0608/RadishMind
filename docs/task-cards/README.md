@@ -64,6 +64,7 @@
 14. [`Control Plane Read Admin Tenant Overview` v1 计划](control-plane-read-admin-tenant-overview-v1-plan.md)（`control-plane-read-admin-tenant-overview-v1`）
 15. [`Control Plane Read Workspace Applications` v1 计划](control-plane-read-workspace-applications-v1-plan.md)（`control-plane-read-workspace-applications-v1`）
 16. [`Control Plane Read Workspace API Keys` v1 计划](control-plane-read-workspace-api-keys-v1-plan.md)（`control-plane-read-workspace-api-keys-v1`）
+17. [`Control Plane Read Workspace Usage Quota` v1 计划](control-plane-read-workspace-usage-quota-v1-plan.md)（`control-plane-read-workspace-usage-quota-v1`）
 
 ## UI 设计专题
 

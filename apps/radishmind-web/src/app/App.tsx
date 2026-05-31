@@ -20,11 +20,18 @@ import {
   type WorkspaceApiKeysMetric,
   type WorkspaceApiKeysStatePreview,
 } from "../features/control-plane-read/workspaceApiKeys";
+import {
+  buildWorkspaceUsageQuotaViewModel,
+  type WorkspaceUsageQuotaLimit,
+  type WorkspaceUsageQuotaSnapshot,
+  type WorkspaceUsageQuotaStatePreview,
+} from "../features/control-plane-read/workspaceUsageQuota";
 
 const shell = buildControlPlaneReadShellViewModel();
 const tenantOverview = buildAdminTenantOverviewViewModel();
 const workspaceApplications = buildWorkspaceApplicationsViewModel();
 const workspaceApiKeys = buildWorkspaceApiKeysViewModel();
+const workspaceUsageQuota = buildWorkspaceUsageQuotaViewModel();
 
 export function App() {
   return (
@@ -39,6 +46,7 @@ export function App() {
           <a href="#admin-tenant-overview">Tenant Overview</a>
           <a href="#workspace-applications">Applications</a>
           <a href="#workspace-api-keys">API Keys</a>
+          <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -63,6 +71,7 @@ export function App() {
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
             <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
             <Fact label="Key page" value={workspaceApiKeys.canRenderApiKeys ? "ready" : "blocked"} />
+            <Fact label="Quota page" value={workspaceUsageQuota.canRenderQuota ? "ready" : "blocked"} />
           </div>
         </header>
 
@@ -251,6 +260,77 @@ export function App() {
           </div>
         </section>
 
+        <section
+          className="surface-band workspace-usage-quota"
+          id="workspace-usage-quota"
+          aria-labelledby="workspace-usage-quota-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">User Workspace</p>
+              <h3 id="workspace-usage-quota-title">Usage quota</h3>
+            </div>
+            <StatusBadge tone={workspaceUsageQuota.canRenderQuota ? "good" : "bad"}>
+              {workspaceUsageQuota.canRenderQuota ? "read-only ready" : "blocked"}
+            </StatusBadge>
+          </div>
+
+          <div className="usage-quota-summary">
+            <article className="usage-quota-route">
+              <div className="card-title-row">
+                <div>
+                  <p className="eyebrow">Quota Summary Route</p>
+                  <h4>{workspaceUsageQuota.routeId}</h4>
+                </div>
+                <StatusBadge tone="neutral">{workspaceUsageQuota.requiredScope}</StatusBadge>
+              </div>
+              <p className="route-path">{workspaceUsageQuota.routePath}</p>
+              <dl className="tenant-meta">
+                <div>
+                  <dt>Model</dt>
+                  <dd>{workspaceUsageQuota.readModel}</dd>
+                </div>
+                <div>
+                  <dt>Period</dt>
+                  <dd>{workspaceUsageQuota.quota?.period ?? "not available"}</dd>
+                </div>
+                <div>
+                  <dt>Request</dt>
+                  <dd>{workspaceUsageQuota.requestId}</dd>
+                </div>
+                <div>
+                  <dt>Audit</dt>
+                  <dd>{workspaceUsageQuota.auditRef}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div className="usage-quota-snapshot" aria-label="Workspace usage quota snapshot">
+              {workspaceUsageQuota.usageSnapshot.map((snapshot) => (
+                <UsageQuotaSnapshot key={snapshot.label} snapshot={snapshot} />
+              ))}
+            </div>
+          </div>
+
+          <div className="usage-quota-limits" aria-label="Workspace usage quota limits">
+            {workspaceUsageQuota.limits.map((limit) => (
+              <UsageQuotaLimit key={limit.label} limit={limit} />
+            ))}
+          </div>
+
+          <div className="usage-quota-failure">
+            <span>Over quota failure code</span>
+            <strong>{workspaceUsageQuota.overQuotaFailureCode}</strong>
+            <p>Displayed as read-side metadata only; enforcement, rate limit and billing ledger remain outside this page.</p>
+          </div>
+
+          <div className="usage-quota-states" aria-label="Workspace usage quota states">
+            {workspaceUsageQuota.statePreviews.map((state) => (
+              <UsageQuotaStatePreview key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
+
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
             <div>
@@ -305,6 +385,43 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function UsageQuotaLimit({ limit }: { limit: WorkspaceUsageQuotaLimit }) {
+  return (
+    <article className="usage-quota-limit">
+      <span>{limit.label}</span>
+      <strong>{limit.used}</strong>
+      <p>
+        limit {limit.value} / {limit.detail}
+      </p>
+    </article>
+  );
+}
+
+function UsageQuotaSnapshot({ snapshot }: { snapshot: WorkspaceUsageQuotaSnapshot }) {
+  return (
+    <article className="usage-quota-snapshot-card">
+      <span>{snapshot.label}</span>
+      <strong>{snapshot.value}</strong>
+      <p>{snapshot.detail}</p>
+    </article>
+  );
+}
+
+function UsageQuotaStatePreview({ state }: { state: WorkspaceUsageQuotaStatePreview }) {
+  return (
+    <article className="usage-quota-state">
+      <div>
+        <strong>{state.label}</strong>
+        <span>{state.status}</span>
+      </div>
+      <p>{state.summary}</p>
+      <small>
+        items {state.itemCount} / failure {state.failureCode}
+      </small>
+    </article>
   );
 }
 

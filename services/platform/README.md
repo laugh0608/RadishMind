@@ -65,6 +65,8 @@
 
 `control-plane-read-workspace-api-keys-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-api-keys` 页面切片。它只消费 `api-key-summary-list-route` 的离线 TypeScript view model，展示 API key id、owner、scope、state、时间字段、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay，不展示 key value 或 hash，也不声明 formal user workspace complete。
 
+`control-plane-read-workspace-usage-quota-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-usage-quota` 页面切片。它只消费 `quota-summary-route` 的离线 TypeScript view model，展示 quota id、period、request / token / cost limit、usage snapshot、over quota failure code、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、quota enforcement、rate limit、billing、cost ledger、executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
