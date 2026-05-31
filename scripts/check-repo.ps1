@@ -8,20 +8,18 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
-function Get-PythonLauncher {
-    $venvPython = Join-Path $repoRoot ".venv/Scripts/python.exe"
-    if (Test-Path -LiteralPath $venvPython -PathType Leaf) {
-        return $venvPython
+function Get-RepoVenvPython {
+    $venvPythonWindows = Join-Path $repoRoot ".venv/Scripts/python.exe"
+    if (Test-Path -LiteralPath $venvPythonWindows -PathType Leaf) {
+        return $venvPythonWindows
     }
 
-    foreach ($candidate in @("python", "python3", "py")) {
-        $command = Get-Command $candidate -ErrorAction SilentlyContinue
-        if ($null -ne $command) {
-            return $candidate
-        }
+    $venvPythonUnix = Join-Path $repoRoot ".venv/bin/python"
+    if (Test-Path -LiteralPath $venvPythonUnix -PathType Leaf) {
+        return $venvPythonUnix
     }
 
-    throw "python is required for scripts/check-repo.ps1"
+    throw "missing repository virtual environment. Run pwsh ./scripts/bootstrap-dev.ps1 before running scripts/check-repo.ps1"
 }
 
 $scriptPath = Join-Path $repoRoot "scripts/check-repo.py"
@@ -30,11 +28,8 @@ if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
     throw "missing python checker: scripts/check-repo.py"
 }
 
-$pythonLauncher = Get-PythonLauncher
+$pythonLauncher = Get-RepoVenvPython
 $arguments = @()
-if ($pythonLauncher -eq "py") {
-    $arguments += "-3"
-}
 $arguments += $scriptPath
 
 if ($SkipTextFiles) {

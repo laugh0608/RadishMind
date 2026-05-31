@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_shared_shell_v1",
+  "slice": {
+    "id": "control-plane-read-shared-shell-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "shared_read_shell_implemented",
+    "does_not_claim": [
+      "production_admin_console_ready",
+      "formal_user_workspace_complete",
+      "real_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-consumer-contract-v1",
+    "control-plane-read-formal-ui-boundary-v1",
+    "control-plane-read-formal-ui-implementation-readiness-v1"
+  ],
+  "app": {
+    "root": "apps/radishmind-web/",
+    "kind": "React + Vite + TypeScript product UI",
+    "status": "offline_read_only_shared_shell",
+    "dev_port": 4100,
+    "feature_root": "apps/radishmind-web/src/features/control-plane-read/",
+    "app_shell_root": "apps/radishmind-web/src/app/",
+    "shared_contract": "contracts/typescript/control-plane-read-api.ts",
+    "local_ops_console_root": "apps/radishmind-console/",
+    "local_ops_console_boundary": "remain_local_ops_surface_only"
+  },
+  "implemented_capabilities": [
+    "read_only_route_catalog_binding",
+    "shared_loading_ready_empty_denied_stale_partial_failure_forbidden_projection_states",
+    "forbidden_output_guard",
+    "no_live_backend_request",
+    "no_write_or_execute_controls"
+  ],
+  "required_contract_symbols": [
+    "CONTROL_PLANE_READ_ROUTES",
+    "CONTROL_PLANE_READ_ROUTE_DEFINITIONS",
+    "CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS",
+    "ControlPlaneReadCollectionViewModel",
+    "ControlPlaneReadRouteCatalogViewModel",
+    "ControlPlaneReadRouteId",
+    "ControlPlaneReadResponseByRoute",
+    "controlPlaneReadResponseHasForbiddenOutput",
+    "isControlPlaneReadEnvelope",
+    "listControlPlaneReadRouteCatalog",
+    "toControlPlaneReadCollectionViewModel"
+  ],
+  "required_states": [
+    "loading",
+    "ready",
+    "empty",
+    "denied",
+    "stale",
+    "partial_failure",
+    "forbidden_projection"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "createRoot(document.getElementById(\"console\"",
+    "VITE_RADISHMIND_PLATFORM_BASE_URL"
+  ],
+  "forbidden_package_scripts": [
+    "deploy",
+    "publish",
+    "release",
+    "package",
+    "docker"
+  ],
+  "required_files": [
+    "apps/radishmind-web/package.json",
+    "apps/radishmind-web/index.html",
+    "apps/radishmind-web/tsconfig.json",
+    "apps/radishmind-web/vite.config.ts",
+    "apps/radishmind-web/src/main.tsx",
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/features/control-plane-read/readShell.ts",
+    "apps/radishmind-web/src/styles.css",
+    "apps/radishmind-web/README.md"
+  ],
+  "testing_strategy": [
+    {
+      "id": "shared_shell_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-shared-shell-v1.py"
+    },
+    {
+      "id": "consumer_smoke",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_when_node_dependencies_available",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not modify apps/radishmind-console into formal user workspace",
+    "do not modify apps/radishmind-console into production admin console",
+    "do not request live backend from shared shell",
+    "do not add database schema migration query or repository",
+    "do not add Radish OIDC middleware token validation login or logout",
+    "do not add API key lifecycle quota enforcement rate limiting billing or cost ledger",
+    "do not add workflow builder executor confirmation writeback replay or materialized result reader"
+  ],
+  "required_doc_references": {
+    "docs/README.md": [
+      "control-plane-read-shared-shell-v1",
+      "apps/radishmind-web/"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-shared-shell-v1",
+      "shared-read-shell"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-shared-shell-v1",
+      "apps/radishmind-web/"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-shared-shell-v1",
+      "apps/radishmind-web/"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-shared-shell-v1",
+      "apps/radishmind-web/"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-shared-shell-v1",
+      "Control Plane Read Shared Shell"
+    ],
+    "docs/task-cards/control-plane-read-shared-shell-v1-plan.md": [
+      "control-plane-read-shared-shell-v1",
+      "shared-read-shell"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-shared-shell-v1.py",
+      "control-plane-read-shared-shell-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-shared-shell-v1",
+      "apps/radishmind-web/"
+    ],
+    "docs/devlogs/2026-W22.md": [
+      "control-plane-read-shared-shell-v1",
+      "apps/radishmind-web/"
+    ]
+  }
+}

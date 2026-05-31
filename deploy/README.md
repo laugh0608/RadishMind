@@ -18,21 +18,30 @@
 
 日常开发仍默认在宿主机直跑：
 
+macOS / Linux / WSL 使用：
+
+```bash
+./scripts/run-platform-service.sh serve
+./scripts/run-radishmind-console-dev.sh
+```
+
+Windows / PowerShell 使用：
+
 ```powershell
 pwsh ./scripts/run-platform-service.ps1 serve
 pwsh ./scripts/run-radishmind-console-dev.ps1
 ```
 
-Linux / WSL 使用对应 `.sh` wrapper。`host_dev` 不默认走 Compose。
+`host_dev` 不默认走 Compose。
 
 ### `docker_local`
 
 本地容器验证使用 `docker-compose.local.yaml`：
 
-```powershell
+```bash
 docker compose -f deploy/docker-compose.local.yaml config
 docker compose -f deploy/docker-compose.local.yaml up --build -d
-python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check
+./scripts/run-python.sh scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check
 docker compose -f deploy/docker-compose.local.yaml ps
 docker compose -f deploy/docker-compose.local.yaml down
 ```
@@ -101,21 +110,21 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 静态边界检查：
 
-```powershell
-python scripts/check-production-ops-docker-local-compose.py
-python scripts/check-production-ops-docker-test-prod-compose.py
-python scripts/check-production-ops-docker-image-build-publish.py
-python scripts/check-production-ops-deployment-readiness-smoke.py
-python scripts/check-production-ops-container-smoke-runbook.py
-python scripts/check-production-ops-container-smoke-record-template.py
-python scripts/check-production-ops-secret-backend-contract.py
-python scripts/check-production-secret-reference-contract.py
+```bash
+./scripts/run-python.sh scripts/check-production-ops-docker-local-compose.py
+./scripts/run-python.sh scripts/check-production-ops-docker-test-prod-compose.py
+./scripts/run-python.sh scripts/check-production-ops-docker-image-build-publish.py
+./scripts/run-python.sh scripts/check-production-ops-deployment-readiness-smoke.py
+./scripts/run-python.sh scripts/check-production-ops-container-smoke-runbook.py
+./scripts/run-python.sh scripts/check-production-ops-container-smoke-record-template.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-contract.py
+./scripts/run-python.sh scripts/check-production-secret-reference-contract.py
 ```
 
 仓库快速基线：
 
-```powershell
-pwsh ./scripts/check-repo.ps1 -Fast
+```bash
+./scripts/check-repo-fast.sh
 ```
 
 这些检查默认不启动 Docker、不拉镜像、不提交运行记录。

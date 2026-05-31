@@ -104,7 +104,7 @@ async function fetchPlatformOverview(endpoint: string): Promise<PlatformOverview
   if (!response.ok) {
     throw new PlatformOverviewRequestError(`overview request failed with HTTP ${response.status}`, [
       "Confirm the platform service is listening at the configured Platform URL.",
-      "Run `pwsh ../../scripts/run-platform-service.ps1 serve` from apps/radishmind-console.",
+      "Run `../../scripts/run-platform-service.sh serve` or `pwsh ../../scripts/run-platform-service.ps1 serve` from apps/radishmind-console.",
       "If the service is running, inspect its response body or platform logs for the HTTP failure.",
     ], "platform_overview");
   }
@@ -113,7 +113,7 @@ async function fetchPlatformOverview(endpoint: string): Promise<PlatformOverview
   if (!isPlatformOverviewResponse(document)) {
     throw new PlatformOverviewRequestError("overview response does not match platform overview contract", [
       "Confirm the service exposes the current `/v1/platform/overview` schema.",
-      "Run `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url <platform-url> --check`.",
+      "Run `../../scripts/run-python.sh ../../scripts/run-platform-overview-consumer-smoke.py --base-url <platform-url> --check`.",
       "Rebuild the console after changing `contracts/typescript/platform-overview-api.ts`.",
     ], "platform_overview");
   }
@@ -142,7 +142,7 @@ async function fetchPlatformLocalSmoke(endpoint: string): Promise<PlatformLocalS
     throw new PlatformOverviewRequestError(`local-smoke request failed with HTTP ${response.status}`, [
       "Overview was readable; local-smoke readiness failed before the console could refresh readiness.",
       "Confirm the platform service exposes `/v1/platform/local-smoke` on the configured Platform URL.",
-      "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+      "Run `../../scripts/run-python.sh ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
       "If overview works but local-smoke fails, inspect the platform readiness route and local smoke contract.",
     ], "platform_local_smoke");
   }
@@ -152,7 +152,7 @@ async function fetchPlatformLocalSmoke(endpoint: string): Promise<PlatformLocalS
     throw new PlatformOverviewRequestError("local-smoke response does not match platform local-smoke contract", [
       "Overview was readable; local-smoke contract validation failed before the console could refresh readiness.",
       "Confirm the service exposes the current `/v1/platform/local-smoke` schema.",
-      "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+      "Run `../../scripts/run-python.sh ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
       "Rebuild the console after changing `contracts/typescript/platform-local-smoke-api.ts`.",
     ], "platform_local_smoke");
   }
@@ -197,7 +197,7 @@ export function getPlatformOverviewDiagnostics(error: unknown): string[] {
 function buildConnectionDiagnostics(endpoint: string, error: unknown): string[] {
   const details = error instanceof Error ? error.message : String(error);
   return [
-    "Start the platform service with `pwsh ../../scripts/run-platform-service.ps1 serve`.",
+    "Start the platform service with `../../scripts/run-platform-service.sh serve` or `pwsh ../../scripts/run-platform-service.ps1 serve`.",
     `Confirm ${endpoint} opens and returns JSON.`,
     "If the service is already running, check the local console origin and CORS preflight.",
     `Browser fetch detail: ${details}`,
@@ -209,7 +209,7 @@ function buildLocalSmokeConnectionDiagnostics(endpoint: string, error: unknown):
   return [
     "Confirm the platform service is new enough to expose `/v1/platform/local-smoke`.",
     `Confirm ${endpoint} opens and returns JSON with kind \`platform_local_smoke\`.`,
-    "Run `python ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
+    "Run `../../scripts/run-python.sh ../../scripts/run-platform-local-smoke.py --base-url <platform-url> --check`.",
     `Browser fetch detail: ${details}`,
   ];
 }

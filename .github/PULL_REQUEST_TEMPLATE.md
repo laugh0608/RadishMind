@@ -15,8 +15,10 @@
 请列出实际执行过的命令，例如：
 
 ```text
-pwsh ./scripts/check-repo.ps1
-./scripts/check-repo.sh
+./scripts/bootstrap-dev.sh
+./scripts/check-repo.sh --fast
+pwsh ./scripts/bootstrap-dev.ps1
+pwsh ./scripts/check-repo.ps1 -Fast
 ```
 
 ## 风险与后续

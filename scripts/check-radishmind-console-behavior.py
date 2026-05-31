@@ -128,8 +128,8 @@ README_LITERALS = (
     "CORS / preflight",
     "unsafe port",
     "local-smoke contract mismatch",
-    "python ../../scripts/check-radishmind-console-shell.py",
-    "python ../../scripts/check-radishmind-console-behavior.py",
+    "../../scripts/run-python.sh ../../scripts/check-radishmind-console-shell.py",
+    "../../scripts/run-python.sh ../../scripts/check-radishmind-console-behavior.py",
     "不实现真实工具执行器",
     "不启用 automatic replay",
 )

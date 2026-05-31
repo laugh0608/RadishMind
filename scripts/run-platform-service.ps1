@@ -20,18 +20,16 @@ if (-not $env:GOCACHE) {
 }
 
 if (-not $env:RADISHMIND_PLATFORM_PYTHON_BIN) {
-    $venvPython = Join-Path $repoRoot ".venv/Scripts/python.exe"
-    if (Test-Path -LiteralPath $venvPython -PathType Leaf) {
-        $env:RADISHMIND_PLATFORM_PYTHON_BIN = $venvPython
+    $venvPythonWindows = Join-Path $repoRoot ".venv/Scripts/python.exe"
+    $venvPythonUnix = Join-Path $repoRoot ".venv/bin/python"
+    if (Test-Path -LiteralPath $venvPythonWindows -PathType Leaf) {
+        $env:RADISHMIND_PLATFORM_PYTHON_BIN = $venvPythonWindows
+    }
+    elseif (Test-Path -LiteralPath $venvPythonUnix -PathType Leaf) {
+        $env:RADISHMIND_PLATFORM_PYTHON_BIN = $venvPythonUnix
     }
     else {
-        foreach ($candidate in @("python", "python3")) {
-            $pythonCommand = Get-Command $candidate -ErrorAction SilentlyContinue
-            if ($null -ne $pythonCommand) {
-                $env:RADISHMIND_PLATFORM_PYTHON_BIN = $pythonCommand.Source
-                break
-            }
-        }
+        throw "missing repository virtual environment. Run pwsh ./scripts/bootstrap-dev.ps1 before running scripts/run-platform-service.ps1"
     }
 }
 

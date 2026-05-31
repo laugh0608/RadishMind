@@ -212,19 +212,19 @@
     {
       "id": "readiness_checker",
       "status": "required_now",
-      "command": "python scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py",
       "purpose": "Validate implementation readiness fixture, dependencies, app boundary, sequence, contract reuse and stop-lines."
     },
     {
       "id": "consumer_smoke",
       "status": "required_now",
-      "command": "python scripts/run-control-plane-read-consumer-smoke.py --check",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check",
       "purpose": "Validate the existing offline TypeScript consumer contract source remains usable before UI work."
     },
     {
       "id": "repo_fast",
       "status": "required_now",
-      "command": "pwsh ./scripts/check-repo.ps1 -Fast",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast",
       "purpose": "Keep the new readiness checker inside the fast repository baseline."
     },
     {

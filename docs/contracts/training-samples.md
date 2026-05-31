@@ -88,7 +88,7 @@
 真实本地模型接入必须显式运行：
 
 ```bash
-python3 scripts/run-radishmind-core-candidate.py \
+./scripts/run-python.sh scripts/run-radishmind-core-candidate.py \
   --provider local_transformers \
   --model-dir /path/to/local/model \
   --output-dir tmp/radishmind-core-candidate-local \

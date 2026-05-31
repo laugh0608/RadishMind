@@ -84,9 +84,10 @@
 
 当前 readiness 切片必须通过：
 
-- `python scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py`
-- `python scripts/run-control-plane-read-consumer-smoke.py --check`
-- `pwsh ./scripts/check-repo.ps1 -Fast`
+- `./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py`
+- `./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check`
+- macOS / Linux / WSL：`./scripts/check-repo-fast.sh`
+- Windows / PowerShell：`pwsh ./scripts/check-repo.ps1 -Fast`
 
 未来真正创建 React 页面后，还必须补：
 

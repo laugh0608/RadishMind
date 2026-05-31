@@ -61,7 +61,7 @@
       },
       {
         "id": "platform_local_smoke",
-        "command": "python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check",
+        "command": "./scripts/run-python.sh scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check",
         "required": true
       },
       {

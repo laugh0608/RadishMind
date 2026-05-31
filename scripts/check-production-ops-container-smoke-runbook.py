@@ -108,7 +108,7 @@ def assert_local_container_smoke(fixture: dict[str, Any]) -> None:
     for command in {
         "docker compose -f deploy/docker-compose.local.yaml config",
         "docker compose -f deploy/docker-compose.local.yaml up --build -d",
-        "python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check",
+        "./scripts/run-python.sh scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check",
         "docker compose -f deploy/docker-compose.local.yaml ps",
         "docker compose -f deploy/docker-compose.local.yaml down",
     }:

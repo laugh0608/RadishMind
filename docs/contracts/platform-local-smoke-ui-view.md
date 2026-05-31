@@ -11,13 +11,13 @@
 TypeScript 消费类型真相源为 `contracts/typescript/platform-local-smoke-api.ts`。开发者可用以下命令生成离线视图：
 
 ```bash
-python scripts/run-platform-local-smoke.py --check
+./scripts/run-python.sh scripts/run-platform-local-smoke.py --check
 ```
 
 本地平台服务启动后可请求真实 API：
 
 ```bash
-python scripts/run-platform-local-smoke.py \
+./scripts/run-python.sh scripts/run-platform-local-smoke.py \
   --base-url http://127.0.0.1:7000 \
   --check
 ```

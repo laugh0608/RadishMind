@@ -13,29 +13,15 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-function Get-PythonLauncher {
-    foreach ($candidate in @("python", "python3", "py")) {
-        $command = Get-Command $candidate -ErrorAction SilentlyContinue
-        if ($null -ne $command) {
-            return $candidate
-        }
-    }
-
-    throw "python is required for scripts/run-radish-docs-qa-negative-recommended.ps1"
-}
-
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$pythonRunner = Join-Path $repoRoot "scripts/run-python.ps1"
 $scriptPath = Join-Path $repoRoot "scripts/run-radish-docs-qa-negative-recommended.py"
 
 if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
     throw "missing python runner: scripts/run-radish-docs-qa-negative-recommended.py"
 }
 
-$pythonLauncher = Get-PythonLauncher
 $arguments = @()
-if ($pythonLauncher -eq "py") {
-    $arguments += "-3"
-}
 $arguments += $scriptPath
 $arguments += "--batch-artifact-summary"
 $arguments += $BatchArtifactSummary
@@ -65,7 +51,7 @@ if ($Check) {
     $arguments += "--check"
 }
 
-& $pythonLauncher @arguments
+& $pythonRunner @arguments
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }

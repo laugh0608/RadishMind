@@ -4,9 +4,4 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "${script_dir}/.." && pwd)"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "python3 is required for scripts/run-radishflow-control-plane-regression.sh" >&2
-  exit 1
-fi
-
-python3 "${repo_root}/scripts/run-eval-regression.py" radishflow-control-plane "$@"
+exec "${repo_root}/scripts/run-python.sh" "${repo_root}/scripts/run-eval-regression.py" radishflow-control-plane "$@"

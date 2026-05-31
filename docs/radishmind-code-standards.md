@@ -98,7 +98,7 @@
 
 ## 验证要求
 
-- 修改后优先执行当前环境的仓库级验证入口：Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`。
+- 修改后优先执行当前环境的仓库级验证入口：macOS / Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`。
 - 文档改动至少执行文本卫生、Markdown 篇幅检查和仓库级基线；若没有执行，应在总结中说明原因。
 - 代码改动应按风险补充或更新针对性检查，不只依赖人工阅读。
 - 若新增抽象，验证应覆盖抽象的输入、输出、失败语义和调用侧不变量。

@@ -392,14 +392,18 @@ def assert_testing_strategy(fixture: dict[str, Any]) -> None:
         require(tests[test_id].get("status") == "required_now", f"{test_id} must be required now")
     require(
         tests["readiness_checker"].get("command")
-        == "python scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py",
+        == "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py",
         "readiness checker command drifted",
     )
     require(
-        tests["consumer_smoke"].get("command") == "python scripts/run-control-plane-read-consumer-smoke.py --check",
+        tests["consumer_smoke"].get("command") == "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check",
         "consumer smoke command drifted",
     )
-    require(tests["repo_fast"].get("command") == "pwsh ./scripts/check-repo.ps1 -Fast", "fast command drifted")
+    require(
+        tests["repo_fast"].get("command")
+        == "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast",
+        "fast command drifted",
+    )
 
     future_ids = EXPECTED_TEST_IDS - EXPECTED_NOW_TEST_IDS
     for test_id in future_ids:

@@ -57,6 +57,8 @@
 
 `control-plane-read-formal-ui-implementation-readiness-v1` 当前只固定正式 UI 实现 readiness：未来正式产品 UI 预留落点为 `apps/radishmind-web/`，`apps/radishmind-console/` 继续只是本地 ops surface，页面实现顺序、consumer contract 复用和测试策略均由 fixture/checker 固定。该 readiness 不创建 React 页面、不创建 `apps/radishmind-web/`、不修改当前 ops console、不新增 platform route、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
+`control-plane-read-shared-shell-v1` 当前创建 `apps/radishmind-web/` 首个 read-only shared shell。它只复用 `contracts/typescript/control-plane-read-api.ts` 渲染离线 route catalog、共享状态和 forbidden output guard，不请求 platform live route，不新增 platform route，不接数据库、OIDC、executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍保持本地 ops surface。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
@@ -153,7 +155,7 @@ production readiness 仍必须等待 deployment environment isolation、producti
 
 本地 compose 默认使用 `mock` provider，发布 `7000/4000` 到宿主机，console 构建期 `VITE_RADISHMIND_PLATFORM_BASE_URL` 默认指向 `http://127.0.0.1:7000`。它不包含 secret、不使用 `RADISHMIND_IMAGE_TRACK` / `RADISHMIND_IMAGE_TAG`，不定义测试 / 生产部署态，不实现 production secret backend、process supervisor、正式 auth / CORS policy、镜像发布或 production ready。
 
-本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时优先使用仓库 `.venv` Python，再回退系统 `python3` / `python`，并在 `tmp/radishmind-platform.local.json` 存在时自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
+本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时使用仓库 `.venv` Python；缺少 `.venv` 时要求先执行 bootstrap，不再隐式回退系统 Python。`tmp/radishmind-platform.local.json` 存在时会自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
 
@@ -201,7 +203,7 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_PLATFORM_READ_HEADER_TIMEOUT` | `5s` | HTTP header 读取超时 |
 | `RADISHMIND_PLATFORM_WRITE_TIMEOUT` | `30s` | HTTP 写响应超时 |
 | `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT` | `30s` | Go 调 Python bridge 的超时 |
-| `RADISHMIND_PLATFORM_PYTHON_BIN` | `python3` | Python bridge 解释器 |
+| `RADISHMIND_PLATFORM_PYTHON_BIN` | 仓库 `.venv` Python | Python bridge 解释器 |
 | `RADISHMIND_PLATFORM_BRIDGE_SCRIPT` | `scripts/run-platform-bridge.py` | Python bridge 脚本路径 |
 | `RADISHMIND_PLATFORM_PROVIDER` | `mock` | 默认 southbound provider |
 | `RADISHMIND_PLATFORM_PROVIDER_PROFILE` | 空 | 默认 provider profile |
@@ -247,23 +249,23 @@ pwsh ./scripts/run-platform-service.ps1 -Command serve
 上层消费 smoke 可以先用离线 fixture 生成展示视图，不要求启动服务：
 
 ```bash
-python scripts/run-platform-overview-consumer-smoke.py --check
-python scripts/run-platform-local-smoke.py --check
-python scripts/run-platform-session-tooling-consumer-smoke.py --check
+./scripts/run-python.sh scripts/run-platform-overview-consumer-smoke.py --check
+./scripts/run-python.sh scripts/run-platform-local-smoke.py --check
+./scripts/run-python.sh scripts/run-platform-session-tooling-consumer-smoke.py --check
 ```
 
 服务启动后，也可以指向本地平台 API 生成同一份消费视图：
 
 ```bash
-python scripts/run-platform-overview-consumer-smoke.py \
+./scripts/run-python.sh scripts/run-platform-overview-consumer-smoke.py \
   --base-url http://127.0.0.1:7000 \
   --check
 
-python scripts/run-platform-local-smoke.py \
+./scripts/run-python.sh scripts/run-platform-local-smoke.py \
   --base-url http://127.0.0.1:7000 \
   --check
 
-python scripts/run-platform-session-tooling-consumer-smoke.py \
+./scripts/run-python.sh scripts/run-platform-session-tooling-consumer-smoke.py \
   --base-url http://127.0.0.1:7000 \
   --check
 ```
@@ -286,16 +288,16 @@ npm run dev
 
 console production packaging 仍未完成：`apps/radishmind-console/package.json` 必须保持 `private=true`，不添加 deploy / publish / release 脚本，不提交 `dist/` 或 `node_modules/`。P3 short-close checklist 继续把 production secret backend、process supervisor、部署环境隔离和 console production packaging 标为 `not_satisfied`；当前只固定本地开发入口和最小 deployment smoke。
 
-如果要同时启动并验证 platform 后端和本地 console，可从仓库根目录使用：
-
-```powershell
-pwsh ./scripts/run-radishmind-console-dev.ps1
-```
-
-Linux / WSL 使用：
+macOS / Linux / WSL 使用：
 
 ```bash
 ./scripts/run-radishmind-console-dev.sh
+```
+
+Windows / PowerShell 使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-console-dev.ps1
 ```
 
 该入口复用 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 和 `apps/radishmind-console/` 的 `npm run dev`，启动或复用 `http://127.0.0.1:7000` 与 `http://127.0.0.1:4000`，并探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、`http://127.0.0.1:7000/v1/platform/local-smoke`、本地 console CORS preflight 和 `http://127.0.0.1:4000`。端口冲突时先释放 `7000/4000` 或确认现有服务就是 RadishMind；CORS 失败时确认 console origin 是允许的本地 origin；浏览器 `unsafe port` / `ERR_UNSAFE_PORT` 通常表示端口被浏览器直接拦截，优先回到默认 `4000/7000`。该入口不是 production supervisor，不实现真实 executor、durable store、confirmation、业务写回或 replay。
@@ -362,7 +364,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - 若 `failure.code=PROVIDER_REGISTRY_UNAVAILABLE` 或 `PROVIDER_INVENTORY_UNAVAILABLE`，优先检查 `bridge.python_binary`、`bridge.script`、当前工作目录和 Python import 路径。
 - 若启动时报 `load config`，优先检查 duration / float 类环境变量格式，例如 `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT=30s`、`RADISHMIND_PLATFORM_TEMPERATURE=0`。
 - 若 `/v1/models` 返回 `PROVIDER_INVENTORY_UNAVAILABLE`，优先检查 `RADISHMIND_PLATFORM_PYTHON_BIN`、`RADISHMIND_PLATFORM_BRIDGE_SCRIPT` 和当前工作目录是否能访问仓库根下的 Python bridge。
-- 若 northbound 路由返回 `PLATFORM_BRIDGE_FAILED`，先用 `python3 scripts/run-platform-bridge.py providers` 与 `python3 scripts/run-platform-bridge.py inventory` 验证 Python 侧 provider registry / inventory 是否可用。
+- 若 northbound 路由返回 `PLATFORM_BRIDGE_FAILED`，先用 `./scripts/run-python.sh scripts/run-platform-bridge.py providers` 与 `./scripts/run-python.sh scripts/run-platform-bridge.py inventory` 验证 Python 侧 provider registry / inventory 是否可用。
 - 若返回 `MODEL_NOT_FOUND`，优先用 `/v1/models` 或 `diagnostics.providers.selectable_model_ids` 确认可选择 ID，避免把 provider id、profile id 与真实 upstream model 混用。
 - 若返回 `PLATFORM_RESPONSE_INVALID`，说明 Python bridge 已返回 envelope，但 `Go` northbound 兼容层无法翻译为目标协议响应，应优先检查 envelope 的 `response` 结构。
 - 若要接真实 provider，必须通过环境变量或本机 secret 注入 `RADISHMIND_PLATFORM_BASE_URL` / `RADISHMIND_PLATFORM_API_KEY` 或 provider profile 配置；不要把 key、token、cookie 或真实 provider raw dump 写入 committed 文档。
