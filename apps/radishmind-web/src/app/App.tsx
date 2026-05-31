@@ -14,10 +14,17 @@ import {
   type WorkspaceApplicationsMetric,
   type WorkspaceApplicationsStatePreview,
 } from "../features/control-plane-read/workspaceApplications";
+import {
+  buildWorkspaceApiKeysViewModel,
+  type WorkspaceApiKeyRow,
+  type WorkspaceApiKeysMetric,
+  type WorkspaceApiKeysStatePreview,
+} from "../features/control-plane-read/workspaceApiKeys";
 
 const shell = buildControlPlaneReadShellViewModel();
 const tenantOverview = buildAdminTenantOverviewViewModel();
 const workspaceApplications = buildWorkspaceApplicationsViewModel();
+const workspaceApiKeys = buildWorkspaceApiKeysViewModel();
 
 export function App() {
   return (
@@ -31,6 +38,7 @@ export function App() {
         <nav className="nav-links" aria-label="Read shell sections">
           <a href="#admin-tenant-overview">Tenant Overview</a>
           <a href="#workspace-applications">Applications</a>
+          <a href="#workspace-api-keys">API Keys</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -54,6 +62,7 @@ export function App() {
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
             <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
+            <Fact label="Key page" value={workspaceApiKeys.canRenderApiKeys ? "ready" : "blocked"} />
           </div>
         </header>
 
@@ -181,6 +190,67 @@ export function App() {
           </div>
         </section>
 
+        <section className="surface-band workspace-api-keys" id="workspace-api-keys" aria-labelledby="workspace-api-keys-title">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">User Workspace</p>
+              <h3 id="workspace-api-keys-title">API keys</h3>
+            </div>
+            <StatusBadge tone={workspaceApiKeys.canRenderApiKeys ? "good" : "bad"}>
+              {workspaceApiKeys.canRenderApiKeys ? "read-only ready" : "blocked"}
+            </StatusBadge>
+          </div>
+
+          <div className="api-keys-summary">
+            <article className="api-keys-route">
+              <div className="card-title-row">
+                <div>
+                  <p className="eyebrow">API Key Summary List Route</p>
+                  <h4>{workspaceApiKeys.routeId}</h4>
+                </div>
+                <StatusBadge tone="neutral">{workspaceApiKeys.requiredScope}</StatusBadge>
+              </div>
+              <p className="route-path">{workspaceApiKeys.routePath}</p>
+              <dl className="tenant-meta">
+                <div>
+                  <dt>Model</dt>
+                  <dd>{workspaceApiKeys.readModel}</dd>
+                </div>
+                <div>
+                  <dt>Request</dt>
+                  <dd>{workspaceApiKeys.requestId}</dd>
+                </div>
+                <div>
+                  <dt>Next cursor</dt>
+                  <dd>{workspaceApiKeys.nextCursor ?? "none"}</dd>
+                </div>
+                <div>
+                  <dt>Audit</dt>
+                  <dd>{workspaceApiKeys.auditRef}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div className="api-keys-metrics" aria-label="Workspace API key metrics">
+              {workspaceApiKeys.metrics.map((metric) => (
+                <ApiKeyMetric key={metric.label} metric={metric} />
+              ))}
+            </div>
+          </div>
+
+          <div className="api-key-list" aria-label="Workspace API keys">
+            {workspaceApiKeys.apiKeys.map((apiKey) => (
+              <ApiKeyRow key={apiKey.apiKeyId} apiKey={apiKey} />
+            ))}
+          </div>
+
+          <div className="api-key-states" aria-label="Workspace API key states">
+            {workspaceApiKeys.statePreviews.map((state) => (
+              <ApiKeyStatePreview key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
+
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
             <div>
@@ -235,6 +305,64 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function ApiKeyMetric({ metric }: { metric: WorkspaceApiKeysMetric }) {
+  return (
+    <article className="api-key-metric">
+      <span>{metric.label}</span>
+      <strong>{metric.value}</strong>
+      <p>{metric.detail}</p>
+    </article>
+  );
+}
+
+function ApiKeyRow({ apiKey }: { apiKey: WorkspaceApiKeyRow }) {
+  return (
+    <article className="api-key-row">
+      <div className="api-key-row-main">
+        <div>
+          <p className="eyebrow">{apiKey.ownerSubjectRef}</p>
+          <h4>{apiKey.apiKeyId}</h4>
+        </div>
+        <StatusBadge tone={apiKey.state === "active" ? "good" : "neutral"}>{apiKey.state}</StatusBadge>
+      </div>
+      <div className="api-key-scopes" aria-label="API key scopes">
+        {apiKey.scopes.map((scope) => (
+          <code key={scope}>{scope}</code>
+        ))}
+      </div>
+      <dl className="api-key-row-meta">
+        <div>
+          <dt>Created</dt>
+          <dd>{apiKey.createdAt}</dd>
+        </div>
+        <div>
+          <dt>Expires</dt>
+          <dd>{apiKey.expiresAt ?? "not set"}</dd>
+        </div>
+        <div>
+          <dt>Last used</dt>
+          <dd>{apiKey.lastUsedAt ?? "not recorded"}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function ApiKeyStatePreview({ state }: { state: WorkspaceApiKeysStatePreview }) {
+  return (
+    <article className="api-key-state">
+      <div>
+        <strong>{state.label}</strong>
+        <span>{state.status}</span>
+      </div>
+      <p>{state.summary}</p>
+      <small>
+        items {state.itemCount} / failure {state.failureCode}
+      </small>
+    </article>
   );
 }
 

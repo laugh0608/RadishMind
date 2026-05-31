@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_workspace_api_keys_v1",
+  "slice": {
+    "id": "control-plane-read-workspace-api-keys-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "workspace_api_keys_implemented",
+    "does_not_claim": [
+      "production_admin_console_ready",
+      "formal_user_workspace_complete",
+      "real_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "api_key_value_available",
+      "api_key_hash_available",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-consumer-contract-v1",
+    "control-plane-read-formal-ui-boundary-v1",
+    "control-plane-read-formal-ui-implementation-readiness-v1",
+    "control-plane-read-shared-shell-v1",
+    "control-plane-read-admin-tenant-overview-v1",
+    "control-plane-read-workspace-applications-v1"
+  ],
+  "page": {
+    "id": "workspace-api-keys",
+    "surface": "User Workspace",
+    "route_id": "api-key-summary-list-route",
+    "read_model": "api-key-summary",
+    "required_scope": "api_keys:read",
+    "status": "offline_read_only_page_slice",
+    "app_root": "apps/radishmind-web/",
+    "local_ops_console_boundary": "remain_local_ops_surface_only"
+  },
+  "implemented_capabilities": [
+    "workspace_api_keys_read_only_page",
+    "api_key_summary_list_route_binding",
+    "api_key_summary_collection_view_model",
+    "workspace_api_keys_state_previews",
+    "api_key_secret_value_hidden",
+    "forbidden_output_guard_reused",
+    "no_live_backend_request",
+    "no_write_or_execute_controls"
+  ],
+  "required_contract_symbols": [
+    "CONTROL_PLANE_READ_ROUTES",
+    "CONTROL_PLANE_READ_ROUTE_DEFINITIONS",
+    "CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS",
+    "APIKeySummary",
+    "ControlPlaneReadCollectionViewModel",
+    "ControlPlaneReadResponseByRoute",
+    "controlPlaneReadResponseHasForbiddenOutput",
+    "toControlPlaneReadCollectionViewModel"
+  ],
+  "required_states": [
+    "ready",
+    "empty",
+    "denied",
+    "stale",
+    "partial_failure",
+    "forbidden_projection"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "createRoot(document.getElementById(\"console\"",
+    "VITE_RADISHMIND_PLATFORM_BASE_URL"
+  ],
+  "forbidden_package_scripts": [
+    "deploy",
+    "publish",
+    "release",
+    "package",
+    "docker"
+  ],
+  "forbidden_sensitive_projection_literals": [
+    "api_key_value",
+    "api_key_hash",
+    "raw_secret_value"
+  ],
+  "required_files": [
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/features/control-plane-read/readShell.ts",
+    "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+    "apps/radishmind-web/src/styles.css",
+    "apps/radishmind-web/package.json"
+  ],
+  "testing_strategy": [
+    {
+      "id": "workspace_api_keys_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-workspace-api-keys-v1.py"
+    },
+    {
+      "id": "workspace_applications_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-workspace-applications-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_when_node_dependencies_available",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not modify apps/radishmind-console into formal user workspace",
+    "do not modify apps/radishmind-console into production admin console",
+    "do not request live backend from workspace api keys",
+    "do not expose api key value hash raw secret or authorization material",
+    "do not add database schema migration query or repository",
+    "do not add Radish OIDC middleware token validation login or logout",
+    "do not add API key lifecycle issuance rotation revoke quota enforcement rate limiting billing or cost ledger",
+    "do not add workflow builder executor confirmation writeback replay or materialized result reader"
+  ],
+  "required_doc_references": {
+    "docs/README.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "workspace-api-keys"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "api-key-summary-list-route"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "workspace-api-keys"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "workspace-api-keys"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "workspace-api-keys"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "Control Plane Read Workspace API Keys"
+    ],
+    "docs/task-cards/control-plane-read-workspace-api-keys-v1-plan.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "workspace-api-keys"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-workspace-api-keys-v1.py",
+      "control-plane-read-workspace-api-keys-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "workspace-api-keys"
+    ],
+    "docs/devlogs/2026-W22.md": [
+      "control-plane-read-workspace-api-keys-v1",
+      "workspace-api-keys"
+    ]
+  }
+}
