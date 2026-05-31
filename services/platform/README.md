@@ -59,6 +59,8 @@
 
 `control-plane-read-shared-shell-v1` 当前创建 `apps/radishmind-web/` 首个 read-only shared shell。它只复用 `contracts/typescript/control-plane-read-api.ts` 渲染离线 route catalog、共享状态和 forbidden output guard，不请求 platform live route，不新增 platform route，不接数据库、OIDC、executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍保持本地 ops surface。
 
+`control-plane-read-admin-tenant-overview-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `admin-tenant-overview` 页面切片。它只消费 `tenant-summary-route` 的离线 TypeScript view model，展示租户摘要、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、API key / quota、executor、confirmation、writeback 或 replay，也不声明 production admin console ready。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发

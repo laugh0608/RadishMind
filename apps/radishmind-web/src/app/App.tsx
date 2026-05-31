@@ -1,10 +1,16 @@
 import {
+  buildAdminTenantOverviewViewModel,
+  type AdminTenantOverviewFact,
+  type AdminTenantOverviewStatePreview,
+} from "../features/control-plane-read/adminTenantOverview";
+import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
   type ControlPlaneReadStatePreview,
 } from "../features/control-plane-read/readShell";
 
 const shell = buildControlPlaneReadShellViewModel();
+const tenantOverview = buildAdminTenantOverviewViewModel();
 
 export function App() {
   return (
@@ -16,6 +22,7 @@ export function App() {
           <p className="nav-summary">Read-only product surface for tenant, workspace, usage, workflow, and audit views.</p>
         </div>
         <nav className="nav-links" aria-label="Read shell sections">
+          <a href="#admin-tenant-overview">Tenant Overview</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -37,8 +44,68 @@ export function App() {
             <Fact label="Routes" value={String(shell.catalog.routes.length)} />
             <Fact label="Database" value={shell.catalog.databaseBacked ? "attached" : "detached"} />
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
+            <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
           </div>
         </header>
+
+        <section
+          className="surface-band tenant-overview"
+          id="admin-tenant-overview"
+          aria-labelledby="admin-tenant-overview-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Admin Control Plane</p>
+              <h3 id="admin-tenant-overview-title">Tenant overview</h3>
+            </div>
+            <StatusBadge tone={tenantOverview.canRenderTenant ? "good" : "bad"}>
+              {tenantOverview.canRenderTenant ? "read-only ready" : "blocked"}
+            </StatusBadge>
+          </div>
+
+          <div className="tenant-layout">
+            <article className="tenant-summary">
+              <div className="card-title-row">
+                <div>
+                  <p className="eyebrow">Tenant Summary Route</p>
+                  <h4>{tenantOverview.tenant?.tenant_display_name ?? "No tenant summary"}</h4>
+                </div>
+                <StatusBadge tone="neutral">{tenantOverview.requiredScope}</StatusBadge>
+              </div>
+              <p className="route-path">{tenantOverview.routePath}</p>
+              <dl className="tenant-meta">
+                <div>
+                  <dt>Route</dt>
+                  <dd>{tenantOverview.routeId}</dd>
+                </div>
+                <div>
+                  <dt>Model</dt>
+                  <dd>{tenantOverview.readModel}</dd>
+                </div>
+                <div>
+                  <dt>Request</dt>
+                  <dd>{tenantOverview.requestId}</dd>
+                </div>
+                <div>
+                  <dt>Audit</dt>
+                  <dd>{tenantOverview.auditRef}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div className="tenant-facts" aria-label="Tenant overview facts">
+              {tenantOverview.facts.map((fact) => (
+                <TenantFact key={fact.label} fact={fact} />
+              ))}
+            </div>
+          </div>
+
+          <div className="tenant-states" aria-label="Tenant overview states">
+            {tenantOverview.statePreviews.map((state) => (
+              <TenantStatePreview key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
 
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
@@ -94,6 +161,31 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function TenantFact({ fact }: { fact: AdminTenantOverviewFact }) {
+  return (
+    <article className="tenant-fact">
+      <span>{fact.label}</span>
+      <strong>{fact.value}</strong>
+      <p>{fact.detail}</p>
+    </article>
+  );
+}
+
+function TenantStatePreview({ state }: { state: AdminTenantOverviewStatePreview }) {
+  return (
+    <article className="tenant-state">
+      <div>
+        <strong>{state.label}</strong>
+        <span>{state.status}</span>
+      </div>
+      <p>{state.summary}</p>
+      <small>
+        items {state.itemCount} / failure {state.failureCode}
+      </small>
+    </article>
   );
 }
 

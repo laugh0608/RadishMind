@@ -134,9 +134,9 @@ h4 {
 
 .header-facts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(104px, 1fr));
+  grid-template-columns: repeat(4, minmax(96px, 1fr));
   gap: 10px;
-  min-width: min(440px, 100%);
+  min-width: min(580px, 100%);
 }
 
 .fact {
@@ -163,6 +163,105 @@ h4 {
   display: grid;
   gap: 16px;
   padding: 20px 0 4px;
+}
+
+.tenant-overview {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
+.tenant-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.1fr) minmax(280px, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.tenant-summary,
+.tenant-fact,
+.tenant-state {
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.tenant-summary {
+  padding: 16px;
+  min-width: 0;
+}
+
+.tenant-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.tenant-facts,
+.tenant-states {
+  display: grid;
+  gap: 10px;
+}
+
+.tenant-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tenant-fact {
+  min-width: 0;
+  padding: 14px;
+}
+
+.tenant-fact span,
+.tenant-state span,
+.tenant-state small {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tenant-fact strong {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 6px;
+  color: #17202a;
+  font-size: 17px;
+}
+
+.tenant-fact p,
+.tenant-state p {
+  margin: 8px 0 0;
+  color: #4e5f73;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tenant-states {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.tenant-state {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.tenant-state div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tenant-state strong {
+  color: #17202a;
+  font-size: 14px;
+}
+
+.tenant-state span,
+.tenant-state small {
+  overflow-wrap: anywhere;
 }
 
 .route-grid,
@@ -308,6 +407,9 @@ dd {
   }
 
   .header-facts,
+  .tenant-layout,
+  .tenant-facts,
+  .tenant-meta,
   .route-meta,
   .state-meta {
     grid-template-columns: 1fr;
