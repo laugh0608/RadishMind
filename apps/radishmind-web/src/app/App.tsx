@@ -26,12 +26,19 @@ import {
   type WorkspaceUsageQuotaSnapshot,
   type WorkspaceUsageQuotaStatePreview,
 } from "../features/control-plane-read/workspaceUsageQuota";
+import {
+  buildWorkspaceWorkflowDefinitionsViewModel,
+  type WorkspaceWorkflowDefinitionRow,
+  type WorkspaceWorkflowDefinitionsMetric,
+  type WorkspaceWorkflowDefinitionsStatePreview,
+} from "../features/control-plane-read/workspaceWorkflowDefinitions";
 
 const shell = buildControlPlaneReadShellViewModel();
 const tenantOverview = buildAdminTenantOverviewViewModel();
 const workspaceApplications = buildWorkspaceApplicationsViewModel();
 const workspaceApiKeys = buildWorkspaceApiKeysViewModel();
 const workspaceUsageQuota = buildWorkspaceUsageQuotaViewModel();
+const workspaceWorkflowDefinitions = buildWorkspaceWorkflowDefinitionsViewModel();
 
 export function App() {
   return (
@@ -47,6 +54,7 @@ export function App() {
           <a href="#workspace-applications">Applications</a>
           <a href="#workspace-api-keys">API Keys</a>
           <a href="#workspace-usage-quota">Usage Quota</a>
+          <a href="#workspace-workflow-definitions">Workflows</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -72,6 +80,10 @@ export function App() {
             <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
             <Fact label="Key page" value={workspaceApiKeys.canRenderApiKeys ? "ready" : "blocked"} />
             <Fact label="Quota page" value={workspaceUsageQuota.canRenderQuota ? "ready" : "blocked"} />
+            <Fact
+              label="Workflow page"
+              value={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "ready" : "blocked"}
+            />
           </div>
         </header>
 
@@ -331,6 +343,74 @@ export function App() {
           </div>
         </section>
 
+        <section
+          className="surface-band workspace-workflow-definitions"
+          id="workspace-workflow-definitions"
+          aria-labelledby="workspace-workflow-definitions-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">User Workspace</p>
+              <h3 id="workspace-workflow-definitions-title">Workflow definitions</h3>
+            </div>
+            <StatusBadge tone={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "good" : "bad"}>
+              {workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "read-only ready" : "blocked"}
+            </StatusBadge>
+          </div>
+
+          <div className="workflow-definitions-summary">
+            <article className="workflow-definitions-route">
+              <div className="card-title-row">
+                <div>
+                  <p className="eyebrow">Workflow Definition Summary List Route</p>
+                  <h4>{workspaceWorkflowDefinitions.routeId}</h4>
+                </div>
+                <StatusBadge tone="neutral">{workspaceWorkflowDefinitions.requiredScope}</StatusBadge>
+              </div>
+              <p className="route-path">{workspaceWorkflowDefinitions.routePath}</p>
+              <dl className="tenant-meta">
+                <div>
+                  <dt>Model</dt>
+                  <dd>{workspaceWorkflowDefinitions.readModel}</dd>
+                </div>
+                <div>
+                  <dt>Request</dt>
+                  <dd>{workspaceWorkflowDefinitions.requestId}</dd>
+                </div>
+                <div>
+                  <dt>Next cursor</dt>
+                  <dd>{workspaceWorkflowDefinitions.nextCursor ?? "none"}</dd>
+                </div>
+                <div>
+                  <dt>Audit</dt>
+                  <dd>{workspaceWorkflowDefinitions.auditRef}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div className="workflow-definitions-metrics" aria-label="Workspace workflow definition metrics">
+              {workspaceWorkflowDefinitions.metrics.map((metric) => (
+                <WorkflowDefinitionMetric key={metric.label} metric={metric} />
+              ))}
+            </div>
+          </div>
+
+          <div className="workflow-definition-list" aria-label="Workspace workflow definitions">
+            {workspaceWorkflowDefinitions.workflowDefinitions.map((workflowDefinition) => (
+              <WorkflowDefinitionRow
+                key={workflowDefinition.workflowDefinitionId}
+                workflowDefinition={workflowDefinition}
+              />
+            ))}
+          </div>
+
+          <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
+            {workspaceWorkflowDefinitions.statePreviews.map((state) => (
+              <WorkflowDefinitionStatePreview key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
+
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
             <div>
@@ -385,6 +465,69 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function WorkflowDefinitionMetric({ metric }: { metric: WorkspaceWorkflowDefinitionsMetric }) {
+  return (
+    <article className="workflow-definition-metric">
+      <span>{metric.label}</span>
+      <strong>{metric.value}</strong>
+      <p>{metric.detail}</p>
+    </article>
+  );
+}
+
+function WorkflowDefinitionRow({ workflowDefinition }: { workflowDefinition: WorkspaceWorkflowDefinitionRow }) {
+  return (
+    <article className="workflow-definition-row">
+      <div className="workflow-definition-row-main">
+        <div>
+          <p className="eyebrow">{workflowDefinition.applicationRef}</p>
+          <h4>{workflowDefinition.workflowDefinitionId}</h4>
+        </div>
+        <StatusBadge tone={workflowDefinition.definitionStatus === "published" ? "good" : "neutral"}>
+          {workflowDefinition.definitionStatus}
+        </StatusBadge>
+      </div>
+      <dl className="workflow-definition-row-meta">
+        <div>
+          <dt>Version</dt>
+          <dd>{workflowDefinition.version}</dd>
+        </div>
+        <div>
+          <dt>Nodes</dt>
+          <dd>{workflowDefinition.nodeCount}</dd>
+        </div>
+        <div>
+          <dt>Risk</dt>
+          <dd>{workflowDefinition.riskLevel}</dd>
+        </div>
+        <div>
+          <dt>Confirmation</dt>
+          <dd>{workflowDefinition.requiresConfirmationCapable ? "capable" : "not required"}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{workflowDefinition.updatedAt}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowDefinitionStatePreview({ state }: { state: WorkspaceWorkflowDefinitionsStatePreview }) {
+  return (
+    <article className="workflow-definition-state">
+      <div>
+        <strong>{state.label}</strong>
+        <span>{state.status}</span>
+      </div>
+      <p>{state.summary}</p>
+      <small>
+        items {state.itemCount} / failure {state.failureCode}
+      </small>
+    </article>
   );
 }
 

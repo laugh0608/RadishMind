@@ -67,6 +67,8 @@
 
 `control-plane-read-workspace-usage-quota-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-usage-quota` 页面切片。它只消费 `quota-summary-route` 的离线 TypeScript view model，展示 quota id、period、request / token / cost limit、usage snapshot、over quota failure code、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、quota enforcement、rate limit、billing、cost ledger、executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
 
+`control-plane-read-workspace-workflow-definitions-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-workflow-definitions` 页面切片。它只消费 `workflow-definition-summary-list-route` 的离线 TypeScript view model，展示 workflow definition id、application ref、version、definition status、node count、risk level、confirmation capability、updated timestamp、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、workflow builder、workflow lifecycle mutation、workflow executor、tool executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
