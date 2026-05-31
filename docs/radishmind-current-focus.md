@@ -38,15 +38,16 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 5. `P3 Local Product Shell / Ops Surface`、`Conversation & Session`、`Tooling Framework` 与 `UI Design Topic / React 第二批` 均保持 close / governance-only 状态，不再默认新增同类只读 UI、P2 readiness / rollup / manifest 或 UI polish。P2 停止线证据继续保留为 `session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json`；`P2 short close` 边界不变，相关 `negative_regression_suite` 边界不变，这些 fixture 不代表 executor、durable store、confirmation、materialized result reader、长期记忆或 replay 已完成。
 6. `Evaluation & Governance`：后续门禁从“每个小 UI 展示项新增 fixture”放宽为“聚合门禁优先”。只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项门禁；普通 UI 展示改动优先复用 console behavior / visual smoke / fast baseline。
 
-## 明天事项（2026-05-29）
+## 明天事项（2026-06-01）
 
 1. 先按协作约定检查 `git status`，读取本文档、[能力矩阵](radishmind-capability-matrix.md)、[路线图](radishmind-roadmap.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md) 和本周周志。
-2. 不继续默认新增 provider 同层小切片，也不重复跑同一 docker_local smoke，除非有新的失败假设或镜像 / compose 变更。
-3. 2026-05-28 已完成 control-plane read-side 的脚本治理、实现前置、fake-store plan、七条 fake-store-backed handler、auth/db preconditions、TypeScript consumer contract、formal UI boundary 和 formal UI implementation readiness；明天不要把这些 gate 误读成数据库、OIDC、正式 UI 或 production ready。
-4. 如果继续 read-side，`shared-read-shell`、`admin-tenant-overview`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 已完成；下一步只在后续只读页面切片或真实 auth/db 前置任务之间二选一，不要同时启动 React 页面、database query 和 OIDC 接线。
-5. 正式 UI 继续推进时，下一页应优先按 readiness 顺序消费 `audit-summary-list-route` 做只读 `admin-audit-log`，并继续复用 `apps/radishmind-web/` 的 route catalog binding、状态组件和 forbidden output guard；不得把 `apps/radishmind-console/` 改成 formal user workspace 或 production admin console。
-6. 真实 auth/db 方向若启动，先补 repository / auth middleware 任务卡和 checker，仍不直接写 database query、migration、Radish OIDC middleware、API key lifecycle 或 quota enforcement。
-7. read-side UI 相关切片仍不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay；产品机会池仍只作为候选，不写成 roadmap commitment。
+2. 先确认 2026-05-31 的七个提交已经在本地：`control-plane-read-shared-shell-v1`、`control-plane-read-admin-tenant-overview-v1`、`control-plane-read-workspace-applications-v1`、`control-plane-read-workspace-api-keys-v1`、`control-plane-read-workspace-usage-quota-v1`、`control-plane-read-workspace-workflow-definitions-v1` 与 `control-plane-read-workspace-run-history-v1`。
+3. 不继续默认新增 provider 同层小切片，也不重复跑同一 docker_local smoke，除非有新的失败假设或镜像 / compose 变更。
+4. 2026-05-28 已完成 control-plane read-side 的脚本治理、实现前置、fake-store plan、七条 fake-store-backed handler、auth/db preconditions、TypeScript consumer contract、formal UI boundary 和 formal UI implementation readiness；2026-05-31 已完成 shared shell 与六个只读页面切片；明天不要把这些 gate 误读成数据库、OIDC、完整正式 UI 或 production ready。
+5. 如果继续 read-side，`shared-read-shell`、`admin-tenant-overview`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 已完成；下一步只在后续只读页面切片或真实 auth/db 前置任务之间二选一，不要同时启动 React 页面、database query 和 OIDC 接线。
+6. 正式 UI 继续推进时，下一页应优先按 readiness 顺序消费 `audit-summary-list-route` 做只读 `admin-audit-log`，并继续复用 `apps/radishmind-web/` 的 route catalog binding、状态组件和 forbidden output guard；不得把 `apps/radishmind-console/` 改成 formal user workspace 或 production admin console。
+7. `admin-audit-log` 完成后，再回看 read-side UI 是否进入文档收口 / close candidate，或转向真实 auth/db 前置任务；不要在同一轮里直接写 database query、migration、Radish OIDC middleware、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+8. read-side UI 相关切片仍不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay；产品机会池仍只作为候选，不写成 roadmap commitment。
 
 ## 为什么是这些任务
 
