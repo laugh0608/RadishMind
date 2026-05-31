@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-05-28
+更新时间：2026-05-31
 
 ## 这份文档讲什么
 
@@ -57,9 +57,9 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，当前主线已经切到 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture、negative contract、implementation preconditions、fake-store-backed handler plan、七条 fake-store-backed handler implementation、auth/db preconditions、TypeScript consumer contract、formal UI boundary 和 formal UI implementation readiness；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+如果你今天想推进开发，当前主线已经切到 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture、negative contract、implementation preconditions、fake-store-backed handler plan、七条 fake-store-backed handler implementation、auth/db preconditions、TypeScript consumer contract、formal UI boundary、formal UI implementation readiness、`apps/radishmind-web/` read-only shared shell、只读 `admin-tenant-overview`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 和 `workspace-run-history` 页面切片；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
 
-正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳。
+完整正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳，`apps/radishmind-web/` 只是离线 read-side product UI shell。
 
 ## 目录速览
 
@@ -164,6 +164,34 @@ pwsh ./scripts/run-radishmind-console-dev.ps1
 
 console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，展示 Runtime overview、Service Status、Model Inventory、Provider/Profile Details、Session And Tooling、Blocked Action Detail、Dev Diagnostics、Local Readiness、Stop Lines 和 Audit Boundary。它仍是本地只读 ops surface，不是 production console、正式用户端或生产管理端。
 
+### 3.8 运行正式 read-only product UI shell
+
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它是离线 read-side shell，只消费 `contracts/typescript/control-plane-read-api.ts`，不请求平台 live backend。
+
+```bash
+cd apps/radishmind-web
+npm run build
+```
+
+如需本地查看页面，可在明确需要时运行：
+
+```bash
+cd apps/radishmind-web
+npm run dev
+```
+
+当前页面包括：
+
+- route catalog、shared states 和 forbidden output guard
+- `admin-tenant-overview`
+- `workspace-applications`
+- `workspace-api-keys`
+- `workspace-usage-quota`
+- `workspace-workflow-definitions`
+- `workspace-run-history`
+
+这些页面只展示离线 view model、route metadata、request / audit ref、状态预览和脱敏 summary。它们不请求 live backend，不接数据库、OIDC、repository、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+
 ### 3.7 使用 Docker 部署资产
 
 Docker 资产位于 `deploy/`，长期说明见 [部署目录说明](../deploy/README.md)。当前固定三种模式：
@@ -224,14 +252,15 @@ docker compose -f deploy/docker-compose.local.yaml down
 - process supervisor 与环境隔离
 - 外部 provider health check
 - console production packaging / runtime config
-- 正式 user workspace / production admin control plane React UI，以及 `apps/radishmind-web/` product app
+- 完整 user workspace / production admin control plane React UI
+- `apps/radishmind-web/` 的 live backend consumer、Radish OIDC / auth middleware、read store repository、数据库 query 和 `admin-audit-log` 页面
 - Control Plane Read-Side 的真实 Radish OIDC / auth middleware、read store repository、数据库 query 和 migration
 - 测试环境 smoke 和生产前复核记录
 - 更完整的 route-level smoke、stream 组合和兼容性矩阵
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
 - 真实工具执行器、materialized tool result cache、上层确认流接线和完整 session/tooling 负向回归 implementation consumer
 
-所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、Docker local compose、测试 / 生产共用部署态 compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook、container smoke 记录模板、一次 `docker_local` container smoke 通过记录、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke、本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console shell / behavior / visual smoke record / dev entry / production boundary checks、P3 checklist、session/tooling metadata smoke、七条 fake-store-backed Control Plane Read-Side route、TypeScript read consumer contract、formal UI boundary/readiness、P2 design gates 和 P2 governance rollup checks；本地只读壳已可用，Docker 静态部署边界已可检查，本地 mock 容器 smoke 已跑通，但还没有完整 production deployment、真实镜像发布、测试环境 smoke、production preflight、console production packaging、正式 `apps/radishmind-web/` product app、真实 Radish OIDC / auth middleware、read store repository、数据库 query、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
+所以如果你问“现在怎么部署”，准确答案是：当前已有本地 CLI runtime、进程内 gateway、Go platform service、本地 runbook、启动 wrapper、config / deployment / diagnostics smoke、Docker local compose、测试 / 生产共用部署态 compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook、container smoke 记录模板、一次 `docker_local` container smoke 通过记录、request observability、error taxonomy、bridge-backed provider/profile discoverability、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke、本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console shell / behavior / visual smoke record / dev entry / production boundary checks、P3 checklist、session/tooling metadata smoke、七条 fake-store-backed Control Plane Read-Side route、TypeScript read consumer contract、formal UI boundary/readiness、`apps/radishmind-web/` 离线 read-only product UI shell、P2 design gates 和 P2 governance rollup checks；本地只读壳已可用，Docker 静态部署边界已可检查，本地 mock 容器 smoke 已跑通，但还没有完整 production deployment、真实镜像发布、测试环境 smoke、production preflight、console production packaging、真实 Radish OIDC / auth middleware、read store repository、数据库 query、真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay。
 
 ## 读文档顺序
 

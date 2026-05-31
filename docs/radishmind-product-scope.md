@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-05-28
+更新时间：2026-05-31
 
 ## 核心定义
 
@@ -26,14 +26,17 @@
 
 2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，用于固定四个产品面的 v1 服务边界、数据边界和停止线；`product-surface-v1-boundary` 已进一步把 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution` 和 `Workflow / Agent Runtime` 的资源、读模型和写边界写入可检查 fixture；`control-plane-data-boundary` 已固定 tenant、user、role、permission、provider profile、model route、quota、price、audit、secret ref 与 deployment status 的 ownership；`radish-oidc-client-preconditions` 已固定 issuer、client、claim mapping、tenant binding、logout、audit 和 failure taxonomy；`gateway-api-key-quota-readiness` 已固定 API key、quota、rate limit、cost ledger 和 trace 前置条件；`workflow-definition-run-record-boundary` 已固定 workflow definition、run record、状态流转、失败分类、审计证据和停止线；`control-plane-read-model-v1` 已固定 tenant summary、application summary、API key summary、quota summary、workflow definition summary、run record summary 和 audit summary 的只读 read model；`control-plane-read-route-contract-v1` 已固定 `GET /v1/user-workspace/runs` 等七类 tenant-scoped read-only route contract；`control-plane-read-response-fixtures-v1` 已固定 response fixture、统一 envelope、`failure_code` 和脱敏输出；`control-plane-read-negative-contract-v1` 已固定负向契约、forbidden method / query / fallback、敏感字段投影拒绝和 fail-closed 输出；`control-plane-read-fake-store-handler-implementation-v1` 已实现七条 fake-store-backed read route，覆盖 tenant summary、applications、api-keys、quota summary、workflow definitions、runs 与 audit；`control-plane-read-auth-db-preconditions-v1` 已固定真实 auth/db 前置条件、future auth middleware 和 future read store repository；`control-plane-read-consumer-contract-v1` 已固定 TypeScript consumer contract 和离线消费 smoke；`control-plane-read-formal-ui-boundary-v1` 已固定正式 UI 边界、页面到 read route 的分配、只读状态和敏感字段停止线。它不代表正式用户端、生产管理端、workflow executor、API key / quota、数据库 read path 或 Radish OIDC 已实现。
 
-2026-05-28 已新增 `control-plane-read-formal-ui-implementation-readiness-v1`，固定未来 `apps/radishmind-web/` 预留落点、`apps/radishmind-console/` app 边界、页面实现顺序、consumer contract 复用、测试策略和停止线；它仍不创建 React 页面、不创建 product UI app、不把本地 ops console 升级成生产管理端。
+2026-05-28 已新增 `control-plane-read-formal-ui-implementation-readiness-v1`，固定未来 `apps/radishmind-web/` 预留落点、`apps/radishmind-console/` app 边界、页面实现顺序、consumer contract 复用、测试策略和停止线。
+
+2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。它不请求 live backend，不接数据库、OIDC、repository、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
 
 1. `User Workspace`
 
 - 面向终端用户和项目成员。
 - 支持创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG 或知识问答应用。
 - 用户可以管理自己的应用、API key、调用量、运行记录和成本摘要。
-- 工作流方向参考 `Dify` 的应用构建与 workflow 编排，但首版只实现 Radish 体系需要的最小闭环，不追求一次性复刻全量能力。
+- 当前 `apps/radishmind-web/` 只提供 read-side 页面切片：applications、API keys、usage quota、workflow definitions 和 run history 都是离线只读展示，不提供创建、编辑、执行、replay 或写回控件。
+- 工作流方向参考 `Dify` 的应用构建与 workflow 编排，但首版只实现 Radish 体系当前需要的可治理切片，不追求一次性复刻全量能力。
 
 2. `Admin Control Plane`
 
@@ -41,6 +44,7 @@
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
 - 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
+- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview` 页面切片，`admin-audit-log` 仍是后续 read-side 页面；它不是 production admin console。
 
 3. `Model Gateway / API Distribution`
 
@@ -97,7 +101,8 @@
 
 - 用户端用于 AI 工作流、应用、模型 API key、调用量和运行记录。
 - 管理端用于 provider/profile、模型路由、租户、权限、quota、secret、审计和部署状态。
-- 当前本地 console 只是 ops surface 和只读产品壳，不等同于正式用户端或生产管理端。
+- 当前 `apps/radishmind-console/` 只是本地 ops surface 和只读产品壳，不等同于正式用户端或生产管理端。
+- 当前 `apps/radishmind-web/` 是正式产品 UI 的离线 read-side shell，不等同于完整用户端、production admin console 或真实 API consumer。
 
 - `RadishFlow`、`Radish`、`RadishCatalyst` 是应用面，不是项目本体的全部意义。
 - 这些接入面复用同一套 runtime、contract、tooling、evaluation 和 governance，而不是各自私接模型。
