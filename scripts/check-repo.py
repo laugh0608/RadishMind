@@ -1094,6 +1094,7 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-workspace-api-keys-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-workspace-usage-quota-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-workspace-workflow-definitions-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-workspace-run-history-v1.py", [])
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])

@@ -32,6 +32,12 @@ import {
   type WorkspaceWorkflowDefinitionsMetric,
   type WorkspaceWorkflowDefinitionsStatePreview,
 } from "../features/control-plane-read/workspaceWorkflowDefinitions";
+import {
+  buildWorkspaceRunHistoryViewModel,
+  type WorkspaceRunHistoryMetric,
+  type WorkspaceRunHistoryStatePreview,
+  type WorkspaceRunRecordRow,
+} from "../features/control-plane-read/workspaceRunHistory";
 
 const shell = buildControlPlaneReadShellViewModel();
 const tenantOverview = buildAdminTenantOverviewViewModel();
@@ -39,6 +45,7 @@ const workspaceApplications = buildWorkspaceApplicationsViewModel();
 const workspaceApiKeys = buildWorkspaceApiKeysViewModel();
 const workspaceUsageQuota = buildWorkspaceUsageQuotaViewModel();
 const workspaceWorkflowDefinitions = buildWorkspaceWorkflowDefinitionsViewModel();
+const workspaceRunHistory = buildWorkspaceRunHistoryViewModel();
 
 export function App() {
   return (
@@ -55,6 +62,7 @@ export function App() {
           <a href="#workspace-api-keys">API Keys</a>
           <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#workspace-workflow-definitions">Workflows</a>
+          <a href="#workspace-run-history">Run History</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -84,6 +92,7 @@ export function App() {
               label="Workflow page"
               value={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "ready" : "blocked"}
             />
+            <Fact label="Run page" value={workspaceRunHistory.canRenderRuns ? "ready" : "blocked"} />
           </div>
         </header>
 
@@ -411,6 +420,71 @@ export function App() {
           </div>
         </section>
 
+        <section
+          className="surface-band workspace-run-history"
+          id="workspace-run-history"
+          aria-labelledby="workspace-run-history-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">User Workspace</p>
+              <h3 id="workspace-run-history-title">Run history</h3>
+            </div>
+            <StatusBadge tone={workspaceRunHistory.canRenderRuns ? "good" : "bad"}>
+              {workspaceRunHistory.canRenderRuns ? "read-only ready" : "blocked"}
+            </StatusBadge>
+          </div>
+
+          <div className="run-history-summary">
+            <article className="run-history-route">
+              <div className="card-title-row">
+                <div>
+                  <p className="eyebrow">Run Record Summary List Route</p>
+                  <h4>{workspaceRunHistory.routeId}</h4>
+                </div>
+                <StatusBadge tone="neutral">{workspaceRunHistory.requiredScope}</StatusBadge>
+              </div>
+              <p className="route-path">{workspaceRunHistory.routePath}</p>
+              <dl className="tenant-meta">
+                <div>
+                  <dt>Model</dt>
+                  <dd>{workspaceRunHistory.readModel}</dd>
+                </div>
+                <div>
+                  <dt>Request</dt>
+                  <dd>{workspaceRunHistory.requestId}</dd>
+                </div>
+                <div>
+                  <dt>Next cursor</dt>
+                  <dd>{workspaceRunHistory.nextCursor ?? "none"}</dd>
+                </div>
+                <div>
+                  <dt>Audit</dt>
+                  <dd>{workspaceRunHistory.auditRef}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div className="run-history-metrics" aria-label="Workspace run history metrics">
+              {workspaceRunHistory.metrics.map((metric) => (
+                <RunHistoryMetric key={metric.label} metric={metric} />
+              ))}
+            </div>
+          </div>
+
+          <div className="run-record-list" aria-label="Workspace run records">
+            {workspaceRunHistory.runs.map((run) => (
+              <RunRecordRow key={run.runId} run={run} />
+            ))}
+          </div>
+
+          <div className="run-history-states" aria-label="Workspace run history states">
+            {workspaceRunHistory.statePreviews.map((state) => (
+              <RunHistoryStatePreview key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
+
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
             <div>
@@ -465,6 +539,71 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function RunHistoryMetric({ metric }: { metric: WorkspaceRunHistoryMetric }) {
+  return (
+    <article className="run-history-metric">
+      <span>{metric.label}</span>
+      <strong>{metric.value}</strong>
+      <p>{metric.detail}</p>
+    </article>
+  );
+}
+
+function RunRecordRow({ run }: { run: WorkspaceRunRecordRow }) {
+  return (
+    <article className="run-record-row">
+      <div className="run-record-row-main">
+        <div>
+          <p className="eyebrow">{run.applicationRef}</p>
+          <h4>{run.runId}</h4>
+        </div>
+        <StatusBadge tone={run.status === "failed" ? "bad" : "good"}>{run.status}</StatusBadge>
+      </div>
+      <dl className="run-record-row-meta">
+        <div>
+          <dt>Workflow</dt>
+          <dd>{run.workflowDefinitionId}</dd>
+        </div>
+        <div>
+          <dt>Failure</dt>
+          <dd>{run.failureCode}</dd>
+        </div>
+        <div>
+          <dt>Cost</dt>
+          <dd>{run.estimatedCost}</dd>
+        </div>
+        <div>
+          <dt>Trace</dt>
+          <dd>{run.traceId}</dd>
+        </div>
+        <div>
+          <dt>Started</dt>
+          <dd>{run.startedAt}</dd>
+        </div>
+        <div>
+          <dt>Completed</dt>
+          <dd>{run.completedAt}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function RunHistoryStatePreview({ state }: { state: WorkspaceRunHistoryStatePreview }) {
+  return (
+    <article className="run-history-state">
+      <div>
+        <strong>{state.label}</strong>
+        <span>{state.status}</span>
+      </div>
+      <p>{state.summary}</p>
+      <small>
+        items {state.itemCount} / failure {state.failureCode}
+      </small>
+    </article>
   );
 }
 

@@ -55,4 +55,4 @@
 
 ## 后续顺序
 
-若继续 formal UI read-side，应按 readiness 顺序推进 `workspace-run-history` 和 `admin-audit-log`；若改走真实 auth/db，则先补 repository / auth middleware 任务卡与 checker，不与页面切片并行。
+若继续 formal UI read-side，`workspace-run-history` 已作为下一页推进；后续应按 readiness 顺序继续 `admin-audit-log`。若改走真实 auth/db，则先补 repository / auth middleware 任务卡与 checker，不与页面切片并行。

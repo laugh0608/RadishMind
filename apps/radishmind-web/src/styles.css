@@ -134,9 +134,9 @@ h4 {
 
 .header-facts {
   display: grid;
-  grid-template-columns: repeat(8, minmax(80px, 1fr));
+  grid-template-columns: repeat(9, minmax(76px, 1fr));
   gap: 10px;
-  min-width: min(1040px, 100%);
+  min-width: min(1120px, 100%);
 }
 
 .fact {
@@ -190,6 +190,11 @@ h4 {
   padding-bottom: 24px;
 }
 
+.workspace-run-history {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .tenant-layout {
   display: grid;
   grid-template-columns: minmax(280px, 1.1fr) minmax(280px, 1fr);
@@ -200,7 +205,8 @@ h4 {
 .applications-summary,
 .api-keys-summary,
 .usage-quota-summary,
-.workflow-definitions-summary {
+.workflow-definitions-summary,
+.run-history-summary {
   display: grid;
   grid-template-columns: minmax(320px, 1.1fr) minmax(280px, 0.9fr);
   gap: 14px;
@@ -212,19 +218,23 @@ h4 {
 .api-keys-route,
 .usage-quota-route,
 .workflow-definitions-route,
+.run-history-route,
 .application-metric,
 .api-key-metric,
 .usage-quota-limit,
 .usage-quota-snapshot-card,
 .usage-quota-failure,
 .workflow-definition-metric,
+.run-history-metric,
 .application-row,
 .api-key-row,
 .workflow-definition-row,
+.run-record-row,
 .application-state,
 .api-key-state,
 .usage-quota-state,
 .workflow-definition-state,
+.run-history-state,
 .tenant-fact,
 .tenant-state {
   border: 1px solid #d8dee8;
@@ -236,7 +246,8 @@ h4 {
 .applications-route,
 .api-keys-route,
 .usage-quota-route,
-.workflow-definitions-route {
+.workflow-definitions-route,
+.run-history-route {
   padding: 16px;
   min-width: 0;
 }
@@ -255,13 +266,16 @@ h4 {
 .usage-quota-snapshot,
 .usage-quota-limits,
 .workflow-definitions-metrics,
+.run-history-metrics,
 .application-list,
 .api-key-list,
 .workflow-definition-list,
+.run-record-list,
 .application-states,
 .api-key-states,
 .usage-quota-states,
-.workflow-definition-states {
+.workflow-definition-states,
+.run-history-states {
   display: grid;
   gap: 10px;
 }
@@ -270,7 +284,8 @@ h4 {
 .applications-metrics,
 .api-keys-metrics,
 .usage-quota-snapshot,
-.workflow-definitions-metrics {
+.workflow-definitions-metrics,
+.run-history-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -280,7 +295,8 @@ h4 {
 .usage-quota-limit,
 .usage-quota-snapshot-card,
 .usage-quota-failure,
-.workflow-definition-metric {
+.workflow-definition-metric,
+.run-history-metric {
   min-width: 0;
   padding: 14px;
 }
@@ -292,6 +308,7 @@ h4 {
 .usage-quota-snapshot-card span,
 .usage-quota-failure span,
 .workflow-definition-metric span,
+.run-history-metric span,
 .application-state span,
 .application-state small,
 .api-key-state span,
@@ -300,6 +317,8 @@ h4 {
 .usage-quota-state small,
 .workflow-definition-state span,
 .workflow-definition-state small,
+.run-history-state span,
+.run-history-state small,
 .tenant-state span,
 .tenant-state small {
   color: #607086;
@@ -313,7 +332,8 @@ h4 {
 .usage-quota-limit strong,
 .usage-quota-snapshot-card strong,
 .usage-quota-failure strong,
-.workflow-definition-metric strong {
+.workflow-definition-metric strong,
+.run-history-metric strong {
   display: block;
   overflow-wrap: anywhere;
   margin-top: 6px;
@@ -328,10 +348,12 @@ h4 {
 .usage-quota-snapshot-card p,
 .usage-quota-failure p,
 .workflow-definition-metric p,
+.run-history-metric p,
 .application-state p,
 .api-key-state p,
 .usage-quota-state p,
 .workflow-definition-state p,
+.run-history-state p,
 .tenant-state p {
   margin: 8px 0 0;
   color: #4e5f73;
@@ -345,14 +367,16 @@ h4 {
 
 .application-list,
 .api-key-list,
-.workflow-definition-list {
+.workflow-definition-list,
+.run-record-list {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .application-states,
 .api-key-states,
 .usage-quota-states,
-.workflow-definition-states {
+.workflow-definition-states,
+.run-history-states {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
@@ -360,7 +384,8 @@ h4 {
 .application-state,
 .api-key-state,
 .usage-quota-state,
-.workflow-definition-state {
+.workflow-definition-state,
+.run-history-state {
   display: grid;
   align-content: start;
   gap: 8px;
@@ -372,7 +397,8 @@ h4 {
 .application-state div,
 .api-key-state div,
 .usage-quota-state div,
-.workflow-definition-state div {
+.workflow-definition-state div,
+.run-history-state div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -382,14 +408,16 @@ h4 {
 .application-state strong,
 .api-key-state strong,
 .usage-quota-state strong,
-.workflow-definition-state strong {
+.workflow-definition-state strong,
+.run-history-state strong {
   color: #17202a;
   font-size: 14px;
 }
 
 .application-row,
 .api-key-row,
-.workflow-definition-row {
+.workflow-definition-row,
+.run-record-row {
   display: grid;
   gap: 14px;
   min-width: 0;
@@ -398,7 +426,8 @@ h4 {
 
 .application-row-main,
 .api-key-row-main,
-.workflow-definition-row-main {
+.workflow-definition-row-main,
+.run-record-row-main {
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -406,7 +435,8 @@ h4 {
 
 .application-row-meta,
 .api-key-row-meta,
-.workflow-definition-row-meta {
+.workflow-definition-row-meta,
+.run-record-row-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -415,7 +445,8 @@ h4 {
 
 .application-row-meta div,
 .api-key-row-meta div,
-.workflow-definition-row-meta div {
+.workflow-definition-row-meta div,
+.run-record-row-meta div {
   min-width: 0;
 }
 
@@ -428,6 +459,8 @@ h4 {
 .usage-quota-state small,
 .workflow-definition-state span,
 .workflow-definition-state small,
+.run-history-state span,
+.run-history-state small,
 .tenant-state small {
   overflow-wrap: anywhere;
 }
@@ -598,15 +631,18 @@ dd {
   .api-keys-summary,
   .usage-quota-summary,
   .workflow-definitions-summary,
+  .run-history-summary,
   .tenant-facts,
   .applications-metrics,
   .api-keys-metrics,
   .usage-quota-snapshot,
   .usage-quota-limits,
   .workflow-definitions-metrics,
+  .run-history-metrics,
   .application-row-meta,
   .api-key-row-meta,
   .workflow-definition-row-meta,
+  .run-record-row-meta,
   .tenant-meta,
   .route-meta,
   .state-meta {
