@@ -134,9 +134,9 @@ h4 {
 
 .header-facts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(96px, 1fr));
+  grid-template-columns: repeat(5, minmax(92px, 1fr));
   gap: 10px;
-  min-width: min(580px, 100%);
+  min-width: min(720px, 100%);
 }
 
 .fact {
@@ -170,6 +170,11 @@ h4 {
   padding-bottom: 24px;
 }
 
+.workspace-applications {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .tenant-layout {
   display: grid;
   grid-template-columns: minmax(280px, 1.1fr) minmax(280px, 1fr);
@@ -177,7 +182,18 @@ h4 {
   align-items: stretch;
 }
 
+.applications-summary {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.1fr) minmax(280px, 0.9fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
 .tenant-summary,
+.applications-route,
+.application-metric,
+.application-row,
+.application-state,
 .tenant-fact,
 .tenant-state {
   border: 1px solid #d8dee8;
@@ -185,7 +201,8 @@ h4 {
   background: #ffffff;
 }
 
-.tenant-summary {
+.tenant-summary,
+.applications-route {
   padding: 16px;
   min-width: 0;
 }
@@ -198,21 +215,29 @@ h4 {
 }
 
 .tenant-facts,
-.tenant-states {
+.tenant-states,
+.applications-metrics,
+.application-list,
+.application-states {
   display: grid;
   gap: 10px;
 }
 
-.tenant-facts {
+.tenant-facts,
+.applications-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.tenant-fact {
+.tenant-fact,
+.application-metric {
   min-width: 0;
   padding: 14px;
 }
 
 .tenant-fact span,
+.application-metric span,
+.application-state span,
+.application-state small,
 .tenant-state span,
 .tenant-state small {
   color: #607086;
@@ -220,7 +245,8 @@ h4 {
   font-weight: 700;
 }
 
-.tenant-fact strong {
+.tenant-fact strong,
+.application-metric strong {
   display: block;
   overflow-wrap: anywhere;
   margin-top: 6px;
@@ -229,6 +255,8 @@ h4 {
 }
 
 .tenant-fact p,
+.application-metric p,
+.application-state p,
 .tenant-state p {
   margin: 8px 0 0;
   color: #4e5f73;
@@ -240,7 +268,16 @@ h4 {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.tenant-state {
+.application-list {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.application-states {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.tenant-state,
+.application-state {
   display: grid;
   align-content: start;
   gap: 8px;
@@ -248,18 +285,46 @@ h4 {
   padding: 14px;
 }
 
-.tenant-state div {
+.tenant-state div,
+.application-state div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
 }
 
-.tenant-state strong {
+.tenant-state strong,
+.application-state strong {
   color: #17202a;
   font-size: 14px;
 }
 
+.application-row {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+}
+
+.application-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.application-row-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.application-row-meta div {
+  min-width: 0;
+}
+
 .tenant-state span,
+.application-state span,
+.application-state small,
 .tenant-state small {
   overflow-wrap: anywhere;
 }
@@ -408,7 +473,10 @@ dd {
 
   .header-facts,
   .tenant-layout,
+  .applications-summary,
   .tenant-facts,
+  .applications-metrics,
+  .application-row-meta,
   .tenant-meta,
   .route-meta,
   .state-meta {

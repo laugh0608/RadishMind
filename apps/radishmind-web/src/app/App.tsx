@@ -8,9 +8,16 @@ import {
   type ControlPlaneReadRouteCard,
   type ControlPlaneReadStatePreview,
 } from "../features/control-plane-read/readShell";
+import {
+  buildWorkspaceApplicationsViewModel,
+  type WorkspaceApplicationRow,
+  type WorkspaceApplicationsMetric,
+  type WorkspaceApplicationsStatePreview,
+} from "../features/control-plane-read/workspaceApplications";
 
 const shell = buildControlPlaneReadShellViewModel();
 const tenantOverview = buildAdminTenantOverviewViewModel();
+const workspaceApplications = buildWorkspaceApplicationsViewModel();
 
 export function App() {
   return (
@@ -23,6 +30,7 @@ export function App() {
         </div>
         <nav className="nav-links" aria-label="Read shell sections">
           <a href="#admin-tenant-overview">Tenant Overview</a>
+          <a href="#workspace-applications">Applications</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -45,6 +53,7 @@ export function App() {
             <Fact label="Database" value={shell.catalog.databaseBacked ? "attached" : "detached"} />
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
+            <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
           </div>
         </header>
 
@@ -107,6 +116,71 @@ export function App() {
           </div>
         </section>
 
+        <section
+          className="surface-band workspace-applications"
+          id="workspace-applications"
+          aria-labelledby="workspace-applications-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">User Workspace</p>
+              <h3 id="workspace-applications-title">Applications</h3>
+            </div>
+            <StatusBadge tone={workspaceApplications.canRenderApplications ? "good" : "bad"}>
+              {workspaceApplications.canRenderApplications ? "read-only ready" : "blocked"}
+            </StatusBadge>
+          </div>
+
+          <div className="applications-summary">
+            <article className="applications-route">
+              <div className="card-title-row">
+                <div>
+                  <p className="eyebrow">Application Summary List Route</p>
+                  <h4>{workspaceApplications.routeId}</h4>
+                </div>
+                <StatusBadge tone="neutral">{workspaceApplications.requiredScope}</StatusBadge>
+              </div>
+              <p className="route-path">{workspaceApplications.routePath}</p>
+              <dl className="tenant-meta">
+                <div>
+                  <dt>Model</dt>
+                  <dd>{workspaceApplications.readModel}</dd>
+                </div>
+                <div>
+                  <dt>Request</dt>
+                  <dd>{workspaceApplications.requestId}</dd>
+                </div>
+                <div>
+                  <dt>Next cursor</dt>
+                  <dd>{workspaceApplications.nextCursor ?? "none"}</dd>
+                </div>
+                <div>
+                  <dt>Audit</dt>
+                  <dd>{workspaceApplications.auditRef}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div className="applications-metrics" aria-label="Workspace application metrics">
+              {workspaceApplications.metrics.map((metric) => (
+                <ApplicationMetric key={metric.label} metric={metric} />
+              ))}
+            </div>
+          </div>
+
+          <div className="application-list" aria-label="Workspace applications">
+            {workspaceApplications.applications.map((application) => (
+              <ApplicationRow key={application.applicationRef} application={application} />
+            ))}
+          </div>
+
+          <div className="application-states" aria-label="Workspace application states">
+            {workspaceApplications.statePreviews.map((state) => (
+              <ApplicationStatePreview key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
+
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
             <div>
@@ -161,6 +235,65 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function ApplicationMetric({ metric }: { metric: WorkspaceApplicationsMetric }) {
+  return (
+    <article className="application-metric">
+      <span>{metric.label}</span>
+      <strong>{metric.value}</strong>
+      <p>{metric.detail}</p>
+    </article>
+  );
+}
+
+function ApplicationRow({ application }: { application: WorkspaceApplicationRow }) {
+  return (
+    <article className="application-row">
+      <div className="application-row-main">
+        <div>
+          <p className="eyebrow">{application.applicationKind}</p>
+          <h4>{application.displayName}</h4>
+        </div>
+        <StatusBadge tone={application.lastRunStatus === "blocked" ? "bad" : "good"}>
+          {application.lastRunStatus}
+        </StatusBadge>
+      </div>
+      <dl className="application-row-meta">
+        <div>
+          <dt>Application</dt>
+          <dd>{application.applicationRef}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{application.ownerSubjectRef}</dd>
+        </div>
+        <div>
+          <dt>Workflow</dt>
+          <dd>{application.latestWorkflowDefinitionRef}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{application.updatedAt}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function ApplicationStatePreview({ state }: { state: WorkspaceApplicationsStatePreview }) {
+  return (
+    <article className="application-state">
+      <div>
+        <strong>{state.label}</strong>
+        <span>{state.status}</span>
+      </div>
+      <p>{state.summary}</p>
+      <small>
+        items {state.itemCount} / failure {state.failureCode}
+      </small>
+    </article>
   );
 }
 

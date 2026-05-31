@@ -62,6 +62,7 @@
 12. [`Control Plane Read Formal UI Implementation Readiness` v1 计划](control-plane-read-formal-ui-implementation-readiness-v1-plan.md)（`control-plane-read-formal-ui-implementation-readiness-v1`）
 13. [`Control Plane Read Shared Shell` v1 计划](control-plane-read-shared-shell-v1-plan.md)（`control-plane-read-shared-shell-v1`）
 14. [`Control Plane Read Admin Tenant Overview` v1 计划](control-plane-read-admin-tenant-overview-v1-plan.md)（`control-plane-read-admin-tenant-overview-v1`）
+15. [`Control Plane Read Workspace Applications` v1 计划](control-plane-read-workspace-applications-v1-plan.md)（`control-plane-read-workspace-applications-v1`）
 
 ## UI 设计专题
 

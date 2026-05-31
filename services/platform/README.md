@@ -61,6 +61,8 @@
 
 `control-plane-read-admin-tenant-overview-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `admin-tenant-overview` 页面切片。它只消费 `tenant-summary-route` 的离线 TypeScript view model，展示租户摘要、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、API key / quota、executor、confirmation、writeback 或 replay，也不声明 production admin console ready。
 
+`control-plane-read-workspace-applications-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-applications` 页面切片。它只消费 `application-summary-list-route` 的离线 TypeScript view model，展示应用摘要列表、cursor、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、API key / quota、executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
+
 当前第一版 bridge 仍是窄切片：
 
 - 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
