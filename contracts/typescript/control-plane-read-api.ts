@@ -69,6 +69,8 @@ export type ControlPlaneReadFailureCode =
 
 export type ControlPlaneReadPagination = "single_resource" | "cursor_required";
 
+export type ControlPlaneReadConsumerSource = "offline_fixture" | "dev_live_http";
+
 export type ControlPlaneReadAllowedFilter =
   | "application_kind"
   | "owner_subject_ref"
@@ -317,6 +319,7 @@ export type ControlPlaneReadRouteCatalogViewModel = {
 export type ControlPlaneReadCollectionViewModel = {
   routeId: ControlPlaneReadRouteId;
   readModel: ControlPlaneReadModel;
+  source: ControlPlaneReadConsumerSource;
   requestId: string;
   tenantRef: string;
   items: ControlPlaneReadSummaryItem[];
@@ -328,6 +331,8 @@ export type ControlPlaneReadCollectionViewModel = {
   canRenderItems: boolean;
   canFetchNextPage: boolean;
   noSideEffectsExpected: true;
+  devLiveHttpEnabled: boolean;
+  productionApiConsumer: false;
   canExecuteWorkflow: false;
   canWriteBusinessTruth: false;
   canRevealSecrets: false;
@@ -467,12 +472,15 @@ export function isControlPlaneReadEnvelope(
 export function toControlPlaneReadCollectionViewModel(
   routeId: ControlPlaneReadRouteId,
   response: ControlPlaneReadEnvelope<ControlPlaneReadSummaryItem>,
+  options: { source?: ControlPlaneReadConsumerSource } = {},
 ): ControlPlaneReadCollectionViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId];
   const denied = response.failure_code !== null;
+  const source = options.source ?? "offline_fixture";
   return {
     routeId,
     readModel: route.readModel,
+    source,
     requestId: response.request_id,
     tenantRef: response.tenant_ref,
     items: response.items,
@@ -484,6 +492,8 @@ export function toControlPlaneReadCollectionViewModel(
     canRenderItems: !denied && response.items.length > 0,
     canFetchNextPage: !denied && response.next_cursor !== null,
     noSideEffectsExpected: true,
+    devLiveHttpEnabled: source === "dev_live_http",
+    productionApiConsumer: false,
     canExecuteWorkflow: false,
     canWriteBusinessTruth: false,
     canRevealSecrets: false,

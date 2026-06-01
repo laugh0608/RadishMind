@@ -58,7 +58,7 @@ export type WorkspaceWorkflowDefinitionsViewModel = {
   nextCursor: string | null;
   forbiddenProjectionBlocked: boolean;
   canRenderWorkflowDefinitions: boolean;
-  canRequestLiveBackend: false;
+  canRequestLiveBackend: boolean;
   canMutate: false;
   canCreateWorkflow: false;
   canEditWorkflow: false;
@@ -66,12 +66,16 @@ export type WorkspaceWorkflowDefinitionsViewModel = {
   canConfirmWorkflowAction: false;
 };
 
-export function buildWorkspaceWorkflowDefinitionsViewModel(): WorkspaceWorkflowDefinitionsViewModel {
+export function buildWorkspaceWorkflowDefinitionsViewModel(
+  collectionOverride?: ControlPlaneReadCollectionViewModel,
+): WorkspaceWorkflowDefinitionsViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["workflow-definition-summary-list-route"];
-  const collection = toControlPlaneReadCollectionViewModel(
-    "workflow-definition-summary-list-route",
-    buildWorkflowDefinitionsEnvelope(),
-  );
+  const collection =
+    collectionOverride ??
+    toControlPlaneReadCollectionViewModel(
+      "workflow-definition-summary-list-route",
+      buildWorkflowDefinitionsEnvelope(),
+    );
   const workflowDefinitions = collection.items.map((item) =>
     toWorkflowDefinitionRow(item as WorkflowDefinitionSummary),
   );
@@ -98,7 +102,7 @@ export function buildWorkspaceWorkflowDefinitionsViewModel(): WorkspaceWorkflowD
       route.canMutate === false &&
       collection.canRenderItems &&
       !controlPlaneReadResponseHasForbiddenOutput(collection),
-    canRequestLiveBackend: false,
+    canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
     canCreateWorkflow: false,
     canEditWorkflow: false,

@@ -214,7 +214,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     for literal in (
         "buildWorkspaceRunHistoryViewModel",
         "WorkspaceRunHistoryViewModel",
-        "canRequestLiveBackend: false",
+        "canRequestLiveBackend:",
         "canMutate: false",
         "canStartRun: false",
         "canCancelRun: false",

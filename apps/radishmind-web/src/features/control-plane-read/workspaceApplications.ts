@@ -57,16 +57,17 @@ export type WorkspaceApplicationsViewModel = {
   nextCursor: string | null;
   forbiddenProjectionBlocked: boolean;
   canRenderApplications: boolean;
-  canRequestLiveBackend: false;
+  canRequestLiveBackend: boolean;
   canMutate: false;
 };
 
-export function buildWorkspaceApplicationsViewModel(): WorkspaceApplicationsViewModel {
+export function buildWorkspaceApplicationsViewModel(
+  collectionOverride?: ControlPlaneReadCollectionViewModel,
+): WorkspaceApplicationsViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["application-summary-list-route"];
-  const collection = toControlPlaneReadCollectionViewModel(
-    "application-summary-list-route",
-    buildApplicationsEnvelope(),
-  );
+  const collection =
+    collectionOverride ??
+    toControlPlaneReadCollectionViewModel("application-summary-list-route", buildApplicationsEnvelope());
   const applications = collection.items.map((item) => toApplicationRow(item as ApplicationSummary));
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     items: [{ [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[7]]: "blocked" }],
@@ -91,7 +92,7 @@ export function buildWorkspaceApplicationsViewModel(): WorkspaceApplicationsView
       route.canMutate === false &&
       collection.canRenderItems &&
       !controlPlaneReadResponseHasForbiddenOutput(collection),
-    canRequestLiveBackend: false,
+    canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
   };
 }

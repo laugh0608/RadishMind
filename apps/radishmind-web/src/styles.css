@@ -159,6 +159,35 @@ h4 {
   font-size: 18px;
 }
 
+.live-read-source {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(260px, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.live-read-source h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.live-read-source p {
+  margin: 8px 0 0;
+  color: #4e5f73;
+  line-height: 1.45;
+}
+
+.live-read-source dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(72px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
 .surface-band {
   display: grid;
   gap: 16px;
@@ -659,6 +688,8 @@ dd {
   }
 
   .header-facts,
+  .live-read-source,
+  .live-read-source dl,
   .tenant-layout,
   .applications-summary,
   .api-keys-summary,

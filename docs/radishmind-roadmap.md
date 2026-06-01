@@ -56,6 +56,8 @@
 
 2026-06-01 已完成 `control-plane-read-formal-ui-readiness-close-v1` formal UI readiness close，以 `formal_ui_readiness_closed` 状态和 surface matrix 聚合校验七个只读页面的 route binding、状态预览、request / audit ref、forbidden output guard 和停止线。后续不再默认为普通只读展示页逐项新增 task card、fixture 和 checker；如果放宽到 dev-only live read path，只能消费 fake-store-backed handler 与测试身份上下文，真实数据库、Radish OIDC、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 和 replay 仍保持停止线。
 
+2026-06-01 已完成 `control-plane-read-dev-live-consumer-v1`，在 `apps/radishmind-web/` 内新增 dev-only live read consumer 路径。默认仍使用离线 fixture/view model；只有显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且平台服务设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才会通过 HTTP 消费现有 fake-store-backed read handlers 和测试身份上下文。该切片不接真实数据库、不接 Radish OIDC、不实现 repository migration、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer、production admin console 或完整 formal user workspace ready。
+
 ## 五条主线
 
 ### 1. `Runtime Service / Model Gateway`
@@ -209,7 +211,7 @@
 ## 下一步
 
 1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
-2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；已完成的 read-side 契约、fake-store-backed read handler plan、fake-store-backed handler implementation、真实 auth/db 前置条件、consumer contract、正式 UI 边界、shared shell、七个只读页面切片和 `control-plane-read-formal-ui-readiness-close-v1` 继续作为证据保留。下一步在 dev-only live read consumer 或 auth/store 前置任务之间单线选择，不默认进入数据库、OIDC、quota enforcement、rate limit、billing、cost ledger、workflow builder、executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay。
+2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；已完成的 read-side 契约、fake-store-backed read handler plan、fake-store-backed handler implementation、真实 auth/db 前置条件、consumer contract、正式 UI 边界、shared shell、七个只读页面切片、`control-plane-read-formal-ui-readiness-close-v1` 和 `control-plane-read-dev-live-consumer-v1` 继续作为证据保留。下一步如继续 read-side，应转向 auth/store 前置任务或另一个明确窄切片，不默认进入数据库、OIDC、repository migration、quota enforcement、rate limit、billing、cost ledger、workflow builder、executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay。
 3. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
 4. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 5. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。

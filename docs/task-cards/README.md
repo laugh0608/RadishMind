@@ -69,6 +69,7 @@
 19. [`Control Plane Read Workspace Run History` v1 计划](control-plane-read-workspace-run-history-v1-plan.md)（`control-plane-read-workspace-run-history-v1`）
 20. [`Control Plane Read Admin Audit Log` v1 计划](control-plane-read-admin-audit-log-v1-plan.md)（`control-plane-read-admin-audit-log-v1`）
 21. [`Control Plane Read Formal UI Readiness Close` v1 计划](control-plane-read-formal-ui-readiness-close-v1-plan.md)（`control-plane-read-formal-ui-readiness-close-v1`）
+22. [`Control Plane Read Dev Live Consumer` v1 计划](control-plane-read-dev-live-consumer-v1-plan.md)（`control-plane-read-dev-live-consumer-v1`）
 
 ## UI 设计专题
 

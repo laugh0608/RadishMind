@@ -223,7 +223,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     for literal in (
         "buildAdminAuditLogViewModel",
         "AdminAuditLogViewModel",
-        "canRequestLiveBackend: false",
+        "canRequestLiveBackend:",
         "canMutate: false",
         "canDeleteAuditRecord: false",
         "canEditAuditRecord: false",

@@ -188,6 +188,26 @@ func TestLocalConsoleCORS(t *testing.T) {
 		}
 	})
 
+	t.Run("allows web dev live read preflight headers", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodOptions, "/v1/control-plane/tenants/tenant_demo/summary", nil)
+		req.Header.Set("Origin", "http://127.0.0.1:4100")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+		req.Header.Set("Access-Control-Request-Headers", controlPlaneReadDevIdentityHeader)
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:4100" {
+			t.Fatalf("unexpected allow origin: %q", got)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(got, controlPlaneReadDevIdentityHeader) {
+			t.Fatalf("unexpected allow headers: %q", got)
+		}
+	})
+
 	t.Run("does not allow arbitrary origin", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 		req.Header.Set("Origin", "https://example.com")

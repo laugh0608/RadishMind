@@ -78,11 +78,9 @@
     "forbidden_projection"
   ],
   "forbidden_source_literals": [
-    "fetch(",
     "XMLHttpRequest",
     "axios",
-    "createRoot(document.getElementById(\"console\"",
-    "VITE_RADISHMIND_PLATFORM_BASE_URL"
+    "createRoot(document.getElementById(\"console\""
   ],
   "forbidden_package_scripts": [
     "deploy",

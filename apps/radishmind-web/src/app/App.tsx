@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 import {
   buildAdminTenantOverviewViewModel,
   type AdminTenantOverviewFact,
@@ -9,6 +11,12 @@ import {
   type AdminAuditLogMetric,
   type AdminAuditLogStatePreview,
 } from "../features/control-plane-read/adminAuditLog";
+import {
+  initialControlPlaneReadDevLiveLoadState,
+  loadControlPlaneReadDevLiveCollections,
+  readControlPlaneReadDevLiveConfig,
+  type ControlPlaneReadDevLiveLoadState,
+} from "../features/control-plane-read/devLiveReadConsumer";
 import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
@@ -44,17 +52,91 @@ import {
   type WorkspaceRunHistoryStatePreview,
   type WorkspaceRunRecordRow,
 } from "../features/control-plane-read/workspaceRunHistory";
+import type {
+  ControlPlaneReadCollectionViewModel,
+  ControlPlaneReadRouteId,
+} from "../../../../contracts/typescript/control-plane-read-api";
 
 const shell = buildControlPlaneReadShellViewModel();
-const tenantOverview = buildAdminTenantOverviewViewModel();
-const adminAuditLog = buildAdminAuditLogViewModel();
-const workspaceApplications = buildWorkspaceApplicationsViewModel();
-const workspaceApiKeys = buildWorkspaceApiKeysViewModel();
-const workspaceUsageQuota = buildWorkspaceUsageQuotaViewModel();
-const workspaceWorkflowDefinitions = buildWorkspaceWorkflowDefinitionsViewModel();
-const workspaceRunHistory = buildWorkspaceRunHistoryViewModel();
+const devLiveConfig = readControlPlaneReadDevLiveConfig();
+
+type ControlPlaneReadCollectionsByRoute = Partial<
+  Record<ControlPlaneReadRouteId, ControlPlaneReadCollectionViewModel>
+>;
 
 export function App() {
+  const [devLiveState, setDevLiveState] = useState<ControlPlaneReadDevLiveLoadState>(() =>
+    initialControlPlaneReadDevLiveLoadState(devLiveConfig),
+  );
+
+  useEffect(() => {
+    if (devLiveConfig.mode !== "dev_live_http") {
+      return;
+    }
+    let cancelled = false;
+    setDevLiveState({
+      status: "loading",
+      mode: "dev_live_http",
+      message: "Loading fake-store-backed read routes over dev HTTP.",
+    });
+    loadControlPlaneReadDevLiveCollections(devLiveConfig)
+      .then((collections) => {
+        if (cancelled) {
+          return;
+        }
+        setDevLiveState({
+          status: "ready",
+          mode: "dev_live_http",
+          message: "Dev live read consumer loaded fake-store-backed HTTP envelopes.",
+          collections,
+        });
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        setDevLiveState({
+          status: "failed",
+          mode: "dev_live_http",
+          message: error instanceof Error ? error.message : "Dev live read consumer failed.",
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const liveCollections: ControlPlaneReadCollectionsByRoute =
+    devLiveState.status === "ready" ? devLiveState.collections : {};
+  const tenantOverview = useMemo(
+    () => buildAdminTenantOverviewViewModel(liveCollections["tenant-summary-route"]),
+    [liveCollections],
+  );
+  const adminAuditLog = useMemo(
+    () => buildAdminAuditLogViewModel(liveCollections["audit-summary-list-route"]),
+    [liveCollections],
+  );
+  const workspaceApplications = useMemo(
+    () => buildWorkspaceApplicationsViewModel(liveCollections["application-summary-list-route"]),
+    [liveCollections],
+  );
+  const workspaceApiKeys = useMemo(
+    () => buildWorkspaceApiKeysViewModel(liveCollections["api-key-summary-list-route"]),
+    [liveCollections],
+  );
+  const workspaceUsageQuota = useMemo(
+    () => buildWorkspaceUsageQuotaViewModel(liveCollections["quota-summary-route"]),
+    [liveCollections],
+  );
+  const workspaceWorkflowDefinitions = useMemo(
+    () => buildWorkspaceWorkflowDefinitionsViewModel(liveCollections["workflow-definition-summary-list-route"]),
+    [liveCollections],
+  );
+  const workspaceRunHistory = useMemo(
+    () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
+    [liveCollections],
+  );
+
   return (
     <main className="product-shell">
       <aside className="product-nav" aria-label="Product areas">
@@ -92,6 +174,7 @@ export function App() {
             <Fact label="Routes" value={String(shell.catalog.routes.length)} />
             <Fact label="Database" value={shell.catalog.databaseBacked ? "attached" : "detached"} />
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
+            <Fact label="Source" value={devLiveState.mode === "dev_live_http" ? devLiveState.status : "offline"} />
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
             <Fact label="Audit page" value={adminAuditLog.canRenderAuditLog ? "ready" : "blocked"} />
             <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
@@ -104,6 +187,8 @@ export function App() {
             <Fact label="Run page" value={workspaceRunHistory.canRenderRuns ? "ready" : "blocked"} />
           </div>
         </header>
+
+        <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
 
         <section
           className="surface-band tenant-overview"
@@ -986,6 +1071,34 @@ function Fact({ label, value }: { label: string; value: string }) {
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  );
+}
+
+function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLiveLoadState; baseUrl: string }) {
+  const tone = state.status === "failed" ? "bad" : state.status === "ready" ? "good" : "neutral";
+  return (
+    <section className="live-read-source" aria-label="Read data source">
+      <div>
+        <p className="eyebrow">Read Source</p>
+        <h3>{state.mode === "dev_live_http" ? "Dev live HTTP" : "Offline fixtures"}</h3>
+        <p>{state.message}</p>
+      </div>
+      <dl>
+        <div>
+          <dt>Base URL</dt>
+          <dd>{state.mode === "dev_live_http" ? baseUrl : "not used"}</dd>
+        </div>
+        <div>
+          <dt>Auth</dt>
+          <dd>{state.mode === "dev_live_http" ? "dev fake header" : "offline view model"}</dd>
+        </div>
+        <div>
+          <dt>Database</dt>
+          <dd>detached</dd>
+        </div>
+      </dl>
+      <StatusBadge tone={tone}>{state.status}</StatusBadge>
+    </section>
   );
 }
 

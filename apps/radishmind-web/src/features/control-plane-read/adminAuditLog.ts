@@ -58,7 +58,7 @@ export type AdminAuditLogViewModel = {
   nextCursor: string | null;
   forbiddenProjectionBlocked: boolean;
   canRenderAuditLog: boolean;
-  canRequestLiveBackend: false;
+  canRequestLiveBackend: boolean;
   canMutate: false;
   canDeleteAuditRecord: false;
   canEditAuditRecord: false;
@@ -66,12 +66,13 @@ export type AdminAuditLogViewModel = {
   canRevealSecrets: false;
 };
 
-export function buildAdminAuditLogViewModel(): AdminAuditLogViewModel {
+export function buildAdminAuditLogViewModel(
+  collectionOverride?: ControlPlaneReadCollectionViewModel,
+): AdminAuditLogViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["audit-summary-list-route"];
-  const collection = toControlPlaneReadCollectionViewModel(
-    "audit-summary-list-route",
-    buildAuditLogEnvelope(),
-  );
+  const collection =
+    collectionOverride ??
+    toControlPlaneReadCollectionViewModel("audit-summary-list-route", buildAuditLogEnvelope());
   const auditEvents = collection.items.map((item) => toAuditEventRow(item as AuditSummary));
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     items: [{ [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[5]]: "blocked" }],
@@ -96,7 +97,7 @@ export function buildAdminAuditLogViewModel(): AdminAuditLogViewModel {
       route.canMutate === false &&
       collection.canRenderItems &&
       !controlPlaneReadResponseHasForbiddenOutput(collection),
-    canRequestLiveBackend: false,
+    canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
     canDeleteAuditRecord: false,
     canEditAuditRecord: false,

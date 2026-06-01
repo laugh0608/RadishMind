@@ -178,11 +178,9 @@
     "toControlPlaneReadCollectionViewModel"
   ],
   "forbidden_source_literals": [
-    "fetch(",
     "XMLHttpRequest",
     "axios",
-    "createRoot(document.getElementById(\"console\"",
-    "VITE_RADISHMIND_PLATFORM_BASE_URL"
+    "createRoot(document.getElementById(\"console\""
   ],
   "forbidden_package_scripts": [
     "deploy",
@@ -248,7 +246,7 @@
   "implementation_stop_lines": [
     "do not modify apps/radishmind-console into formal user workspace",
     "do not modify apps/radishmind-console into production admin console",
-    "do not request live backend from apps/radishmind-web read pages",
+    "do not request live backend from apps/radishmind-web read pages unless control-plane-read-dev-live-consumer-v1 is explicitly enabled",
     "do not connect database schema migration query repository or durable store",
     "do not add Radish OIDC middleware token validation login or logout",
     "do not add API key issue rotate revoke quota enforcement workflow execution confirmation writeback replay or audit mutation controls"

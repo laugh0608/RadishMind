@@ -26,39 +26,41 @@ const (
 )
 
 type Config struct {
-	ListenAddr        string
-	ReadHeaderTimeout time.Duration
-	WriteTimeout      time.Duration
-	BridgeTimeout     time.Duration
-	PythonBinary      string
-	BridgeScript      string
-	Provider          string
-	ProviderProfile   string
-	Model             string
-	BaseURL           string
-	APIKey            string
-	Temperature       float64
-	ConfigFile        string
-	FieldSources      map[string]string
+	ListenAddr                     string
+	ReadHeaderTimeout              time.Duration
+	WriteTimeout                   time.Duration
+	BridgeTimeout                  time.Duration
+	ControlPlaneReadDevAuthEnabled bool
+	PythonBinary                   string
+	BridgeScript                   string
+	Provider                       string
+	ProviderProfile                string
+	Model                          string
+	BaseURL                        string
+	APIKey                         string
+	Temperature                    float64
+	ConfigFile                     string
+	FieldSources                   map[string]string
 }
 
 type ConfigSummary struct {
-	ListenAddr            string            `json:"listen_addr"`
-	Provider              string            `json:"provider"`
-	Profile               string            `json:"profile"`
-	Model                 string            `json:"model"`
-	ModelConfigured       bool              `json:"model_configured"`
-	BaseURLConfigured     bool              `json:"base_url_configured"`
-	CredentialState       string            `json:"credential_state"`
-	Timeouts              map[string]string `json:"timeouts"`
-	PythonBridge          PythonBridge      `json:"python_bridge"`
-	Temperature           float64           `json:"temperature"`
-	RequiredFields        []string          `json:"required_fields"`
-	MissingRequiredFields []string          `json:"missing_required_fields"`
-	SecretFields          []string          `json:"secret_fields"`
-	ConfigFile            ConfigFileSummary `json:"config_file"`
-	FieldSources          map[string]string `json:"field_sources"`
-	Sanitized             bool              `json:"sanitized"`
+	ListenAddr                     string            `json:"listen_addr"`
+	ControlPlaneReadDevAuthEnabled bool              `json:"control_plane_read_dev_auth_enabled"`
+	Provider                       string            `json:"provider"`
+	Profile                        string            `json:"profile"`
+	Model                          string            `json:"model"`
+	ModelConfigured                bool              `json:"model_configured"`
+	BaseURLConfigured              bool              `json:"base_url_configured"`
+	CredentialState                string            `json:"credential_state"`
+	Timeouts                       map[string]string `json:"timeouts"`
+	PythonBridge                   PythonBridge      `json:"python_bridge"`
+	Temperature                    float64           `json:"temperature"`
+	RequiredFields                 []string          `json:"required_fields"`
+	MissingRequiredFields          []string          `json:"missing_required_fields"`
+	SecretFields                   []string          `json:"secret_fields"`
+	ConfigFile                     ConfigFileSummary `json:"config_file"`
+	FieldSources                   map[string]string `json:"field_sources"`
+	Sanitized                      bool              `json:"sanitized"`
 }
 
 type PythonBridge struct {
@@ -122,19 +124,20 @@ func defaultConfig() Config {
 		APIKey:            "",
 		Temperature:       0,
 		FieldSources: map[string]string{
-			"listen_addr":         configSourceDefault,
-			"read_header_timeout": configSourceDefault,
-			"write_timeout":       configSourceDefault,
-			"bridge_timeout":      configSourceDefault,
-			"python_binary":       configSourceDefault,
-			"bridge_script":       configSourceDefault,
-			"provider":            configSourceDefault,
-			"profile":             configSourceDefault,
-			"model":               configSourceDefault,
-			"base_url":            configSourceDefault,
-			"credential":          configSourceDefault,
-			"temperature":         configSourceDefault,
-			"config_file":         configSourceDefault,
+			"listen_addr":                 configSourceDefault,
+			"read_header_timeout":         configSourceDefault,
+			"write_timeout":               configSourceDefault,
+			"bridge_timeout":              configSourceDefault,
+			"control_plane_read_dev_auth": configSourceDefault,
+			"python_binary":               configSourceDefault,
+			"bridge_script":               configSourceDefault,
+			"provider":                    configSourceDefault,
+			"profile":                     configSourceDefault,
+			"model":                       configSourceDefault,
+			"base_url":                    configSourceDefault,
+			"credential":                  configSourceDefault,
+			"temperature":                 configSourceDefault,
+			"config_file":                 configSourceDefault,
 		},
 	}
 }
@@ -258,6 +261,14 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.Temperature = parsed
 		cfg.FieldSources["temperature"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", value)
+		if err != nil {
+			return err
+		}
+		cfg.ControlPlaneReadDevAuthEnabled = parsed
+		cfg.FieldSources["control_plane_read_dev_auth"] = configSourceEnv
+	}
 	return nil
 }
 
@@ -274,13 +285,14 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
 
 	return ConfigSummary{
-		ListenAddr:        strings.TrimSpace(cfg.ListenAddr),
-		Provider:          provider,
-		Profile:           profile,
-		Model:             model,
-		ModelConfigured:   model != "",
-		BaseURLConfigured: baseURLConfigured,
-		CredentialState:   credentialState,
+		ListenAddr:                     strings.TrimSpace(cfg.ListenAddr),
+		ControlPlaneReadDevAuthEnabled: cfg.ControlPlaneReadDevAuthEnabled,
+		Provider:                       provider,
+		Profile:                        profile,
+		Model:                          model,
+		ModelConfigured:                model != "",
+		BaseURLConfigured:              baseURLConfigured,
+		CredentialState:                credentialState,
 		Timeouts: map[string]string{
 			"read_header": cfg.ReadHeaderTimeout.String(),
 			"write":       cfg.WriteTimeout.String(),
@@ -425,6 +437,17 @@ func parseFloatValue(key string, rawValue string) (float64, error) {
 		return 0, fmt.Errorf("%s must be a valid float: %w", key, err)
 	}
 	return parsed, nil
+}
+
+func parseBoolValue(key string, rawValue string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(rawValue)) {
+	case "1", "true", "yes", "on", "enabled":
+		return true, nil
+	case "0", "false", "no", "off", "disabled":
+		return false, nil
+	default:
+		return false, fmt.Errorf("%s must be a boolean flag", key)
+	}
 }
 
 func parseJSONFloatValue(key string, rawValue json.RawMessage) (float64, error) {

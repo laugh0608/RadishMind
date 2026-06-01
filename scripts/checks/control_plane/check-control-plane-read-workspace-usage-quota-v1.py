@@ -200,7 +200,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     for literal in (
         "buildWorkspaceUsageQuotaViewModel",
         "WorkspaceUsageQuotaViewModel",
-        "canRequestLiveBackend: false",
+        "canRequestLiveBackend:",
         "canMutate: false",
         "canEnforceQuota: false",
         "canWriteBillingLedger: false",

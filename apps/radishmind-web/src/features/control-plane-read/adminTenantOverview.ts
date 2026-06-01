@@ -40,13 +40,16 @@ export type AdminTenantOverviewViewModel = {
   requestId: string;
   forbiddenProjectionBlocked: boolean;
   canRenderTenant: boolean;
-  canRequestLiveBackend: false;
+  canRequestLiveBackend: boolean;
   canMutate: false;
 };
 
-export function buildAdminTenantOverviewViewModel(): AdminTenantOverviewViewModel {
+export function buildAdminTenantOverviewViewModel(
+  collectionOverride?: ControlPlaneReadCollectionViewModel,
+): AdminTenantOverviewViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["tenant-summary-route"];
-  const collection = toControlPlaneReadCollectionViewModel("tenant-summary-route", buildTenantSummaryEnvelope());
+  const collection =
+    collectionOverride ?? toControlPlaneReadCollectionViewModel("tenant-summary-route", buildTenantSummaryEnvelope());
   const tenant = collection.items[0] as TenantSummary | undefined;
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     items: [{ [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[1]]: "blocked" }],
@@ -70,7 +73,7 @@ export function buildAdminTenantOverviewViewModel(): AdminTenantOverviewViewMode
       route.canMutate === false &&
       collection.canRenderItems &&
       !controlPlaneReadResponseHasForbiddenOutput(collection),
-    canRequestLiveBackend: false,
+    canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
   };
 }

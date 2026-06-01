@@ -164,6 +164,38 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		assertControlPlaneReadFailure(t, envelope, "identity_context_missing")
 	})
 
+	t.Run("dev fake auth header is ignored unless explicitly enabled", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/control-plane/tenants/tenant_demo/summary", nil)
+		setControlPlaneReadDevAuthHeaders(req)
+		req.Header.Set("X-Request-Id", "req-dev-auth-disabled")
+		rec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(rec, req)
+
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		assertControlPlaneReadFailure(t, envelope, "identity_context_missing")
+	})
+
+	t.Run("dev fake auth header succeeds only when explicitly enabled", func(t *testing.T) {
+		devAuthServer := NewServer(config.Config{ControlPlaneReadDevAuthEnabled: true}, Options{BuildVersion: "test"})
+		devAuthServer.controlPlaneReadStore = newControlPlaneReadFakeStore()
+		req := httptest.NewRequest(http.MethodGet, "/v1/control-plane/tenants/tenant_demo/summary", nil)
+		setControlPlaneReadDevAuthHeaders(req)
+		req.Header.Set("X-Request-Id", "req-dev-auth-enabled")
+		rec := httptest.NewRecorder()
+
+		devAuthServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		if envelope.FailureCode != nil || len(envelope.Items) != 1 {
+			t.Fatalf("unexpected dev auth response: %#v", envelope)
+		}
+		if envelope.RequestID != "req-dev-auth-enabled" || envelope.TenantRef != "tenant_demo" {
+			t.Fatalf("unexpected dev auth envelope identity: %#v", envelope)
+		}
+		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
+	})
+
 	t.Run("tenant binding mismatch fails closed", func(t *testing.T) {
 		req := newControlPlaneReadRequest(
 			http.MethodGet,
@@ -292,6 +324,17 @@ func controlPlaneReadTestAuth(tenantRef string, scopes ...string) controlPlaneRe
 		ScopeGrants:     scopes,
 		AuditContext:    "audit_test_context",
 	}
+}
+
+func setControlPlaneReadDevAuthHeaders(req *http.Request) {
+	req.Header.Set(controlPlaneReadDevIdentityHeader, "dev-live-read-consumer")
+	req.Header.Set(controlPlaneReadDevTenantHeader, "tenant_demo")
+	req.Header.Set(controlPlaneReadDevSubjectHeader, "subject_demo_user")
+	req.Header.Set(
+		controlPlaneReadDevScopesHeader,
+		"tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read",
+	)
+	req.Header.Set(controlPlaneReadDevAuditHeader, "audit_dev_live_read_consumer")
 }
 
 func stringPointerForTest(value string) *string {

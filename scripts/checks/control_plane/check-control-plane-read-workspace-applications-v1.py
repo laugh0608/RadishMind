@@ -179,7 +179,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     for literal in (
         "buildWorkspaceApplicationsViewModel",
         "WorkspaceApplicationsViewModel",
-        "canRequestLiveBackend: false",
+        "canRequestLiveBackend:",
         "canMutate: false",
         "application-summary-list-route",
         "workspace-applications",

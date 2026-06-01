@@ -57,13 +57,17 @@ export type WorkspaceApiKeysViewModel = {
   nextCursor: string | null;
   forbiddenProjectionBlocked: boolean;
   canRenderApiKeys: boolean;
-  canRequestLiveBackend: false;
+  canRequestLiveBackend: boolean;
   canMutate: false;
 };
 
-export function buildWorkspaceApiKeysViewModel(): WorkspaceApiKeysViewModel {
+export function buildWorkspaceApiKeysViewModel(
+  collectionOverride?: ControlPlaneReadCollectionViewModel,
+): WorkspaceApiKeysViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["api-key-summary-list-route"];
-  const collection = toControlPlaneReadCollectionViewModel("api-key-summary-list-route", buildApiKeysEnvelope());
+  const collection =
+    collectionOverride ??
+    toControlPlaneReadCollectionViewModel("api-key-summary-list-route", buildApiKeysEnvelope());
   const apiKeys = collection.items.map((item) => toApiKeyRow(item as APIKeySummary));
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     items: [
@@ -93,7 +97,7 @@ export function buildWorkspaceApiKeysViewModel(): WorkspaceApiKeysViewModel {
       route.canMutate === false &&
       collection.canRenderItems &&
       !controlPlaneReadResponseHasForbiddenOutput(collection),
-    canRequestLiveBackend: false,
+    canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
   };
 }

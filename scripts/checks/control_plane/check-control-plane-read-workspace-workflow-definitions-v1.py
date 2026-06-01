@@ -208,7 +208,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     for literal in (
         "buildWorkspaceWorkflowDefinitionsViewModel",
         "WorkspaceWorkflowDefinitionsViewModel",
-        "canRequestLiveBackend: false",
+        "canRequestLiveBackend:",
         "canMutate: false",
         "canCreateWorkflow: false",
         "canEditWorkflow: false",

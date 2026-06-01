@@ -59,7 +59,7 @@ export type WorkspaceRunHistoryViewModel = {
   nextCursor: string | null;
   forbiddenProjectionBlocked: boolean;
   canRenderRuns: boolean;
-  canRequestLiveBackend: false;
+  canRequestLiveBackend: boolean;
   canMutate: false;
   canStartRun: false;
   canCancelRun: false;
@@ -69,12 +69,13 @@ export type WorkspaceRunHistoryViewModel = {
   canWriteBusinessTruth: false;
 };
 
-export function buildWorkspaceRunHistoryViewModel(): WorkspaceRunHistoryViewModel {
+export function buildWorkspaceRunHistoryViewModel(
+  collectionOverride?: ControlPlaneReadCollectionViewModel,
+): WorkspaceRunHistoryViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["run-record-summary-list-route"];
-  const collection = toControlPlaneReadCollectionViewModel(
-    "run-record-summary-list-route",
-    buildRunHistoryEnvelope(),
-  );
+  const collection =
+    collectionOverride ??
+    toControlPlaneReadCollectionViewModel("run-record-summary-list-route", buildRunHistoryEnvelope());
   const runs = collection.items.map((item) => toRunRecordRow(item as RunRecordSummary));
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     items: [{ [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[8]]: "blocked" }],
@@ -99,7 +100,7 @@ export function buildWorkspaceRunHistoryViewModel(): WorkspaceRunHistoryViewMode
       route.canMutate === false &&
       collection.canRenderItems &&
       !controlPlaneReadResponseHasForbiddenOutput(collection),
-    canRequestLiveBackend: false,
+    canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
     canStartRun: false,
     canCancelRun: false,

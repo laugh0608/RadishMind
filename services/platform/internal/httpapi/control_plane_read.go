@@ -17,6 +17,14 @@ const (
 	controlPlaneAuditSummaryListRoute              = "/v1/control-plane/audit"
 )
 
+const (
+	controlPlaneReadDevIdentityHeader = "X-RadishMind-Dev-Read-Identity"
+	controlPlaneReadDevTenantHeader   = "X-RadishMind-Dev-Read-Tenant"
+	controlPlaneReadDevSubjectHeader  = "X-RadishMind-Dev-Read-Subject"
+	controlPlaneReadDevScopesHeader   = "X-RadishMind-Dev-Read-Scopes"
+	controlPlaneReadDevAuditHeader    = "X-RadishMind-Dev-Read-Audit"
+)
+
 type controlPlaneReadAuthContext struct {
 	IdentityContext string
 	TenantBinding   string
@@ -46,6 +54,45 @@ type controlPlaneReadCursorListSpec struct {
 
 func withControlPlaneReadFakeAuthContext(ctx context.Context, auth controlPlaneReadAuthContext) context.Context {
 	return context.WithValue(ctx, controlPlaneReadAuthContextKey{}, auth)
+}
+
+func withControlPlaneReadDevAuth(next http.Handler, enabled bool) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if enabled {
+			if auth, ok := controlPlaneReadDevAuthFromHeaders(request); ok {
+				request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+			}
+		}
+		next.ServeHTTP(writer, request)
+	})
+}
+
+func controlPlaneReadDevAuthFromHeaders(request *http.Request) (controlPlaneReadAuthContext, bool) {
+	identity := strings.TrimSpace(request.Header.Get(controlPlaneReadDevIdentityHeader))
+	tenantRef := strings.TrimSpace(request.Header.Get(controlPlaneReadDevTenantHeader))
+	subjectRef := strings.TrimSpace(request.Header.Get(controlPlaneReadDevSubjectHeader))
+	scopeHeader := strings.TrimSpace(request.Header.Get(controlPlaneReadDevScopesHeader))
+	if identity == "" || tenantRef == "" || subjectRef == "" || scopeHeader == "" {
+		return controlPlaneReadAuthContext{}, false
+	}
+	return controlPlaneReadAuthContext{
+		IdentityContext: identity,
+		TenantBinding:   tenantRef,
+		SubjectBinding:  subjectRef,
+		ScopeGrants:     splitControlPlaneReadDevScopes(scopeHeader),
+		AuditContext:    strings.TrimSpace(request.Header.Get(controlPlaneReadDevAuditHeader)),
+	}, true
+}
+
+func splitControlPlaneReadDevScopes(rawScopes string) []string {
+	scopes := make([]string, 0)
+	for _, scope := range strings.Split(rawScopes, ",") {
+		normalized := strings.TrimSpace(scope)
+		if normalized != "" {
+			scopes = append(scopes, normalized)
+		}
+	}
+	return scopes
 }
 
 func (s *Server) handleControlPlaneTenantSummary(writer http.ResponseWriter, request *http.Request) {

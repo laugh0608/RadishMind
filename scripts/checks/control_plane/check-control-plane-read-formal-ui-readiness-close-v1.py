@@ -291,7 +291,6 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
             expected["read_model"],
             expected["required_scope"],
             f"CONTROL_PLANE_READ_ROUTES.{expected['route_key']}",
-            "canRequestLiveBackend: false",
             "canMutate: false",
             "request_id",
             "audit_ref",
@@ -299,6 +298,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
             "controlPlaneReadResponseHasForbiddenOutput",
         ):
             require(literal in page_source, f"{page_id} missing source literal: {literal}")
+        require("canRequestLiveBackend:" in page_source, f"{page_id} missing live backend boundary flag")
         for literal in (expected["builder"], page_id, expected["summary_binding"]):
             require(literal in app_source, f"App missing rendered binding for {page_id}: {literal}")
 

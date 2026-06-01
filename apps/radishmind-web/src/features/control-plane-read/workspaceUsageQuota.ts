@@ -55,15 +55,18 @@ export type WorkspaceUsageQuotaViewModel = {
   overQuotaFailureCode: string;
   forbiddenProjectionBlocked: boolean;
   canRenderQuota: boolean;
-  canRequestLiveBackend: false;
+  canRequestLiveBackend: boolean;
   canMutate: false;
   canEnforceQuota: false;
   canWriteBillingLedger: false;
 };
 
-export function buildWorkspaceUsageQuotaViewModel(): WorkspaceUsageQuotaViewModel {
+export function buildWorkspaceUsageQuotaViewModel(
+  collectionOverride?: ControlPlaneReadCollectionViewModel,
+): WorkspaceUsageQuotaViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["quota-summary-route"];
-  const collection = toControlPlaneReadCollectionViewModel("quota-summary-route", buildQuotaEnvelope());
+  const collection =
+    collectionOverride ?? toControlPlaneReadCollectionViewModel("quota-summary-route", buildQuotaEnvelope());
   const quota = collection.items[0] as QuotaSummary | undefined;
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     items: [{ [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[8]]: "blocked" }],
@@ -89,7 +92,7 @@ export function buildWorkspaceUsageQuotaViewModel(): WorkspaceUsageQuotaViewMode
       route.canMutate === false &&
       collection.canRenderItems &&
       !controlPlaneReadResponseHasForbiddenOutput(collection),
-    canRequestLiveBackend: false,
+    canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
     canEnforceQuota: false,
     canWriteBillingLedger: false,
