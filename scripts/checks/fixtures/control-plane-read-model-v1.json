@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_model_v1",
+  "slice": {
+    "id": "control-plane-read-model-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "control_plane_api_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "user_workspace_ui_ready",
+      "production_admin_console_ready",
+      "radish_oidc_client_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "durable_run_store_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "product-surface-v1-boundary",
+    "control-plane-data-boundary",
+    "radish-oidc-client-preconditions",
+    "gateway-api-key-quota-readiness",
+    "workflow-definition-run-record-boundary"
+  ],
+  "read_models": [
+    {
+      "id": "tenant-summary",
+      "status": "defined_not_implemented",
+      "owner_surface": "Admin Control Plane",
+      "visible_to": [
+        "admin_control_plane",
+        "authorized_user_workspace"
+      ],
+      "required_fields": [
+        "tenant_ref",
+        "tenant_display_name",
+        "tenant_state",
+        "plan_ref",
+        "quota_summary_ref",
+        "deployment_status_ref",
+        "audit_summary_ref"
+      ],
+      "forbidden_fields": [
+        "raw_identity_claims",
+        "radish_access_token",
+        "database_connection_string"
+      ],
+      "boundary": "tenant summary is a future read model only; Radish remains identity truth and this slice does not create tenant storage"
+    },
+    {
+      "id": "application-summary",
+      "status": "defined_not_implemented",
+      "owner_surface": "User Workspace",
+      "visible_to": [
+        "authorized_user_workspace",
+        "admin_control_plane"
+      ],
+      "required_fields": [
+        "application_ref",
+        "tenant_ref",
+        "application_kind",
+        "display_name",
+        "owner_subject_ref",
+        "latest_workflow_definition_ref",
+        "last_run_status",
+        "updated_at"
+      ],
+      "forbidden_fields": [
+        "raw_prompt_secret",
+        "raw_tool_payload",
+        "business_writeback_payload"
+      ],
+      "boundary": "application summary can describe future app metadata but does not implement workspace UI, builder or write APIs"
+    },
+    {
+      "id": "api-key-summary",
+      "status": "defined_not_implemented",
+      "owner_surface": "Model Gateway / API Distribution",
+      "visible_to": [
+        "authorized_user_workspace",
+        "admin_control_plane"
+      ],
+      "required_fields": [
+        "api_key_id",
+        "tenant_ref",
+        "owner_subject_ref",
+        "scopes",
+        "state",
+        "created_at",
+        "expires_at",
+        "last_used_at"
+      ],
+      "forbidden_fields": [
+        "api_key_value",
+        "api_key_hash",
+        "authorization_header",
+        "bearer_token"
+      ],
+      "boundary": "API key summary may expose identifiers and state only; this slice does not generate, store, hash or validate keys"
+    },
+    {
+      "id": "quota-summary",
+      "status": "defined_not_implemented",
+      "owner_surface": "Admin Control Plane",
+      "visible_to": [
+        "authorized_user_workspace",
+        "admin_control_plane"
+      ],
+      "required_fields": [
+        "quota_id",
+        "tenant_ref",
+        "period",
+        "request_limit",
+        "token_limit",
+        "cost_limit",
+        "usage_snapshot",
+        "over_quota_failure_code"
+      ],
+      "forbidden_fields": [
+        "billing_payment_method",
+        "raw_provider_invoice",
+        "secret_price_override"
+      ],
+      "boundary": "quota summary is a future policy and usage view; this slice does not enforce quota or calculate bills"
+    },
+    {
+      "id": "workflow-definition-summary",
+      "status": "defined_not_implemented",
+      "owner_surface": "Workflow / Agent Runtime",
+      "visible_to": [
+        "authorized_user_workspace",
+        "admin_control_plane"
+      ],
+      "required_fields": [
+        "workflow_definition_id",
+        "tenant_ref",
+        "application_ref",
+        "version",
+        "definition_status",
+        "node_count",
+        "risk_level",
+        "requires_confirmation_capable",
+        "updated_at"
+      ],
+      "forbidden_fields": [
+        "raw_secret_value",
+        "raw_tool_payload",
+        "full_prompt_dump_with_secret"
+      ],
+      "boundary": "workflow definition summary can expose graph metadata only; this slice does not implement builder, executor or scheduler"
+    },
+    {
+      "id": "run-record-summary",
+      "status": "defined_not_implemented",
+      "owner_surface": "Workflow / Agent Runtime",
+      "visible_to": [
+        "authorized_user_workspace",
+        "admin_control_plane"
+      ],
+      "required_fields": [
+        "run_id",
+        "tenant_ref",
+        "workflow_definition_id",
+        "application_ref",
+        "status",
+        "failure_code",
+        "cost_summary",
+        "trace_id",
+        "started_at",
+        "completed_at"
+      ],
+      "forbidden_fields": [
+        "raw_input_payload",
+        "raw_output_payload",
+        "unsanitized_tool_payload",
+        "business_writeback_payload"
+      ],
+      "boundary": "run record summary is future audit-facing metadata; this slice does not create durable run storage or result readers"
+    },
+    {
+      "id": "audit-summary",
+      "status": "defined_not_implemented",
+      "owner_surface": "Admin Control Plane",
+      "visible_to": [
+        "admin_control_plane"
+      ],
+      "required_fields": [
+        "audit_ref",
+        "tenant_ref",
+        "actor_subject_ref",
+        "event_kind",
+        "resource_ref",
+        "decision",
+        "failure_code",
+        "trace_id",
+        "recorded_at"
+      ],
+      "forbidden_fields": [
+        "raw_secret_value",
+        "raw_api_key",
+        "cookie_value",
+        "authorization_header",
+        "unsanitized_request_body"
+      ],
+      "boundary": "audit summary is sanitized evidence only; this slice does not create a durable audit store"
+    }
+  ],
+  "access_policy": {
+    "default_scope": "tenant_scoped",
+    "fail_closed_when_missing": [
+      "identity_context",
+      "tenant_binding",
+      "subject_binding",
+      "scope_grant"
+    ],
+    "required_scopes": [
+      "tenant:read",
+      "applications:read",
+      "api_keys:read",
+      "usage:read",
+      "runs:read",
+      "audit:read"
+    ],
+    "forbidden_access": [
+      "cross_tenant_read",
+      "anonymous_read",
+      "ops_console_as_user_workspace",
+      "ops_console_as_admin_console",
+      "read_model_as_write_api"
+    ]
+  },
+  "sanitization_policy": {
+    "allowed_outputs": [
+      "resource_id",
+      "tenant_ref",
+      "subject_ref",
+      "state",
+      "summary",
+      "count",
+      "failure_code",
+      "cost_summary",
+      "trace_id",
+      "audit_ref",
+      "redacted_secret_ref"
+    ],
+    "forbidden_outputs": [
+      "raw_secret_value",
+      "api_key_value",
+      "api_key_hash",
+      "authorization_header",
+      "bearer_token",
+      "cookie_value",
+      "raw_request_body_dump",
+      "raw_tool_payload",
+      "business_writeback_payload",
+      "full_prompt_dump_with_secret"
+    ]
+  },
+  "forbidden_current_scope": [
+    "control plane API route",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "Radish OIDC integration",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console",
+    "user workspace UI"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-model-v1-plan.md",
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "scripts/checks/fixtures/product-surface-v1-boundary.json",
+    "scripts/checks/fixtures/control-plane-data-boundary.json",
+    "scripts/checks/fixtures/radish-oidc-client-preconditions.json",
+    "scripts/checks/fixtures/gateway-api-key-quota-readiness.json",
+    "scripts/checks/fixtures/workflow-definition-run-record-boundary.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-model-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-model-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

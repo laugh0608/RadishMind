@@ -24,6 +24,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Bootstrap development environment
+        run: bash ./scripts/bootstrap-dev.sh
+
       - name: Check repository hygiene
         run: bash ./scripts/check-text-files.sh
 
@@ -34,6 +37,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Bootstrap development environment
+        run: bash ./scripts/bootstrap-dev.sh
 
       - name: Check planning baseline
         run: bash ./scripts/check-repo.sh --skip-text-files

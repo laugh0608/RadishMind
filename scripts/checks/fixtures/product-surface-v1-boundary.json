@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "kind": "product_surface_v1_boundary",
+  "slice": {
+    "id": "product-surface-v1-boundary",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "formal_user_workspace_ready",
+      "production_admin_console_ready",
+      "radish_oidc_client_ready",
+      "database_schema_ready",
+      "api_key_lifecycle_ready",
+      "quota_billing_ready",
+      "workflow_executor_ready",
+      "tool_executor_ready",
+      "confirmation_writeback_replay_ready",
+      "production_ready"
+    ]
+  },
+  "product_surfaces": [
+    {
+      "id": "user_workspace",
+      "label": "User Workspace",
+      "v1_status": "boundary_defined_not_implemented",
+      "resources": [
+        "ai_application",
+        "prompt_application",
+        "workflow_application",
+        "agent_or_copilot_application",
+        "rag_or_knowledge_qa_application",
+        "user_api_key",
+        "usage_summary",
+        "run_record",
+        "cost_summary"
+      ],
+      "read_model": [
+        "authorized tenant resources",
+        "authorized project resources",
+        "owned or shared application metadata",
+        "run summaries and cost summaries only"
+      ],
+      "write_boundary": [
+        "create or update application metadata only through future controlled APIs",
+        "application execution must enter through controlled runtime or gateway",
+        "no direct write to upstream business truth source"
+      ],
+      "blocked_capabilities": [
+        "formal user workspace UI",
+        "API key lifecycle implementation",
+        "durable run record store",
+        "user billing implementation"
+      ],
+      "stop_lines": [
+        "local ops console must not be renamed into user workspace",
+        "user workspace does not own identity truth"
+      ]
+    },
+    {
+      "id": "admin_control_plane",
+      "label": "Admin Control Plane",
+      "v1_status": "boundary_defined_not_implemented",
+      "resources": [
+        "tenant",
+        "user",
+        "role",
+        "permission",
+        "provider_profile",
+        "model_route",
+        "quota",
+        "price",
+        "secret_backend",
+        "audit_record",
+        "deployment_status"
+      ],
+      "read_model": [
+        "platform configuration summary",
+        "provider and model routing inventory",
+        "sanitized secret reference status",
+        "audit and deployment status summaries"
+      ],
+      "write_boundary": [
+        "future admin APIs may configure platform policy",
+        "admin operations must be audited",
+        "admin operations must not bypass runtime safety or write upstream truth directly"
+      ],
+      "blocked_capabilities": [
+        "Radish OIDC client",
+        "tenant database schema",
+        "quota and billing API",
+        "production admin console"
+      ],
+      "stop_lines": [
+        "do not self-host a second identity truth source",
+        "do not introduce .NET as default backend language",
+        "local ops console is not production admin console"
+      ]
+    },
+    {
+      "id": "model_gateway_api_distribution",
+      "label": "Model Gateway / API Distribution",
+      "v1_status": "boundary_defined_not_implemented",
+      "resources": [
+        "api_key",
+        "tenant_binding",
+        "quota_policy",
+        "rate_limit_policy",
+        "cost_ledger",
+        "trace_record",
+        "provider_profile",
+        "secret_ref",
+        "model_route"
+      ],
+      "read_model": [
+        "northbound API compatibility surface",
+        "provider profile inventory",
+        "selection metadata",
+        "sanitized credential state",
+        "request trace and cost summary"
+      ],
+      "write_boundary": [
+        "API distribution policy must be configured through future control plane APIs",
+        "secret values may only enter through future secret_ref resolver boundary",
+        "retry and fallback must be explicit and audited"
+      ],
+      "blocked_capabilities": [
+        "real API key issuance",
+        "quota enforcement",
+        "billing ledger implementation",
+        "automatic retry or implicit fallback",
+        "production secret backend"
+      ],
+      "stop_lines": [
+        "canonical protocol remains internal truth",
+        "provider health is not production readiness",
+        "do not commit secret values"
+      ]
+    },
+    {
+      "id": "workflow_agent_runtime",
+      "label": "Workflow / Agent Runtime",
+      "v1_status": "boundary_defined_not_implemented",
+      "resources": [
+        "workflow_definition",
+        "prompt_node",
+        "llm_node",
+        "http_tool_node",
+        "rag_retrieval_node",
+        "condition_node",
+        "output_node",
+        "run_record",
+        "tool_audit",
+        "result_materialization",
+        "confirmation_decision"
+      ],
+      "read_model": [
+        "workflow definition metadata",
+        "run trace summary",
+        "input and output summaries",
+        "error classification",
+        "risk boundary",
+        "audit references"
+      ],
+      "write_boundary": [
+        "future workflow runs must emit trace and audit metadata",
+        "high-risk actions require confirmation before writeback",
+        "workflow definition, run record, tool audit and result materialization must stay separated"
+      ],
+      "blocked_capabilities": [
+        "workflow builder",
+        "workflow executor",
+        "tool executor",
+        "durable result store",
+        "confirmation flow wiring",
+        "writeback",
+        "replay"
+      ],
+      "stop_lines": [
+        "no unrestricted tool calling",
+        "no direct write to upstream business truth source",
+        "no replay executor before negative gates are satisfied"
+      ]
+    }
+  ],
+  "shared_stop_lines": [
+    "do not turn apps/radishmind-console into formal user workspace or production admin console",
+    "do not merge Control Plane, Gateway and Workflow Executor into one implicit monolith",
+    "do not create a second identity or permission truth source that conflicts with Radish",
+    "do not use service split as a reason to introduce a new default backend language",
+    "do not claim production ready from local smoke, provider health or Docker static boundary",
+    "do not allow model, workflow or tool output to write upstream business truth directly"
+  ],
+  "required_next_slices": [
+    "control-plane-data-boundary",
+    "radish-oidc-client-preconditions",
+    "gateway-api-key-quota-readiness",
+    "workflow-definition-run-record-boundary"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-product-surface-v1-boundary.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

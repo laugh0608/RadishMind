@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "kind": "provider_selection_policy_v1",
+  "decision": {
+    "id": "provider-selection-policy-v1",
+    "track": "Provider Runtime & Health v1",
+    "status": "satisfied",
+    "source_of_truth": [
+      "services/platform/internal/httpapi/northbound.go",
+      "services/platform/internal/httpapi/models.go",
+      "services/runtime/inference_provider.py",
+      "services/runtime/provider_registry.py"
+    ],
+    "does_not_claim": [
+      "implicit_provider_fallback_ready",
+      "retry_policy_ready",
+      "live_provider_timeout_probe_ready",
+      "production_readiness",
+      "tool_executor_ready",
+      "confirmation_writeback_replay_ready"
+    ]
+  },
+  "positive_selection_cases": [
+    {
+      "id": "profile-model-inventory",
+      "requested_model": "profile:anyrouter",
+      "expected_provider": "openai-compatible",
+      "expected_provider_profile": "anyrouter",
+      "expected_model": "profile:anyrouter",
+      "expected_upstream_model": "deepseek-chat",
+      "expected_source": "requested_profile_model",
+      "expected_inventory_kind": "provider_profile",
+      "expected_credential_state": "configured"
+    },
+    {
+      "id": "provider-alias-active-profile",
+      "requested_model": "provider:huggingface",
+      "expected_provider": "huggingface",
+      "expected_provider_profile": "hf-chat",
+      "expected_model": "provider:huggingface:profile:hf-chat",
+      "expected_upstream_model": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+      "expected_source": "requested_provider_model+inventory",
+      "expected_inventory_kind": "provider_profile",
+      "expected_credential_state": "configured"
+    }
+  ],
+  "negative_selection_cases": [
+    {
+      "id": "unknown-concrete-model-runtime-override",
+      "requested_model": "unlisted-model",
+      "classification": "runtime_override_not_inventory_match",
+      "expected_provider": "mock",
+      "expected_provider_profile": "default",
+      "expected_model": "unlisted-model",
+      "expected_upstream_model": "unlisted-model",
+      "expected_source": "requested_concrete_model",
+      "expected_inventory_kind": "runtime_override",
+      "fallback_allowed": false,
+      "default_fast_baseline": true
+    },
+    {
+      "id": "unknown-explicit-profile-no-fallback",
+      "requested_provider": "huggingface",
+      "requested_provider_profile": "missing-profile",
+      "classification": "unknown_profile_no_fallback",
+      "expected_provider": "huggingface",
+      "expected_provider_profile": "missing-profile",
+      "expected_model": "provider:huggingface:profile:missing-profile",
+      "expected_source": "radishmind.provider_profile",
+      "expected_inventory_kind": "runtime_override",
+      "fallback_allowed": false,
+      "default_fast_baseline": true
+    },
+    {
+      "id": "model-detail-unknown",
+      "route": "GET /v1/models/{id}",
+      "requested_model": "does-not-exist",
+      "expected_error_code": "MODEL_NOT_FOUND",
+      "fallback_allowed": false,
+      "default_fast_baseline": true
+    },
+    {
+      "id": "credential-missing",
+      "classification": "config_blocked_credential_missing",
+      "source_fixture": "provider-health-smoke-v1.json",
+      "fallback_allowed": false,
+      "default_fast_baseline": true
+    },
+    {
+      "id": "unsupported-schema-tool-capability",
+      "classification": "unsupported_capability",
+      "unsupported_capabilities": [
+        "json_schema_output",
+        "tool_calling",
+        "image_input",
+        "image_output"
+      ],
+      "fallback_allowed": false,
+      "default_fast_baseline": true
+    },
+    {
+      "id": "timeout",
+      "classification": "provider_timeout",
+      "source_policy": "timeout is surfaced by provider call boundary; no automatic retry/fallback in v1",
+      "fallback_allowed": false,
+      "default_fast_baseline": false
+    }
+  ],
+  "fallback_policy": {
+    "implicit_fallback": "forbidden",
+    "allowed_only_when": "future explicit provider-selection-policy revision defines eligible provider chain and audit record",
+    "current_profile_chain_use": "discovery_only_not_auto_retry",
+    "current_retry_policy": "caller-managed"
+  },
+  "execution_policy": {
+    "default_fast_baseline": "offline_policy_and_go_unit_tests",
+    "network_access": "forbidden_by_default",
+    "credential_required": false,
+    "model_download": "forbidden",
+    "optional_live_health": "out_of_scope"
+  },
+  "required_consumers": [
+    "services/platform/internal/httpapi/server_test.go",
+    "scripts/check-provider-selection-policy.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-architecture.md",
+    "docs/task-cards/provider-runtime-health-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

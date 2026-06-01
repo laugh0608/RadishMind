@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_dev_live_consumer_v1",
+  "slice": {
+    "id": "control-plane-read-dev-live-consumer-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "dev_live_consumer_implemented",
+    "does_not_claim": [
+      "production_admin_console_ready",
+      "formal_user_workspace_complete",
+      "production_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_migration_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "rate_limit_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-fake-store-handler-implementation-v1",
+    "control-plane-read-consumer-contract-v1",
+    "control-plane-read-formal-ui-readiness-close-v1"
+  ],
+  "consumer_boundary": {
+    "app_root": "apps/radishmind-web/",
+    "default_source": "offline_fixture",
+    "optional_source": "dev_live_http",
+    "live_source_env": "VITE_RADISHMIND_READ_SOURCE=dev-live-http",
+    "live_base_url_env": "VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL",
+    "backend_dev_auth_env": "RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1",
+    "backend_identity_context": "test-only fake auth header",
+    "backend_store": "fixture-backed fake store",
+    "production_api_consumer": false,
+    "database_backed": false,
+    "radish_oidc_backed": false
+  },
+  "required_routes": [
+    "tenant-summary-route",
+    "application-summary-list-route",
+    "api-key-summary-list-route",
+    "quota-summary-route",
+    "workflow-definition-summary-list-route",
+    "run-record-summary-list-route",
+    "audit-summary-list-route"
+  ],
+  "required_dev_headers": [
+    "X-RadishMind-Dev-Read-Identity",
+    "X-RadishMind-Dev-Read-Tenant",
+    "X-RadishMind-Dev-Read-Subject",
+    "X-RadishMind-Dev-Read-Scopes",
+    "X-RadishMind-Dev-Read-Audit"
+  ],
+  "required_files": [
+    "apps/radishmind-web/src/features/control-plane-read/devLiveReadConsumer.ts",
+    "apps/radishmind-web/src/app/App.tsx",
+    "contracts/typescript/control-plane-read-api.ts",
+    "services/platform/internal/config/config.go",
+    "services/platform/internal/httpapi/control_plane_read.go",
+    "services/platform/internal/httpapi/server.go",
+    "services/platform/internal/httpapi/control_plane_read_test.go"
+  ],
+  "required_source_literals": [
+    "readControlPlaneReadDevLiveConfig",
+    "loadControlPlaneReadDevLiveCollections",
+    "initialControlPlaneReadDevLiveLoadState",
+    "VITE_RADISHMIND_READ_SOURCE",
+    "VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL",
+    "dev-live-http",
+    "fetch(",
+    "toControlPlaneReadCollectionViewModel(routeId, envelope, { source: \"dev_live_http\" })",
+    "ControlPlaneReadConsumerSource",
+    "devLiveHttpEnabled",
+    "productionApiConsumer: false",
+    "ControlPlaneReadDevAuthEnabled",
+    "RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH",
+    "withControlPlaneReadDevAuth",
+    "controlPlaneReadDevAuthFromHeaders"
+  ],
+  "required_test_literals": [
+    "dev fake auth header is ignored unless explicitly enabled",
+    "dev fake auth header succeeds only when explicitly enabled",
+    "allows web dev live read preflight headers"
+  ],
+  "forbidden_source_literals": [
+    "CREATE TABLE",
+    "database/sql",
+    "oidc",
+    "oauth",
+    "issue_api_key",
+    "rotate_api_key",
+    "revoke_api_key",
+    "enforce_quota",
+    "billing_ledger",
+    "cost_ledger",
+    "workflow_executor",
+    "confirmation_decision_ref",
+    "writeback_payload",
+    "replay_run"
+  ],
+  "testing_strategy": [
+    {
+      "id": "dev_live_consumer_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-dev-live-consumer-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "consumer_smoke",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-dev-live-consumer-v1",
+      "dev_live_http"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-dev-live-consumer-v1",
+      "dev-only live read consumer"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-dev-live-consumer-v1",
+      "dev-only live read consumer"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-dev-live-consumer-v1",
+      "dev-only live read consumer"
+    ],
+    "docs/task-cards/control-plane-read-dev-live-consumer-v1-plan.md": [
+      "control-plane-read-dev-live-consumer-v1",
+      "dev_live_http"
+    ],
+    "apps/radishmind-web/README.md": [
+      "control-plane-read-dev-live-consumer-v1",
+      "VITE_RADISHMIND_READ_SOURCE=dev-live-http"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-dev-live-consumer-v1.py",
+      "control-plane-read-dev-live-consumer-v1.json"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-dev-live-consumer-v1",
+      "dev_live_consumer_implemented"
+    ]
+  }
+}

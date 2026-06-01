@@ -1,0 +1,351 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_formal_ui_boundary_v1",
+  "slice": {
+    "id": "control-plane-read-formal-ui-boundary-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "formal_ui_boundary_defined",
+    "does_not_claim": [
+      "formal_user_workspace_ui_ready",
+      "production_admin_console_ready",
+      "react_ui_implementation_ready",
+      "real_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "product-surface-v1-boundary",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-response-fixtures-v1",
+    "control-plane-read-negative-contract-v1",
+    "control-plane-read-fake-store-handler-implementation-v1",
+    "control-plane-read-auth-db-preconditions-v1",
+    "control-plane-read-consumer-contract-v1"
+  ],
+  "ui_contract_source": {
+    "typescript_contract": "contracts/typescript/control-plane-read-api.ts",
+    "consumer_smoke": "scripts/run-control-plane-read-consumer-smoke.py --check",
+    "view_model": "ControlPlaneReadCollectionViewModel",
+    "route_catalog": "CONTROL_PLANE_READ_ROUTES",
+    "status": "design_boundary_only"
+  },
+  "ui_pages": [
+    {
+      "id": "admin-tenant-overview",
+      "surface": "admin_control_plane",
+      "label": "Admin Control Plane Tenant Overview",
+      "status": "boundary_defined_not_implemented",
+      "consumes_route_ids": [
+        "tenant-summary-route"
+      ],
+      "read_only": true,
+      "allowed_view_states": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "allowed_commands": [
+        "refresh",
+        "copy_audit_ref",
+        "open_related_read_view"
+      ],
+      "blocked_commands": [
+        "create_tenant",
+        "edit_tenant",
+        "delete_tenant",
+        "change_role",
+        "change_permission",
+        "write_business_truth"
+      ]
+    },
+    {
+      "id": "admin-audit-log",
+      "surface": "admin_control_plane",
+      "label": "Admin Control Plane Audit Log",
+      "status": "boundary_defined_not_implemented",
+      "consumes_route_ids": [
+        "audit-summary-list-route"
+      ],
+      "read_only": true,
+      "allowed_view_states": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "allowed_commands": [
+        "refresh",
+        "copy_audit_ref",
+        "filter_list"
+      ],
+      "blocked_commands": [
+        "delete_audit_record",
+        "edit_audit_record",
+        "export_raw_payload",
+        "replay_action",
+        "write_business_truth"
+      ]
+    },
+    {
+      "id": "workspace-applications",
+      "surface": "user_workspace",
+      "label": "User Workspace Applications",
+      "status": "boundary_defined_not_implemented",
+      "consumes_route_ids": [
+        "application-summary-list-route"
+      ],
+      "read_only": true,
+      "allowed_view_states": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "allowed_commands": [
+        "refresh",
+        "copy_audit_ref",
+        "filter_list",
+        "open_related_read_view"
+      ],
+      "blocked_commands": [
+        "create_application",
+        "edit_application",
+        "delete_application",
+        "execute_application",
+        "write_business_truth"
+      ]
+    },
+    {
+      "id": "workspace-api-keys",
+      "surface": "user_workspace",
+      "label": "User Workspace API Keys",
+      "status": "boundary_defined_not_implemented",
+      "consumes_route_ids": [
+        "api-key-summary-list-route"
+      ],
+      "read_only": true,
+      "allowed_view_states": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "allowed_commands": [
+        "refresh",
+        "copy_audit_ref",
+        "filter_list"
+      ],
+      "blocked_commands": [
+        "issue_api_key",
+        "reveal_api_key",
+        "rotate_api_key",
+        "revoke_api_key",
+        "change_api_key_scope"
+      ]
+    },
+    {
+      "id": "workspace-usage-quota",
+      "surface": "user_workspace",
+      "label": "User Workspace Usage And Quota",
+      "status": "boundary_defined_not_implemented",
+      "consumes_route_ids": [
+        "quota-summary-route"
+      ],
+      "read_only": true,
+      "allowed_view_states": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "allowed_commands": [
+        "refresh",
+        "copy_audit_ref",
+        "filter_list"
+      ],
+      "blocked_commands": [
+        "change_quota",
+        "enforce_quota",
+        "change_price",
+        "write_billing_ledger",
+        "write_business_truth"
+      ]
+    },
+    {
+      "id": "workspace-workflow-definitions",
+      "surface": "user_workspace",
+      "label": "User Workspace Workflow Definitions",
+      "status": "boundary_defined_not_implemented",
+      "consumes_route_ids": [
+        "workflow-definition-summary-list-route"
+      ],
+      "read_only": true,
+      "allowed_view_states": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "allowed_commands": [
+        "refresh",
+        "copy_audit_ref",
+        "filter_list",
+        "open_related_read_view"
+      ],
+      "blocked_commands": [
+        "create_workflow",
+        "edit_workflow",
+        "delete_workflow",
+        "execute_workflow",
+        "confirm_workflow_action"
+      ]
+    },
+    {
+      "id": "workspace-run-history",
+      "surface": "user_workspace",
+      "label": "User Workspace Run History",
+      "status": "boundary_defined_not_implemented",
+      "consumes_route_ids": [
+        "run-record-summary-list-route"
+      ],
+      "read_only": true,
+      "allowed_view_states": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "allowed_commands": [
+        "refresh",
+        "copy_audit_ref",
+        "filter_list",
+        "open_related_read_view"
+      ],
+      "blocked_commands": [
+        "start_run",
+        "cancel_run",
+        "resume_run",
+        "replay_run",
+        "materialize_result",
+        "write_business_truth"
+      ]
+    }
+  ],
+  "required_view_states": [
+    "loading",
+    "ready",
+    "empty",
+    "denied",
+    "stale",
+    "partial_failure",
+    "forbidden_projection"
+  ],
+  "read_only_invariants": [
+    "all_pages_consume_control_plane_read_api_view_models",
+    "all_pages_keep_read_only_commands",
+    "denied_views_render_no_items",
+    "stale_views_may_only_preserve_previous_read_only_data",
+    "partial_failure_views_keep_failure_code_and_audit_ref",
+    "forbidden_projection_blocks_sensitive_fields",
+    "api_key_views_never_reveal_key_value_or_hash",
+    "run_history_views_never_execute_or_replay_runs",
+    "workflow_definition_views_never_create_update_or_execute_workflows"
+  ],
+  "must_not_render_fields": [
+    "raw_secret_value",
+    "api_key_value",
+    "api_key_hash",
+    "authorization_header",
+    "bearer_token",
+    "cookie_value",
+    "raw_request_body_dump",
+    "raw_tool_payload",
+    "business_writeback_payload",
+    "full_prompt_dump_with_secret"
+  ],
+  "forbidden_current_scope": [
+    "formal React implementation",
+    "production admin console",
+    "formal user workspace UI",
+    "real API consumer",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "repository implementation",
+    "Radish OIDC integration",
+    "auth middleware implementation",
+    "tenant or user CRUD",
+    "API key generation",
+    "API key reveal",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production ready"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-formal-ui-boundary-v1-plan.md",
+    "contracts/typescript/control-plane-read-api.ts",
+    "scripts/run-control-plane-read-consumer-smoke.py",
+    "scripts/checks/fixtures/control-plane-read-consumer-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+    "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json",
+    "scripts/checks/fixtures/product-surface-v1-boundary.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-formal-ui-boundary-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/contracts/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-formal-ui-boundary-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

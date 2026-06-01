@@ -14,10 +14,10 @@ export GOCACHE="${GOCACHE:-/tmp/radishmind-go-build-cache}"
 if [[ -z "${RADISHMIND_PLATFORM_PYTHON_BIN:-}" ]]; then
   if [[ -x "${repo_root}/.venv/bin/python" ]]; then
     export RADISHMIND_PLATFORM_PYTHON_BIN="${repo_root}/.venv/bin/python"
-  elif command -v python3 >/dev/null 2>&1; then
-    export RADISHMIND_PLATFORM_PYTHON_BIN="$(command -v python3)"
-  elif command -v python >/dev/null 2>&1; then
-    export RADISHMIND_PLATFORM_PYTHON_BIN="$(command -v python)"
+  else
+    echo "missing repository virtual environment: ${repo_root}/.venv/bin/python" >&2
+    echo "run ./scripts/bootstrap-dev.sh before running scripts/run-platform-service.sh" >&2
+    exit 1
   fi
 fi
 

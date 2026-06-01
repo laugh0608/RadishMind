@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_container_smoke_runbook",
+  "slice": {
+    "id": "container-smoke-runbook",
+    "track": "Production Ops Hardening v1",
+    "status": "runbook_boundary_satisfied",
+    "does_not_claim": [
+      "container_smoke_ready",
+      "test_environment_smoke_ready",
+      "production_preflight_ready",
+      "production_ready",
+      "image_publish_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "production_auth_cors_policy_ready",
+      "console_runtime_config_ready"
+    ]
+  },
+  "run_window_policy": {
+    "requires_explicit_human_run_window": true,
+    "fast_baseline_executes_docker": false,
+    "may_pull_base_images": true,
+    "may_build_local_images": true,
+    "may_start_long_lived_containers": true,
+    "cleanup_required": true
+  },
+  "local_container_smoke": {
+    "status": "not_run",
+    "compose_file": "deploy/docker-compose.local.yaml",
+    "provider": "mock",
+    "commands": [
+      "docker compose -f deploy/docker-compose.local.yaml config",
+      "docker compose -f deploy/docker-compose.local.yaml up --build -d",
+      "./scripts/run-python.sh scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check",
+      "docker compose -f deploy/docker-compose.local.yaml ps",
+      "docker compose -f deploy/docker-compose.local.yaml down"
+    ],
+    "probe_urls": [
+      "http://127.0.0.1:7000/healthz",
+      "http://127.0.0.1:7000/v1/platform/local-smoke",
+      "http://127.0.0.1:4000/"
+    ],
+    "expected_images": [
+      "radishmind/platform:local",
+      "radishmind/console:local"
+    ]
+  },
+  "test_deploy_smoke": {
+    "status": "blocked",
+    "compose_file": "deploy/docker-compose.yaml",
+    "requires": [
+      "published test images",
+      "populated deploy/.env copied from deploy/.env.example",
+      "test provider profile and non-production secret source",
+      "explicit test deployment window"
+    ],
+    "commands": [
+      "docker compose --env-file deploy/.env -f deploy/docker-compose.yaml config",
+      "docker compose --env-file deploy/.env -f deploy/docker-compose.yaml pull",
+      "docker compose --env-file deploy/.env -f deploy/docker-compose.yaml up -d",
+      "docker compose --env-file deploy/.env -f deploy/docker-compose.yaml ps",
+      "docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down"
+    ]
+  },
+  "blocked_conditions": [
+    {
+      "id": "container_smoke_ready",
+      "status": "not_satisfied",
+      "required_before_test_environment_smoke_ready": true
+    },
+    {
+      "id": "test_environment_smoke",
+      "status": "not_satisfied",
+      "required_before_production_preflight_ready": true
+    },
+    {
+      "id": "production_preflight_record",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "docker_image_publish_workflow",
+      "status": "not_satisfied",
+      "required_before_docker_test_prod_ready": true
+    },
+    {
+      "id": "production_secret_backend",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "process_supervisor",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "runbook boundary is a completed container smoke",
+    "local container smoke is test environment smoke",
+    "mock provider is production provider",
+    "docker compose down cleanup is process supervisor",
+    "test deploy smoke commands are production preflight",
+    "published image requirement is implemented image publish workflow"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-container-smoke-runbook.py",
+    "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md",
+    "docs/task-cards/production-ops-docker-deployment-v1-plan.md",
+    "docs/devlogs/2026-W21.md"
+  ]
+}

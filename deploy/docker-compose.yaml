@@ -1,0 +1,51 @@
+name: ${RADISHMIND_COMPOSE_PROJECT_NAME:-radishmind}
+
+services:
+  platform:
+    image: ${RADISHMIND_IMAGE_REGISTRY:-ghcr.io/laugh0608/radishmind}/platform:${RADISHMIND_IMAGE_TAG:-${RADISHMIND_IMAGE_TRACK:-test}-latest}
+    env_file:
+      - path: ./.env
+        required: false
+    environment:
+      RADISHMIND_PLATFORM_LISTEN_ADDR: 0.0.0.0:7000
+      RADISHMIND_PLATFORM_PROVIDER: ${RADISHMIND_PLATFORM_PROVIDER:?set RADISHMIND_PLATFORM_PROVIDER for docker_test or docker_prod}
+      RADISHMIND_PLATFORM_PROVIDER_PROFILE: ${RADISHMIND_PLATFORM_PROVIDER_PROFILE:?set RADISHMIND_PLATFORM_PROVIDER_PROFILE for docker_test or docker_prod}
+      RADISHMIND_PLATFORM_MODEL: ${RADISHMIND_PLATFORM_MODEL:?set RADISHMIND_PLATFORM_MODEL for docker_test or docker_prod}
+      RADISHMIND_PLATFORM_BASE_URL: ${RADISHMIND_PLATFORM_BASE_URL:-}
+      RADISHMIND_PLATFORM_BRIDGE_TIMEOUT: ${RADISHMIND_PLATFORM_BRIDGE_TIMEOUT:-30s}
+      RADISHMIND_PLATFORM_READ_HEADER_TIMEOUT: ${RADISHMIND_PLATFORM_READ_HEADER_TIMEOUT:-5s}
+      RADISHMIND_PLATFORM_WRITE_TIMEOUT: ${RADISHMIND_PLATFORM_WRITE_TIMEOUT:-30s}
+      RADISHMIND_PLATFORM_TEMPERATURE: ${RADISHMIND_PLATFORM_TEMPERATURE:-0}
+    ports:
+      - "${RADISHMIND_PLATFORM_HTTP_BIND:-127.0.0.1}:${RADISHMIND_PLATFORM_HTTP_PORT:-7000}:7000"
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7000/healthz', timeout=3).read()"
+      interval: ${RADISHMIND_PLATFORM_HEALTH_INTERVAL:-10s}
+      timeout: ${RADISHMIND_PLATFORM_HEALTH_TIMEOUT:-5s}
+      retries: ${RADISHMIND_PLATFORM_HEALTH_RETRIES:-10}
+
+  console:
+    image: ${RADISHMIND_IMAGE_REGISTRY:-ghcr.io/laugh0608/radishmind}/console:${RADISHMIND_IMAGE_TAG:-${RADISHMIND_IMAGE_TRACK:-test}-latest}
+    env_file:
+      - path: ./.env
+        required: false
+    ports:
+      - "${RADISHMIND_CONSOLE_HTTP_BIND:-127.0.0.1}:${RADISHMIND_CONSOLE_HTTP_PORT:-4000}:80"
+    depends_on:
+      platform:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -q
+        - -O
+        - /dev/null
+        - http://127.0.0.1/
+      interval: ${RADISHMIND_CONSOLE_HEALTH_INTERVAL:-10s}
+      timeout: ${RADISHMIND_CONSOLE_HEALTH_TIMEOUT:-5s}
+      retries: ${RADISHMIND_CONSOLE_HEALTH_RETRIES:-10}

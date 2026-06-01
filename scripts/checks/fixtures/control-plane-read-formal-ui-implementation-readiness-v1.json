@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_formal_ui_implementation_readiness_v1",
+  "slice": {
+    "id": "control-plane-read-formal-ui-implementation-readiness-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "formal_ui_implementation_readiness_defined",
+    "does_not_claim": [
+      "react_ui_implemented",
+      "formal_user_workspace_ui_ready",
+      "production_admin_console_ready",
+      "apps_radishmind_console_upgraded",
+      "real_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "product-surface-v1-boundary",
+    "control-plane-read-auth-db-preconditions-v1",
+    "control-plane-read-consumer-contract-v1",
+    "control-plane-read-formal-ui-boundary-v1"
+  ],
+  "engineering_landing": {
+    "status": "readiness_only_no_react_files_created",
+    "future_app_root": "apps/radishmind-web/",
+    "future_app_kind": "React + Vite + TypeScript product UI",
+    "future_feature_root": "apps/radishmind-web/src/features/control-plane-read/",
+    "future_app_shell_root": "apps/radishmind-web/src/app/",
+    "shared_contract": "contracts/typescript/control-plane-read-api.ts",
+    "consumer_smoke": "scripts/run-control-plane-read-consumer-smoke.py --check",
+    "local_ops_console_root": "apps/radishmind-console/",
+    "local_ops_console_boundary": "remain_local_ops_surface_only",
+    "service_boundary": "services/platform remains fake-store-backed read route host only; this slice adds no backend route, database query, OIDC middleware, executor, confirmation, writeback, replay or deployment behavior"
+  },
+  "app_boundary": {
+    "formal_product_app": {
+      "root": "apps/radishmind-web/",
+      "status": "reserved_not_created_in_this_slice",
+      "surfaces": [
+        "admin_control_plane",
+        "user_workspace"
+      ],
+      "allowed_first_capabilities": [
+        "read_only_route_catalog",
+        "read_only_collection_views",
+        "loading_empty_denied_stale_partial_failure_forbidden_projection_states",
+        "copy_audit_ref",
+        "filter_read_lists",
+        "open_related_read_view"
+      ],
+      "blocked_capabilities": [
+        "production_hosting",
+        "login_or_logout_flow",
+        "OIDC token validation",
+        "database query",
+        "tenant or user CRUD",
+        "API key issue reveal rotate revoke",
+        "quota enforcement",
+        "workflow create edit execute confirm replay",
+        "business writeback"
+      ]
+    },
+    "local_ops_console": {
+      "root": "apps/radishmind-console/",
+      "status": "local_ops_surface_only",
+      "may_share": [
+        "design language",
+        "semantic token vocabulary",
+        "read-only status treatment"
+      ],
+      "must_not_become": [
+        "formal user workspace",
+        "production admin console",
+        "production hosting package",
+        "control plane write surface"
+      ]
+    }
+  },
+  "implementation_sequence": [
+    {
+      "order": 1,
+      "step_id": "shared-read-shell",
+      "status": "planned_not_implemented",
+      "surface": "shared",
+      "page_id": null,
+      "consumes_route_ids": [],
+      "purpose": "Create a future read-only product app shell, route catalog binding, shared status components and forbidden-output guard before any page-specific UI.",
+      "must_reuse": [
+        "CONTROL_PLANE_READ_ROUTES",
+        "CONTROL_PLANE_READ_ROUTE_DEFINITIONS",
+        "ControlPlaneReadCollectionViewModel",
+        "listControlPlaneReadRouteCatalog",
+        "toControlPlaneReadCollectionViewModel",
+        "controlPlaneReadResponseHasForbiddenOutput"
+      ]
+    },
+    {
+      "order": 2,
+      "step_id": "admin-tenant-overview-page",
+      "status": "planned_not_implemented",
+      "surface": "admin_control_plane",
+      "page_id": "admin-tenant-overview",
+      "consumes_route_ids": [
+        "tenant-summary-route"
+      ],
+      "reason": "Start with the single-resource admin summary page to validate tenant-bound envelope, denied state and audit reference display."
+    },
+    {
+      "order": 3,
+      "step_id": "workspace-applications-page",
+      "status": "planned_not_implemented",
+      "surface": "user_workspace",
+      "page_id": "workspace-applications",
+      "consumes_route_ids": [
+        "application-summary-list-route"
+      ],
+      "reason": "Add the first cursor list page and prove route catalog, filter and pagination reuse before sensitive summaries."
+    },
+    {
+      "order": 4,
+      "step_id": "workspace-api-keys-page",
+      "status": "planned_not_implemented",
+      "surface": "user_workspace",
+      "page_id": "workspace-api-keys",
+      "consumes_route_ids": [
+        "api-key-summary-list-route"
+      ],
+      "reason": "Implement the sensitive read-only summary page only after shared forbidden-output guards are present."
+    },
+    {
+      "order": 5,
+      "step_id": "workspace-usage-quota-page",
+      "status": "planned_not_implemented",
+      "surface": "user_workspace",
+      "page_id": "workspace-usage-quota",
+      "consumes_route_ids": [
+        "quota-summary-route"
+      ],
+      "reason": "Add quota summary as read-only status and usage display without enforcement, billing or ledger controls."
+    },
+    {
+      "order": 6,
+      "step_id": "workspace-workflow-definitions-page",
+      "status": "planned_not_implemented",
+      "surface": "user_workspace",
+      "page_id": "workspace-workflow-definitions",
+      "consumes_route_ids": [
+        "workflow-definition-summary-list-route"
+      ],
+      "reason": "Render workflow definition summaries while keeping create, edit, execute and confirmation controls absent."
+    },
+    {
+      "order": 7,
+      "step_id": "workspace-run-history-page",
+      "status": "planned_not_implemented",
+      "surface": "user_workspace",
+      "page_id": "workspace-run-history",
+      "consumes_route_ids": [
+        "run-record-summary-list-route"
+      ],
+      "reason": "Render run summaries after workflow summaries and keep replay, resume and materialized-result access blocked."
+    },
+    {
+      "order": 8,
+      "step_id": "admin-audit-log-page",
+      "status": "planned_not_implemented",
+      "surface": "admin_control_plane",
+      "page_id": "admin-audit-log",
+      "consumes_route_ids": [
+        "audit-summary-list-route"
+      ],
+      "reason": "Finish with audit log filtering after every resource page has already preserved audit_ref and failure state handling."
+    }
+  ],
+  "consumer_contract_reuse": {
+    "status": "required_before_react_pages",
+    "imports": [
+      "CONTROL_PLANE_READ_ROUTES",
+      "CONTROL_PLANE_READ_ROUTE_DEFINITIONS",
+      "CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS",
+      "ControlPlaneReadCollectionViewModel",
+      "ControlPlaneReadRouteCatalogViewModel",
+      "ControlPlaneReadRouteId",
+      "ControlPlaneReadResponseByRoute",
+      "controlPlaneReadResponseHasForbiddenOutput",
+      "isControlPlaneReadEnvelope",
+      "listControlPlaneReadRouteCatalog",
+      "toControlPlaneReadCollectionViewModel"
+    ],
+    "required_reuse_rules": [
+      "pages_must_not_duplicate_route_paths",
+      "pages_must_not_parse_raw_fixture_json_directly",
+      "pages_must_map_envelopes_through_toControlPlaneReadCollectionViewModel",
+      "pages_must_check_controlPlaneReadResponseHasForbiddenOutput_before_render",
+      "pages_must_preserve_failureCode_and_auditRef",
+      "denied_pages_must_render_no_items",
+      "stale_pages_must_keep_previous_read_only_data_only"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "readiness_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py",
+      "purpose": "Validate implementation readiness fixture, dependencies, app boundary, sequence, contract reuse and stop-lines."
+    },
+    {
+      "id": "consumer_smoke",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check",
+      "purpose": "Validate the existing offline TypeScript consumer contract source remains usable before UI work."
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast",
+      "purpose": "Keep the new readiness checker inside the fast repository baseline."
+    },
+    {
+      "id": "future_product_app_build",
+      "status": "future_react_implementation_only",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/",
+      "purpose": "Run only after the future product UI app exists; not required for this readiness slice."
+    },
+    {
+      "id": "future_component_state_tests",
+      "status": "future_react_implementation_only",
+      "coverage": [
+        "loading",
+        "ready",
+        "empty",
+        "denied",
+        "stale",
+        "partial_failure",
+        "forbidden_projection"
+      ],
+      "purpose": "Each future page must cover the formal UI boundary states without adding write or execute controls."
+    },
+    {
+      "id": "future_visual_smoke",
+      "status": "future_react_implementation_only",
+      "coverage": [
+        "desktop",
+        "narrow",
+        "text_overflow",
+        "forbidden_action_absence",
+        "sensitive_field_absence"
+      ],
+      "purpose": "Run after React pages exist; no screenshot or browser run is required for this readiness slice."
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not create React pages in this slice",
+    "do not modify apps/radishmind-console into formal user workspace",
+    "do not modify apps/radishmind-console into production admin console",
+    "do not add deploy publish release package or docker scripts for formal UI",
+    "do not request live backend from readiness checker",
+    "do not add database schema migration query or repository",
+    "do not add Radish OIDC middleware token validation login or logout",
+    "do not add API key lifecycle quota enforcement rate limiting billing or cost ledger",
+    "do not add workflow builder executor confirmation writeback replay or materialized result reader"
+  ],
+  "forbidden_current_scope": [
+    "formal React implementation",
+    "production admin console",
+    "formal user workspace UI",
+    "real API consumer",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "repository implementation",
+    "Radish OIDC integration",
+    "auth middleware implementation",
+    "tenant or user CRUD",
+    "API key generation",
+    "API key reveal",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production ready"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-formal-ui-implementation-readiness-v1-plan.md",
+    "docs/task-cards/control-plane-read-formal-ui-boundary-v1-plan.md",
+    "contracts/typescript/control-plane-read-api.ts",
+    "scripts/run-control-plane-read-consumer-smoke.py",
+    "scripts/checks/fixtures/product-surface-v1-boundary.json",
+    "scripts/checks/fixtures/control-plane-read-auth-db-preconditions-v1.json",
+    "scripts/checks/fixtures/control-plane-read-consumer-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-formal-ui-boundary-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/contracts/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-formal-ui-implementation-readiness-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

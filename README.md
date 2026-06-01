@@ -17,7 +17,8 @@
 
 - 当前常态开发分支为 `dev`
 - `master` 仅作为稳定主线
-- 仓库级检查入口：Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`
+- 首次拉取后先创建仓库虚拟环境：macOS / Linux / WSL 用 `./scripts/bootstrap-dev.sh`，Windows / PowerShell 用 `pwsh ./scripts/bootstrap-dev.ps1`
+- 仓库级检查默认使用 `.venv`：macOS / Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`
 - 文本文件默认走 UTF-8 + LF，规则以 `.editorconfig` 和 `.gitattributes` 为准
 - 本地模型配置以仓库根 `.env.example` 为示例，真实 `.env` 只留本地
 

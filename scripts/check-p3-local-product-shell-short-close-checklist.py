@@ -21,6 +21,11 @@ REQUIRED_SATISFIED_CONDITIONS = {
     "console_provider_profile_inventory_details",
     "local_console_dev_entry",
     "console_production_boundary_gate",
+    "production_config_secret_boundary_gate",
+    "production_secret_backend_contract_gate",
+    "startup_supervisor_boundary_gate",
+    "environment_isolation_boundary_gate",
+    "console_production_package_smoke_gate",
     "fast_baseline_consumes_p3_gates",
 }
 
@@ -69,9 +74,56 @@ REQUIRED_DOC_REFERENCES = {
     ],
 }
 
+PRODUCTION_OPS_BOUNDARY_FIXTURES = {
+    "production_config_secret_boundary_gate": {
+        "fixture": "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
+        "checker": "scripts/check-production-ops-config-secret-boundary.py",
+        "slice_id": "config-secret-boundary",
+        "kind": "production_ops_config_secret_boundary",
+        "blocked_condition": "production_secret_backend",
+        "forbidden_claim": "production_secret_backend_ready",
+    },
+    "production_secret_backend_contract_gate": {
+        "fixture": "scripts/checks/fixtures/production-ops-secret-backend-contract.json",
+        "checker": "scripts/check-production-ops-secret-backend-contract.py",
+        "slice_id": "production-secret-backend-contract",
+        "kind": "production_ops_secret_backend_contract",
+        "blocked_condition": "production_secret_backend",
+        "forbidden_claim": "production_secret_backend_ready",
+    },
+    "startup_supervisor_boundary_gate": {
+        "fixture": "scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json",
+        "checker": "scripts/check-production-ops-startup-supervisor-boundary.py",
+        "slice_id": "startup-supervisor-boundary",
+        "kind": "production_ops_startup_supervisor_boundary",
+        "blocked_condition": "process_supervisor",
+        "forbidden_claim": "process_supervisor_ready",
+    },
+    "environment_isolation_boundary_gate": {
+        "fixture": "scripts/checks/fixtures/production-ops-environment-isolation-boundary.json",
+        "checker": "scripts/check-production-ops-environment-isolation-boundary.py",
+        "slice_id": "environment-isolation",
+        "kind": "production_ops_environment_isolation_boundary",
+        "blocked_condition": "deployment_environment_isolation",
+        "forbidden_claim": "production_environment_isolation_ready",
+    },
+    "console_production_package_smoke_gate": {
+        "fixture": "scripts/checks/fixtures/production-ops-console-package-smoke.json",
+        "checker": "scripts/check-production-ops-console-package-smoke.py",
+        "slice_id": "console-production-package-smoke",
+        "kind": "production_ops_console_package_smoke",
+        "blocked_condition": "console_production_packaging",
+        "forbidden_claim": "console_production_package_ready",
+    },
+}
+
 
 def load_fixture() -> dict[str, Any]:
     return json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+
+
+def load_json(relative_path: str) -> dict[str, Any]:
+    return json.loads((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
 
 
 def require(condition: bool, message: str) -> None:
@@ -108,8 +160,10 @@ def assert_short_close_state(fixture: dict[str, Any]) -> None:
     )
     next_default = set(local_close.get("next_default") or [])
     require(
-        {"ui_design_topic_pencil_draft", "p4_model_adaptation_plan"}.issubset(next_default),
-        "P3 local close must point to UI design topic and P4 model adaptation plan",
+        {"production_ops_hardening_v1", "production_ops_hardening_v1_governance_close_review"}.issubset(
+            next_default
+        ),
+        "P3 local close must point to Production Ops Hardening v1 governance close review",
     )
     locked_claims = set(local_close.get("does_not_unlock") or [])
     required_locked_claims = {
@@ -139,6 +193,25 @@ def assert_short_close_state(fixture: dict[str, Any]) -> None:
     missing = sorted(required_claims - forbidden_claims)
     require(not missing, f"P3 short close missing forbidden claims: {missing}")
 
+    refresh = fixture.get("production_ops_hardening_refresh") or {}
+    require(refresh.get("status") == "satisfied", "P3 production ops hardening refresh must be satisfied")
+    require(refresh.get("slice") == "short-close-checklist-refresh", "unexpected P3 refresh slice")
+    require(refresh.get("refreshed_at") == "2026-05-24", "unexpected P3 refresh date")
+    refresh_result = str(refresh.get("result") or "")
+    require("governance boundary evidence only" in refresh_result, "P3 refresh must stay governance-only")
+    refresh_boundaries = set(refresh.get("governance_boundaries") or [])
+    expected_boundaries = {metadata["slice_id"] for metadata in PRODUCTION_OPS_BOUNDARY_FIXTURES.values()}
+    missing_boundaries = sorted(expected_boundaries - refresh_boundaries)
+    require(not missing_boundaries, f"P3 refresh missing governance boundaries: {missing_boundaries}")
+    refresh_blocked = set(refresh.get("blocked_production_conditions") or [])
+    missing_refresh_blocked = sorted(REQUIRED_BLOCKED_CONDITIONS - refresh_blocked)
+    require(not missing_refresh_blocked, f"P3 refresh missing blocked conditions: {missing_refresh_blocked}")
+    refresh_next = set(refresh.get("next_default") or [])
+    require(
+        "production_ops_hardening_v1_governance_close_review" in refresh_next,
+        "P3 refresh must point to governance close review",
+    )
+
 
 def assert_conditions(fixture: dict[str, Any]) -> None:
     satisfied = fixture.get("satisfied_conditions") or []
@@ -162,10 +235,80 @@ def assert_conditions(fixture: dict[str, Any]) -> None:
     require(not missing_stop_lines, f"missing disabled P3 stop lines: {missing_stop_lines}")
 
 
+def assert_production_ops_boundary_alignment(fixture: dict[str, Any]) -> None:
+    satisfied_by_id = {str(item.get("id")): item for item in fixture.get("satisfied_conditions") or []}
+    blocked_by_id = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or []}
+
+    for gate_id, metadata in PRODUCTION_OPS_BOUNDARY_FIXTURES.items():
+        fixture_path = metadata["fixture"]
+        checker_path = metadata["checker"]
+        slice_id = metadata["slice_id"]
+        blocked_condition = metadata["blocked_condition"]
+
+        gate = satisfied_by_id.get(gate_id) or {}
+        gate_evidence = set(gate.get("evidence") or [])
+        require(fixture_path in gate_evidence, f"{gate_id} must cite {fixture_path}")
+        require(checker_path in gate_evidence, f"{gate_id} must cite {checker_path}")
+
+        blocked = blocked_by_id.get(blocked_condition) or {}
+        require(blocked.get("status") == "not_satisfied", f"{blocked_condition} must stay not_satisfied")
+        require(
+            blocked.get("required_before_short_close") is True,
+            f"{blocked_condition} must stay required before P3 short close",
+        )
+        require(blocked.get("current_scope") == "blocked", f"{blocked_condition} must stay blocked")
+        boundary_evidence = set(blocked.get("boundary_evidence") or [])
+        require(fixture_path in boundary_evidence, f"{blocked_condition} must cite {fixture_path}")
+        require(checker_path in boundary_evidence, f"{blocked_condition} must cite {checker_path}")
+
+        boundary_fixture = load_json(fixture_path)
+        require(boundary_fixture.get("schema_version") == 1, f"{fixture_path} unexpected schema_version")
+        require(boundary_fixture.get("kind") == metadata["kind"], f"{fixture_path} unexpected kind")
+        boundary_slice = boundary_fixture.get("slice") or {}
+        require(boundary_slice.get("id") == slice_id, f"{fixture_path} unexpected slice id")
+        require(
+            boundary_slice.get("track") == "Production Ops Hardening v1",
+            f"{fixture_path} must stay on Production Ops Hardening v1",
+        )
+        require(
+            boundary_slice.get("status") == "governance_boundary_satisfied",
+            f"{fixture_path} must remain governance boundary satisfied",
+        )
+        does_not_claim = set(boundary_slice.get("does_not_claim") or [])
+        require("production_ready" in does_not_claim, f"{fixture_path} must not claim production ready")
+        require(
+            metadata["forbidden_claim"] in does_not_claim,
+            f"{fixture_path} must not claim {metadata['forbidden_claim']}",
+        )
+
+        boundary_blocked = {
+            str(item.get("id")): item for item in boundary_fixture.get("blocked_conditions") or []
+        }
+        boundary_blocked_item = boundary_blocked.get(blocked_condition) or {}
+        require(
+            boundary_blocked_item.get("status") == "not_satisfied",
+            f"{fixture_path} must keep {blocked_condition} not_satisfied",
+        )
+        require(
+            boundary_blocked_item.get("required_before_production_ready") is True,
+            f"{fixture_path} must require {blocked_condition} before production ready",
+        )
+        boundary_consumers = set(boundary_fixture.get("required_consumers") or [])
+        require(
+            "scripts/check-p3-local-product-shell-short-close-checklist.py" in boundary_consumers,
+            f"{fixture_path} must list the P3 checklist checker as a consumer",
+        )
+
+
 def assert_consumers(fixture: dict[str, Any]) -> None:
     required_consumers = set(fixture.get("required_consumers") or [])
     expected_consumers = {
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
+        "scripts/check-production-ops-config-secret-boundary.py",
+        "scripts/check-production-ops-secret-backend-contract.py",
+        "scripts/check-production-ops-startup-supervisor-boundary.py",
+        "scripts/check-production-ops-environment-isolation-boundary.py",
+        "scripts/check-production-ops-console-package-smoke.py",
         "scripts/check-repo.py",
         "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
@@ -194,6 +337,7 @@ def main() -> None:
     assert_stage_naming(fixture)
     assert_short_close_state(fixture)
     assert_conditions(fixture)
+    assert_production_ops_boundary_alignment(fixture)
     assert_consumers(fixture)
     print("P3 local product shell short close checklist checks passed.")
 

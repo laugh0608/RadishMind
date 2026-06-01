@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "provider_runtime_docs_refresh",
+  "decision": {
+    "id": "provider-runtime-docs-refresh",
+    "track": "Provider Runtime & Health v1",
+    "status": "satisfied",
+    "source_of_truth": [
+      "scripts/checks/fixtures/provider-capability-matrix-v1.json",
+      "scripts/checks/fixtures/provider-health-smoke-v1.json",
+      "scripts/checks/fixtures/provider-selection-policy-v1.json",
+      "scripts/checks/fixtures/provider-retry-fallback-policy-v1.json",
+      "docs/task-cards/provider-runtime-health-v1-plan.md"
+    ],
+    "does_not_claim": [
+      "optional_live_health_enabled_by_default",
+      "external_provider_live_health_ready",
+      "retry_fallback_execution_ready",
+      "implicit_provider_fallback_ready",
+      "production_readiness",
+      "production_secret_backend_ready",
+      "tool_executor_ready",
+      "confirmation_writeback_replay_ready"
+    ]
+  },
+  "completed_slices": [
+    {
+      "id": "provider-capability-matrix-v1",
+      "fixture": "scripts/checks/fixtures/provider-capability-matrix-v1.json",
+      "checker": "scripts/check-provider-capability-matrix.py",
+      "boundary": "registry-backed capability matrix only; capability does not claim provider health or production readiness"
+    },
+    {
+      "id": "provider-health-smoke-v1",
+      "fixture": "scripts/checks/fixtures/provider-health-smoke-v1.json",
+      "checker": "scripts/check-provider-health-smoke.py",
+      "boundary": "default fast baseline covers mock runtime and config-level inventory only; optional live health remains manual"
+    },
+    {
+      "id": "provider-selection-policy-v1",
+      "fixture": "scripts/checks/fixtures/provider-selection-policy-v1.json",
+      "checker": "scripts/check-provider-selection-policy.py",
+      "boundary": "request-side selection and no implicit fallback policy only; retry/fallback implementation is not ready"
+    },
+    {
+      "id": "provider-retry-fallback-policy-v1",
+      "fixture": "scripts/checks/fixtures/provider-retry-fallback-policy-v1.json",
+      "checker": "scripts/check-provider-retry-fallback-policy.py",
+      "boundary": "retry/fallback audit policy only; automatic retry and implicit provider fallback remain disabled"
+    }
+  ],
+  "remaining_boundaries": [
+    "optional_live_health_not_default",
+    "external_provider_live_health_not_ready",
+    "production_secret_backend_not_ready",
+    "retry_fallback_execution_not_ready",
+    "live_timeout_probe_not_ready",
+    "production_readiness_not_ready",
+    "tool_executor_confirmation_writeback_replay_not_ready"
+  ],
+  "next_default_focus": "Do not add more same-layer provider runtime slices by default; only reopen live health, retry/fallback, container smoke, or production secrets as explicit independent tasks.",
+  "required_documents": [
+    "docs/README.md",
+    "docs/contracts/service-api.md",
+    "docs/radishmind-project-guide.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-strategy.md",
+    "docs/task-cards/provider-runtime-health-v1-plan.md",
+    "scripts/README.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W22.md"
+  ],
+  "required_consumers": [
+    "scripts/check-provider-runtime-docs-refresh.py",
+    "scripts/check-repo.py"
+  ]
+}

@@ -1,0 +1,406 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_auth_db_preconditions_v1",
+  "slice": {
+    "id": "control-plane-read-auth-db-preconditions-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "auth_db_preconditions_defined",
+    "does_not_claim": [
+      "control_plane_api_ready",
+      "full_read_side_ready",
+      "typescript_consumer_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "database_schema_ready",
+      "database_migration_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-fake-store-handler-implementation-v1",
+    "control-plane-read-implementation-preconditions-v1",
+    "radish-oidc-client-preconditions",
+    "control-plane-data-boundary",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-negative-contract-v1"
+  ],
+  "auth_context_contract": {
+    "status": "preconditions_defined_not_implemented",
+    "future_source": "future Radish OIDC / auth middleware",
+    "required_context_fields": [
+      "identity_context",
+      "tenant_binding",
+      "subject_binding",
+      "scope_grants",
+      "audit_context",
+      "issuer_ref",
+      "session_ref",
+      "request_id"
+    ],
+    "required_claim_mappings": [
+      "issuer",
+      "subject",
+      "tenant_ref",
+      "scopes",
+      "roles",
+      "permissions"
+    ],
+    "fail_closed_when_missing": [
+      "identity_context",
+      "tenant_binding",
+      "subject_binding",
+      "scope_grants",
+      "audit_context"
+    ],
+    "forbidden_public_inputs": [
+      "public_fake_auth_header",
+      "query_scope_override",
+      "anonymous_read",
+      "cross_tenant_read",
+      "ops_console_elevation",
+      "mock_provider_fallback"
+    ]
+  },
+  "database_read_store_preconditions": {
+    "status": "preconditions_defined_not_implemented",
+    "future_source": "future control plane read store repository",
+    "repository_contract": [
+      {
+        "id": "repository-interface-before-sql",
+        "status": "required_before_implementation",
+        "rule": "Define a narrow read repository interface before adding SQL, migrations or durable store adapters"
+      },
+      {
+        "id": "tenant-predicate-required",
+        "status": "required_before_implementation",
+        "rule": "Every repository read must carry tenant_ref from auth context and must not trust query-string tenant overrides"
+      },
+      {
+        "id": "sanitized-projection-required",
+        "status": "required_before_implementation",
+        "rule": "Repository results must return summary projections only and must not expose raw secrets, tokens, prompts or tool payloads"
+      }
+    ],
+    "allowed_operations": [
+      "read_only_select",
+      "cursor_list_read",
+      "single_resource_read"
+    ],
+    "route_bindings": [
+      {
+        "route_id": "tenant-summary-route",
+        "read_model": "tenant-summary",
+        "repository_operation": "ReadTenantSummary",
+        "mode": "single_resource_read"
+      },
+      {
+        "route_id": "application-summary-list-route",
+        "read_model": "application-summary",
+        "repository_operation": "ListApplicationSummaries",
+        "mode": "cursor_list_read"
+      },
+      {
+        "route_id": "api-key-summary-list-route",
+        "read_model": "api-key-summary",
+        "repository_operation": "ListAPIKeySummaries",
+        "mode": "cursor_list_read"
+      },
+      {
+        "route_id": "quota-summary-route",
+        "read_model": "quota-summary",
+        "repository_operation": "ReadQuotaSummary",
+        "mode": "single_resource_read"
+      },
+      {
+        "route_id": "workflow-definition-summary-list-route",
+        "read_model": "workflow-definition-summary",
+        "repository_operation": "ListWorkflowDefinitionSummaries",
+        "mode": "cursor_list_read"
+      },
+      {
+        "route_id": "run-record-summary-list-route",
+        "read_model": "run-record-summary",
+        "repository_operation": "ListRunRecordSummaries",
+        "mode": "cursor_list_read"
+      },
+      {
+        "route_id": "audit-summary-list-route",
+        "read_model": "audit-summary",
+        "repository_operation": "ListAuditSummaries",
+        "mode": "cursor_list_read"
+      }
+    ],
+    "required_query_guards": [
+      "tenant_ref_predicate",
+      "subject_scope_predicate",
+      "limit_clamp",
+      "cursor_validation",
+      "route_filter_allowlist",
+      "sort_allowlist",
+      "sanitized_projection",
+      "request_id_audit_ref_propagation"
+    ],
+    "required_sanitized_outputs": [
+      "resource_id",
+      "tenant_ref",
+      "subject_ref",
+      "state",
+      "summary",
+      "count",
+      "failure_code",
+      "cost_summary",
+      "trace_id",
+      "audit_ref",
+      "redacted_secret_ref"
+    ],
+    "forbidden_store_modes": [
+      "database_query",
+      "database_migration",
+      "durable_store",
+      "production_data_source",
+      "secret_value_storage",
+      "provider_call",
+      "workflow_executor",
+      "business_writeback"
+    ]
+  },
+  "route_transition_requirements": [
+    {
+      "route_id": "tenant-summary-route",
+      "method": "GET",
+      "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+      "read_model": "tenant-summary",
+      "required_scope": "tenant:read",
+      "current_status": "fake_store_backed_handler_implemented",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "oidc_validation_allowed_in_this_slice": false,
+      "database_query_allowed_in_this_slice": false,
+      "migration_allowed_in_this_slice": false,
+      "write_allowed_in_this_slice": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "read_model": "application-summary",
+      "required_scope": "applications:read",
+      "current_status": "fake_store_backed_handler_implemented",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "oidc_validation_allowed_in_this_slice": false,
+      "database_query_allowed_in_this_slice": false,
+      "migration_allowed_in_this_slice": false,
+      "write_allowed_in_this_slice": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "read_model": "api-key-summary",
+      "required_scope": "api_keys:read",
+      "current_status": "fake_store_backed_handler_implemented",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "oidc_validation_allowed_in_this_slice": false,
+      "database_query_allowed_in_this_slice": false,
+      "migration_allowed_in_this_slice": false,
+      "write_allowed_in_this_slice": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/usage/quota-summary",
+      "read_model": "quota-summary",
+      "required_scope": "usage:read",
+      "current_status": "fake_store_backed_handler_implemented",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "oidc_validation_allowed_in_this_slice": false,
+      "database_query_allowed_in_this_slice": false,
+      "migration_allowed_in_this_slice": false,
+      "write_allowed_in_this_slice": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "read_model": "workflow-definition-summary",
+      "required_scope": "applications:read",
+      "current_status": "fake_store_backed_handler_implemented",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "oidc_validation_allowed_in_this_slice": false,
+      "database_query_allowed_in_this_slice": false,
+      "migration_allowed_in_this_slice": false,
+      "write_allowed_in_this_slice": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "read_model": "run-record-summary",
+      "required_scope": "runs:read",
+      "current_status": "fake_store_backed_handler_implemented",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "oidc_validation_allowed_in_this_slice": false,
+      "database_query_allowed_in_this_slice": false,
+      "migration_allowed_in_this_slice": false,
+      "write_allowed_in_this_slice": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "read_model": "audit-summary",
+      "required_scope": "audit:read",
+      "current_status": "fake_store_backed_handler_implemented",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "oidc_validation_allowed_in_this_slice": false,
+      "database_query_allowed_in_this_slice": false,
+      "migration_allowed_in_this_slice": false,
+      "write_allowed_in_this_slice": false
+    }
+  ],
+  "failure_taxonomy": [
+    {
+      "code": "identity_context_missing",
+      "source": "auth_context_contract"
+    },
+    {
+      "code": "tenant_binding_missing",
+      "source": "auth_context_contract"
+    },
+    {
+      "code": "scope_denied",
+      "source": "auth_context_contract"
+    },
+    {
+      "code": "tenant_not_found",
+      "source": "read_store_contract"
+    },
+    {
+      "code": "quota_policy_missing",
+      "source": "read_store_contract"
+    },
+    {
+      "code": "invalid_filter",
+      "source": "route_filter_allowlist"
+    },
+    {
+      "code": "read_store_unavailable",
+      "source": "read_store_contract"
+    },
+    {
+      "code": "read_store_contract_mismatch",
+      "source": "read_store_contract"
+    },
+    {
+      "code": "database_read_disabled",
+      "source": "stop_line"
+    },
+    {
+      "code": "auth_context_contract_mismatch",
+      "source": "auth_context_contract"
+    }
+  ],
+  "smoke_transition_plan": {
+    "status": "preconditions_defined_not_implemented",
+    "current_smoke_source": "test_only_fake_auth_context_and_in_memory_fixture_fake_store",
+    "future_smoke_sources": [
+      "middleware_backed_auth_context_smoke",
+      "repository_contract_fake_store_smoke",
+      "read_store_repository_contract_smoke"
+    ],
+    "required_before_replacing_fake_store": [
+      "Radish OIDC middleware must inject required auth context fields",
+      "Read repository interface must return sanitized summary projections only",
+      "Route tests must preserve existing positive and negative smoke cases",
+      "No-side-effect counters must remain zero for read-only routes",
+      "Database migration and SQL implementation must be approved in a later slice"
+    ],
+    "must_preserve_smoke_cases": [
+      "tenant_summary_success",
+      "application_summary_list_success",
+      "api_key_summary_list_success",
+      "quota_summary_success",
+      "workflow_definition_summary_list_success",
+      "run_record_summary_list_success",
+      "audit_summary_list_success",
+      "missing_identity",
+      "tenant_binding_missing",
+      "scope_denied",
+      "cross_tenant_query_denied",
+      "invalid_filter",
+      "forbidden_sensitive_projection",
+      "forbidden_method",
+      "forbidden_query",
+      "no_side_effects"
+    ],
+    "side_effect_counters_must_remain": [
+      "fake_store_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ]
+  },
+  "forbidden_current_scope": [
+    "Radish OIDC middleware implementation",
+    "token validation implementation",
+    "login redirect route",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "repository implementation",
+    "durable store",
+    "public fake auth header",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console",
+    "user workspace UI"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-auth-db-preconditions-v1-plan.md",
+    "docs/contracts/control-plane-read-side.md",
+    "scripts/checks/fixtures/control-plane-read-fake-store-handler-implementation-v1.json",
+    "scripts/checks/fixtures/control-plane-read-implementation-preconditions-v1.json",
+    "scripts/checks/fixtures/radish-oidc-client-preconditions.json",
+    "scripts/checks/fixtures/control-plane-data-boundary.json",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-auth-db-preconditions-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-auth-db-preconditions-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_data_boundary",
+  "slice": {
+    "id": "control-plane-data-boundary",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "database_schema_ready",
+      "database_migration_ready",
+      "control_plane_api_ready",
+      "tenant_auth_ready",
+      "radish_oidc_client_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "production_secret_backend_ready",
+      "production_admin_console_ready",
+      "production_ready"
+    ]
+  },
+  "ownership_model": [
+    {
+      "id": "tenant",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future Radish-aligned control plane store",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "User Workspace",
+        "Model Gateway / API Distribution",
+        "Workflow / Agent Runtime"
+      ],
+      "write_boundary": "future audited admin API only",
+      "blocked_until": [
+        "control-plane store selected",
+        "Radish tenant binding preconditions defined",
+        "negative authorization gates defined"
+      ]
+    },
+    {
+      "id": "user",
+      "owner_surface": "Radish Auth via future OIDC client",
+      "source_of_truth": "Radish",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "User Workspace"
+      ],
+      "write_boundary": "Radish remains identity truth; RadishMind stores only future client-side mapping",
+      "blocked_until": [
+        "radish-oidc-client-preconditions",
+        "claim mapping defined",
+        "tenant binding defined"
+      ]
+    },
+    {
+      "id": "role",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future Radish-aligned control plane store",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "User Workspace",
+        "Workflow / Agent Runtime"
+      ],
+      "write_boundary": "future audited admin API only; no local console write path",
+      "blocked_until": [
+        "permission model defined",
+        "Radish claim mapping defined",
+        "negative authorization gates defined"
+      ]
+    },
+    {
+      "id": "permission",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future Radish-aligned control plane store plus Radish claims",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "User Workspace",
+        "Model Gateway / API Distribution",
+        "Workflow / Agent Runtime"
+      ],
+      "write_boundary": "future audited admin API only",
+      "blocked_until": [
+        "permission taxonomy defined",
+        "requires_confirmation policy binding defined",
+        "negative authorization gates defined"
+      ]
+    },
+    {
+      "id": "provider_profile",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future control plane store backed by current provider registry",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "Model Gateway / API Distribution",
+        "User Workspace"
+      ],
+      "write_boundary": "future audited admin API; current registry remains static truth",
+      "blocked_until": [
+        "provider profile persistence boundary defined",
+        "secret_ref binding defined",
+        "provider live health policy defined"
+      ]
+    },
+    {
+      "id": "model_route",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future route policy store backed by provider selection policy",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "Model Gateway / API Distribution",
+        "Workflow / Agent Runtime"
+      ],
+      "write_boundary": "future audited admin API; no implicit fallback",
+      "blocked_until": [
+        "route policy schema defined",
+        "fallback execution policy defined",
+        "cost latency policy defined"
+      ]
+    },
+    {
+      "id": "quota",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future quota policy store",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "User Workspace",
+        "Model Gateway / API Distribution"
+      ],
+      "write_boundary": "future audited admin API only",
+      "blocked_until": [
+        "gateway-api-key-quota-readiness",
+        "rate limit policy defined",
+        "quota enforcement gate defined"
+      ]
+    },
+    {
+      "id": "price",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future price policy store",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "User Workspace",
+        "Model Gateway / API Distribution"
+      ],
+      "write_boundary": "future audited admin API only",
+      "blocked_until": [
+        "cost ledger contract defined",
+        "provider price source policy defined",
+        "billing non-goal boundary retained"
+      ]
+    },
+    {
+      "id": "audit",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future durable audit store",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "Model Gateway / API Distribution",
+        "Workflow / Agent Runtime"
+      ],
+      "write_boundary": "future append-only audit writer; no overwrite path",
+      "blocked_until": [
+        "durable audit store selected",
+        "redaction policy defined",
+        "retention policy defined"
+      ]
+    },
+    {
+      "id": "secret_ref",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future secret reference binding; value remains outside repository",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "Model Gateway / API Distribution"
+      ],
+      "write_boundary": "future audited admin API writes references only, never secret values",
+      "blocked_until": [
+        "config-secret-ref-readiness",
+        "production secret backend implementation",
+        "secret rotation and audit policy"
+      ]
+    },
+    {
+      "id": "deployment_status",
+      "owner_surface": "Admin Control Plane",
+      "source_of_truth": "future deployment observer plus production ops run records",
+      "read_surfaces": [
+        "Admin Control Plane",
+        "User Workspace"
+      ],
+      "write_boundary": "future observer / run record ingestion only; no manual production-ready override",
+      "blocked_until": [
+        "test smoke run record",
+        "production preflight record",
+        "process supervisor boundary satisfied"
+      ]
+    }
+  ],
+  "shared_policies": {
+    "identity_truth": "Radish remains identity and permission truth; RadishMind is a future OIDC client",
+    "storage_truth": "database schema and migrations are not created by this slice",
+    "write_policy": "all future writes require audited control plane APIs and negative authorization gates",
+    "secret_policy": "secret_ref may be stored, secret values may not be committed or exposed",
+    "runtime_policy": "gateway and workflow runtime consume policies; they do not own control plane truth"
+  },
+  "forbidden_current_scope": [
+    "database migration",
+    "control plane API implementation",
+    "Radish OIDC integration",
+    "tenant or user CRUD",
+    "quota enforcement",
+    "billing ledger",
+    "secret resolver implementation",
+    "workflow executor",
+    "production admin console"
+  ],
+  "required_next_slices": [
+    "radish-oidc-client-preconditions",
+    "gateway-api-key-quota-readiness",
+    "workflow-definition-run-record-boundary"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "scripts/checks/fixtures/product-surface-v1-boundary.json",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-data-boundary.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-product-scope.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

@@ -1,18 +1,25 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-05-23
+更新时间：2026-05-31
 
 ## 文档目的
 
-本文档是 RadishMind 前端 UI 的正式设计规范源，用于约束 `apps/radishmind-console/`、Pencil 设计稿和后续 React 实现任务。
+本文档是 RadishMind 前端 UI 的正式设计规范源，用于约束 `apps/radishmind-console/`、`apps/radishmind-web/`、Pencil 设计稿和后续 React 实现任务。
 
 [UI 设计参考](radishmind-ui-design-reference.md) 只提供灵感素材和外部产品观察；本文件定义 RadishMind 自己的视觉目标、语义 token、组件规则、状态表达、窄屏策略和设计稿治理要求。
 
-当前规范优先服务 `UI Design Topic / Pencil Draft` 与 `P3 Local Product Shell / Ops Surface`。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
+当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface` 和 Control Plane read-side product UI shell。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
+
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history`。后续继续 formal UI 时，应复用这些组件和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
 
 ## 设计定位
 
-RadishMind UI 是面向开发者、维护者和本地部署者的 AI runtime ops surface。它的核心任务不是展示品牌气氛，而是让平台状态、模型/provider/profile、session/tooling metadata、readiness、错误诊断和停止线一眼可读。
+RadishMind UI 分成两个当前实现面：
+
+- `apps/radishmind-console/`：面向开发者、维护者和本地部署者的 AI runtime ops surface。
+- `apps/radishmind-web/`：面向未来正式产品端的 control-plane read-side shell，当前只读、离线、无 live backend。
+
+它们的共同任务不是展示品牌气氛，而是让平台状态、模型/provider/profile、session/tooling metadata、readiness、read route、审计引用、错误诊断和停止线一眼可读。
 
 风格关键词：
 
@@ -211,6 +218,38 @@ RadishMind UI 是面向开发者、维护者和本地部署者的 AI runtime ops
 7. `Narrow Layout`
    - `1080x1920` 竖屏基准
    - 单列信息优先级
+
+Control Plane read-side product UI 额外覆盖：
+
+1. `Shared Read Shell`
+   - route catalog
+   - shared loading / ready / empty / denied / stale / partial failure / forbidden projection states
+   - forbidden output guard
+2. `Admin Tenant Overview`
+   - tenant summary
+   - route metadata
+   - request / audit ref
+3. `Workspace Applications`
+   - application summary rows
+   - cursor
+   - owner / workflow / last run status metadata
+4. `Workspace API Keys`
+   - API key id、owner、scope、state 和时间字段
+   - 不展示 key value 或 hash
+5. `Workspace Usage Quota`
+   - quota id、period、request / token / cost limit、usage snapshot 和 over quota failure code
+   - 不展示 enforcement、billing 或 cost ledger 控件
+6. `Workspace Workflow Definitions`
+   - workflow definition id、application ref、version、definition status、node count、risk level、confirmation capability 和 updated timestamp
+   - 不展示 create、edit、run 或 confirm 控件
+7. `Workspace Run History`
+   - run id、workflow definition ref、application ref、status、failure code、cost summary、trace id、started / completed timestamp
+   - 不展示 start、cancel、resume、replay、materialize result 或 writeback 控件
+8. `Admin Audit Log`
+   - 后续页面，消费 `audit-summary-list-route`
+   - 仍按只读、脱敏、route metadata 和 audit ref 规则设计
+
+Control Plane read-side 页面必须继续使用紧凑工作台布局，不做营销首页，不做 hero，不把页面状态写成可执行能力。
 
 ## React Ops Surface 映射
 

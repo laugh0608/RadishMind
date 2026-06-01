@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-05-20
+更新时间：2026-05-28
 
 ## 协议兼容边界
 
@@ -17,22 +17,59 @@
 
 当前目标口径应固定为：
 
-- 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`
+- 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及 Control Plane Read-Side 的七条 read-only route
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
+
+control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前七条 read-only route 均已作为 fake-store-backed Go route 注册到 `services/platform/` HTTP surface：tenant summary、applications、API keys、quota summary、workflow definitions、runs 与 audit。它们仍只依赖 in-memory fixture fake store 和 test-only fake auth context；长驻 HTTP 服务尚未接入真实 auth middleware，因此未注入身份上下文的请求必须 fail-closed，而不是被解释为正式可用 API。
 
 当前真实状态是：
 
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
-- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata` 与 `/v1/tools/actions`，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
+- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及七条 fake-store-backed Control Plane Read-Side route，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
-- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；正式 secret backend、环境隔离和外部 provider health check 仍未落地
+- `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；provider capability matrix、provider health smoke、provider selection policy、provider-retry-fallback-policy-v1 和 provider runtime docs refresh 已进入 fast baseline；正式 secret backend、环境隔离、外部 provider live health 和 retry/fallback execution 仍未落地
 
 当前第一版 `Go -> Python` bridge 的 northbound 切片仍然很窄：
 
 - 文本消息仍是主要切片，但 `/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` 已具备第一版 SSE 兼容与 bridge 增量转发 smoke
 - 只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- `GET /v1/models` 已从 provider 目录推进到第一版 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup；`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；provider/profile discoverability、request observability 和 error taxonomy 已进入平台门禁
+- `GET /v1/models` 已从 provider 目录推进到 bridge-backed provider/profile inventory，并补上 `GET /v1/models/{id}` 的精确 lookup；`/v1/chat/completions` 也已经把 request-side provider/profile 选择显式化并把流式路径推进到 bridge 增量转发；provider/profile discoverability、request observability、error taxonomy、capability matrix、health smoke 和 selection policy 已进入平台门禁
 - 当前 northbound `model` 选择已经开始支持 configured default、provider id、legacy `profile:<name>` 与 provider-qualified `provider:<provider>:profile:<profile>`；同时 `radishmind.provider` / `radishmind.provider_profile` 扩展字段已具备显式覆盖能力
+
+## Provider runtime / health 契约
+
+Provider runtime / health 现在按五个可检查层次理解：
+
+1. `provider-capability-matrix-v1`
+   - 真相源：`services/runtime/provider_registry.py`
+   - 证据：`scripts/checks/fixtures/provider-capability-matrix-v1.json`
+   - 检查：`scripts/check-provider-capability-matrix.py`
+   - 含义：provider capability、profile model id、northbound protocol / route 和 offline-only baseline 可检查
+2. `provider-health-smoke-v1`
+   - 证据：`scripts/checks/fixtures/provider-health-smoke-v1.json`
+   - 检查：`scripts/check-provider-health-smoke.py`
+   - 含义：默认 fast baseline 只覆盖 mock runtime smoke 与 config-level inventory smoke，不访问外部 provider
+3. `provider-selection-policy-v1`
+   - 证据：`scripts/checks/fixtures/provider-selection-policy-v1.json`
+   - 检查：`scripts/check-provider-selection-policy.py`
+   - 含义：request-side profile / provider / concrete model selection、未知 model/profile 负向边界和 no implicit fallback 可检查
+4. `provider-retry-fallback-policy-v1`
+   - 证据：`scripts/checks/fixtures/provider-retry-fallback-policy-v1.json`
+   - 检查：`scripts/check-provider-retry-fallback-policy.py`
+   - 含义：当前 retry/fallback 调用策略以审计 metadata 暴露，`retry_policy=caller-managed`、`fallback_policy=disabled`，northbound 失败路径不自动重试、不隐式 fallback
+5. `provider-runtime-docs-refresh`
+   - 证据：`scripts/checks/fixtures/provider-runtime-docs-refresh.json`
+   - 检查：`scripts/check-provider-runtime-docs-refresh.py`
+   - 含义：说明文档、入口文档和任务卡对 provider runtime v1 的已完成 / 未完成边界保持一致
+
+调用侧契约：
+
+- `/v1/models`、`/v1/models/{id}`、northbound request selection 和 `diagnostics.providers.selectable_model_ids` 必须复用同一套 profile id：`profile:<profile>` 或 `provider:<provider>:profile:<profile>`。
+- 请求选中 profile 后，`context.northbound` 必须记录脱敏 selection metadata，包括 `selected_provider`、`selected_provider_profile`、`selected_model`、`upstream_model`、`selection_source`、`selection_inventory_kind`、`credential_state`、`deployment_mode`、`auth_mode`、`streaming`、`northbound_routes`、`northbound_protocols`、`retry_policy` 与 `fallback_policy`。
+- 未知 `/v1/models/{id}` 返回 `MODEL_NOT_FOUND`。
+- 未知 concrete model 只可标记为 `runtime_override`，不得伪装成 inventory match。
+- 显式未知 provider profile 不得被 active profile 隐式替换。
+- 当前不声明隐式 provider fallback、retry/fallback execution、optional live health 默认启用、production secret backend 或 production readiness。
 
 ## 当前服务/API 接入切片
 
@@ -101,6 +138,8 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 当前 `GET /v1/session/recovery/checkpoints/{checkpoint_id}` 只承接 session recovery checkpoint 的 metadata-only route smoke。它返回固定 fixture 边界、checkpoint refs、tool audit refs、`tool_audit_summary`、replay policy 摘要和 state summary，并显式拒绝 materialized result / replay 类查询；这条路由不是 durable checkpoint store、materialized result reader 或 replay executor。
 
 当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 只承接最小 session/tooling 产品骨架。session metadata route 返回 northbound `radishmind` 扩展字段、history/state/recovery 边界和 disabled capability；tools metadata route 返回当前 contract-only registry view；tool action route 对工具 action 请求返回 `tool_action_blocked_response`，用于上层或 UI 消费 `status=blocked`、denial code、confirmation requirement 和 side-effect absence。该 blocked response 不代表 confirmation 接线、executor、durable store、materialized result reader、长期记忆、业务写回或 replay 已启用。
+
+当前 Control Plane Read-Side 的七条 route 已注册到 Go platform mux，并统一返回 `request_id / tenant_ref / items / next_cursor / failure_code / audit_ref` envelope。成功路径只在 Go route smoke 中通过 test-only fake auth context 和 in-memory fake store 覆盖；真实 HTTP 入口在接入 `future Radish OIDC / auth middleware` 前没有可用的身份注入机制，缺少身份、跨租户、scope 不足、非法 filter、forbidden method / query 和敏感字段投影都必须 fail-closed。该 read-side surface 不启用数据库 query、repository、OIDC validation、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
 当前 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口。它聚合服务状态、`/v1/models` provider/profile inventory、session metadata route、tool metadata route、blocked action route 和停止线，供未来本地控制台或上层 UI 一次读取当前平台可展示能力。该 overview 只消费已有 metadata / blocked shell，不引入第二套业务真相源，也不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 

@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-05-17
+更新时间：2026-06-01
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -46,6 +46,32 @@
 19. [`P2 Session & Tooling` short close entry checklist](session-tooling-short-close-entry-checklist.md)
 20. [`P2 Session & Tooling` upper-layer confirmation flow readiness](session-tooling-upper-layer-confirmation-flow-readiness.md)
 
+## Product Platform
+
+1. [`Control Plane / User Workspace / Workflow` v1 计划](control-plane-user-workspace-workflow-v1-plan.md)
+2. [`Control Plane Read Model` v1 计划](control-plane-read-model-v1-plan.md)（`control-plane-read-model-v1`）
+3. [`Control Plane Read Route Contract` v1 计划](control-plane-read-route-contract-v1-plan.md)（`control-plane-read-route-contract-v1`）
+4. [`Control Plane Read Response Fixtures` v1 计划](control-plane-read-response-fixtures-v1-plan.md)（`control-plane-read-response-fixtures-v1`）
+5. [`Control Plane Read Negative Contract` v1 计划](control-plane-read-negative-contract-v1-plan.md)（`control-plane-read-negative-contract-v1`）
+6. [`Control Plane Read Implementation Preconditions` v1 计划](control-plane-read-implementation-preconditions-v1-plan.md)（`control-plane-read-implementation-preconditions-v1`）
+7. [`Control Plane Read Fake-Store Handler Plan` v1 计划](control-plane-read-fake-store-handler-plan-v1-plan.md)（`control-plane-read-fake-store-handler-plan-v1`）
+8. [`Control Plane Read Fake-Store Handler Implementation` v1 计划](control-plane-read-fake-store-handler-implementation-v1-plan.md)（`control-plane-read-fake-store-handler-implementation-v1`）
+9. [`Control Plane Read Auth/DB Preconditions` v1 计划](control-plane-read-auth-db-preconditions-v1-plan.md)（`control-plane-read-auth-db-preconditions-v1`）
+10. [`Control Plane Read Consumer Contract` v1 计划](control-plane-read-consumer-contract-v1-plan.md)（`control-plane-read-consumer-contract-v1`）
+11. [`Control Plane Read Formal UI Boundary` v1 计划](control-plane-read-formal-ui-boundary-v1-plan.md)（`control-plane-read-formal-ui-boundary-v1`）
+12. [`Control Plane Read Formal UI Implementation Readiness` v1 计划](control-plane-read-formal-ui-implementation-readiness-v1-plan.md)（`control-plane-read-formal-ui-implementation-readiness-v1`）
+13. [`Control Plane Read Shared Shell` v1 计划](control-plane-read-shared-shell-v1-plan.md)（`control-plane-read-shared-shell-v1`）
+14. [`Control Plane Read Admin Tenant Overview` v1 计划](control-plane-read-admin-tenant-overview-v1-plan.md)（`control-plane-read-admin-tenant-overview-v1`）
+15. [`Control Plane Read Workspace Applications` v1 计划](control-plane-read-workspace-applications-v1-plan.md)（`control-plane-read-workspace-applications-v1`）
+16. [`Control Plane Read Workspace API Keys` v1 计划](control-plane-read-workspace-api-keys-v1-plan.md)（`control-plane-read-workspace-api-keys-v1`）
+17. [`Control Plane Read Workspace Usage Quota` v1 计划](control-plane-read-workspace-usage-quota-v1-plan.md)（`control-plane-read-workspace-usage-quota-v1`）
+18. [`Control Plane Read Workspace Workflow Definitions` v1 计划](control-plane-read-workspace-workflow-definitions-v1-plan.md)（`control-plane-read-workspace-workflow-definitions-v1`）
+19. [`Control Plane Read Workspace Run History` v1 计划](control-plane-read-workspace-run-history-v1-plan.md)（`control-plane-read-workspace-run-history-v1`）
+20. [`Control Plane Read Admin Audit Log` v1 计划](control-plane-read-admin-audit-log-v1-plan.md)（`control-plane-read-admin-audit-log-v1`）
+21. [`Control Plane Read Formal UI Readiness Close` v1 计划](control-plane-read-formal-ui-readiness-close-v1-plan.md)（`control-plane-read-formal-ui-readiness-close-v1`）
+22. [`Control Plane Read Dev Live Consumer` v1 计划](control-plane-read-dev-live-consumer-v1-plan.md)（`control-plane-read-dev-live-consumer-v1`）
+23. [`Control Plane Read Auth/Store Transition Preconditions` v1 计划](control-plane-read-auth-store-transition-preconditions-v1-plan.md)（`control-plane-read-auth-store-transition-preconditions-v1`）
+
 ## UI 设计专题
 
 1. [`UI Design Topic` ops surface 设计到实现计划](ui-design-ops-surface-implementation-plan.md)
@@ -53,6 +79,7 @@
 ## Production Ops
 
 1. [`Production Ops Hardening` v1 计划](production-ops-hardening-v1-plan.md)
+2. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 
@@ -64,7 +91,7 @@
 
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- 当前平台主线已切到 `Production Ops Hardening v1`；任务卡不替代当前焦点、路线图和能力矩阵
+- 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；任务卡不替代当前焦点、路线图和能力矩阵
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”

@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_console_package_smoke",
+  "slice": {
+    "id": "console-production-package-smoke",
+    "track": "Production Ops Hardening v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "production_ready",
+      "console_production_package_ready",
+      "production_deployment_ready",
+      "production_auth_policy_ready",
+      "public_hosting_ready"
+    ]
+  },
+  "package_smoke_entries": [
+    {
+      "id": "build",
+      "status": "available_for_manual_or_ci_smoke",
+      "command": "npm run build",
+      "expected_script": "tsc --noEmit && vite build",
+      "artifact_policy": "writes local dist output only; dist must remain untracked",
+      "production_use": "not_a_published_package"
+    },
+    {
+      "id": "preview",
+      "status": "available_for_manual_or_ci_smoke",
+      "command": "npm run preview",
+      "expected_script": "vite preview --host 127.0.0.1 --port 4000",
+      "artifact_policy": "serves local build preview only",
+      "production_use": "not_production_hosting"
+    }
+  ],
+  "package_boundaries": {
+    "package_name": "@radishmind/console",
+    "private": true,
+    "allowed_scripts": [
+      "dev",
+      "build",
+      "preview"
+    ],
+    "forbidden_scripts": [
+      "deploy",
+      "publish",
+      "release",
+      "package",
+      "pack",
+      "docker",
+      "serve:prod",
+      "start:prod"
+    ],
+    "forbidden_tracked_paths": [
+      "apps/radishmind-console/dist/",
+      "apps/radishmind-console/node_modules/"
+    ],
+    "required_ignored_paths": [
+      "node_modules/",
+      "apps/radishmind-console/dist/"
+    ]
+  },
+  "blocked_conditions": [
+    {
+      "id": "console_production_packaging",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_deploy_target",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_and_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_static_asset_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "npm run build is production package",
+    "npm run preview is production hosting",
+    "private package is publishable",
+    "local dist output is committed artifact",
+    "localhost preview is production deployment"
+  ],
+  "evidence": [
+    "apps/radishmind-console/package.json",
+    "apps/radishmind-console/package-lock.json",
+    "apps/radishmind-console/README.md",
+    ".gitignore",
+    "scripts/check-radishmind-console-production-boundary.py",
+    "docs/task-cards/production-ops-hardening-v1-plan.md"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-console-package-smoke.py",
+    "scripts/check-repo.py",
+    "scripts/check-p3-local-product-shell-short-close-checklist.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md"
+  ]
+}

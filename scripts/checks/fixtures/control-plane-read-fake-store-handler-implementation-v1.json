@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_fake_store_handler_implementation_v1",
+  "slice": {
+    "id": "control-plane-read-fake-store-handler-implementation-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "fake_store_handler_implemented",
+    "does_not_claim": [
+      "control_plane_api_ready",
+      "full_read_side_ready",
+      "typescript_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "radish_oidc_client_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-fake-store-handler-plan-v1",
+    "control-plane-read-implementation-preconditions-v1",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-response-fixtures-v1",
+    "control-plane-read-negative-contract-v1"
+  ],
+  "implemented_routes": [
+    {
+      "route_id": "tenant-summary-route",
+      "method": "GET",
+      "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+      "read_model": "tenant-summary",
+      "handler": "handleControlPlaneTenantSummary",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "single_resource_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "tenant:read"
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "read_model": "application-summary",
+      "handler": "handleUserWorkspaceApplicationSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "applications:read"
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "read_model": "api-key-summary",
+      "handler": "handleUserWorkspaceAPIKeySummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "api_keys:read"
+    },
+    {
+      "route_id": "quota-summary-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/usage/quota-summary",
+      "read_model": "quota-summary",
+      "handler": "handleUserWorkspaceQuotaSummary",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "single_resource_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "usage:read"
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "read_model": "workflow-definition-summary",
+      "handler": "handleUserWorkspaceWorkflowDefinitionSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "applications:read"
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "read_model": "run-record-summary",
+      "handler": "handleUserWorkspaceRunRecordSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "runs:read"
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "read_model": "audit-summary",
+      "handler": "handleControlPlaneAuditSummaryList",
+      "status": "fake_store_backed_handler_implemented",
+      "fake_store_mode": "cursor_list_summary",
+      "auth_mode": "test_only_context_injection",
+      "scope": "audit:read"
+    }
+  ],
+  "remaining_routes": [],
+  "go_files": [
+    "services/platform/internal/httpapi/control_plane_read.go",
+    "services/platform/internal/httpapi/control_plane_read_fake_store.go",
+    "services/platform/internal/httpapi/control_plane_read_test.go",
+    "services/platform/internal/httpapi/server.go",
+    "services/platform/internal/httpapi/observability.go"
+  ],
+  "route_registration": {
+    "file": "services/platform/internal/httpapi/server.go",
+    "registered_route_ids": [
+      "tenant-summary-route",
+      "application-summary-list-route",
+      "api-key-summary-list-route",
+      "quota-summary-route",
+      "workflow-definition-summary-list-route",
+      "run-record-summary-list-route",
+      "audit-summary-list-route"
+    ],
+    "forbidden_registered_route_ids": []
+  },
+  "fake_store": {
+    "status": "implemented_fixture_backed_only",
+    "source": "response fixtures mirrored in Go fake store",
+    "data_source": "in_memory_fixture",
+    "does_not_allow": [
+      "database_query",
+      "database_migration",
+      "durable_store",
+      "production_data_source",
+      "secret_value_storage",
+      "provider_call",
+      "workflow_executor",
+      "business_writeback"
+    ],
+    "side_effect_counters": [
+      "fake_store_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ]
+  },
+  "auth": {
+    "status": "test_only_context_injection",
+    "injection_mode": "go_test_request_context_only",
+    "production_truth_source": "future Radish OIDC / auth middleware",
+    "forbidden_public_inputs": [
+      "public_fake_auth_header",
+      "query_scope_override",
+      "anonymous_read",
+      "cross_tenant_read",
+      "ops_console_elevation"
+    ]
+  },
+  "smoke_coverage": [
+    "tenant_summary_success",
+    "application_summary_list_success",
+    "api_key_summary_list_success",
+    "quota_summary_success",
+    "workflow_definition_summary_list_success",
+    "run_record_summary_list_success",
+    "audit_summary_list_success",
+    "missing_identity",
+    "tenant_binding_missing",
+    "scope_denied",
+    "cross_tenant_query_denied",
+    "invalid_filter",
+    "forbidden_sensitive_projection",
+    "forbidden_method",
+    "forbidden_query",
+    "no_side_effects"
+  ],
+  "forbidden_current_scope": [
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "durable store",
+    "Radish OIDC integration",
+    "public fake auth header",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console",
+    "user workspace UI"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-fake-store-handler-implementation-v1-plan.md",
+    "docs/contracts/control-plane-read-side.md",
+    "services/platform/internal/httpapi/control_plane_read.go",
+    "services/platform/internal/httpapi/control_plane_read_fake_store.go",
+    "services/platform/internal/httpapi/control_plane_read_test.go"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-fake-store-handler-implementation-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-fake-store-handler-implementation-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

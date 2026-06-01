@@ -21,6 +21,7 @@ type fakeBridge struct {
 	envelope     bridge.GatewayEnvelope
 	lastRequest  []byte
 	lastOptions  bridge.EnvelopeOptions
+	handleCalls  int
 	streamCalled bool
 	streamErr    error
 }
@@ -48,6 +49,7 @@ func (f *fakeBridge) DescribeInventory(context.Context) (bridge.ProviderInventor
 func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
+	f.handleCalls++
 	return f.envelope, nil
 }
 
@@ -183,6 +185,26 @@ func TestLocalConsoleCORS(t *testing.T) {
 		}
 		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:4000" {
 			t.Fatalf("unexpected allow origin: %q", got)
+		}
+	})
+
+	t.Run("allows web dev live read preflight headers", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodOptions, "/v1/control-plane/tenants/tenant_demo/summary", nil)
+		req.Header.Set("Origin", "http://127.0.0.1:4100")
+		req.Header.Set("Access-Control-Request-Method", "GET")
+		req.Header.Set("Access-Control-Request-Headers", controlPlaneReadDevIdentityHeader)
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:4100" {
+			t.Fatalf("unexpected allow origin: %q", got)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(got, controlPlaneReadDevIdentityHeader) {
+			t.Fatalf("unexpected allow headers: %q", got)
 		}
 	})
 
@@ -509,6 +531,160 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if routes, ok := northbound["northbound_routes"].([]any); !ok || len(routes) == 0 {
 			t.Fatalf("missing northbound routes: %#v", northbound["northbound_routes"])
+		}
+	})
+
+	t.Run("provider selection policy", func(t *testing.T) {
+		policyCases := []struct {
+			name                  string
+			requestedModel        string
+			extension             *chatCompletionExtension
+			expectedProvider      string
+			expectedProfile       string
+			expectedModel         string
+			expectedUpstreamModel string
+			expectedSource        string
+			expectedInventoryKind string
+			expectedCredential    string
+		}{
+			{
+				name:                  "profile model uses inventory",
+				requestedModel:        "profile:anyrouter",
+				expectedProvider:      "openai-compatible",
+				expectedProfile:       "anyrouter",
+				expectedModel:         "profile:anyrouter",
+				expectedUpstreamModel: "deepseek-chat",
+				expectedSource:        "requested_profile_model",
+				expectedInventoryKind: "provider_profile",
+				expectedCredential:    "configured",
+			},
+			{
+				name:                  "provider alias uses active profile",
+				requestedModel:        "provider:huggingface",
+				expectedProvider:      "huggingface",
+				expectedProfile:       "hf-chat",
+				expectedModel:         "provider:huggingface:profile:hf-chat",
+				expectedUpstreamModel: "meta-llama/Meta-Llama-3.1-8B-Instruct",
+				expectedSource:        "requested_provider_model+inventory",
+				expectedInventoryKind: "provider_profile",
+				expectedCredential:    "configured",
+			},
+			{
+				name:                  "unknown concrete model stays runtime override",
+				requestedModel:        "unlisted-model",
+				expectedProvider:      "mock",
+				expectedProfile:       "default",
+				expectedModel:         "unlisted-model",
+				expectedUpstreamModel: "unlisted-model",
+				expectedSource:        "requested_concrete_model",
+				expectedInventoryKind: "runtime_override",
+				expectedCredential:    "",
+			},
+			{
+				name:                  "unknown explicit profile does not fallback",
+				requestedModel:        "",
+				extension:             &chatCompletionExtension{Provider: "huggingface", ProviderProfile: "missing-profile"},
+				expectedProvider:      "huggingface",
+				expectedProfile:       "missing-profile",
+				expectedModel:         "provider:huggingface:profile:missing-profile",
+				expectedUpstreamModel: "",
+				expectedSource:        "radishmind.provider_profile",
+				expectedInventoryKind: "runtime_override",
+				expectedCredential:    "",
+			},
+		}
+
+		for _, tc := range policyCases {
+			t.Run(tc.name, func(t *testing.T) {
+				selection := server.resolveNorthboundSelection(context.Background(), tc.requestedModel, tc.extension)
+				if selection.provider != tc.expectedProvider {
+					t.Fatalf("unexpected provider: %s", selection.provider)
+				}
+				if selection.providerProfile != tc.expectedProfile {
+					t.Fatalf("unexpected provider profile: %s", selection.providerProfile)
+				}
+				if selection.model != tc.expectedModel {
+					t.Fatalf("unexpected model: %s", selection.model)
+				}
+				if selection.upstreamModel != tc.expectedUpstreamModel {
+					t.Fatalf("unexpected upstream model: %s", selection.upstreamModel)
+				}
+				if selection.source != tc.expectedSource {
+					t.Fatalf("unexpected selection source: %s", selection.source)
+				}
+				if selection.inventoryKind != tc.expectedInventoryKind {
+					t.Fatalf("unexpected inventory kind: %s", selection.inventoryKind)
+				}
+				if selection.credentialState != tc.expectedCredential {
+					t.Fatalf("unexpected credential state: %s", selection.credentialState)
+				}
+				metadata := buildNorthboundSelectionMetadata(selection)
+				if metadata["retry_policy"] != "caller-managed" {
+					t.Fatalf("unexpected retry policy audit metadata: %#v", metadata["retry_policy"])
+				}
+				if metadata["fallback_policy"] != "disabled" {
+					t.Fatalf("unexpected fallback policy audit metadata: %#v", metadata["fallback_policy"])
+				}
+			})
+		}
+	})
+
+	t.Run("retry/fallback policy audit metadata", func(t *testing.T) {
+		fb.handleCalls = 0
+		fb.envelope = bridge.GatewayEnvelope{
+			SchemaVersion: 1,
+			Status:        "failed",
+			RequestID:     "req-provider-timeout",
+			Error: &bridge.GatewayError{
+				Code:    "PLATFORM_BRIDGE_FAILED",
+				Message: "provider timeout from test",
+			},
+			Metadata: map[string]any{},
+		}
+		defer func() {
+			fb.envelope = bridge.GatewayEnvelope{
+				SchemaVersion: 1,
+				Status:        "ok",
+				RequestID:     "req-123",
+				Project:       "radish",
+				Task:          "answer_docs_question",
+				Response: map[string]any{
+					"summary": "bridge summary",
+				},
+				Metadata: map[string]any{},
+			}
+		}()
+
+		body := `{"model":"profile:anyrouter","messages":[{"role":"user","content":"hello"}]}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleChatCompletions(rec, req)
+
+		if fb.handleCalls != 1 {
+			t.Fatalf("expected no automatic retry, got handle calls: %d", fb.handleCalls)
+		}
+		if rec.Code != http.StatusBadGateway {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response errorDocument
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode error response: %v", err)
+		}
+		if response.Error.Code != "PLATFORM_BRIDGE_FAILED" {
+			t.Fatalf("unexpected error code: %#v", response.Error.Code)
+		}
+		if response.Error.Metadata["retry_policy"] != "caller-managed" {
+			t.Fatalf("unexpected retry policy metadata: %#v", response.Error.Metadata["retry_policy"])
+		}
+		if response.Error.Metadata["fallback_policy"] != "disabled" {
+			t.Fatalf("unexpected fallback policy metadata: %#v", response.Error.Metadata["fallback_policy"])
+		}
+		if response.Error.Metadata["selected_provider"] != "openai-compatible" {
+			t.Fatalf("unexpected selected provider metadata: %#v", response.Error.Metadata["selected_provider"])
+		}
+		if response.Error.Metadata["selected_provider_profile"] != "anyrouter" {
+			t.Fatalf("unexpected selected profile metadata: %#v", response.Error.Metadata["selected_provider_profile"])
 		}
 	})
 

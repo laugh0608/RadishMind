@@ -23,8 +23,8 @@
       "replay_enabled"
     ],
     "next_default": [
-      "ui_design_topic_pencil_draft",
-      "p4_model_adaptation_plan"
+      "production_ops_hardening_v1",
+      "production_ops_hardening_v1_governance_close_review"
     ]
   },
   "short_close_state": {
@@ -38,6 +38,28 @@
       "confirmation_flow_connected",
       "business_truth_write_enabled",
       "replay_enabled"
+    ]
+  },
+  "production_ops_hardening_refresh": {
+    "status": "satisfied",
+    "slice": "short-close-checklist-refresh",
+    "refreshed_at": "2026-05-24",
+    "result": "P3 remains local usable / read-only close; Production Ops Hardening v1 has governance boundary evidence only and must not be read as production ready.",
+    "governance_boundaries": [
+      "config-secret-boundary",
+      "production-secret-backend-contract",
+      "startup-supervisor-boundary",
+      "environment-isolation",
+      "console-production-package-smoke"
+    ],
+    "blocked_production_conditions": [
+      "production_secret_backend",
+      "process_supervisor",
+      "deployment_environment_isolation",
+      "console_production_packaging"
+    ],
+    "next_default": [
+      "production_ops_hardening_v1_governance_close_review"
     ]
   },
   "satisfied_conditions": [
@@ -129,6 +151,46 @@
       ]
     },
     {
+      "id": "production_config_secret_boundary_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
+        "scripts/check-production-ops-config-secret-boundary.py"
+      ]
+    },
+    {
+      "id": "production_secret_backend_contract_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-secret-backend-contract.json",
+        "scripts/check-production-ops-secret-backend-contract.py"
+      ]
+    },
+    {
+      "id": "startup_supervisor_boundary_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json",
+        "scripts/check-production-ops-startup-supervisor-boundary.py"
+      ]
+    },
+    {
+      "id": "environment_isolation_boundary_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-environment-isolation-boundary.json",
+        "scripts/check-production-ops-environment-isolation-boundary.py"
+      ]
+    },
+    {
+      "id": "console_production_package_smoke_gate",
+      "status": "satisfied",
+      "evidence": [
+        "scripts/checks/fixtures/production-ops-console-package-smoke.json",
+        "scripts/check-production-ops-console-package-smoke.py"
+      ]
+    },
+    {
       "id": "fast_baseline_consumes_p3_gates",
       "status": "satisfied",
       "evidence": [
@@ -141,25 +203,43 @@
       "id": "production_secret_backend",
       "status": "not_satisfied",
       "required_before_short_close": true,
-      "current_scope": "blocked"
+      "current_scope": "blocked",
+      "boundary_evidence": [
+        "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
+        "scripts/check-production-ops-config-secret-boundary.py",
+        "scripts/checks/fixtures/production-ops-secret-backend-contract.json",
+        "scripts/check-production-ops-secret-backend-contract.py"
+      ]
     },
     {
       "id": "process_supervisor",
       "status": "not_satisfied",
       "required_before_short_close": true,
-      "current_scope": "blocked"
+      "current_scope": "blocked",
+      "boundary_evidence": [
+        "scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json",
+        "scripts/check-production-ops-startup-supervisor-boundary.py"
+      ]
     },
     {
       "id": "deployment_environment_isolation",
       "status": "not_satisfied",
       "required_before_short_close": true,
-      "current_scope": "blocked"
+      "current_scope": "blocked",
+      "boundary_evidence": [
+        "scripts/checks/fixtures/production-ops-environment-isolation-boundary.json",
+        "scripts/check-production-ops-environment-isolation-boundary.py"
+      ]
     },
     {
       "id": "console_production_packaging",
       "status": "not_satisfied",
       "required_before_short_close": true,
-      "current_scope": "blocked"
+      "current_scope": "blocked",
+      "boundary_evidence": [
+        "scripts/checks/fixtures/production-ops-console-package-smoke.json",
+        "scripts/check-production-ops-console-package-smoke.py"
+      ]
     },
     {
       "id": "external_provider_health_probe",
@@ -200,6 +280,11 @@
   ],
   "required_consumers": [
     "scripts/check-p3-local-product-shell-short-close-checklist.py",
+    "scripts/check-production-ops-config-secret-boundary.py",
+    "scripts/check-production-ops-secret-backend-contract.py",
+    "scripts/check-production-ops-startup-supervisor-boundary.py",
+    "scripts/check-production-ops-environment-isolation-boundary.py",
+    "scripts/check-production-ops-console-package-smoke.py",
     "scripts/check-repo.py",
     "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",

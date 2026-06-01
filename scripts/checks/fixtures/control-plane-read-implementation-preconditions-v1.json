@@ -1,0 +1,392 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_implementation_preconditions_v1",
+  "slice": {
+    "id": "control-plane-read-implementation-preconditions-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "implementation_preconditions_defined",
+    "does_not_claim": [
+      "control_plane_api_ready",
+      "go_handler_ready",
+      "typescript_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "radish_oidc_client_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "route_smoke_ready",
+      "workflow_executor_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-model-v1",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-response-fixtures-v1",
+    "control-plane-read-negative-contract-v1"
+  ],
+  "handler_ownership": [
+    {
+      "route_id": "tenant-summary-route",
+      "method": "GET",
+      "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+      "owner": "go_platform_control_plane_read_side",
+      "handler_status": "future_go_handler_not_implemented",
+      "allowed_dependencies": [
+        "route_contract",
+        "auth_context",
+        "fixture_backed_fake_store",
+        "response_fixture_builder",
+        "audit_context"
+      ],
+      "forbidden_dependencies": [
+        "database_query",
+        "durable_store",
+        "workflow_executor",
+        "tool_executor",
+        "confirmation_flow",
+        "business_writeback",
+        "replay_executor"
+      ]
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "owner": "go_platform_control_plane_read_side",
+      "handler_status": "future_go_handler_not_implemented",
+      "allowed_dependencies": [
+        "route_contract",
+        "auth_context",
+        "fixture_backed_fake_store",
+        "response_fixture_builder",
+        "audit_context"
+      ],
+      "forbidden_dependencies": [
+        "database_query",
+        "durable_store",
+        "workflow_executor",
+        "tool_executor",
+        "confirmation_flow",
+        "business_writeback",
+        "replay_executor"
+      ]
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "owner": "go_platform_control_plane_read_side",
+      "handler_status": "future_go_handler_not_implemented",
+      "allowed_dependencies": [
+        "route_contract",
+        "auth_context",
+        "fixture_backed_fake_store",
+        "response_fixture_builder",
+        "audit_context"
+      ],
+      "forbidden_dependencies": [
+        "database_query",
+        "durable_store",
+        "workflow_executor",
+        "tool_executor",
+        "confirmation_flow",
+        "business_writeback",
+        "replay_executor"
+      ]
+    },
+    {
+      "route_id": "quota-summary-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/usage/quota-summary",
+      "owner": "go_platform_control_plane_read_side",
+      "handler_status": "future_go_handler_not_implemented",
+      "allowed_dependencies": [
+        "route_contract",
+        "auth_context",
+        "fixture_backed_fake_store",
+        "response_fixture_builder",
+        "audit_context"
+      ],
+      "forbidden_dependencies": [
+        "database_query",
+        "durable_store",
+        "workflow_executor",
+        "tool_executor",
+        "confirmation_flow",
+        "business_writeback",
+        "replay_executor"
+      ]
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "owner": "go_platform_control_plane_read_side",
+      "handler_status": "future_go_handler_not_implemented",
+      "allowed_dependencies": [
+        "route_contract",
+        "auth_context",
+        "fixture_backed_fake_store",
+        "response_fixture_builder",
+        "audit_context"
+      ],
+      "forbidden_dependencies": [
+        "database_query",
+        "durable_store",
+        "workflow_executor",
+        "tool_executor",
+        "confirmation_flow",
+        "business_writeback",
+        "replay_executor"
+      ]
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "owner": "go_platform_control_plane_read_side",
+      "handler_status": "future_go_handler_not_implemented",
+      "allowed_dependencies": [
+        "route_contract",
+        "auth_context",
+        "fixture_backed_fake_store",
+        "response_fixture_builder",
+        "audit_context"
+      ],
+      "forbidden_dependencies": [
+        "database_query",
+        "durable_store",
+        "workflow_executor",
+        "tool_executor",
+        "confirmation_flow",
+        "business_writeback",
+        "replay_executor"
+      ]
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "owner": "go_platform_control_plane_read_side",
+      "handler_status": "future_go_handler_not_implemented",
+      "allowed_dependencies": [
+        "route_contract",
+        "auth_context",
+        "fixture_backed_fake_store",
+        "response_fixture_builder",
+        "audit_context"
+      ],
+      "forbidden_dependencies": [
+        "database_query",
+        "durable_store",
+        "workflow_executor",
+        "tool_executor",
+        "confirmation_flow",
+        "business_writeback",
+        "replay_executor"
+      ]
+    }
+  ],
+  "fake_store_strategy": {
+    "strategy": "fixture_backed_fake_store_only",
+    "status": "precondition_defined_not_implemented",
+    "source_fixtures": [
+      "scripts/checks/fixtures/control-plane-read-model-v1.json",
+      "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+      "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+      "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
+    ],
+    "route_bindings": [
+      {
+        "route_id": "tenant-summary-route",
+        "read_model": "tenant-summary",
+        "store_fixture_mode": "single_resource_summary"
+      },
+      {
+        "route_id": "application-summary-list-route",
+        "read_model": "application-summary",
+        "store_fixture_mode": "cursor_list_summary"
+      },
+      {
+        "route_id": "api-key-summary-list-route",
+        "read_model": "api-key-summary",
+        "store_fixture_mode": "cursor_list_summary"
+      },
+      {
+        "route_id": "quota-summary-route",
+        "read_model": "quota-summary",
+        "store_fixture_mode": "single_resource_summary"
+      },
+      {
+        "route_id": "workflow-definition-summary-list-route",
+        "read_model": "workflow-definition-summary",
+        "store_fixture_mode": "cursor_list_summary"
+      },
+      {
+        "route_id": "run-record-summary-list-route",
+        "read_model": "run-record-summary",
+        "store_fixture_mode": "cursor_list_summary"
+      },
+      {
+        "route_id": "audit-summary-list-route",
+        "read_model": "audit-summary",
+        "store_fixture_mode": "cursor_list_summary"
+      }
+    ],
+    "does_not_allow": [
+      "database_query",
+      "database_migration",
+      "durable_store",
+      "production_data_source",
+      "secret_value_storage",
+      "business_writeback"
+    ]
+  },
+  "auth_middleware_dependency": {
+    "status": "dependency_defined_not_implemented",
+    "future_truth_source": "Radish OIDC / auth middleware",
+    "required_context_fields": [
+      "identity_context",
+      "tenant_binding",
+      "subject_binding",
+      "scope_grants",
+      "audit_context"
+    ],
+    "fail_closed_when_missing": [
+      "identity_context",
+      "tenant_binding",
+      "subject_binding",
+      "scope_grant"
+    ],
+    "temporary_route_smoke_input": "explicit_fake_auth_context_only",
+    "forbidden_fallbacks": [
+      "anonymous_read",
+      "cross_tenant_read",
+      "mock_provider_fallback",
+      "ops_console_elevation"
+    ]
+  },
+  "response_fixture_conformance": {
+    "status": "precondition_defined_not_implemented",
+    "envelope_fields": [
+      "request_id",
+      "tenant_ref",
+      "items",
+      "next_cursor",
+      "failure_code",
+      "audit_ref"
+    ],
+    "failure_code_source": "control-plane-read-route-contract-v1.failure_codes",
+    "forbidden_output_keys": [
+      "raw_secret_value",
+      "api_key_value",
+      "api_key_hash",
+      "authorization_header",
+      "bearer_token",
+      "cookie_value",
+      "raw_request_body_dump",
+      "raw_tool_payload",
+      "business_writeback_payload",
+      "full_prompt_dump_with_secret"
+    ],
+    "route_ids": [
+      "tenant-summary-route",
+      "application-summary-list-route",
+      "api-key-summary-list-route",
+      "quota-summary-route",
+      "workflow-definition-summary-list-route",
+      "run-record-summary-list-route",
+      "audit-summary-list-route"
+    ]
+  },
+  "negative_route_smoke_readiness": {
+    "status": "readiness_defined_not_implemented",
+    "required_case_types": [
+      "identity_context_missing",
+      "tenant_binding_missing",
+      "scope_denied",
+      "invalid_filter_or_route_specific_failure",
+      "forbidden_method",
+      "forbidden_query_parameters",
+      "no_side_effects"
+    ],
+    "forbidden_methods": [
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ],
+    "forbidden_query_parameters": [
+      "execute",
+      "replay",
+      "confirmation_decision_ref",
+      "writeback_payload",
+      "raw_tool_payload",
+      "include_secret"
+    ],
+    "required_denial_invariants": [
+      "fail_closed",
+      "no_items_returned",
+      "audit_ref_required",
+      "no_executor_invocation",
+      "no_database_write",
+      "no_business_writeback",
+      "no_confirmation_decision",
+      "no_replay"
+    ],
+    "route_ids": [
+      "tenant-summary-route",
+      "application-summary-list-route",
+      "api-key-summary-list-route",
+      "quota-summary-route",
+      "workflow-definition-summary-list-route",
+      "run-record-summary-list-route",
+      "audit-summary-list-route"
+    ]
+  },
+  "forbidden_current_scope": [
+    "Go route handler",
+    "HTTP route registration",
+    "TypeScript consumer contract",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "durable store",
+    "Radish OIDC integration",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console",
+    "user workspace UI"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-implementation-preconditions-v1-plan.md",
+    "docs/contracts/control-plane-read-side.md",
+    "scripts/checks/fixtures/control-plane-read-model-v1.json",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+    "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-implementation-preconditions-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-implementation-preconditions-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

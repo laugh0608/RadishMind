@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_fake_store_handler_plan_v1",
+  "slice": {
+    "id": "control-plane-read-fake-store-handler-plan-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "fake_store_handler_plan_defined",
+    "does_not_claim": [
+      "control_plane_api_ready",
+      "go_handler_ready",
+      "http_route_registered",
+      "typescript_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "radish_oidc_client_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "route_smoke_ready",
+      "workflow_executor_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-implementation-preconditions-v1"
+  ],
+  "planned_go_ownership": {
+    "status": "plan_only_not_implemented",
+    "package": "services/platform/internal/httpapi",
+    "route_registration_file": "services/platform/internal/httpapi/server.go",
+    "future_handler_file": "services/platform/internal/httpapi/control_plane_read.go",
+    "future_fake_store_file": "services/platform/internal/httpapi/control_plane_read_fake_store.go",
+    "future_test_file": "services/platform/internal/httpapi/control_plane_read_test.go",
+    "handler_owner": "go_platform_control_plane_read_side",
+    "existing_helpers": [
+      "newRequestTrace",
+      "writeObservedJSON",
+      "writeJSON"
+    ]
+  },
+  "implementation_phases": [
+    {
+      "id": "phase-1-shared-read-shell",
+      "status": "planned_not_implemented",
+      "route_ids": [],
+      "planned_outputs": [
+        "shared response envelope builder",
+        "test-only fake auth context adapter",
+        "fixture-backed fake store shape",
+        "no-side-effect counters"
+      ]
+    },
+    {
+      "id": "phase-2-single-resource-summary-routes",
+      "status": "planned_not_implemented",
+      "route_ids": [
+        "tenant-summary-route",
+        "quota-summary-route"
+      ],
+      "planned_outputs": [
+        "positive route smoke from response fixture",
+        "scope and tenant denial smoke",
+        "response envelope conformance"
+      ]
+    },
+    {
+      "id": "phase-3-cursor-list-summary-routes",
+      "status": "planned_not_implemented",
+      "route_ids": [
+        "application-summary-list-route",
+        "api-key-summary-list-route",
+        "workflow-definition-summary-list-route",
+        "run-record-summary-list-route",
+        "audit-summary-list-route"
+      ],
+      "planned_outputs": [
+        "cursor list response fixture smoke",
+        "invalid filter smoke",
+        "forbidden sensitive projection smoke"
+      ]
+    },
+    {
+      "id": "phase-4-negative-route-smoke",
+      "status": "planned_not_implemented",
+      "route_ids": [
+        "tenant-summary-route",
+        "application-summary-list-route",
+        "api-key-summary-list-route",
+        "quota-summary-route",
+        "workflow-definition-summary-list-route",
+        "run-record-summary-list-route",
+        "audit-summary-list-route"
+      ],
+      "planned_outputs": [
+        "forbidden method smoke",
+        "forbidden query smoke",
+        "missing identity smoke",
+        "tenant binding missing smoke",
+        "no executor/writeback/replay side effects"
+      ]
+    }
+  ],
+  "route_plan": [
+    {
+      "route_id": "tenant-summary-route",
+      "method": "GET",
+      "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+      "read_model": "tenant-summary",
+      "future_handler": "handleControlPlaneTenantSummary",
+      "implementation_phase": "phase-2-single-resource-summary-routes",
+      "fake_store_mode": "single_resource_summary"
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "read_model": "application-summary",
+      "future_handler": "handleUserWorkspaceApplicationSummaryList",
+      "implementation_phase": "phase-3-cursor-list-summary-routes",
+      "fake_store_mode": "cursor_list_summary"
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "read_model": "api-key-summary",
+      "future_handler": "handleUserWorkspaceAPIKeySummaryList",
+      "implementation_phase": "phase-3-cursor-list-summary-routes",
+      "fake_store_mode": "cursor_list_summary"
+    },
+    {
+      "route_id": "quota-summary-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/usage/quota-summary",
+      "read_model": "quota-summary",
+      "future_handler": "handleUserWorkspaceQuotaSummary",
+      "implementation_phase": "phase-2-single-resource-summary-routes",
+      "fake_store_mode": "single_resource_summary"
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "read_model": "workflow-definition-summary",
+      "future_handler": "handleUserWorkspaceWorkflowDefinitionSummaryList",
+      "implementation_phase": "phase-3-cursor-list-summary-routes",
+      "fake_store_mode": "cursor_list_summary"
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "read_model": "run-record-summary",
+      "future_handler": "handleUserWorkspaceRunRecordSummaryList",
+      "implementation_phase": "phase-3-cursor-list-summary-routes",
+      "fake_store_mode": "cursor_list_summary"
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "read_model": "audit-summary",
+      "future_handler": "handleControlPlaneAuditSummaryList",
+      "implementation_phase": "phase-3-cursor-list-summary-routes",
+      "fake_store_mode": "cursor_list_summary"
+    }
+  ],
+  "fake_store_plan": {
+    "status": "planned_not_implemented",
+    "strategy": "fixture_backed_fake_store_only",
+    "future_binding": "control_plane_read_fake_store.go",
+    "source_fixtures": [
+      "scripts/checks/fixtures/control-plane-read-model-v1.json",
+      "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+      "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+      "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json",
+      "scripts/checks/fixtures/control-plane-read-implementation-preconditions-v1.json"
+    ],
+    "allowed_modes": [
+      "single_resource_summary",
+      "cursor_list_summary"
+    ],
+    "does_not_allow": [
+      "database_query",
+      "database_migration",
+      "durable_store",
+      "production_data_source",
+      "secret_value_storage",
+      "provider_call",
+      "workflow_executor",
+      "business_writeback"
+    ]
+  },
+  "fake_auth_context_plan": {
+    "status": "test_only_plan_not_middleware",
+    "injection_mode": "go_test_request_context_only",
+    "production_truth_source": "future Radish OIDC / auth middleware",
+    "required_context_fields": [
+      "identity_context",
+      "tenant_binding",
+      "subject_binding",
+      "scope_grants",
+      "audit_context"
+    ],
+    "forbidden_public_inputs": [
+      "public_fake_auth_header",
+      "query_scope_override",
+      "anonymous_read",
+      "cross_tenant_read",
+      "ops_console_elevation"
+    ]
+  },
+  "response_conformance_gate": {
+    "status": "planned_not_implemented",
+    "response_source": "control-plane-read-response-fixtures-v1",
+    "envelope_fields": [
+      "request_id",
+      "tenant_ref",
+      "items",
+      "next_cursor",
+      "failure_code",
+      "audit_ref"
+    ],
+    "failure_code_source": "control-plane-read-route-contract-v1.failure_codes",
+    "forbidden_output_keys": [
+      "raw_secret_value",
+      "api_key_value",
+      "api_key_hash",
+      "authorization_header",
+      "bearer_token",
+      "cookie_value",
+      "raw_request_body_dump",
+      "raw_tool_payload",
+      "business_writeback_payload",
+      "full_prompt_dump_with_secret"
+    ]
+  },
+  "route_smoke_plan": {
+    "status": "planned_not_implemented",
+    "positive_case_source": "one_success_example_per_route_from_control-plane-read-response-fixtures-v1",
+    "negative_case_sources": [
+      "control-plane-read-negative-contract-v1.route_negative_cases",
+      "control-plane-read-negative-contract-v1.shared_negative_cases"
+    ],
+    "required_denial_invariants": [
+      "fail_closed",
+      "no_items_returned",
+      "audit_ref_required",
+      "no_executor_invocation",
+      "no_database_write",
+      "no_business_writeback",
+      "no_confirmation_decision",
+      "no_replay"
+    ],
+    "side_effect_counters": [
+      "fake_store_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ]
+  },
+  "forbidden_current_scope": [
+    "Go route handler implementation",
+    "HTTP route registration",
+    "TypeScript consumer contract",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "durable store",
+    "Radish OIDC integration",
+    "public fake auth header",
+    "tenant or user CRUD",
+    "API key generation",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console",
+    "user workspace UI"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-fake-store-handler-plan-v1-plan.md",
+    "docs/task-cards/control-plane-read-implementation-preconditions-v1-plan.md",
+    "docs/contracts/control-plane-read-side.md",
+    "scripts/checks/fixtures/control-plane-read-implementation-preconditions-v1.json",
+    "services/platform/internal/httpapi/server.go"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-architecture.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-fake-store-handler-plan-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}

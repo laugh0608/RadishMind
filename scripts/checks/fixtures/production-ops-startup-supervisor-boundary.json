@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_startup_supervisor_boundary",
+  "slice": {
+    "id": "startup-supervisor-boundary",
+    "track": "Production Ops Hardening v1",
+    "status": "governance_boundary_satisfied",
+    "does_not_claim": [
+      "production_ready",
+      "process_supervisor_ready",
+      "automatic_restart_ready",
+      "production_service_manager_ready",
+      "console_production_package_ready"
+    ]
+  },
+  "startup_entries": [
+    {
+      "id": "platform_service_wrapper",
+      "status": "supported_for_local_dev",
+      "commands": [
+        "serve",
+        "config-summary",
+        "config-check",
+        "diagnostics"
+      ],
+      "exit_policy": "returns child process exit code; unsupported command exits 2",
+      "log_policy": "foreground process inherits caller stdout and stderr",
+      "supervision_scope": "manual_start_only"
+    },
+    {
+      "id": "console_dev_entry",
+      "status": "supported_for_local_dev",
+      "commands": [
+        "start_or_reuse_backend",
+        "start_or_reuse_frontend",
+        "probe_healthz",
+        "probe_overview",
+        "probe_local_smoke",
+        "probe_cors",
+        "probe_frontend"
+      ],
+      "exit_policy": "probe failure exits non-zero; ExitAfterProbe/--exit-after-probe stops spawned dev processes",
+      "log_policy": "writes spawned process logs under tmp/radishmind-console-dev",
+      "supervision_scope": "dev_launcher_only"
+    },
+    {
+      "id": "verify_only_probe",
+      "status": "supported_for_local_dev",
+      "commands": [
+        "VerifyOnly",
+        "--verify-only"
+      ],
+      "exit_policy": "probes existing processes and exits",
+      "log_policy": "does not create new long-running process logs",
+      "supervision_scope": "readiness_probe_only"
+    }
+  ],
+  "readiness_probes": [
+    "http://127.0.0.1:7000/healthz",
+    "http://127.0.0.1:7000/v1/platform/overview",
+    "http://127.0.0.1:7000/v1/platform/local-smoke",
+    "local console CORS preflight",
+    "http://127.0.0.1:4000"
+  ],
+  "blocked_conditions": [
+    {
+      "id": "process_supervisor",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "automatic_restart",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_service_manager",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_log_retention",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "local-smoke is production health",
+    "dev launcher is process supervisor",
+    "tmp logs are production log retention",
+    "port reuse is service discovery",
+    "ExitAfterProbe is lifecycle management"
+  ],
+  "evidence": [
+    "scripts/run-platform-service.ps1",
+    "scripts/run-platform-service.sh",
+    "scripts/run-radishmind-console-dev.ps1",
+    "scripts/run-radishmind-console-dev.sh",
+    "scripts/check-platform-deployment-smoke.py",
+    "scripts/check-radishmind-console-dev-entry.py",
+    "services/platform/README.md",
+    "apps/radishmind-console/README.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-startup-supervisor-boundary.py",
+    "scripts/check-repo.py",
+    "scripts/check-p3-local-product-shell-short-close-checklist.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md"
+  ]
+}

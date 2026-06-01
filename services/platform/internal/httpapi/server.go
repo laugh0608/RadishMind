@@ -24,10 +24,11 @@ type bridgeClient interface {
 }
 
 type Server struct {
-	httpServer *http.Server
-	options    Options
-	bridge     bridgeClient
-	config     config.Config
+	httpServer            *http.Server
+	options               Options
+	bridge                bridgeClient
+	config                config.Config
+	controlPlaneReadStore controlPlaneReadStore
 }
 
 type errorDocument struct {
@@ -64,10 +65,17 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux.HandleFunc("GET /v1/session/recovery/checkpoints/{checkpoint_id}", server.handleSessionRecoveryCheckpoint)
 	mux.HandleFunc("GET /v1/tools/metadata", server.handleToolsMetadata)
 	mux.HandleFunc("POST /v1/tools/actions", server.handleToolAction)
+	mux.HandleFunc(controlPlaneTenantSummaryRoute, server.handleControlPlaneTenantSummary)
+	mux.HandleFunc(controlPlaneApplicationSummaryListRoute, server.handleUserWorkspaceApplicationSummaryList)
+	mux.HandleFunc(controlPlaneAPIKeySummaryListRoute, server.handleUserWorkspaceAPIKeySummaryList)
+	mux.HandleFunc(controlPlaneQuotaSummaryRoute, server.handleUserWorkspaceQuotaSummary)
+	mux.HandleFunc(controlPlaneWorkflowDefinitionSummaryListRoute, server.handleUserWorkspaceWorkflowDefinitionSummaryList)
+	mux.HandleFunc(controlPlaneRunRecordSummaryListRoute, server.handleUserWorkspaceRunRecordSummaryList)
+	mux.HandleFunc(controlPlaneAuditSummaryListRoute, server.handleControlPlaneAuditSummaryList)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           withLocalConsoleCORS(mux),
+		Handler:           withLocalConsoleCORS(withControlPlaneReadDevAuth(mux, cfg.ControlPlaneReadDevAuthEnabled)),
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}
@@ -105,7 +113,7 @@ func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bo
 	headers := writer.Header()
 	headers.Set("Access-Control-Allow-Origin", origin)
 	headers.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	headers.Set("Access-Control-Allow-Headers", "Accept, Content-Type, X-Request-Id")
+	headers.Set("Access-Control-Allow-Headers", strings.Join(localConsoleAllowedHeaders(), ", "))
 	headers.Set("Vary", "Origin")
 	return true
 }
@@ -120,7 +128,20 @@ func isAllowedLocalConsoleOrigin(origin string) bool {
 }
 
 func localConsoleAllowedOrigins() []string {
-	return []string{"http://127.0.0.1:4000", "http://localhost:4000"}
+	return []string{"http://127.0.0.1:4000", "http://localhost:4000", "http://127.0.0.1:4100", "http://localhost:4100"}
+}
+
+func localConsoleAllowedHeaders() []string {
+	return []string{
+		"Accept",
+		"Content-Type",
+		"X-Request-Id",
+		controlPlaneReadDevIdentityHeader,
+		controlPlaneReadDevTenantHeader,
+		controlPlaneReadDevSubjectHeader,
+		controlPlaneReadDevScopesHeader,
+		controlPlaneReadDevAuditHeader,
+	}
 }
 
 func (s *Server) handleModels(writer http.ResponseWriter, request *http.Request) {

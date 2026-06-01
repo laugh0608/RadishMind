@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_deployment_readiness_smoke",
+  "slice": {
+    "id": "deployment-readiness-smoke",
+    "track": "Production Ops Hardening v1",
+    "status": "static_compose_expansion_satisfied",
+    "does_not_claim": [
+      "container_smoke_ready",
+      "test_environment_smoke_ready",
+      "production_preflight_ready",
+      "production_ready",
+      "image_publish_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "production_auth_cors_policy_ready",
+      "console_runtime_config_ready"
+    ]
+  },
+  "assets": [
+    {
+      "id": "deploy_compose",
+      "path": "deploy/docker-compose.yaml",
+      "static_config_checked": true
+    },
+    {
+      "id": "deploy_env_example",
+      "path": "deploy/.env.example",
+      "static_config_checked": true
+    }
+  ],
+  "static_config_scenarios": [
+    {
+      "id": "docker_test_track_latest",
+      "mode": "docker_test",
+      "env": {
+        "RADISHMIND_IMAGE_TRACK": "test",
+        "RADISHMIND_PLATFORM_PROVIDER": "mock",
+        "RADISHMIND_PLATFORM_PROVIDER_PROFILE": "test-profile",
+        "RADISHMIND_PLATFORM_MODEL": "radishmind-test-model"
+      },
+      "expected": {
+        "platform_image": "ghcr.io/laugh0608/radishmind/platform:test-latest",
+        "console_image": "ghcr.io/laugh0608/radishmind/console:test-latest",
+        "platform_port": "127.0.0.1:7000:7000",
+        "console_port": "127.0.0.1:4000:80"
+      }
+    },
+    {
+      "id": "docker_prod_fixed_release_tag",
+      "mode": "docker_prod",
+      "env": {
+        "RADISHMIND_IMAGE_TRACK": "release",
+        "RADISHMIND_IMAGE_TAG": "v2026.05.24-release",
+        "RADISHMIND_PLATFORM_PROVIDER": "openai-compatible",
+        "RADISHMIND_PLATFORM_PROVIDER_PROFILE": "prod-profile",
+        "RADISHMIND_PLATFORM_MODEL": "radishmind-prod-model"
+      },
+      "expected": {
+        "platform_image": "ghcr.io/laugh0608/radishmind/platform:v2026.05.24-release",
+        "console_image": "ghcr.io/laugh0608/radishmind/console:v2026.05.24-release",
+        "platform_port": "127.0.0.1:7000:7000",
+        "console_port": "127.0.0.1:4000:80"
+      }
+    },
+    {
+      "id": "missing_required_provider_inputs",
+      "mode": "negative_static_config",
+      "env": {
+        "RADISHMIND_IMAGE_TRACK": "test"
+      },
+      "expected_failure": [
+        "RADISHMIND_PLATFORM_PROVIDER",
+        "RADISHMIND_PLATFORM_PROVIDER_PROFILE",
+        "RADISHMIND_PLATFORM_MODEL"
+      ]
+    }
+  ],
+  "manual_compose_config_commands": [
+    "docker compose --env-file deploy/.env -f deploy/docker-compose.yaml config",
+    "docker compose --env-file deploy/.env -f deploy/docker-compose.yaml config --quiet"
+  ],
+  "blocked_conditions": [
+    {
+      "id": "container_smoke_ready",
+      "status": "not_satisfied",
+      "required_before_test_environment_smoke_ready": true
+    },
+    {
+      "id": "test_environment_smoke",
+      "status": "not_satisfied",
+      "required_before_production_preflight_ready": true
+    },
+    {
+      "id": "production_preflight_record",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "docker_image_publish_workflow",
+      "status": "not_satisfied",
+      "required_before_docker_test_prod_ready": true
+    },
+    {
+      "id": "console_runtime_config",
+      "status": "not_satisfied",
+      "required_before_console_production_package_ready": true
+    },
+    {
+      "id": "production_secret_backend",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "process_supervisor",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "static compose expansion is container smoke",
+    "docker compose config is production deployment",
+    "loopback bind is public ingress",
+    "healthcheck is provider health policy",
+    "depends_on is process supervisor",
+    "required provider env names are secret backend",
+    "test-latest or release-latest is release approval"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-deployment-readiness-smoke.py",
+    "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md",
+    "docs/task-cards/production-ops-docker-deployment-v1-plan.md",
+    "docs/devlogs/2026-W21.md"
+  ]
+}

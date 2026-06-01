@@ -21,6 +21,7 @@ from scripts.checks.radish_docs_qa_real_batch_summary_common import (  # noqa: E
     require_false,
     require_missing_path,
     require_non_empty_list,
+    require_path_equal,
     require_summary_selection,
     require_true,
     run_command,
@@ -108,9 +109,9 @@ def main() -> int:
         if len(same_sample_group_ids) < SAME_SAMPLE_TOP:
             raise SystemExit("artifact summary same-sample recommended_group_ids is shorter than the requested top")
 
-        require_equal(
+        require_path_equal(
             same_sample_summary.get("batch_artifact_summary_path"),
-            str(paths.artifact_summary_path),
+            paths.artifact_summary_path,
             "same-sample summary batch_artifact_summary_path",
         )
         require_summary_selection(

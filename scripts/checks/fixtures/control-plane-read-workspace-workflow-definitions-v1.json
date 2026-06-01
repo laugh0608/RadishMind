@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_workspace_workflow_definitions_v1",
+  "slice": {
+    "id": "control-plane-read-workspace-workflow-definitions-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "workspace_workflow_definitions_implemented",
+    "does_not_claim": [
+      "production_admin_console_ready",
+      "formal_user_workspace_complete",
+      "real_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "workflow_builder_ready",
+      "workflow_definition_lifecycle_ready",
+      "workflow_executor_ready",
+      "tool_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-consumer-contract-v1",
+    "control-plane-read-formal-ui-boundary-v1",
+    "control-plane-read-formal-ui-implementation-readiness-v1",
+    "control-plane-read-shared-shell-v1",
+    "control-plane-read-admin-tenant-overview-v1",
+    "control-plane-read-workspace-applications-v1",
+    "control-plane-read-workspace-api-keys-v1",
+    "control-plane-read-workspace-usage-quota-v1"
+  ],
+  "page": {
+    "id": "workspace-workflow-definitions",
+    "surface": "User Workspace",
+    "route_id": "workflow-definition-summary-list-route",
+    "read_model": "workflow-definition-summary",
+    "required_scope": "applications:read",
+    "status": "offline_read_only_page_slice",
+    "app_root": "apps/radishmind-web/",
+    "local_ops_console_boundary": "remain_local_ops_surface_only"
+  },
+  "implemented_capabilities": [
+    "workspace_workflow_definitions_read_only_page",
+    "workflow_definition_summary_list_route_binding",
+    "workflow_definition_summary_collection_view_model",
+    "workflow_definition_row_display",
+    "workflow_definition_route_metadata_display",
+    "workflow_definition_state_previews",
+    "forbidden_output_guard_reused",
+    "no_live_backend_request",
+    "no_builder_or_execution_controls"
+  ],
+  "required_contract_symbols": [
+    "CONTROL_PLANE_READ_ROUTES",
+    "CONTROL_PLANE_READ_ROUTE_DEFINITIONS",
+    "CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS",
+    "WorkflowDefinitionSummary",
+    "ControlPlaneReadCollectionViewModel",
+    "ControlPlaneReadResponseByRoute",
+    "controlPlaneReadResponseHasForbiddenOutput",
+    "toControlPlaneReadCollectionViewModel"
+  ],
+  "required_states": [
+    "ready",
+    "empty",
+    "denied",
+    "stale",
+    "partial_failure",
+    "forbidden_projection"
+  ],
+  "forbidden_source_literals": [
+    "XMLHttpRequest",
+    "axios",
+    "createRoot(document.getElementById(\"console\""
+  ],
+  "forbidden_package_scripts": [
+    "deploy",
+    "publish",
+    "release",
+    "package",
+    "docker"
+  ],
+  "forbidden_control_literals": [
+    "create_workflow",
+    "edit_workflow",
+    "delete_workflow",
+    "execute_workflow",
+    "confirm_workflow_action",
+    "workflow executor ready",
+    "workflow builder ready"
+  ],
+  "required_files": [
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/features/control-plane-read/readShell.ts",
+    "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceUsageQuota.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceWorkflowDefinitions.ts",
+    "apps/radishmind-web/src/styles.css",
+    "apps/radishmind-web/package.json"
+  ],
+  "testing_strategy": [
+    {
+      "id": "workspace_workflow_definitions_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-workspace-workflow-definitions-v1.py"
+    },
+    {
+      "id": "workspace_usage_quota_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-workspace-usage-quota-v1.py"
+    },
+    {
+      "id": "consumer_smoke",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_when_node_dependencies_available",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not modify apps/radishmind-console into formal user workspace",
+    "do not modify apps/radishmind-console into production admin console",
+    "do not request live backend from workspace workflow definitions",
+    "do not connect database schema migration query or repository",
+    "do not add Radish OIDC middleware token validation login or logout",
+    "do not add workflow builder workflow lifecycle mutation executor tool executor confirmation writeback or replay"
+  ],
+  "required_doc_references": {
+    "docs/README.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workflow-definition-summary-list-route"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "Control Plane Read Workspace Workflow Definitions"
+    ],
+    "docs/task-cards/control-plane-read-workspace-workflow-definitions-v1-plan.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-workspace-workflow-definitions-v1.py",
+      "control-plane-read-workspace-workflow-definitions-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ],
+    "docs/devlogs/2026-W22.md": [
+      "control-plane-read-workspace-workflow-definitions-v1",
+      "workspace-workflow-definitions"
+    ]
+  }
+}

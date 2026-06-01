@@ -31,11 +31,11 @@
 
 当前保留的正式门禁如下：
 
-- `python3 scripts/check-radishflow-service-smoke-matrix.py --check-summary scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json`
-- `python3 scripts/check-gateway-service-smoke.py --check-summary scripts/checks/fixtures/gateway-service-smoke-summary.json`
-- `python3 scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check`
-- `python3 scripts/check-radishflow-gateway-ui-consumption.py --check-summary scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json`
-- `python3 scripts/check-radishflow-candidate-edit-handoff.py --check-summary scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json`
+- `./scripts/run-python.sh scripts/check-radishflow-service-smoke-matrix.py --check-summary scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json`
+- `./scripts/run-python.sh scripts/check-gateway-service-smoke.py --check-summary scripts/checks/fixtures/gateway-service-smoke-summary.json`
+- `./scripts/run-python.sh scripts/run-radishflow-gateway-demo.py --manifest scripts/checks/fixtures/radishflow-gateway-demo-fixtures.json --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json --check`
+- `./scripts/run-python.sh scripts/check-radishflow-gateway-ui-consumption.py --check-summary scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json`
+- `./scripts/run-python.sh scripts/check-radishflow-candidate-edit-handoff.py --check-summary scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json`
 
 文档或治理改动完成后，仓库级最小验证继续优先使用：
 

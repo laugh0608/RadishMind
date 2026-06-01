@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "kind": "production_ops_docker_test_prod_compose",
+  "slice": {
+    "id": "docker-test-prod-compose",
+    "track": "Production Ops Hardening v1",
+    "status": "deploy_compose_boundary_satisfied",
+    "does_not_claim": [
+      "image_publish_ready",
+      "production_ready",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "production_auth_cors_policy_ready",
+      "console_runtime_config_ready",
+      "console_production_package_ready"
+    ]
+  },
+  "assets": [
+    {
+      "id": "deploy_compose",
+      "path": "deploy/docker-compose.yaml",
+      "purpose": "Define the shared deployment compose shape for docker_test and docker_prod using prebuilt images.",
+      "allows_build": false
+    },
+    {
+      "id": "deploy_env_example",
+      "path": "deploy/.env.example",
+      "purpose": "Document non-secret deployment inputs for test and production operators.",
+      "allows_secret_values": false
+    }
+  ],
+  "image_policy": {
+    "registry_env": "RADISHMIND_IMAGE_REGISTRY",
+    "track_env": "RADISHMIND_IMAGE_TRACK",
+    "fixed_tag_env": "RADISHMIND_IMAGE_TAG",
+    "default_track": "test",
+    "test_track": "test",
+    "prod_track": "release",
+    "test_tag_pattern": "v*-test",
+    "prod_tag_pattern": "v*-release",
+    "publish_workflow_status": "not_satisfied"
+  },
+  "deploy_services": [
+    {
+      "id": "platform",
+      "image": "RADISHMIND_IMAGE_REGISTRY/platform:RADISHMIND_IMAGE_TAG or RADISHMIND_IMAGE_TRACK-latest",
+      "build": "forbidden",
+      "container_port": 7000,
+      "default_bind": "127.0.0.1",
+      "healthcheck": "http://127.0.0.1:7000/healthz",
+      "required_operator_inputs": [
+        "RADISHMIND_PLATFORM_PROVIDER",
+        "RADISHMIND_PLATFORM_PROVIDER_PROFILE",
+        "RADISHMIND_PLATFORM_MODEL"
+      ]
+    },
+    {
+      "id": "console",
+      "image": "RADISHMIND_IMAGE_REGISTRY/console:RADISHMIND_IMAGE_TAG or RADISHMIND_IMAGE_TRACK-latest",
+      "build": "forbidden",
+      "container_port": 80,
+      "default_bind": "127.0.0.1",
+      "depends_on": "platform:service_healthy",
+      "runtime_config": "not_satisfied"
+    }
+  ],
+  "environment_modes": [
+    {
+      "id": "docker_test",
+      "status": "deploy_compose_boundary_available",
+      "compose_file": "deploy/docker-compose.yaml",
+      "env_example": "deploy/.env.example",
+      "image_track": "test",
+      "fixed_tag_policy": "RADISHMIND_IMAGE_TAG may pin a v*-test tag",
+      "public_url_policy": "test public URL only; no production secret"
+    },
+    {
+      "id": "docker_prod",
+      "status": "deploy_compose_boundary_available_but_not_ready",
+      "compose_file": "deploy/docker-compose.yaml",
+      "env_example": "deploy/.env.example",
+      "image_track": "release",
+      "fixed_tag_policy": "RADISHMIND_IMAGE_TAG may pin a v*-release tag",
+      "readiness_policy": "requires secret backend, production auth/CORS policy, external reverse proxy, provider health policy and deployment smoke before production ready"
+    }
+  ],
+  "blocked_conditions": [
+    {
+      "id": "docker_image_publish_workflow",
+      "status": "not_satisfied",
+      "required_before_docker_test_prod_ready": true
+    },
+    {
+      "id": "console_runtime_config",
+      "status": "not_satisfied",
+      "required_before_console_production_package_ready": true
+    },
+    {
+      "id": "production_secret_backend",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "production_auth_cors_policy",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    },
+    {
+      "id": "process_supervisor",
+      "status": "not_satisfied",
+      "required_before_production_ready": true
+    }
+  ],
+  "forbidden_interpretations": [
+    "deploy/docker-compose.yaml is production ready",
+    "deploy/.env.example is a secret backend",
+    "Compose healthcheck is provider health policy",
+    "Compose depends_on is process supervisor",
+    "Image track variables are an image publishing workflow",
+    "Static console image has runtime config"
+  ],
+  "required_consumers": [
+    "scripts/check-production-ops-docker-test-prod-compose.py",
+    "scripts/check-production-ops-docker-deployment-mode.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/task-cards/production-ops-hardening-v1-plan.md",
+    "docs/task-cards/production-ops-docker-deployment-v1-plan.md",
+    "docs/devlogs/2026-W21.md"
+  ]
+}

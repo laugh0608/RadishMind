@@ -15,6 +15,10 @@ __pycache__/
 .venv
 env/
 venv/
+node_modules/
+apps/radishmind-console/node_modules/
+apps/radishmind-console/dist/
+services/platform/.cache/
 
 .pytest_cache/
 .mypy_cache/
@@ -23,6 +27,8 @@ venv/
 build/
 dist/
 tmp/
+deploy/.env
+deploy/.env.local
 
 .DS_Store
 Thumbs.db

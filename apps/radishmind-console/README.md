@@ -42,11 +42,17 @@
 
 在本目录安装依赖：
 
-```powershell
+```bash
 npm install
 ```
 
-先从本目录启动平台服务：
+macOS / Linux / WSL 从本目录启动平台服务：
+
+```bash
+../../scripts/run-platform-service.sh serve
+```
+
+Windows / PowerShell 从本目录启动平台服务：
 
 ```powershell
 pwsh ../../scripts/run-platform-service.ps1 serve
@@ -60,25 +66,31 @@ npm run dev
 
 默认读取 `http://127.0.0.1:7000/v1/platform/overview` 与 `http://127.0.0.1:7000/v1/platform/local-smoke`。如需改地址，可设置：
 
+```bash
+export VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:7000"
+```
+
+Windows / PowerShell 使用：
+
 ```powershell
 $env:VITE_RADISHMIND_PLATFORM_BASE_URL="http://127.0.0.1:7000"
 ```
 
 平台服务只允许 `http://127.0.0.1:4000` 与 `http://localhost:4000` 这两个本地 console origin 读取 API；这只是本地开发 CORS 边界，不代表生产鉴权或公开部署已完成。
 
-也可以从仓库根目录使用本地开发一键入口启动并验证后端与前端：
-
-```powershell
-pwsh ./scripts/run-radishmind-console-dev.ps1
-```
-
-Linux / WSL 使用：
+也可以从仓库根目录使用本地开发一键入口启动并验证后端与前端。macOS / Linux / WSL 使用：
 
 ```bash
 ./scripts/run-radishmind-console-dev.sh
 ```
 
-该入口按既有 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 启动或复用 platform 后端，按 `npm run dev` 启动或复用本目录前端，然后探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、`http://127.0.0.1:7000/v1/platform/local-smoke`、本地 console CORS preflight 和 `http://127.0.0.1:4000`。本地 readiness 摘要仍可用 `python scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check` 做脚本验证。如只验证已有进程，可执行：
+Windows / PowerShell 使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-console-dev.ps1
+```
+
+该入口按既有 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 启动或复用 platform 后端，按 `npm run dev` 启动或复用本目录前端，然后探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、`http://127.0.0.1:7000/v1/platform/local-smoke`、本地 console CORS preflight 和 `http://127.0.0.1:4000`。本地 readiness 摘要仍可用 `./scripts/run-python.sh scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check` 做脚本验证。如只验证已有进程，可执行：
 
 ```powershell
 pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
@@ -99,10 +111,20 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 当前 console production packaging 仍未完成，本目录仍是本地只读产品壳，不是 production package。当前边界：
 
 - `package.json` 必须保持 `private=true`
+- `npm run build` 只做本地或 CI smoke：执行 `tsc --noEmit && vite build`，生成的 `dist/` 仍不得提交
+- `npm run preview` 只做本地 build preview：固定 `127.0.0.1:4000`，不是 production hosting
 - 不生成、提交或发布 production package
 - 不添加 deploy / publish / release 脚本
 - 不提交 `dist/` 或 `node_modules/`
 - 不声明 production secret backend、正式鉴权、进程守护或环境隔离已完成
+
+`scripts/checks/fixtures/production-ops-console-package-smoke.json` 与 `scripts/check-production-ops-console-package-smoke.py` 固定上述 package smoke 边界。该检查不发布、不上传、不启动公开服务，也不把 Vite preview 解释为 production deployment。
+
+## Docker local compose 边界
+
+`apps/radishmind-console/Dockerfile` 和 `apps/radishmind-console/nginx.local.conf` 只服务 `docker-local-compose` 本地容器 smoke。它们通过本地 nginx 容器托管 build 后的只读 console，默认把 `VITE_RADISHMIND_PLATFORM_BASE_URL` 固定到 `http://127.0.0.1:7000`，与 `deploy/docker-compose.local.yaml` 中发布到宿主机的 platform 端口配套。
+
+这不是 production hosting policy，也不是 console production package ready。测试 / 生产部署态、runtime config、正式 auth / CORS policy、镜像发布和外部反代仍待后续 `docker-test-prod-compose` 切片定义。
 
 ## 连接失败诊断
 
@@ -114,23 +136,23 @@ pwsh ./scripts/run-radishmind-console-dev.ps1 -VerifyOnly
 
 常见处理顺序：
 
-1. 确认平台服务已通过 `pwsh ../../scripts/run-platform-service.ps1 serve` 启动。
+1. 确认平台服务已通过 `../../scripts/run-platform-service.sh serve` 或 `pwsh ../../scripts/run-platform-service.ps1 serve` 启动。
 2. 打开 `http://127.0.0.1:7000/v1/platform/overview`，确认返回 JSON。
 3. 打开 `http://127.0.0.1:7000/v1/platform/local-smoke`，确认 readiness 摘要返回 `platform_local_smoke`。
 4. 若服务端口或主机不同，更新页面里的 `Platform URL` 或设置 `VITE_RADISHMIND_PLATFORM_BASE_URL`。
 5. 若浏览器报 CORS / preflight，确认 console 使用 `http://127.0.0.1:4000` 或 `http://localhost:4000`。
-6. 若提示 overview contract 不匹配，运行 `python ../../scripts/run-platform-overview-consumer-smoke.py --base-url http://127.0.0.1:7000 --check`。
-7. 若提示 local-smoke contract 不匹配，运行 `python ../../scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check`。
+6. 若提示 overview contract 不匹配，运行 `../../scripts/run-python.sh ../../scripts/run-platform-overview-consumer-smoke.py --base-url http://127.0.0.1:7000 --check`。
+7. 若提示 local-smoke contract 不匹配，运行 `../../scripts/run-python.sh ../../scripts/run-platform-local-smoke.py --base-url http://127.0.0.1:7000 --check`。
 
 ## 验证
 
-```powershell
+```bash
 npm run build
-python ../../scripts/check-radishmind-console-shell.py
-python ../../scripts/check-radishmind-console-behavior.py
-python ../../scripts/check-platform-local-smoke-contract.py
-python ../../scripts/check-radishmind-console-production-boundary.py
-python ../../scripts/check-p3-local-product-shell-short-close-checklist.py
+../../scripts/run-python.sh ../../scripts/check-radishmind-console-shell.py
+../../scripts/run-python.sh ../../scripts/check-radishmind-console-behavior.py
+../../scripts/run-python.sh ../../scripts/check-platform-local-smoke-contract.py
+../../scripts/run-python.sh ../../scripts/check-radishmind-console-production-boundary.py
+../../scripts/run-python.sh ../../scripts/check-p3-local-product-shell-short-close-checklist.py
 ```
 
 ## 停止线

@@ -76,6 +76,7 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_PLATFORM_MODEL", "env-model")
 	t.Setenv("RADISHMIND_PLATFORM_BRIDGE_TIMEOUT", "12s")
 	t.Setenv("RADISHMIND_PLATFORM_API_KEY", "env-secret")
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -94,6 +95,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	if cfg.APIKey != "env-secret" {
 		t.Fatalf("expected env credential override")
 	}
+	if !cfg.ControlPlaneReadDevAuthEnabled {
+		t.Fatalf("expected control plane read dev auth env override")
+	}
 
 	summary := cfg.SanitizedSummary()
 	if summary.FieldSources["listen_addr"] != "file" {
@@ -107,6 +111,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["credential"] != "env" {
 		t.Fatalf("expected credential source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["control_plane_read_dev_auth"] != "env" {
+		t.Fatalf("expected control_plane_read_dev_auth source=env, got %#v", summary.FieldSources)
 	}
 	if summary.ConfigFile.Path != configPath || !summary.ConfigFile.Configured || !summary.ConfigFile.Loaded {
 		t.Fatalf("unexpected config file summary: %#v", summary.ConfigFile)
@@ -193,6 +200,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_PLATFORM_BASE_URL",
 		"RADISHMIND_PLATFORM_API_KEY",
 		"RADISHMIND_PLATFORM_TEMPERATURE",
+		"RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH",
 	} {
 		t.Setenv(key, "")
 	}

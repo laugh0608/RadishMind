@@ -75,12 +75,12 @@ require_command() {
 }
 
 find_python() {
-  if command -v python3 >/dev/null 2>&1; then
-    command -v python3
-  elif command -v python >/dev/null 2>&1; then
-    command -v python
+  local python_bin="${repo_root}/.venv/bin/python"
+  if [[ -x "${python_bin}" ]]; then
+    echo "${python_bin}"
   else
-    echo "Missing required command: python3 or python" >&2
+    echo "Missing repository virtual environment: ${python_bin}" >&2
+    echo "Run ./scripts/bootstrap-dev.sh before running scripts/run-radishmind-console-dev.sh" >&2
     exit 1
   fi
 }

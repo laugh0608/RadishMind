@@ -1,6 +1,6 @@
 # RadishMind 战略定义
 
-更新时间：2026-05-10
+更新时间：2026-05-26
 
 ## 这份文档回答什么
 
@@ -16,14 +16,26 @@
 
 ## 一句话定义
 
-`RadishMind` 是一个把多模型、多协议、多任务收口成可审计、可控、可本地部署的 AI runtime 的中间层平台。
+`RadishMind` 是一个把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可审计、可控、可本地部署产品能力的平台。
 
-更准确地说，它是 `Radish` 体系下的 `AI Middleware / AI Runtime`，而不是：
+更准确地说，它是 `Radish` 体系下的 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，而不是：
 
 - 单一模型项目
 - 通用聊天产品
 - 只做接线的适配仓库
 - 替代业务内核的自治系统
+
+## 产品参考边界
+
+RadishMind 的长期形态会参考三类开源项目，但不直接复刻任意一个项目：
+
+- `Dify`（https://github.com/langgenius/dify）：参考 AI 应用构建、workflow、RAG、Agent、模型管理和观测能力。
+- `sub2api`（https://github.com/Wei-Shaw/sub2api）：参考模型 API 分发、订阅 / key 中转和共享调用场景。
+- `axonhub`（https://github.com/looplj/axonhub）：参考 AI gateway、多模型 SDK 兼容、路由、failover、成本控制和 tracing。
+
+部署方式、数据库和登录 / 授权默认参考 `Radish`（https://github.com/laugh0608/Radish）。未来 RadishMind 应作为 OIDC client 接入 `Radish`，避免自建第二套身份与权限真相源。
+
+这里的“参考 Radish”是协议、部署、数据库和身份边界对齐，不是复制 Radish 的后端语言栈。RadishMind 当前已经有 `Go + Python + TypeScript/Vite` 三栈，长期默认不再新增 `.NET` / ASP.NET Core；Control Plane 默认用 Go 独立成服务或模块，Model Gateway / API distribution 继续用 Go，模型、评测和 AI 生态相关 worker 继续用 Python。
 
 ## 核心价值
 
@@ -49,6 +61,28 @@
 所以 `RadishMind` 的核心价值是：
 
 把“模型能力”转化成“可控产品能力”。
+
+## 四个产品面
+
+长期产品面按四层拆分，避免把用户端、管理端、网关和运行时混成一个不可治理的大模块。
+
+### 1. `User Workspace`
+
+面向普通用户和团队成员，提供 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG / 知识问答应用的创建、运行、调试和历史查看。
+
+### 2. `Admin Control Plane`
+
+面向管理员和运维，管理租户、用户、角色、权限、provider/profile、模型路由、API key、额度、价格、审计、secret backend、部署状态和 stop-line。
+
+Control Plane 可以拆成独立 Go 服务；拆分依据是租户 / 权限 / quota / API key / 审计等职责边界，不是为了引入新语言。
+
+### 3. `Model Gateway / API Distribution`
+
+面向 API 调用者，提供 OpenAI-compatible / Responses / Messages / Models 等接口，统一分发到多 provider、多 profile 和多模型，并逐步支持 quota、限流、成本、trace、fallback、load balancing 和 health。
+
+### 4. `Workflow / Agent Runtime`
+
+面向应用执行，承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、受控 tool/action 和后续 agent loop。高风险动作默认保留确认边界，不直接写业务真相源。
 
 ## 三层定位
 
@@ -142,7 +176,7 @@
 
 ## Provider Capability Matrix
 
-`RadishMind` 后续需要一份独立的 provider capability matrix 文档或 fixture。最小维度应固定为：
+`RadishMind` 需要一份独立的 provider capability matrix 文档或 fixture。当前第一版已经落成 `scripts/checks/fixtures/provider-capability-matrix-v1.json`，并由 `scripts/check-provider-capability-matrix.py` 从 `services/runtime/provider_registry.py` 校验。最小维度固定为：
 
 - `provider_id`
 - `transport`
@@ -163,7 +197,19 @@
 - `latency_profile`
 - `deployment_mode`
 
-如果没有这张矩阵，后面的 routing、fallback、deployment 和训练路线都会继续凭印象推进。
+这张矩阵只证明 provider 能力声明和发现口径可检查，不证明 provider health、optional live health 或 production readiness。后续 routing、fallback、deployment 和训练路线必须继续复用这条 provider truth，不能各自凭印象推进。
+
+## Provider Health And Selection
+
+Provider capability、health 和 selection 必须分层理解：
+
+- `provider-capability-matrix-v1`：说明 provider 声明了什么能力。
+- `provider-health-smoke-v1`：说明 mock runtime 与 config-level inventory 在离线 fast baseline 下可检查。
+- `provider-selection-policy-v1`：说明请求侧如何选择 profile / provider / concrete model，以及未知 model/profile、credential missing、unsupported capability、timeout 和 no implicit fallback 如何分类。
+- `provider-retry-fallback-policy-v1`：说明当前调用策略审计 metadata 固定为 `retry_policy=caller-managed` 与 `fallback_policy=disabled`，失败路径不自动重试、不隐式 fallback。
+- `provider-runtime-docs-refresh`：说明入口文档、说明书和任务卡必须共同维护这些边界。
+
+当前不把 optional live health、retry/fallback execution、production secret backend 或 production readiness 纳入默认完成声明。它们只能作为独立任务，在输入、输出、停止线和验证窗口明确后重开。
 
 ## Service Mode Tiers
 
@@ -257,23 +303,27 @@
 - 不做直接写业务真相源的执行器
 - 不做只绑定单一模型或单一协议的封闭系统
 - 不做只服务单一实验链路的临时仓库
+- 不把 `Radish` 对齐误解成必须引入 `.NET` 或 ASP.NET Core
 
 ## 当前最该做什么
 
-基于上面的定义，当前最高优先级不是继续扩旧实验，也不是继续补假想接线，而是把平台骨架补到可执行：
+基于上面的定义，当前最高优先级不是继续扩旧实验，也不是继续补假想接线，而是先把模型网关、runtime、ops 和治理骨架补到可执行，再进入正式用户端 / 管理端 / workflow builder。到 2026-05-26，以下骨架已经阶段性落地：
 
-1. 建立正式 `provider registry`
-2. 建立正式 `protocol compatibility layer`
-3. 先落地 northbound `/v1/chat/completions` 与 `/v1/models`
-4. 先落地 southbound `HuggingFace` 与 `Ollama`
-5. 把 capability matrix、compatibility smoke 和 governance gate 一起补齐
+1. 正式 `provider registry`
+2. `protocol compatibility layer` 的第一版 northbound bridge
+3. northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models`
+4. southbound `HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native 和 Anthropic messages 分流
+5. capability matrix、health smoke、selection policy、provider-retry-fallback-policy-v1、compatibility smoke 和 governance gate
+
+下一步不应继续在同层无限补 provider 小切片，而应先把产品定位文档、路线图和架构对齐到“用户端 + 管理端 + workflow + model gateway”，再按独立任务推进 `config-secret-ref-readiness`、正式模型网关能力、控制面前置设计或工作流 v1。
 
 ## 判断标准
 
 如果后续一个改动同时满足这些条件，方向通常是对的：
 
-- 更接近 `AI Middleware / AI Runtime`，而不是聊天壳或模型脚手架
+- 更接近 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，而不是聊天壳或模型脚手架
 - 同时增强 northbound 与 southbound 的可替换性
 - 不把协议兼容层变成第二套真相源
 - 不把训练和模型实验重新抬回第一优先级
+- 不新增后端语言栈，除非它能降低系统总复杂度
 - 可审计、可确认、可复跑、可部署的边界更清晰

@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "kind": "provider_health_smoke_v1",
+  "decision": {
+    "id": "provider-health-smoke-v1",
+    "track": "Provider Runtime & Health v1",
+    "status": "satisfied",
+    "default_mode": "offline_health_smoke",
+    "does_not_claim": [
+      "optional_live_health_enabled_by_default",
+      "external_provider_reachable",
+      "production_readiness",
+      "production_secret_backend_ready",
+      "process_supervisor_ready",
+      "implicit_provider_fallback_ready",
+      "tool_executor_ready"
+    ]
+  },
+  "health_layers": [
+    {
+      "id": "mock_runtime_smoke",
+      "status": "satisfied",
+      "default_fast_baseline": true,
+      "provider": "mock",
+      "sample": "datasets/eval/radish/answer-docs-question-direct-answer-001.json",
+      "expected_classification": "healthy_offline",
+      "network_access": "forbidden",
+      "credential_required": false
+    },
+    {
+      "id": "config_level_inventory_smoke",
+      "status": "satisfied",
+      "default_fast_baseline": true,
+      "expected_profiles": [
+        {
+          "model_id": "profile:ready",
+          "provider_id": "openai-compatible",
+          "profile": "ready",
+          "credential_state": "configured",
+          "deployment_mode": "remote_api",
+          "expected_classification": "config_ready_not_live_checked"
+        },
+        {
+          "model_id": "profile:missing",
+          "provider_id": "openai-compatible",
+          "profile": "missing",
+          "credential_state": "missing",
+          "deployment_mode": "remote_api",
+          "expected_classification": "config_blocked_credential_missing"
+        },
+        {
+          "model_id": "provider:huggingface:profile:hf-missing",
+          "provider_id": "huggingface",
+          "profile": "hf-missing",
+          "credential_state": "missing",
+          "deployment_mode": "remote_api",
+          "expected_classification": "config_blocked_credential_missing"
+        },
+        {
+          "model_id": "provider:ollama:profile:local",
+          "provider_id": "ollama",
+          "profile": "local",
+          "credential_state": "optional_missing",
+          "deployment_mode": "local_daemon",
+          "expected_classification": "config_ready_optional_credential_missing"
+        }
+      ],
+      "network_access": "forbidden",
+      "credential_required": false
+    },
+    {
+      "id": "optional_live_health",
+      "status": "manual_only_future_slice",
+      "default_fast_baseline": false,
+      "required_inputs": [
+        "provider",
+        "provider_profile",
+        "base_url",
+        "credential_source",
+        "request_timeout_seconds",
+        "output_record_path"
+      ],
+      "record_root": "tmp/provider-health-smoke/",
+      "failure_policy": "live_probe_failure_is_provider_health_signal_not_production_outage"
+    }
+  ],
+  "failure_taxonomy": [
+    "healthy_offline",
+    "config_ready_not_live_checked",
+    "config_ready_optional_credential_missing",
+    "config_blocked_credential_missing",
+    "config_blocked_base_url_missing",
+    "live_provider_unavailable",
+    "live_provider_timeout",
+    "live_provider_auth_failed",
+    "unsupported_capability"
+  ],
+  "execution_policy": {
+    "default_fast_baseline": "mock_and_config_only",
+    "network_access": "forbidden_by_default",
+    "credential_required": false,
+    "model_download": "forbidden",
+    "optional_live_health": "manual_only",
+    "live_health_result_scope": "provider_health_signal_only",
+    "fallback_policy": "disabled_unless_explicit_selection_policy_allows"
+  },
+  "required_consumers": [
+    "scripts/check-provider-health-smoke.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-architecture.md",
+    "docs/task-cards/provider-runtime-health-v1-plan.md",
+    "docs/devlogs/2026-W22.md"
+  ]
+}
