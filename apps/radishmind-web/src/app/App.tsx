@@ -4,6 +4,12 @@ import {
   type AdminTenantOverviewStatePreview,
 } from "../features/control-plane-read/adminTenantOverview";
 import {
+  buildAdminAuditLogViewModel,
+  type AdminAuditEventRow,
+  type AdminAuditLogMetric,
+  type AdminAuditLogStatePreview,
+} from "../features/control-plane-read/adminAuditLog";
+import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
   type ControlPlaneReadStatePreview,
@@ -41,6 +47,7 @@ import {
 
 const shell = buildControlPlaneReadShellViewModel();
 const tenantOverview = buildAdminTenantOverviewViewModel();
+const adminAuditLog = buildAdminAuditLogViewModel();
 const workspaceApplications = buildWorkspaceApplicationsViewModel();
 const workspaceApiKeys = buildWorkspaceApiKeysViewModel();
 const workspaceUsageQuota = buildWorkspaceUsageQuotaViewModel();
@@ -58,6 +65,7 @@ export function App() {
         </div>
         <nav className="nav-links" aria-label="Read shell sections">
           <a href="#admin-tenant-overview">Tenant Overview</a>
+          <a href="#admin-audit-log">Audit Log</a>
           <a href="#workspace-applications">Applications</a>
           <a href="#workspace-api-keys">API Keys</a>
           <a href="#workspace-usage-quota">Usage Quota</a>
@@ -85,6 +93,7 @@ export function App() {
             <Fact label="Database" value={shell.catalog.databaseBacked ? "attached" : "detached"} />
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
+            <Fact label="Audit page" value={adminAuditLog.canRenderAuditLog ? "ready" : "blocked"} />
             <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
             <Fact label="Key page" value={workspaceApiKeys.canRenderApiKeys ? "ready" : "blocked"} />
             <Fact label="Quota page" value={workspaceUsageQuota.canRenderQuota ? "ready" : "blocked"} />
@@ -151,6 +160,67 @@ export function App() {
           <div className="tenant-states" aria-label="Tenant overview states">
             {tenantOverview.statePreviews.map((state) => (
               <TenantStatePreview key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
+
+        <section className="surface-band admin-audit-log" id="admin-audit-log" aria-labelledby="admin-audit-log-title">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Admin Control Plane</p>
+              <h3 id="admin-audit-log-title">Audit log</h3>
+            </div>
+            <StatusBadge tone={adminAuditLog.canRenderAuditLog ? "good" : "bad"}>
+              {adminAuditLog.canRenderAuditLog ? "read-only ready" : "blocked"}
+            </StatusBadge>
+          </div>
+
+          <div className="audit-log-summary">
+            <article className="audit-log-route">
+              <div className="card-title-row">
+                <div>
+                  <p className="eyebrow">Audit Summary List Route</p>
+                  <h4>{adminAuditLog.routeId}</h4>
+                </div>
+                <StatusBadge tone="neutral">{adminAuditLog.requiredScope}</StatusBadge>
+              </div>
+              <p className="route-path">{adminAuditLog.routePath}</p>
+              <dl className="tenant-meta">
+                <div>
+                  <dt>Model</dt>
+                  <dd>{adminAuditLog.readModel}</dd>
+                </div>
+                <div>
+                  <dt>Request</dt>
+                  <dd>{adminAuditLog.requestId}</dd>
+                </div>
+                <div>
+                  <dt>Next cursor</dt>
+                  <dd>{adminAuditLog.nextCursor ?? "none"}</dd>
+                </div>
+                <div>
+                  <dt>Audit</dt>
+                  <dd>{adminAuditLog.auditRef}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <div className="audit-log-metrics" aria-label="Admin audit log metrics">
+              {adminAuditLog.metrics.map((metric) => (
+                <AuditLogMetric key={metric.label} metric={metric} />
+              ))}
+            </div>
+          </div>
+
+          <div className="audit-event-list" aria-label="Admin audit events">
+            {adminAuditLog.auditEvents.map((event) => (
+              <AuditEventRow key={event.auditRef} event={event} />
+            ))}
+          </div>
+
+          <div className="audit-log-states" aria-label="Admin audit log states">
+            {adminAuditLog.statePreviews.map((state) => (
+              <AuditLogStatePreview key={state.id} state={state} />
             ))}
           </div>
         </section>
@@ -539,6 +609,67 @@ export function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function AuditLogMetric({ metric }: { metric: AdminAuditLogMetric }) {
+  return (
+    <article className="audit-log-metric">
+      <span>{metric.label}</span>
+      <strong>{metric.value}</strong>
+      <p>{metric.detail}</p>
+    </article>
+  );
+}
+
+function AuditEventRow({ event }: { event: AdminAuditEventRow }) {
+  return (
+    <article className="audit-event-row">
+      <div className="audit-event-row-main">
+        <div>
+          <p className="eyebrow">{event.eventKind}</p>
+          <h4>{event.auditRef}</h4>
+        </div>
+        <StatusBadge tone={event.decision === "denied" ? "bad" : "good"}>{event.decision}</StatusBadge>
+      </div>
+      <dl className="audit-event-row-meta">
+        <div>
+          <dt>Actor</dt>
+          <dd>{event.actorSubjectRef}</dd>
+        </div>
+        <div>
+          <dt>Resource</dt>
+          <dd>{event.resourceRef}</dd>
+        </div>
+        <div>
+          <dt>Failure</dt>
+          <dd>{event.failureCode}</dd>
+        </div>
+        <div>
+          <dt>Trace</dt>
+          <dd>{event.traceId}</dd>
+        </div>
+        <div>
+          <dt>Recorded</dt>
+          <dd>{event.recordedAt}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function AuditLogStatePreview({ state }: { state: AdminAuditLogStatePreview }) {
+  return (
+    <article className="audit-log-state">
+      <div>
+        <strong>{state.label}</strong>
+        <span>{state.status}</span>
+      </div>
+      <p>{state.summary}</p>
+      <small>
+        items {state.itemCount} / failure {state.failureCode}
+      </small>
+    </article>
   );
 }
 

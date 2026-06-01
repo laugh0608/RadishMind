@@ -134,7 +134,7 @@ h4 {
 
 .header-facts {
   display: grid;
-  grid-template-columns: repeat(9, minmax(76px, 1fr));
+  grid-template-columns: repeat(10, minmax(72px, 1fr));
   gap: 10px;
   min-width: min(1120px, 100%);
 }
@@ -195,6 +195,11 @@ h4 {
   padding-bottom: 24px;
 }
 
+.admin-audit-log {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .tenant-layout {
   display: grid;
   grid-template-columns: minmax(280px, 1.1fr) minmax(280px, 1fr);
@@ -206,7 +211,8 @@ h4 {
 .api-keys-summary,
 .usage-quota-summary,
 .workflow-definitions-summary,
-.run-history-summary {
+.run-history-summary,
+.audit-log-summary {
   display: grid;
   grid-template-columns: minmax(320px, 1.1fr) minmax(280px, 0.9fr);
   gap: 14px;
@@ -219,6 +225,7 @@ h4 {
 .usage-quota-route,
 .workflow-definitions-route,
 .run-history-route,
+.audit-log-route,
 .application-metric,
 .api-key-metric,
 .usage-quota-limit,
@@ -226,15 +233,18 @@ h4 {
 .usage-quota-failure,
 .workflow-definition-metric,
 .run-history-metric,
+.audit-log-metric,
 .application-row,
 .api-key-row,
 .workflow-definition-row,
 .run-record-row,
+.audit-event-row,
 .application-state,
 .api-key-state,
 .usage-quota-state,
 .workflow-definition-state,
 .run-history-state,
+.audit-log-state,
 .tenant-fact,
 .tenant-state {
   border: 1px solid #d8dee8;
@@ -247,7 +257,8 @@ h4 {
 .api-keys-route,
 .usage-quota-route,
 .workflow-definitions-route,
-.run-history-route {
+.run-history-route,
+.audit-log-route {
   padding: 16px;
   min-width: 0;
 }
@@ -267,15 +278,18 @@ h4 {
 .usage-quota-limits,
 .workflow-definitions-metrics,
 .run-history-metrics,
+.audit-log-metrics,
 .application-list,
 .api-key-list,
 .workflow-definition-list,
 .run-record-list,
+.audit-event-list,
 .application-states,
 .api-key-states,
 .usage-quota-states,
 .workflow-definition-states,
-.run-history-states {
+.run-history-states,
+.audit-log-states {
   display: grid;
   gap: 10px;
 }
@@ -285,7 +299,8 @@ h4 {
 .api-keys-metrics,
 .usage-quota-snapshot,
 .workflow-definitions-metrics,
-.run-history-metrics {
+.run-history-metrics,
+.audit-log-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -296,7 +311,8 @@ h4 {
 .usage-quota-snapshot-card,
 .usage-quota-failure,
 .workflow-definition-metric,
-.run-history-metric {
+.run-history-metric,
+.audit-log-metric {
   min-width: 0;
   padding: 14px;
 }
@@ -309,6 +325,7 @@ h4 {
 .usage-quota-failure span,
 .workflow-definition-metric span,
 .run-history-metric span,
+.audit-log-metric span,
 .application-state span,
 .application-state small,
 .api-key-state span,
@@ -319,6 +336,8 @@ h4 {
 .workflow-definition-state small,
 .run-history-state span,
 .run-history-state small,
+.audit-log-state span,
+.audit-log-state small,
 .tenant-state span,
 .tenant-state small {
   color: #607086;
@@ -333,7 +352,8 @@ h4 {
 .usage-quota-snapshot-card strong,
 .usage-quota-failure strong,
 .workflow-definition-metric strong,
-.run-history-metric strong {
+.run-history-metric strong,
+.audit-log-metric strong {
   display: block;
   overflow-wrap: anywhere;
   margin-top: 6px;
@@ -349,11 +369,13 @@ h4 {
 .usage-quota-failure p,
 .workflow-definition-metric p,
 .run-history-metric p,
+.audit-log-metric p,
 .application-state p,
 .api-key-state p,
 .usage-quota-state p,
 .workflow-definition-state p,
 .run-history-state p,
+.audit-log-state p,
 .tenant-state p {
   margin: 8px 0 0;
   color: #4e5f73;
@@ -368,7 +390,8 @@ h4 {
 .application-list,
 .api-key-list,
 .workflow-definition-list,
-.run-record-list {
+.run-record-list,
+.audit-event-list {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
@@ -376,7 +399,8 @@ h4 {
 .api-key-states,
 .usage-quota-states,
 .workflow-definition-states,
-.run-history-states {
+.run-history-states,
+.audit-log-states {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
@@ -385,7 +409,8 @@ h4 {
 .api-key-state,
 .usage-quota-state,
 .workflow-definition-state,
-.run-history-state {
+.run-history-state,
+.audit-log-state {
   display: grid;
   align-content: start;
   gap: 8px;
@@ -398,7 +423,8 @@ h4 {
 .api-key-state div,
 .usage-quota-state div,
 .workflow-definition-state div,
-.run-history-state div {
+.run-history-state div,
+.audit-log-state div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -409,7 +435,8 @@ h4 {
 .api-key-state strong,
 .usage-quota-state strong,
 .workflow-definition-state strong,
-.run-history-state strong {
+.run-history-state strong,
+.audit-log-state strong {
   color: #17202a;
   font-size: 14px;
 }
@@ -417,7 +444,8 @@ h4 {
 .application-row,
 .api-key-row,
 .workflow-definition-row,
-.run-record-row {
+.run-record-row,
+.audit-event-row {
   display: grid;
   gap: 14px;
   min-width: 0;
@@ -427,7 +455,8 @@ h4 {
 .application-row-main,
 .api-key-row-main,
 .workflow-definition-row-main,
-.run-record-row-main {
+.run-record-row-main,
+.audit-event-row-main {
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -436,7 +465,8 @@ h4 {
 .application-row-meta,
 .api-key-row-meta,
 .workflow-definition-row-meta,
-.run-record-row-meta {
+.run-record-row-meta,
+.audit-event-row-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -446,7 +476,8 @@ h4 {
 .application-row-meta div,
 .api-key-row-meta div,
 .workflow-definition-row-meta div,
-.run-record-row-meta div {
+.run-record-row-meta div,
+.audit-event-row-meta div {
   min-width: 0;
 }
 
@@ -461,6 +492,8 @@ h4 {
 .workflow-definition-state small,
 .run-history-state span,
 .run-history-state small,
+.audit-log-state span,
+.audit-log-state small,
 .tenant-state small {
   overflow-wrap: anywhere;
 }
@@ -632,6 +665,7 @@ dd {
   .usage-quota-summary,
   .workflow-definitions-summary,
   .run-history-summary,
+  .audit-log-summary,
   .tenant-facts,
   .applications-metrics,
   .api-keys-metrics,
@@ -639,10 +673,12 @@ dd {
   .usage-quota-limits,
   .workflow-definitions-metrics,
   .run-history-metrics,
+  .audit-log-metrics,
   .application-row-meta,
   .api-key-row-meta,
   .workflow-definition-row-meta,
   .run-record-row-meta,
+  .audit-event-row-meta,
   .tenant-meta,
   .route-meta,
   .state-meta {

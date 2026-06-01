@@ -52,7 +52,9 @@
 
 2026-05-31 已完成 `control-plane-read-workspace-run-history-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-run-history` 页面切片，消费 `run-record-summary-list-route` 渲染 run id、workflow definition ref、application ref、status、failure code、cost summary、trace id、started / completed timestamp、route metadata、request / audit ref、cursor、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 workflow executor、tool executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
 
-2026-05-31 阶段评估后，read-side UI 的推进门禁调整为能力边界优先：`admin-audit-log` 仍作为当前页面集合的优先补齐项，完成后不再默认为普通只读展示页逐项新增 task card、fixture 和 checker，而应通过聚合 read-side UI surface matrix / checker 收口。后续可以把“不请求 live backend”放宽为 dev-only live read path，但该切片只能消费 fake-store-backed handler 与测试身份上下文；真实数据库、Radish OIDC、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 和 replay 仍保持停止线。
+2026-06-01 已完成 `control-plane-read-admin-audit-log-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `admin-audit-log` 页面切片，消费 `audit-summary-list-route` 渲染 audit ref、actor、event kind、resource、decision、failure code、trace id、recorded timestamp、route metadata、request / audit ref、cursor、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 durable audit store、raw payload export、audit record mutation、workflow executor、confirmation、writeback 或 replay，也不声明 production admin console ready。
+
+2026-06-01 阶段评估后，read-side UI 的推进门禁调整为能力边界优先：当前页面集合的优先补齐项已完成，后续不再默认为普通只读展示页逐项新增 task card、fixture 和 checker，而应通过聚合 read-side UI surface matrix / checker 收口。后续可以把“不请求 live backend”放宽为 dev-only live read path，但该切片只能消费 fake-store-backed handler 与测试身份上下文；真实数据库、Radish OIDC、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 和 replay 仍保持停止线。
 
 ## 五条主线
 

@@ -67,6 +67,7 @@
 17. [`Control Plane Read Workspace Usage Quota` v1 计划](control-plane-read-workspace-usage-quota-v1-plan.md)（`control-plane-read-workspace-usage-quota-v1`）
 18. [`Control Plane Read Workspace Workflow Definitions` v1 计划](control-plane-read-workspace-workflow-definitions-v1-plan.md)（`control-plane-read-workspace-workflow-definitions-v1`）
 19. [`Control Plane Read Workspace Run History` v1 计划](control-plane-read-workspace-run-history-v1-plan.md)（`control-plane-read-workspace-run-history-v1`）
+20. [`Control Plane Read Admin Audit Log` v1 计划](control-plane-read-admin-audit-log-v1-plan.md)（`control-plane-read-admin-audit-log-v1`）
 
 ## UI 设计专题
 

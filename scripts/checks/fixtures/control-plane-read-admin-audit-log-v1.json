@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_admin_audit_log_v1",
+  "slice": {
+    "id": "control-plane-read-admin-audit-log-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "admin_audit_log_implemented",
+    "does_not_claim": [
+      "production_admin_console_ready",
+      "formal_user_workspace_complete",
+      "real_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "durable_audit_store_ready",
+      "raw_audit_payload_export_ready",
+      "audit_record_mutation_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-consumer-contract-v1",
+    "control-plane-read-formal-ui-boundary-v1",
+    "control-plane-read-formal-ui-implementation-readiness-v1",
+    "control-plane-read-shared-shell-v1",
+    "control-plane-read-admin-tenant-overview-v1",
+    "control-plane-read-workspace-applications-v1",
+    "control-plane-read-workspace-api-keys-v1",
+    "control-plane-read-workspace-usage-quota-v1",
+    "control-plane-read-workspace-workflow-definitions-v1",
+    "control-plane-read-workspace-run-history-v1"
+  ],
+  "page": {
+    "id": "admin-audit-log",
+    "surface": "Admin Control Plane",
+    "route_id": "audit-summary-list-route",
+    "read_model": "audit-summary",
+    "required_scope": "audit:read",
+    "status": "offline_read_only_page_slice",
+    "app_root": "apps/radishmind-web/",
+    "local_ops_console_boundary": "remain_local_ops_surface_only"
+  },
+  "implemented_capabilities": [
+    "admin_audit_log_read_only_page",
+    "audit_summary_list_route_binding",
+    "audit_summary_collection_view_model",
+    "audit_event_row_display",
+    "audit_log_route_metadata_display",
+    "audit_log_state_previews",
+    "forbidden_output_guard_reused",
+    "no_live_backend_request",
+    "no_audit_mutation_or_raw_payload_controls"
+  ],
+  "required_contract_symbols": [
+    "CONTROL_PLANE_READ_ROUTES",
+    "CONTROL_PLANE_READ_ROUTE_DEFINITIONS",
+    "CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS",
+    "AuditSummary",
+    "ControlPlaneReadCollectionViewModel",
+    "ControlPlaneReadResponseByRoute",
+    "controlPlaneReadResponseHasForbiddenOutput",
+    "toControlPlaneReadCollectionViewModel"
+  ],
+  "required_states": [
+    "ready",
+    "empty",
+    "denied",
+    "stale",
+    "partial_failure",
+    "forbidden_projection"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "createRoot(document.getElementById(\"console\"",
+    "VITE_RADISHMIND_PLATFORM_BASE_URL"
+  ],
+  "forbidden_package_scripts": [
+    "deploy",
+    "publish",
+    "release",
+    "package",
+    "docker"
+  ],
+  "forbidden_control_literals": [
+    "delete_audit_record",
+    "edit_audit_record",
+    "export_raw_payload",
+    "reveal_secret",
+    "durable audit store ready",
+    "raw audit payload export ready"
+  ],
+  "required_files": [
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/features/control-plane-read/readShell.ts",
+    "apps/radishmind-web/src/features/control-plane-read/adminAuditLog.ts",
+    "apps/radishmind-web/src/styles.css",
+    "apps/radishmind-web/package.json"
+  ],
+  "testing_strategy": [
+    {
+      "id": "admin_audit_log_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-admin-audit-log-v1.py"
+    },
+    {
+      "id": "workspace_run_history_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-workspace-run-history-v1.py"
+    },
+    {
+      "id": "consumer_smoke",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_when_node_dependencies_available",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not modify apps/radishmind-console into formal user workspace",
+    "do not modify apps/radishmind-console into production admin console",
+    "do not request live backend from admin audit log",
+    "do not connect database schema migration query repository or durable audit store",
+    "do not add Radish OIDC middleware token validation login or logout",
+    "do not add audit record edit delete raw payload export secret reveal workflow executor confirmation writeback or replay controls"
+  ],
+  "required_doc_references": {
+    "docs/README.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "admin-audit-log"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "audit-summary-list-route"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "admin-audit-log"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "admin-audit-log"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "Control Plane Read Admin Audit Log"
+    ],
+    "docs/task-cards/control-plane-read-admin-audit-log-v1-plan.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "admin-audit-log"
+    ],
+    "apps/radishmind-web/README.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "admin-audit-log"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-admin-audit-log-v1.py",
+      "control-plane-read-admin-audit-log-v1.json"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-admin-audit-log-v1",
+      "admin-audit-log"
+    ]
+  }
+}
