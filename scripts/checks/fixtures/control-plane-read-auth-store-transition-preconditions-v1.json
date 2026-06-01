@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_auth_store_transition_preconditions_v1",
+  "slice": {
+    "id": "control-plane-read-auth-store-transition-preconditions-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "auth_store_transition_preconditions_defined",
+    "does_not_claim": [
+      "production_admin_console_ready",
+      "formal_user_workspace_complete",
+      "production_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_migration_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "rate_limit_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-auth-db-preconditions-v1",
+    "control-plane-read-dev-live-consumer-v1",
+    "control-plane-read-fake-store-handler-implementation-v1",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-negative-contract-v1",
+    "radish-oidc-client-preconditions",
+    "control-plane-data-boundary"
+  ],
+  "transition_boundary": {
+    "current_auth_source": "dev fake auth header or test-only fake auth context",
+    "current_store_source": "fixture-backed fake store",
+    "future_auth_source": "future Radish OIDC / auth middleware",
+    "future_store_source": "future control plane read store repository",
+    "status": "preconditions_defined_not_implemented",
+    "default_consumer_source_must_remain": "offline_fixture",
+    "dev_live_source_must_remain_opt_in": "VITE_RADISHMIND_READ_SOURCE=dev-live-http",
+    "backend_dev_auth_must_remain_opt_in": "RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1",
+    "database_query_allowed_in_this_slice": false,
+    "repository_migration_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false
+  },
+  "auth_middleware_transition_gates": [
+    {
+      "id": "issuer-discovery-contract",
+      "status": "required_before_auth_middleware",
+      "rule": "Radish issuer discovery and client metadata must be contract-backed before route middleware consumes tokens"
+    },
+    {
+      "id": "token-validation-contract",
+      "status": "required_before_auth_middleware",
+      "rule": "Token validation rules must be defined as a separate contract before implementation"
+    },
+    {
+      "id": "claim-mapping-contract",
+      "status": "required_before_auth_middleware",
+      "rule": "issuer, subject, tenant_ref, scopes, roles and permissions must map into the read auth context"
+    },
+    {
+      "id": "tenant-binding-enforcement",
+      "status": "required_before_auth_middleware",
+      "rule": "tenant_ref must come from trusted auth context and must reject query-string tenant overrides"
+    },
+    {
+      "id": "scope-grant-projection",
+      "status": "required_before_auth_middleware",
+      "rule": "route scopes must be projected from auth context and fail closed when absent"
+    },
+    {
+      "id": "audit-context-propagation",
+      "status": "required_before_auth_middleware",
+      "rule": "request_id, actor, issuer and session refs must propagate to read response audit refs"
+    },
+    {
+      "id": "fail-closed-missing-identity",
+      "status": "required_before_auth_middleware",
+      "rule": "missing identity, tenant binding, subject or scope grants must return fail-closed envelopes"
+    },
+    {
+      "id": "no-public-fake-auth-in-production",
+      "status": "required_before_auth_middleware",
+      "rule": "dev fake auth headers must not become public production auth inputs"
+    },
+    {
+      "id": "dev-fake-auth-disabled-by-default",
+      "status": "required_before_auth_middleware",
+      "rule": "RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH must remain disabled unless explicitly enabled for local development"
+    }
+  ],
+  "read_store_transition_gates": [
+    {
+      "id": "repository-interface-before-sql",
+      "status": "required_before_read_store",
+      "rule": "A narrow read repository interface must exist before SQL, migration or durable adapter work starts"
+    },
+    {
+      "id": "tenant-predicate-from-auth-context",
+      "status": "required_before_read_store",
+      "rule": "Every repository read must receive tenant_ref from auth context and preserve tenant-scoped access"
+    },
+    {
+      "id": "sanitized-summary-projection",
+      "status": "required_before_read_store",
+      "rule": "Repository outputs must be summary projections and must not include raw secret, token, prompt or tool payload fields"
+    },
+    {
+      "id": "cursor-filter-sort-allowlist",
+      "status": "required_before_read_store",
+      "rule": "List reads must validate cursor, limit, filter and sort values against route allowlists"
+    },
+    {
+      "id": "read-store-failure-taxonomy",
+      "status": "required_before_read_store",
+      "rule": "Repository failures must map to the read-side failure taxonomy without leaking database internals"
+    },
+    {
+      "id": "no-database-write",
+      "status": "required_before_read_store",
+      "rule": "Read repository methods must not mutate state, write audit records inline or call workflow executors"
+    },
+    {
+      "id": "no-secret-material",
+      "status": "required_before_read_store",
+      "rule": "Read repository fixtures and tests must not store secret values, bearer tokens, cookies or API key values"
+    }
+  ],
+  "route_transition_matrix": [
+    {
+      "route_id": "tenant-summary-route",
+      "method": "GET",
+      "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+      "read_model": "tenant-summary",
+      "required_scope": "tenant:read",
+      "current_auth_source": "dev fake auth header or test-only fake auth context",
+      "current_store_source": "fixture-backed fake store",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "route_shape_must_remain_stable": true,
+      "database_query_allowed_now": false,
+      "repository_migration_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "write_allowed_now": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "read_model": "application-summary",
+      "required_scope": "applications:read",
+      "current_auth_source": "dev fake auth header or test-only fake auth context",
+      "current_store_source": "fixture-backed fake store",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "route_shape_must_remain_stable": true,
+      "database_query_allowed_now": false,
+      "repository_migration_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "write_allowed_now": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "read_model": "api-key-summary",
+      "required_scope": "api_keys:read",
+      "current_auth_source": "dev fake auth header or test-only fake auth context",
+      "current_store_source": "fixture-backed fake store",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "route_shape_must_remain_stable": true,
+      "database_query_allowed_now": false,
+      "repository_migration_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "write_allowed_now": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/usage/quota-summary",
+      "read_model": "quota-summary",
+      "required_scope": "usage:read",
+      "current_auth_source": "dev fake auth header or test-only fake auth context",
+      "current_store_source": "fixture-backed fake store",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "route_shape_must_remain_stable": true,
+      "database_query_allowed_now": false,
+      "repository_migration_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "write_allowed_now": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "read_model": "workflow-definition-summary",
+      "required_scope": "applications:read",
+      "current_auth_source": "dev fake auth header or test-only fake auth context",
+      "current_store_source": "fixture-backed fake store",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "route_shape_must_remain_stable": true,
+      "database_query_allowed_now": false,
+      "repository_migration_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "write_allowed_now": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "read_model": "run-record-summary",
+      "required_scope": "runs:read",
+      "current_auth_source": "dev fake auth header or test-only fake auth context",
+      "current_store_source": "fixture-backed fake store",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "route_shape_must_remain_stable": true,
+      "database_query_allowed_now": false,
+      "repository_migration_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "write_allowed_now": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "read_model": "audit-summary",
+      "required_scope": "audit:read",
+      "current_auth_source": "dev fake auth header or test-only fake auth context",
+      "current_store_source": "fixture-backed fake store",
+      "future_auth_source": "future Radish OIDC / auth middleware",
+      "future_store_source": "future control plane read store repository",
+      "route_shape_must_remain_stable": true,
+      "database_query_allowed_now": false,
+      "repository_migration_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "write_allowed_now": false
+    }
+  ],
+  "dual_smoke_plan": {
+    "status": "preconditions_defined_not_implemented",
+    "current_smoke_sources": [
+      "offline_fixture_consumer_smoke",
+      "dev_live_fake_auth_fake_store_smoke"
+    ],
+    "future_smoke_sources": [
+      "middleware_backed_auth_context_smoke",
+      "repository_contract_fake_store_smoke",
+      "read_store_repository_contract_smoke",
+      "database_read_disabled_guard_smoke"
+    ],
+    "must_preserve_current_commands": [
+      "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check",
+      "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-dev-live-consumer-v1.py",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "must_add_before_replacement": [
+      "auth middleware context smoke must cover missing identity, tenant binding missing and scope denied",
+      "repository contract smoke must cover sanitized projection and tenant predicate",
+      "disabled database read guard smoke must prove database-backed mode fails closed before implementation approval",
+      "dual smoke must run fake-store and repository-contract paths during the transition window"
+    ],
+    "side_effect_counters_must_remain": [
+      "fake_store_write_count=0",
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ]
+  },
+  "required_failure_codes": [
+    "identity_context_missing",
+    "tenant_binding_missing",
+    "scope_denied",
+    "invalid_filter",
+    "read_store_unavailable",
+    "read_store_contract_mismatch",
+    "database_read_disabled",
+    "auth_context_contract_mismatch"
+  ],
+  "forbidden_implementation": [
+    "Radish OIDC middleware implementation",
+    "token validation implementation",
+    "database schema",
+    "database migration",
+    "database query implementation",
+    "repository implementation",
+    "repository migration",
+    "durable store",
+    "production API consumer",
+    "public fake auth production mode",
+    "API key lifecycle",
+    "quota enforcement",
+    "rate limiting implementation",
+    "billing ledger implementation",
+    "cost ledger implementation",
+    "workflow builder",
+    "workflow executor",
+    "confirmation flow wiring",
+    "business writeback",
+    "replay execution",
+    "production admin console"
+  ],
+  "testing_strategy": [
+    {
+      "id": "auth_store_transition_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-auth-store-transition-preconditions-v1.py"
+    },
+    {
+      "id": "consumer_smoke_retained",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "auth/store transition preconditions"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "auth/store transition preconditions"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "auth/store transition preconditions"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "auth/store transition preconditions"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "Control Plane Read Auth/Store Transition Preconditions"
+    ],
+    "docs/task-cards/control-plane-read-auth-store-transition-preconditions-v1-plan.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "future control plane read store repository"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-auth-store-transition-preconditions-v1.py",
+      "control-plane-read-auth-store-transition-preconditions-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "auth/store transition preconditions"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-auth-store-transition-preconditions-v1",
+      "auth_store_transition_preconditions_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/control-plane-read-auth-store-transition-preconditions-v1-plan.md",
+    "docs/contracts/control-plane-read-side.md",
+    "scripts/checks/fixtures/control-plane-read-auth-db-preconditions-v1.json",
+    "scripts/checks/fixtures/control-plane-read-dev-live-consumer-v1.json",
+    "scripts/checks/fixtures/control-plane-read-fake-store-handler-implementation-v1.json",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-auth-store-transition-preconditions-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-auth-store-transition-preconditions-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W23.md"
+  ]
+}
