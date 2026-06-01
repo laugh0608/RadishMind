@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-05-31
+更新时间：2026-06-01
 
 ## 核心定义
 
@@ -28,16 +28,16 @@
 
 2026-05-28 已新增 `control-plane-read-formal-ui-implementation-readiness-v1`，固定未来 `apps/radishmind-web/` 预留落点、`apps/radishmind-console/` app 边界、页面实现顺序、consumer contract 复用、测试策略和停止线。
 
-2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。它不请求 live backend，不接数据库、OIDC、repository、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
+2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 默认只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。2026-06-01 已补显式 opt-in 的 dev-only live read consumer：只有设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且后端设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才通过 HTTP 消费 fake-store-backed read handlers 和测试身份上下文。该路径不接生产后端、不接数据库、OIDC、repository、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
 
-当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`admin-audit-log` 已完成当前页面集合的最后一个优先页面；下一步应进入 read-side UI 聚合收口，后续 dev-only live read consumer 只能连接 fake-store-backed handler 和测试身份上下文，不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota 或 workflow executor ready。
+当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`control-plane-read-formal-ui-readiness-close-v1` 已用 surface matrix 聚合固定七个页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；`control-plane-read-auth-store-transition-preconditions-v1` 已固定从 dev fake auth / fixture-backed fake store 迁移到未来 auth middleware / read store repository 前必须满足的 gates。上述内容都不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、repository implementation 或 workflow executor ready。
 
 1. `User Workspace`
 
 - 面向终端用户和项目成员。
 - 支持创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG 或知识问答应用。
 - 用户可以管理自己的应用、API key、调用量、运行记录和成本摘要。
-- 当前 `apps/radishmind-web/` 只提供 read-side 页面切片：applications、API keys、usage quota、workflow definitions 和 run history 都是离线只读展示，不提供创建、编辑、执行、replay 或写回控件。
+- 当前 `apps/radishmind-web/` 只提供 read-side 页面切片：applications、API keys、usage quota、workflow definitions 和 run history 默认都是离线只读展示；dev-only live read path 也只能读取 fake-store-backed handler，不提供创建、编辑、执行、replay 或写回控件。
 - 工作流方向参考 `Dify` 的应用构建与 workflow 编排，但首版只实现 Radish 体系当前需要的可治理切片，不追求一次性复刻全量能力。
 
 2. `Admin Control Plane`
@@ -46,7 +46,7 @@
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
 - 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
-- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview` 和 `admin-audit-log` 页面切片；它不是 production admin console，也不提供 audit mutation、raw payload export 或 durable audit store。
+- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview` 和 `admin-audit-log` 页面切片；它不是 production admin console，也不提供 audit mutation、raw payload export、durable audit store 或生产管理操作。
 
 3. `Model Gateway / API Distribution`
 
@@ -104,7 +104,7 @@
 - 用户端用于 AI 工作流、应用、模型 API key、调用量和运行记录。
 - 管理端用于 provider/profile、模型路由、租户、权限、quota、secret、审计和部署状态。
 - 当前 `apps/radishmind-console/` 只是本地 ops surface 和只读产品壳，不等同于正式用户端或生产管理端。
-- 当前 `apps/radishmind-web/` 是正式产品 UI 的离线 read-side shell，不等同于完整用户端、production admin console 或真实 API consumer。
+- 当前 `apps/radishmind-web/` 是正式产品 UI 的 read-side shell，默认离线，可显式 opt-in 到 dev-only live read；它不等同于完整用户端、production admin console 或真实 API consumer。
 
 - `RadishFlow`、`Radish`、`RadishCatalyst` 是应用面，不是项目本体的全部意义。
 - 这些接入面复用同一套 runtime、contract、tooling、evaluation 和 governance，而不是各自私接模型。

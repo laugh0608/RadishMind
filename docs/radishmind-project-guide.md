@@ -57,9 +57,9 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，当前主线已经切到 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture、negative contract、implementation preconditions、fake-store-backed handler plan、七条 fake-store-backed handler implementation、auth/db preconditions、TypeScript consumer contract、formal UI boundary、formal UI implementation readiness、`apps/radishmind-web/` read-only shared shell、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 和 `workspace-run-history` 页面切片；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。下一步进入 read-side UI 聚合收口；普通只读展示页不再默认逐页新增专项门禁。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+如果你今天想推进开发，当前主线已经切到 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture、negative contract、implementation preconditions、fake-store-backed handler plan、七条 fake-store-backed handler implementation、auth/db preconditions、TypeScript consumer contract、formal UI boundary、formal UI implementation readiness、`apps/radishmind-web/` read-only shared shell、七个只读页面切片、formal UI readiness close、dev-only live read consumer 和 auth/store transition preconditions；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。普通只读展示页不再默认逐页新增专项门禁；dev-only live read path 只验证 fake-store-backed handler 的 HTTP consumer shape；auth/store transition preconditions 只定义未来迁移 gates。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，`P3 Local Product Shell / Ops Surface` 的本地只读 console 路径已经达到 `local usable / read-only close`。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
 
-完整正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳，`apps/radishmind-web/` 只是离线 read-side product UI shell。
+完整正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client、read store repository implementation 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳，`apps/radishmind-web/` 默认是离线 read-side product UI shell，显式 dev-only live path 也不是 production API consumer。
 
 ## 目录速览
 
@@ -166,7 +166,7 @@ console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local
 
 ### 3.8 运行正式 read-only product UI shell
 
-正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它是离线 read-side shell，只消费 `contracts/typescript/control-plane-read-api.ts`，当前不请求平台 live backend。后续如果进入 dev-only live read consumer，也只能连接 fake-store-backed handler 和测试身份上下文，不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota 或 workflow executor ready。
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认是离线 read-side shell，只消费 `contracts/typescript/control-plane-read-api.ts`；当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 且平台服务设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，可用 dev-only live read consumer 通过 HTTP 读取 fake-store-backed handler 和测试身份上下文。该 live path 不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、read store repository 或 workflow executor ready。
 
 ```bash
 cd apps/radishmind-web
@@ -184,13 +184,14 @@ npm run dev
 
 - route catalog、shared states 和 forbidden output guard
 - `admin-tenant-overview`
+- `admin-audit-log`
 - `workspace-applications`
 - `workspace-api-keys`
 - `workspace-usage-quota`
 - `workspace-workflow-definitions`
 - `workspace-run-history`
 
-这些页面只展示离线 view model、route metadata、request / audit ref、状态预览和脱敏 summary。它们不请求 live backend，不接数据库、OIDC、repository、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+这些页面展示 route metadata、request / audit ref、状态预览和脱敏 summary；默认使用离线 view model，dev-only live mode 也只能读取 fake-store-backed handler。它们不接数据库、OIDC、repository implementation、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
 ### 3.7 使用 Docker 部署资产
 
