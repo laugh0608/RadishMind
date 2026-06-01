@@ -69,6 +69,16 @@ def require_equal(actual: Any, expected: Any, label: str) -> None:
         raise SystemExit(f"{label}: expected {expected!r}, got {actual!r}")
 
 
+def require_path_equal(actual: Any, expected: Path, label: str) -> None:
+    if not isinstance(actual, str) or not actual.strip():
+        raise SystemExit(f"{label}: expected path string, got {actual!r}")
+    actual_path = Path(actual)
+    if not actual_path.is_absolute():
+        actual_path = REPO_ROOT / actual_path
+    if actual_path.resolve() != expected.resolve():
+        raise SystemExit(f"{label}: expected {str(expected)!r}, got {actual!r}")
+
+
 def require_true(value: Any, label: str) -> None:
     if value is not True:
         raise SystemExit(f"{label} must be true")
@@ -191,7 +201,7 @@ def require_artifact_entry_state(
         require_true(artifact.get("exists"), f"{label}.exists")
     else:
         require_false(artifact.get("exists"), f"{label}.exists")
-    require_equal(artifact.get("path"), str(expected_path), f"{label}.path")
+    require_path_equal(artifact.get("path"), expected_path, f"{label}.path")
     return artifact
 
 
