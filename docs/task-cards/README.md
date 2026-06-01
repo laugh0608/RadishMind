@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-05-31
+更新时间：2026-06-01
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -68,6 +68,7 @@
 18. [`Control Plane Read Workspace Workflow Definitions` v1 计划](control-plane-read-workspace-workflow-definitions-v1-plan.md)（`control-plane-read-workspace-workflow-definitions-v1`）
 19. [`Control Plane Read Workspace Run History` v1 计划](control-plane-read-workspace-run-history-v1-plan.md)（`control-plane-read-workspace-run-history-v1`）
 20. [`Control Plane Read Admin Audit Log` v1 计划](control-plane-read-admin-audit-log-v1-plan.md)（`control-plane-read-admin-audit-log-v1`）
+21. [`Control Plane Read Formal UI Readiness Close` v1 计划](control-plane-read-formal-ui-readiness-close-v1-plan.md)（`control-plane-read-formal-ui-readiness-close-v1`）
 
 ## UI 设计专题
 

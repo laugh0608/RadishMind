@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_formal_ui_readiness_close_v1",
+  "slice": {
+    "id": "control-plane-read-formal-ui-readiness-close-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "formal_ui_readiness_closed",
+    "does_not_claim": [
+      "production_admin_console_ready",
+      "formal_user_workspace_complete",
+      "real_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "rate_limit_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_builder_ready",
+      "workflow_executor_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "materialized_result_reader_ready",
+      "durable_audit_store_ready",
+      "raw_audit_payload_export_ready",
+      "audit_record_mutation_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-response-fixtures-v1",
+    "control-plane-read-negative-contract-v1",
+    "control-plane-read-fake-store-handler-implementation-v1",
+    "control-plane-read-auth-db-preconditions-v1",
+    "control-plane-read-consumer-contract-v1",
+    "control-plane-read-formal-ui-boundary-v1",
+    "control-plane-read-formal-ui-implementation-readiness-v1",
+    "control-plane-read-shared-shell-v1",
+    "control-plane-read-admin-tenant-overview-v1",
+    "control-plane-read-workspace-applications-v1",
+    "control-plane-read-workspace-api-keys-v1",
+    "control-plane-read-workspace-usage-quota-v1",
+    "control-plane-read-workspace-workflow-definitions-v1",
+    "control-plane-read-workspace-run-history-v1",
+    "control-plane-read-admin-audit-log-v1"
+  ],
+  "close_scope": {
+    "status": "read_side_formal_ui_surface_matrix_closed",
+    "app_root": "apps/radishmind-web/",
+    "shared_contract": "contracts/typescript/control-plane-read-api.ts",
+    "local_ops_console_root": "apps/radishmind-console/",
+    "local_ops_console_boundary": "remain_local_ops_surface_only",
+    "evidence_model": "aggregate_checker_over_existing_shared_shell_and_page_slices",
+    "next_decision": "after this close, choose one line between dev-only live read consumer and auth/store preconditions"
+  },
+  "surface_matrix": [
+    {
+      "page_id": "admin-tenant-overview",
+      "surface": "Admin Control Plane",
+      "route_id": "tenant-summary-route",
+      "route_key": "tenantSummary",
+      "read_model": "tenant-summary",
+      "required_scope": "tenant:read",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
+      "builder": "buildAdminTenantOverviewViewModel",
+      "render_anchor": "admin-tenant-overview",
+      "summary_binding": "tenant",
+      "request_ref": "requestId",
+      "audit_ref": "auditRef"
+    },
+    {
+      "page_id": "admin-audit-log",
+      "surface": "Admin Control Plane",
+      "route_id": "audit-summary-list-route",
+      "route_key": "audit",
+      "read_model": "audit-summary",
+      "required_scope": "audit:read",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/adminAuditLog.ts",
+      "builder": "buildAdminAuditLogViewModel",
+      "render_anchor": "admin-audit-log",
+      "summary_binding": "auditEvents",
+      "request_ref": "requestId",
+      "audit_ref": "auditRef"
+    },
+    {
+      "page_id": "workspace-applications",
+      "surface": "User Workspace",
+      "route_id": "application-summary-list-route",
+      "route_key": "applications",
+      "read_model": "application-summary",
+      "required_scope": "applications:read",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
+      "builder": "buildWorkspaceApplicationsViewModel",
+      "render_anchor": "workspace-applications",
+      "summary_binding": "applications",
+      "request_ref": "requestId",
+      "audit_ref": "auditRef"
+    },
+    {
+      "page_id": "workspace-api-keys",
+      "surface": "User Workspace",
+      "route_id": "api-key-summary-list-route",
+      "route_key": "apiKeys",
+      "read_model": "api-key-summary",
+      "required_scope": "api_keys:read",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+      "builder": "buildWorkspaceApiKeysViewModel",
+      "render_anchor": "workspace-api-keys",
+      "summary_binding": "apiKeys",
+      "request_ref": "requestId",
+      "audit_ref": "auditRef"
+    },
+    {
+      "page_id": "workspace-usage-quota",
+      "surface": "User Workspace",
+      "route_id": "quota-summary-route",
+      "route_key": "quotaSummary",
+      "read_model": "quota-summary",
+      "required_scope": "usage:read",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceUsageQuota.ts",
+      "builder": "buildWorkspaceUsageQuotaViewModel",
+      "render_anchor": "workspace-usage-quota",
+      "summary_binding": "quota",
+      "request_ref": "requestId",
+      "audit_ref": "auditRef"
+    },
+    {
+      "page_id": "workspace-workflow-definitions",
+      "surface": "User Workspace",
+      "route_id": "workflow-definition-summary-list-route",
+      "route_key": "workflowDefinitions",
+      "read_model": "workflow-definition-summary",
+      "required_scope": "applications:read",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceWorkflowDefinitions.ts",
+      "builder": "buildWorkspaceWorkflowDefinitionsViewModel",
+      "render_anchor": "workspace-workflow-definitions",
+      "summary_binding": "workflowDefinitions",
+      "request_ref": "requestId",
+      "audit_ref": "auditRef"
+    },
+    {
+      "page_id": "workspace-run-history",
+      "surface": "User Workspace",
+      "route_id": "run-record-summary-list-route",
+      "route_key": "runs",
+      "read_model": "run-record-summary",
+      "required_scope": "runs:read",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceRunHistory.ts",
+      "builder": "buildWorkspaceRunHistoryViewModel",
+      "render_anchor": "workspace-run-history",
+      "summary_binding": "runs",
+      "request_ref": "requestId",
+      "audit_ref": "auditRef"
+    }
+  ],
+  "required_states": [
+    "ready",
+    "empty",
+    "denied",
+    "stale",
+    "partial_failure",
+    "forbidden_projection"
+  ],
+  "required_shared_symbols": [
+    "CONTROL_PLANE_READ_ROUTES",
+    "CONTROL_PLANE_READ_ROUTE_DEFINITIONS",
+    "CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS",
+    "ControlPlaneReadCollectionViewModel",
+    "ControlPlaneReadResponseByRoute",
+    "controlPlaneReadResponseHasForbiddenOutput",
+    "toControlPlaneReadCollectionViewModel"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "createRoot(document.getElementById(\"console\"",
+    "VITE_RADISHMIND_PLATFORM_BASE_URL"
+  ],
+  "forbidden_package_scripts": [
+    "deploy",
+    "publish",
+    "release",
+    "package",
+    "docker"
+  ],
+  "forbidden_control_literals": [
+    "issue_api_key",
+    "rotate_api_key",
+    "revoke_api_key",
+    "enforce_quota",
+    "create_workflow",
+    "edit_workflow",
+    "start_run",
+    "cancel_run",
+    "resume_run",
+    "replay_run",
+    "materialize_result",
+    "write_business_truth",
+    "delete_audit_record",
+    "edit_audit_record",
+    "export_raw_payload",
+    "reveal_secret"
+  ],
+  "required_files": [
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/features/control-plane-read/readShell.ts",
+    "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
+    "apps/radishmind-web/src/features/control-plane-read/adminAuditLog.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceUsageQuota.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceWorkflowDefinitions.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceRunHistory.ts",
+    "apps/radishmind-web/src/styles.css",
+    "apps/radishmind-web/package.json"
+  ],
+  "testing_strategy": [
+    {
+      "id": "formal_ui_readiness_close_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-formal-ui-readiness-close-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_when_node_dependencies_available",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "consumer_smoke",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo-fast.sh; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not modify apps/radishmind-console into formal user workspace",
+    "do not modify apps/radishmind-console into production admin console",
+    "do not request live backend from apps/radishmind-web read pages",
+    "do not connect database schema migration query repository or durable store",
+    "do not add Radish OIDC middleware token validation login or logout",
+    "do not add API key issue rotate revoke quota enforcement workflow execution confirmation writeback replay or audit mutation controls"
+  ],
+  "required_doc_references": {
+    "docs/README.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "surface matrix"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "formal_ui_readiness_closed"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "surface matrix"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "formal UI readiness close"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "surface matrix"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "Control Plane Read Formal UI Readiness Close"
+    ],
+    "docs/task-cards/control-plane-read-formal-ui-readiness-close-v1-plan.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "surface matrix"
+    ],
+    "apps/radishmind-web/README.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "surface matrix"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-formal-ui-readiness-close-v1.py",
+      "control-plane-read-formal-ui-readiness-close-v1.json"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-formal-ui-readiness-close-v1",
+      "formal_ui_readiness_closed"
+    ]
+  }
+}
