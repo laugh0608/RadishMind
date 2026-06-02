@@ -63,6 +63,8 @@
 
 `control-plane-read-store-selection-readiness-v1` 当前只固定 store selection readiness：默认 read source 仍为 fixture-backed fake store，未来 `RADISHMIND_CONTROL_PLANE_READ_STORE` 只作为保留配置键，database / postgres / repository mode 必须 fail-closed 为 `database_read_disabled`，未知 selector value 必须 fail-closed 为 `invalid_read_store_mode`。它不创建正式配置入口、不实现 store selector、repository interface / adapter、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
+`control-plane-read-schema-migration-readiness-v1` 当前只固定 schema migration readiness：schema ownership、migration layout、rollback plan、tenant index strategy、read-only role policy、migration smoke、failure mapping 和停止线。它不创建 migration 目录、不写 SQL、不实现 migration runner、store selector、repository interface / adapter、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+
 `control-plane-read-consumer-contract-v1` 当前固定 `contracts/typescript/control-plane-read-api.ts`、`scripts/run-control-plane-read-consumer-smoke.py` 和七条 read route 的只读 consumer view model。它让上层可以按统一 envelope、failure view、cursor、audit ref 和 forbidden output policy 消费 response fixture，但不实现正式 UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
 `control-plane-read-formal-ui-boundary-v1` 当前只固定正式 UI 边界：`Admin Control Plane` 与 `User Workspace` 的页面划分、每个页面消费的 read route、loading / empty / denied / stale / partial failure / forbidden projection 状态和敏感字段停止线。它不修改 `apps/radishmind-console/`，不实现 React UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
