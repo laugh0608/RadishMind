@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-01
+更新时间：2026-06-02
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -72,6 +72,7 @@
 22. [`Control Plane Read Dev Live Consumer` v1 计划](control-plane-read-dev-live-consumer-v1-plan.md)（`control-plane-read-dev-live-consumer-v1`）
 23. [`Control Plane Read Auth/Store Transition Preconditions` v1 计划](control-plane-read-auth-store-transition-preconditions-v1-plan.md)（`control-plane-read-auth-store-transition-preconditions-v1`）
 24. [`Control Plane Read Repository Contract Preconditions` v1 计划](control-plane-read-repository-contract-preconditions-v1-plan.md)（`control-plane-read-repository-contract-preconditions-v1`）
+25. [`Control Plane Read Disabled Database Guard` v1 计划](control-plane-read-disabled-database-guard-v1-plan.md)（`control-plane-read-disabled-database-guard-v1`）
 
 ## UI 设计专题
 

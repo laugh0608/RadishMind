@@ -4,9 +4,9 @@
 
 ## 契约目的
 
-本专题说明 `Control Plane / User Workspace / Workflow v1` 的只读控制面契约层。它把用户工作区和管理端会消费的 summary、route、response、negative contract、implementation preconditions、fake-store-backed read handler plan、fake-store-backed handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared shell、管理端只读页面切片、用户工作区只读页面切片、formal UI readiness close、dev-only live read consumer 和 auth/store transition preconditions 固定为可检查治理边界，避免在正式数据库、OIDC 或完整 UI 尚未准备好时，从本地 ops console 直接堆出产品功能。
+本专题说明 `Control Plane / User Workspace / Workflow v1` 的只读控制面契约层。它把用户工作区和管理端会消费的 summary、route、response、negative contract、implementation preconditions、fake-store-backed read handler plan、fake-store-backed handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared shell、管理端只读页面切片、用户工作区只读页面切片、formal UI readiness close、dev-only live read consumer、auth/store transition preconditions、repository contract preconditions 和 disabled database read guard 固定为可检查治理边界，避免在正式数据库、OIDC 或完整 UI 尚未准备好时，从本地 ops console 直接堆出产品功能。
 
-当前 `control-plane-read-repository-contract-preconditions-v1` 已把 repository contract preconditions 纳入同一 read-side 契约层；它只定义未来 read store repository contract，不实现数据库、OIDC、repository、API key / quota、workflow executor、confirmation、writeback 或 replay。
+当前 `control-plane-read-disabled-database-guard-v1` 已把 disabled database read guard 纳入同一 read-side 契约层；它只固定 database / postgres / repository read mode 的 reserved disabled 状态、`database_read_disabled` fail-closed guard 和无 fake fallback 口径，不实现数据库、OIDC、repository、API key / quota、workflow executor、confirmation、writeback 或 replay。
 
 当前 read-side 已实现七条 fake-store-backed Go read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`。这些 route 只使用 in-memory fixture fake store 与 test-only fake auth context，不代表完整 read-side API、数据库 query、真实 OIDC 或正式 UI 已实现。
 
@@ -42,6 +42,8 @@
 
 `control-plane-read-repository-contract-preconditions-v1` 是 auth/store transition preconditions 之后的 read store repository contract 前置切片：它固定未来 `ControlPlaneReadRepository` interface、`ReadRepositoryContext`、七条 route 到 repository operation 的映射、tenant predicate、sanitized projection、cursor/filter/sort allowlist、failure mapping 和 contract smoke 要求。该切片只定义 repository contract preconditions，不写 SQL、不建 migration、不实现 repository、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing / cost ledger、workflow executor、confirmation、writeback 或 replay。
 
+`control-plane-read-disabled-database-guard-v1` 是 repository contract preconditions 之后的 disabled database read guard 切片：它固定 database / postgres / repository read mode 当前仍是 reserved disabled，七条 read route 在误请求 database mode 时必须 fail-closed 为 `database_read_disabled`，不得静默回退到 fixture-backed fake store，也不得产生写入、executor、confirmation、writeback 或 replay 副作用。该切片不新增正式配置入口、不实现 repository adapter、不写 SQL、不建 migration、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing / cost ledger、workflow executor、confirmation、writeback 或 replay。
+
 ## 阶段门禁调整
 
 `admin-audit-log` 已完成当前 read-side UI 页面集合的最后一个优先页面。普通 read-only UI 展示页后续不再默认逐项新增独立 task card、fixture 和 checker，应通过 `control-plane-read-formal-ui-readiness-close-v1` 一类聚合收口，统一校验页面到 `CONTROL_PLANE_READ_ROUTES` / `CONTROL_PLANE_READ_ROUTE_DEFINITIONS` 的绑定、状态组件、forbidden output guard、request / audit ref 和停止线。
@@ -52,9 +54,11 @@
 
 `control-plane-read-repository-contract-preconditions-v1` 将停止线前移到 repository contract 层：可以定义 interface、operation matrix、projection / filter / sort allowlist 和 failure mapping，但仍不允许在同一切片内加入 SQL、migration、repository implementation、OIDC validation、production API consumer 或任何写入 / 执行能力。
 
+`control-plane-read-disabled-database-guard-v1` 将停止线继续前移到 database mode guard 层：可以声明 database / postgres / repository read mode 是 reserved disabled，并固定 `database_read_disabled` fail-closed 行为，但仍不允许新增正式配置启用入口、SQL、migration、repository adapter、OIDC validation、production API consumer 或任何写入 / 执行能力。
+
 ## 分层关系
 
-当前 read-side 契约按二十三层固定：
+当前 read-side 契约按二十四层固定：
 
 1. `control-plane-read-model-v1`
    - 固定 tenant、application、API key、quota、workflow definition、run record 和 audit 的只读 summary 模型。
@@ -125,6 +129,9 @@
 23. `control-plane-read-repository-contract-preconditions-v1`
    - 固定未来 read store repository contract 的 interface、context、operation matrix、tenant predicate、sanitized projection、cursor/filter/sort allowlist、failure mapping 和 contract smoke 要求。
    - 不写 SQL、不建 migration、不实现 repository、不接真实数据库、Radish OIDC、token validation、repository migration、repository implementation、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+24. `control-plane-read-disabled-database-guard-v1`
+   - 固定 database / postgres / repository read mode 当前仍是 reserved disabled，误请求必须 fail-closed 为 `database_read_disabled`。
+   - 不新增正式配置入口、不回退到 fake store、不写 SQL、不建 migration、不实现 repository adapter、不接真实数据库、Radish OIDC、token validation、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
 ## 程序化证据
 
@@ -176,10 +183,12 @@ read-side 契约当前由以下 fixture 和 checker 固定：
 - `scripts/checks/control_plane/check-control-plane-read-auth-store-transition-preconditions-v1.py`
 - `scripts/checks/fixtures/control-plane-read-repository-contract-preconditions-v1.json`
 - `scripts/checks/control_plane/check-control-plane-read-repository-contract-preconditions-v1.py`
+- `scripts/checks/fixtures/control-plane-read-disabled-database-guard-v1.json`
+- `scripts/checks/control_plane/check-control-plane-read-disabled-database-guard-v1.py`
 - `contracts/typescript/control-plane-read-api.ts`
 - `scripts/run-control-plane-read-consumer-smoke.py`
 
-这些 checker 已接入 `scripts/check-repo.py --fast`。它们的作用是防止契约、样例、负向边界、实现前置条件、fake-store-backed read handler plan、handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared read shell、admin tenant overview、workspace applications、workspace api keys、workspace usage quota、workspace workflow definitions、workspace run history、admin audit log 页面切片、formal UI readiness close、dev-only live consumer、auth/store transition preconditions、repository contract preconditions 和文档说明互相漂移，不负责启动服务或模拟真实数据库。
+这些 checker 已接入 `scripts/check-repo.py --fast`。它们的作用是防止契约、样例、负向边界、实现前置条件、fake-store-backed read handler plan、handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared read shell、admin tenant overview、workspace applications、workspace api keys、workspace usage quota、workspace workflow definitions、workspace run history、admin audit log 页面切片、formal UI readiness close、dev-only live consumer、auth/store transition preconditions、repository contract preconditions、disabled database read guard 和文档说明互相漂移，不负责启动服务或模拟真实数据库。
 
 ## 路由范围
 

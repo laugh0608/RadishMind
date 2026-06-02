@@ -62,6 +62,8 @@
 
 2026-06-02 已完成 `control-plane-read-repository-contract-preconditions-v1`，把未来 read store repository contract 固定为可检查证据：`ControlPlaneReadRepository` interface、`ReadRepositoryContext`、七条 read route 到 repository operation 的映射、tenant predicate、sanitized projection、cursor/filter/sort allowlist、contract smoke 和 failure mapping。该切片只推进 read store repository contract，不写 SQL、不建 migration、不实现 repository、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
 
+2026-06-02 已完成 `control-plane-read-disabled-database-guard-v1`，把 disabled database read guard 固定为可检查证据：database / postgres / repository read mode 当前仍是 reserved disabled，七条 route 误入 database mode 时必须 fail-closed 为 `database_read_disabled`，不得静默回退到 fake store，也不得产生写入或执行副作用。该切片不新增正式配置入口、不写 SQL、不建 migration、不实现 repository adapter、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
+
 ## 五条主线
 
 ### 1. `Runtime Service / Model Gateway`
