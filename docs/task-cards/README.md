@@ -71,6 +71,7 @@
 21. [`Control Plane Read Formal UI Readiness Close` v1 计划](control-plane-read-formal-ui-readiness-close-v1-plan.md)（`control-plane-read-formal-ui-readiness-close-v1`）
 22. [`Control Plane Read Dev Live Consumer` v1 计划](control-plane-read-dev-live-consumer-v1-plan.md)（`control-plane-read-dev-live-consumer-v1`）
 23. [`Control Plane Read Auth/Store Transition Preconditions` v1 计划](control-plane-read-auth-store-transition-preconditions-v1-plan.md)（`control-plane-read-auth-store-transition-preconditions-v1`）
+24. [`Control Plane Read Repository Contract Preconditions` v1 计划](control-plane-read-repository-contract-preconditions-v1-plan.md)（`control-plane-read-repository-contract-preconditions-v1`）
 
 ## UI 设计专题
 

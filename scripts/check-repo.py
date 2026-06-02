@@ -1099,6 +1099,7 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-readiness-close-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-dev-live-consumer-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-auth-store-transition-preconditions-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-preconditions-v1.py", [])
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])

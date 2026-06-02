@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-06-01
+更新时间：2026-06-02
 
 ## 路线图原则
 
@@ -59,6 +59,8 @@
 2026-06-01 已完成 `control-plane-read-dev-live-consumer-v1`，在 `apps/radishmind-web/` 内新增 dev-only live read consumer 路径。默认仍使用离线 fixture/view model；只有显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且平台服务设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才会通过 HTTP 消费现有 fake-store-backed read handlers 和测试身份上下文。该切片不接真实数据库、不接 Radish OIDC、不实现 repository migration、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer、production admin console 或完整 formal user workspace ready。
 
 2026-06-01 已完成 `control-plane-read-auth-store-transition-preconditions-v1`，把 dev fake auth / fixture-backed fake store 迁移到未来 `future Radish OIDC / auth middleware` 与 `future control plane read store repository` 前的 auth/store transition preconditions 固定为可检查证据。该切片只定义 auth middleware gates、read store gates、route transition matrix、dual smoke plan、failure code 和禁止项，不接真实数据库、不接 Radish OIDC、不实现 token validation、repository migration、repository implementation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
+
+2026-06-02 已完成 `control-plane-read-repository-contract-preconditions-v1`，把未来 read store repository contract 固定为可检查证据：`ControlPlaneReadRepository` interface、`ReadRepositoryContext`、七条 read route 到 repository operation 的映射、tenant predicate、sanitized projection、cursor/filter/sort allowlist、contract smoke 和 failure mapping。该切片只推进 read store repository contract，不写 SQL、不建 migration、不实现 repository、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
 
 ## 五条主线
 
@@ -213,7 +215,7 @@
 ## 下一步
 
 1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
-2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；已完成的 read-side 契约、fake-store-backed read handler plan、fake-store-backed handler implementation、真实 auth/db 前置条件、consumer contract、正式 UI 边界、shared shell、七个只读页面切片、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1` 和 `control-plane-read-auth-store-transition-preconditions-v1` 继续作为证据保留。下一步如继续 read-side，优先推进 `control-plane-read-repository-contract-preconditions-v1`：只定义未来 read store repository interface、tenant predicate、sanitized projection、cursor/filter/sort allowlist、contract smoke 和 failure mapping，不默认进入数据库、OIDC、token validation、repository migration、repository implementation、quota enforcement、rate limit、billing、cost ledger、workflow builder、executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay。
+2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；已完成的 read-side 契约、fake-store-backed read handler plan、fake-store-backed handler implementation、真实 auth/db 前置条件、consumer contract、正式 UI 边界、shared shell、七个只读页面切片、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1`、`control-plane-read-auth-store-transition-preconditions-v1` 和 `control-plane-read-repository-contract-preconditions-v1` 继续作为证据保留。下一步如继续 read-side，只能围绕 disabled database read guard、repository contract smoke 或后续实现前置计划拆窄切片，不默认进入数据库、OIDC、token validation、repository migration、repository implementation、quota enforcement、rate limit、billing、cost ledger、workflow builder、executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay。
 3. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
 4. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 5. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。
