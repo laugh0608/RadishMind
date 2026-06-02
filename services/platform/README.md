@@ -59,6 +59,8 @@
 
 `control-plane-read-repository-contract-smoke-v1` 当前只固定未来 repository contract smoke：输入字段、repository context、request / output envelope、七条 read route 覆盖、failure mapping、no fake fallback 和 no side effects。它不实现 repository interface、不写 SQL、不建 migration、不接真实数据库、不接 Radish OIDC、不启用 token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
+`control-plane-read-repository-implementation-readiness-v1` 当前只固定 repository implementation readiness：未来文件落点、实现准入 gate、七条 route readiness matrix、dual smoke plan、failure mapping、no fake fallback、no side effects 和停止线。它不创建 Go repository 文件、不实现 repository interface 或 adapter、不写 SQL、不建 migration、不接真实数据库、不接 Radish OIDC、不启用 token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+
 `control-plane-read-consumer-contract-v1` 当前固定 `contracts/typescript/control-plane-read-api.ts`、`scripts/run-control-plane-read-consumer-smoke.py` 和七条 read route 的只读 consumer view model。它让上层可以按统一 envelope、failure view、cursor、audit ref 和 forbidden output policy 消费 response fixture，但不实现正式 UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
 `control-plane-read-formal-ui-boundary-v1` 当前只固定正式 UI 边界：`Admin Control Plane` 与 `User Workspace` 的页面划分、每个页面消费的 read route、loading / empty / denied / stale / partial failure / forbidden projection 状态和敏感字段停止线。它不修改 `apps/radishmind-console/`，不实现 React UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
