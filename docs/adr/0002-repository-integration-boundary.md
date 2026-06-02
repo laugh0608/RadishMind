@@ -1,6 +1,6 @@
 # ADR 0002: Repository Integration Boundary
 
-更新时间：2026-05-08
+更新时间：2026-06-02
 
 ## 状态
 
@@ -76,3 +76,9 @@ Accepted
 
 - 多仓联调需要额外的 workspace / super-repo 设计，而不是直接依赖现成子模块结构
 - 版本对齐要继续通过协议、发布制品、提交引用或集成清单治理
+
+## 与 Control Plane read repository 的关系
+
+本文的 `Repository Integration Boundary` 讨论的是 Git 仓库和源码分发边界；`Control Plane Read-Side` 中的 `future control plane read store repository` 讨论的是平台服务内部的数据访问契约。两者不是同一层概念。
+
+因此，read-side 后续固定 `ControlPlaneReadRepository` interface、repository contract smoke、store selection readiness 或 schema migration readiness，不改变本 ADR 的结论：`RadishMind` 仍不通过 `git submodule` 嵌入 `Radish` / `RadishFlow` / `RadishCatalyst`，也不要求上层仓库嵌入 `RadishMind`。真实数据库 schema、migration runner、repository adapter 和 OIDC 接线只能在 `RadishMind` 自己的平台服务边界内推进，并继续通过版本化 contract、fixture、checker 和发布制品对外协作。

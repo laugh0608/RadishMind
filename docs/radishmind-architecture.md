@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-06-01
+更新时间：2026-06-02
 
 ## 架构目标
 
@@ -19,6 +19,8 @@
 `control-plane-read-formal-ui-implementation-readiness-v1` 已进一步固定正式 UI 实现前的工程边界：product UI 落点为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍是本地 ops surface；页面实现顺序、consumer contract 复用和测试策略已可检查。当前已创建 `apps/radishmind-web/` 的 read-only shared shell，并实现只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。这些页面默认只消费离线 TypeScript view model；显式 `dev_live_http` 仅用于本地开发消费 fake-store-backed Go read route 和测试身份上下文，不接生产后端、数据库、OIDC、executor、confirmation、writeback 或 replay。
 
 当前 read-side UI 的架构门禁调整为能力边界优先：普通只读展示页由聚合 surface matrix / checker 收口，不再默认逐页新增专项门禁；dev-only live read consumer 只证明 HTTP consumer shape；auth/store transition preconditions 只定义未来迁移 gates。真实 Radish OIDC / auth middleware、read store repository、数据库 query / migration、API key / quota、workflow executor、confirmation、writeback 和 replay 仍独立排期。
+
+Control Plane read store 的迁移架构固定为分层推进，而不是从 fake store 直接跳到数据库实现：先固定 repository contract preconditions，再固定 disabled database guard，随后定义 repository contract smoke、repository implementation readiness、store selection readiness 和 schema migration readiness。这个顺序要求未来 `ControlPlaneReadRepository`、store selector、migration runner 和数据库 role 必须先满足 tenant predicate、sanitized projection、failure mapping、no fake fallback 和 no side effects，再允许进入真实实现；当前仍没有 SQL、migration 文件、repository adapter、真实数据库、Radish OIDC、token validation 或 production API consumer。
 
 ## 产品视角
 
@@ -181,7 +183,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `Frontend UI`：`React + Vite + TypeScript`
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py`
 - `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权落点、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound、session/tooling metadata shell、blocked action shell、只读 platform overview、local smoke readiness route、七条 fake-store-backed control plane read route 和显式 dev-only fake auth header gate
-- `Control Plane`：长期默认使用 `Go`，可按职责拆出独立服务，覆盖 tenant、API key、quota、provider profile、OIDC client、audit 和 run records；当前 read-side 契约、Go fake-store-backed handler、TypeScript consumer contract、auth/db preconditions、formal UI boundary/readiness、dev-only live consumer 和 auth/store transition preconditions 说明见 `docs/contracts/control-plane-read-side.md`，不默认引入 `.NET`
+- `Control Plane`：长期默认使用 `Go`，可按职责拆出独立服务，覆盖 tenant、API key、quota、provider profile、OIDC client、audit 和 run records；当前 read-side 契约、Go fake-store-backed handler、TypeScript consumer contract、auth/db preconditions、formal UI boundary/readiness、dev-only live consumer、auth/store transition preconditions、repository contract smoke、repository implementation readiness、store selection readiness 和 schema migration readiness 说明见 `docs/contracts/control-plane-read-side.md`，不默认引入 `.NET`
 - `Product Surfaces`：目标形态包括 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution` 和 `Workflow / Agent Runtime`；当前已落地本地 ops console 壳、只读平台发现面、fake-store-backed read-side HTTP surface，以及 `apps/radishmind-web/` 的 read-only product UI shell。`apps/radishmind-web/` 默认离线，显式 opt-in 时可通过 dev-only HTTP consumer 消费 fake-store-backed handler；已覆盖 route catalog、共享状态、forbidden output guard、两个 admin 页面和五个 user workspace 只读页面，但还不是完整 user workspace、production admin console 或真实 API consumer
 - `P3 Local Product Shell / Ops Surface`：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、`scripts/run-platform-overview-consumer-smoke.py`、`scripts/run-platform-local-smoke.py`、`scripts/check-radishmind-console-behavior.py`、`scripts/check-radishmind-console-visual-smoke-record.py`、`scripts/check-radishmind-console-dev-entry.py`、`scripts/check-radishmind-console-production-boundary.py`、`scripts/check-p3-local-product-shell-short-close-checklist.py`、`apps/radishmind-console/`、`docs/contracts/platform-overview-ui-view.md`；当前本地只读壳已达到 `local usable / read-only close`
 - `Deployment Boundary Layer`：`deploy/README.md`、`deploy/docker-compose.local.yaml`、`deploy/docker-compose.yaml`、`deploy/.env.example`、`services/platform/Dockerfile`、`apps/radishmind-console/Dockerfile`、`apps/radishmind-console/nginx.local.conf`、`scripts/check-production-ops-docker-*.py`、`scripts/check-production-ops-deployment-readiness-smoke.py`、`scripts/check-production-ops-container-smoke-*.py`；当前只固定 docker local/test/prod 边界、镜像命名、静态展开、runbook 和记录模板

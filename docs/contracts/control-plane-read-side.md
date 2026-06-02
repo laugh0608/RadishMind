@@ -4,7 +4,7 @@
 
 ## 契约目的
 
-本专题说明 `Control Plane / User Workspace / Workflow v1` 的只读控制面契约层。它把用户工作区和管理端会消费的 summary、route、response、negative contract、implementation preconditions、fake-store-backed read handler plan、fake-store-backed handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared shell、管理端只读页面切片、用户工作区只读页面切片、formal UI readiness close、dev-only live read consumer、auth/store transition preconditions、repository contract preconditions、disabled database read guard 和 repository contract smoke 固定为可检查治理边界，避免在正式数据库、OIDC 或完整 UI 尚未准备好时，从本地 ops console 直接堆出产品功能。
+本专题说明 `Control Plane / User Workspace / Workflow v1` 的只读控制面契约层。它把用户工作区和管理端会消费的 summary、route、response、negative contract、implementation preconditions、fake-store-backed read handler plan、fake-store-backed handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared shell、管理端只读页面切片、用户工作区只读页面切片、formal UI readiness close、dev-only live read consumer、auth/store transition preconditions、repository contract preconditions、disabled database read guard、repository contract smoke、repository implementation readiness、store selection readiness 和 schema migration readiness 固定为可检查治理边界，避免在正式数据库、OIDC 或完整 UI 尚未准备好时，从本地 ops console 直接堆出产品功能。
 
 当前 `control-plane-read-disabled-database-guard-v1` 已把 disabled database read guard 纳入同一 read-side 契约层；它只固定 database / postgres / repository read mode 的 reserved disabled 状态、`database_read_disabled` fail-closed guard 和无 fake fallback 口径，不实现数据库、OIDC、repository、API key / quota、workflow executor、confirmation、writeback 或 replay。
 
@@ -15,6 +15,8 @@
 当前 `control-plane-read-store-selection-readiness-v1` 已把未来 store selection readiness 纳入同一 read-side 契约层；它只固定默认 read source、保留 read source、失败映射、七条 route selection matrix、no fake fallback、no side effects 和停止线，不创建正式配置入口、不实现 store selector、不实现 repository interface / adapter、不写 SQL、不建 migration、不接真实数据库、Radish OIDC、token validation 或 production API consumer。
 
 当前 `control-plane-read-schema-migration-readiness-v1` 已把未来 schema migration readiness 纳入同一 read-side 契约层；它只固定 schema ownership、migration layout、rollback plan、tenant index strategy、read-only role policy、migration smoke、failure mapping 和停止线，不创建 migration 目录、不写 SQL、不实现 migration runner、store selector、repository interface / adapter、真实数据库、Radish OIDC、token validation 或 production API consumer。
+
+这组 repository/read store readiness 的设计顺序是：先定义 repository contract 与 route operation matrix，再用 disabled database guard 防止误启用数据库模式，然后定义未来 contract smoke 的输入输出，随后固定 implementation readiness、store selection readiness 和 schema migration readiness。任何一步都必须保留七条 read route 的 tenant predicate、sanitized projection、failure mapping、no fake fallback 和 no side effects，不能通过 fake store fallback 掩盖真实数据库、schema 或 adapter 的未就绪状态。
 
 当前 read-side 已实现七条 fake-store-backed Go read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`。这些 route 只使用 in-memory fixture fake store 与 test-only fake auth context，不代表完整 read-side API、数据库 query、真实 OIDC 或正式 UI 已实现。
 

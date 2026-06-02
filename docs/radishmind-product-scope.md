@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-01
+更新时间：2026-06-02
 
 ## 核心定义
 
@@ -31,6 +31,8 @@
 2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 默认只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。2026-06-01 已补显式 opt-in 的 dev-only live read consumer：只有设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且后端设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才通过 HTTP 消费 fake-store-backed read handlers 和测试身份上下文。该路径不接生产后端、不接数据库、OIDC、repository、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
 
 当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`control-plane-read-formal-ui-readiness-close-v1` 已用 surface matrix 聚合固定七个页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；`control-plane-read-auth-store-transition-preconditions-v1` 已固定从 dev fake auth / fixture-backed fake store 迁移到未来 auth middleware / read store repository 前必须满足的 gates。上述内容都不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、repository implementation 或 workflow executor ready。
+
+read store 的产品范围现在已经明确为“先固定未来迁移契约，再实现真实持久化”。`control-plane-read-repository-contract-smoke-v1`、`control-plane-read-repository-implementation-readiness-v1`、`control-plane-read-store-selection-readiness-v1` 和 `control-plane-read-schema-migration-readiness-v1` 只说明未来七条 read route 如何从 fake store 迁移到 repository/database：输入输出、tenant context、失败映射、no fake fallback、no side effects、schema ownership 和 migration smoke 都必须先可检查。它们不把 read-side 页面升级成 production API consumer，也不实现 SQL、migration、repository adapter、真实数据库、Radish OIDC、token validation、API key lifecycle、quota enforcement 或 workflow executor。
 
 1. `User Workspace`
 
