@@ -57,6 +57,8 @@
 
 `control-plane-read-disabled-database-guard-v1` 当前只固定 disabled database read guard：database / postgres / repository read mode 仍是 reserved disabled，未来误请求必须 fail-closed 为 `database_read_disabled`，不得静默回退到 fixture-backed fake store。它不新增正式配置入口、不实现 repository adapter、不写 SQL、不建 migration、不接真实数据库、不接 Radish OIDC、不启用 production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
+`control-plane-read-repository-contract-smoke-v1` 当前只固定未来 repository contract smoke：输入字段、repository context、request / output envelope、七条 read route 覆盖、failure mapping、no fake fallback 和 no side effects。它不实现 repository interface、不写 SQL、不建 migration、不接真实数据库、不接 Radish OIDC、不启用 token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+
 `control-plane-read-consumer-contract-v1` 当前固定 `contracts/typescript/control-plane-read-api.ts`、`scripts/run-control-plane-read-consumer-smoke.py` 和七条 read route 的只读 consumer view model。它让上层可以按统一 envelope、failure view、cursor、audit ref 和 forbidden output policy 消费 response fixture，但不实现正式 UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
 `control-plane-read-formal-ui-boundary-v1` 当前只固定正式 UI 边界：`Admin Control Plane` 与 `User Workspace` 的页面划分、每个页面消费的 read route、loading / empty / denied / stale / partial failure / forbidden projection 状态和敏感字段停止线。它不修改 `apps/radishmind-console/`，不实现 React UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。

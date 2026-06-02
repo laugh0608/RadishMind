@@ -73,6 +73,7 @@
 23. [`Control Plane Read Auth/Store Transition Preconditions` v1 计划](control-plane-read-auth-store-transition-preconditions-v1-plan.md)（`control-plane-read-auth-store-transition-preconditions-v1`）
 24. [`Control Plane Read Repository Contract Preconditions` v1 计划](control-plane-read-repository-contract-preconditions-v1-plan.md)（`control-plane-read-repository-contract-preconditions-v1`）
 25. [`Control Plane Read Disabled Database Guard` v1 计划](control-plane-read-disabled-database-guard-v1-plan.md)（`control-plane-read-disabled-database-guard-v1`）
+26. [`Control Plane Read Repository Contract Smoke` v1 计划](control-plane-read-repository-contract-smoke-v1-plan.md)（`control-plane-read-repository-contract-smoke-v1`）
 
 ## UI 设计专题
 

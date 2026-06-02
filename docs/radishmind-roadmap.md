@@ -64,6 +64,8 @@
 
 2026-06-02 已完成 `control-plane-read-disabled-database-guard-v1`，把 disabled database read guard 固定为可检查证据：database / postgres / repository read mode 当前仍是 reserved disabled，七条 route 误入 database mode 时必须 fail-closed 为 `database_read_disabled`，不得静默回退到 fake store，也不得产生写入或执行副作用。该切片不新增正式配置入口、不写 SQL、不建 migration、不实现 repository adapter、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
 
+2026-06-02 已完成 `control-plane-read-repository-contract-smoke-v1`，把未来 repository contract smoke 固定为可检查证据：`ControlPlaneReadRepositoryContractSmoke` 输入输出、repository context、七条 read route smoke matrix、failure mapping、no fake fallback、no side effects 和文档停止线。该切片不实现 smoke runner、不写 SQL、不建 migration、不实现 repository adapter、不接真实数据库、不接 Radish OIDC、不实现 token validation、production API consumer、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 repository implementation ready。
+
 ## 五条主线
 
 ### 1. `Runtime Service / Model Gateway`
@@ -217,7 +219,7 @@
 ## 下一步
 
 1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
-2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；已完成的 read-side 契约、fake-store-backed read handler plan、fake-store-backed handler implementation、真实 auth/db 前置条件、consumer contract、正式 UI 边界、shared shell、七个只读页面切片、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1`、`control-plane-read-auth-store-transition-preconditions-v1` 和 `control-plane-read-repository-contract-preconditions-v1` 继续作为证据保留。下一步如继续 read-side，只能围绕 disabled database read guard、repository contract smoke 或后续实现前置计划拆窄切片，不默认进入数据库、OIDC、token validation、repository migration、repository implementation、quota enforcement、rate limit、billing、cost ledger、workflow builder、executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay。
+2. 以 `Control Plane / User Workspace / Workflow v1` 任务卡作为下一条平台主线边界；已完成的 read-side 契约、fake-store-backed read handler plan、fake-store-backed handler implementation、真实 auth/db 前置条件、consumer contract、正式 UI 边界、shared shell、七个只读页面切片、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1`、`control-plane-read-auth-store-transition-preconditions-v1`、`control-plane-read-repository-contract-preconditions-v1`、`control-plane-read-disabled-database-guard-v1` 和 `control-plane-read-repository-contract-smoke-v1` 继续作为证据保留。下一步如继续 read-side，只能围绕后续实现前置计划拆窄切片，不默认进入数据库、OIDC、token validation、repository migration、repository implementation、quota enforcement、rate limit、billing、cost ledger、workflow builder、executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay。
 3. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
 4. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 5. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。

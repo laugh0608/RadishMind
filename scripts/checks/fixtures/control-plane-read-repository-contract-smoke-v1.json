@@ -1,0 +1,421 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_repository_contract_smoke_v1",
+  "slice": {
+    "id": "control-plane-read-repository-contract-smoke-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "repository_contract_smoke_defined",
+    "does_not_claim": [
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "repository_implementation_ready",
+      "repository_migration_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-repository-contract-preconditions-v1",
+    "control-plane-read-disabled-database-guard-v1",
+    "control-plane-read-auth-store-transition-preconditions-v1",
+    "control-plane-read-auth-db-preconditions-v1",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-negative-contract-v1",
+    "control-plane-read-response-fixtures-v1"
+  ],
+  "smoke_boundary": {
+    "status": "contract_smoke_defined_not_implemented",
+    "current_store_source": "fixture-backed fake store",
+    "future_store_source": "future control plane read store repository",
+    "purpose": "Fix the future repository contract smoke inputs, outputs, route coverage, failure mapping and stop lines before any SQL, migration or adapter implementation starts.",
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "repository_implementation_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false
+  },
+  "smoke_io_contract": {
+    "status": "input_output_contract_defined",
+    "harness_name": "ControlPlaneReadRepositoryContractSmoke",
+    "input_fields": [
+      "route_id",
+      "method",
+      "path",
+      "read_model",
+      "operation",
+      "read_mode",
+      "repository_context",
+      "request"
+    ],
+    "repository_context_fields": [
+      "request_id",
+      "tenant_ref",
+      "subject_ref",
+      "scope_grants",
+      "audit_ref",
+      "issuer_ref",
+      "session_ref"
+    ],
+    "request_fields": [
+      "limit",
+      "cursor",
+      "filters",
+      "sort",
+      "projection"
+    ],
+    "output_fields": [
+      "tenant_ref",
+      "items",
+      "next_cursor",
+      "failure_code",
+      "audit_ref"
+    ],
+    "success_output_policy": "sanitized_summary_envelope_only",
+    "failure_output_policy": "failure_code_without_database_internal_detail"
+  },
+  "route_smoke_matrix": [
+    {
+      "route_id": "tenant-summary-route",
+      "method": "GET",
+      "path": "/v1/control-plane/tenants/{tenant_ref}/summary",
+      "read_model": "tenant-summary",
+      "required_scope": "tenant:read",
+      "operation": "ReadTenantSummary",
+      "read_mode": "future_repository_contract",
+      "request": {
+        "limit": null,
+        "cursor": null,
+        "filters": {},
+        "sort": null,
+        "projection": "tenant_summary_projection"
+      },
+      "expected_success": {
+        "tenant_ref_source": "repository_context.tenant_ref",
+        "items_kind": "single_sanitized_summary",
+        "failure_code": null,
+        "audit_ref_required": true
+      },
+      "database_mode_failure_code": "database_read_disabled",
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/applications",
+      "read_model": "application-summary",
+      "required_scope": "applications:read",
+      "operation": "ListApplicationSummaries",
+      "read_mode": "future_repository_contract",
+      "request": {
+        "limit": 25,
+        "cursor": null,
+        "filters": {
+          "status": "active",
+          "kind": "prompt_app"
+        },
+        "sort": "updated_at_desc",
+        "projection": "application_summary_projection"
+      },
+      "expected_success": {
+        "tenant_ref_source": "repository_context.tenant_ref",
+        "items_kind": "sanitized_summary_list",
+        "failure_code": null,
+        "audit_ref_required": true
+      },
+      "database_mode_failure_code": "database_read_disabled",
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/api-keys",
+      "read_model": "api-key-summary",
+      "required_scope": "api_keys:read",
+      "operation": "ListAPIKeySummaries",
+      "read_mode": "future_repository_contract",
+      "request": {
+        "limit": 25,
+        "cursor": null,
+        "filters": {
+          "state": "active",
+          "owner_subject_ref": "subject:demo"
+        },
+        "sort": "created_at_desc",
+        "projection": "api_key_summary_projection"
+      },
+      "expected_success": {
+        "tenant_ref_source": "repository_context.tenant_ref",
+        "items_kind": "sanitized_summary_list",
+        "failure_code": null,
+        "audit_ref_required": true
+      },
+      "database_mode_failure_code": "database_read_disabled",
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/usage/quota-summary",
+      "read_model": "quota-summary",
+      "required_scope": "usage:read",
+      "operation": "ReadQuotaSummary",
+      "read_mode": "future_repository_contract",
+      "request": {
+        "limit": null,
+        "cursor": null,
+        "filters": {
+          "period": "month"
+        },
+        "sort": null,
+        "projection": "quota_summary_projection"
+      },
+      "expected_success": {
+        "tenant_ref_source": "repository_context.tenant_ref",
+        "items_kind": "single_sanitized_summary",
+        "failure_code": null,
+        "audit_ref_required": true
+      },
+      "database_mode_failure_code": "database_read_disabled",
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/workflow-definitions",
+      "read_model": "workflow-definition-summary",
+      "required_scope": "applications:read",
+      "operation": "ListWorkflowDefinitionSummaries",
+      "read_mode": "future_repository_contract",
+      "request": {
+        "limit": 25,
+        "cursor": null,
+        "filters": {
+          "application_ref": "app:demo",
+          "definition_status": "published",
+          "risk_level": "low"
+        },
+        "sort": "updated_at_desc",
+        "projection": "workflow_definition_summary_projection"
+      },
+      "expected_success": {
+        "tenant_ref_source": "repository_context.tenant_ref",
+        "items_kind": "sanitized_summary_list",
+        "failure_code": null,
+        "audit_ref_required": true
+      },
+      "database_mode_failure_code": "database_read_disabled",
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "method": "GET",
+      "path": "/v1/user-workspace/runs",
+      "read_model": "run-record-summary",
+      "required_scope": "runs:read",
+      "operation": "ListRunRecordSummaries",
+      "read_mode": "future_repository_contract",
+      "request": {
+        "limit": 25,
+        "cursor": null,
+        "filters": {
+          "application_ref": "app:demo",
+          "workflow_definition_ref": "workflow:def:demo",
+          "status": "completed",
+          "failure_code": null
+        },
+        "sort": "started_at_desc",
+        "projection": "run_record_summary_projection"
+      },
+      "expected_success": {
+        "tenant_ref_source": "repository_context.tenant_ref",
+        "items_kind": "sanitized_summary_list",
+        "failure_code": null,
+        "audit_ref_required": true
+      },
+      "database_mode_failure_code": "database_read_disabled",
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "method": "GET",
+      "path": "/v1/control-plane/audit",
+      "read_model": "audit-summary",
+      "required_scope": "audit:read",
+      "operation": "ListAuditSummaries",
+      "read_mode": "future_repository_contract",
+      "request": {
+        "limit": 25,
+        "cursor": null,
+        "filters": {
+          "actor_subject_ref": "subject:demo",
+          "event_kind": "read",
+          "resource_kind": "application",
+          "decision": "allow",
+          "failure_code": null
+        },
+        "sort": "recorded_at_desc",
+        "projection": "audit_summary_projection"
+      },
+      "expected_success": {
+        "tenant_ref_source": "repository_context.tenant_ref",
+        "items_kind": "sanitized_summary_list",
+        "failure_code": null,
+        "audit_ref_required": true
+      },
+      "database_mode_failure_code": "database_read_disabled",
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_mapping": [
+    {
+      "source": "missing_or_mismatched_tenant_predicate",
+      "failure_code": "tenant_binding_missing"
+    },
+    {
+      "source": "scope_missing_or_denied",
+      "failure_code": "scope_denied"
+    },
+    {
+      "source": "unknown_filter_or_sort",
+      "failure_code": "invalid_filter"
+    },
+    {
+      "source": "repository_adapter_missing",
+      "failure_code": "read_store_unavailable"
+    },
+    {
+      "source": "repository_contract_mismatch",
+      "failure_code": "read_store_contract_mismatch"
+    },
+    {
+      "source": "database_backed_mode_disabled",
+      "failure_code": "database_read_disabled"
+    },
+    {
+      "source": "auth_context_missing_required_field",
+      "failure_code": "auth_context_contract_mismatch"
+    }
+  ],
+  "no_fake_fallback_policy": {
+    "status": "required_for_future_smoke",
+    "database_mode_requested_failure_code": "database_read_disabled",
+    "repository_unavailable_failure_code": "read_store_unavailable",
+    "contract_mismatch_failure_code": "read_store_contract_mismatch",
+    "fallback_to_fixture_fake_store_allowed": false,
+    "fallback_to_test_auth_allowed": false,
+    "fallback_to_success_on_unknown_filter_allowed": false
+  },
+  "no_side_effect_policy": {
+    "status": "required_for_future_smoke",
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "source_absent_literals": [
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "oidc.Provider",
+    "ValidateToken"
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "repository contract smoke"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "repository_contract_smoke_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "repository contract smoke"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "repository contract smoke"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "Control Plane Read Repository Contract Smoke"
+    ],
+    "docs/task-cards/control-plane-read-repository-contract-smoke-v1-plan.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "repository contract smoke"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-repository-contract-smoke-v1.py",
+      "control-plane-read-repository-contract-smoke-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "repository contract smoke"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-repository-contract-smoke-v1",
+      "repository_contract_smoke_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/control-plane-read-repository-contract-smoke-v1-plan.md",
+    "docs/contracts/control-plane-read-side.md",
+    "scripts/checks/fixtures/control-plane-read-repository-contract-preconditions-v1.json",
+    "scripts/checks/fixtures/control-plane-read-disabled-database-guard-v1.json",
+    "scripts/checks/fixtures/control-plane-read-auth-store-transition-preconditions-v1.json",
+    "scripts/checks/fixtures/control-plane-read-auth-db-preconditions-v1.json",
+    "scripts/checks/fixtures/control-plane-read-route-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json",
+    "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-repository-contract-smoke-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-repository-contract-smoke-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W23.md"
+  ]
+}
