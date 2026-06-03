@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-02
+更新时间：2026-06-03
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -80,6 +80,7 @@
 30. [`Control Plane Read Repository Contract Types Readiness` v1 计划](control-plane-read-repository-contract-types-readiness-v1-plan.md)（`control-plane-read-repository-contract-types-readiness-v1`）
 31. [`Control Plane Read Repository Contract Types Implementation` v1 计划](control-plane-read-repository-contract-types-implementation-v1-plan.md)（`control-plane-read-repository-contract-types-implementation-v1`）
 32. [`Control Plane Read Repository Contract Smoke Runner Readiness` v1 计划](control-plane-read-repository-contract-smoke-runner-readiness-v1-plan.md)（`control-plane-read-repository-contract-smoke-runner-readiness-v1`）
+33. [`Control Plane Read Repository Contract Smoke Runner Implementation` v1 计划](control-plane-read-repository-contract-smoke-runner-implementation-v1-plan.md)（`control-plane-read-repository-contract-smoke-runner-implementation-v1`）
 
 ## UI 设计专题
 

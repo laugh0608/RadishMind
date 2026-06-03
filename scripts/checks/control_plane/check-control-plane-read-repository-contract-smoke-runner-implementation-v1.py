@@ -9,7 +9,10 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
     REPO_ROOT
-    / "scripts/checks/fixtures/control-plane-read-repository-contract-smoke-runner-readiness-v1.json"
+    / "scripts/checks/fixtures/control-plane-read-repository-contract-smoke-runner-implementation-v1.json"
+)
+READINESS_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/control-plane-read-repository-contract-smoke-runner-readiness-v1.json"
 )
 TYPES_IMPLEMENTATION_FIXTURE_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/control-plane-read-repository-contract-types-implementation-v1.json"
@@ -27,11 +30,6 @@ SCHEMA_MIGRATION_FIXTURE_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/control-plane-read-schema-migration-readiness-v1.json"
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
-TYPE_FILE_PATH = REPO_ROOT / "services/platform/internal/httpapi/control_plane_read_repository_contract.go"
-IMPLEMENTATION_FIXTURE_PATH = (
-    REPO_ROOT
-    / "scripts/checks/fixtures/control-plane-read-repository-contract-smoke-runner-implementation-v1.json"
-)
 
 EXPECTED_ROUTE_IDS = {
     "tenant-summary-route",
@@ -43,6 +41,10 @@ EXPECTED_ROUTE_IDS = {
     "audit-summary-list-route",
 }
 EXPECTED_DEPENDENCIES = {
+    "control-plane-read-repository-contract-smoke-runner-readiness-v1": (
+        READINESS_FIXTURE_PATH,
+        "repository_contract_smoke_runner_readiness_defined",
+    ),
     "control-plane-read-repository-contract-types-implementation-v1": (
         TYPES_IMPLEMENTATION_FIXTURE_PATH,
         "repository_contract_types_implemented",
@@ -65,7 +67,6 @@ EXPECTED_DEPENDENCIES = {
     ),
 }
 EXPECTED_FORBIDDEN_CLAIMS = {
-    "smoke_runner_implemented",
     "database_schema_ready",
     "database_query_ready",
     "database_migration_ready",
@@ -88,20 +89,6 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "business_writeback_ready",
     "replay_ready",
     "production_ready",
-}
-EXPECTED_INPUT_FIELDS = {
-    "contract_type_matrix",
-    "repository_context",
-    "route_requests",
-    "failure_injections",
-    "side_effect_probe",
-}
-EXPECTED_OUTPUT_FIELDS = {
-    "route_results",
-    "failure_results",
-    "contract_mismatch_report",
-    "side_effect_report",
-    "summary",
 }
 EXPECTED_FAILURE_CODES = {
     "tenant_binding_missing",
@@ -130,9 +117,7 @@ EXPECTED_FORBIDDEN_SIDE_EFFECTS = {
     "business_writeback",
     "replay_execution",
 }
-EXPECTED_SOURCE_ABSENT_LITERALS = {
-    "type ControlPlaneReadRepositoryContractSmokeRunner",
-    "func RunControlPlaneReadRepositoryContractSmoke",
+EXPECTED_FORBIDDEN_SOURCE = {
     "type ControlPlaneReadRepository interface",
     "func NewControlPlaneReadRepository",
     "database/sql",
@@ -150,10 +135,6 @@ EXPECTED_SOURCE_ABSENT_LITERALS = {
     "oidc.Provider",
     "ValidateToken",
 }
-IMPLEMENTATION_COVERED_LITERALS = {
-    "type ControlPlaneReadRepositoryContractSmokeRunner",
-    "func RunControlPlaneReadRepositoryContractSmoke",
-}
 
 
 def require(condition: bool, message: str) -> None:
@@ -165,17 +146,6 @@ def load_json(path: Path) -> dict[str, Any]:
     document = json.loads(path.read_text(encoding="utf-8"))
     require(isinstance(document, dict), f"{path.relative_to(REPO_ROOT)} must be a JSON object")
     return document
-
-
-def implementation_gate_covers_runner() -> bool:
-    if not IMPLEMENTATION_FIXTURE_PATH.exists():
-        return False
-    implementation = load_json(IMPLEMENTATION_FIXTURE_PATH)
-    slice_info = implementation.get("slice") or {}
-    return (
-        slice_info.get("id") == "control-plane-read-repository-contract-smoke-runner-implementation-v1"
-        and slice_info.get("status") == "repository_contract_smoke_runner_implemented"
-    )
 
 
 def read(relative_path: str) -> str:
@@ -199,55 +169,47 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind") == "control_plane_read_repository_contract_smoke_runner_readiness_v1",
+        fixture.get("kind") == "control_plane_read_repository_contract_smoke_runner_implementation_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
     require(
-        slice_info.get("id") == "control-plane-read-repository-contract-smoke-runner-readiness-v1",
+        slice_info.get("id") == "control-plane-read-repository-contract-smoke-runner-implementation-v1",
         "unexpected slice id",
     )
     require(slice_info.get("track") == "Control Plane / User Workspace / Workflow v1", "unexpected track")
     require(
-        slice_info.get("status") == "repository_contract_smoke_runner_readiness_defined",
-        "smoke runner readiness status drifted",
+        slice_info.get("status") == "repository_contract_smoke_runner_implemented",
+        "smoke runner implementation status drifted",
     )
     missing = sorted(EXPECTED_FORBIDDEN_CLAIMS - set(slice_info.get("does_not_claim") or []))
     require(not missing, f"missing forbidden claims: {missing}")
 
 
-def assert_runner_boundary(fixture: dict[str, Any]) -> None:
-    boundary = fixture.get("runner_boundary") or {}
+def assert_implementation_boundary(fixture: dict[str, Any]) -> tuple[Path, Path]:
+    boundary = fixture.get("implementation_boundary") or {}
     require(
-        boundary.get("status") == "smoke_runner_readiness_defined_not_implemented",
-        "runner boundary status drifted",
+        boundary.get("status") == "static_contract_type_runner_implemented_no_repository_adapter",
+        "implementation boundary status drifted",
     )
+    runner_file = REPO_ROOT / str(boundary.get("runner_file") or "")
+    test_file = REPO_ROOT / str(boundary.get("test_file") or "")
+    require(runner_file.exists(), f"missing runner file: {runner_file.relative_to(REPO_ROOT)}")
+    require(test_file.exists(), f"missing test file: {test_file.relative_to(REPO_ROOT)}")
     require(
-        boundary.get("future_runner_name") == "ControlPlaneReadRepositoryContractSmokeRunner",
-        "future runner name drifted",
+        boundary.get("runner_name") == "ControlPlaneReadRepositoryContractSmokeRunner",
+        "runner name drifted",
     )
     require(
         boundary.get("type_catalog_source") == "controlPlaneReadRepositoryRouteTypeContracts",
         "type catalog source drifted",
     )
     require(
-        boundary.get("contract_smoke_source") == "ControlPlaneReadRepositoryContractSmoke",
+        boundary.get("contract_smoke_source") == "control-plane-read-repository-contract-smoke-v1.json",
         "contract smoke source drifted",
     )
-    future_runner = REPO_ROOT / str(boundary.get("future_runner_file") or "")
-    require(
-        future_runner.relative_to(REPO_ROOT).as_posix()
-        == "services/platform/internal/httpapi/control_plane_read_repository_contract_smoke_runner.go",
-        "future runner file path drifted",
-    )
-    if future_runner.exists():
-        require(
-            implementation_gate_covers_runner(),
-            "smoke runner file must be covered by implementation gate",
-        )
     for field in (
-        "runner_file_allowed_in_this_slice",
-        "repository_interface_allowed_in_this_slice",
+        "repository_interface_declared",
         "repository_adapter_allowed_in_this_slice",
         "database_query_allowed_in_this_slice",
         "database_migration_allowed_in_this_slice",
@@ -257,32 +219,32 @@ def assert_runner_boundary(fixture: dict[str, Any]) -> None:
         "write_allowed_in_this_slice",
     ):
         require(boundary.get(field) is False, f"{field} must remain false")
+    return runner_file, test_file
 
 
-def assert_runner_io_contract(fixture: dict[str, Any]) -> None:
-    contract = fixture.get("runner_io_contract") or {}
+def assert_runner_source(fixture: dict[str, Any], runner_file: Path, test_file: Path) -> None:
+    runner_text = runner_file.read_text(encoding="utf-8")
+    test_text = test_file.read_text(encoding="utf-8")
+    require("package httpapi" in runner_text, "runner must stay in httpapi package")
+    for literal in fixture.get("implemented_runner_literals") or []:
+        require(str(literal) in runner_text, f"runner missing literal: {literal}")
+    for literal in fixture.get("runner_test_literals") or []:
+        require(str(literal) in test_text, f"runner test missing literal: {literal}")
     require(
-        contract.get("status") == "runner_input_output_readiness_defined",
-        "runner IO contract status drifted",
-    )
-    require(set(contract.get("input_fields") or []) == EXPECTED_INPUT_FIELDS, "runner input fields drifted")
-    require(set(contract.get("output_fields") or []) == EXPECTED_OUTPUT_FIELDS, "runner output fields drifted")
-    require(contract.get("context_source") == "ReadRepositoryContext", "context source drifted")
-    require("ReadRepositoryRequest" in str(contract.get("request_source") or ""), "request source drifted")
-    require("ReadRepositoryResult" in str(contract.get("result_source") or ""), "result source drifted")
-    require(
-        contract.get("success_policy") == "compare sanitized summary envelope against route result type",
-        "success policy drifted",
-    )
-    require(
-        contract.get("failure_policy") == "compare expected failure code without exposing database internal detail",
-        "failure policy drifted",
+        "control-plane-read-repository-contract-smoke-v1.json" in test_text,
+        "runner test must compare committed smoke fixture",
     )
 
 
 def assert_route_runner_matrix(fixture: dict[str, Any]) -> None:
+    readiness = load_json(READINESS_FIXTURE_PATH)
     types_fixture = load_json(TYPES_IMPLEMENTATION_FIXTURE_PATH)
     smoke_fixture = load_json(REPOSITORY_SMOKE_FIXTURE_PATH)
+    readiness_matrix = {
+        str(row.get("route_id") or ""): row
+        for row in readiness.get("route_runner_matrix") or []
+        if isinstance(row, dict)
+    }
     type_matrix = {
         str(row.get("route_id") or ""): row
         for row in types_fixture.get("route_type_matrix") or []
@@ -293,57 +255,39 @@ def assert_route_runner_matrix(fixture: dict[str, Any]) -> None:
         for row in smoke_fixture.get("route_smoke_matrix") or []
         if isinstance(row, dict)
     }
-    runner_matrix = {
+    matrix = {
         str(row.get("route_id") or ""): row
         for row in fixture.get("route_runner_matrix") or []
         if isinstance(row, dict)
     }
-    require(set(type_matrix) == EXPECTED_ROUTE_IDS, "type matrix route ids drifted")
-    require(set(smoke_matrix) == EXPECTED_ROUTE_IDS, "smoke matrix route ids drifted")
-    require(set(runner_matrix) == EXPECTED_ROUTE_IDS, "runner matrix must cover every read route")
-    for route_id, runner_row in runner_matrix.items():
-        type_row = type_matrix[route_id]
-        smoke_row = smoke_matrix[route_id]
-        require(runner_row.get("operation") == type_row.get("operation"), f"{route_id} operation drifted")
-        require(
-            runner_row.get("operation") == smoke_row.get("operation"),
-            f"{route_id} operation must match smoke contract",
-        )
-        require(
-            runner_row.get("request_type") == type_row.get("request_type"),
-            f"{route_id} request type drifted",
-        )
-        require(
-            runner_row.get("result_type") == type_row.get("result_type"),
-            f"{route_id} result type drifted",
-        )
-        require(
-            runner_row.get("smoke_read_mode") == smoke_row.get("read_mode"),
-            f"{route_id} smoke read mode drifted",
-        )
-        require(runner_row.get("uses_type_contract") is True, f"{route_id} must consume type contract")
-        require(runner_row.get("uses_smoke_fixture") is True, f"{route_id} must consume smoke fixture")
-        require(runner_row.get("fake_fallback_allowed") is False, f"{route_id} fake fallback must be forbidden")
-        require(runner_row.get("side_effect_allowed") is False, f"{route_id} side effects must be forbidden")
+    require(set(matrix) == EXPECTED_ROUTE_IDS, "implementation matrix must cover every read route")
+    for route_id, row in matrix.items():
+        readiness_row = readiness_matrix.get(route_id) or {}
+        type_row = type_matrix.get(route_id) or {}
+        smoke_row = smoke_matrix.get(route_id) or {}
+        require(row == readiness_row, f"{route_id} runner matrix must match readiness gate")
+        require(row.get("operation") == type_row.get("operation"), f"{route_id} operation drifted")
+        require(row.get("request_type") == type_row.get("request_type"), f"{route_id} request type drifted")
+        require(row.get("result_type") == type_row.get("result_type"), f"{route_id} result type drifted")
+        require(row.get("operation") == smoke_row.get("operation"), f"{route_id} smoke operation drifted")
+        require(row.get("smoke_read_mode") == smoke_row.get("read_mode"), f"{route_id} smoke mode drifted")
+        require(row.get("uses_type_contract") is True, f"{route_id} must consume type contract")
+        require(row.get("uses_smoke_fixture") is True, f"{route_id} must consume smoke fixture")
+        require(row.get("fake_fallback_allowed") is False, f"{route_id} fake fallback must remain false")
+        require(row.get("side_effect_allowed") is False, f"{route_id} side effect must remain false")
 
 
 def assert_failure_and_side_effect_policies(fixture: dict[str, Any]) -> None:
-    failures = {
-        str(item.get("failure_code") or "")
-        for item in fixture.get("failure_mapping") or []
-        if isinstance(item, dict)
-    }
-    missing_failures = sorted(EXPECTED_FAILURE_CODES - failures)
-    require(not missing_failures, f"missing runner failure mappings: {missing_failures}")
+    failures = set(fixture.get("failure_mapping") or [])
+    require(EXPECTED_FAILURE_CODES.issubset(failures), "missing failure mapping codes")
     smoke_failures = {
         str(item.get("failure_code") or "")
         for item in load_json(REPOSITORY_SMOKE_FIXTURE_PATH).get("failure_mapping") or []
         if isinstance(item, dict)
     }
-    require(smoke_failures.issubset(failures), "runner failures must include repository smoke failures")
+    require(smoke_failures.issubset(failures), "implementation failures must include smoke failures")
 
     fallback = fixture.get("no_fake_fallback_policy") or {}
-    require(fallback.get("status") == "required_for_future_runner", "fallback policy status drifted")
     for field in (
         "fallback_to_fixture_fake_store_allowed",
         "fallback_to_test_auth_allowed",
@@ -352,7 +296,6 @@ def assert_failure_and_side_effect_policies(fixture: dict[str, Any]) -> None:
         require(fallback.get(field) is False, f"{field} must remain false")
 
     side_effects = fixture.get("no_side_effect_policy") or {}
-    require(side_effects.get("status") == "required_for_future_runner", "side effect policy status drifted")
     require(
         EXPECTED_SIDE_EFFECT_COUNTERS.issubset(set(side_effects.get("side_effect_counters_must_remain") or [])),
         "missing zero side-effect counters",
@@ -363,24 +306,20 @@ def assert_failure_and_side_effect_policies(fixture: dict[str, Any]) -> None:
     )
 
 
-def assert_type_file_and_docs(fixture: dict[str, Any]) -> None:
-    type_text = TYPE_FILE_PATH.read_text(encoding="utf-8")
-    require("controlPlaneReadRepositoryRouteTypeContracts" in type_text, "type catalog function missing")
-    require("ReadRepositoryContext" in type_text, "ReadRepositoryContext missing")
-    require("ReadRepositoryResult" in type_text, "ReadRepositoryResult missing")
-
+def assert_docs_and_check_repo(fixture: dict[str, Any]) -> None:
     for relative_path in fixture.get("evidence") or []:
         require((REPO_ROOT / str(relative_path)).exists(), f"missing evidence path: {relative_path}")
     for relative_path in fixture.get("required_consumers") or []:
         require((REPO_ROOT / str(relative_path)).exists(), f"missing consumer path: {relative_path}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    current_checker = "check-control-plane-read-repository-contract-smoke-runner-readiness-v1.py"
-    type_checker = "check-control-plane-read-repository-contract-types-implementation-v1.py"
-    smoke_checker = "check-control-plane-read-repository-contract-smoke-v1.py"
-    require(current_checker in check_repo, "check-repo.py must run smoke runner readiness check")
-    require(check_repo.index(smoke_checker) < check_repo.index(current_checker), "runner check must run after smoke")
-    require(check_repo.index(type_checker) < check_repo.index(current_checker), "runner check must run after types")
+    current_checker = "check-control-plane-read-repository-contract-smoke-runner-implementation-v1.py"
+    readiness_checker = "check-control-plane-read-repository-contract-smoke-runner-readiness-v1.py"
+    require(current_checker in check_repo, "check-repo.py must run smoke runner implementation check")
+    require(
+        check_repo.index(readiness_checker) < check_repo.index(current_checker),
+        "implementation check must run after readiness check",
+    )
 
     for relative_path, required_literals in (fixture.get("required_doc_references") or {}).items():
         text = read(str(relative_path))
@@ -388,11 +327,9 @@ def assert_type_file_and_docs(fixture: dict[str, Any]) -> None:
         require(not missing, f"{relative_path} missing literals: {missing}")
 
 
-def assert_no_runner_implementation_leaked(fixture: dict[str, Any]) -> None:
-    configured_literals = set(fixture.get("source_absent_literals") or [])
-    require(EXPECTED_SOURCE_ABSENT_LITERALS.issubset(configured_literals), "source absent literals drifted")
-    if implementation_gate_covers_runner():
-        configured_literals = configured_literals - IMPLEMENTATION_COVERED_LITERALS
+def assert_no_forbidden_source(fixture: dict[str, Any]) -> None:
+    configured = set(fixture.get("source_absent_literals") or [])
+    require(EXPECTED_FORBIDDEN_SOURCE.issubset(configured), "forbidden source literals drifted")
     for root in (REPO_ROOT / "services/platform/internal", REPO_ROOT / "apps/radishmind-web/src"):
         if not root.exists():
             continue
@@ -400,10 +337,10 @@ def assert_no_runner_implementation_leaked(fixture: dict[str, Any]) -> None:
             if path.suffix not in {".go", ".ts", ".tsx"}:
                 continue
             text = path.read_text(encoding="utf-8")
-            for literal in configured_literals:
+            for literal in configured:
                 require(
                     literal not in text,
-                    f"{path.relative_to(REPO_ROOT)} must not introduce {literal!r} in readiness slice",
+                    f"{path.relative_to(REPO_ROOT)} must not introduce {literal!r} in this implementation slice",
                 )
 
 
@@ -411,13 +348,13 @@ def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_dependencies(fixture)
     assert_slice(fixture)
-    assert_runner_boundary(fixture)
-    assert_runner_io_contract(fixture)
+    runner_file, test_file = assert_implementation_boundary(fixture)
+    assert_runner_source(fixture, runner_file, test_file)
     assert_route_runner_matrix(fixture)
     assert_failure_and_side_effect_policies(fixture)
-    assert_type_file_and_docs(fixture)
-    assert_no_runner_implementation_leaked(fixture)
-    print("control plane read repository contract smoke runner readiness v1 checks passed.")
+    assert_docs_and_check_repo(fixture)
+    assert_no_forbidden_source(fixture)
+    print("control plane read repository contract smoke runner implementation v1 checks passed.")
 
 
 if __name__ == "__main__":
