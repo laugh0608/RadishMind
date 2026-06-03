@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_repository_interface_readiness_v1",
+  "slice": {
+    "id": "control-plane-read-repository-interface-readiness-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "repository_interface_readiness_defined",
+    "does_not_claim": [
+      "repository_interface_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "repository_implementation_ready",
+      "repository_adapter_ready",
+      "repository_migration_ready",
+      "store_selector_implemented",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-repository-contract-smoke-runner-implementation-v1",
+    "control-plane-read-repository-contract-types-implementation-v1",
+    "control-plane-read-repository-contract-smoke-v1",
+    "control-plane-read-repository-contract-preconditions-v1",
+    "control-plane-read-repository-implementation-readiness-v1",
+    "control-plane-read-store-selection-readiness-v1",
+    "control-plane-read-schema-migration-readiness-v1",
+    "control-plane-read-disabled-database-guard-v1"
+  ],
+  "interface_boundary": {
+    "status": "interface_readiness_defined_not_declared",
+    "future_interface_name": "ControlPlaneReadRepository",
+    "future_interface_file": "services/platform/internal/httpapi/control_plane_read_repository_interface.go",
+    "current_type_file": "services/platform/internal/httpapi/control_plane_read_repository_contract.go",
+    "static_runner_file": "services/platform/internal/httpapi/control_plane_read_repository_contract_smoke_runner.go",
+    "purpose": "Fix the future read repository interface method matrix and adapter entry criteria after contract types and static runner exist, without declaring the interface or implementing any adapter.",
+    "interface_declared_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "store_selector_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false
+  },
+  "interface_method_policy": {
+    "status": "method_matrix_defined_not_declared",
+    "context_argument": "ReadRepositoryContext",
+    "context_must_be_first_argument": true,
+    "tenant_ref_from_request_allowed": false,
+    "raw_http_request_allowed": false,
+    "raw_auth_material_allowed": false,
+    "method_result_policy": "route_specific_read_repository_result_alias",
+    "failure_policy": "typed_failure_code_without_database_internal_detail"
+  },
+  "method_matrix": [
+    {
+      "route_id": "tenant-summary-route",
+      "operation": "ReadTenantSummary",
+      "request_type": "ReadTenantSummaryRequest",
+      "result_type": "ReadTenantSummaryResult",
+      "summary_type": "TenantSummary",
+      "source_type_contract": true,
+      "covered_by_static_runner": true,
+      "future_adapter_allowed_now": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "operation": "ListApplicationSummaries",
+      "request_type": "ListApplicationSummariesRequest",
+      "result_type": "ListApplicationSummariesResult",
+      "summary_type": "ApplicationSummary",
+      "source_type_contract": true,
+      "covered_by_static_runner": true,
+      "future_adapter_allowed_now": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "operation": "ListAPIKeySummaries",
+      "request_type": "ListAPIKeySummariesRequest",
+      "result_type": "ListAPIKeySummariesResult",
+      "summary_type": "APIKeySummary",
+      "source_type_contract": true,
+      "covered_by_static_runner": true,
+      "future_adapter_allowed_now": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "operation": "ReadQuotaSummary",
+      "request_type": "ReadQuotaSummaryRequest",
+      "result_type": "ReadQuotaSummaryResult",
+      "summary_type": "QuotaSummary",
+      "source_type_contract": true,
+      "covered_by_static_runner": true,
+      "future_adapter_allowed_now": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "operation": "ListWorkflowDefinitionSummaries",
+      "request_type": "ListWorkflowDefinitionSummariesRequest",
+      "result_type": "ListWorkflowDefinitionSummariesResult",
+      "summary_type": "WorkflowDefinitionSummary",
+      "source_type_contract": true,
+      "covered_by_static_runner": true,
+      "future_adapter_allowed_now": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "operation": "ListRunRecordSummaries",
+      "request_type": "ListRunRecordSummariesRequest",
+      "result_type": "ListRunRecordSummariesResult",
+      "summary_type": "RunRecordSummary",
+      "source_type_contract": true,
+      "covered_by_static_runner": true,
+      "future_adapter_allowed_now": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "operation": "ListAuditSummaries",
+      "request_type": "ListAuditSummariesRequest",
+      "result_type": "ListAuditSummariesResult",
+      "summary_type": "AuditSummary",
+      "source_type_contract": true,
+      "covered_by_static_runner": true,
+      "future_adapter_allowed_now": false
+    }
+  ],
+  "readiness_gates": [
+    {
+      "id": "contract_types_implemented",
+      "status": "satisfied",
+      "evidence": "control-plane-read-repository-contract-types-implementation-v1"
+    },
+    {
+      "id": "static_runner_implemented",
+      "status": "satisfied",
+      "evidence": "control-plane-read-repository-contract-smoke-runner-implementation-v1"
+    },
+    {
+      "id": "interface_method_matrix_defined",
+      "status": "required_now",
+      "must_cover": [
+        "all seven read operations",
+        "ReadRepositoryContext first argument",
+        "route-specific request types",
+        "route-specific result aliases",
+        "no tenant_ref request override"
+      ]
+    },
+    {
+      "id": "adapter_implementation_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "schema migration gate",
+        "store selection enablement gate",
+        "repository adapter smoke",
+        "dual fake/repository route smoke",
+        "database internal error redaction"
+      ]
+    },
+    {
+      "id": "production_auth_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "Radish OIDC issuer discovery",
+        "token validation contract",
+        "claim mapping",
+        "tenant binding",
+        "scope projection"
+      ]
+    },
+    {
+      "id": "no_interface_or_adapter_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no ControlPlaneReadRepository interface declaration",
+        "no repository adapter",
+        "no store selector",
+        "no database/sql import",
+        "no SQL or migration files"
+      ]
+    }
+  ],
+  "failure_mapping": [
+    "tenant_binding_missing",
+    "scope_denied",
+    "invalid_filter",
+    "read_store_unavailable",
+    "read_store_contract_mismatch",
+    "database_read_disabled",
+    "auth_context_contract_mismatch",
+    "schema_migration_not_applied",
+    "schema_version_mismatch"
+  ],
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "source_absent_literals": [
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "control_plane_read_repository_interface.go",
+    "control_plane_read_repository_adapter.go",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "oidc.Provider",
+    "ValidateToken"
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "repository interface readiness"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "repository_interface_readiness_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "repository interface readiness"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "repository interface readiness"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "Control Plane Read Repository Interface Readiness"
+    ],
+    "docs/task-cards/control-plane-read-repository-interface-readiness-v1-plan.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "repository interface readiness"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "control-plane-read-repository-interface-readiness-v1"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-repository-interface-readiness-v1.py",
+      "control-plane-read-repository-interface-readiness-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "repository interface readiness"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-repository-interface-readiness-v1",
+      "repository_interface_readiness_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/control-plane-read-repository-interface-readiness-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-repository-interface-readiness-v1.json",
+    "scripts/checks/control_plane/check-control-plane-read-repository-interface-readiness-v1.py",
+    "scripts/checks/fixtures/control-plane-read-repository-contract-types-implementation-v1.json",
+    "scripts/checks/fixtures/control-plane-read-repository-contract-smoke-runner-implementation-v1.json"
+  ],
+  "required_consumers": [
+    "services/platform/internal/httpapi/control_plane_read_repository_contract.go",
+    "services/platform/internal/httpapi/control_plane_read_repository_contract_smoke_runner.go",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W23.md"
+  ]
+}
