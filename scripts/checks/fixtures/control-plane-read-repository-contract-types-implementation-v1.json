@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_repository_contract_types_implementation_v1",
+  "slice": {
+    "id": "control-plane-read-repository-contract-types-implementation-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "repository_contract_types_implemented",
+    "does_not_claim": [
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "repository_interface_ready",
+      "repository_implementation_ready",
+      "repository_adapter_ready",
+      "repository_migration_ready",
+      "store_selector_implemented",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-repository-contract-types-readiness-v1",
+    "control-plane-read-schema-migration-readiness-v1",
+    "control-plane-read-store-selection-readiness-v1",
+    "control-plane-read-repository-implementation-readiness-v1",
+    "control-plane-read-repository-contract-smoke-v1",
+    "control-plane-read-disabled-database-guard-v1",
+    "control-plane-read-repository-contract-preconditions-v1"
+  ],
+  "implementation_boundary": {
+    "status": "contract_types_implemented_no_repository_adapter",
+    "type_file": "services/platform/internal/httpapi/control_plane_read_repository_contract.go",
+    "test_file": "services/platform/internal/httpapi/control_plane_read_repository_contract_test.go",
+    "repository_interface_declared": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "store_selector_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false
+  },
+  "implemented_type_literals": [
+    "type ReadRepositoryContext struct",
+    "type ReadRepositoryFilters map[string]string",
+    "type ReadRepositorySort string",
+    "type ReadRepositoryProjection string",
+    "type ReadRepositoryRequest struct",
+    "type ReadRepositoryFailureCode string",
+    "type ReadRepositoryResult[T any] struct",
+    "type ReadTenantSummaryRequest struct",
+    "type ListApplicationSummariesRequest struct",
+    "type ListAPIKeySummariesRequest struct",
+    "type ReadQuotaSummaryRequest struct",
+    "type ListWorkflowDefinitionSummariesRequest struct",
+    "type ListRunRecordSummariesRequest struct",
+    "type ListAuditSummariesRequest struct",
+    "type ReadTenantSummaryResult = ReadRepositoryResult[TenantSummary]",
+    "type ListApplicationSummariesResult = ReadRepositoryResult[ApplicationSummary]",
+    "type ListAPIKeySummariesResult = ReadRepositoryResult[APIKeySummary]",
+    "type ReadQuotaSummaryResult = ReadRepositoryResult[QuotaSummary]",
+    "type ListWorkflowDefinitionSummariesResult = ReadRepositoryResult[WorkflowDefinitionSummary]",
+    "type ListRunRecordSummariesResult = ReadRepositoryResult[RunRecordSummary]",
+    "type ListAuditSummariesResult = ReadRepositoryResult[AuditSummary]",
+    "func controlPlaneReadRepositoryRouteTypeContracts() []ReadRepositoryRouteTypeContract"
+  ],
+  "required_context_fields": [
+    "RequestID",
+    "TenantRef",
+    "SubjectRef",
+    "ScopeGrants",
+    "AuditRef",
+    "IssuerRef",
+    "SessionRef"
+  ],
+  "required_failure_codes": [
+    "tenant_binding_missing",
+    "scope_denied",
+    "invalid_filter",
+    "read_store_unavailable",
+    "read_store_contract_mismatch",
+    "database_read_disabled",
+    "auth_context_contract_mismatch",
+    "schema_migration_not_applied",
+    "schema_version_mismatch"
+  ],
+  "route_type_matrix": [
+    {
+      "route_id": "tenant-summary-route",
+      "operation": "ReadTenantSummary",
+      "request_type": "ReadTenantSummaryRequest",
+      "result_type": "ReadTenantSummaryResult"
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "operation": "ListApplicationSummaries",
+      "request_type": "ListApplicationSummariesRequest",
+      "result_type": "ListApplicationSummariesResult"
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "operation": "ListAPIKeySummaries",
+      "request_type": "ListAPIKeySummariesRequest",
+      "result_type": "ListAPIKeySummariesResult"
+    },
+    {
+      "route_id": "quota-summary-route",
+      "operation": "ReadQuotaSummary",
+      "request_type": "ReadQuotaSummaryRequest",
+      "result_type": "ReadQuotaSummaryResult"
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "operation": "ListWorkflowDefinitionSummaries",
+      "request_type": "ListWorkflowDefinitionSummariesRequest",
+      "result_type": "ListWorkflowDefinitionSummariesResult"
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "operation": "ListRunRecordSummaries",
+      "request_type": "ListRunRecordSummariesRequest",
+      "result_type": "ListRunRecordSummariesResult"
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "operation": "ListAuditSummaries",
+      "request_type": "ListAuditSummariesRequest",
+      "result_type": "ListAuditSummariesResult"
+    }
+  ],
+  "source_absent_literals": [
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "oidc.Provider",
+    "ValidateToken"
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "repository contract types implementation"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "repository_contract_types_implemented"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "repository contract types implementation"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "repository contract types implementation"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "Control Plane Read Repository Contract Types Implementation"
+    ],
+    "docs/task-cards/control-plane-read-repository-contract-types-implementation-v1-plan.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "repository contract types implementation"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-repository-contract-types-implementation-v1.py",
+      "control-plane-read-repository-contract-types-implementation-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "repository contract types implementation"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-repository-contract-types-implementation-v1",
+      "repository_contract_types_implemented"
+    ]
+  },
+  "evidence": [
+    "services/platform/internal/httpapi/control_plane_read_repository_contract.go",
+    "services/platform/internal/httpapi/control_plane_read_repository_contract_test.go",
+    "docs/task-cards/control-plane-read-repository-contract-types-implementation-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-repository-contract-types-readiness-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/checks/control_plane/check-control-plane-read-repository-contract-types-implementation-v1.py",
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/task-cards/control-plane-read-repository-contract-types-implementation-v1-plan.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W23.md"
+  ]
+}

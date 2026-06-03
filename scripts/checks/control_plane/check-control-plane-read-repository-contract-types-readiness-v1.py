@@ -36,6 +36,9 @@ ROUTE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane
 NEGATIVE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
 RESPONSE_FIXTURES_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+IMPLEMENTATION_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/control-plane-read-repository-contract-types-implementation-v1.json"
+)
 
 EXPECTED_ROUTE_IDS = {
     "tenant-summary-route",
@@ -137,14 +140,6 @@ EXPECTED_FAILURE_CODES = {
     "schema_version_mismatch",
 }
 EXPECTED_SOURCE_ABSENT_LITERALS = {
-    "type ReadRepositoryContext",
-    "type ReadTenantSummaryRequest",
-    "type ListApplicationSummariesRequest",
-    "type ListAPIKeySummariesRequest",
-    "type ReadQuotaSummaryRequest",
-    "type ListWorkflowDefinitionSummariesRequest",
-    "type ListRunRecordSummariesRequest",
-    "type ListAuditSummariesRequest",
     "type ControlPlaneReadRepository interface",
     "func NewControlPlaneReadRepository",
     "database/sql",
@@ -252,7 +247,13 @@ def assert_contract_boundary(fixture: dict[str, Any]) -> None:
         "future store source must match implementation readiness",
     )
     require(future_contract_file in planned_files, "future contract file must match implementation readiness")
-    require(not (REPO_ROOT / future_contract_file).exists(), "future Go contract file must not exist yet")
+    if (REPO_ROOT / future_contract_file).exists():
+        implementation = load_json(IMPLEMENTATION_FIXTURE_PATH)
+        implementation_slice = implementation.get("slice") or {}
+        require(
+            implementation_slice.get("status") == "repository_contract_types_implemented",
+            "future Go contract file must be covered by implementation gate",
+        )
     for field in (
         "type_files_created_in_this_slice",
         "interface_declared_in_this_slice",
@@ -370,7 +371,13 @@ def assert_readiness_gates(fixture: dict[str, Any]) -> None:
     require(set(gates) == EXPECTED_GATE_IDS, "contract type readiness gate ids drifted")
     for gate_id, gate in gates.items():
         if gate_id == "no_implementation_leaked":
-            require(gate.get("status") == "required_now", "no implementation gate must be required now")
+            require(
+                gate.get("status") in {
+                    "required_now",
+                    "satisfied_by_controlled_implementation_gate",
+                },
+                "no implementation gate status drifted",
+            )
         else:
             require(
                 gate.get("status") == "required_before_contract_type_implementation",

@@ -30,6 +30,9 @@ ROUTE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane
 NEGATIVE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
 RESPONSE_FIXTURES_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+CONTRACT_TYPES_IMPLEMENTATION_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/control-plane-read-repository-contract-types-implementation-v1.json"
+)
 
 EXPECTED_ROUTE_IDS = {
     "tenant-summary-route",
@@ -122,6 +125,7 @@ EXPECTED_PLANNED_FILES = {
     "services/platform/internal/httpapi/control_plane_read_repository_adapter.go",
     "services/platform/internal/httpapi/control_plane_read_repository_adapter_test.go",
 }
+CONTROLLED_CONTRACT_TYPE_FILE = "services/platform/internal/httpapi/control_plane_read_repository_contract.go"
 EXPECTED_SIDE_EFFECT_COUNTERS = {
     "repository_write_count=0",
     "executor_call_count=0",
@@ -261,6 +265,14 @@ def assert_future_file_layout(fixture: dict[str, Any]) -> None:
     require(set(planned) == EXPECTED_PLANNED_FILES, "planned repository file layout drifted")
     for path, item in planned.items():
         require(item.get("created_in_this_slice") is False, f"{path} must not be created in this slice")
+        if path == CONTROLLED_CONTRACT_TYPE_FILE and (REPO_ROOT / path).exists():
+            implementation = load_json(CONTRACT_TYPES_IMPLEMENTATION_FIXTURE_PATH)
+            implementation_slice = implementation.get("slice") or {}
+            require(
+                implementation_slice.get("status") == "repository_contract_types_implemented",
+                "contract type file must be covered by repository contract types implementation gate",
+            )
+            continue
         require(not (REPO_ROOT / path).exists(), f"{path} must not exist before implementation starts")
 
 

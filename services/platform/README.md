@@ -67,6 +67,8 @@
 
 `control-plane-read-repository-contract-types-readiness-v1` 当前只固定 repository contract types readiness：未来 `ReadRepositoryContext`、七条 read route request / result type、failure code type、projection / filter / sort type 和 contract smoke type 输入已定义。它不创建 `control_plane_read_repository_contract.go`，不实现 repository interface / adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
+`control-plane-read-repository-contract-types-implementation-v1` 当前只固定 repository contract types implementation：`control_plane_read_repository_contract.go` 已创建，包含 `ReadRepositoryContext`、七条 read route request / result type、failure code、projection / filter / sort type 和 route type matrix。它不声明 `ControlPlaneReadRepository` interface，不实现 repository adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+
 `control-plane-read-consumer-contract-v1` 当前固定 `contracts/typescript/control-plane-read-api.ts`、`scripts/run-control-plane-read-consumer-smoke.py` 和七条 read route 的只读 consumer view model。它让上层可以按统一 envelope、failure view、cursor、audit ref 和 forbidden output policy 消费 response fixture，但不实现正式 UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
 `control-plane-read-formal-ui-boundary-v1` 当前只固定正式 UI 边界：`Admin Control Plane` 与 `User Workspace` 的页面划分、每个页面消费的 read route、loading / empty / denied / stale / partial failure / forbidden projection 状态和敏感字段停止线。它不修改 `apps/radishmind-console/`，不实现 React UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。

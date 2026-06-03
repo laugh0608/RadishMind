@@ -350,9 +350,9 @@
     },
     {
       "id": "no_implementation_leaked",
-      "status": "required_now",
+      "status": "satisfied_by_controlled_implementation_gate",
       "must_cover": [
-        "no Go contract file",
+        "controlled Go contract type file only",
         "no repository adapter",
         "no SQL",
         "no migration directory",
@@ -362,14 +362,6 @@
     }
   ],
   "source_absent_literals": [
-    "type ReadRepositoryContext",
-    "type ReadTenantSummaryRequest",
-    "type ListApplicationSummariesRequest",
-    "type ListAPIKeySummariesRequest",
-    "type ReadQuotaSummaryRequest",
-    "type ListWorkflowDefinitionSummariesRequest",
-    "type ListRunRecordSummariesRequest",
-    "type ListAuditSummariesRequest",
     "type ControlPlaneReadRepository interface",
     "func NewControlPlaneReadRepository",
     "database/sql",
