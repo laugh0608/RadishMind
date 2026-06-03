@@ -77,6 +77,7 @@
 27. [`Control Plane Read Repository Implementation Readiness` v1 计划](control-plane-read-repository-implementation-readiness-v1-plan.md)（`control-plane-read-repository-implementation-readiness-v1`）
 28. [`Control Plane Read Store Selection Readiness` v1 计划](control-plane-read-store-selection-readiness-v1-plan.md)（`control-plane-read-store-selection-readiness-v1`）
 29. [`Control Plane Read Schema Migration Readiness` v1 计划](control-plane-read-schema-migration-readiness-v1-plan.md)（`control-plane-read-schema-migration-readiness-v1`）
+30. [`Control Plane Read Repository Contract Types Readiness` v1 计划](control-plane-read-repository-contract-types-readiness-v1-plan.md)（`control-plane-read-repository-contract-types-readiness-v1`）
 
 ## UI 设计专题
 
