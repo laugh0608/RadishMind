@@ -1,6 +1,6 @@
 # RadishMind 契约专题目录
 
-更新时间：2026-06-02
+更新时间：2026-06-03
 
 本目录承载 `docs/radishmind-integration-contracts.md` 拆出的稳定专题。入口文档只保留当前结论、索引和停止线；需要修改字段、任务上下文或长样例时，优先修改本目录下的对应专题页。
 
@@ -25,7 +25,7 @@
 ## 维护规则
 
 - 本目录文档不替代 `contracts/` 下的 schema 真相源。
-- Control Plane Read-Side 的 TypeScript consumer contract 由 `contracts/typescript/control-plane-read-api.ts` 与 `control-plane-read-consumer-contract-v1` checker 固定；正式 UI 边界由 `control-plane-read-formal-ui-boundary-v1` checker 固定；正式 UI 实现 readiness 由 `control-plane-read-formal-ui-implementation-readiness-v1` checker 固定；`apps/radishmind-web/` 的 shared shell、七个只读页面、formal UI readiness close、dev-only live consumer、auth/store transition preconditions、repository contract smoke、repository implementation readiness、store selection readiness 与 schema migration readiness 由对应 `control-plane-read-*-v1` checker 固定。专题页只解释语义、停止线和推进顺序。
+- Control Plane Read-Side 的 TypeScript consumer contract 由 `contracts/typescript/control-plane-read-api.ts` 与 `control-plane-read-consumer-contract-v1` checker 固定；正式 UI 边界由 `control-plane-read-formal-ui-boundary-v1` checker 固定；正式 UI 实现 readiness 由 `control-plane-read-formal-ui-implementation-readiness-v1` checker 固定；`apps/radishmind-web/` 的 shared shell、七个只读页面、formal UI readiness close、dev-only live consumer、auth/store transition preconditions、repository contract smoke、repository implementation readiness、store selection readiness、schema migration readiness、repository contract types implementation、静态 contract smoke runner 和 repository interface readiness 由对应 `control-plane-read-*-v1` checker 固定。专题页只解释语义、停止线和推进顺序。
 - `P2 Session & Tooling Foundation` 的晋级口径同时由 `scripts/checks/fixtures/session-tooling-promotion-gates.json` 固定；修改 session/tooling promotion gate 时，应同步更新对应专题页和该 fixture。
 - P2 负向门禁消费关系由 `scripts/checks/fixtures/session-tooling-negative-consumption-summary.json` 固定；新增 denied query、promotion gate 或对应消费者时，应同步更新该 summary。
 - Checkpoint read route smoke 覆盖关系由 `scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json` 固定；修改 route 正向/负向 smoke 时，应同步更新该 summary。
