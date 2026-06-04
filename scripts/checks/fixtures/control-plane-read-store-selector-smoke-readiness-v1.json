@@ -1,0 +1,483 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_store_selector_smoke_readiness_v1",
+  "slice": {
+    "id": "control-plane-read-store-selector-smoke-readiness-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "store_selector_smoke_readiness_defined",
+    "does_not_claim": [
+      "store_selector_smoke_ready",
+      "store_selector_implemented",
+      "formal_read_store_config_ready",
+      "selector_config_entry_ready",
+      "repository_interface_ready",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "migration_manifest_created",
+      "repository_migration_ready",
+      "schema_artifact_manifest_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-store-selector-enablement-preconditions-v1",
+    "control-plane-read-schema-artifact-manifest-readiness-v1",
+    "control-plane-read-repository-adapter-implementation-plan-v1",
+    "control-plane-read-store-selection-readiness-v1",
+    "control-plane-read-disabled-database-guard-v1",
+    "control-plane-read-repository-contract-smoke-runner-implementation-v1",
+    "control-plane-read-auth-store-transition-preconditions-v1"
+  ],
+  "selector_smoke_boundary": {
+    "status": "store_selector_smoke_readiness_defined_not_implemented",
+    "current_default_source": "fixture-backed fake store",
+    "future_config_key": "RADISHMIND_CONTROL_PLANE_READ_STORE",
+    "future_selector_name": "SelectControlPlaneReadStore",
+    "future_selector_type": "ControlPlaneReadStoreSelector",
+    "future_selector_file": "services/platform/internal/httpapi/control_plane_read_store_selector.go",
+    "future_selector_smoke_fixture": "scripts/checks/fixtures/control-plane-read-store-selector-smoke-v1.json",
+    "future_selector_smoke_checker": "scripts/checks/control_plane/check-control-plane-read-store-selector-smoke-v1.py",
+    "future_selector_test_file": "services/platform/internal/httpapi/control_plane_read_store_selector_test.go",
+    "purpose": "Define the future selector smoke evidence required before a read store selector or formal read-store config entry can be implemented.",
+    "formal_config_entry_created": false,
+    "selector_file_created_in_this_slice": false,
+    "selector_test_created_in_this_slice": false,
+    "selector_smoke_fixture_created_in_this_slice": false,
+    "selector_smoke_checker_created_in_this_slice": false,
+    "store_selector_implemented_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false
+  },
+  "planned_selector_smoke_artifacts": [
+    {
+      "path": "scripts/checks/fixtures/control-plane-read-store-selector-smoke-v1.json",
+      "purpose": "Future selector smoke fixture covering unset/default, reserved disabled modes, unknown mode fail-closed and no fake fallback.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-control-plane-read-store-selector-smoke-v1.py",
+      "purpose": "Future checker for selector smoke fixture and docs/code drift.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_store_selector.go",
+      "purpose": "Future selector implementation file; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_store_selector_test.go",
+      "purpose": "Future Go selector unit tests; not created by this readiness slice.",
+      "created_in_this_slice": false
+    }
+  ],
+  "smoke_readiness_gate_matrix": [
+    {
+      "id": "selector_enablement_preconditions_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-store-selector-enablement-preconditions-v1"
+    },
+    {
+      "id": "schema_artifact_manifest_readiness_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-schema-artifact-manifest-readiness-v1"
+    },
+    {
+      "id": "repository_adapter_implementation_plan_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-repository-adapter-implementation-plan-v1"
+    },
+    {
+      "id": "selector_smoke_contract_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "unset source selects fixture_fake_store",
+        "explicit fixture_fake_store remains read-only",
+        "database/postgres/repository remain reserved disabled",
+        "unknown mode fails closed",
+        "reserved and unknown modes never fall back to fixture fake store"
+      ]
+    },
+    {
+      "id": "selector_config_entry_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "formal config key added in future slice",
+        "operator docs for allowed values",
+        "unset source behavior",
+        "redacted diagnostics"
+      ]
+    },
+    {
+      "id": "selector_code_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "selector function",
+        "selector type",
+        "mode parser",
+        "unit tests"
+      ]
+    },
+    {
+      "id": "fixture_default_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "unset source selects fixture fake store",
+        "explicit fixture_fake_store selects fixture fake store",
+        "no write, executor, confirmation, writeback or replay side effects"
+      ]
+    },
+    {
+      "id": "reserved_mode_fail_closed_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "database mode returns database_read_disabled",
+        "postgres mode returns database_read_disabled",
+        "repository mode returns database_read_disabled",
+        "reserved modes never fall back to fixture fake store"
+      ]
+    },
+    {
+      "id": "unknown_mode_fail_closed_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "unknown mode returns invalid_read_store_mode",
+        "unknown mode produces no repository call",
+        "unknown mode has no side effects"
+      ]
+    },
+    {
+      "id": "durable_mode_enablement_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "schema artifact manifest ready",
+        "repository adapter smoke ready",
+        "production auth ready",
+        "store selector smoke ready"
+      ]
+    },
+    {
+      "id": "no_selector_smoke_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no formal config entry",
+        "no selector file",
+        "no selector smoke fixture",
+        "no selector smoke checker",
+        "no selector tests",
+        "no repository adapter",
+        "no SQL or migration files"
+      ]
+    }
+  ],
+  "selector_smoke_mode_matrix": [
+    {
+      "mode": "fixture_fake_store",
+      "expected_selector_input": "unset or explicit fixture_fake_store in future selector",
+      "current_status": "current_default",
+      "expected_failure_code": null,
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "mode": "database",
+      "expected_selector_input": "RADISHMIND_CONTROL_PLANE_READ_STORE=database",
+      "current_status": "reserved_disabled",
+      "expected_failure_code": "database_read_disabled",
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "mode": "postgres",
+      "expected_selector_input": "RADISHMIND_CONTROL_PLANE_READ_STORE=postgres",
+      "current_status": "reserved_disabled",
+      "expected_failure_code": "database_read_disabled",
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "mode": "repository",
+      "expected_selector_input": "RADISHMIND_CONTROL_PLANE_READ_STORE=repository",
+      "current_status": "reserved_disabled",
+      "expected_failure_code": "database_read_disabled",
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "mode": "unknown",
+      "expected_selector_input": "any unrecognized future selector value",
+      "current_status": "fail_closed",
+      "expected_failure_code": "invalid_read_store_mode",
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "route_selector_smoke_matrix": [
+    {
+      "route_id": "tenant-summary-route",
+      "operation": "ReadTenantSummary",
+      "default_mode": "fixture_fake_store",
+      "reserved_modes": [
+        "database",
+        "postgres",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "database_read_disabled",
+      "unknown_mode_failure_code": "invalid_read_store_mode",
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "adapter_smoke_dependency_required": true,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "operation": "ListApplicationSummaries",
+      "default_mode": "fixture_fake_store",
+      "reserved_modes": [
+        "database",
+        "postgres",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "database_read_disabled",
+      "unknown_mode_failure_code": "invalid_read_store_mode",
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "adapter_smoke_dependency_required": true,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "operation": "ListAPIKeySummaries",
+      "default_mode": "fixture_fake_store",
+      "reserved_modes": [
+        "database",
+        "postgres",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "database_read_disabled",
+      "unknown_mode_failure_code": "invalid_read_store_mode",
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "adapter_smoke_dependency_required": true,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "operation": "ReadQuotaSummary",
+      "default_mode": "fixture_fake_store",
+      "reserved_modes": [
+        "database",
+        "postgres",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "database_read_disabled",
+      "unknown_mode_failure_code": "invalid_read_store_mode",
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "adapter_smoke_dependency_required": true,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "operation": "ListWorkflowDefinitionSummaries",
+      "default_mode": "fixture_fake_store",
+      "reserved_modes": [
+        "database",
+        "postgres",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "database_read_disabled",
+      "unknown_mode_failure_code": "invalid_read_store_mode",
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "adapter_smoke_dependency_required": true,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "operation": "ListRunRecordSummaries",
+      "default_mode": "fixture_fake_store",
+      "reserved_modes": [
+        "database",
+        "postgres",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "database_read_disabled",
+      "unknown_mode_failure_code": "invalid_read_store_mode",
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "adapter_smoke_dependency_required": true,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "operation": "ListAuditSummaries",
+      "default_mode": "fixture_fake_store",
+      "reserved_modes": [
+        "database",
+        "postgres",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "database_read_disabled",
+      "unknown_mode_failure_code": "invalid_read_store_mode",
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "adapter_smoke_dependency_required": true,
+      "fallback_to_fake_store_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_mapping": [
+    "database_read_disabled",
+    "invalid_read_store_mode",
+    "read_store_unavailable",
+    "read_store_contract_mismatch",
+    "auth_context_contract_mismatch",
+    "schema_migration_not_applied",
+    "schema_version_mismatch"
+  ],
+  "no_fake_fallback_policy": {
+    "reserved_mode_fake_fallback_allowed": false,
+    "unknown_mode_success_allowed": false,
+    "missing_selector_success_allowed": false,
+    "selector_smoke_missing_success_allowed": false,
+    "database_internal_error_exposure_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "source_absent_literals": [
+    "RADISHMIND_CONTROL_PLANE_READ_STORE",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "control_plane_read_store_selector.go",
+    "control_plane_read_store_selector_test.go",
+    "control-plane-read-store-selector-smoke-v1.json",
+    "check-control-plane-read-store-selector-smoke-v1.py",
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "control_plane_read_repository_interface.go",
+    "control_plane_read_repository_adapter.go",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "oidc.Provider",
+    "ValidateToken"
+  ],
+  "evidence": [
+    "docs/task-cards/control-plane-read-store-selector-smoke-readiness-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-store-selector-smoke-readiness-v1.json",
+    "scripts/checks/control_plane/check-control-plane-read-store-selector-smoke-readiness-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "scripts/README.md",
+    "services/platform/README.md",
+    "docs/devlogs/2026-W23.md"
+  ],
+  "required_doc_references": {
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store_selector_smoke_readiness_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store_selector_smoke_readiness_defined"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store_selector_smoke_readiness_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store selector smoke readiness"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store selector smoke readiness"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1"
+    ],
+    "scripts/README.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store selector smoke readiness"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store_selector_smoke_readiness_defined"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-store-selector-smoke-readiness-v1",
+      "store_selector_smoke_readiness_defined"
+    ]
+  }
+}
