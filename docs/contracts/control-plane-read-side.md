@@ -28,7 +28,9 @@
 
 当前 `control-plane-read-repository-adapter-implementation-readiness-refresh-v1` 已把 repository adapter implementation readiness refresh 纳入同一 read-side 契约层；它只刷新未来 adapter 实现准入、文件落点、依赖证据、七条 read route adapter 检查矩阵、failure mapping、no fake fallback 和 no side effects，要求消费 repository interface readiness、Go contract type matrix 与静态 runner 证据，不创建 interface / adapter 文件、不声明 repository interface、不实现 repository adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation 或 production API consumer。
 
-这组 repository/read store readiness 的设计顺序是：先定义 repository contract 与 route operation matrix，再用 disabled database guard 防止误启用数据库模式，然后定义未来 contract smoke 的输入输出，随后固定 implementation readiness、store selection readiness、schema migration readiness、repository contract types readiness、repository contract types implementation、smoke runner readiness / implementation、repository interface readiness 和 repository adapter implementation readiness refresh。任何一步都必须保留七条 read route 的 tenant predicate、sanitized projection、failure mapping、no fake fallback 和 no side effects，不能通过 fake store fallback 掩盖真实数据库、schema 或 adapter 的未就绪状态。
+当前 `control-plane-read-store-selector-enablement-preconditions-v1` 已把 store selector enablement preconditions 纳入同一 read-side 契约层；它只固定未来 selector enablement gates、配置禁用态、reserved mode、unknown mode fail-closed、failure mapping、no fake fallback 和 no side effects，不创建正式配置入口、不实现 store selector、repository adapter、SQL、migration、真实数据库、Radish OIDC、token validation 或 production API consumer。
+
+这组 repository/read store readiness 的设计顺序是：先定义 repository contract 与 route operation matrix，再用 disabled database guard 防止误启用数据库模式，然后定义未来 contract smoke 的输入输出，随后固定 implementation readiness、store selection readiness、schema migration readiness、repository contract types readiness、repository contract types implementation、smoke runner readiness / implementation、repository interface readiness、repository adapter implementation readiness refresh 和 store selector enablement preconditions。任何一步都必须保留七条 read route 的 tenant predicate、sanitized projection、failure mapping、no fake fallback 和 no side effects，不能通过 fake store fallback 掩盖真实数据库、schema 或 adapter 的未就绪状态。
 
 当前 read-side 已实现七条 fake-store-backed Go read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`。这些 route 只使用 in-memory fixture fake store 与 test-only fake auth context，不代表完整 read-side API、数据库 query、真实 OIDC 或正式 UI 已实现。
 
@@ -116,9 +118,11 @@
 
 `control-plane-read-repository-adapter-implementation-readiness-refresh-v1` 将停止线固定到 repository adapter implementation readiness refresh 层：可以刷新 future adapter gate、依赖证据、文件落点和七条 route adapter 检查矩阵，但仍不允许在同一切片内创建 interface / adapter 文件、声明 repository interface、实现 repository adapter、store selector、写 SQL、建 migration、接真实数据库、OIDC validation、production API consumer 或任何写入 / 执行能力。
 
+`control-plane-read-store-selector-enablement-preconditions-v1` 将停止线固定到 store selector enablement preconditions 层：可以定义 future selector enablement gates、配置禁用态、reserved mode、unknown mode fail-closed、failure mapping 和 no fake fallback，但仍不允许在同一切片内创建正式配置入口、实现 store selector、repository adapter、写 SQL、建 migration、接真实数据库、OIDC validation、production API consumer 或任何写入 / 执行能力。
+
 ## 分层关系
 
-当前 read-side 契约按三十四层固定：
+当前 read-side 契约按三十五层固定：
 
 1. `control-plane-read-model-v1`
    - 固定 tenant、application、API key、quota、workflow definition、run record 和 audit 的只读 summary 模型。
@@ -222,6 +226,9 @@
 34. `control-plane-read-repository-adapter-implementation-readiness-refresh-v1`
    - 固定未来 repository adapter implementation readiness refresh，消费 repository interface readiness、Go contract type matrix、静态 runner、schema migration readiness、store selection readiness 和 disabled database guard 证据。
    - 不创建 interface / adapter 文件、不声明 repository interface、不实现 repository adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+35. `control-plane-read-store-selector-enablement-preconditions-v1`
+   - 固定未来 store selector enablement preconditions，保留 fixture fake store 默认路径、reserved disabled modes、unknown mode fail-closed、failure mapping 和 no fake fallback。
+   - 不创建正式配置入口、不实现 store selector、repository adapter、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
 ## 程序化证据
 
