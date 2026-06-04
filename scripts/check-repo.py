@@ -1110,6 +1110,10 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-readiness-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-implementation-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-repository-interface-readiness-v1.py", [])
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-repository-adapter-implementation-readiness-refresh-v1.py",
+        [],
+    )
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])
