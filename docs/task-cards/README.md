@@ -84,6 +84,7 @@
 34. [`Control Plane Read Repository Interface Readiness` v1 计划](control-plane-read-repository-interface-readiness-v1-plan.md)（`control-plane-read-repository-interface-readiness-v1`）
 35. [`Control Plane Read Repository Adapter Implementation Readiness Refresh` v1 计划](control-plane-read-repository-adapter-implementation-readiness-refresh-v1-plan.md)（`control-plane-read-repository-adapter-implementation-readiness-refresh-v1`）
 36. [`Control Plane Read Store Selector Enablement Preconditions` v1 计划](control-plane-read-store-selector-enablement-preconditions-v1-plan.md)（`control-plane-read-store-selector-enablement-preconditions-v1`）
+37. [`Control Plane Read Schema Migration Implementation Preconditions` v1 计划](control-plane-read-schema-migration-implementation-preconditions-v1-plan.md)（`control-plane-read-schema-migration-implementation-preconditions-v1`）
 
 ## UI 设计专题
 
