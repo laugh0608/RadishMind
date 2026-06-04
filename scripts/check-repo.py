@@ -1123,6 +1123,10 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-control-plane-read-repository-adapter-implementation-plan-v1.py",
         [],
     )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-schema-artifact-manifest-readiness-v1.py",
+        [],
+    )
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])
