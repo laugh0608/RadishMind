@@ -90,6 +90,7 @@
 40. [`Control Plane Read Store Selector Smoke Readiness` v1 计划](control-plane-read-store-selector-smoke-readiness-v1-plan.md)（`control-plane-read-store-selector-smoke-readiness-v1`）
 41. [`Control Plane Read Production Auth Readiness` v1 计划](control-plane-read-production-auth-readiness-v1-plan.md)（`control-plane-read-production-auth-readiness-v1`）
 42. [`Control Plane Read Adapter Smoke Readiness` v1 计划](control-plane-read-adapter-smoke-readiness-v1-plan.md)（`control-plane-read-adapter-smoke-readiness-v1`）
+43. [`Control Plane Read Implementation Trigger Review` v1 计划](control-plane-read-implementation-trigger-review-v1-plan.md)（`control-plane-read-implementation-trigger-review-v1`）
 
 ## UI 设计专题
 
