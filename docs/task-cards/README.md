@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-04
+更新时间：2026-06-06
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -88,6 +88,7 @@
 38. [`Control Plane Read Repository Adapter Implementation Plan` v1 计划](control-plane-read-repository-adapter-implementation-plan-v1-plan.md)（`control-plane-read-repository-adapter-implementation-plan-v1`）
 39. [`Control Plane Read Schema Artifact Manifest Readiness` v1 计划](control-plane-read-schema-artifact-manifest-readiness-v1-plan.md)（`control-plane-read-schema-artifact-manifest-readiness-v1`）
 40. [`Control Plane Read Store Selector Smoke Readiness` v1 计划](control-plane-read-store-selector-smoke-readiness-v1-plan.md)（`control-plane-read-store-selector-smoke-readiness-v1`）
+41. [`Control Plane Read Production Auth Readiness` v1 计划](control-plane-read-production-auth-readiness-v1-plan.md)（`control-plane-read-production-auth-readiness-v1`）
 
 ## UI 设计专题
 
