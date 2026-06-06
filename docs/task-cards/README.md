@@ -89,6 +89,7 @@
 39. [`Control Plane Read Schema Artifact Manifest Readiness` v1 计划](control-plane-read-schema-artifact-manifest-readiness-v1-plan.md)（`control-plane-read-schema-artifact-manifest-readiness-v1`）
 40. [`Control Plane Read Store Selector Smoke Readiness` v1 计划](control-plane-read-store-selector-smoke-readiness-v1-plan.md)（`control-plane-read-store-selector-smoke-readiness-v1`）
 41. [`Control Plane Read Production Auth Readiness` v1 计划](control-plane-read-production-auth-readiness-v1-plan.md)（`control-plane-read-production-auth-readiness-v1`）
+42. [`Control Plane Read Adapter Smoke Readiness` v1 计划](control-plane-read-adapter-smoke-readiness-v1-plan.md)（`control-plane-read-adapter-smoke-readiness-v1`）
 
 ## UI 设计专题
 
