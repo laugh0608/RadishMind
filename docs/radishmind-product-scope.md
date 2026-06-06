@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-02
+更新时间：2026-06-06
 
 ## 核心定义
 
@@ -63,6 +63,7 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、后续受控 code / sandbox 与 agent loop。
 - 每次运行都应有 trace、输入输出摘要、成本、错误分类和风险边界。
 - `workflow-definition-run-record-boundary` 只把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线固定为治理证据，不代表 executor、confirmation、writeback 或 replay 已实现。
+- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview 和 confirmation placeholder 的只读 / blocked surface，优先走 fixture 或 fake-store dev path。
 - 高风险 tool/action 默认 `requires_confirmation`，不得直接写上层业务真相源。
 
 ## 项目范围
@@ -115,7 +116,7 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“AI 工具 / 工作流 / 模型网关 / Copilot 集成平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
-- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。后续只有在明确测试或生产前复核窗口后才执行测试环境 smoke 或 production preflight；无运行窗口时，先选择下一条平台主线，而不是继续补同类只读 console 小切片、provider 同层小切片、重开真实模型长跑或提前设计不存在的上层接线。
+- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。后续只有在明确测试或生产前复核窗口后才执行测试环境 smoke 或 production preflight；无运行窗口时，默认转向 `Workflow / Agent Runtime Function Surface v1` 的功能骨架，而不是继续补同类只读 console 小切片、provider 同层小切片、Production Ops 静态治理、重开真实模型长跑或提前设计不存在的上层接线。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面
