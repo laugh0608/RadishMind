@@ -93,6 +93,12 @@
 
 `control-plane-read-implementation-trigger-review-v1` 当前只固定 implementation trigger review，状态为 `implementation_trigger_review_defined`：schema artifact、store selector、production auth 和 adapter smoke 四类候选均为 `not_satisfied`，当前没有任何 read-side implementation trigger satisfied。它不创建 migration manifest、SQL、selector、auth middleware、adapter smoke fixture / checker、repository interface、repository adapter、真实数据库、token validation 或 production API consumer，不实现 API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
+## Control Plane Read-Side readiness 运行层说明
+
+平台服务层当前只注册 fake-store-backed read route 和 dev-only live consumer 所需的测试身份入口。`control-plane-read-production-auth-readiness-v1`、`control-plane-read-adapter-smoke-readiness-v1` 和 `control-plane-read-implementation-trigger-review-v1` 都是静态治理检查，不会改变 HTTP route 行为，也不会启用 `RADISHMIND_CONTROL_PLANE_READ_STORE`、production auth middleware、数据库连接或 production API consumer。
+
+这些 checker 会刻意确认以下未来文件仍不存在：`control_plane_read_auth_middleware.go`、`control_plane_read_repository_interface.go`、`control_plane_read_repository_adapter.go`、`control_plane_read_store_selector.go`、`contracts/radish-oidc-token-validation.schema.json`、read-side migration manifest 和 adapter smoke fixture。平台代码如果提前出现这些文件，应先回到对应实现任务卡和 gate，而不是把当前 readiness checker 当成允许实现的依据。
+
 `control-plane-read-consumer-contract-v1` 当前固定 `contracts/typescript/control-plane-read-api.ts`、`scripts/run-control-plane-read-consumer-smoke.py` 和七条 read route 的只读 consumer view model。它让上层可以按统一 envelope、failure view、cursor、audit ref 和 forbidden output policy 消费 response fixture，但不实现正式 UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。
 
 `control-plane-read-formal-ui-boundary-v1` 当前只固定正式 UI 边界：`Admin Control Plane` 与 `User Workspace` 的页面划分、每个页面消费的 read route、loading / empty / denied / stale / partial failure / forbidden projection 状态和敏感字段停止线。它不修改 `apps/radishmind-console/`，不实现 React UI、不请求真实后端、不接数据库、OIDC、executor、confirmation、writeback 或 replay。

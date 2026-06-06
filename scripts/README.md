@@ -89,6 +89,18 @@
   - 当前 `run-eval-regression.py` 的具体实现已拆到这里
   - 当前也承载 `report_real_batch_governance_status.py` 这类只读治理报表，用于统一盘点 `suggest_flowsheet_edits`、`suggest_ghost_completion` 与 `Radish docs QA` 的 formal real batch、coverage、replay / real-derived 连通性，以及当前优先级队列
 
+## Control Plane Read-Side checker 使用说明
+
+`scripts/checks/control_plane/` 下的 read-side checker 默认由 `./scripts/check-repo.sh --fast` 或 `pwsh ./scripts/check-repo.ps1 -Fast` 调用。它们只读取 committed fixture、说明文档和源码树，不启动 Go 服务、不访问网络、不启动 Docker、不连接数据库，也不写入 secret。
+
+尾部三个 checker 的失败含义需要区分：
+
+- `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
+- `check-control-plane-read-adapter-smoke-readiness-v1.py` 失败通常表示 adapter smoke 依赖链、七条 route matrix、no fake fallback / no side effects 或 future adapter artifact 边界漂移。
+- `check-control-plane-read-implementation-trigger-review-v1.py` 失败通常表示某个候选被误写成 implementation trigger satisfied，或源码树里提前出现 schema、selector、auth middleware、adapter smoke、repository interface / adapter 等实现 artifact。
+
+修复这类失败时，默认先恢复 fixture 和说明文档的停止线，或移除提前出现的实现 artifact。只有在新的实现任务卡、真实证据和对应 gate 都已满足后，才应新增 durable adapter、SQL、migration、store selector、auth middleware 或 production API consumer。
+
 ## 维护约定
 
 - 单个 `Python` 脚本和单个 committed `JSON` 文件默认不超过 `1000` 行

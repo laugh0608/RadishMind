@@ -46,6 +46,16 @@
 
 这组 repository/read store readiness 的设计顺序是：先定义 repository contract 与 route operation matrix，再用 disabled database guard 防止误启用数据库模式，然后定义未来 contract smoke 的输入输出，随后固定 implementation readiness、store selection readiness、schema migration readiness、repository contract types readiness、repository contract types implementation、smoke runner readiness / implementation、repository interface readiness、repository adapter implementation readiness refresh、store selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、store selector smoke readiness、production auth readiness、adapter smoke readiness 和 implementation trigger review。任何一步都必须保留七条 read route 的 tenant predicate、sanitized projection、failure mapping、no fake fallback 和 no side effects，不能通过 fake store fallback 掩盖真实数据库、schema、adapter 或 production auth 的未就绪状态。
 
+## Readiness checker 读法
+
+新增的三个 readiness checker 是同一条 read-side implementation ladder 的尾部说明，不是运行时能力：
+
+- `control-plane-read-production-auth-readiness-v1` 读取 OIDC preconditions、auth/store transition、route contract、negative contract 和 store selector smoke readiness，只证明未来 production auth 必须先具备 issuer evidence、token validation contract、claim mapping、tenant binding 和 scope projection。
+- `control-plane-read-adapter-smoke-readiness-v1` 读取 repository adapter plan、schema artifact manifest readiness、store selector smoke readiness、production auth readiness 和静态 runner，只证明未来 durable adapter smoke 应怎样组合这些证据。
+- `control-plane-read-implementation-trigger-review-v1` 读取 schema artifact、selector、production auth 和 adapter smoke 四类候选，当前统一判定为 `not_satisfied`，因此后续不能直接创建 implementation task card 或实现 artifact。
+
+如果这些 checker 因 forbidden artifact、forbidden literal 或 `does_not_claim` 漂移失败，优先按“过早实现或误声明”处理：删除越界 artifact 或恢复停止线，而不是为了让检查通过去削弱 fixture。只有当外部真实证据和对应 task card 都已补齐后，才允许把某个候选从 readiness 改成实现切片。
+
 当前 read-side 已实现七条 fake-store-backed Go read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`。这些 route 只使用 in-memory fixture fake store 与 test-only fake auth context，不代表完整 read-side API、数据库 query、真实 OIDC 或正式 UI 已实现。
 
 `control-plane-read-auth-db-preconditions-v1` 进一步固定未来迁移到 `future Radish OIDC / auth middleware` 与 `future control plane read store repository` 之前的准入条件。它只定义 auth context contract、read store repository contract、route transition requirements、failure taxonomy 和 smoke transition plan，不实现真实 auth middleware、数据库 query 或 repository。

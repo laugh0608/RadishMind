@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-06-04
+更新时间：2026-06-06
 
 ## 这份文档讲什么
 
@@ -135,6 +135,8 @@ Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 co
 Control Plane Read-Side route 目前已注册到平台服务，但默认外部请求仍没有真实身份上下文，应得到 fail-closed envelope。只有显式设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，本地开发态才允许 `apps/radishmind-web/` 的 dev-only live consumer 通过 `X-RadishMind-Dev-Read-*` 测试身份 header 注入 test-only fake auth context。该路径只能读取 fake-store-backed handler，不能当成 production admin API、正式 user workspace API、真实 auth middleware 或数据库 read path。
 
 read-side repository/read store 迁移当前只落地静态契约层和治理前置层：`control_plane_read_repository_contract.go` 定义 `ReadRepositoryContext`、七条 route request / result type、failure code、projection / filter / sort 和 route type matrix；`control_plane_read_repository_contract_smoke_runner.go` 消费该 type matrix，并对齐 repository contract smoke fixture。后续 adapter/read-store 仍被 adapter readiness refresh、selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness 和 store selector smoke readiness 卡住。它们用于证明未来 repository interface / adapter / selector / migration 实现前的 contract shape、failure mapping、no fake fallback 和 no side effects 一致，不执行数据库查询，也不声明 repository interface、adapter、store selector、SQL、manifest、migration、OIDC 或 production API consumer ready。
+
+production auth readiness、adapter smoke readiness 和 implementation trigger review 位于 read-side 迁移尾部的静态说明与检查层：前两个分别说明未来 OIDC / token validation 和 durable adapter smoke 需要哪些证据，最后一个明确当前 schema artifact、store selector、production auth 与 adapter smoke 四类候选都没有实现触发条件。因此如果看到 `control_plane_read_auth_middleware.go`、`control_plane_read_repository_interface.go`、`control_plane_read_repository_adapter.go`、`control_plane_read_store_selector.go`、read-side migration manifest 或 adapter smoke fixture 出现在源码树里，应先视为越过当前停止线，而不是已进入实现阶段。
 
 这仍然不是 production deployment：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级 secret backend、进程监管、环境隔离和正式发布包。
 
