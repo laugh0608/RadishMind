@@ -1,6 +1,6 @@
 # `Workflow / Agent Runtime Function Surface` v1 计划
 
-更新时间：2026-06-06
+更新时间：2026-06-07
 
 ## 任务目标
 
@@ -51,7 +51,7 @@
    - 在现有 read-side shell 上增加 workflow definition detail 的只读视图或 route 草案，优先消费 fixture / fake-store-backed dev path。
    - 只展示节点结构、风险和 blocked action，不提供编辑或执行。
 3. `workflow-run-detail-read-v1`
-   - 增加 run detail 只读视图或 route 草案，展示状态流转、trace、成本摘要、failure code 和 audit refs。
+   - 已落地为 `workflow_run_detail_read_defined`，增加 `apps/radishmind-web/` 内 run detail 离线只读视图，展示状态流转、trace、成本摘要、failure code 和 audit refs。
    - 不提供 replay、resume、materialized result reader 或真实 run store。
 4. `workflow-blocked-action-preview-v1`
    - 复用 tooling blocked action shell，展示 tool/action 为什么被阻止、需要什么 confirmation、当前缺哪些前置条件。

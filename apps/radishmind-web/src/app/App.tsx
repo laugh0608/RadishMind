@@ -60,6 +60,13 @@ import {
   type WorkspaceRunHistoryStatePreview,
   type WorkspaceRunRecordRow,
 } from "../features/control-plane-read/workspaceRunHistory";
+import {
+  buildWorkflowRunDetailViewModel,
+  type WorkflowRunDetailGuardPreview,
+  type WorkflowRunDetailSummary,
+  type WorkflowRunDetailTimelineEvent,
+  type WorkflowRunDetailViewModel,
+} from "../features/control-plane-read/workflowRunDetail";
 import type {
   ControlPlaneReadCollectionViewModel,
   ControlPlaneReadRouteId,
@@ -144,6 +151,10 @@ export function App() {
   const workspaceRunHistory = useMemo(
     () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
     [liveCollections],
+  );
+  const workflowRunDetail = useMemo(
+    () => buildWorkflowRunDetailViewModel(workspaceRunHistory.runs[0]),
+    [workspaceRunHistory],
   );
 
   return (
@@ -644,6 +655,8 @@ export function App() {
             ))}
           </div>
 
+          <WorkflowRunDetailPanel detail={workflowRunDetail} />
+
           <div className="run-history-states" aria-label="Workspace run history states">
             {workspaceRunHistory.statePreviews.map((state) => (
               <RunHistoryStatePreview key={state.id} state={state} />
@@ -815,6 +828,122 @@ function RunRecordRow({ run }: { run: WorkspaceRunRecordRow }) {
           <dd>{run.completedAt}</dd>
         </div>
       </dl>
+    </article>
+  );
+}
+
+function WorkflowRunDetailPanel({ detail }: { detail: WorkflowRunDetailViewModel }) {
+  return (
+    <div className="workflow-run-detail" aria-label="Workflow run detail read surface">
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Workflow Run Detail</p>
+          <h4>{detail.runId}</h4>
+        </div>
+        <StatusBadge tone={detail.canRenderRunDetail ? "good" : "bad"}>
+          {detail.canRenderRunDetail ? "detail ready" : "blocked"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-run-detail-summary-grid" aria-label="Workflow run detail summary">
+        <article className="workflow-run-detail-card">
+          <span>Route</span>
+          <strong>{detail.draftRouteId}</strong>
+          <p>{detail.routePath}</p>
+        </article>
+        <article className="workflow-run-detail-card">
+          <span>Request</span>
+          <strong>{detail.requestId}</strong>
+          <p>{detail.auditRef}</p>
+        </article>
+        <article className="workflow-run-detail-card">
+          <span>Status</span>
+          <strong>{detail.status}</strong>
+          <p>failure {detail.failureCode}</p>
+        </article>
+        <article className="workflow-run-detail-card">
+          <span>Trace</span>
+          <strong>{detail.traceId}</strong>
+          <p>{detail.workflowDefinitionId}</p>
+        </article>
+      </div>
+
+      <div className="workflow-run-detail-summary-grid" aria-label="Workflow run input and output summaries">
+        <WorkflowRunDetailSummaryCard summary={detail.inputSummary} />
+        <WorkflowRunDetailSummaryCard summary={detail.outputSummary} />
+        <WorkflowRunDetailSummaryCard summary={detail.costSummary} />
+        <WorkflowRunDetailSummaryCard summary={detail.tokenSummary} />
+      </div>
+
+      <div className="workflow-run-timeline" aria-label="Workflow run state timeline">
+        {detail.stateTimeline.map((event) => (
+          <WorkflowRunTimelineEventCard key={event.eventId} event={event} />
+        ))}
+      </div>
+
+      <div className="workflow-run-guard-grid" aria-label="Workflow run blocked capability previews">
+        <WorkflowRunGuardPreviewCard preview={detail.blockedResultPreview} />
+        <WorkflowRunGuardPreviewCard preview={detail.blockedReplayPreview} />
+      </div>
+
+      <div className="workflow-run-audit-list" aria-label="Workflow run audit references">
+        {detail.auditRefs.map((auditRef) => (
+          <code key={auditRef}>{auditRef}</code>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowRunDetailSummaryCard({ summary }: { summary: WorkflowRunDetailSummary }) {
+  return (
+    <article className="workflow-run-detail-card">
+      <span>{summary.label}</span>
+      <strong>{summary.fields.join(", ")}</strong>
+      <p>{summary.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowRunTimelineEventCard({ event }: { event: WorkflowRunDetailTimelineEvent }) {
+  return (
+    <article className="workflow-run-timeline-event">
+      <div className="workflow-run-detail-row-main">
+        <div>
+          <p className="eyebrow">{event.state}</p>
+          <h5>{event.label}</h5>
+        </div>
+        <StatusBadge tone={event.state === "failed" || event.state === "tool_preview_blocked" ? "bad" : "neutral"}>
+          {event.recordedAt}
+        </StatusBadge>
+      </div>
+      <p>{event.summary}</p>
+      <small>{event.auditRef}</small>
+    </article>
+  );
+}
+
+function WorkflowRunGuardPreviewCard({ preview }: { preview: WorkflowRunDetailGuardPreview }) {
+  return (
+    <article className="workflow-run-guard">
+      <div className="workflow-run-detail-row-main">
+        <div>
+          <p className="eyebrow">{preview.guardId}</p>
+          <h5>{preview.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{preview.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{preview.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{preview.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{preview.reason}</p>
     </article>
   );
 }

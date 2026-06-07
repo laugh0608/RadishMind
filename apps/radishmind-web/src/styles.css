@@ -267,6 +267,9 @@ h4 {
 .workflow-detail-edge,
 .workflow-detail-blocked-action,
 .run-history-metric,
+.workflow-run-detail-card,
+.workflow-run-timeline-event,
+.workflow-run-guard,
 .audit-log-metric,
 .application-row,
 .api-key-row,
@@ -316,6 +319,9 @@ h4 {
 .workflow-detail-node-list,
 .workflow-detail-edge-list,
 .run-history-metrics,
+.workflow-run-detail-summary-grid,
+.workflow-run-timeline,
+.workflow-run-guard-grid,
 .audit-log-metrics,
 .application-list,
 .api-key-list,
@@ -340,6 +346,8 @@ h4 {
 .workflow-detail-summary-grid,
 .workflow-detail-schema-grid,
 .run-history-metrics,
+.workflow-run-detail-summary-grid,
+.workflow-run-guard-grid,
 .audit-log-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -357,6 +365,9 @@ h4 {
 .workflow-detail-edge,
 .workflow-detail-blocked-action,
 .run-history-metric,
+.workflow-run-detail-card,
+.workflow-run-timeline-event,
+.workflow-run-guard,
 .audit-log-metric {
   min-width: 0;
   padding: 14px;
@@ -373,6 +384,7 @@ h4 {
 .workflow-detail-schema-card span,
 .workflow-detail-edge span,
 .run-history-metric span,
+.workflow-run-detail-card span,
 .audit-log-metric span,
 .application-state span,
 .application-state small,
@@ -404,6 +416,7 @@ h4 {
 .workflow-detail-schema-card strong,
 .workflow-detail-edge strong,
 .run-history-metric strong,
+.workflow-run-detail-card strong,
 .audit-log-metric strong {
   display: block;
   overflow-wrap: anywhere;
@@ -424,6 +437,9 @@ h4 {
 .workflow-detail-edge p,
 .workflow-detail-blocked-action p,
 .run-history-metric p,
+.workflow-run-detail-card p,
+.workflow-run-timeline-event p,
+.workflow-run-guard p,
 .audit-log-metric p,
 .application-state p,
 .api-key-state p,
@@ -456,6 +472,12 @@ h4 {
   padding: 16px 0 4px;
 }
 
+.workflow-run-detail {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+
 .compact-heading {
   margin-top: 4px;
 }
@@ -468,6 +490,10 @@ h4 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.workflow-run-timeline {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .workflow-detail-row-main {
   display: flex;
   justify-content: space-between;
@@ -475,13 +501,37 @@ h4 {
   align-items: flex-start;
 }
 
-.workflow-detail-row-main h5 {
+.workflow-run-audit-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflow-run-audit-list code {
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 6px 8px;
+  color: #33445c;
+  font-size: 12px;
+}
+
+.workflow-run-detail-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-detail-row-main h5,
+.workflow-run-detail-row-main h5 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
 }
 
-.workflow-detail-node-meta {
+.workflow-detail-node-meta,
+.workflow-run-guard-meta {
   display: grid;
   gap: 8px;
   margin: 12px 0 0;
@@ -766,7 +816,14 @@ dd {
   .usage-quota-snapshot,
   .usage-quota-limits,
   .workflow-definitions-metrics,
+  .workflow-detail-summary-grid,
+  .workflow-detail-schema-grid,
+  .workflow-detail-node-list,
+  .workflow-detail-edge-list,
   .run-history-metrics,
+  .workflow-run-detail-summary-grid,
+  .workflow-run-timeline,
+  .workflow-run-guard-grid,
   .audit-log-metrics,
   .application-row-meta,
   .api-key-row-meta,
