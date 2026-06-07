@@ -46,7 +46,7 @@
 
 - `workflow-definition-detail-read-v1`：只读 workflow definition detail view，优先消费 offline fixture 或 fake-store dev path。
 - `workflow-run-detail-read-v1`：已落地为 `workflow_run_detail_read_defined`，只读 run detail view 展示 state timeline、trace、cost、failure 和 audit refs。
-- `workflow-blocked-action-preview-v1`：blocked action explanation，只解释为什么不能执行以及未来需要什么确认条件。
+- `workflow-blocked-action-preview-v1`：已落地为 `workflow_blocked_action_preview_defined`，blocked action explanation 只解释为什么不能执行以及未来需要什么确认条件。
 
 ## 停止线
 

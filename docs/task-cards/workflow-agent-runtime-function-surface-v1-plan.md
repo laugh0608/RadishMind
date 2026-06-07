@@ -54,7 +54,7 @@
    - 已落地为 `workflow_run_detail_read_defined`，增加 `apps/radishmind-web/` 内 run detail 离线只读视图，展示状态流转、trace、成本摘要、failure code 和 audit refs。
    - 不提供 replay、resume、materialized result reader 或真实 run store。
 4. `workflow-blocked-action-preview-v1`
-   - 复用 tooling blocked action shell，展示 tool/action 为什么被阻止、需要什么 confirmation、当前缺哪些前置条件。
+   - 已落地为 `workflow_blocked_action_preview_defined`，复用 tooling blocked action shell，展示 tool/action 为什么被阻止、需要什么 confirmation、当前缺哪些前置条件。
    - 不执行 tool、不写回、不创建 confirmation decision。
 
 ## 验收口径

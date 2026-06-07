@@ -67,6 +67,13 @@ import {
   type WorkflowRunDetailTimelineEvent,
   type WorkflowRunDetailViewModel,
 } from "../features/control-plane-read/workflowRunDetail";
+import {
+  buildWorkflowBlockedActionPreviewViewModel,
+  type WorkflowBlockedActionAuditStep,
+  type WorkflowBlockedActionPreviewViewModel,
+  type WorkflowBlockedActionRequirement,
+  type WorkflowConfirmationPlaceholderPreview,
+} from "../features/control-plane-read/workflowBlockedActionPreview";
 import type {
   ControlPlaneReadCollectionViewModel,
   ControlPlaneReadRouteId,
@@ -156,6 +163,14 @@ export function App() {
     () => buildWorkflowRunDetailViewModel(workspaceRunHistory.runs[0]),
     [workspaceRunHistory],
   );
+  const workflowBlockedActionPreview = useMemo(
+    () =>
+      buildWorkflowBlockedActionPreviewViewModel(
+        workflowDefinitionDetail.blockedActionPreview,
+        workflowRunDetail.blockedReplayPreview,
+      ),
+    [workflowDefinitionDetail, workflowRunDetail],
+  );
 
   return (
     <main className="product-shell">
@@ -173,6 +188,7 @@ export function App() {
           <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#workspace-workflow-definitions">Workflows</a>
           <a href="#workspace-run-history">Run History</a>
+          <a href="#workflow-blocked-action-preview">Blocked Action</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -205,6 +221,10 @@ export function App() {
               value={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "ready" : "blocked"}
             />
             <Fact label="Run page" value={workspaceRunHistory.canRenderRuns ? "ready" : "blocked"} />
+            <Fact
+              label="Action guard"
+              value={workflowBlockedActionPreview.canRenderBlockedActionPreview ? "ready" : "blocked"}
+            />
           </div>
         </header>
 
@@ -656,6 +676,7 @@ export function App() {
           </div>
 
           <WorkflowRunDetailPanel detail={workflowRunDetail} />
+          <WorkflowBlockedActionPreviewPanel preview={workflowBlockedActionPreview} />
 
           <div className="run-history-states" aria-label="Workspace run history states">
             {workspaceRunHistory.statePreviews.map((state) => (
@@ -944,6 +965,149 @@ function WorkflowRunGuardPreviewCard({ preview }: { preview: WorkflowRunDetailGu
         </div>
       </dl>
       <p>{preview.reason}</p>
+    </article>
+  );
+}
+
+function WorkflowBlockedActionPreviewPanel({ preview }: { preview: WorkflowBlockedActionPreviewViewModel }) {
+  return (
+    <div
+      className="workflow-blocked-action-preview"
+      id="workflow-blocked-action-preview"
+      aria-label="Workflow blocked action preview read surface"
+    >
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Blocked Action Preview</p>
+          <h4>{preview.toolActionId}</h4>
+        </div>
+        <StatusBadge tone={preview.canRenderBlockedActionPreview ? "bad" : "neutral"}>{preview.blockedState}</StatusBadge>
+      </div>
+
+      <div className="workflow-blocked-action-summary-grid" aria-label="Workflow blocked action summary">
+        <article className="workflow-blocked-action-card">
+          <span>Tool</span>
+          <strong>{preview.toolRef}</strong>
+          <p>{preview.actionKind}</p>
+        </article>
+        <article className="workflow-blocked-action-card">
+          <span>Route</span>
+          <strong>{preview.draftRouteId}</strong>
+          <p>{preview.routePath}</p>
+        </article>
+        <article className="workflow-blocked-action-card">
+          <span>Request</span>
+          <strong>{preview.requestId}</strong>
+          <p>{preview.auditRef}</p>
+        </article>
+        <article className="workflow-blocked-action-card">
+          <span>Risk</span>
+          <strong>{preview.riskLevel}</strong>
+          <p>{preview.requiresConfirmation ? "future human review required" : "read-only metadata"}</p>
+        </article>
+      </div>
+
+      <article className="workflow-blocked-action-card">
+        <div className="workflow-blocked-row-main">
+          <div>
+            <p className="eyebrow">{preview.workflowDefinitionId}</p>
+            <h5>{preview.nodeExecutionRef}</h5>
+          </div>
+          <StatusBadge tone="bad">{preview.relatedRunGuard.status}</StatusBadge>
+        </div>
+        <dl className="workflow-run-guard-meta">
+          <div>
+            <dt>Run</dt>
+            <dd>{preview.runId}</dd>
+          </div>
+          <div>
+            <dt>Related guard</dt>
+            <dd>{preview.relatedRunGuard.guardId}</dd>
+          </div>
+        </dl>
+        <p>{preview.policyReason}</p>
+      </article>
+
+      <div className="workflow-blocked-requirement-grid" aria-label="Workflow blocked action missing prerequisites">
+        {preview.missingPrerequisites.map((requirement) => (
+          <WorkflowBlockedActionRequirementCard key={requirement.requirementId} requirement={requirement} />
+        ))}
+      </div>
+
+      <WorkflowConfirmationPlaceholderCard placeholder={preview.confirmationPlaceholder} />
+
+      <div className="workflow-blocked-audit-grid" aria-label="Workflow blocked action audit trail">
+        {preview.auditTrail.map((step) => (
+          <WorkflowBlockedActionAuditStepCard key={step.stepId} step={step} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowBlockedActionRequirementCard({ requirement }: { requirement: WorkflowBlockedActionRequirement }) {
+  return (
+    <article className="workflow-blocked-requirement">
+      <div className="workflow-blocked-row-main">
+        <div>
+          <p className="eyebrow">{requirement.requirementId}</p>
+          <h5>{requirement.label}</h5>
+        </div>
+        <StatusBadge tone={requirement.status === "defined_not_connected" ? "neutral" : "bad"}>
+          {requirement.status}
+        </StatusBadge>
+      </div>
+      <p>{requirement.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowConfirmationPlaceholderCard({
+  placeholder,
+}: {
+  placeholder: WorkflowConfirmationPlaceholderPreview;
+}) {
+  return (
+    <article className="workflow-confirmation-placeholder">
+      <div className="workflow-blocked-row-main">
+        <div>
+          <p className="eyebrow">{placeholder.confirmationPlaceholderId}</p>
+          <h5>{placeholder.requiredActionRef}</h5>
+        </div>
+        <StatusBadge tone="bad">{placeholder.humanReviewRequired ? "review required" : "read-only"}</StatusBadge>
+      </div>
+      <p>{placeholder.riskSummary}</p>
+      <div className="workflow-confirmation-shape" aria-label="Workflow confirmation placeholder decision shape">
+        {placeholder.requiredDecisionShape.map((field) => (
+          <code key={field}>{field}</code>
+        ))}
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Disabled reason</dt>
+          <dd>{placeholder.disabledReason}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{placeholder.auditRef}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowBlockedActionAuditStepCard({ step }: { step: WorkflowBlockedActionAuditStep }) {
+  return (
+    <article className="workflow-blocked-audit-step">
+      <div className="workflow-blocked-row-main">
+        <div>
+          <p className="eyebrow">{step.stepId}</p>
+          <h5>{step.label}</h5>
+        </div>
+        <StatusBadge tone={step.status === "blocked" ? "bad" : "neutral"}>{step.status}</StatusBadge>
+      </div>
+      <p>{step.summary}</p>
+      <small>{step.auditRef}</small>
     </article>
   );
 }
