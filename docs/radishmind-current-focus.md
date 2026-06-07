@@ -86,14 +86,15 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 5. `P3 Local Product Shell / Ops Surface`、`Conversation & Session`、`Tooling Framework` 与 `UI Design Topic / React 第二批` 均保持 close / governance-only 状态，不再默认新增同类只读 UI、P2 readiness / rollup / manifest 或 UI polish。P2 停止线证据继续保留为 `session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json`；`P2 short close` 边界不变，相关 `negative_regression_suite` 边界不变，这些 fixture 不代表 executor、durable store、confirmation、materialized result reader、长期记忆或 replay 已完成。
 6. `Evaluation & Governance`：当前阶段门禁已从“每个小 UI 展示项新增 fixture / checker / task card”调整为“能力边界与聚合门禁优先”。`control-plane-read-formal-ui-readiness-close-v1` 已作为聚合 surface matrix 接入 fast baseline，后续普通 UI 展示和文案 / 布局改动优先复用 web build、consumer smoke、聚合 read-side checker 和 fast baseline；只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项门禁。
 
-## 下一步事项（2026-06-07）
+## 明天事项（2026-06-08）
 
 1. 先按协作约定检查 `git status`，读取本文档、[能力矩阵](radishmind-capability-matrix.md)、[路线图](radishmind-roadmap.md)、[Workflow / Agent Runtime Function Surface v1 计划](task-cards/workflow-agent-runtime-function-surface-v1-plan.md) 和本周周志。
-2. `workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1` 与 `workflow-draft-validation-inspector-offline-v1` 已完成；上层当前没有稳定 UI / command / API 挂载点时，不继续细化假想接线，也不停止产品功能开发。后续若继续推进产品功能，应选择能复用当前离线 draft / detail / blocked capability 结构的成熟切片；仍不得新增真实 API、数据库、OIDC、executor、confirmation decision、writeback、replay 或 production ready 声明。
-3. `control-plane-read-implementation-trigger-review-v1` 已完成后，read-side 当前没有任何 implementation trigger satisfied；不要直接进入 repository adapter、repository interface、migration manifest、SQL、store selector、真实数据库、adapter smoke execution 或 production API consumer 实现。
-4. Production Ops 维持等待项；没有明确测试或生产前复核窗口时，不启动 Docker、不拉镜像、不发布镜像、不访问网络、不写入 secret，也不重复跑同一 `docker_local` smoke。
-5. 不继续默认新增 provider 同层小切片，也不继续堆 read-side 同层 governance 切片；新增 API、执行边界、数据格式或高风险能力时才补专项 gate。
-6. 功能骨架仍不得实现 workflow executor、tool executor、confirmation flow、business writeback、replay、durable result store、真实数据库、Radish OIDC、token validation、API key lifecycle、quota enforcement、billing 或 production API consumer。
+2. 2026-06-07 已完成 8 个 workflow surface 提交：`workflow-function-surface-boundary-v1`、definition detail、run detail、blocked action preview、application detail、confirmation placeholder、offline draft designer 和 offline validation inspector；开始新任务前先确认这些切片的文档、fixture、checker、脚本说明和周志同步没有遗漏。
+3. 明天优先建议推进 `workflow-execution-plan-preview-offline-v1`：复用 selected draft、validation inspector、definition detail、run detail、blocked action preview 和 confirmation placeholder，派生只读 execution plan preview，展示 stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates、blocked runtime/publish/writeback/replay reasons 和 route / request / audit metadata。
+4. `workflow-execution-plan-preview-offline-v1` 只能是离线 preview surface：不新增 Go route、真实 API、数据库、Radish OIDC、executor、confirmation decision、execution unlock、business writeback、run replay、run resume、durable store 或 production ready 声明；不添加按钮、表单、发布、运行或确认提交控件。
+5. `control-plane-read-implementation-trigger-review-v1` 已完成后，read-side 当前没有任何 implementation trigger satisfied；不要直接进入 repository adapter、repository interface、migration manifest、SQL、store selector、真实数据库、adapter smoke execution 或 production API consumer 实现。
+6. Production Ops 维持等待项；没有明确测试或生产前复核窗口时，不启动 Docker、不拉镜像、不发布镜像、不访问网络、不写入 secret，也不重复跑同一 `docker_local` smoke。
+7. 不继续默认新增 provider 同层小切片，也不继续堆 read-side 同层 governance 切片；新增 API、执行边界、数据格式或高风险能力时才补专项 gate。
 
 ## 为什么是这些任务
 
@@ -153,7 +154,7 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 - 动协议、schema 或 API：读 `docs/radishmind-integration-contracts.md`
 - 动 `RadishMind-Core` 评测：读 `docs/radishmind-core-baseline-evaluation.md`
 - 动代码风格、抽象或脚本组织：读 `docs/radishmind-code-standards.md`
-- 查最近执行细节：读本周周志 `docs/devlogs/2026-W23.md`
+- 查最近执行细节：读本周周志 `docs/devlogs/2026-W24.md`；回顾 2026-06-07 workflow surface 提交时读 `docs/devlogs/2026-W23.md`
 
 ## 验证基线
 
