@@ -47,6 +47,14 @@ import {
   type WorkspaceWorkflowDefinitionsStatePreview,
 } from "../features/control-plane-read/workspaceWorkflowDefinitions";
 import {
+  buildWorkflowDefinitionDetailViewModel,
+  type WorkflowDefinitionBlockedActionPreview,
+  type WorkflowDefinitionDetailEdge,
+  type WorkflowDefinitionDetailNode,
+  type WorkflowDefinitionDetailSchemaSummary,
+  type WorkflowDefinitionDetailViewModel,
+} from "../features/control-plane-read/workflowDefinitionDetail";
+import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
   type WorkspaceRunHistoryStatePreview,
@@ -132,6 +140,7 @@ export function App() {
     () => buildWorkspaceWorkflowDefinitionsViewModel(liveCollections["workflow-definition-summary-list-route"]),
     [liveCollections],
   );
+  const workflowDefinitionDetail = useMemo(() => buildWorkflowDefinitionDetailViewModel(), []);
   const workspaceRunHistory = useMemo(
     () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
     [liveCollections],
@@ -568,6 +577,8 @@ export function App() {
             ))}
           </div>
 
+          <WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} />
+
           <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
               <WorkflowDefinitionStatePreview key={state.id} state={state} />
@@ -867,6 +878,153 @@ function WorkflowDefinitionRow({ workflowDefinition }: { workflowDefinition: Wor
           <dd>{workflowDefinition.updatedAt}</dd>
         </div>
       </dl>
+    </article>
+  );
+}
+
+function WorkflowDefinitionDetailPanel({ detail }: { detail: WorkflowDefinitionDetailViewModel }) {
+  return (
+    <div className="workflow-definition-detail" aria-label="Workflow definition detail read surface">
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Workflow Definition Detail</p>
+          <h4>{detail.workflowDefinitionId}</h4>
+        </div>
+        <StatusBadge tone={detail.canRenderDefinitionDetail ? "good" : "bad"}>
+          {detail.canRenderDefinitionDetail ? "detail ready" : "blocked"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-detail-summary-grid" aria-label="Workflow definition detail summary">
+        <article className="workflow-detail-summary-card">
+          <span>Route</span>
+          <strong>{detail.draftRouteId}</strong>
+          <p>{detail.routePath}</p>
+        </article>
+        <article className="workflow-detail-summary-card">
+          <span>Request</span>
+          <strong>{detail.requestId}</strong>
+          <p>{detail.auditRef}</p>
+        </article>
+        <article className="workflow-detail-summary-card">
+          <span>Risk</span>
+          <strong>{detail.riskLevel}</strong>
+          <p>{detail.requiresConfirmationCapable ? "confirmation capable" : "no confirmation marker"}</p>
+        </article>
+        <article className="workflow-detail-summary-card">
+          <span>Source</span>
+          <strong>{detail.sourceRouteId}</strong>
+          <p>{detail.applicationRef}</p>
+        </article>
+      </div>
+
+      <div className="workflow-detail-schema-grid" aria-label="Workflow definition input and output summaries">
+        <WorkflowDefinitionSchemaSummary summary={detail.inputSummary} />
+        <WorkflowDefinitionSchemaSummary summary={detail.outputSummary} />
+      </div>
+
+      <div className="workflow-detail-node-list" aria-label="Workflow definition nodes">
+        {detail.nodes.map((node) => (
+          <WorkflowDefinitionDetailNodeCard key={node.nodeId} node={node} />
+        ))}
+      </div>
+
+      <div className="workflow-detail-edge-list" aria-label="Workflow definition edges">
+        {detail.edges.map((edge) => (
+          <WorkflowDefinitionDetailEdgeCard key={edge.edgeId} edge={edge} />
+        ))}
+      </div>
+
+      <WorkflowDefinitionBlockedActionPreviewCard preview={detail.blockedActionPreview} />
+    </div>
+  );
+}
+
+function WorkflowDefinitionSchemaSummary({ summary }: { summary: WorkflowDefinitionDetailSchemaSummary }) {
+  return (
+    <article className="workflow-detail-schema-card">
+      <span>{summary.label}</span>
+      <strong>{summary.fields.join(", ")}</strong>
+      <p>{summary.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowDefinitionDetailNodeCard({ node }: { node: WorkflowDefinitionDetailNode }) {
+  return (
+    <article className="workflow-detail-node">
+      <div className="workflow-detail-row-main">
+        <div>
+          <p className="eyebrow">{node.nodeType}</p>
+          <h5>{node.label}</h5>
+        </div>
+        <StatusBadge tone={node.requiresConfirmation ? "neutral" : "good"}>
+          {node.requiresConfirmation ? "confirmation marker" : "read-only"}
+        </StatusBadge>
+      </div>
+      <dl className="workflow-detail-node-meta">
+        <div>
+          <dt>Input</dt>
+          <dd>{node.inputSummary}</dd>
+        </div>
+        <div>
+          <dt>Output</dt>
+          <dd>{node.outputSummary}</dd>
+        </div>
+        <div>
+          <dt>Risk</dt>
+          <dd>{node.riskLevel}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowDefinitionDetailEdgeCard({ edge }: { edge: WorkflowDefinitionDetailEdge }) {
+  return (
+    <article className="workflow-detail-edge">
+      <span>{edge.edgeId}</span>
+      <strong>
+        {edge.fromNodeId} to {edge.toNodeId}
+      </strong>
+      <p>{edge.conditionSummary}</p>
+    </article>
+  );
+}
+
+function WorkflowDefinitionBlockedActionPreviewCard({
+  preview,
+}: {
+  preview: WorkflowDefinitionBlockedActionPreview;
+}) {
+  return (
+    <article className="workflow-detail-blocked-action">
+      <div className="workflow-detail-row-main">
+        <div>
+          <p className="eyebrow">{preview.toolRef}</p>
+          <h5>{preview.toolActionId}</h5>
+        </div>
+        <StatusBadge tone="bad">{preview.blockedState}</StatusBadge>
+      </div>
+      <dl className="workflow-detail-node-meta">
+        <div>
+          <dt>Action</dt>
+          <dd>{preview.actionKind}</dd>
+        </div>
+        <div>
+          <dt>Risk</dt>
+          <dd>{preview.riskLevel}</dd>
+        </div>
+        <div>
+          <dt>Confirmation</dt>
+          <dd>{preview.requiresConfirmation ? "required later" : "not required"}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{preview.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{preview.policyReason}</p>
     </article>
   );
 }

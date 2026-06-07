@@ -261,6 +261,11 @@ h4 {
 .usage-quota-snapshot-card,
 .usage-quota-failure,
 .workflow-definition-metric,
+.workflow-detail-summary-card,
+.workflow-detail-schema-card,
+.workflow-detail-node,
+.workflow-detail-edge,
+.workflow-detail-blocked-action,
 .run-history-metric,
 .audit-log-metric,
 .application-row,
@@ -306,6 +311,10 @@ h4 {
 .usage-quota-snapshot,
 .usage-quota-limits,
 .workflow-definitions-metrics,
+.workflow-detail-summary-grid,
+.workflow-detail-schema-grid,
+.workflow-detail-node-list,
+.workflow-detail-edge-list,
 .run-history-metrics,
 .audit-log-metrics,
 .application-list,
@@ -328,6 +337,8 @@ h4 {
 .api-keys-metrics,
 .usage-quota-snapshot,
 .workflow-definitions-metrics,
+.workflow-detail-summary-grid,
+.workflow-detail-schema-grid,
 .run-history-metrics,
 .audit-log-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -340,6 +351,11 @@ h4 {
 .usage-quota-snapshot-card,
 .usage-quota-failure,
 .workflow-definition-metric,
+.workflow-detail-summary-card,
+.workflow-detail-schema-card,
+.workflow-detail-node,
+.workflow-detail-edge,
+.workflow-detail-blocked-action,
 .run-history-metric,
 .audit-log-metric {
   min-width: 0;
@@ -353,6 +369,9 @@ h4 {
 .usage-quota-snapshot-card span,
 .usage-quota-failure span,
 .workflow-definition-metric span,
+.workflow-detail-summary-card span,
+.workflow-detail-schema-card span,
+.workflow-detail-edge span,
 .run-history-metric span,
 .audit-log-metric span,
 .application-state span,
@@ -381,6 +400,9 @@ h4 {
 .usage-quota-snapshot-card strong,
 .usage-quota-failure strong,
 .workflow-definition-metric strong,
+.workflow-detail-summary-card strong,
+.workflow-detail-schema-card strong,
+.workflow-detail-edge strong,
 .run-history-metric strong,
 .audit-log-metric strong {
   display: block;
@@ -397,6 +419,10 @@ h4 {
 .usage-quota-snapshot-card p,
 .usage-quota-failure p,
 .workflow-definition-metric p,
+.workflow-detail-summary-card p,
+.workflow-detail-schema-card p,
+.workflow-detail-edge p,
+.workflow-detail-blocked-action p,
 .run-history-metric p,
 .audit-log-metric p,
 .application-state p,
@@ -422,6 +448,43 @@ h4 {
 .run-record-list,
 .audit-event-list {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.workflow-definition-detail {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+
+.compact-heading {
+  margin-top: 4px;
+}
+
+.workflow-detail-node-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-detail-edge-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workflow-detail-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-detail-row-main h5 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.workflow-detail-node-meta {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
 }
 
 .application-states,
