@@ -205,13 +205,13 @@
 
 目标：在上层项目具备真实挂载点后，选择首个切片完成真正接入。
 
-状态：当前等待上层条件成熟。
+状态：真实接入仍等待上层条件成熟，但这不阻塞 RadishMind 平台本体建设。`RadishFlow` / `Radish` 没有稳定 UI、command 或 API 挂载点时，不继续设计假想接线；RadishMind 先推进可离线验证、可复用到未来接入的产品功能、协议边界和风险治理。
 
 ### `P6`：User Workspace & Workflow Builder
 
 目标：形成正式用户端，让用户创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用和 RAG / 知识问答应用，并查看 API key、调用量、运行记录和成本。
 
-状态：边界任务卡已开始。当前 `apps/radishmind-console/` 只是本地 ops surface，不是用户端产品；`Control Plane / User Workspace / Workflow v1` 任务卡只定义用户工作区和 workflow builder 的资源边界、运行记录和停止线，不实现正式用户端或 executor。`Workflow / Agent Runtime Function Surface v1` 已把下一批功能骨架限定为只读 detail、blocked action preview、confirmation placeholder 和 fake-store dev path。
+状态：边界任务卡已开始。当前 `apps/radishmind-console/` 只是本地 ops surface，不是用户端产品；`Control Plane / User Workspace / Workflow v1` 任务卡只定义用户工作区和 workflow builder 的资源边界、运行记录和停止线，不实现正式用户端或 executor。`Workflow / Agent Runtime Function Surface v1` 已完成只读 detail、blocked action preview、confirmation placeholder、fake-store dev path 和 `workflow-draft-designer-offline-v1`，状态达到 `workflow_draft_designer_offline_defined`；`apps/radishmind-web/` 已形成离线 workflow draft designer，不等待上层挂载点，不提供保存、发布、执行、确认提交或写回能力。
 
 ### `P7`：Admin Control Plane & Radish Auth Integration
 
@@ -222,13 +222,13 @@
 ## 下一步
 
 1. 保持 `Provider Runtime & Health v1` close candidate：`provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 与 `provider-runtime-docs-refresh` 已接入 fast baseline；后续不默认新增 provider 同层小切片。
-2. 以 `Workflow / Agent Runtime Function Surface v1` 作为无 Docker 运行窗口时的默认功能主线；`workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1` 与 `workflow-confirmation-placeholder-read-v1` 已分别达到 `workflow_definition_detail_read_defined`、`workflow_run_detail_read_defined`、`workflow_blocked_action_preview_defined`、`workflow_application_detail_read_defined` 和 `workflow_confirmation_placeholder_read_defined`，后续等待新的真实挂载点证据或实现触发条件。
+2. 以 `Workflow / Agent Runtime Function Surface v1` 和离线 workflow 产品能力作为无 Docker 运行窗口时的默认功能主线；`workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1` 与 `workflow-draft-designer-offline-v1` 已分别达到 `workflow_definition_detail_read_defined`、`workflow_run_detail_read_defined`、`workflow_blocked_action_preview_defined`、`workflow_application_detail_read_defined`、`workflow_confirmation_placeholder_read_defined` 和 `workflow_draft_designer_offline_defined`。上层没有真实挂载点时不继续细化假想接线，后续继续选择不越过数据库、OIDC、executor、confirmation、writeback 或 replay gate 的成熟产品切片。
 3. 已完成的 read-side 契约、fake-store-backed handler、正式 UI、dev-only live consumer、auth/store transition、repository contract / guard / smoke / readiness、production auth readiness、adapter smoke readiness 和 implementation trigger review 继续作为证据保留；当前没有 implementation trigger satisfied，不默认进入数据库、OIDC、token validation、repository migration、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay。
 4. 将 `Production Ops Hardening v1` 维持为 static boundary close + docker_local smoke recorded；后续只在明确测试或生产前复核窗口后补测试环境 smoke 或 production preflight 记录。
 5. 将 `P3 Local Product Shell / Ops Surface` 与 UI 第二批维持在 `local usable / read-only close candidate`；不再默认补同类只读 console 小切片，除非真实使用暴露新缺口。
 6. 将真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有 GPU / 明确实验窗口 / 新能力假设前不重开。
 7. UI 后续扩张必须先回到设计稿或任务卡；只为新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力新增专项门禁，普通展示改动优先复用现有聚合门禁。
-8. 继续维持上层项目接入前置条件总表和产品机会池候选，不提前细化不存在的真实接线。
+8. 继续维持上层项目接入前置条件总表和产品机会池候选，不提前细化不存在的真实接线；同时明确 `RadishFlow` / `Radish` 不是 RadishMind 产品主线的阻塞条件。
 
 ## 停止线
 

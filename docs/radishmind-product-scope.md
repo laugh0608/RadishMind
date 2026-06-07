@@ -19,6 +19,7 @@
 - `RadishMind-Core` 是基座适配型自研主模型路线，不是从零预训练基础大模型。
 - 图片像素生成不并入主模型职责，默认由 `RadishMind-Image Adapter` 与独立 backend 承接。
 - 部署方式、数据库选型、登录 / 授权边界优先参考 `Radish`；未来 RadishMind 作为 OIDC client 接入 `Radish`，不自建第二套身份真相源。参考 `Radish` 不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端默认继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
+- `RadishFlow` 和 `Radish` 是优先接入对象与产品参考，但不是 RadishMind 平台本体开发的阻塞条件。上层暂时没有稳定 UI、command 或 API 挂载点时，本仓库应继续推进可离线验证、可复用到后续真实接入的用户端、workflow runtime、control plane 和模型网关功能；不把等待上层接线写成产品停滞理由。
 
 ## 产品形态
 
@@ -63,7 +64,8 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、后续受控 code / sandbox 与 agent loop。
 - 每次运行都应有 trace、输入输出摘要、成本、错误分类和风险边界。
 - `workflow-definition-run-record-boundary` 只把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线固定为治理证据，不代表 executor、confirmation、writeback 或 replay 已实现。
-- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview 和 confirmation placeholder 的只读 / blocked surface，优先走 fixture 或 fake-store dev path。
+- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview、confirmation placeholder 和 offline draft designer 的只读 / blocked / local-only surface，优先走 fixture 或 fake-store dev path。`workflow-draft-designer-offline-v1` 已固定为 `workflow_draft_designer_offline_defined`，只展示 draft templates、nodes、edges、readiness、risk summary 和 blocked capability，不提供 draft persistence、publish、executor、confirmation decision、writeback 或 replay。
+- 上层挂载点未成熟时，workflow 产品面继续先做离线草案设计、结构检查、readiness 展示和 blocked capability 说明；这些产品能力应复用未来真实接入所需的 canonical contract 和停止线，而不是等待 `RadishFlow` 或 `Radish` 提供承接入口后才开始。
 - 高风险 tool/action 默认 `requires_confirmation`，不得直接写上层业务真相源。
 
 ## 项目范围
@@ -111,12 +113,13 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 
 - `RadishFlow`、`Radish`、`RadishCatalyst` 是应用面，不是项目本体的全部意义。
 - 这些接入面复用同一套 runtime、contract、tooling、evaluation 和 governance，而不是各自私接模型。
+- 这些接入面若暂时无法提供真实挂载点，不应拖慢 RadishMind 的平台功能建设；本仓库应先把成熟的离线产品面、协议、风险边界和验证基线做好，等上层条件满足后再选择一个切片真实接入。
 
 ## 当前阶段判断
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“AI 工具 / 工作流 / 模型网关 / Copilot 集成平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
-- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。后续只有在明确测试或生产前复核窗口后才执行测试环境 smoke 或 production preflight；无运行窗口时，默认转向 `Workflow / Agent Runtime Function Surface v1` 的功能骨架，而不是继续补同类只读 console 小切片、provider 同层小切片、Production Ops 静态治理、重开真实模型长跑或提前设计不存在的上层接线。
+- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。后续只有在明确测试或生产前复核窗口后才执行测试环境 smoke 或 production preflight；无运行窗口时，默认转向 `Workflow / Agent Runtime Function Surface v1` 以及离线 workflow 产品功能，而不是继续补同类只读 console 小切片、provider 同层小切片、Production Ops 静态治理、重开真实模型长跑或提前设计不存在的上层接线。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面

@@ -23,6 +23,7 @@
 - Production Ops 静态边界和一次 `docker_local` smoke 运行记录已经足够支撑现阶段；没有测试或生产前复核窗口时，不继续把 Docker / deployment 作为默认推进方向。
 - read-side repository / database / auth 迁移当前没有 implementation trigger satisfied；不应直接实现 repository interface、adapter、SQL、migration、store selector、OIDC token validation 或 production API consumer。
 - 项目目标仍是 AI 工具、工作流、模型网关和 Copilot 集成平台；现阶段应优先补用户能理解的功能骨架，而不是继续扩同层治理切片。
+- `RadishFlow` 和 `Radish` 当前没有稳定 UI、command 或 API 挂载点时，不继续设计假想接线，也不把等待上层承接入口作为 RadishMind 产品功能停滞的理由。此阶段先推进离线、advisory-only、blocked capability 的 workflow 产品面，等上层条件成熟后再选择一个切片真实接入。
 
 ## v1 功能面边界
 
@@ -59,12 +60,16 @@
 5. `workflow-confirmation-placeholder-read-v1`
    - 已落地为 `workflow_confirmation_placeholder_read_defined`，展示 required action ref、risk summary、required decision shape、human review requirement、disabled reason、route / request / audit metadata 和 missing prerequisites。
    - 不提交 confirmation，不持久化 decision，不解锁执行，不写回。
+6. `workflow-draft-designer-offline-v1`
+   - 已落地为 `workflow_draft_designer_offline_defined`，在 `apps/radishmind-web/` 增加离线 workflow draft designer 产品面，复用 applications / workflow definitions / confirmation placeholder 的 summary 和 fixture-derived view model，展示草案模板、节点、边、readiness、风险摘要、route / request / audit metadata 和 blocked capability preview。
+   - 允许本地切换当前查看的草案，但不保存、不发布、不执行、不创建真实 builder mutation，不请求 live backend，不接数据库、OIDC、executor、confirmation decision、writeback 或 replay。
 
 ## 验收口径
 
 - 当前焦点、路线图、能力矩阵和周志都明确：无 Docker 运行窗口时，Production Ops 降为等待项，功能骨架成为默认下一步。
 - `workflow-function-surface-boundary-v1` 已用 fixture / checker 固定 `function_surface_boundary_defined`，后续 detail read 切片不得越过该边界。
 - 任务卡明确下一批功能切片优先从只读 detail、blocked action preview 和 fake-store dev path 开始。
+- 上层挂载点不成熟时，任务卡明确 RadishMind 继续推进离线 workflow 产品面；真实接入等待上层 UI / command / API、确认流和审计落点成熟。
 - 文档继续保留 read-side implementation trigger 未满足的结论。
 - 文档继续明确不实现 repository interface / adapter、SQL、migration、store selector、OIDC token validation、auth middleware、真实数据库、production API consumer、workflow executor、confirmation、writeback 或 replay。
 

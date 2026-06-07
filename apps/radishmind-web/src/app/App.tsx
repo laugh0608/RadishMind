@@ -62,6 +62,17 @@ import {
   type WorkflowDefinitionDetailViewModel,
 } from "../features/control-plane-read/workflowDefinitionDetail";
 import {
+  buildWorkflowDraftDesignerViewModel,
+  type WorkflowDraftDesignerBlockedCapability,
+  type WorkflowDraftDesignerDraft,
+  type WorkflowDraftDesignerEdge,
+  type WorkflowDraftDesignerNode,
+  type WorkflowDraftDesignerReadiness,
+  type WorkflowDraftDesignerRisk,
+  type WorkflowDraftDesignerTemplate,
+  type WorkflowDraftDesignerViewModel,
+} from "../features/control-plane-read/workflowDraftDesigner";
+import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
   type WorkspaceRunHistoryStatePreview,
@@ -197,6 +208,27 @@ export function App() {
     () => buildWorkflowConfirmationPlaceholderViewModel(workflowBlockedActionPreview),
     [workflowBlockedActionPreview],
   );
+  const workflowDraftDesigner = useMemo(
+    () =>
+      buildWorkflowDraftDesignerViewModel({
+        workflowDefinitions: workspaceWorkflowDefinitions.workflowDefinitions,
+        detailNodes: workflowDefinitionDetail.nodes,
+        detailEdges: workflowDefinitionDetail.edges,
+        blockedActionPreview: workflowDefinitionDetail.blockedActionPreview,
+        confirmationPlaceholder: workflowConfirmationPlaceholder,
+        sourceRequestId: workspaceWorkflowDefinitions.requestId,
+        sourceAuditRef: workspaceWorkflowDefinitions.auditRef,
+      }),
+    [workspaceWorkflowDefinitions, workflowDefinitionDetail, workflowConfirmationPlaceholder],
+  );
+  const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
+  const selectedWorkflowDraft = useMemo<WorkflowDraftDesignerDraft>(() => {
+    const targetDraftId = selectedWorkflowDraftId ?? workflowDraftDesigner.defaultDraftId;
+    return (
+      workflowDraftDesigner.drafts.find((draft) => draft.draftId === targetDraftId) ??
+      workflowDraftDesigner.drafts[0]!
+    );
+  }, [selectedWorkflowDraftId, workflowDraftDesigner]);
 
   return (
     <main className="product-shell">
@@ -214,6 +246,7 @@ export function App() {
           <a href="#workspace-api-keys">API Keys</a>
           <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#workspace-workflow-definitions">Workflows</a>
+          <a href="#workflow-draft-designer">Draft Designer</a>
           <a href="#workspace-run-history">Run History</a>
           <a href="#workflow-blocked-action-preview">Blocked Action</a>
           <a href="#workflow-confirmation-placeholder">Confirmation</a>
@@ -260,6 +293,10 @@ export function App() {
             <Fact
               label="Confirm"
               value={workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder ? "ready" : "blocked"}
+            />
+            <Fact
+              label="Draft"
+              value={workflowDraftDesigner.canRenderDraftDesigner ? "ready" : "blocked"}
             />
           </div>
         </header>
@@ -647,6 +684,12 @@ export function App() {
           </div>
 
           <WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} />
+          <WorkflowDraftDesignerPanel
+            designer={workflowDraftDesigner}
+            selectedDraft={selectedWorkflowDraft}
+            selectedDraftId={selectedWorkflowDraft.draftId}
+            onSelectDraft={setSelectedWorkflowDraftId}
+          />
 
           <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
@@ -1508,6 +1551,238 @@ function WorkflowDefinitionBlockedActionPreviewCard({
         </div>
       </dl>
       <p>{preview.policyReason}</p>
+    </article>
+  );
+}
+
+function WorkflowDraftDesignerPanel({
+  designer,
+  selectedDraft,
+  selectedDraftId,
+  onSelectDraft,
+}: {
+  designer: WorkflowDraftDesignerViewModel;
+  selectedDraft: WorkflowDraftDesignerDraft;
+  selectedDraftId: string;
+  onSelectDraft: (draftId: string) => void;
+}) {
+  return (
+    <div
+      className="workflow-draft-designer"
+      id="workflow-draft-designer"
+      aria-label="Workflow draft designer offline surface"
+    >
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Workflow Draft Designer</p>
+          <h4>{selectedDraft.label}</h4>
+        </div>
+        <StatusBadge tone={designer.canRenderDraftDesigner ? "good" : "bad"}>
+          {designer.canRenderDraftDesigner ? "offline designer ready" : "blocked"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-draft-template-grid" aria-label="Workflow draft templates">
+        {designer.templates.map((template) => (
+          <WorkflowDraftTemplateButton
+            key={template.draftId}
+            template={template}
+            selected={template.draftId === selectedDraftId}
+            onSelectDraft={onSelectDraft}
+          />
+        ))}
+      </div>
+
+      <div className="workflow-draft-summary-grid" aria-label="Selected workflow draft summary">
+        <article className="workflow-draft-card">
+          <span>Draft</span>
+          <strong>{selectedDraft.draftId}</strong>
+          <p>{selectedDraft.summary}</p>
+        </article>
+        <article className="workflow-draft-card">
+          <span>Route</span>
+          <strong>{selectedDraft.routeMetadata.draftRouteId}</strong>
+          <p>{selectedDraft.routeMetadata.routePath}</p>
+        </article>
+        <article className="workflow-draft-card">
+          <span>Source</span>
+          <strong>{selectedDraft.routeMetadata.sourceRouteId}</strong>
+          <p>{selectedDraft.workflowDefinitionId}</p>
+        </article>
+        <article className="workflow-draft-card">
+          <span>Request</span>
+          <strong>{selectedDraft.routeMetadata.requestId}</strong>
+          <p>{selectedDraft.routeMetadata.auditRef}</p>
+        </article>
+      </div>
+
+      <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
+        {selectedDraft.nodes.map((node) => (
+          <WorkflowDraftNodeCard key={node.nodeId} node={node} />
+        ))}
+      </div>
+
+      <div className="workflow-draft-edge-grid" aria-label="Workflow draft edges">
+        {selectedDraft.edges.map((edge) => (
+          <WorkflowDraftEdgeCard key={edge.edgeId} edge={edge} />
+        ))}
+      </div>
+
+      <div className="workflow-draft-readiness-grid" aria-label="Workflow draft readiness">
+        {selectedDraft.readiness.map((readiness) => (
+          <WorkflowDraftReadinessCard key={readiness.checkId} readiness={readiness} />
+        ))}
+      </div>
+
+      <div className="workflow-draft-risk-grid" aria-label="Workflow draft risk summary">
+        {selectedDraft.risks.map((risk) => (
+          <WorkflowDraftRiskCard key={risk.riskId} risk={risk} />
+        ))}
+      </div>
+
+      <div className="workflow-draft-blocked-grid" aria-label="Workflow draft blocked capabilities">
+        {selectedDraft.blockedCapabilities.map((capability) => (
+          <WorkflowDraftBlockedCapabilityCard key={capability.capabilityId} capability={capability} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowDraftTemplateButton({
+  template,
+  selected,
+  onSelectDraft,
+}: {
+  template: WorkflowDraftDesignerTemplate;
+  selected: boolean;
+  onSelectDraft: (draftId: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`workflow-draft-template-button${selected ? " selected" : ""}`}
+      aria-pressed={selected}
+      onClick={() => onSelectDraft(template.draftId)}
+    >
+      <span>{template.workflowKind}</span>
+      <strong>{template.label}</strong>
+      <p>{template.summary}</p>
+      <small>
+        {template.status} / risk {template.riskLevel} / nodes {template.nodeCount}
+      </small>
+    </button>
+  );
+}
+
+function WorkflowDraftNodeCard({ node }: { node: WorkflowDraftDesignerNode }) {
+  return (
+    <article className="workflow-draft-node">
+      <div className="workflow-draft-row-main">
+        <div>
+          <p className="eyebrow">
+            {node.lane} / {node.nodeType}
+          </p>
+          <h5>{node.label}</h5>
+        </div>
+        <StatusBadge tone={node.readiness === "blocked" ? "bad" : node.readiness === "ready" ? "good" : "neutral"}>
+          {node.readiness}
+        </StatusBadge>
+      </div>
+      <dl className="workflow-detail-node-meta">
+        <div>
+          <dt>Input</dt>
+          <dd>{node.inputSummary}</dd>
+        </div>
+        <div>
+          <dt>Output</dt>
+          <dd>{node.outputSummary}</dd>
+        </div>
+        <div>
+          <dt>Risk</dt>
+          <dd>{node.riskLevel}</dd>
+        </div>
+        <div>
+          <dt>Preview</dt>
+          <dd>{node.previewOnlyReason}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowDraftEdgeCard({ edge }: { edge: WorkflowDraftDesignerEdge }) {
+  return (
+    <article className="workflow-draft-edge">
+      <span>{edge.edgeKind}</span>
+      <strong>
+        {edge.fromNodeId} to {edge.toNodeId}
+      </strong>
+      <p>{edge.conditionSummary}</p>
+    </article>
+  );
+}
+
+function WorkflowDraftReadinessCard({ readiness }: { readiness: WorkflowDraftDesignerReadiness }) {
+  return (
+    <article className="workflow-draft-readiness">
+      <div className="workflow-draft-row-main">
+        <div>
+          <p className="eyebrow">{readiness.checkId}</p>
+          <h5>{readiness.label}</h5>
+        </div>
+        <StatusBadge tone={readiness.status === "blocked" ? "bad" : readiness.status === "ready" ? "good" : "neutral"}>
+          {readiness.status}
+        </StatusBadge>
+      </div>
+      <p>{readiness.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowDraftRiskCard({ risk }: { risk: WorkflowDraftDesignerRisk }) {
+  return (
+    <article className="workflow-draft-risk">
+      <div className="workflow-draft-row-main">
+        <div>
+          <p className="eyebrow">{risk.riskId}</p>
+          <h5>{risk.label}</h5>
+        </div>
+        <StatusBadge tone={risk.riskLevel === "high" ? "bad" : risk.riskLevel === "low" ? "good" : "neutral"}>
+          {risk.riskLevel}
+        </StatusBadge>
+      </div>
+      <p>{risk.summary}</p>
+      <small>{risk.requiresConfirmation ? "future human review required" : "advisory only"}</small>
+    </article>
+  );
+}
+
+function WorkflowDraftBlockedCapabilityCard({
+  capability,
+}: {
+  capability: WorkflowDraftDesignerBlockedCapability;
+}) {
+  return (
+    <article className="workflow-draft-blocked-capability">
+      <div className="workflow-draft-row-main">
+        <div>
+          <p className="eyebrow">{capability.capabilityId}</p>
+          <h5>{capability.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{capability.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{capability.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{capability.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{capability.summary}</p>
     </article>
   );
 }

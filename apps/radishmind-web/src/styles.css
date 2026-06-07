@@ -268,6 +268,12 @@ h4 {
 .workflow-detail-node,
 .workflow-detail-edge,
 .workflow-detail-blocked-action,
+.workflow-draft-card,
+.workflow-draft-node,
+.workflow-draft-edge,
+.workflow-draft-readiness,
+.workflow-draft-risk,
+.workflow-draft-blocked-capability,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -330,6 +336,13 @@ h4 {
 .workflow-detail-schema-grid,
 .workflow-detail-node-list,
 .workflow-detail-edge-list,
+.workflow-draft-template-grid,
+.workflow-draft-summary-grid,
+.workflow-draft-node-grid,
+.workflow-draft-edge-grid,
+.workflow-draft-readiness-grid,
+.workflow-draft-risk-grid,
+.workflow-draft-blocked-grid,
 .run-history-metrics,
 .workflow-run-detail-summary-grid,
 .workflow-run-timeline,
@@ -384,6 +397,12 @@ h4 {
 .workflow-detail-node,
 .workflow-detail-edge,
 .workflow-detail-blocked-action,
+.workflow-draft-card,
+.workflow-draft-node,
+.workflow-draft-edge,
+.workflow-draft-readiness,
+.workflow-draft-risk,
+.workflow-draft-blocked-capability,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -411,6 +430,8 @@ h4 {
 .workflow-detail-summary-card span,
 .workflow-detail-schema-card span,
 .workflow-detail-edge span,
+.workflow-draft-card span,
+.workflow-draft-edge span,
 .run-history-metric span,
 .workflow-run-detail-card span,
 .workflow-blocked-action-card span,
@@ -446,6 +467,8 @@ h4 {
 .workflow-detail-summary-card strong,
 .workflow-detail-schema-card strong,
 .workflow-detail-edge strong,
+.workflow-draft-card strong,
+.workflow-draft-edge strong,
 .run-history-metric strong,
 .workflow-run-detail-card strong,
 .workflow-blocked-action-card strong,
@@ -471,6 +494,12 @@ h4 {
 .workflow-detail-schema-card p,
 .workflow-detail-edge p,
 .workflow-detail-blocked-action p,
+.workflow-draft-card p,
+.workflow-draft-node p,
+.workflow-draft-edge p,
+.workflow-draft-readiness p,
+.workflow-draft-risk p,
+.workflow-draft-blocked-capability p,
 .run-history-metric p,
 .workflow-run-detail-card p,
 .workflow-run-timeline-event p,
@@ -520,6 +549,12 @@ h4 {
   padding: 16px 0 4px;
 }
 
+.workflow-draft-designer {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+
 .workflow-run-detail {
   display: grid;
   gap: 12px;
@@ -546,7 +581,15 @@ h4 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.workflow-draft-template-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .workflow-application-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-draft-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -556,12 +599,23 @@ h4 {
 
 .workflow-application-risk-grid,
 .workflow-application-blocked-grid,
+.workflow-draft-readiness-grid,
+.workflow-draft-risk-grid,
+.workflow-draft-blocked-grid,
 .workflow-confirmation-field-grid,
 .workflow-confirmation-prerequisite-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .workflow-detail-edge-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workflow-draft-node-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-draft-edge-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -576,6 +630,13 @@ h4 {
 }
 
 .workflow-detail-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-draft-row-main {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -627,12 +688,57 @@ h4 {
 
 .workflow-application-row-main h5,
 .workflow-detail-row-main h5,
+.workflow-draft-row-main h5,
 .workflow-run-detail-row-main h5,
 .workflow-blocked-row-main h5,
 .workflow-confirmation-row-main h5 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
+}
+
+.workflow-draft-template-button {
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 14px;
+  color: inherit;
+  text-align: left;
+}
+
+.workflow-draft-template-button.selected {
+  border-color: #4f6f95;
+  background: #f5f8fb;
+  box-shadow: inset 0 0 0 1px #4f6f95;
+}
+
+.workflow-draft-template-button span,
+.workflow-draft-risk small {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-draft-template-button strong {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 6px;
+  color: #17202a;
+  font-size: 17px;
+}
+
+.workflow-draft-template-button p {
+  margin: 8px 0 0;
+  color: #4e5f73;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.workflow-draft-template-button small {
+  display: block;
+  margin-top: 10px;
+  color: #607086;
+  font-size: 12px;
 }
 
 .workflow-detail-node-meta,
@@ -944,6 +1050,13 @@ dd {
   .workflow-detail-schema-grid,
   .workflow-detail-node-list,
   .workflow-detail-edge-list,
+  .workflow-draft-template-grid,
+  .workflow-draft-summary-grid,
+  .workflow-draft-node-grid,
+  .workflow-draft-edge-grid,
+  .workflow-draft-readiness-grid,
+  .workflow-draft-risk-grid,
+  .workflow-draft-blocked-grid,
   .run-history-metrics,
   .workflow-run-detail-summary-grid,
   .workflow-run-timeline,
