@@ -56,6 +56,9 @@
 4. `workflow-blocked-action-preview-v1`
    - 已落地为 `workflow_blocked_action_preview_defined`，复用 tooling blocked action shell，展示 tool/action 为什么被阻止、需要什么 confirmation、当前缺哪些前置条件。
    - 不执行 tool、不写回、不创建 confirmation decision。
+5. `workflow-confirmation-placeholder-read-v1`
+   - 已落地为 `workflow_confirmation_placeholder_read_defined`，展示 required action ref、risk summary、required decision shape、human review requirement、disabled reason、route / request / audit metadata 和 missing prerequisites。
+   - 不提交 confirmation，不持久化 decision，不解锁执行，不写回。
 
 ## 验收口径
 

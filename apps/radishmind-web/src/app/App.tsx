@@ -81,6 +81,12 @@ import {
   type WorkflowBlockedActionRequirement,
   type WorkflowConfirmationPlaceholderPreview,
 } from "../features/control-plane-read/workflowBlockedActionPreview";
+import {
+  buildWorkflowConfirmationPlaceholderViewModel,
+  type WorkflowConfirmationDecisionField,
+  type WorkflowConfirmationPlaceholderPrerequisite,
+  type WorkflowConfirmationPlaceholderViewModel,
+} from "../features/control-plane-read/workflowConfirmationPlaceholder";
 import type {
   ControlPlaneReadCollectionViewModel,
   ControlPlaneReadRouteId,
@@ -187,6 +193,10 @@ export function App() {
       ),
     [workflowDefinitionDetail, workflowRunDetail],
   );
+  const workflowConfirmationPlaceholder = useMemo(
+    () => buildWorkflowConfirmationPlaceholderViewModel(workflowBlockedActionPreview),
+    [workflowBlockedActionPreview],
+  );
 
   return (
     <main className="product-shell">
@@ -206,6 +216,7 @@ export function App() {
           <a href="#workspace-workflow-definitions">Workflows</a>
           <a href="#workspace-run-history">Run History</a>
           <a href="#workflow-blocked-action-preview">Blocked Action</a>
+          <a href="#workflow-confirmation-placeholder">Confirmation</a>
           <a href="#routes">Route Catalog</a>
           <a href="#states">Shared States</a>
           <a href="#guard">Output Guard</a>
@@ -245,6 +256,10 @@ export function App() {
             <Fact
               label="Action guard"
               value={workflowBlockedActionPreview.canRenderBlockedActionPreview ? "ready" : "blocked"}
+            />
+            <Fact
+              label="Confirm"
+              value={workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder ? "ready" : "blocked"}
             />
           </div>
         </header>
@@ -700,6 +715,7 @@ export function App() {
 
           <WorkflowRunDetailPanel detail={workflowRunDetail} />
           <WorkflowBlockedActionPreviewPanel preview={workflowBlockedActionPreview} />
+          <WorkflowConfirmationPlaceholderPanel placeholder={workflowConfirmationPlaceholder} />
 
           <div className="run-history-states" aria-label="Workspace run history states">
             {workspaceRunHistory.statePreviews.map((state) => (
@@ -1115,6 +1131,157 @@ function WorkflowConfirmationPlaceholderCard({
           <dd>{placeholder.auditRef}</dd>
         </div>
       </dl>
+    </article>
+  );
+}
+
+function WorkflowConfirmationPlaceholderPanel({
+  placeholder,
+}: {
+  placeholder: WorkflowConfirmationPlaceholderViewModel;
+}) {
+  return (
+    <div
+      className="workflow-confirmation-placeholder-read"
+      id="workflow-confirmation-placeholder"
+      aria-label="Workflow confirmation placeholder read surface"
+    >
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Confirmation Placeholder</p>
+          <h4>{placeholder.confirmationPlaceholderId}</h4>
+        </div>
+        <StatusBadge tone={placeholder.canRenderConfirmationPlaceholder ? "bad" : "neutral"}>
+          {placeholder.humanReviewRequired ? "human review required later" : "read-only"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-confirmation-summary-grid" aria-label="Workflow confirmation placeholder summary">
+        <article className="workflow-confirmation-card">
+          <span>Action</span>
+          <strong>{placeholder.requiredActionRef}</strong>
+          <p>{placeholder.actionKind}</p>
+        </article>
+        <article className="workflow-confirmation-card">
+          <span>Run</span>
+          <strong>{placeholder.requiredRunRef}</strong>
+          <p>{placeholder.workflowDefinitionId}</p>
+        </article>
+        <article className="workflow-confirmation-card">
+          <span>Route</span>
+          <strong>{placeholder.draftRouteId}</strong>
+          <p>{placeholder.routePath}</p>
+        </article>
+        <article className="workflow-confirmation-card">
+          <span>Risk</span>
+          <strong>{placeholder.riskLevel}</strong>
+          <p>{placeholder.toolRef}</p>
+        </article>
+      </div>
+
+      <article className="workflow-confirmation-card">
+        <div className="workflow-confirmation-row-main">
+          <div>
+            <p className="eyebrow">{placeholder.nodeExecutionRef}</p>
+            <h5>{placeholder.requiredActionRef}</h5>
+          </div>
+          <StatusBadge tone="bad">submission disabled</StatusBadge>
+        </div>
+        <p>{placeholder.riskSummary}</p>
+        <p>{placeholder.policyReason}</p>
+        <dl className="workflow-run-guard-meta">
+          <div>
+            <dt>Disabled reason</dt>
+            <dd>{placeholder.disabledReason}</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>{placeholder.auditRef}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <div className="workflow-confirmation-shape" aria-label="Workflow confirmation placeholder decision shape">
+        {placeholder.requiredDecisionShape.map((field) => (
+          <code key={field}>{field}</code>
+        ))}
+      </div>
+
+      <div className="workflow-confirmation-field-grid" aria-label="Workflow confirmation placeholder decision fields">
+        {placeholder.decisionFields.map((field) => (
+          <WorkflowConfirmationDecisionFieldCard key={field.fieldId} field={field} />
+        ))}
+      </div>
+
+      <div
+        className="workflow-confirmation-prerequisite-grid"
+        aria-label="Workflow confirmation placeholder prerequisites"
+      >
+        {placeholder.prerequisites.map((prerequisite) => (
+          <WorkflowConfirmationPrerequisiteCard key={prerequisite.prerequisiteId} prerequisite={prerequisite} />
+        ))}
+      </div>
+
+      <article className="workflow-confirmation-card">
+        <div className="workflow-confirmation-row-main">
+          <div>
+            <p className="eyebrow">{placeholder.auditMetadata.policyRef}</p>
+            <h5>{placeholder.auditMetadata.traceRef}</h5>
+          </div>
+          <StatusBadge tone="neutral">{placeholder.auditMetadata.sourceRouteId}</StatusBadge>
+        </div>
+        <dl className="workflow-run-guard-meta">
+          <div>
+            <dt>Request</dt>
+            <dd>{placeholder.auditMetadata.requestId}</dd>
+          </div>
+          <div>
+            <dt>Draft route</dt>
+            <dd>{placeholder.auditMetadata.draftRouteId}</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>{placeholder.auditMetadata.auditRef}</dd>
+          </div>
+        </dl>
+      </article>
+    </div>
+  );
+}
+
+function WorkflowConfirmationDecisionFieldCard({ field }: { field: WorkflowConfirmationDecisionField }) {
+  return (
+    <article className="workflow-confirmation-field">
+      <div className="workflow-confirmation-row-main">
+        <div>
+          <p className="eyebrow">{field.fieldId}</p>
+          <h5>{field.label}</h5>
+        </div>
+        <StatusBadge tone={field.required ? "bad" : "neutral"}>{field.required ? "required later" : "optional"}</StatusBadge>
+      </div>
+      <p>{field.source}</p>
+    </article>
+  );
+}
+
+function WorkflowConfirmationPrerequisiteCard({
+  prerequisite,
+}: {
+  prerequisite: WorkflowConfirmationPlaceholderPrerequisite;
+}) {
+  return (
+    <article className="workflow-confirmation-prerequisite">
+      <div className="workflow-confirmation-row-main">
+        <div>
+          <p className="eyebrow">{prerequisite.prerequisiteId}</p>
+          <h5>{prerequisite.label}</h5>
+        </div>
+        <StatusBadge tone={prerequisite.status === "defined_not_connected" ? "neutral" : "bad"}>
+          {prerequisite.status}
+        </StatusBadge>
+      </div>
+      <p>{prerequisite.summary}</p>
+      <small>{prerequisite.auditRef}</small>
     </article>
   );
 }

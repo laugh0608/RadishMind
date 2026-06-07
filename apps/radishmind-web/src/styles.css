@@ -275,6 +275,9 @@ h4 {
 .workflow-blocked-action-card,
 .workflow-blocked-requirement,
 .workflow-confirmation-placeholder,
+.workflow-confirmation-card,
+.workflow-confirmation-field,
+.workflow-confirmation-prerequisite,
 .workflow-blocked-audit-step,
 .audit-log-metric,
 .application-row,
@@ -333,6 +336,9 @@ h4 {
 .workflow-run-guard-grid,
 .workflow-blocked-action-summary-grid,
 .workflow-blocked-requirement-grid,
+.workflow-confirmation-summary-grid,
+.workflow-confirmation-field-grid,
+.workflow-confirmation-prerequisite-grid,
 .workflow-blocked-audit-grid,
 .audit-log-metrics,
 .application-list,
@@ -385,6 +391,9 @@ h4 {
 .workflow-blocked-action-card,
 .workflow-blocked-requirement,
 .workflow-confirmation-placeholder,
+.workflow-confirmation-card,
+.workflow-confirmation-field,
+.workflow-confirmation-prerequisite,
 .workflow-blocked-audit-step,
 .audit-log-metric {
   min-width: 0;
@@ -405,6 +414,7 @@ h4 {
 .run-history-metric span,
 .workflow-run-detail-card span,
 .workflow-blocked-action-card span,
+.workflow-confirmation-card span,
 .audit-log-metric span,
 .application-state span,
 .application-state small,
@@ -439,6 +449,7 @@ h4 {
 .run-history-metric strong,
 .workflow-run-detail-card strong,
 .workflow-blocked-action-card strong,
+.workflow-confirmation-card strong,
 .audit-log-metric strong {
   display: block;
   overflow-wrap: anywhere;
@@ -467,6 +478,9 @@ h4 {
 .workflow-blocked-action-card p,
 .workflow-blocked-requirement p,
 .workflow-confirmation-placeholder p,
+.workflow-confirmation-card p,
+.workflow-confirmation-field p,
+.workflow-confirmation-prerequisite p,
 .workflow-blocked-audit-step p,
 .audit-log-metric p,
 .application-state p,
@@ -518,6 +532,12 @@ h4 {
   padding: 16px 0 4px;
 }
 
+.workflow-confirmation-placeholder-read {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+
 .compact-heading {
   margin-top: 4px;
 }
@@ -530,8 +550,14 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.workflow-confirmation-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .workflow-application-risk-grid,
-.workflow-application-blocked-grid {
+.workflow-application-blocked-grid,
+.workflow-confirmation-field-grid,
+.workflow-confirmation-prerequisite-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -585,6 +611,13 @@ h4 {
   align-items: flex-start;
 }
 
+.workflow-confirmation-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
 .workflow-application-row-main {
   display: flex;
   justify-content: space-between;
@@ -595,7 +628,8 @@ h4 {
 .workflow-application-row-main h5,
 .workflow-detail-row-main h5,
 .workflow-run-detail-row-main h5,
-.workflow-blocked-row-main h5 {
+.workflow-blocked-row-main h5,
+.workflow-confirmation-row-main h5 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
@@ -916,6 +950,9 @@ dd {
   .workflow-run-guard-grid,
   .workflow-blocked-action-summary-grid,
   .workflow-blocked-requirement-grid,
+  .workflow-confirmation-summary-grid,
+  .workflow-confirmation-field-grid,
+  .workflow-confirmation-prerequisite-grid,
   .workflow-blocked-audit-grid,
   .audit-log-metrics,
   .application-row-meta,
