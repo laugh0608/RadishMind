@@ -73,6 +73,14 @@ import {
   type WorkflowDraftDesignerViewModel,
 } from "../features/control-plane-read/workflowDraftDesigner";
 import {
+  buildWorkflowDraftValidationInspectorViewModel,
+  type WorkflowDraftBlockedCapabilityCheck,
+  type WorkflowDraftContractCheck,
+  type WorkflowDraftStructuralCheck,
+  type WorkflowDraftValidationInspectorViewModel,
+  type WorkflowDraftValidationSummary,
+} from "../features/control-plane-read/workflowDraftValidationInspector";
+import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
   type WorkspaceRunHistoryStatePreview,
@@ -229,6 +237,10 @@ export function App() {
       workflowDraftDesigner.drafts[0]!
     );
   }, [selectedWorkflowDraftId, workflowDraftDesigner]);
+  const workflowDraftValidationInspector = useMemo(
+    () => buildWorkflowDraftValidationInspectorViewModel(selectedWorkflowDraft),
+    [selectedWorkflowDraft],
+  );
 
   return (
     <main className="product-shell">
@@ -247,6 +259,7 @@ export function App() {
           <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#workspace-workflow-definitions">Workflows</a>
           <a href="#workflow-draft-designer">Draft Designer</a>
+          <a href="#workflow-draft-validation-inspector">Draft Validation</a>
           <a href="#workspace-run-history">Run History</a>
           <a href="#workflow-blocked-action-preview">Blocked Action</a>
           <a href="#workflow-confirmation-placeholder">Confirmation</a>
@@ -297,6 +310,10 @@ export function App() {
             <Fact
               label="Draft"
               value={workflowDraftDesigner.canRenderDraftDesigner ? "ready" : "blocked"}
+            />
+            <Fact
+              label="Validate"
+              value={workflowDraftValidationInspector.validationStatus}
             />
           </div>
         </header>
@@ -690,6 +707,7 @@ export function App() {
             selectedDraftId={selectedWorkflowDraft.draftId}
             onSelectDraft={setSelectedWorkflowDraftId}
           />
+          <WorkflowDraftValidationInspectorPanel inspector={workflowDraftValidationInspector} />
 
           <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
@@ -1783,6 +1801,171 @@ function WorkflowDraftBlockedCapabilityCard({
         </div>
       </dl>
       <p>{capability.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowDraftValidationInspectorPanel({
+  inspector,
+}: {
+  inspector: WorkflowDraftValidationInspectorViewModel;
+}) {
+  return (
+    <div
+      className="workflow-draft-validation-inspector"
+      id="workflow-draft-validation-inspector"
+      aria-label="Workflow draft validation inspector offline surface"
+    >
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Draft Validation Inspector</p>
+          <h4>{inspector.inspectedDraftId}</h4>
+        </div>
+        <StatusBadge tone={inspector.validationStatus === "blocked" ? "bad" : "neutral"}>
+          {inspector.validationStatus}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-draft-validation-summary-grid" aria-label="Workflow draft validation summary">
+        {inspector.summary.map((summary) => (
+          <WorkflowDraftValidationSummaryCard key={summary.label} summary={summary} />
+        ))}
+      </div>
+
+      <div className="workflow-draft-structural-check-grid" aria-label="Workflow draft structural checks">
+        {inspector.structuralChecks.map((check) => (
+          <WorkflowDraftStructuralCheckCard key={check.checkId} check={check} />
+        ))}
+      </div>
+
+      <div className="workflow-draft-contract-check-grid" aria-label="Workflow draft contract checks">
+        {inspector.contractChecks.map((check) => (
+          <WorkflowDraftContractCheckCard key={check.checkId} check={check} />
+        ))}
+      </div>
+
+      <div
+        className="workflow-draft-validation-blocked-grid"
+        aria-label="Workflow draft validation blocked capability checks"
+      >
+        {inspector.blockedCapabilityChecks.map((check) => (
+          <WorkflowDraftBlockedCapabilityCheckCard key={check.checkId} check={check} />
+        ))}
+      </div>
+
+      <article className="workflow-draft-validation-card">
+        <div className="workflow-draft-validation-row-main">
+          <div>
+            <p className="eyebrow">{inspector.auditMetadata.sourceRouteId}</p>
+            <h5>{inspector.auditMetadata.draftRouteId}</h5>
+          </div>
+          <StatusBadge tone="neutral">offline</StatusBadge>
+        </div>
+        <dl className="workflow-run-guard-meta">
+          <div>
+            <dt>Request</dt>
+            <dd>{inspector.auditMetadata.requestId}</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>{inspector.auditMetadata.auditRef}</dd>
+          </div>
+          <div>
+            <dt>Draft</dt>
+            <dd>{inspector.auditMetadata.inspectedDraftId}</dd>
+          </div>
+        </dl>
+      </article>
+    </div>
+  );
+}
+
+function WorkflowDraftValidationSummaryCard({ summary }: { summary: WorkflowDraftValidationSummary }) {
+  return (
+    <article className="workflow-draft-validation-card">
+      <span>{summary.label}</span>
+      <strong>{summary.value}</strong>
+      <p>{summary.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowDraftStructuralCheckCard({ check }: { check: WorkflowDraftStructuralCheck }) {
+  return (
+    <article className="workflow-draft-structural-check">
+      <div className="workflow-draft-validation-row-main">
+        <div>
+          <p className="eyebrow">{check.checkId}</p>
+          <h5>{check.label}</h5>
+        </div>
+        <StatusBadge tone={check.status === "blocked" ? "bad" : check.status === "passed" ? "good" : "neutral"}>
+          {check.status}
+        </StatusBadge>
+      </div>
+      <p>{check.summary}</p>
+      <div className="workflow-draft-validation-evidence" aria-label="Workflow draft structural check evidence">
+        {check.evidenceRefs.map((evidenceRef) => (
+          <code key={evidenceRef}>{evidenceRef}</code>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function WorkflowDraftContractCheckCard({ check }: { check: WorkflowDraftContractCheck }) {
+  return (
+    <article className="workflow-draft-contract-check">
+      <div className="workflow-draft-validation-row-main">
+        <div>
+          <p className="eyebrow">{check.checkId}</p>
+          <h5>{check.label}</h5>
+        </div>
+        <StatusBadge tone={check.status === "passed" ? "good" : "neutral"}>{check.status}</StatusBadge>
+      </div>
+      <p>{check.summary}</p>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Required</dt>
+          <dd>{check.requiredFields.join(", ")}</dd>
+        </div>
+        <div>
+          <dt>Present</dt>
+          <dd>{check.presentFields.join(", ") || "none"}</dd>
+        </div>
+        <div>
+          <dt>Missing</dt>
+          <dd>{check.missingFields.join(", ") || "none"}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowDraftBlockedCapabilityCheckCard({
+  check,
+}: {
+  check: WorkflowDraftBlockedCapabilityCheck;
+}) {
+  return (
+    <article className="workflow-draft-validation-blocked-check">
+      <div className="workflow-draft-validation-row-main">
+        <div>
+          <p className="eyebrow">{check.capabilityId}</p>
+          <h5>{check.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{check.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{check.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{check.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{check.summary}</p>
     </article>
   );
 }

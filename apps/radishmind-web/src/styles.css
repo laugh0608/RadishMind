@@ -274,6 +274,10 @@ h4 {
 .workflow-draft-readiness,
 .workflow-draft-risk,
 .workflow-draft-blocked-capability,
+.workflow-draft-validation-card,
+.workflow-draft-structural-check,
+.workflow-draft-contract-check,
+.workflow-draft-validation-blocked-check,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -343,6 +347,10 @@ h4 {
 .workflow-draft-readiness-grid,
 .workflow-draft-risk-grid,
 .workflow-draft-blocked-grid,
+.workflow-draft-validation-summary-grid,
+.workflow-draft-structural-check-grid,
+.workflow-draft-contract-check-grid,
+.workflow-draft-validation-blocked-grid,
 .run-history-metrics,
 .workflow-run-detail-summary-grid,
 .workflow-run-timeline,
@@ -403,6 +411,10 @@ h4 {
 .workflow-draft-readiness,
 .workflow-draft-risk,
 .workflow-draft-blocked-capability,
+.workflow-draft-validation-card,
+.workflow-draft-structural-check,
+.workflow-draft-contract-check,
+.workflow-draft-validation-blocked-check,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -432,6 +444,7 @@ h4 {
 .workflow-detail-edge span,
 .workflow-draft-card span,
 .workflow-draft-edge span,
+.workflow-draft-validation-card span,
 .run-history-metric span,
 .workflow-run-detail-card span,
 .workflow-blocked-action-card span,
@@ -469,6 +482,7 @@ h4 {
 .workflow-detail-edge strong,
 .workflow-draft-card strong,
 .workflow-draft-edge strong,
+.workflow-draft-validation-card strong,
 .run-history-metric strong,
 .workflow-run-detail-card strong,
 .workflow-blocked-action-card strong,
@@ -500,6 +514,10 @@ h4 {
 .workflow-draft-readiness p,
 .workflow-draft-risk p,
 .workflow-draft-blocked-capability p,
+.workflow-draft-validation-card p,
+.workflow-draft-structural-check p,
+.workflow-draft-contract-check p,
+.workflow-draft-validation-blocked-check p,
 .run-history-metric p,
 .workflow-run-detail-card p,
 .workflow-run-timeline-event p,
@@ -555,6 +573,12 @@ h4 {
   padding: 16px 0 4px;
 }
 
+.workflow-draft-validation-inspector {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+
 .workflow-run-detail {
   display: grid;
   gap: 12px;
@@ -593,6 +617,10 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.workflow-draft-validation-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .workflow-confirmation-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -602,9 +630,15 @@ h4 {
 .workflow-draft-readiness-grid,
 .workflow-draft-risk-grid,
 .workflow-draft-blocked-grid,
+.workflow-draft-contract-check-grid,
+.workflow-draft-validation-blocked-grid,
 .workflow-confirmation-field-grid,
 .workflow-confirmation-prerequisite-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-draft-structural-check-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .workflow-detail-edge-list {
@@ -637,6 +671,13 @@ h4 {
 }
 
 .workflow-draft-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-draft-validation-row-main {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -689,6 +730,7 @@ h4 {
 .workflow-application-row-main h5,
 .workflow-detail-row-main h5,
 .workflow-draft-row-main h5,
+.workflow-draft-validation-row-main h5,
 .workflow-run-detail-row-main h5,
 .workflow-blocked-row-main h5,
 .workflow-confirmation-row-main h5 {
@@ -738,6 +780,22 @@ h4 {
   display: block;
   margin-top: 10px;
   color: #607086;
+  font-size: 12px;
+}
+
+.workflow-draft-validation-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.workflow-draft-validation-evidence code {
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 6px 8px;
+  color: #33445c;
   font-size: 12px;
 }
 
@@ -1057,6 +1115,10 @@ dd {
   .workflow-draft-readiness-grid,
   .workflow-draft-risk-grid,
   .workflow-draft-blocked-grid,
+  .workflow-draft-validation-summary-grid,
+  .workflow-draft-structural-check-grid,
+  .workflow-draft-contract-check-grid,
+  .workflow-draft-validation-blocked-grid,
   .run-history-metrics,
   .workflow-run-detail-summary-grid,
   .workflow-run-timeline,

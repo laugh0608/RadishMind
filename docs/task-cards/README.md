@@ -99,6 +99,7 @@
 49. [`Workflow Application Detail Read` v1 计划](workflow-application-detail-read-v1-plan.md)（`workflow-application-detail-read-v1`）
 50. [`Workflow Confirmation Placeholder Read` v1 计划](workflow-confirmation-placeholder-read-v1-plan.md)（`workflow-confirmation-placeholder-read-v1`）
 51. [`Workflow Draft Designer Offline` v1 计划](workflow-draft-designer-offline-v1-plan.md)（`workflow-draft-designer-offline-v1`）
+52. [`Workflow Draft Validation Inspector Offline` v1 计划](workflow-draft-validation-inspector-offline-v1-plan.md)（`workflow-draft-validation-inspector-offline-v1`）
 
 ## UI 设计专题
 
@@ -119,7 +120,7 @@
 
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；没有 Docker 运行窗口时，下一步默认回到 `Workflow / Agent Runtime Function Surface v1` 和离线 workflow 产品功能，且 `workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1` 与 `workflow-draft-designer-offline-v1` 已固定 definition / run / blocked action / application detail / confirmation placeholder / offline draft designer surface；任务卡不替代当前焦点、路线图和能力矩阵
+- 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；没有 Docker 运行窗口时，下一步默认回到 `Workflow / Agent Runtime Function Surface v1` 和离线 workflow 产品功能，且 `workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1` 与 `workflow-draft-validation-inspector-offline-v1` 已固定 definition / run / blocked action / application detail / confirmation placeholder / offline draft designer / offline validation inspector surface；任务卡不替代当前焦点、路线图和能力矩阵
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”
