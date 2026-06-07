@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-06-06
+更新时间：2026-06-07
 
 ## 这份文档讲什么
 
@@ -57,7 +57,7 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-如果你今天想推进开发，当前主线已经切到 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture、negative contract、implementation preconditions、fake-store-backed handler plan、七条 fake-store-backed handler implementation、auth/db preconditions、TypeScript consumer contract、formal UI boundary、formal UI implementation readiness、`apps/radishmind-web/` read-only shared shell、七个只读页面切片、formal UI readiness close、dev-only live read consumer、auth/store transition preconditions、repository contract/read store readiness、Go contract type、静态 contract smoke runner、repository interface readiness、adapter implementation readiness refresh、selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、store selector smoke readiness、production auth readiness、adapter smoke readiness 和 implementation trigger review；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。普通只读展示页不再默认逐页新增专项门禁；dev-only live read path 只验证 fake-store-backed handler 的 HTTP consumer shape；repository/read store 当前只把迁移前的 type matrix、runner matrix、adapter matrix、selector gate、schema artifact manifest gate、production auth gate、adapter smoke gate、failure mapping 和停止线写成可检查证据，当前没有 implementation trigger satisfied。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，没有明确运行窗口时降为等待项。下一步默认转向 `Workflow / Agent Runtime Function Surface v1`：先做只读 detail、blocked action preview、confirmation placeholder 和 fake-store dev path 的功能骨架。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+如果你要继续推进开发，当前主线在 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture、negative contract、implementation preconditions、fake-store-backed handler plan、七条 fake-store-backed handler implementation、auth/db preconditions、TypeScript consumer contract、formal UI boundary、formal UI implementation readiness、`apps/radishmind-web/` read-only shared shell、七个只读页面切片、formal UI readiness close、dev-only live read consumer、auth/store transition preconditions、repository contract/read store readiness、Go contract type、静态 contract smoke runner、repository interface readiness、adapter implementation readiness refresh、selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、store selector smoke readiness、production auth readiness、adapter smoke readiness 和 implementation trigger review；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。普通只读展示页不再默认逐页新增专项门禁；dev-only live read path 只验证 fake-store-backed handler 的 HTTP consumer shape；repository/read store 当前只把迁移前的 type matrix、runner matrix、adapter matrix、selector gate、schema artifact manifest gate、production auth gate、adapter smoke gate、failure mapping 和停止线写成可检查证据，当前没有 implementation trigger satisfied。`Workflow / Agent Runtime Function Surface v1` 已在 `apps/radishmind-web/` 增加 application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer 和 offline validation inspector；这些都是 fixture-derived、read-only、blocked-capability-first 的产品面，不新增 runtime API、builder mutation、draft / validation persistence、executor、confirmation decision、writeback 或 replay。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，没有明确运行窗口时降为等待项。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
 
 完整正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client、repository interface / adapter、read store repository implementation 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳，`apps/radishmind-web/` 默认是离线 read-side product UI shell，显式 dev-only live path 也不是 production API consumer。
 
@@ -194,8 +194,15 @@ npm run dev
 - `workspace-usage-quota`
 - `workspace-workflow-definitions`
 - `workspace-run-history`
+- workflow application detail
+- workflow definition detail
+- workflow run detail
+- workflow blocked action preview
+- workflow confirmation placeholder
+- workflow offline draft designer
+- workflow offline draft validation inspector
 
-这些页面展示 route metadata、request / audit ref、状态预览和脱敏 summary；默认使用离线 view model，dev-only live mode 也只能读取 fake-store-backed handler。它们不接数据库、OIDC、repository implementation、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+七个 read-side summary 页面展示 route metadata、request / audit ref、状态预览和脱敏 summary；默认使用离线 view model，dev-only live mode 也只能读取 fake-store-backed handler。workflow function surface 面板继续复用这些 summary 和离线 fixture，展示 application / definition / run / draft / validation 的只读详情、风险、审计引用和 blocked capability。它们不接数据库、OIDC、repository implementation、API key lifecycle、quota enforcement、workflow executor、confirmation decision、draft persistence、validation result persistence、writeback、run replay 或 run resume。
 
 ### 3.7 使用 Docker 部署资产
 
@@ -248,7 +255,7 @@ docker compose -f deploy/docker-compose.local.yaml down
 - `P1 Runtime Foundation` 已达到 short close，当前不应继续把 provider/config/diagnostics/observability 同层细节当作主线
 - 当前仍是窄切片：已经具备 Docker local/test/prod 的静态部署边界、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook、运行记录模板、一次 `docker_local` container smoke 运行记录、provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 `provider-runtime-docs-refresh` 文档收口，但还缺真实镜像发布 workflow、production secret backend、部署隔离、外部 provider live health check、retry/fallback execution、console runtime config、测试环境 smoke、生产前复核记录，以及 session/tooling 的真实确认流接线、存储、执行和完整负向回归；P3 checklist 已把本地只读产品壳标为可用，并把这些生产前置条件继续保持为 `not_satisfied`，P2 现有 route / gate / negative regression 资产仍是 governance-only。没有测试或生产前复核窗口时，不把 Docker / deployment 当作默认开发主线
 
-## 今天还不能算完成的能力
+## 当前还不能算完成的能力
 
 当前仓库还没有这些正式能力：
 
@@ -260,6 +267,7 @@ docker compose -f deploy/docker-compose.local.yaml down
 - 完整 user workspace / production admin control plane React UI
 - `apps/radishmind-web/` 的生产 API consumer、Radish OIDC / auth middleware、read store repository、数据库 query 和用户端 / 管理端写入能力
 - Control Plane Read-Side 的真实 Radish OIDC / auth middleware、repository interface / adapter、read store repository、数据库 query 和 migration
+- Workflow / Agent Runtime 的 builder mutation、draft persistence、validation result persistence、publish、executor、confirmation decision、execution unlock、business writeback、run replay 和 run resume
 - 测试环境 smoke 和生产前复核记录
 - 更完整的 route-level smoke、stream 组合和兼容性矩阵
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
