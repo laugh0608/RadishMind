@@ -45,7 +45,7 @@
 ## 建议切片
 
 1. `workflow-function-surface-boundary-v1`
-   - 固定 application detail、workflow definition detail、run detail、tool action preview 和 confirmation placeholder 的字段边界。
+   - 已落地为 `function_surface_boundary_defined`，固定 application detail、workflow definition detail、run detail、tool action preview 和 confirmation placeholder 的字段边界。
    - 不新增真实 API、不实现 executor、不创建数据库 schema。
 2. `workflow-definition-detail-read-v1`
    - 在现有 read-side shell 上增加 workflow definition detail 的只读视图或 route 草案，优先消费 fixture / fake-store-backed dev path。
@@ -60,6 +60,7 @@
 ## 验收口径
 
 - 当前焦点、路线图、能力矩阵和周志都明确：无 Docker 运行窗口时，Production Ops 降为等待项，功能骨架成为默认下一步。
+- `workflow-function-surface-boundary-v1` 已用 fixture / checker 固定 `function_surface_boundary_defined`，后续 detail read 切片不得越过该边界。
 - 任务卡明确下一批功能切片优先从只读 detail、blocked action preview 和 fake-store dev path 开始。
 - 文档继续保留 read-side implementation trigger 未满足的结论。
 - 文档继续明确不实现 repository interface / adapter、SQL、migration、store selector、OIDC token validation、auth middleware、真实数据库、production API consumer、workflow executor、confirmation、writeback 或 replay。
