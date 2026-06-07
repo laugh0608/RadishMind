@@ -256,6 +256,8 @@ h4 {
 .run-history-route,
 .audit-log-route,
 .application-metric,
+.workflow-application-detail-card,
+.workflow-application-blocked-capability,
 .api-key-metric,
 .usage-quota-limit,
 .usage-quota-snapshot-card,
@@ -318,6 +320,9 @@ h4 {
 .usage-quota-snapshot,
 .usage-quota-limits,
 .workflow-definitions-metrics,
+.workflow-application-summary-grid,
+.workflow-application-risk-grid,
+.workflow-application-blocked-grid,
 .workflow-detail-summary-grid,
 .workflow-detail-schema-grid,
 .workflow-detail-node-list,
@@ -361,6 +366,8 @@ h4 {
 
 .tenant-fact,
 .application-metric,
+.workflow-application-detail-card,
+.workflow-application-blocked-capability,
 .api-key-metric,
 .usage-quota-limit,
 .usage-quota-snapshot-card,
@@ -386,6 +393,7 @@ h4 {
 
 .tenant-fact span,
 .application-metric span,
+.workflow-application-detail-card span,
 .api-key-metric span,
 .usage-quota-limit span,
 .usage-quota-snapshot-card span,
@@ -419,6 +427,7 @@ h4 {
 
 .tenant-fact strong,
 .application-metric strong,
+.workflow-application-detail-card strong,
 .api-key-metric strong,
 .usage-quota-limit strong,
 .usage-quota-snapshot-card strong,
@@ -440,6 +449,8 @@ h4 {
 
 .tenant-fact p,
 .application-metric p,
+.workflow-application-detail-card p,
+.workflow-application-blocked-capability p,
 .api-key-metric p,
 .usage-quota-limit p,
 .usage-quota-snapshot-card p,
@@ -483,6 +494,12 @@ h4 {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
+.workflow-application-detail {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+
 .workflow-definition-detail {
   display: grid;
   gap: 12px;
@@ -506,6 +523,15 @@ h4 {
 }
 
 .workflow-detail-node-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-application-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-application-risk-grid,
+.workflow-application-blocked-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -559,6 +585,14 @@ h4 {
   align-items: flex-start;
 }
 
+.workflow-application-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-application-row-main h5,
 .workflow-detail-row-main h5,
 .workflow-run-detail-row-main h5,
 .workflow-blocked-row-main h5 {
@@ -869,6 +903,9 @@ dd {
   .usage-quota-snapshot,
   .usage-quota-limits,
   .workflow-definitions-metrics,
+  .workflow-application-summary-grid,
+  .workflow-application-risk-grid,
+  .workflow-application-blocked-grid,
   .workflow-detail-summary-grid,
   .workflow-detail-schema-grid,
   .workflow-detail-node-list,

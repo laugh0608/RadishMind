@@ -29,6 +29,13 @@ import {
   type WorkspaceApplicationsStatePreview,
 } from "../features/control-plane-read/workspaceApplications";
 import {
+  buildWorkflowApplicationDetailViewModel,
+  type WorkflowApplicationBlockedCapabilityPreview,
+  type WorkflowApplicationDetailViewModel,
+  type WorkflowApplicationRiskSummary,
+  type WorkflowApplicationRouteMetadata,
+} from "../features/control-plane-read/workflowApplicationDetail";
+import {
   buildWorkspaceApiKeysViewModel,
   type WorkspaceApiKeyRow,
   type WorkspaceApiKeysMetric,
@@ -142,6 +149,15 @@ export function App() {
     () => buildWorkspaceApplicationsViewModel(liveCollections["application-summary-list-route"]),
     [liveCollections],
   );
+  const workflowApplicationDetail = useMemo(
+    () =>
+      buildWorkflowApplicationDetailViewModel(workspaceApplications.applications[0], {
+        tenantRef: workspaceApplications.collection.tenantRef,
+        requestId: workspaceApplications.requestId,
+        auditRef: workspaceApplications.auditRef,
+      }),
+    [workspaceApplications],
+  );
   const workspaceApiKeys = useMemo(
     () => buildWorkspaceApiKeysViewModel(liveCollections["api-key-summary-list-route"]),
     [liveCollections],
@@ -184,6 +200,7 @@ export function App() {
           <a href="#admin-tenant-overview">Tenant Overview</a>
           <a href="#admin-audit-log">Audit Log</a>
           <a href="#workspace-applications">Applications</a>
+          <a href="#workflow-application-detail">Application Detail</a>
           <a href="#workspace-api-keys">API Keys</a>
           <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#workspace-workflow-definitions">Workflows</a>
@@ -214,6 +231,10 @@ export function App() {
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
             <Fact label="Audit page" value={adminAuditLog.canRenderAuditLog ? "ready" : "blocked"} />
             <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
+            <Fact
+              label="App detail"
+              value={workflowApplicationDetail.canRenderApplicationDetail ? "ready" : "blocked"}
+            />
             <Fact label="Key page" value={workspaceApiKeys.canRenderApiKeys ? "ready" : "blocked"} />
             <Fact label="Quota page" value={workspaceUsageQuota.canRenderQuota ? "ready" : "blocked"} />
             <Fact
@@ -407,6 +428,8 @@ export function App() {
               <ApplicationRow key={application.applicationRef} application={application} />
             ))}
           </div>
+
+          <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
 
           <div className="application-states" aria-label="Workspace application states">
             {workspaceApplications.statePreviews.map((state) => (
@@ -1428,6 +1451,147 @@ function ApiKeyStatePreview({ state }: { state: WorkspaceApiKeysStatePreview }) 
       <small>
         items {state.itemCount} / failure {state.failureCode}
       </small>
+    </article>
+  );
+}
+
+function WorkflowApplicationDetailPanel({ detail }: { detail: WorkflowApplicationDetailViewModel }) {
+  return (
+    <div
+      className="workflow-application-detail"
+      id="workflow-application-detail"
+      aria-label="Workflow application detail read surface"
+    >
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Application Detail</p>
+          <h4>{detail.displayName}</h4>
+        </div>
+        <StatusBadge tone={detail.canRenderApplicationDetail ? "good" : "bad"}>
+          {detail.canRenderApplicationDetail ? "detail ready" : "blocked"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-application-summary-grid" aria-label="Workflow application identity">
+        <article className="workflow-application-detail-card">
+          <span>Application</span>
+          <strong>{detail.applicationId}</strong>
+          <p>{detail.displayName}</p>
+        </article>
+        <article className="workflow-application-detail-card">
+          <span>Tenant and owner</span>
+          <strong>{detail.tenantRef}</strong>
+          <p>{detail.ownerSubjectRef}</p>
+        </article>
+        <article className="workflow-application-detail-card">
+          <span>Application type</span>
+          <strong>{detail.applicationType}</strong>
+          <p>{detail.lifecycleStatus}</p>
+        </article>
+        <article className="workflow-application-detail-card">
+          <span>Provider profile</span>
+          <strong>{detail.providerProfileRef}</strong>
+          <p>{detail.lastRunStatus}</p>
+        </article>
+      </div>
+
+      <div className="workflow-application-risk-grid" aria-label="Workflow application route and risk metadata">
+        <WorkflowApplicationRiskCard riskSummary={detail.riskSummary} />
+        <WorkflowApplicationRouteMetadataCard routeMetadata={detail.routeMetadata} />
+        <article className="workflow-application-detail-card">
+          <span>Latest workflow</span>
+          <strong>{detail.latestWorkflowDefinitionRef}</strong>
+          <p>updated {detail.updatedAt}</p>
+        </article>
+        <article className="workflow-application-detail-card">
+          <span>Latest run ref</span>
+          <strong>{detail.latestRunRef}</strong>
+          <p>read-only pointer; replay and resume stay blocked</p>
+        </article>
+      </div>
+
+      <div className="workflow-application-blocked-grid" aria-label="Workflow application blocked capabilities">
+        {detail.blockedCapabilities.map((capability) => (
+          <WorkflowApplicationBlockedCapabilityCard key={capability.capabilityId} capability={capability} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkflowApplicationRiskCard({ riskSummary }: { riskSummary: WorkflowApplicationRiskSummary }) {
+  return (
+    <article className="workflow-application-detail-card">
+      <span>{riskSummary.label}</span>
+      <strong>{riskSummary.riskLevel}</strong>
+      <p>{riskSummary.summary}</p>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Confirmation</dt>
+          <dd>{riskSummary.requiresConfirmationCapable ? "capability marker only" : "not required by fixture"}</dd>
+        </div>
+        <div>
+          <dt>Policy</dt>
+          <dd>{riskSummary.policyRef}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowApplicationRouteMetadataCard({
+  routeMetadata,
+}: {
+  routeMetadata: WorkflowApplicationRouteMetadata;
+}) {
+  return (
+    <article className="workflow-application-detail-card">
+      <span>Route metadata</span>
+      <strong>{routeMetadata.draftRouteId}</strong>
+      <p>{routeMetadata.routePath}</p>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Source route</dt>
+          <dd>{routeMetadata.sourceRouteId}</dd>
+        </div>
+        <div>
+          <dt>Request</dt>
+          <dd>{routeMetadata.requestId}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{routeMetadata.auditRef}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowApplicationBlockedCapabilityCard({
+  capability,
+}: {
+  capability: WorkflowApplicationBlockedCapabilityPreview;
+}) {
+  return (
+    <article className="workflow-application-blocked-capability">
+      <div className="workflow-application-row-main">
+        <div>
+          <p className="eyebrow">{capability.capabilityId}</p>
+          <h5>{capability.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{capability.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{capability.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{capability.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{capability.reason}</p>
     </article>
   );
 }
