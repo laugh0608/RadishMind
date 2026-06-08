@@ -1183,6 +1183,10 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-workflow-runtime-readiness-inspector-offline-v1.py",
         [],
     )
+    run_python_script(
+        "checks/control_plane/check-workflow-function-surface-readiness-close-v1.py",
+        [],
+    )
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])

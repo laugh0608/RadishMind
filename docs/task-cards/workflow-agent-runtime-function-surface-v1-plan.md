@@ -72,6 +72,9 @@
 9. `workflow-runtime-readiness-inspector-offline-v1`
    - 已落地为 `workflow_runtime_readiness_inspector_offline_defined`，复用 selected draft、validation inspector 和 execution plan preview，派生只读 runtime readiness inspector。
    - 只展示 executor、provider binding、confirmation decision store、durable run/result store、audit policy、writeback policy、replay policy、auth / database / repository gate 和 publish lifecycle gate 的 readiness / blocker；不创建真实 runtime API，不请求 live backend，不接数据库、OIDC、executor、confirmation decision、writeback 或 replay。
+10. `workflow-function-surface-readiness-close-v1`
+    - 已落地为 `workflow_function_surface_readiness_closed`，用聚合 surface matrix 收束 application detail、definition detail、run detail、blocked action preview、confirmation placeholder、draft designer、validation inspector、execution plan preview 和 runtime readiness inspector。
+    - 只证明当前离线 workflow 产品面、依赖链和停止线已有可复验 gate；不新增 runtime API、builder mutation、持久化、publish、executor、confirmation decision、writeback、replay、数据库、OIDC、repository adapter 或 production API consumer。
 
 ## 验收口径
 
@@ -79,6 +82,7 @@
 - `workflow-function-surface-boundary-v1` 已用 fixture / checker 固定 `function_surface_boundary_defined`，后续 detail read 切片不得越过该边界。
 - 任务卡明确下一批功能切片优先从只读 detail、blocked action preview 和 fake-store dev path 开始。
 - 上层挂载点不成熟时，任务卡明确 RadishMind 继续推进离线 workflow 产品面；真实接入等待上层 UI / command / API、确认流和审计落点成熟。
+- `workflow-function-surface-readiness-close-v1` 已用聚合 surface matrix 固定当前 workflow 离线产品面；后续普通只读 workflow 展示优先复用该 gate、web build 和 fast baseline。
 - 文档继续保留 read-side implementation trigger 未满足的结论。
 - 文档继续明确不实现 repository interface / adapter、SQL、migration、store selector、OIDC token validation、auth middleware、真实数据库、production API consumer、workflow executor、confirmation、writeback 或 replay。
 

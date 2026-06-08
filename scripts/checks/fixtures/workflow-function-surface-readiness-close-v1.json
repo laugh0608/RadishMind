@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_function_surface_readiness_close_v1",
+  "slice": {
+    "id": "workflow-function-surface-readiness-close-v1",
+    "track": "Workflow / Agent Runtime Function Surface v1",
+    "status": "workflow_function_surface_readiness_closed",
+    "does_not_claim": [
+      "runtime_api_implemented",
+      "production_api_consumer_ready",
+      "workflow_builder_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "agent_loop_ready",
+      "workflow_draft_persistence_ready",
+      "validation_result_persistence_ready",
+      "execution_plan_persistence_ready",
+      "runtime_readiness_persistence_ready",
+      "workflow_publish_ready",
+      "confirmation_flow_ready",
+      "confirmation_decision_ready",
+      "confirmation_decision_store_ready",
+      "execution_unlock_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "durable_run_store_ready",
+      "durable_result_store_ready",
+      "materialized_result_reader_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-function-surface-boundary-v1",
+    "workflow-application-detail-read-v1",
+    "workflow-definition-detail-read-v1",
+    "workflow-run-detail-read-v1",
+    "workflow-blocked-action-preview-v1",
+    "workflow-confirmation-placeholder-read-v1",
+    "workflow-draft-designer-offline-v1",
+    "workflow-draft-validation-inspector-offline-v1",
+    "workflow-execution-plan-preview-offline-v1",
+    "workflow-runtime-readiness-inspector-offline-v1"
+  ],
+  "close_scope": {
+    "status": "workflow_function_surface_readiness_closed",
+    "app_root": "apps/radishmind-web/",
+    "surface_model": "offline_read_only_workflow_function_surface_matrix",
+    "evidence_model": "aggregate_checker_over_existing_workflow_surface_slices",
+    "current_backend_mode": "offline_fixture_or_fixture_derived_view_model",
+    "live_backend_allowed_now": false,
+    "runtime_api_allowed_now": false,
+    "workflow_execution_allowed_now": false,
+    "workflow_builder_mutation_allowed_now": false,
+    "workflow_publish_allowed_now": false,
+    "draft_persistence_allowed_now": false,
+    "validation_result_persistence_allowed_now": false,
+    "execution_plan_persistence_allowed_now": false,
+    "runtime_readiness_persistence_allowed_now": false,
+    "confirmation_submission_allowed_now": false,
+    "confirmation_decision_store_allowed_now": false,
+    "execution_unlock_allowed_now": false,
+    "business_writeback_allowed_now": false,
+    "run_replay_allowed_now": false,
+    "run_resume_allowed_now": false,
+    "durable_store_allowed_now": false,
+    "production_auth_allowed_now": false,
+    "database_attach_allowed_now": false,
+    "repository_adapter_allowed_now": false,
+    "next_decision": "continue offline product surface refinement or review implementation triggers only after new evidence"
+  },
+  "surface_matrix": [
+    {
+      "page_id": "workflow-application-detail-read",
+      "surface": "Workflow application detail",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowApplicationDetail.ts",
+      "builder": "buildWorkflowApplicationDetailViewModel",
+      "render_component": "WorkflowApplicationDetailPanel",
+      "render_anchor": "workflow-application-detail",
+      "render_class": "workflow-application-detail",
+      "source_mode": "fixture_derived_detail",
+      "required_true_flags": [],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canMutate",
+        "canCreateApplication",
+        "canEditApplication",
+        "canDeleteApplication",
+        "canPublishApplication",
+        "canStartRun",
+        "canExecuteWorkflow",
+        "canSubmitConfirmationDecision",
+        "canWriteBusinessTruth",
+        "canReplayRun"
+      ]
+    },
+    {
+      "page_id": "workflow-definition-detail-read",
+      "surface": "Workflow definition detail",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowDefinitionDetail.ts",
+      "builder": "buildWorkflowDefinitionDetailViewModel",
+      "render_component": "WorkflowDefinitionDetailPanel",
+      "render_anchor": "workspace-workflow-definitions",
+      "render_class": "workflow-definition-detail",
+      "source_mode": "fixture_derived_detail",
+      "required_true_flags": [],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canMutate",
+        "canEditWorkflow",
+        "canRunWorkflow",
+        "canConfirmWorkflowAction",
+        "canWriteBusinessTruth",
+        "canReplayRun"
+      ]
+    },
+    {
+      "page_id": "workflow-run-detail-read",
+      "surface": "Workflow run detail",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowRunDetail.ts",
+      "builder": "buildWorkflowRunDetailViewModel",
+      "render_component": "WorkflowRunDetailPanel",
+      "render_anchor": "workspace-run-history",
+      "render_class": "workflow-run-detail",
+      "source_mode": "fixture_derived_detail",
+      "required_true_flags": [],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canMutate",
+        "canStartRun",
+        "canCancelRun",
+        "canResumeRun",
+        "canReplayRun",
+        "canMaterializeResult",
+        "canWriteBusinessTruth"
+      ]
+    },
+    {
+      "page_id": "workflow-blocked-action-preview-read",
+      "surface": "Workflow blocked action preview",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowBlockedActionPreview.ts",
+      "builder": "buildWorkflowBlockedActionPreviewViewModel",
+      "render_component": "WorkflowBlockedActionPreviewPanel",
+      "render_anchor": "workflow-blocked-action-preview",
+      "render_class": "workflow-blocked-action-preview",
+      "source_mode": "fixture_derived_blocked_action",
+      "required_true_flags": [],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canMutate",
+        "canExecuteTool",
+        "canSubmitConfirmationDecision",
+        "canUnlockExecution",
+        "canWriteBusinessTruth",
+        "canReplayRun"
+      ]
+    },
+    {
+      "page_id": "workflow-confirmation-placeholder-read",
+      "surface": "Workflow confirmation placeholder",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowConfirmationPlaceholder.ts",
+      "builder": "buildWorkflowConfirmationPlaceholderViewModel",
+      "render_component": "WorkflowConfirmationPlaceholderPanel",
+      "render_anchor": "workflow-confirmation-placeholder",
+      "render_class": "workflow-confirmation-placeholder-read",
+      "source_mode": "fixture_derived_confirmation_shape",
+      "required_true_flags": [],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canMutate",
+        "canSubmitConfirmationDecision",
+        "canApproveDecision",
+        "canRejectDecision",
+        "canDeferDecision",
+        "canPersistDecision",
+        "canUnlockExecution",
+        "canExecuteTool",
+        "canWriteBusinessTruth",
+        "canReplayRun"
+      ]
+    },
+    {
+      "page_id": "workflow-draft-designer-offline",
+      "surface": "Workflow draft designer",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+      "builder": "buildWorkflowDraftDesignerViewModel",
+      "render_component": "WorkflowDraftDesignerPanel",
+      "render_anchor": "workflow-draft-designer",
+      "render_class": "workflow-draft-designer",
+      "source_mode": "offline_fixture_derived_draft",
+      "required_true_flags": [
+        "canInspectDraftLocally",
+        "canSwitchDraftLocally"
+      ],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canPersistDraft",
+        "canPublishWorkflow",
+        "canStartRun",
+        "canExecuteWorkflow",
+        "canSubmitConfirmationDecision",
+        "canWriteBusinessTruth",
+        "canReplayRun"
+      ]
+    },
+    {
+      "page_id": "workflow-draft-validation-inspector-offline",
+      "surface": "Workflow draft validation inspector",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+      "builder": "buildWorkflowDraftValidationInspectorViewModel",
+      "render_component": "WorkflowDraftValidationInspectorPanel",
+      "render_anchor": "workflow-draft-validation-inspector",
+      "render_class": "workflow-draft-validation-inspector",
+      "source_mode": "offline_fixture_derived_validation",
+      "required_true_flags": [
+        "canInspectDraftLocally"
+      ],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canPersistDraft",
+        "canPublishWorkflow",
+        "canStartRun",
+        "canExecuteWorkflow",
+        "canSubmitConfirmationDecision",
+        "canWriteBusinessTruth",
+        "canReplayRun"
+      ]
+    },
+    {
+      "page_id": "workflow-execution-plan-preview-offline",
+      "surface": "Workflow execution plan preview",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowExecutionPlanPreview.ts",
+      "builder": "buildWorkflowExecutionPlanPreviewViewModel",
+      "render_component": "WorkflowExecutionPlanPreviewPanel",
+      "render_anchor": "workflow-execution-plan-preview",
+      "render_class": "workflow-execution-plan-preview",
+      "source_mode": "offline_fixture_derived_execution_plan",
+      "required_true_flags": [
+        "canPreviewPlanLocally"
+      ],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canPersistExecutionPlan",
+        "canPublishWorkflow",
+        "canStartRun",
+        "canExecuteWorkflow",
+        "canSubmitConfirmationDecision",
+        "canWriteBusinessTruth",
+        "canReplayRun"
+      ]
+    },
+    {
+      "page_id": "workflow-runtime-readiness-inspector-offline",
+      "surface": "Workflow runtime readiness inspector",
+      "source_file": "apps/radishmind-web/src/features/control-plane-read/workflowRuntimeReadinessInspector.ts",
+      "builder": "buildWorkflowRuntimeReadinessInspectorViewModel",
+      "render_component": "WorkflowRuntimeReadinessInspectorPanel",
+      "render_anchor": "workflow-runtime-readiness-inspector",
+      "render_class": "workflow-runtime-readiness-inspector",
+      "source_mode": "offline_fixture_derived_runtime_readiness",
+      "required_true_flags": [
+        "canInspectReadinessLocally"
+      ],
+      "required_false_flags": [
+        "canRequestLiveBackend",
+        "canPersistReadinessResult",
+        "canStartWorkflowRuntime",
+        "canExecuteWorkflow",
+        "canSubmitConfirmationDecision",
+        "canWriteBusinessTruth",
+        "canReplayRun",
+        "canEnableProductionAuth",
+        "canAttachDatabase",
+        "canImplementRepositoryAdapter"
+      ]
+    }
+  ],
+  "required_files": [
+    "apps/radishmind-web/src/features/control-plane-read/workflowApplicationDetail.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDefinitionDetail.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowRunDetail.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowBlockedActionPreview.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowConfirmationPlaceholder.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowExecutionPlanPreview.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowRuntimeReadinessInspector.ts",
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/styles.css"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "localStorage",
+    "indexedDB",
+    "canRequestLiveBackend: true",
+    "canMutate: true",
+    "canPersistDraft: true",
+    "canPersistExecutionPlan: true",
+    "canPersistReadinessResult: true",
+    "canPublishWorkflow: true",
+    "canStartWorkflowRuntime: true",
+    "canExecuteWorkflow: true",
+    "canSubmitConfirmationDecision: true",
+    "canWriteBusinessTruth: true",
+    "canReplayRun: true",
+    "canEnableProductionAuth: true",
+    "canAttachDatabase: true",
+    "canImplementRepositoryAdapter: true",
+    "persist_workflow_draft",
+    "persist_validation_result",
+    "persist_execution_plan",
+    "persist_runtime_readiness",
+    "publish_workflow",
+    "start_workflow_run",
+    "start_workflow_runtime",
+    "execute_workflow",
+    "submit_confirmation_decision",
+    "unlock_execution",
+    "write_business_truth",
+    "replay_workflow_run",
+    "resume_workflow_run",
+    "enable_production_auth",
+    "attach_database",
+    "implement_repository_adapter",
+    "PersistWorkflowDraftCommand",
+    "PersistExecutionPlanCommand",
+    "PersistRuntimeReadinessCommand",
+    "PublishWorkflowCommand",
+    "StartWorkflowRuntimeCommand",
+    "ExecuteWorkflowCommand",
+    "SubmitConfirmationDecisionCommand",
+    "UnlockExecutionCommand",
+    "WriteBusinessTruthCommand",
+    "ReplayWorkflowRunCommand",
+    "ResumeWorkflowRunCommand",
+    "EnableProductionAuthCommand",
+    "AttachDatabaseCommand",
+    "ImplementRepositoryAdapterCommand"
+  ],
+  "stop_lines": [
+    "no new runtime API",
+    "no live backend request",
+    "no workflow builder mutation",
+    "no workflow draft persistence",
+    "no validation result persistence",
+    "no execution plan persistence",
+    "no runtime readiness persistence",
+    "no workflow publish",
+    "no workflow executor",
+    "no node executor",
+    "no tool executor",
+    "no agent loop",
+    "no confirmation decision",
+    "no confirmation decision store",
+    "no execution unlock",
+    "no durable run store",
+    "no durable result store",
+    "no materialized result reader",
+    "no business writeback",
+    "no replay or resume",
+    "no database attach",
+    "no Radish OIDC implementation",
+    "no repository adapter implementation",
+    "no production readiness claim"
+  ],
+  "testing_strategy": [
+    {
+      "id": "workflow_function_surface_readiness_close_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-function-surface-readiness-close-v1.py"
+    },
+    {
+      "id": "workflow_runtime_readiness_inspector_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-runtime-readiness-inspector-offline-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo.sh --fast; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "required_doc_references": {
+    "docs/task-cards/workflow-function-surface-readiness-close-v1-plan.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed",
+      "surface matrix",
+      "runtime readiness inspector"
+    ],
+    "docs/task-cards/README.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "Workflow Function Surface Readiness Close"
+    ],
+    "scripts/README.md": [
+      "check-workflow-function-surface-readiness-close-v1.py",
+      "workflow-function-surface-readiness-close-v1.json"
+    ],
+    "apps/radishmind-web/README.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow surface matrix"
+    ],
+    "docs/README.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed"
+    ],
+    "docs/task-cards/workflow-agent-runtime-function-surface-v1-plan.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "workflow-function-surface-readiness-close-v1",
+      "workflow_function_surface_readiness_closed"
+    ]
+  }
+}
