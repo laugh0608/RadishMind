@@ -1,6 +1,6 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-06-07
+更新时间：2026-06-08
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface` 和 Control Plane read-side product UI shell。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
 
-`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer 和 offline validation inspector。后续继续 formal UI 时，应复用这些组件和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector 和 review workspace。后续继续 formal UI 时，应复用这些组件和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
 
 ## 设计定位
 
@@ -254,6 +254,8 @@ Control Plane read-side product UI 额外覆盖：
    - run detail：run state timeline、cost / token snapshot、trace / failure / audit metadata 和 blocked replay / result preview
    - blocked action preview 与 confirmation placeholder：只展示 future action / decision shape、human review requirement、missing prerequisites 和 audit trail，不提供 submit / approve / reject / defer / unlock 控件
    - offline draft designer 与 validation inspector：只展示 draft template、node / edge、readiness、risk、structural checks、contract checks 和 blocked capability checks；local inspect / switch 只能改变本地展示状态，不持久化、不发布、不执行
+   - execution plan preview 与 runtime readiness inspector：只展示 stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates、runtime prerequisites、readiness blockers 和 implementation gates，不提供 plan persistence、executor 或 readiness unlock 控件
+   - surface overview、context selection、scenario inspector 与 review workspace：只把当前 application、definition、run、draft、scenario、blocked capability 和 stop line 组织成可审查关系图与 rollup；本地选择不保存，不触发 publish、execute、confirm、writeback、replay 或 resume
 
 Control Plane read-side 页面必须继续使用紧凑工作台布局，不做营销首页，不做 hero，不把页面状态写成可执行能力。
 

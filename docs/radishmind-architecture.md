@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-06-07
+更新时间：2026-06-08
 
 ## 架构目标
 
@@ -22,7 +22,7 @@
 
 Control Plane read store 的迁移架构固定为分层推进，而不是从 fake store 直接跳到数据库实现：先固定 repository contract preconditions，再固定 disabled database guard，随后定义 repository contract smoke、repository implementation readiness、store selection readiness、schema migration readiness、repository contract types、静态 contract smoke runner、repository interface readiness、adapter implementation readiness refresh、store selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness 和 store selector smoke readiness。当前 Go 层已经有 `control_plane_read_repository_contract.go` 承载 `ReadRepositoryContext`、七条 route request / result type、failure code、projection / filter / sort 和 route type matrix；`control_plane_read_repository_contract_smoke_runner.go` 只消费这份 type matrix 与既有 smoke fixture，验证 route、failure mapping、no fake fallback 和 no side effects 的静态一致性。这个顺序要求未来 `ControlPlaneReadRepository`、adapter、store selector、schema artifact、migration runner 和数据库 role 必须先满足 tenant predicate、sanitized projection、schema artifact manifest gate、selector gate、failure mapping、no fake fallback 和 no side effects，再允许进入真实实现；当前仍没有 repository interface 文件、repository adapter、selector 文件、SQL、manifest、migration 文件、真实数据库、Radish OIDC、token validation 或 production API consumer。
 
-`Workflow / Agent Runtime Function Surface v1` 已在 `apps/radishmind-web/` 落地 application detail、workflow definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer 和 offline validation inspector。它们都是 fixture-derived、read-only、blocked-capability-first 的产品面，不新增 runtime API、builder mutation、draft persistence、validation result persistence、executor、confirmation decision、writeback、replay、数据库、Radish OIDC 或 production API consumer。
+`Workflow / Agent Runtime Function Surface v1` 已在 `apps/radishmind-web/` 落地 application detail、workflow definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、Workflow Surface Overview、context selection、Workflow Scenario Inspector 和 Workflow Review Workspace。它们都是 fixture-derived、read-only、blocked-capability-first 的产品面：detail / draft / validation / plan / readiness 负责解释对象和准入证据，overview / scenario / review workspace 负责把当前 application、definition、run、draft、scenario、blocked capability 和 stop line 组织成可审查的用户工作区视图；这一层不新增 runtime API、builder mutation、draft / validation / execution plan / readiness / scenario / review persistence、executor、confirmation decision、writeback、replay、数据库、Radish OIDC 或 production API consumer。
 
 ## 产品视角
 
@@ -51,7 +51,7 @@ Control Plane read store 的迁移架构固定为分层推进，而不是从 fak
 
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和后续受控 code / sandbox / agent loop。
 - 每次运行必须保留 trace、输入输出摘要、错误分类、成本和风险边界。
-- 当前已有 session/tooling metadata、blocked action shell，以及 `apps/radishmind-web/` 中的离线 application detail、definition detail、run detail、confirmation placeholder、draft designer 和 validation inspector；`workflow-definition-run-record-boundary` 已把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转和审计证据固定为治理边界；真实 workflow builder、executor、durable store、confirmation flow、writeback 和 replay 仍未实现。
+- 当前已有 session/tooling metadata、blocked action shell，以及 `apps/radishmind-web/` 中的离线 application detail、definition detail、run detail、confirmation placeholder、draft designer、validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector 和 review workspace；`workflow-definition-run-record-boundary` 已把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转和审计证据固定为治理边界；真实 workflow builder、executor、durable store、confirmation flow、writeback 和 replay 仍未实现。
 
 ## 平台视角
 

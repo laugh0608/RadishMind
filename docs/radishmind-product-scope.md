@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-07
+更新时间：2026-06-08
 
 ## 核心定义
 
@@ -64,8 +64,8 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、后续受控 code / sandbox 与 agent loop。
 - 每次运行都应有 trace、输入输出摘要、成本、错误分类和风险边界。
 - `workflow-definition-run-record-boundary` 只把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线固定为治理证据，不代表 executor、confirmation、writeback 或 replay 已实现。
-- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview、confirmation placeholder、offline draft designer 和 offline validation inspector 的只读 / blocked / local-only surface，优先走 fixture 或 fake-store dev path。`workflow-draft-validation-inspector-offline-v1` 已固定为 `workflow_draft_validation_inspector_offline_defined`，只展示 selected draft 的 validation summary、structural checks、contract checks、blocked capability checks 和 route / request / audit metadata；不提供 draft persistence、validation result persistence、publish、executor、confirmation decision、writeback 或 replay。
-- 上层挂载点未成熟时，workflow 产品面继续先做离线草案设计、结构检查、execution plan preview、readiness 展示和 blocked capability 说明；这些产品能力应复用未来真实接入所需的 canonical contract 和停止线，而不是等待 `RadishFlow` 或 `Radish` 提供承接入口后才开始。
+- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector 和 Workflow Review Workspace 的只读 / blocked / local-only surface，优先走 fixture 或 fake-store dev path。它们只展示 selected context、draft、validation、plan、readiness、scenario、blocked capability、stop line、route / request / audit metadata 和 review rollup；不提供 draft / validation / execution plan / readiness / scenario / review persistence、publish、executor、confirmation decision、writeback 或 replay。
+- 上层挂载点未成熟时，workflow 产品面继续先做离线草案设计、结构检查、execution plan preview、readiness 展示、场景解释、review workspace 和 blocked capability 说明；这些产品能力应复用未来真实接入所需的 canonical contract 和停止线，而不是等待 `RadishFlow` 或 `Radish` 提供承接入口后才开始。
 - 高风险 tool/action 默认 `requires_confirmation`，不得直接写上层业务真相源。
 
 ## 项目范围
