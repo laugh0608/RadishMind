@@ -1099,6 +1099,94 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-readiness-close-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-dev-live-consumer-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-auth-store-transition-preconditions-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-preconditions-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-disabled-database-guard-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-implementation-readiness-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-store-selection-readiness-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-schema-migration-readiness-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-types-readiness-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-types-implementation-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-readiness-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-implementation-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-repository-interface-readiness-v1.py", [])
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-repository-adapter-implementation-readiness-refresh-v1.py",
+        [],
+    )
+    run_python_script("checks/control_plane/check-control-plane-read-store-selector-enablement-preconditions-v1.py", [])
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-schema-migration-implementation-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-repository-adapter-implementation-plan-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-schema-artifact-manifest-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-store-selector-smoke-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-production-auth-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-adapter-smoke-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-implementation-trigger-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-function-surface-boundary-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-definition-detail-read-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-run-detail-read-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-blocked-action-preview-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-application-detail-read-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-confirmation-placeholder-read-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-draft-designer-offline-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-draft-validation-inspector-offline-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-execution-plan-preview-offline-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-runtime-readiness-inspector-offline-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-function-surface-readiness-close-v1.py",
+        [],
+    )
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])

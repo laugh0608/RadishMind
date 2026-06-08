@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_draft_validation_inspector_offline_v1",
+  "slice": {
+    "id": "workflow-draft-validation-inspector-offline-v1",
+    "track": "Workflow / Agent Runtime Function Surface v1",
+    "status": "workflow_draft_validation_inspector_offline_defined",
+    "does_not_claim": [
+      "runtime_api_implemented",
+      "production_api_consumer_ready",
+      "workflow_builder_ready",
+      "workflow_definition_mutation_ready",
+      "workflow_draft_persistence_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "confirmation_flow_ready",
+      "confirmation_decision_ready",
+      "confirmation_decision_store_ready",
+      "execution_unlock_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "durable_run_store_ready",
+      "durable_result_store_ready",
+      "materialized_result_reader_ready",
+      "database_ready",
+      "radish_oidc_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-function-surface-boundary-v1",
+    "workflow-draft-designer-offline-v1",
+    "workflow-definition-detail-read-v1",
+    "workflow-confirmation-placeholder-read-v1"
+  ],
+  "page": {
+    "id": "workflow-draft-validation-inspector-offline",
+    "source_page_id": "workflow-draft-designer-offline",
+    "source_route_id": "workflow-definition-summary-list-route",
+    "draft_route_id": "workflow-draft-validation-inspector-offline-draft",
+    "status": "offline_draft_validation_inspector_surface",
+    "default_inspected_draft_id": "draft_wf_radishflow_copilot_latest_offline",
+    "app_root": "apps/radishmind-web/",
+    "local_inspection_allowed_now": true,
+    "live_detail_route_allowed_now": false,
+    "runtime_api_allowed_now": false,
+    "draft_persistence_allowed_now": false,
+    "publish_allowed_now": false,
+    "workflow_execution_allowed_now": false,
+    "confirmation_submission_allowed_now": false,
+    "business_writeback_allowed_now": false
+  },
+  "implemented_capabilities": [
+    "workflow_draft_validation_inspector_view_model",
+    "offline_fixture_validation_surface",
+    "selected_draft_validation_projection",
+    "structural_check_display",
+    "contract_check_display",
+    "blocked_capability_check_display",
+    "route_request_audit_metadata_display",
+    "forbidden_output_guard_reused",
+    "no_live_backend_request",
+    "no_persistence_publish_execution_controls"
+  ],
+  "required_view_model_fields": [
+    "inspectedDraftId",
+    "validationStatus",
+    "summary",
+    "structuralChecks",
+    "contractChecks",
+    "blockedCapabilityChecks",
+    "auditMetadata",
+    "routePath",
+    "requestId",
+    "auditRef",
+    "canRenderDraftValidationInspector",
+    "canInspectDraftLocally",
+    "canRequestLiveBackend",
+    "canPersistDraft",
+    "canPublishWorkflow",
+    "canStartRun",
+    "canExecuteWorkflow",
+    "canSubmitConfirmationDecision",
+    "canWriteBusinessTruth",
+    "canReplayRun"
+  ],
+  "validation_policy": {
+    "required_statuses": [
+      "passed",
+      "needs_review",
+      "blocked"
+    ],
+    "required_severities": [
+      "info",
+      "warning",
+      "blocking"
+    ],
+    "required_structural_checks": [
+      "entry_context_lane",
+      "model_reasoning_lane",
+      "policy_gate_path",
+      "output_audit_path",
+      "orphan_node_scan"
+    ],
+    "required_contract_checks": [
+      "input_contract_fields",
+      "output_contract_fields"
+    ],
+    "required_blocked_capability_checks": [
+      "blocked_draft_persistence",
+      "blocked_publish",
+      "blocked_runtime",
+      "blocked_confirmation_decision"
+    ],
+    "minimum_structural_check_count": 5,
+    "minimum_contract_check_count": 2,
+    "minimum_blocked_capability_check_count": 4,
+    "local_inspection_allowed_now": true,
+    "persist_validation_result_allowed_now": false,
+    "publish_allowed_now": false,
+    "workflow_execution_allowed_now": false,
+    "confirmation_submission_allowed_now": false
+  },
+  "contract_policy": {
+    "required_input_fields": [
+      "tenant_ref",
+      "application_ref",
+      "selection_summary",
+      "diagnostic_summary"
+    ],
+    "required_output_fields": [
+      "answer_summary",
+      "candidate_actions",
+      "risk_summary",
+      "audit_refs"
+    ],
+    "result_is_inspection_only": true,
+    "materialized_result_reader_allowed_now": false
+  },
+  "required_files": [
+    "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/styles.css"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "localStorage",
+    "indexedDB",
+    "canRequestLiveBackend: true",
+    "canPersistDraft: true",
+    "canPublishWorkflow: true",
+    "canStartRun: true",
+    "canExecuteWorkflow: true",
+    "canSubmitConfirmationDecision: true",
+    "canWriteBusinessTruth: true",
+    "canReplayRun: true",
+    "persist_workflow_draft",
+    "persist_validation_result",
+    "publish_workflow",
+    "start_workflow_run",
+    "execute_workflow",
+    "submit_confirmation_decision",
+    "write_business_truth",
+    "replay_workflow_run",
+    "PersistWorkflowDraftCommand",
+    "PersistValidationResultCommand",
+    "PublishWorkflowCommand",
+    "StartWorkflowRunCommand",
+    "ExecuteWorkflowCommand",
+    "SubmitConfirmationDecisionCommand",
+    "WriteBusinessTruthCommand",
+    "ReplayWorkflowRunCommand"
+  ],
+  "stop_lines": [
+    "no new runtime API",
+    "no live backend request",
+    "no workflow builder mutation",
+    "no workflow draft persistence",
+    "no validation result persistence",
+    "no workflow publish",
+    "no workflow executor",
+    "no node executor",
+    "no tool executor",
+    "no confirmation decision",
+    "no confirmation decision store",
+    "no execution unlock",
+    "no business writeback",
+    "no replay or resume",
+    "no durable run store",
+    "no durable result store",
+    "no materialized result reader",
+    "no database or production auth implementation",
+    "no production readiness claim"
+  ],
+  "testing_strategy": [
+    {
+      "id": "workflow_draft_validation_inspector_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-draft-validation-inspector-offline-v1.py"
+    },
+    {
+      "id": "workflow_draft_designer_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-draft-designer-offline-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo.sh --fast; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "required_doc_references": {
+    "docs/task-cards/workflow-draft-validation-inspector-offline-v1-plan.md": [
+      "workflow-draft-validation-inspector-offline-v1",
+      "workflow_draft_validation_inspector_offline_defined",
+      "offline validation inspector",
+      "structural checks"
+    ],
+    "docs/task-cards/README.md": [
+      "workflow-draft-validation-inspector-offline-v1",
+      "Workflow Draft Validation Inspector Offline"
+    ],
+    "scripts/README.md": [
+      "check-workflow-draft-validation-inspector-offline-v1.py",
+      "workflow-draft-validation-inspector-offline-v1.json"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-draft-validation-inspector-offline-v1",
+      "workflow_draft_validation_inspector_offline_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "workflow-draft-validation-inspector-offline-v1",
+      "workflow_draft_validation_inspector_offline_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "workflow-draft-validation-inspector-offline-v1",
+      "workflow_draft_validation_inspector_offline_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "workflow-draft-validation-inspector-offline-v1",
+      "workflow_draft_validation_inspector_offline_defined"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "workflow-draft-validation-inspector-offline-v1",
+      "workflow_draft_validation_inspector_offline_defined"
+    ]
+  }
+}

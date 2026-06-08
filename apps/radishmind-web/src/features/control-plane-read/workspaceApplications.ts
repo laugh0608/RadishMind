@@ -118,7 +118,7 @@ function buildApplicationsEnvelope(): ControlPlaneReadResponseByRoute["applicati
         application_kind: "docs_qa",
         display_name: "Radish Docs Assistant",
         owner_subject_ref: "subject_docs_team",
-        latest_workflow_definition_ref: "wf_radish_docs_qa_latest",
+        latest_workflow_definition_ref: "wf_radish_docs_qa_draft",
         last_run_status: "blocked",
         updated_at: "2026-05-31T09:40:00Z",
       },

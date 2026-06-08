@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_blocked_action_preview_v1",
+  "slice": {
+    "id": "workflow-blocked-action-preview-v1",
+    "track": "Workflow / Agent Runtime Function Surface v1",
+    "status": "workflow_blocked_action_preview_defined",
+    "does_not_claim": [
+      "runtime_api_implemented",
+      "production_api_consumer_ready",
+      "workflow_builder_ready",
+      "workflow_definition_mutation_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "confirmation_flow_ready",
+      "confirmation_decision_ready",
+      "execution_unlock_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "durable_run_store_ready",
+      "durable_result_store_ready",
+      "materialized_result_reader_ready",
+      "database_ready",
+      "radish_oidc_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-function-surface-boundary-v1",
+    "workflow-definition-detail-read-v1",
+    "workflow-run-detail-read-v1"
+  ],
+  "page": {
+    "id": "workflow-blocked-action-preview-read",
+    "source_page_id": "workflow-run-detail-read",
+    "source_route_id": "run-record-summary-list-route",
+    "draft_route_id": "tool-action-preview-read-draft",
+    "confirmation_draft_route_id": "confirmation-placeholder-read-draft",
+    "status": "offline_read_only_blocked_action_surface",
+    "default_tool_action_id": "tool_action_preview_reconnect_stream",
+    "default_blocked_state": "blocked_executor_not_available",
+    "app_root": "apps/radishmind-web/",
+    "live_detail_route_allowed_now": false,
+    "runtime_api_allowed_now": false,
+    "tool_execution_allowed_now": false
+  },
+  "implemented_capabilities": [
+    "workflow_blocked_action_preview_view_model",
+    "offline_fixture_blocked_action_surface",
+    "policy_reason_display",
+    "missing_prerequisites_display",
+    "confirmation_placeholder_display",
+    "audit_trail_display",
+    "related_run_guard_display",
+    "forbidden_output_guard_reused",
+    "no_live_backend_request",
+    "no_execution_or_confirmation_controls"
+  ],
+  "required_view_model_fields": [
+    "runId",
+    "workflowDefinitionId",
+    "nodeExecutionRef",
+    "toolActionId",
+    "toolRef",
+    "actionKind",
+    "riskLevel",
+    "requiresConfirmation",
+    "policyReason",
+    "blockedState",
+    "missingPrerequisites",
+    "auditTrail",
+    "confirmationPlaceholder",
+    "relatedRunGuard",
+    "routePath",
+    "requestId",
+    "auditRef",
+    "canRenderBlockedActionPreview",
+    "canRequestLiveBackend",
+    "canMutate",
+    "canExecuteTool",
+    "canSubmitConfirmationDecision",
+    "canUnlockExecution",
+    "canWriteBusinessTruth",
+    "canReplayRun"
+  ],
+  "required_missing_prerequisite_statuses": [
+    "missing",
+    "defined_not_connected",
+    "blocked"
+  ],
+  "confirmation_placeholder_policy": {
+    "required_fields": [
+      "confirmationPlaceholderId",
+      "requiredActionRef",
+      "riskSummary",
+      "requiredDecisionShape",
+      "humanReviewRequired",
+      "disabledReason",
+      "auditRef"
+    ],
+    "human_review_required": true,
+    "submit_confirmation_allowed_now": false,
+    "unlock_execution_allowed_now": false,
+    "business_writeback_allowed_now": false
+  },
+  "required_files": [
+    "apps/radishmind-web/src/features/control-plane-read/workflowBlockedActionPreview.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDefinitionDetail.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowRunDetail.ts",
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/styles.css"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "canRequestLiveBackend: true",
+    "canMutate: true",
+    "canExecuteTool: true",
+    "canSubmitConfirmationDecision: true",
+    "canUnlockExecution: true",
+    "canWriteBusinessTruth: true",
+    "canReplayRun: true",
+    "execute_tool",
+    "submit_confirmation_decision",
+    "unlock_execution",
+    "write_business_truth",
+    "replay_workflow_run",
+    "ExecuteToolCommand",
+    "SubmitConfirmationDecisionCommand",
+    "UnlockExecutionCommand",
+    "WriteBusinessTruthCommand",
+    "ReplayWorkflowRunCommand"
+  ],
+  "stop_lines": [
+    "no new runtime API",
+    "no live backend request",
+    "no workflow executor",
+    "no node executor",
+    "no tool executor",
+    "no confirmation decision",
+    "no execution unlock",
+    "no business writeback",
+    "no replay or resume",
+    "no durable run store",
+    "no durable result store",
+    "no materialized result reader",
+    "no database or production auth implementation",
+    "no production readiness claim"
+  ],
+  "testing_strategy": [
+    {
+      "id": "workflow_blocked_action_preview_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-blocked-action-preview-v1.py"
+    },
+    {
+      "id": "workflow_run_detail_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-run-detail-read-v1.py"
+    },
+    {
+      "id": "workflow_definition_detail_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-definition-detail-read-v1.py"
+    },
+    {
+      "id": "workflow_function_surface_boundary_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-function-surface-boundary-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo.sh --fast; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "required_doc_references": {
+    "docs/task-cards/workflow-blocked-action-preview-v1-plan.md": [
+      "workflow-blocked-action-preview-v1",
+      "workflow_blocked_action_preview_defined",
+      "missing prerequisites",
+      "confirmation placeholder"
+    ],
+    "docs/task-cards/README.md": [
+      "workflow-blocked-action-preview-v1",
+      "Workflow Blocked Action Preview"
+    ],
+    "scripts/README.md": [
+      "check-workflow-blocked-action-preview-v1.py",
+      "workflow-blocked-action-preview-v1.json"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-blocked-action-preview-v1",
+      "workflow_blocked_action_preview_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "workflow-blocked-action-preview-v1",
+      "workflow_blocked_action_preview_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "workflow-blocked-action-preview-v1",
+      "workflow_blocked_action_preview_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "workflow-blocked-action-preview-v1",
+      "workflow_blocked_action_preview_defined"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "workflow-blocked-action-preview-v1",
+      "workflow_blocked_action_preview_defined"
+    ]
+  }
+}

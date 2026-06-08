@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_schema_migration_implementation_preconditions_v1",
+  "slice": {
+    "id": "control-plane-read-schema-migration-implementation-preconditions-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "schema_migration_implementation_preconditions_defined",
+    "does_not_claim": [
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "migration_runner_ready",
+      "repository_interface_ready",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "repository_migration_ready",
+      "store_selector_implemented",
+      "formal_read_store_config_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-schema-migration-readiness-v1",
+    "control-plane-read-store-selector-enablement-preconditions-v1",
+    "control-plane-read-repository-adapter-implementation-readiness-refresh-v1",
+    "control-plane-read-store-selection-readiness-v1",
+    "control-plane-read-disabled-database-guard-v1",
+    "control-plane-read-repository-interface-readiness-v1",
+    "control-plane-read-repository-contract-types-implementation-v1",
+    "control-plane-read-repository-contract-smoke-runner-implementation-v1",
+    "control-plane-read-auth-store-transition-preconditions-v1"
+  ],
+  "implementation_preconditions_boundary": {
+    "status": "schema_migration_implementation_preconditions_defined_not_implemented",
+    "current_store_source": "fixture-backed fake store",
+    "future_migration_root": "services/platform/migrations/control_plane_read",
+    "future_manifest_file": "services/platform/migrations/control_plane_read/manifest.json",
+    "future_runner_name": "ControlPlaneReadSchemaMigrationRunner",
+    "future_schema_version_table": "control_plane_read_schema_versions",
+    "purpose": "Define the gates required before creating control plane read migration files, SQL, schema version records or migration runner code.",
+    "migration_root_created_in_this_slice": false,
+    "manifest_created_in_this_slice": false,
+    "sql_files_created_in_this_slice": false,
+    "migration_runner_created_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "store_selector_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false
+  },
+  "future_artifact_manifest": {
+    "status": "planned_not_created",
+    "required_before_migration_files": true,
+    "manifest_must_include": [
+      "migration id",
+      "up migration path",
+      "down or rollback policy",
+      "schema version",
+      "affected logical entities",
+      "tenant index smoke cases",
+      "read-only role smoke cases",
+      "failure mapping smoke cases"
+    ],
+    "planned_artifacts": [
+      {
+        "path": "services/platform/migrations/control_plane_read/README.md",
+        "purpose": "Future implementation note for schema ownership, manual apply command, rollback and smoke expectations.",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/control_plane_read/manifest.json",
+        "purpose": "Future machine-readable migration manifest consumed by migration smoke and adapter gates.",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/control_plane_read/20260604000000_control_plane_read_initial_schema.up.sql",
+        "purpose": "Future reviewed DDL migration; no SQL is created in this slice.",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/control_plane_read/20260604000000_control_plane_read_initial_schema.down.sql",
+        "purpose": "Future rollback migration or documented forward-only exception; no SQL is created in this slice.",
+        "created_in_this_slice": false
+      }
+    ]
+  },
+  "implementation_gate_matrix": [
+    {
+      "id": "schema_readiness_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-schema-migration-readiness-v1"
+    },
+    {
+      "id": "selector_enablement_preconditions_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-store-selector-enablement-preconditions-v1"
+    },
+    {
+      "id": "adapter_readiness_refresh_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-repository-adapter-implementation-readiness-refresh-v1"
+    },
+    {
+      "id": "migration_artifact_manifest_gate",
+      "status": "required_now",
+      "must_cover": [
+        "future manifest path",
+        "migration id",
+        "up/down artifact references",
+        "schema version",
+        "tenant index smoke",
+        "read-only role smoke"
+      ]
+    },
+    {
+      "id": "ddl_review_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "human reviewed DDL",
+        "no destructive migration without review",
+        "manual apply command",
+        "no service startup auto-migration"
+      ]
+    },
+    {
+      "id": "rollback_fixture_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "rollback path or forward-only exception",
+        "backup requirement",
+        "failed migration recovery",
+        "migration lock release"
+      ]
+    },
+    {
+      "id": "schema_version_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "schema version table exists",
+        "expected version recorded",
+        "missing version maps to schema_migration_not_applied",
+        "mismatched version maps to schema_version_mismatch"
+      ]
+    },
+    {
+      "id": "tenant_index_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "tenant_ref leading index on every logical entity",
+        "cross-tenant read denial",
+        "invalid tenant predicate remains fail-closed"
+      ]
+    },
+    {
+      "id": "read_only_role_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "runtime role can read allowed projections",
+        "runtime role cannot insert/update/delete",
+        "runtime role cannot apply migrations",
+        "credential is secret reference only"
+      ]
+    },
+    {
+      "id": "no_migration_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no migration directory",
+        "no SQL files",
+        "no migration runner",
+        "no database/sql import",
+        "no repository adapter",
+        "no store selector"
+      ]
+    }
+  ],
+  "route_migration_implementation_matrix": [
+    {
+      "route_id": "tenant-summary-route",
+      "operation": "ReadTenantSummary",
+      "logical_entity": "tenant_summary",
+      "schema_version_smoke_required": true,
+      "tenant_index_smoke_required": true,
+      "read_only_role_smoke_required": true,
+      "projection_smoke_required": true,
+      "write_smoke_forbidden": true,
+      "migration_implementation_allowed_now": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "operation": "ListApplicationSummaries",
+      "logical_entity": "application_summary",
+      "schema_version_smoke_required": true,
+      "tenant_index_smoke_required": true,
+      "read_only_role_smoke_required": true,
+      "projection_smoke_required": true,
+      "write_smoke_forbidden": true,
+      "migration_implementation_allowed_now": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "operation": "ListAPIKeySummaries",
+      "logical_entity": "api_key_summary",
+      "schema_version_smoke_required": true,
+      "tenant_index_smoke_required": true,
+      "read_only_role_smoke_required": true,
+      "projection_smoke_required": true,
+      "write_smoke_forbidden": true,
+      "migration_implementation_allowed_now": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "operation": "ReadQuotaSummary",
+      "logical_entity": "quota_summary",
+      "schema_version_smoke_required": true,
+      "tenant_index_smoke_required": true,
+      "read_only_role_smoke_required": true,
+      "projection_smoke_required": true,
+      "write_smoke_forbidden": true,
+      "migration_implementation_allowed_now": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "operation": "ListWorkflowDefinitionSummaries",
+      "logical_entity": "workflow_definition_summary",
+      "schema_version_smoke_required": true,
+      "tenant_index_smoke_required": true,
+      "read_only_role_smoke_required": true,
+      "projection_smoke_required": true,
+      "write_smoke_forbidden": true,
+      "migration_implementation_allowed_now": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "operation": "ListRunRecordSummaries",
+      "logical_entity": "run_record_summary",
+      "schema_version_smoke_required": true,
+      "tenant_index_smoke_required": true,
+      "read_only_role_smoke_required": true,
+      "projection_smoke_required": true,
+      "write_smoke_forbidden": true,
+      "migration_implementation_allowed_now": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "operation": "ListAuditSummaries",
+      "logical_entity": "audit_summary",
+      "schema_version_smoke_required": true,
+      "tenant_index_smoke_required": true,
+      "read_only_role_smoke_required": true,
+      "projection_smoke_required": true,
+      "write_smoke_forbidden": true,
+      "migration_implementation_allowed_now": false
+    }
+  ],
+  "failure_mapping": [
+    "database_read_disabled",
+    "invalid_read_store_mode",
+    "read_store_unavailable",
+    "read_store_contract_mismatch",
+    "schema_migration_not_applied",
+    "schema_version_mismatch"
+  ],
+  "no_fake_fallback_policy": {
+    "migration_missing_fake_fallback_allowed": false,
+    "schema_version_mismatch_success_allowed": false,
+    "tenant_index_missing_success_allowed": false,
+    "read_only_role_failure_success_allowed": false,
+    "database_internal_error_exposure_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "source_absent_literals": [
+    "ControlPlaneReadSchemaMigrationRunner",
+    "control_plane_read_schema_migration_runner.go",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "control_plane_read_repository_interface.go",
+    "control_plane_read_repository_adapter.go",
+    "RADISHMIND_CONTROL_PLANE_READ_STORE",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "oidc.Provider",
+    "ValidateToken"
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "schema migration implementation preconditions"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "schema_migration_implementation_preconditions_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "schema migration implementation preconditions"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "schema migration implementation preconditions"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "Control Plane Read Schema Migration Implementation Preconditions"
+    ],
+    "docs/task-cards/control-plane-read-schema-migration-implementation-preconditions-v1-plan.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "schema migration implementation preconditions"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-schema-migration-implementation-preconditions-v1.py",
+      "control-plane-read-schema-migration-implementation-preconditions-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "schema migration implementation preconditions"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-schema-migration-implementation-preconditions-v1",
+      "schema_migration_implementation_preconditions_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/control-plane-read-schema-migration-implementation-preconditions-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-schema-migration-implementation-preconditions-v1.json",
+    "scripts/checks/control_plane/check-control-plane-read-schema-migration-implementation-preconditions-v1.py",
+    "scripts/checks/fixtures/control-plane-read-schema-migration-readiness-v1.json",
+    "scripts/checks/fixtures/control-plane-read-store-selector-enablement-preconditions-v1.json"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/task-cards/README.md",
+    "docs/devlogs/2026-W23.md"
+  ]
+}

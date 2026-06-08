@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-01
+更新时间：2026-06-08
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -71,6 +71,38 @@
 21. [`Control Plane Read Formal UI Readiness Close` v1 计划](control-plane-read-formal-ui-readiness-close-v1-plan.md)（`control-plane-read-formal-ui-readiness-close-v1`）
 22. [`Control Plane Read Dev Live Consumer` v1 计划](control-plane-read-dev-live-consumer-v1-plan.md)（`control-plane-read-dev-live-consumer-v1`）
 23. [`Control Plane Read Auth/Store Transition Preconditions` v1 计划](control-plane-read-auth-store-transition-preconditions-v1-plan.md)（`control-plane-read-auth-store-transition-preconditions-v1`）
+24. [`Control Plane Read Repository Contract Preconditions` v1 计划](control-plane-read-repository-contract-preconditions-v1-plan.md)（`control-plane-read-repository-contract-preconditions-v1`）
+25. [`Control Plane Read Disabled Database Guard` v1 计划](control-plane-read-disabled-database-guard-v1-plan.md)（`control-plane-read-disabled-database-guard-v1`）
+26. [`Control Plane Read Repository Contract Smoke` v1 计划](control-plane-read-repository-contract-smoke-v1-plan.md)（`control-plane-read-repository-contract-smoke-v1`）
+27. [`Control Plane Read Repository Implementation Readiness` v1 计划](control-plane-read-repository-implementation-readiness-v1-plan.md)（`control-plane-read-repository-implementation-readiness-v1`）
+28. [`Control Plane Read Store Selection Readiness` v1 计划](control-plane-read-store-selection-readiness-v1-plan.md)（`control-plane-read-store-selection-readiness-v1`）
+29. [`Control Plane Read Schema Migration Readiness` v1 计划](control-plane-read-schema-migration-readiness-v1-plan.md)（`control-plane-read-schema-migration-readiness-v1`）
+30. [`Control Plane Read Repository Contract Types Readiness` v1 计划](control-plane-read-repository-contract-types-readiness-v1-plan.md)（`control-plane-read-repository-contract-types-readiness-v1`）
+31. [`Control Plane Read Repository Contract Types Implementation` v1 计划](control-plane-read-repository-contract-types-implementation-v1-plan.md)（`control-plane-read-repository-contract-types-implementation-v1`）
+32. [`Control Plane Read Repository Contract Smoke Runner Readiness` v1 计划](control-plane-read-repository-contract-smoke-runner-readiness-v1-plan.md)（`control-plane-read-repository-contract-smoke-runner-readiness-v1`）
+33. [`Control Plane Read Repository Contract Smoke Runner Implementation` v1 计划](control-plane-read-repository-contract-smoke-runner-implementation-v1-plan.md)（`control-plane-read-repository-contract-smoke-runner-implementation-v1`）
+34. [`Control Plane Read Repository Interface Readiness` v1 计划](control-plane-read-repository-interface-readiness-v1-plan.md)（`control-plane-read-repository-interface-readiness-v1`）
+35. [`Control Plane Read Repository Adapter Implementation Readiness Refresh` v1 计划](control-plane-read-repository-adapter-implementation-readiness-refresh-v1-plan.md)（`control-plane-read-repository-adapter-implementation-readiness-refresh-v1`）
+36. [`Control Plane Read Store Selector Enablement Preconditions` v1 计划](control-plane-read-store-selector-enablement-preconditions-v1-plan.md)（`control-plane-read-store-selector-enablement-preconditions-v1`）
+37. [`Control Plane Read Schema Migration Implementation Preconditions` v1 计划](control-plane-read-schema-migration-implementation-preconditions-v1-plan.md)（`control-plane-read-schema-migration-implementation-preconditions-v1`）
+38. [`Control Plane Read Repository Adapter Implementation Plan` v1 计划](control-plane-read-repository-adapter-implementation-plan-v1-plan.md)（`control-plane-read-repository-adapter-implementation-plan-v1`）
+39. [`Control Plane Read Schema Artifact Manifest Readiness` v1 计划](control-plane-read-schema-artifact-manifest-readiness-v1-plan.md)（`control-plane-read-schema-artifact-manifest-readiness-v1`）
+40. [`Control Plane Read Store Selector Smoke Readiness` v1 计划](control-plane-read-store-selector-smoke-readiness-v1-plan.md)（`control-plane-read-store-selector-smoke-readiness-v1`）
+41. [`Control Plane Read Production Auth Readiness` v1 计划](control-plane-read-production-auth-readiness-v1-plan.md)（`control-plane-read-production-auth-readiness-v1`）
+42. [`Control Plane Read Adapter Smoke Readiness` v1 计划](control-plane-read-adapter-smoke-readiness-v1-plan.md)（`control-plane-read-adapter-smoke-readiness-v1`）
+43. [`Control Plane Read Implementation Trigger Review` v1 计划](control-plane-read-implementation-trigger-review-v1-plan.md)（`control-plane-read-implementation-trigger-review-v1`）
+44. [`Workflow / Agent Runtime Function Surface` v1 计划](workflow-agent-runtime-function-surface-v1-plan.md)（`workflow-agent-runtime-function-surface-v1`）
+45. [`Workflow Function Surface Boundary` v1 计划](workflow-function-surface-boundary-v1-plan.md)（`workflow-function-surface-boundary-v1`）
+46. [`Workflow Definition Detail Read` v1 计划](workflow-definition-detail-read-v1-plan.md)（`workflow-definition-detail-read-v1`）
+47. [`Workflow Run Detail Read` v1 计划](workflow-run-detail-read-v1-plan.md)（`workflow-run-detail-read-v1`）
+48. [`Workflow Blocked Action Preview` v1 计划](workflow-blocked-action-preview-v1-plan.md)（`workflow-blocked-action-preview-v1`）
+49. [`Workflow Application Detail Read` v1 计划](workflow-application-detail-read-v1-plan.md)（`workflow-application-detail-read-v1`）
+50. [`Workflow Confirmation Placeholder Read` v1 计划](workflow-confirmation-placeholder-read-v1-plan.md)（`workflow-confirmation-placeholder-read-v1`）
+51. [`Workflow Draft Designer Offline` v1 计划](workflow-draft-designer-offline-v1-plan.md)（`workflow-draft-designer-offline-v1`）
+52. [`Workflow Draft Validation Inspector Offline` v1 计划](workflow-draft-validation-inspector-offline-v1-plan.md)（`workflow-draft-validation-inspector-offline-v1`）
+53. [`Workflow Execution Plan Preview Offline` v1 计划](workflow-execution-plan-preview-offline-v1-plan.md)（`workflow-execution-plan-preview-offline-v1`）
+54. [`Workflow Runtime Readiness Inspector Offline` v1 计划](workflow-runtime-readiness-inspector-offline-v1-plan.md)（`workflow-runtime-readiness-inspector-offline-v1`）
+55. [`Workflow Function Surface Readiness Close` v1 计划](workflow-function-surface-readiness-close-v1-plan.md)（`workflow-function-surface-readiness-close-v1`）
 
 ## UI 设计专题
 
@@ -91,7 +123,7 @@
 
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；任务卡不替代当前焦点、路线图和能力矩阵
+- 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；没有 Docker 运行窗口时，下一步默认回到 `Workflow / Agent Runtime Function Surface v1` 和离线 workflow 产品功能，且 `workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1`、`workflow-execution-plan-preview-offline-v1` 与 `workflow-runtime-readiness-inspector-offline-v1` 已固定 definition / run / blocked action / application detail / confirmation placeholder / offline draft designer / offline validation inspector / offline execution plan preview / runtime readiness inspector surface；`workflow-function-surface-readiness-close-v1` 已把上述离线 workflow surface 收束为 `workflow_function_surface_readiness_closed`；任务卡不替代当前焦点、路线图和能力矩阵
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”

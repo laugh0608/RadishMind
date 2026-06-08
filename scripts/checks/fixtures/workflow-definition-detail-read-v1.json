@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_definition_detail_read_v1",
+  "slice": {
+    "id": "workflow-definition-detail-read-v1",
+    "track": "Workflow / Agent Runtime Function Surface v1",
+    "status": "workflow_definition_detail_read_defined",
+    "does_not_claim": [
+      "runtime_api_implemented",
+      "production_api_consumer_ready",
+      "workflow_builder_ready",
+      "workflow_definition_mutation_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "durable_run_store_ready",
+      "materialized_result_reader_ready",
+      "confirmation_flow_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "database_ready",
+      "radish_oidc_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-function-surface-boundary-v1",
+    "control-plane-read-workspace-workflow-definitions-v1",
+    "control-plane-read-formal-ui-readiness-close-v1"
+  ],
+  "page": {
+    "id": "workflow-definition-detail-read",
+    "source_page_id": "workspace-workflow-definitions",
+    "source_route_id": "workflow-definition-summary-list-route",
+    "draft_route_id": "workflow-definition-detail-read-draft",
+    "status": "offline_read_only_detail_surface",
+    "default_workflow_definition_id": "wf_radishflow_copilot_latest",
+    "app_root": "apps/radishmind-web/",
+    "live_detail_route_allowed_now": false,
+    "runtime_api_allowed_now": false
+  },
+  "implemented_capabilities": [
+    "workflow_definition_detail_view_model",
+    "offline_fixture_detail_surface",
+    "workflow_definition_node_list_display",
+    "workflow_definition_edge_list_display",
+    "input_output_summary_display",
+    "blocked_action_preview_display",
+    "route_request_audit_metadata_display",
+    "forbidden_output_guard_reused",
+    "no_live_detail_backend_request",
+    "no_builder_or_execution_controls"
+  ],
+  "required_view_model_fields": [
+    "workflowDefinitionId",
+    "applicationRef",
+    "version",
+    "definitionStatus",
+    "nodes",
+    "edges",
+    "inputSummary",
+    "outputSummary",
+    "riskLevel",
+    "requiresConfirmationCapable",
+    "blockedActionPreview",
+    "routePath",
+    "requestId",
+    "auditRef",
+    "canRenderDefinitionDetail",
+    "canRequestLiveBackend",
+    "canMutate",
+    "canEditWorkflow",
+    "canRunWorkflow",
+    "canConfirmWorkflowAction",
+    "canWriteBusinessTruth",
+    "canReplayRun"
+  ],
+  "required_node_types": [
+    "prompt",
+    "llm",
+    "http_tool",
+    "condition",
+    "output"
+  ],
+  "blocked_action_policy": {
+    "required_fields": [
+      "toolActionId",
+      "toolRef",
+      "actionKind",
+      "riskLevel",
+      "requiresConfirmation",
+      "policyReason",
+      "blockedState",
+      "auditRef"
+    ],
+    "default_blocked_state": "blocked_executor_not_available",
+    "requires_confirmation": true,
+    "execution_allowed_now": false,
+    "confirmation_decision_allowed_now": false,
+    "business_writeback_allowed_now": false
+  },
+  "required_files": [
+    "apps/radishmind-web/src/features/control-plane-read/workflowDefinitionDetail.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workspaceWorkflowDefinitions.ts",
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/styles.css"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "canRequestLiveBackend: true",
+    "canMutate: true",
+    "canEditWorkflow: true",
+    "canRunWorkflow: true",
+    "canConfirmWorkflowAction: true",
+    "canWriteBusinessTruth: true",
+    "canReplayRun: true",
+    "execute_workflow",
+    "edit_workflow",
+    "confirm_workflow_action",
+    "SubmitConfirmationDecision",
+    "ExecuteWorkflow",
+    "ReplayWorkflowRun",
+    "WriteBusinessTruthCommand"
+  ],
+  "stop_lines": [
+    "no new runtime API",
+    "no live detail backend request",
+    "no workflow builder",
+    "no workflow definition mutation",
+    "no workflow executor",
+    "no node executor",
+    "no tool executor",
+    "no confirmation decision",
+    "no business writeback",
+    "no replay or resume",
+    "no durable run store",
+    "no materialized result reader",
+    "no database or production auth implementation",
+    "no production readiness claim"
+  ],
+  "testing_strategy": [
+    {
+      "id": "workflow_definition_detail_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-definition-detail-read-v1.py"
+    },
+    {
+      "id": "workflow_function_surface_boundary_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-function-surface-boundary-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo.sh --fast; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "required_doc_references": {
+    "docs/task-cards/workflow-definition-detail-read-v1-plan.md": [
+      "workflow-definition-detail-read-v1",
+      "workflow_definition_detail_read_defined",
+      "nodes",
+      "edges",
+      "blocked action preview"
+    ],
+    "docs/task-cards/README.md": [
+      "workflow-definition-detail-read-v1",
+      "Workflow Definition Detail Read"
+    ],
+    "scripts/README.md": [
+      "check-workflow-definition-detail-read-v1.py",
+      "workflow-definition-detail-read-v1.json"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-definition-detail-read-v1",
+      "workflow_definition_detail_read_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "workflow-definition-detail-read-v1",
+      "workflow_definition_detail_read_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "workflow-definition-detail-read-v1",
+      "workflow_definition_detail_read_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "workflow-definition-detail-read-v1",
+      "workflow_definition_detail_read_defined"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "workflow-definition-detail-read-v1",
+      "workflow_definition_detail_read_defined"
+    ]
+  }
+}

@@ -1,0 +1,433 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_function_surface_boundary_v1",
+  "slice": {
+    "id": "workflow-function-surface-boundary-v1",
+    "track": "Workflow / Agent Runtime Function Surface v1",
+    "status": "function_surface_boundary_defined",
+    "does_not_claim": [
+      "runtime_api_implemented",
+      "production_api_consumer_ready",
+      "workflow_builder_ready",
+      "workflow_definition_mutation_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "durable_run_store_ready",
+      "materialized_result_reader_ready",
+      "confirmation_flow_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "database_ready",
+      "radish_oidc_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-definition-run-record-boundary",
+    "control-plane-read-formal-ui-readiness-close-v1",
+    "control-plane-read-implementation-trigger-review-v1"
+  ],
+  "boundary_scope": {
+    "status": "field_boundary_only_no_runtime_implementation",
+    "purpose": "Define the application detail, workflow definition detail, run detail, tool action preview and confirmation placeholder surfaces that can be implemented later as read-only or blocked views.",
+    "offline_fixture_allowed_now": true,
+    "future_fake_store_dev_path_allowed": true,
+    "runtime_api_allowed_now": false,
+    "production_api_consumer_allowed_now": false,
+    "write_allowed_now": false,
+    "executor_allowed_now": false,
+    "confirmation_decision_allowed_now": false,
+    "business_writeback_allowed_now": false,
+    "replay_allowed_now": false
+  },
+  "function_surfaces": [
+    {
+      "id": "application-detail",
+      "status": "read_only_surface_defined",
+      "source_policy": "offline_fixture_or_future_fake_store_dev_path_only",
+      "required_fields": [
+        "application_id",
+        "tenant_ref",
+        "owner_subject_ref",
+        "application_type",
+        "display_name",
+        "lifecycle_status",
+        "provider_profile_ref",
+        "risk_summary",
+        "latest_run_ref",
+        "route_ref",
+        "audit_ref"
+      ],
+      "display_expectations": [
+        "application identity",
+        "provider profile summary",
+        "risk summary",
+        "latest run pointer",
+        "read-only route and audit reference"
+      ],
+      "capabilities": {
+        "can_read": true,
+        "can_mutate": false,
+        "can_execute": false,
+        "can_write_business_truth": false,
+        "can_replay": false,
+        "can_decide_confirmation": false
+      },
+      "boundary": "Application detail is a read-only product surface; this slice does not create, edit, delete or publish applications."
+    },
+    {
+      "id": "workflow-definition-detail",
+      "status": "read_only_surface_defined",
+      "source_policy": "offline_fixture_or_future_fake_store_dev_path_only",
+      "required_fields": [
+        "workflow_definition_id",
+        "tenant_ref",
+        "application_ref",
+        "version",
+        "definition_status",
+        "nodes",
+        "edges",
+        "input_schema_summary",
+        "output_schema_summary",
+        "risk_level",
+        "requires_confirmation_capable",
+        "route_ref",
+        "audit_ref"
+      ],
+      "display_expectations": [
+        "node list",
+        "edge summary",
+        "input and output summaries",
+        "risk level",
+        "requires confirmation capability",
+        "read-only route and audit reference"
+      ],
+      "capabilities": {
+        "can_read": true,
+        "can_mutate": false,
+        "can_execute": false,
+        "can_write_business_truth": false,
+        "can_replay": false,
+        "can_decide_confirmation": false
+      },
+      "boundary": "Workflow definition detail may explain structure and risk; this slice does not provide a builder, node editor, version publisher or executor."
+    },
+    {
+      "id": "run-detail",
+      "status": "read_only_surface_defined",
+      "source_policy": "offline_fixture_or_future_fake_store_dev_path_only",
+      "required_fields": [
+        "run_id",
+        "tenant_ref",
+        "workflow_definition_ref",
+        "application_ref",
+        "status",
+        "state_timeline",
+        "input_summary",
+        "output_summary",
+        "cost_summary",
+        "token_summary",
+        "trace_id",
+        "failure_code",
+        "audit_refs"
+      ],
+      "display_expectations": [
+        "state timeline",
+        "input and output summaries",
+        "cost and token snapshot",
+        "trace id",
+        "failure code",
+        "audit references"
+      ],
+      "capabilities": {
+        "can_read": true,
+        "can_mutate": false,
+        "can_execute": false,
+        "can_write_business_truth": false,
+        "can_replay": false,
+        "can_decide_confirmation": false
+      },
+      "boundary": "Run detail may explain audited run state; this slice does not provide replay, resume, durable run storage or materialized result reads."
+    },
+    {
+      "id": "tool-action-preview",
+      "status": "blocked_preview_surface_defined",
+      "source_policy": "offline_fixture_or_future_fake_store_dev_path_only",
+      "required_fields": [
+        "tool_action_id",
+        "run_id",
+        "node_execution_ref",
+        "tool_ref",
+        "action_kind",
+        "risk_level",
+        "requires_confirmation",
+        "policy_reason",
+        "blocked_state",
+        "audit_ref"
+      ],
+      "display_expectations": [
+        "candidate tool action",
+        "risk level",
+        "requires confirmation flag",
+        "policy reason",
+        "blocked state",
+        "audit reference"
+      ],
+      "capabilities": {
+        "can_read": true,
+        "can_mutate": false,
+        "can_execute": false,
+        "can_write_business_truth": false,
+        "can_replay": false,
+        "can_decide_confirmation": false
+      },
+      "boundary": "Tool action preview can explain why an action is blocked; this slice does not execute tools or write upstream business truth."
+    },
+    {
+      "id": "confirmation-placeholder",
+      "status": "placeholder_surface_defined",
+      "source_policy": "offline_fixture_or_future_fake_store_dev_path_only",
+      "required_fields": [
+        "confirmation_placeholder_id",
+        "required_action_ref",
+        "run_id",
+        "risk_summary",
+        "required_decision_shape",
+        "human_review_required",
+        "disabled_reason",
+        "audit_ref"
+      ],
+      "display_expectations": [
+        "future confirmation decision shape",
+        "risk summary",
+        "human review requirement",
+        "disabled reason",
+        "audit reference"
+      ],
+      "capabilities": {
+        "can_read": true,
+        "can_mutate": false,
+        "can_execute": false,
+        "can_write_business_truth": false,
+        "can_replay": false,
+        "can_decide_confirmation": false
+      },
+      "boundary": "Confirmation placeholder only previews future decision data; this slice does not submit, persist or unlock confirmation decisions."
+    }
+  ],
+  "draft_route_matrix": [
+    {
+      "surface_id": "application-detail",
+      "draft_route_id": "application-detail-read-draft",
+      "method": "GET",
+      "path_template": "/v1/user-workspace/applications/{application_id}",
+      "contract_status": "draft_only_no_api",
+      "implemented_now": false
+    },
+    {
+      "surface_id": "workflow-definition-detail",
+      "draft_route_id": "workflow-definition-detail-read-draft",
+      "method": "GET",
+      "path_template": "/v1/user-workspace/workflow-definitions/{workflow_definition_id}",
+      "contract_status": "draft_only_no_api",
+      "implemented_now": false
+    },
+    {
+      "surface_id": "run-detail",
+      "draft_route_id": "run-detail-read-draft",
+      "method": "GET",
+      "path_template": "/v1/user-workspace/runs/{run_id}",
+      "contract_status": "draft_only_no_api",
+      "implemented_now": false
+    },
+    {
+      "surface_id": "tool-action-preview",
+      "draft_route_id": "tool-action-preview-read-draft",
+      "method": "GET",
+      "path_template": "/v1/user-workspace/runs/{run_id}/tool-actions/{tool_action_id}/preview",
+      "contract_status": "draft_only_no_api",
+      "implemented_now": false
+    },
+    {
+      "surface_id": "confirmation-placeholder",
+      "draft_route_id": "confirmation-placeholder-read-draft",
+      "method": "GET",
+      "path_template": "/v1/user-workspace/runs/{run_id}/confirmations/{confirmation_placeholder_id}",
+      "contract_status": "draft_only_no_api",
+      "implemented_now": false
+    }
+  ],
+  "risk_and_blocked_policy": {
+    "allowed_risk_levels": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "blocked_states": [
+      "blocked_read_only_boundary",
+      "blocked_confirmation_required",
+      "blocked_executor_not_available",
+      "blocked_writeback_forbidden"
+    ],
+    "tool_action_preview_default_state": "blocked_executor_not_available",
+    "confirmation_placeholder_default_state": "blocked_confirmation_required",
+    "requires_confirmation_must_be_visible": true,
+    "policy_reason_must_be_visible": true
+  },
+  "next_slice_candidates": [
+    {
+      "id": "workflow-definition-detail-read-v1",
+      "allowed_source": "offline_fixture_or_fake_store_dev_path",
+      "allowed_scope": "read-only detail view",
+      "forbidden_scope": "builder mutation, executor, confirmation, writeback, replay"
+    },
+    {
+      "id": "workflow-run-detail-read-v1",
+      "allowed_source": "offline_fixture_or_fake_store_dev_path",
+      "allowed_scope": "read-only run detail view",
+      "forbidden_scope": "replay, resume, materialized result reader, durable run store"
+    },
+    {
+      "id": "workflow-blocked-action-preview-v1",
+      "allowed_source": "offline_fixture_or_fake_store_dev_path",
+      "allowed_scope": "blocked action explanation",
+      "forbidden_scope": "tool execution, confirmation decision, business writeback"
+    }
+  ],
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/platform/internal/workflow/executor.go",
+      "reason": "workflow executor is outside this boundary slice",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_execution.go",
+      "reason": "runtime execution API is outside this boundary slice",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_definition_mutation.go",
+      "reason": "workflow builder or definition mutation is outside this boundary slice",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_confirmation_decision.go",
+      "reason": "confirmation decision submission is outside this boundary slice",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_replay.go",
+      "reason": "run replay is outside this boundary slice",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_writeback.go",
+      "reason": "business writeback is outside this boundary slice",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_durable_run_store.go",
+      "reason": "durable run store is outside this boundary slice",
+      "created_in_this_slice": false
+    }
+  ],
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "runtime_api_added_count=0",
+      "executor_call_count=0",
+      "tool_execution_count=0",
+      "confirmation_decision_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0",
+      "database_write_count=0"
+    ],
+    "forbidden_side_effects": [
+      "workflow_execution",
+      "node_execution",
+      "tool_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "run_replay",
+      "run_resume",
+      "database_write",
+      "secret_write"
+    ]
+  },
+  "source_absent_literals": [
+    "type WorkflowExecutor interface",
+    "func ExecuteWorkflow",
+    "func ReplayWorkflowRun",
+    "func SubmitConfirmationDecision",
+    "func WriteBusinessTruth",
+    "canExecuteWorkflow: true",
+    "canMutate: true",
+    "canWriteBusinessTruth: true",
+    "workflow_executor_ready"
+  ],
+  "stop_lines": [
+    "no new runtime API",
+    "no workflow builder",
+    "no workflow definition mutation",
+    "no workflow executor",
+    "no node executor",
+    "no tool executor",
+    "no confirmation decision",
+    "no business writeback",
+    "no replay or resume",
+    "no durable run store",
+    "no materialized result reader",
+    "no database or production auth implementation",
+    "no production readiness claim"
+  ],
+  "evidence": [
+    "docs/task-cards/workflow-function-surface-boundary-v1-plan.md",
+    "scripts/checks/fixtures/workflow-function-surface-boundary-v1.json",
+    "scripts/checks/control_plane/check-workflow-function-surface-boundary-v1.py"
+  ],
+  "required_doc_references": {
+    "docs/task-cards/workflow-function-surface-boundary-v1-plan.md": [
+      "workflow-function-surface-boundary-v1",
+      "application detail",
+      "workflow definition detail",
+      "run detail",
+      "tool action preview",
+      "confirmation placeholder",
+      "function_surface_boundary_defined"
+    ],
+    "docs/task-cards/workflow-agent-runtime-function-surface-v1-plan.md": [
+      "workflow-function-surface-boundary-v1",
+      "function_surface_boundary_defined"
+    ],
+    "docs/task-cards/README.md": [
+      "workflow-function-surface-boundary-v1",
+      "Workflow Function Surface Boundary"
+    ],
+    "scripts/README.md": [
+      "check-workflow-function-surface-boundary-v1.py",
+      "workflow-function-surface-boundary-v1.json"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-function-surface-boundary-v1",
+      "function_surface_boundary_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "workflow-function-surface-boundary-v1",
+      "function_surface_boundary_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "workflow-function-surface-boundary-v1",
+      "function_surface_boundary_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "workflow-function-surface-boundary-v1",
+      "function_surface_boundary_defined"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "workflow-function-surface-boundary-v1",
+      "function_surface_boundary_defined"
+    ]
+  }
+}

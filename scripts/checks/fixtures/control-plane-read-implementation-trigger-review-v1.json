@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_implementation_trigger_review_v1",
+  "slice": {
+    "id": "control-plane-read-implementation-trigger-review-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "implementation_trigger_review_defined",
+    "does_not_claim": [
+      "implementation_trigger_satisfied",
+      "schema_artifact_implementation_ready",
+      "schema_artifact_manifest_ready",
+      "store_selector_implementation_ready",
+      "store_selector_smoke_ready",
+      "production_auth_implementation_ready",
+      "production_auth_ready",
+      "adapter_smoke_ready",
+      "repository_interface_ready",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "migration_manifest_created",
+      "store_selector_implemented",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-adapter-smoke-readiness-v1",
+    "control-plane-read-schema-artifact-manifest-readiness-v1",
+    "control-plane-read-store-selector-smoke-readiness-v1",
+    "control-plane-read-production-auth-readiness-v1",
+    "control-plane-read-repository-adapter-implementation-plan-v1"
+  ],
+  "trigger_review_boundary": {
+    "status": "implementation_trigger_review_defined_no_implementation",
+    "decision": "no_read_side_implementation_trigger_satisfied",
+    "purpose": "Review whether read-side schema artifact, selector, production auth or adapter smoke can move from readiness gates into implementation, without creating implementation artifacts.",
+    "implementation_task_card_allowed_now": false,
+    "direct_runtime_implementation_allowed_now": false,
+    "schema_artifact_files_allowed_now": false,
+    "selector_files_allowed_now": false,
+    "production_auth_files_allowed_now": false,
+    "adapter_smoke_files_allowed_now": false,
+    "repository_adapter_files_allowed_now": false,
+    "database_connection_allowed_now": false,
+    "write_allowed_now": false
+  },
+  "implementation_trigger_matrix": [
+    {
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "source": "control-plane-read-schema-artifact-manifest-readiness-v1",
+      "source_status": "schema_artifact_manifest_readiness_defined",
+      "decision": "not_satisfied",
+      "required_before_task_card": [
+        "DDL review evidence gate satisfied",
+        "rollback fixture evidence gate satisfied",
+        "schema version smoke evidence gate satisfied",
+        "tenant index smoke evidence gate satisfied",
+        "read-only role smoke evidence gate satisfied",
+        "durable adapter smoke dependency gate satisfied"
+      ],
+      "current_blockers": [
+        "ddl_review_evidence_gate",
+        "rollback_fixture_evidence_gate",
+        "schema_version_smoke_evidence_gate",
+        "tenant_index_smoke_evidence_gate",
+        "read_only_role_smoke_evidence_gate",
+        "durable_adapter_smoke_dependency_gate"
+      ],
+      "implementation_task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false
+    },
+    {
+      "candidate_id": "store_selector_smoke_implementation",
+      "source": "control-plane-read-store-selector-smoke-readiness-v1",
+      "source_status": "store_selector_smoke_readiness_defined",
+      "decision": "not_satisfied",
+      "required_before_task_card": [
+        "selector config entry gate satisfied",
+        "selector code gate satisfied",
+        "fixture default smoke gate satisfied",
+        "reserved mode fail-closed smoke gate satisfied",
+        "unknown mode fail-closed smoke gate satisfied",
+        "durable mode enablement gate satisfied"
+      ],
+      "current_blockers": [
+        "selector_config_entry_gate",
+        "selector_code_gate",
+        "fixture_default_smoke_gate",
+        "reserved_mode_fail_closed_smoke_gate",
+        "unknown_mode_fail_closed_smoke_gate",
+        "durable_mode_enablement_gate"
+      ],
+      "implementation_task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false
+    },
+    {
+      "candidate_id": "production_auth_implementation",
+      "source": "control-plane-read-production-auth-readiness-v1",
+      "source_status": "production_auth_readiness_defined",
+      "decision": "not_satisfied",
+      "required_before_task_card": [
+        "production auth smoke gate satisfied",
+        "auth middleware implementation gate satisfied",
+        "production API consumer gate satisfied"
+      ],
+      "current_blockers": [
+        "production_auth_smoke_gate",
+        "auth_middleware_implementation_gate",
+        "production_api_consumer_gate"
+      ],
+      "implementation_task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false
+    },
+    {
+      "candidate_id": "adapter_smoke_execution",
+      "source": "control-plane-read-adapter-smoke-readiness-v1",
+      "source_status": "adapter_smoke_readiness_defined",
+      "decision": "not_satisfied",
+      "required_before_task_card": [
+        "schema artifact manifest gate satisfied",
+        "store selector smoke gate satisfied",
+        "production auth gate satisfied",
+        "repository adapter implementation gate satisfied",
+        "adapter smoke execution gate satisfied",
+        "production API consumer gate satisfied"
+      ],
+      "current_blockers": [
+        "schema_artifact_manifest_gate",
+        "store_selector_smoke_gate",
+        "production_auth_gate",
+        "repository_adapter_implementation_gate",
+        "adapter_smoke_execution_gate",
+        "production_api_consumer_gate"
+      ],
+      "implementation_task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false
+    }
+  ],
+  "review_order": [
+    {
+      "step": 1,
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "reason": "Schema artifacts are the earliest durable-store evidence, but current evidence is readiness-only."
+    },
+    {
+      "step": 2,
+      "candidate_id": "store_selector_smoke_implementation",
+      "reason": "Selector smoke must not be implemented before schema and reserved-mode evidence are concrete."
+    },
+    {
+      "step": 3,
+      "candidate_id": "production_auth_implementation",
+      "reason": "Production auth must not move beyond readiness until issuer evidence, token validation contract and route smoke are concrete."
+    },
+    {
+      "step": 4,
+      "candidate_id": "adapter_smoke_execution",
+      "reason": "Adapter smoke is last because it depends on schema, selector, production auth, static runner and adapter implementation evidence."
+    }
+  ],
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/platform/migrations/control_plane_read/manifest.json",
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_store_selector.go",
+      "candidate_id": "store_selector_smoke_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/radish-oidc-token-validation.schema.json",
+      "candidate_id": "production_auth_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_auth_middleware.go",
+      "candidate_id": "production_auth_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/fixtures/control-plane-read-adapter-smoke-v1.json",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-control-plane-read-adapter-smoke-v1.py",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_repository_interface.go",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_repository_adapter.go",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    }
+  ],
+  "no_fake_fallback_policy": {
+    "missing_trigger_success_allowed": false,
+    "readiness_only_promoted_to_implementation_allowed": false,
+    "schema_readiness_promoted_to_manifest_allowed": false,
+    "selector_readiness_promoted_to_selector_allowed": false,
+    "auth_readiness_promoted_to_middleware_allowed": false,
+    "adapter_smoke_readiness_promoted_to_execution_allowed": false,
+    "repository_mode_fallback_to_fixture_fake_store_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "source_absent_literals": [
+    "control_plane_read_repository_interface.go",
+    "control_plane_read_repository_adapter.go",
+    "control_plane_read_store_selector.go",
+    "control_plane_read_auth_middleware.go",
+    "control-plane-read-adapter-smoke-v1.json",
+    "check-control-plane-read-adapter-smoke-v1.py",
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "RADISHMIND_CONTROL_PLANE_READ_STORE",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "oidc.Provider",
+    "github.com/coreos/go-oidc",
+    "ValidateToken",
+    "VerifyToken",
+    "NewRadishOIDCClient"
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation trigger review"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation_trigger_review_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation_trigger_review_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation_trigger_review_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation trigger review"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "Control Plane Read Implementation Trigger Review"
+    ],
+    "docs/task-cards/control-plane-read-implementation-trigger-review-v1-plan.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation_trigger_review_defined"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-implementation-trigger-review-v1.py",
+      "control-plane-read-implementation-trigger-review-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation_trigger_review_defined"
+    ],
+    "docs/devlogs/2026-W23.md": [
+      "control-plane-read-implementation-trigger-review-v1",
+      "implementation_trigger_review_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/control-plane-read-implementation-trigger-review-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-implementation-trigger-review-v1.json",
+    "scripts/checks/control_plane/check-control-plane-read-implementation-trigger-review-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "docs/devlogs/2026-W23.md"
+  ]
+}
