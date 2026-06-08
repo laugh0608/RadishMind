@@ -288,6 +288,10 @@ h4 {
 .workflow-runtime-readiness-prerequisite,
 .workflow-runtime-readiness-blocker,
 .workflow-runtime-readiness-gate,
+.workflow-surface-overview-card,
+.workflow-surface-overview-relation,
+.workflow-surface-overview-blocked-capability,
+.workflow-surface-overview-stopline,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -371,6 +375,10 @@ h4 {
 .workflow-runtime-readiness-prerequisite-grid,
 .workflow-runtime-readiness-blocker-grid,
 .workflow-runtime-readiness-gate-grid,
+.workflow-surface-overview-summary-grid,
+.workflow-surface-overview-relation-grid,
+.workflow-surface-overview-blocked-grid,
+.workflow-surface-overview-stopline-grid,
 .run-history-metrics,
 .workflow-run-detail-summary-grid,
 .workflow-run-timeline,
@@ -445,6 +453,10 @@ h4 {
 .workflow-runtime-readiness-prerequisite,
 .workflow-runtime-readiness-blocker,
 .workflow-runtime-readiness-gate,
+.workflow-surface-overview-card,
+.workflow-surface-overview-relation,
+.workflow-surface-overview-blocked-capability,
+.workflow-surface-overview-stopline,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -477,6 +489,7 @@ h4 {
 .workflow-draft-validation-card span,
 .workflow-execution-plan-card span,
 .workflow-runtime-readiness-card span,
+.workflow-surface-overview-card span,
 .run-history-metric span,
 .workflow-run-detail-card span,
 .workflow-blocked-action-card span,
@@ -517,6 +530,7 @@ h4 {
 .workflow-draft-validation-card strong,
 .workflow-execution-plan-card strong,
 .workflow-runtime-readiness-card strong,
+.workflow-surface-overview-card strong,
 .run-history-metric strong,
 .workflow-run-detail-card strong,
 .workflow-blocked-action-card strong,
@@ -562,6 +576,10 @@ h4 {
 .workflow-runtime-readiness-prerequisite p,
 .workflow-runtime-readiness-blocker p,
 .workflow-runtime-readiness-gate p,
+.workflow-surface-overview-card p,
+.workflow-surface-overview-relation p,
+.workflow-surface-overview-blocked-capability p,
+.workflow-surface-overview-stopline p,
 .run-history-metric p,
 .workflow-run-detail-card p,
 .workflow-run-timeline-event p,
@@ -635,6 +653,11 @@ h4 {
   padding: 16px 0 4px;
 }
 
+.workflow-surface-overview {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .workflow-run-detail {
   display: grid;
   gap: 12px;
@@ -685,6 +708,10 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.workflow-surface-overview-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .workflow-confirmation-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -701,9 +728,15 @@ h4 {
 .workflow-execution-plan-blocked-grid,
 .workflow-runtime-readiness-blocker-grid,
 .workflow-runtime-readiness-gate-grid,
+.workflow-surface-overview-relation-grid,
+.workflow-surface-overview-stopline-grid,
 .workflow-confirmation-field-grid,
 .workflow-confirmation-prerequisite-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-surface-overview-blocked-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .workflow-execution-plan-stage-grid {
@@ -779,6 +812,13 @@ h4 {
   align-items: flex-start;
 }
 
+.workflow-surface-overview-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
 .workflow-run-audit-list {
   display: flex;
   flex-wrap: wrap;
@@ -828,6 +868,7 @@ h4 {
 .workflow-draft-validation-row-main h5,
 .workflow-execution-plan-row-main h5,
 .workflow-runtime-readiness-row-main h5,
+.workflow-surface-overview-row-main h5,
 .workflow-run-detail-row-main h5,
 .workflow-blocked-row-main h5,
 .workflow-confirmation-row-main h5 {
@@ -1226,6 +1267,10 @@ dd {
   .workflow-runtime-readiness-prerequisite-grid,
   .workflow-runtime-readiness-blocker-grid,
   .workflow-runtime-readiness-gate-grid,
+  .workflow-surface-overview-summary-grid,
+  .workflow-surface-overview-relation-grid,
+  .workflow-surface-overview-blocked-grid,
+  .workflow-surface-overview-stopline-grid,
   .run-history-metrics,
   .workflow-run-detail-summary-grid,
   .workflow-run-timeline,

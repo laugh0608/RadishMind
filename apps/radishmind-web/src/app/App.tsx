@@ -100,6 +100,15 @@ import {
   type WorkflowRuntimeReadinessSummary,
 } from "../features/control-plane-read/workflowRuntimeReadinessInspector";
 import {
+  buildWorkflowSurfaceOverviewViewModel,
+  type WorkflowSurfaceOverviewBlockedCapability,
+  type WorkflowSurfaceOverviewMetric,
+  type WorkflowSurfaceOverviewRelation,
+  type WorkflowSurfaceOverviewStatus,
+  type WorkflowSurfaceOverviewStopLine,
+  type WorkflowSurfaceOverviewViewModel,
+} from "../features/control-plane-read/workflowSurfaceOverview";
+import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
   type WorkspaceRunHistoryStatePreview,
@@ -268,6 +277,27 @@ export function App() {
     () => buildWorkflowRuntimeReadinessInspectorViewModel(workflowExecutionPlanPreview),
     [workflowExecutionPlanPreview],
   );
+  const workflowSurfaceOverview = useMemo(
+    () =>
+      buildWorkflowSurfaceOverviewViewModel({
+        applicationDetail: workflowApplicationDetail,
+        definitionDetail: workflowDefinitionDetail,
+        runDetail: workflowRunDetail,
+        selectedDraft: selectedWorkflowDraft,
+        validationInspector: workflowDraftValidationInspector,
+        executionPlanPreview: workflowExecutionPlanPreview,
+        runtimeReadinessInspector: workflowRuntimeReadinessInspector,
+      }),
+    [
+      workflowApplicationDetail,
+      workflowDefinitionDetail,
+      workflowRunDetail,
+      selectedWorkflowDraft,
+      workflowDraftValidationInspector,
+      workflowExecutionPlanPreview,
+      workflowRuntimeReadinessInspector,
+    ],
+  );
 
   return (
     <main className="product-shell">
@@ -282,6 +312,7 @@ export function App() {
           <a href="#admin-audit-log">Audit Log</a>
           <a href="#workspace-applications">Applications</a>
           <a href="#workflow-application-detail">Application Detail</a>
+          <a href="#workflow-surface-overview">Workflow Overview</a>
           <a href="#workspace-api-keys">API Keys</a>
           <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#workspace-workflow-definitions">Workflows</a>
@@ -352,10 +383,15 @@ export function App() {
               label="Runtime"
               value={workflowRuntimeReadinessInspector.canRenderRuntimeReadinessInspector ? "blocked" : "missing"}
             />
+            <Fact
+              label="Overview"
+              value={workflowSurfaceOverview.canRenderSurfaceOverview ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
+        <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
 
         <section
           className="surface-band tenant-overview"
@@ -879,6 +915,186 @@ export function App() {
       </section>
     </main>
   );
+}
+
+function WorkflowSurfaceOverviewPanel({ overview }: { overview: WorkflowSurfaceOverviewViewModel }) {
+  return (
+    <section
+      className="surface-band workflow-surface-overview"
+      id="workflow-surface-overview"
+      aria-labelledby="workflow-surface-overview-title"
+    >
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Workflow Surface Overview</p>
+          <h3 id="workflow-surface-overview-title">Application, draft, plan, readiness</h3>
+        </div>
+        <StatusBadge tone={overview.canRenderSurfaceOverview ? "neutral" : "bad"}>
+          {overview.canRenderSurfaceOverview ? "offline advisory" : "blocked"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-surface-overview-summary-grid" aria-label="Workflow surface overview summary">
+        {overview.summary.map((metric) => (
+          <WorkflowSurfaceOverviewMetricCard key={metric.metricId} metric={metric} />
+        ))}
+      </div>
+
+      <article className="workflow-surface-overview-card">
+        <div className="workflow-surface-overview-row-main">
+          <div>
+            <p className="eyebrow">{overview.overviewMode}</p>
+            <h5>{overview.applicationId}</h5>
+          </div>
+          <StatusBadge tone="neutral">inspect only</StatusBadge>
+        </div>
+        <dl className="workflow-run-guard-meta">
+          <div>
+            <dt>Workflow definition</dt>
+            <dd>{overview.workflowDefinitionId}</dd>
+          </div>
+          <div>
+            <dt>Selected draft</dt>
+            <dd>{overview.selectedDraftId}</dd>
+          </div>
+          <div>
+            <dt>Latest run</dt>
+            <dd>{overview.latestRunId}</dd>
+          </div>
+          <div>
+            <dt>Request</dt>
+            <dd>{overview.requestId}</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>{overview.auditRef}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <div className="workflow-surface-overview-relation-grid" aria-label="Workflow surface overview relationship map">
+        {overview.relationMap.map((relation) => (
+          <WorkflowSurfaceOverviewRelationCard key={relation.relationId} relation={relation} />
+        ))}
+      </div>
+
+      <div
+        className="workflow-surface-overview-blocked-grid"
+        aria-label="Workflow surface overview blocked capabilities"
+      >
+        {overview.blockedCapabilities.map((capability) => (
+          <WorkflowSurfaceOverviewBlockedCapabilityCard
+            key={capability.capabilityId}
+            capability={capability}
+          />
+        ))}
+      </div>
+
+      <div className="workflow-surface-overview-stopline-grid" aria-label="Workflow surface overview stop lines">
+        {overview.stopLines.map((stopLine) => (
+          <WorkflowSurfaceOverviewStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function WorkflowSurfaceOverviewMetricCard({ metric }: { metric: WorkflowSurfaceOverviewMetric }) {
+  return (
+    <article className="workflow-surface-overview-card">
+      <span>{metric.label}</span>
+      <strong>{metric.value}</strong>
+      <StatusBadge tone={workflowSurfaceOverviewTone(metric.status)}>{metric.status}</StatusBadge>
+      <p>{metric.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowSurfaceOverviewRelationCard({ relation }: { relation: WorkflowSurfaceOverviewRelation }) {
+  return (
+    <article className="workflow-surface-overview-relation">
+      <div className="workflow-surface-overview-row-main">
+        <div>
+          <p className="eyebrow">{relation.relationId}</p>
+          <h5>{relation.label}</h5>
+        </div>
+        <StatusBadge tone={workflowSurfaceOverviewTone(relation.status)}>{relation.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Source</dt>
+          <dd>{relation.sourceRef}</dd>
+        </div>
+        <div>
+          <dt>Target</dt>
+          <dd>{relation.targetRef}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{relation.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{relation.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowSurfaceOverviewBlockedCapabilityCard({
+  capability,
+}: {
+  capability: WorkflowSurfaceOverviewBlockedCapability;
+}) {
+  return (
+    <article className="workflow-surface-overview-blocked-capability">
+      <div className="workflow-surface-overview-row-main">
+        <div>
+          <p className="eyebrow">{capability.sourceSurface}</p>
+          <h5>{capability.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{capability.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Capability</dt>
+          <dd>{capability.capabilityId}</dd>
+        </div>
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{capability.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{capability.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{capability.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowSurfaceOverviewStopLineCard({ stopLine }: { stopLine: WorkflowSurfaceOverviewStopLine }) {
+  return (
+    <article className="workflow-surface-overview-stopline">
+      <div className="workflow-surface-overview-row-main">
+        <div>
+          <p className="eyebrow">{stopLine.stopLineId}</p>
+          <h5>{stopLine.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{stopLine.status}</StatusBadge>
+      </div>
+      <p>{stopLine.summary}</p>
+    </article>
+  );
+}
+
+function workflowSurfaceOverviewTone(status: WorkflowSurfaceOverviewStatus): "good" | "bad" | "neutral" {
+  if (status === "blocked") {
+    return "bad";
+  }
+  if (status === "ready") {
+    return "good";
+  }
+  return "neutral";
 }
 
 function AuditLogMetric({ metric }: { metric: AdminAuditLogMetric }) {
