@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_execution_plan_preview_offline_v1",
+  "slice": {
+    "id": "workflow-execution-plan-preview-offline-v1",
+    "track": "Workflow / Agent Runtime Function Surface v1",
+    "status": "workflow_execution_plan_preview_offline_defined",
+    "does_not_claim": [
+      "runtime_api_implemented",
+      "production_api_consumer_ready",
+      "workflow_builder_ready",
+      "workflow_execution_plan_persistence_ready",
+      "workflow_draft_persistence_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "confirmation_flow_ready",
+      "confirmation_decision_ready",
+      "confirmation_decision_store_ready",
+      "execution_unlock_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "durable_run_store_ready",
+      "durable_result_store_ready",
+      "materialized_result_reader_ready",
+      "database_ready",
+      "radish_oidc_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-function-surface-boundary-v1",
+    "workflow-draft-designer-offline-v1",
+    "workflow-draft-validation-inspector-offline-v1",
+    "workflow-definition-detail-read-v1",
+    "workflow-run-detail-read-v1",
+    "workflow-blocked-action-preview-v1",
+    "workflow-confirmation-placeholder-read-v1"
+  ],
+  "page": {
+    "id": "workflow-execution-plan-preview-offline",
+    "source_page_id": "workflow-draft-validation-inspector-offline",
+    "source_route_id": "workflow-definition-summary-list-route",
+    "draft_route_id": "workflow-execution-plan-preview-offline-draft",
+    "validation_route_id": "workflow-draft-validation-inspector-offline-draft",
+    "status": "offline_execution_plan_preview_surface",
+    "default_selected_draft_id": "draft_wf_radishflow_copilot_latest_offline",
+    "app_root": "apps/radishmind-web/",
+    "local_preview_allowed_now": true,
+    "live_backend_allowed_now": false,
+    "runtime_api_allowed_now": false,
+    "execution_plan_persistence_allowed_now": false,
+    "publish_allowed_now": false,
+    "workflow_execution_allowed_now": false,
+    "confirmation_submission_allowed_now": false,
+    "business_writeback_allowed_now": false,
+    "run_replay_allowed_now": false
+  },
+  "implemented_capabilities": [
+    "workflow_execution_plan_preview_view_model",
+    "selected_draft_plan_projection",
+    "stage_order_display",
+    "node_to_stage_mapping_display",
+    "provider_profile_requirement_display",
+    "confirmation_audit_gate_display",
+    "blocked_runtime_publish_writeback_replay_reason_display",
+    "route_request_audit_metadata_display",
+    "forbidden_output_guard_reused",
+    "no_live_backend_request",
+    "no_execution_publish_confirmation_controls"
+  ],
+  "required_view_model_fields": [
+    "selectedDraftId",
+    "validationStatus",
+    "summary",
+    "stageOrder",
+    "nodeStageMappings",
+    "providerProfileRequirements",
+    "confirmationAuditGates",
+    "blockedPlanReasons",
+    "auditMetadata",
+    "routePath",
+    "requestId",
+    "auditRef",
+    "canRenderExecutionPlanPreview",
+    "canPreviewPlanLocally",
+    "canRequestLiveBackend",
+    "canPersistExecutionPlan",
+    "canPublishWorkflow",
+    "canStartRun",
+    "canExecuteWorkflow",
+    "canSubmitConfirmationDecision",
+    "canWriteBusinessTruth",
+    "canReplayRun"
+  ],
+  "execution_plan_policy": {
+    "required_statuses": [
+      "ready",
+      "review_required",
+      "blocked"
+    ],
+    "required_stage_ids": [
+      "stage_context_collection",
+      "stage_model_reasoning",
+      "stage_policy_gate",
+      "stage_tool_preview",
+      "stage_advisory_output",
+      "stage_audit_projection"
+    ],
+    "required_stage_kinds": [
+      "context",
+      "model",
+      "policy",
+      "preview",
+      "output",
+      "audit"
+    ],
+    "minimum_stage_count": 6,
+    "minimum_node_mapping_count": 6,
+    "required_provider_requirements": [
+      "provider_profile_model_stage",
+      "tool_adapter_preview_stage",
+      "policy_confirmation_profile"
+    ],
+    "required_gates": [
+      "gate_validation_before_plan",
+      "gate_confirmation_before_tool",
+      "gate_audit_projection",
+      "gate_runtime_execution"
+    ],
+    "required_blocked_reasons": [
+      "blocked_runtime",
+      "blocked_publish",
+      "blocked_writeback",
+      "blocked_replay"
+    ],
+    "local_preview_allowed_now": true,
+    "persist_execution_plan_allowed_now": false,
+    "publish_allowed_now": false,
+    "workflow_execution_allowed_now": false,
+    "confirmation_submission_allowed_now": false,
+    "business_writeback_allowed_now": false,
+    "run_replay_allowed_now": false
+  },
+  "required_files": [
+    "apps/radishmind-web/src/features/control-plane-read/workflowExecutionPlanPreview.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+    "apps/radishmind-web/src/app/App.tsx",
+    "apps/radishmind-web/src/styles.css"
+  ],
+  "forbidden_source_literals": [
+    "fetch(",
+    "XMLHttpRequest",
+    "axios",
+    "localStorage",
+    "indexedDB",
+    "canRequestLiveBackend: true",
+    "canPersistExecutionPlan: true",
+    "canPublishWorkflow: true",
+    "canStartRun: true",
+    "canExecuteWorkflow: true",
+    "canSubmitConfirmationDecision: true",
+    "canWriteBusinessTruth: true",
+    "canReplayRun: true",
+    "persist_execution_plan",
+    "publish_workflow",
+    "start_workflow_run",
+    "execute_workflow",
+    "submit_confirmation_decision",
+    "write_business_truth",
+    "replay_workflow_run",
+    "PersistExecutionPlanCommand",
+    "PublishWorkflowCommand",
+    "StartWorkflowRunCommand",
+    "ExecuteWorkflowCommand",
+    "SubmitConfirmationDecisionCommand",
+    "WriteBusinessTruthCommand",
+    "ReplayWorkflowRunCommand"
+  ],
+  "stop_lines": [
+    "no new runtime API",
+    "no live backend request",
+    "no execution plan persistence",
+    "no workflow builder mutation",
+    "no workflow draft persistence",
+    "no workflow publish",
+    "no workflow executor",
+    "no node executor",
+    "no tool executor",
+    "no confirmation decision",
+    "no confirmation decision store",
+    "no execution unlock",
+    "no business writeback",
+    "no replay or resume",
+    "no durable run store",
+    "no durable result store",
+    "no materialized result reader",
+    "no database or production auth implementation",
+    "no production readiness claim"
+  ],
+  "testing_strategy": [
+    {
+      "id": "workflow_execution_plan_preview_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-execution-plan-preview-offline-v1.py"
+    },
+    {
+      "id": "workflow_draft_validation_inspector_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-draft-validation-inspector-offline-v1.py"
+    },
+    {
+      "id": "product_app_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "macOS/Linux/WSL: ./scripts/check-repo.sh --fast; Windows/PowerShell: pwsh ./scripts/check-repo.ps1 -Fast"
+    }
+  ],
+  "required_doc_references": {
+    "docs/task-cards/workflow-execution-plan-preview-offline-v1-plan.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "workflow_execution_plan_preview_offline_defined",
+      "execution plan preview",
+      "stage order"
+    ],
+    "docs/task-cards/README.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "Workflow Execution Plan Preview Offline"
+    ],
+    "scripts/README.md": [
+      "check-workflow-execution-plan-preview-offline-v1.py",
+      "workflow-execution-plan-preview-offline-v1.json"
+    ],
+    "apps/radishmind-web/README.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "execution plan preview"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "workflow_execution_plan_preview_offline_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "workflow_execution_plan_preview_offline_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "workflow_execution_plan_preview_offline_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "workflow_execution_plan_preview_offline_defined"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "workflow-execution-plan-preview-offline-v1",
+      "workflow_execution_plan_preview_offline_defined"
+    ]
+  }
+}

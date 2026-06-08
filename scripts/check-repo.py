@@ -1175,6 +1175,10 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-workflow-draft-validation-inspector-offline-v1.py",
         [],
     )
+    run_python_script(
+        "checks/control_plane/check-workflow-execution-plan-preview-offline-v1.py",
+        [],
+    )
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])

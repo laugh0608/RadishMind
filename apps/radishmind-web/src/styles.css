@@ -278,6 +278,12 @@ h4 {
 .workflow-draft-structural-check,
 .workflow-draft-contract-check,
 .workflow-draft-validation-blocked-check,
+.workflow-execution-plan-card,
+.workflow-execution-plan-stage,
+.workflow-execution-plan-node,
+.workflow-execution-plan-provider,
+.workflow-execution-plan-gate,
+.workflow-execution-plan-blocked-reason,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -351,6 +357,12 @@ h4 {
 .workflow-draft-structural-check-grid,
 .workflow-draft-contract-check-grid,
 .workflow-draft-validation-blocked-grid,
+.workflow-execution-plan-summary-grid,
+.workflow-execution-plan-stage-grid,
+.workflow-execution-plan-node-grid,
+.workflow-execution-plan-provider-grid,
+.workflow-execution-plan-gate-grid,
+.workflow-execution-plan-blocked-grid,
 .run-history-metrics,
 .workflow-run-detail-summary-grid,
 .workflow-run-timeline,
@@ -415,6 +427,12 @@ h4 {
 .workflow-draft-structural-check,
 .workflow-draft-contract-check,
 .workflow-draft-validation-blocked-check,
+.workflow-execution-plan-card,
+.workflow-execution-plan-stage,
+.workflow-execution-plan-node,
+.workflow-execution-plan-provider,
+.workflow-execution-plan-gate,
+.workflow-execution-plan-blocked-reason,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -445,6 +463,7 @@ h4 {
 .workflow-draft-card span,
 .workflow-draft-edge span,
 .workflow-draft-validation-card span,
+.workflow-execution-plan-card span,
 .run-history-metric span,
 .workflow-run-detail-card span,
 .workflow-blocked-action-card span,
@@ -483,6 +502,7 @@ h4 {
 .workflow-draft-card strong,
 .workflow-draft-edge strong,
 .workflow-draft-validation-card strong,
+.workflow-execution-plan-card strong,
 .run-history-metric strong,
 .workflow-run-detail-card strong,
 .workflow-blocked-action-card strong,
@@ -518,6 +538,12 @@ h4 {
 .workflow-draft-structural-check p,
 .workflow-draft-contract-check p,
 .workflow-draft-validation-blocked-check p,
+.workflow-execution-plan-card p,
+.workflow-execution-plan-stage p,
+.workflow-execution-plan-node p,
+.workflow-execution-plan-provider p,
+.workflow-execution-plan-gate p,
+.workflow-execution-plan-blocked-reason p,
 .run-history-metric p,
 .workflow-run-detail-card p,
 .workflow-run-timeline-event p,
@@ -579,6 +605,12 @@ h4 {
   padding: 16px 0 4px;
 }
 
+.workflow-execution-plan-preview {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0 4px;
+}
+
 .workflow-run-detail {
   display: grid;
   gap: 12px;
@@ -621,6 +653,10 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.workflow-execution-plan-summary-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .workflow-confirmation-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -632,13 +668,24 @@ h4 {
 .workflow-draft-blocked-grid,
 .workflow-draft-contract-check-grid,
 .workflow-draft-validation-blocked-grid,
+.workflow-execution-plan-provider-grid,
+.workflow-execution-plan-gate-grid,
+.workflow-execution-plan-blocked-grid,
 .workflow-confirmation-field-grid,
 .workflow-confirmation-prerequisite-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.workflow-execution-plan-stage-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .workflow-draft-structural-check-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workflow-execution-plan-node-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .workflow-detail-edge-list {
@@ -678,6 +725,13 @@ h4 {
 }
 
 .workflow-draft-validation-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-execution-plan-row-main {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -731,6 +785,7 @@ h4 {
 .workflow-detail-row-main h5,
 .workflow-draft-row-main h5,
 .workflow-draft-validation-row-main h5,
+.workflow-execution-plan-row-main h5,
 .workflow-run-detail-row-main h5,
 .workflow-blocked-row-main h5,
 .workflow-confirmation-row-main h5 {
@@ -1119,6 +1174,12 @@ dd {
   .workflow-draft-structural-check-grid,
   .workflow-draft-contract-check-grid,
   .workflow-draft-validation-blocked-grid,
+  .workflow-execution-plan-summary-grid,
+  .workflow-execution-plan-stage-grid,
+  .workflow-execution-plan-node-grid,
+  .workflow-execution-plan-provider-grid,
+  .workflow-execution-plan-gate-grid,
+  .workflow-execution-plan-blocked-grid,
   .run-history-metrics,
   .workflow-run-detail-summary-grid,
   .workflow-run-timeline,

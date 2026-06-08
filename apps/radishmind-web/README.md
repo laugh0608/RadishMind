@@ -3,7 +3,7 @@
 `apps/radishmind-web/` 是正式产品 UI 的首个落点。当前承载两组离线只读 surface：
 
 - `Control Plane Read-Side`：`control-plane-read-shared-shell-v1`、`control-plane-read-admin-tenant-overview-v1`、`control-plane-read-admin-audit-log-v1`、`control-plane-read-workspace-applications-v1`、`control-plane-read-workspace-api-keys-v1`、`control-plane-read-workspace-usage-quota-v1`、`control-plane-read-workspace-workflow-definitions-v1`、`control-plane-read-workspace-run-history-v1`、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1` 和 `control-plane-read-auth-store-transition-preconditions-v1`。
-- `Workflow / Agent Runtime Function Surface`：`workflow-function-surface-boundary-v1`、`workflow-application-detail-read-v1`、`workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1` 和 `workflow-draft-validation-inspector-offline-v1`。
+- `Workflow / Agent Runtime Function Surface`：`workflow-function-surface-boundary-v1`、`workflow-application-detail-read-v1`、`workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1` 和 `workflow-execution-plan-preview-offline-v1`。
 
 当前边界：
 
@@ -21,9 +21,9 @@
 - workflow definition detail 由 `workspace-workflow-definitions` summary 派生，展示 definition identity、application ref、version、nodes、edges、input / output summary、risk summary、blocked action preview 和 audit metadata。
 - workflow run detail 由 `workspace-run-history` summary 派生，展示 run identity、state timeline、cost / token snapshot、trace / failure / audit metadata、blocked replay / result preview 和 request / route metadata。
 - workflow blocked action preview 与 confirmation placeholder 只展示未来动作和确认流的形状、风险、human review requirement、missing prerequisites 和 audit trail，不提供 decision submit、approve、reject、defer 或 execution unlock。
-- workflow draft designer 与 draft validation inspector 是 offline-only inspection surface，只允许在本地查看 draft template、node / edge、readiness、risk、structural checks、contract checks 和 blocked capability checks，不持久化 draft 或 validation result。
+- workflow draft designer、draft validation inspector 与 execution plan preview 是 offline-only inspection surface，只允许在本地查看 draft template、node / edge、readiness、risk、structural checks、contract checks、stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates 和 blocked capability checks，不持久化 draft、validation result 或 execution plan。
 - `control-plane-read-formal-ui-readiness-close-v1` 已用聚合 surface matrix / checker 固定七个只读页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；后续普通只读展示页不再默认逐页新增专项门禁。
-- 不请求生产后端，不接 `Radish` OIDC，不接数据库，不实现 API key lifecycle、quota enforcement、rate limit、billing、cost ledger、workflow builder mutation、draft persistence、validation result persistence、publish、workflow executor、confirmation decision、execution unlock、writeback、run replay 或 run resume。
+- 不请求生产后端，不接 `Radish` OIDC，不接数据库，不实现 API key lifecycle、quota enforcement、rate limit、billing、cost ledger、workflow builder mutation、draft persistence、validation result persistence、execution plan persistence、publish、workflow executor、confirmation decision、execution unlock、writeback、run replay 或 run resume。
 - `control-plane-read-dev-live-consumer-v1` 只能连接 fake-store-backed handler 和测试身份上下文；不得解释为 production API consumer、真实 auth/db、repository、API key / quota 或 workflow executor ready。
 - `control-plane-read-auth-store-transition-preconditions-v1` 只固定未来 auth middleware / read store repository 迁移前置条件；不得解释为 Radish OIDC ready、token validation ready、database ready、repository implementation ready 或 production admin console ready。
 - 不替代 `apps/radishmind-console/`；后者仍是本地 ops surface。

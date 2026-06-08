@@ -67,7 +67,7 @@
    - 已落地为 `workflow_draft_validation_inspector_offline_defined`，在 `apps/radishmind-web/` 增加离线 workflow draft validation inspector 产品面，复用 selected draft 的 fixture-derived view model，展示 validation summary、structural checks、contract checks、blocked capability checks 和 route / request / audit metadata。
    - 只解释当前草案的结构与契约状态；不保存校验结果、不发布、不执行、不创建真实 builder mutation，不请求 live backend，不接数据库、OIDC、executor、confirmation decision、writeback 或 replay。
 8. `workflow-execution-plan-preview-offline-v1`
-   - 建议作为 2026-06-08 的下一步候选切片，复用 selected draft、validation inspector、definition detail、run detail、blocked action preview 和 confirmation placeholder，派生只读 execution plan preview。
+   - 已落地为 `workflow_execution_plan_preview_offline_defined`，复用 selected draft、validation inspector、definition detail、run detail、blocked action preview 和 confirmation placeholder，派生只读 execution plan preview。
    - 只展示 stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates 和 blocked runtime / publish / writeback / replay reasons；不创建真实 execution plan persistence，不请求 live backend，不接数据库、OIDC、executor、confirmation decision、writeback 或 replay。
 
 ## 验收口径

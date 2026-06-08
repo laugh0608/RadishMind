@@ -81,6 +81,16 @@ import {
   type WorkflowDraftValidationSummary,
 } from "../features/control-plane-read/workflowDraftValidationInspector";
 import {
+  buildWorkflowExecutionPlanPreviewViewModel,
+  type WorkflowExecutionPlanBlockedReason,
+  type WorkflowExecutionPlanGate,
+  type WorkflowExecutionPlanNodeMapping,
+  type WorkflowExecutionPlanPreviewViewModel,
+  type WorkflowExecutionPlanProviderRequirement,
+  type WorkflowExecutionPlanStage,
+  type WorkflowExecutionPlanSummary,
+} from "../features/control-plane-read/workflowExecutionPlanPreview";
+import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
   type WorkspaceRunHistoryStatePreview,
@@ -241,6 +251,10 @@ export function App() {
     () => buildWorkflowDraftValidationInspectorViewModel(selectedWorkflowDraft),
     [selectedWorkflowDraft],
   );
+  const workflowExecutionPlanPreview = useMemo(
+    () => buildWorkflowExecutionPlanPreviewViewModel(selectedWorkflowDraft, workflowDraftValidationInspector),
+    [selectedWorkflowDraft, workflowDraftValidationInspector],
+  );
 
   return (
     <main className="product-shell">
@@ -260,6 +274,7 @@ export function App() {
           <a href="#workspace-workflow-definitions">Workflows</a>
           <a href="#workflow-draft-designer">Draft Designer</a>
           <a href="#workflow-draft-validation-inspector">Draft Validation</a>
+          <a href="#workflow-execution-plan-preview">Execution Plan</a>
           <a href="#workspace-run-history">Run History</a>
           <a href="#workflow-blocked-action-preview">Blocked Action</a>
           <a href="#workflow-confirmation-placeholder">Confirmation</a>
@@ -314,6 +329,10 @@ export function App() {
             <Fact
               label="Validate"
               value={workflowDraftValidationInspector.validationStatus}
+            />
+            <Fact
+              label="Plan"
+              value={workflowExecutionPlanPreview.canRenderExecutionPlanPreview ? "preview" : "blocked"}
             />
           </div>
         </header>
@@ -708,6 +727,7 @@ export function App() {
             onSelectDraft={setSelectedWorkflowDraftId}
           />
           <WorkflowDraftValidationInspectorPanel inspector={workflowDraftValidationInspector} />
+          <WorkflowExecutionPlanPreviewPanel preview={workflowExecutionPlanPreview} />
 
           <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
@@ -1966,6 +1986,259 @@ function WorkflowDraftBlockedCapabilityCheckCard({
         </div>
       </dl>
       <p>{check.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowExecutionPlanPreviewPanel({
+  preview,
+}: {
+  preview: WorkflowExecutionPlanPreviewViewModel;
+}) {
+  return (
+    <div
+      className="workflow-execution-plan-preview"
+      id="workflow-execution-plan-preview"
+      aria-label="Workflow execution plan preview offline surface"
+    >
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Execution Plan Preview</p>
+          <h4>{preview.selectedDraftId}</h4>
+        </div>
+        <StatusBadge tone={preview.canRenderExecutionPlanPreview ? "neutral" : "bad"}>
+          {preview.canRenderExecutionPlanPreview ? "offline preview" : "blocked"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-execution-plan-summary-grid" aria-label="Workflow execution plan summary">
+        {preview.summary.map((summary) => (
+          <WorkflowExecutionPlanSummaryCard key={summary.label} summary={summary} />
+        ))}
+      </div>
+
+      <div className="workflow-execution-plan-stage-grid" aria-label="Workflow execution plan stage order">
+        {preview.stageOrder.map((stage) => (
+          <WorkflowExecutionPlanStageCard key={stage.stageId} stage={stage} />
+        ))}
+      </div>
+
+      <div className="workflow-execution-plan-node-grid" aria-label="Workflow execution plan node to stage mapping">
+        {preview.nodeStageMappings.map((mapping) => (
+          <WorkflowExecutionPlanNodeMappingCard key={mapping.nodeId} mapping={mapping} />
+        ))}
+      </div>
+
+      <div className="workflow-execution-plan-provider-grid" aria-label="Workflow execution plan provider requirements">
+        {preview.providerProfileRequirements.map((requirement) => (
+          <WorkflowExecutionPlanProviderRequirementCard
+            key={requirement.requirementId}
+            requirement={requirement}
+          />
+        ))}
+      </div>
+
+      <div className="workflow-execution-plan-gate-grid" aria-label="Workflow execution plan confirmation and audit gates">
+        {preview.confirmationAuditGates.map((gate) => (
+          <WorkflowExecutionPlanGateCard key={gate.gateId} gate={gate} />
+        ))}
+      </div>
+
+      <div className="workflow-execution-plan-blocked-grid" aria-label="Workflow execution plan blocked reasons">
+        {preview.blockedPlanReasons.map((reason) => (
+          <WorkflowExecutionPlanBlockedReasonCard key={reason.reasonId} reason={reason} />
+        ))}
+      </div>
+
+      <article className="workflow-execution-plan-card">
+        <div className="workflow-execution-plan-row-main">
+          <div>
+            <p className="eyebrow">{preview.auditMetadata.sourceRouteId}</p>
+            <h5>{preview.auditMetadata.draftRouteId}</h5>
+          </div>
+          <StatusBadge tone="neutral">{preview.validationStatus}</StatusBadge>
+        </div>
+        <dl className="workflow-run-guard-meta">
+          <div>
+            <dt>Validation route</dt>
+            <dd>{preview.auditMetadata.validationRouteId}</dd>
+          </div>
+          <div>
+            <dt>Request</dt>
+            <dd>{preview.auditMetadata.requestId}</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>{preview.auditMetadata.auditRef}</dd>
+          </div>
+          <div>
+            <dt>Draft</dt>
+            <dd>{preview.auditMetadata.selectedDraftId}</dd>
+          </div>
+        </dl>
+      </article>
+    </div>
+  );
+}
+
+function WorkflowExecutionPlanSummaryCard({ summary }: { summary: WorkflowExecutionPlanSummary }) {
+  return (
+    <article className="workflow-execution-plan-card">
+      <span>{summary.label}</span>
+      <strong>{summary.value}</strong>
+      <p>{summary.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowExecutionPlanStageCard({ stage }: { stage: WorkflowExecutionPlanStage }) {
+  return (
+    <article className="workflow-execution-plan-stage">
+      <div className="workflow-execution-plan-row-main">
+        <div>
+          <p className="eyebrow">
+            {stage.order} / {stage.stageKind}
+          </p>
+          <h5>{stage.label}</h5>
+        </div>
+        <StatusBadge tone={stage.status === "blocked" ? "bad" : stage.status === "ready" ? "good" : "neutral"}>
+          {stage.status}
+        </StatusBadge>
+      </div>
+      <p>{stage.summary}</p>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Nodes</dt>
+          <dd>{stage.nodeIds.join(", ") || "none"}</dd>
+        </div>
+        <div>
+          <dt>Blocked reason</dt>
+          <dd>{stage.blockedReason}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowExecutionPlanNodeMappingCard({ mapping }: { mapping: WorkflowExecutionPlanNodeMapping }) {
+  return (
+    <article className="workflow-execution-plan-node">
+      <div className="workflow-execution-plan-row-main">
+        <div>
+          <p className="eyebrow">{mapping.stageId}</p>
+          <h5>{mapping.label}</h5>
+        </div>
+        <StatusBadge tone={mapping.requiresConfirmation ? "bad" : "neutral"}>{mapping.executionMode}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Node</dt>
+          <dd>{mapping.nodeId}</dd>
+        </div>
+        <div>
+          <dt>Type</dt>
+          <dd>{mapping.nodeType}</dd>
+        </div>
+        <div>
+          <dt>Provider</dt>
+          <dd>{mapping.providerProfileRef}</dd>
+        </div>
+        <div>
+          <dt>Input</dt>
+          <dd>{mapping.inputSummary}</dd>
+        </div>
+        <div>
+          <dt>Output</dt>
+          <dd>{mapping.outputSummary}</dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
+function WorkflowExecutionPlanProviderRequirementCard({
+  requirement,
+}: {
+  requirement: WorkflowExecutionPlanProviderRequirement;
+}) {
+  return (
+    <article className="workflow-execution-plan-provider">
+      <div className="workflow-execution-plan-row-main">
+        <div>
+          <p className="eyebrow">{requirement.requirementId}</p>
+          <h5>{requirement.label}</h5>
+        </div>
+        <StatusBadge tone={requirement.status === "blocked" ? "bad" : "neutral"}>{requirement.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Profile</dt>
+          <dd>{requirement.providerProfileRef}</dd>
+        </div>
+        <div>
+          <dt>Nodes</dt>
+          <dd>{requirement.nodeIds.join(", ") || "none"}</dd>
+        </div>
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{requirement.missingPrerequisite}</dd>
+        </div>
+      </dl>
+      <p>{requirement.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowExecutionPlanGateCard({ gate }: { gate: WorkflowExecutionPlanGate }) {
+  return (
+    <article className="workflow-execution-plan-gate">
+      <div className="workflow-execution-plan-row-main">
+        <div>
+          <p className="eyebrow">{gate.gateKind}</p>
+          <h5>{gate.label}</h5>
+        </div>
+        <StatusBadge tone={gate.status === "blocked" ? "bad" : "neutral"}>{gate.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Before stage</dt>
+          <dd>{gate.requiredBeforeStageId}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{gate.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{gate.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowExecutionPlanBlockedReasonCard({
+  reason,
+}: {
+  reason: WorkflowExecutionPlanBlockedReason;
+}) {
+  return (
+    <article className="workflow-execution-plan-blocked-reason">
+      <div className="workflow-execution-plan-row-main">
+        <div>
+          <p className="eyebrow">{reason.blockedCapability}</p>
+          <h5>{reason.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{reason.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{reason.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{reason.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{reason.summary}</p>
     </article>
   );
 }
