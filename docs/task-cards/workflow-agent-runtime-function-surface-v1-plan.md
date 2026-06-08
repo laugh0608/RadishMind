@@ -1,6 +1,6 @@
 # `Workflow / Agent Runtime Function Surface` v1 计划
 
-更新时间：2026-06-07
+更新时间：2026-06-08
 
 ## 任务目标
 
@@ -69,6 +69,9 @@
 8. `workflow-execution-plan-preview-offline-v1`
    - 已落地为 `workflow_execution_plan_preview_offline_defined`，复用 selected draft、validation inspector、definition detail、run detail、blocked action preview 和 confirmation placeholder，派生只读 execution plan preview。
    - 只展示 stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates 和 blocked runtime / publish / writeback / replay reasons；不创建真实 execution plan persistence，不请求 live backend，不接数据库、OIDC、executor、confirmation decision、writeback 或 replay。
+9. `workflow-runtime-readiness-inspector-offline-v1`
+   - 已落地为 `workflow_runtime_readiness_inspector_offline_defined`，复用 selected draft、validation inspector 和 execution plan preview，派生只读 runtime readiness inspector。
+   - 只展示 executor、provider binding、confirmation decision store、durable run/result store、audit policy、writeback policy、replay policy、auth / database / repository gate 和 publish lifecycle gate 的 readiness / blocker；不创建真实 runtime API，不请求 live backend，不接数据库、OIDC、executor、confirmation decision、writeback 或 replay。
 
 ## 验收口径
 

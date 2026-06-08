@@ -91,6 +91,15 @@ import {
   type WorkflowExecutionPlanSummary,
 } from "../features/control-plane-read/workflowExecutionPlanPreview";
 import {
+  buildWorkflowRuntimeReadinessInspectorViewModel,
+  type WorkflowRuntimeReadinessBlocker,
+  type WorkflowRuntimeReadinessGate,
+  type WorkflowRuntimeReadinessInspectorViewModel,
+  type WorkflowRuntimeReadinessPrerequisite,
+  type WorkflowRuntimeReadinessStatus,
+  type WorkflowRuntimeReadinessSummary,
+} from "../features/control-plane-read/workflowRuntimeReadinessInspector";
+import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
   type WorkspaceRunHistoryStatePreview,
@@ -255,6 +264,10 @@ export function App() {
     () => buildWorkflowExecutionPlanPreviewViewModel(selectedWorkflowDraft, workflowDraftValidationInspector),
     [selectedWorkflowDraft, workflowDraftValidationInspector],
   );
+  const workflowRuntimeReadinessInspector = useMemo(
+    () => buildWorkflowRuntimeReadinessInspectorViewModel(workflowExecutionPlanPreview),
+    [workflowExecutionPlanPreview],
+  );
 
   return (
     <main className="product-shell">
@@ -275,6 +288,7 @@ export function App() {
           <a href="#workflow-draft-designer">Draft Designer</a>
           <a href="#workflow-draft-validation-inspector">Draft Validation</a>
           <a href="#workflow-execution-plan-preview">Execution Plan</a>
+          <a href="#workflow-runtime-readiness-inspector">Runtime Readiness</a>
           <a href="#workspace-run-history">Run History</a>
           <a href="#workflow-blocked-action-preview">Blocked Action</a>
           <a href="#workflow-confirmation-placeholder">Confirmation</a>
@@ -333,6 +347,10 @@ export function App() {
             <Fact
               label="Plan"
               value={workflowExecutionPlanPreview.canRenderExecutionPlanPreview ? "preview" : "blocked"}
+            />
+            <Fact
+              label="Runtime"
+              value={workflowRuntimeReadinessInspector.canRenderRuntimeReadinessInspector ? "blocked" : "missing"}
             />
           </div>
         </header>
@@ -728,6 +746,7 @@ export function App() {
           />
           <WorkflowDraftValidationInspectorPanel inspector={workflowDraftValidationInspector} />
           <WorkflowExecutionPlanPreviewPanel preview={workflowExecutionPlanPreview} />
+          <WorkflowRuntimeReadinessInspectorPanel readiness={workflowRuntimeReadinessInspector} />
 
           <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
@@ -2241,6 +2260,194 @@ function WorkflowExecutionPlanBlockedReasonCard({
       <p>{reason.summary}</p>
     </article>
   );
+}
+
+function WorkflowRuntimeReadinessInspectorPanel({
+  readiness,
+}: {
+  readiness: WorkflowRuntimeReadinessInspectorViewModel;
+}) {
+  return (
+    <div
+      className="workflow-runtime-readiness-inspector"
+      id="workflow-runtime-readiness-inspector"
+      aria-label="Workflow runtime readiness inspector offline surface"
+    >
+      <div className="section-heading compact-heading">
+        <div>
+          <p className="eyebrow">Runtime Readiness Inspector</p>
+          <h4>{readiness.selectedDraftId}</h4>
+        </div>
+        <StatusBadge tone={readiness.canRenderRuntimeReadinessInspector ? "bad" : "neutral"}>
+          {readiness.canRenderRuntimeReadinessInspector ? "blocked readiness" : "missing evidence"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-runtime-readiness-summary-grid" aria-label="Workflow runtime readiness summary">
+        {readiness.summary.map((summary) => (
+          <WorkflowRuntimeReadinessSummaryCard key={summary.label} summary={summary} />
+        ))}
+      </div>
+
+      <div className="workflow-runtime-readiness-prerequisite-grid" aria-label="Workflow runtime prerequisites">
+        {readiness.runtimePrerequisites.map((prerequisite) => (
+          <WorkflowRuntimeReadinessPrerequisiteCard
+            key={prerequisite.prerequisiteId}
+            prerequisite={prerequisite}
+          />
+        ))}
+      </div>
+
+      <div className="workflow-runtime-readiness-blocker-grid" aria-label="Workflow runtime readiness blockers">
+        {readiness.readinessBlockers.map((blocker) => (
+          <WorkflowRuntimeReadinessBlockerCard key={blocker.blockerId} blocker={blocker} />
+        ))}
+      </div>
+
+      <div className="workflow-runtime-readiness-gate-grid" aria-label="Workflow runtime implementation gates">
+        {readiness.implementationGates.map((gate) => (
+          <WorkflowRuntimeReadinessGateCard key={gate.gateId} gate={gate} />
+        ))}
+      </div>
+
+      <article className="workflow-runtime-readiness-card">
+        <div className="workflow-runtime-readiness-row-main">
+          <div>
+            <p className="eyebrow">{readiness.auditMetadata.sourcePageId}</p>
+            <h5>{readiness.auditMetadata.readinessRouteId}</h5>
+          </div>
+          <StatusBadge tone={readiness.forbiddenProjectionBlocked ? "bad" : "neutral"}>
+            {readiness.forbiddenProjectionBlocked ? "guard active" : "metadata only"}
+          </StatusBadge>
+        </div>
+        <dl className="workflow-run-guard-meta">
+          <div>
+            <dt>Plan route</dt>
+            <dd>{readiness.auditMetadata.planRouteId}</dd>
+          </div>
+          <div>
+            <dt>Request</dt>
+            <dd>{readiness.auditMetadata.requestId}</dd>
+          </div>
+          <div>
+            <dt>Audit</dt>
+            <dd>{readiness.auditMetadata.auditRef}</dd>
+          </div>
+          <div>
+            <dt>Draft</dt>
+            <dd>{readiness.auditMetadata.selectedDraftId}</dd>
+          </div>
+        </dl>
+      </article>
+    </div>
+  );
+}
+
+function WorkflowRuntimeReadinessSummaryCard({ summary }: { summary: WorkflowRuntimeReadinessSummary }) {
+  return (
+    <article className="workflow-runtime-readiness-card">
+      <span>{summary.label}</span>
+      <strong>{summary.value}</strong>
+      <p>{summary.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowRuntimeReadinessPrerequisiteCard({
+  prerequisite,
+}: {
+  prerequisite: WorkflowRuntimeReadinessPrerequisite;
+}) {
+  return (
+    <article className="workflow-runtime-readiness-prerequisite">
+      <div className="workflow-runtime-readiness-row-main">
+        <div>
+          <p className="eyebrow">{prerequisite.area}</p>
+          <h5>{prerequisite.label}</h5>
+        </div>
+        <StatusBadge tone={workflowRuntimeReadinessTone(prerequisite.status)}>{prerequisite.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Evidence</dt>
+          <dd>{prerequisite.currentEvidence}</dd>
+        </div>
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{prerequisite.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Source refs</dt>
+          <dd>{prerequisite.sourceRefs.join(", ")}</dd>
+        </div>
+      </dl>
+      <p>{prerequisite.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowRuntimeReadinessBlockerCard({ blocker }: { blocker: WorkflowRuntimeReadinessBlocker }) {
+  return (
+    <article className="workflow-runtime-readiness-blocker">
+      <div className="workflow-runtime-readiness-row-main">
+        <div>
+          <p className="eyebrow">{blocker.area}</p>
+          <h5>{blocker.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{blocker.severity}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Source</dt>
+          <dd>{blocker.sourceRef}</dd>
+        </div>
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{blocker.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{blocker.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{blocker.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowRuntimeReadinessGateCard({ gate }: { gate: WorkflowRuntimeReadinessGate }) {
+  return (
+    <article className="workflow-runtime-readiness-gate">
+      <div className="workflow-runtime-readiness-row-main">
+        <div>
+          <p className="eyebrow">{gate.gateKind}</p>
+          <h5>{gate.label}</h5>
+        </div>
+        <StatusBadge tone={workflowRuntimeReadinessTone(gate.status)}>{gate.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Required before</dt>
+          <dd>{gate.requiredBefore}</dd>
+        </div>
+        <div>
+          <dt>Evidence refs</dt>
+          <dd>{gate.evidenceRefs.join(", ")}</dd>
+        </div>
+      </dl>
+      <p>{gate.summary}</p>
+    </article>
+  );
+}
+
+function workflowRuntimeReadinessTone(status: WorkflowRuntimeReadinessStatus): "good" | "bad" | "neutral" {
+  if (status === "blocked") {
+    return "bad";
+  }
+  if (status === "satisfied") {
+    return "good";
+  }
+  return "neutral";
 }
 
 function WorkflowDefinitionStatePreview({ state }: { state: WorkspaceWorkflowDefinitionsStatePreview }) {
