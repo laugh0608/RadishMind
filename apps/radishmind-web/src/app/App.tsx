@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
 import {
   buildAdminTenantOverviewViewModel,
@@ -137,6 +137,7 @@ import {
 import type {
   ControlPlaneReadCollectionViewModel,
   ControlPlaneReadRouteId,
+  WorkflowDefinitionSummary,
 } from "../../../../contracts/typescript/control-plane-read-api";
 
 const shell = buildControlPlaneReadShellViewModel();
@@ -150,6 +151,10 @@ export function App() {
   const [devLiveState, setDevLiveState] = useState<ControlPlaneReadDevLiveLoadState>(() =>
     initialControlPlaneReadDevLiveLoadState(devLiveConfig),
   );
+  const [selectedApplicationRef, setSelectedApplicationRef] = useState<string | null>(null);
+  const [selectedWorkflowDefinitionId, setSelectedWorkflowDefinitionId] = useState<string | null>(null);
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -202,14 +207,22 @@ export function App() {
     () => buildWorkspaceApplicationsViewModel(liveCollections["application-summary-list-route"]),
     [liveCollections],
   );
+  const selectedApplication = useMemo<WorkspaceApplicationRow>(() => {
+    const targetApplicationRef = selectedApplicationRef ?? workspaceApplications.applications[0]?.applicationRef;
+    return (
+      workspaceApplications.applications.find(
+        (application) => application.applicationRef === targetApplicationRef,
+      ) ?? workspaceApplications.applications[0]!
+    );
+  }, [selectedApplicationRef, workspaceApplications]);
   const workflowApplicationDetail = useMemo(
     () =>
-      buildWorkflowApplicationDetailViewModel(workspaceApplications.applications[0], {
+      buildWorkflowApplicationDetailViewModel(selectedApplication, {
         tenantRef: workspaceApplications.collection.tenantRef,
         requestId: workspaceApplications.requestId,
         auditRef: workspaceApplications.auditRef,
       }),
-    [workspaceApplications],
+    [selectedApplication, workspaceApplications],
   );
   const workspaceApiKeys = useMemo(
     () => buildWorkspaceApiKeysViewModel(liveCollections["api-key-summary-list-route"]),
@@ -223,14 +236,60 @@ export function App() {
     () => buildWorkspaceWorkflowDefinitionsViewModel(liveCollections["workflow-definition-summary-list-route"]),
     [liveCollections],
   );
-  const workflowDefinitionDetail = useMemo(() => buildWorkflowDefinitionDetailViewModel(), []);
+  const workflowDefinitionsForSelectedApplication = useMemo(() => {
+    const filteredDefinitions = workspaceWorkflowDefinitions.workflowDefinitions.filter(
+      (workflowDefinition) => workflowDefinition.applicationRef === selectedApplication.applicationRef,
+    );
+    return filteredDefinitions.length > 0 ? filteredDefinitions : workspaceWorkflowDefinitions.workflowDefinitions;
+  }, [selectedApplication, workspaceWorkflowDefinitions]);
+  const selectedWorkflowDefinition = useMemo<WorkspaceWorkflowDefinitionRow>(() => {
+    const targetWorkflowDefinitionId =
+      selectedWorkflowDefinitionId ??
+      selectedApplication.latestWorkflowDefinitionRef ??
+      workflowDefinitionsForSelectedApplication[0]?.workflowDefinitionId;
+    return (
+      workflowDefinitionsForSelectedApplication.find(
+        (workflowDefinition) => workflowDefinition.workflowDefinitionId === targetWorkflowDefinitionId,
+      ) ??
+      workflowDefinitionsForSelectedApplication.find(
+        (workflowDefinition) =>
+          workflowDefinition.workflowDefinitionId === selectedApplication.latestWorkflowDefinitionRef,
+      ) ??
+      workflowDefinitionsForSelectedApplication[0]!
+    );
+  }, [selectedApplication, selectedWorkflowDefinitionId, workflowDefinitionsForSelectedApplication]);
+  const workflowDefinitionDetail = useMemo(
+    () =>
+      buildWorkflowDefinitionDetailViewModel(
+        toWorkflowDefinitionSummary(selectedWorkflowDefinition, workspaceWorkflowDefinitions.collection.tenantRef),
+      ),
+    [selectedWorkflowDefinition, workspaceWorkflowDefinitions],
+  );
   const workspaceRunHistory = useMemo(
     () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
     [liveCollections],
   );
+  const runsForSelectedContext = useMemo(() => {
+    const definitionRuns = workspaceRunHistory.runs.filter(
+      (run) =>
+        run.applicationRef === selectedApplication.applicationRef &&
+        run.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId,
+    );
+    if (definitionRuns.length > 0) {
+      return definitionRuns;
+    }
+    const applicationRuns = workspaceRunHistory.runs.filter(
+      (run) => run.applicationRef === selectedApplication.applicationRef,
+    );
+    return applicationRuns.length > 0 ? applicationRuns : workspaceRunHistory.runs;
+  }, [selectedApplication, selectedWorkflowDefinition, workspaceRunHistory]);
+  const selectedRun = useMemo<WorkspaceRunRecordRow>(() => {
+    const targetRunId = selectedRunId ?? runsForSelectedContext[0]?.runId;
+    return runsForSelectedContext.find((run) => run.runId === targetRunId) ?? runsForSelectedContext[0]!;
+  }, [runsForSelectedContext, selectedRunId]);
   const workflowRunDetail = useMemo(
-    () => buildWorkflowRunDetailViewModel(workspaceRunHistory.runs[0]),
-    [workspaceRunHistory],
+    () => buildWorkflowRunDetailViewModel(selectedRun),
+    [selectedRun],
   );
   const workflowBlockedActionPreview = useMemo(
     () =>
@@ -257,14 +316,17 @@ export function App() {
       }),
     [workspaceWorkflowDefinitions, workflowDefinitionDetail, workflowConfirmationPlaceholder],
   );
-  const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
   const selectedWorkflowDraft = useMemo<WorkflowDraftDesignerDraft>(() => {
-    const targetDraftId = selectedWorkflowDraftId ?? workflowDraftDesigner.defaultDraftId;
+    const definitionDraft = workflowDraftDesigner.drafts.find(
+      (draft) => draft.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId,
+    );
+    const targetDraftId = selectedWorkflowDraftId ?? definitionDraft?.draftId ?? workflowDraftDesigner.defaultDraftId;
     return (
       workflowDraftDesigner.drafts.find((draft) => draft.draftId === targetDraftId) ??
+      definitionDraft ??
       workflowDraftDesigner.drafts[0]!
     );
-  }, [selectedWorkflowDraftId, workflowDraftDesigner]);
+  }, [selectedWorkflowDefinition, selectedWorkflowDraftId, workflowDraftDesigner]);
   const workflowDraftValidationInspector = useMemo(
     () => buildWorkflowDraftValidationInspectorViewModel(selectedWorkflowDraft),
     [selectedWorkflowDraft],
@@ -298,6 +360,73 @@ export function App() {
       workflowRuntimeReadinessInspector,
     ],
   );
+  const handleSelectApplication = (applicationRef: string) => {
+    const nextApplication = workspaceApplications.applications.find(
+      (application) => application.applicationRef === applicationRef,
+    );
+    const nextDefinition =
+      workspaceWorkflowDefinitions.workflowDefinitions.find(
+        (workflowDefinition) =>
+          workflowDefinition.applicationRef === applicationRef &&
+          workflowDefinition.workflowDefinitionId === nextApplication?.latestWorkflowDefinitionRef,
+      ) ??
+      workspaceWorkflowDefinitions.workflowDefinitions.find(
+        (workflowDefinition) => workflowDefinition.applicationRef === applicationRef,
+      );
+    const nextRun =
+      workspaceRunHistory.runs.find(
+        (run) =>
+          run.applicationRef === applicationRef &&
+          (!nextDefinition || run.workflowDefinitionId === nextDefinition.workflowDefinitionId),
+      ) ?? workspaceRunHistory.runs.find((run) => run.applicationRef === applicationRef);
+
+    setSelectedApplicationRef(applicationRef);
+    setSelectedWorkflowDefinitionId(nextDefinition?.workflowDefinitionId ?? null);
+    setSelectedRunId(nextRun?.runId ?? null);
+    setSelectedWorkflowDraftId(null);
+  };
+  const handleSelectWorkflowDefinition = (workflowDefinitionId: string) => {
+    const nextDefinition = workspaceWorkflowDefinitions.workflowDefinitions.find(
+      (workflowDefinition) => workflowDefinition.workflowDefinitionId === workflowDefinitionId,
+    );
+    const nextRun = workspaceRunHistory.runs.find(
+      (run) =>
+        run.workflowDefinitionId === workflowDefinitionId &&
+        (!nextDefinition || run.applicationRef === nextDefinition.applicationRef),
+    );
+
+    setSelectedWorkflowDefinitionId(workflowDefinitionId);
+    if (nextDefinition) {
+      setSelectedApplicationRef(nextDefinition.applicationRef);
+    }
+    setSelectedRunId(nextRun?.runId ?? null);
+    setSelectedWorkflowDraftId(null);
+  };
+  const handleSelectRun = (runId: string) => {
+    const nextRun = workspaceRunHistory.runs.find((run) => run.runId === runId);
+
+    setSelectedRunId(runId);
+    if (nextRun) {
+      setSelectedApplicationRef(nextRun.applicationRef);
+      setSelectedWorkflowDefinitionId(nextRun.workflowDefinitionId);
+      setSelectedWorkflowDraftId(null);
+    }
+  };
+  const handleSelectWorkflowDraft = (draftId: string) => {
+    const nextDraft = workflowDraftDesigner.drafts.find((draft) => draft.draftId === draftId);
+    const nextRun = workspaceRunHistory.runs.find(
+      (run) =>
+        run.applicationRef === nextDraft?.applicationRef &&
+        run.workflowDefinitionId === nextDraft?.workflowDefinitionId,
+    );
+
+    setSelectedWorkflowDraftId(draftId);
+    if (nextDraft) {
+      setSelectedApplicationRef(nextDraft.applicationRef);
+      setSelectedWorkflowDefinitionId(nextDraft.workflowDefinitionId);
+      setSelectedRunId(nextRun?.runId ?? null);
+    }
+  };
 
   return (
     <main className="product-shell">
@@ -567,7 +696,12 @@ export function App() {
 
           <div className="application-list" aria-label="Workspace applications">
             {workspaceApplications.applications.map((application) => (
-              <ApplicationRow key={application.applicationRef} application={application} />
+              <ApplicationRow
+                key={application.applicationRef}
+                application={application}
+                selected={application.applicationRef === selectedApplication.applicationRef}
+                onSelectApplication={handleSelectApplication}
+              />
             ))}
           </div>
 
@@ -769,6 +903,8 @@ export function App() {
               <WorkflowDefinitionRow
                 key={workflowDefinition.workflowDefinitionId}
                 workflowDefinition={workflowDefinition}
+                selected={workflowDefinition.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId}
+                onSelectWorkflowDefinition={handleSelectWorkflowDefinition}
               />
             ))}
           </div>
@@ -778,7 +914,7 @@ export function App() {
             designer={workflowDraftDesigner}
             selectedDraft={selectedWorkflowDraft}
             selectedDraftId={selectedWorkflowDraft.draftId}
-            onSelectDraft={setSelectedWorkflowDraftId}
+            onSelectDraft={handleSelectWorkflowDraft}
           />
           <WorkflowDraftValidationInspectorPanel inspector={workflowDraftValidationInspector} />
           <WorkflowExecutionPlanPreviewPanel preview={workflowExecutionPlanPreview} />
@@ -845,7 +981,12 @@ export function App() {
 
           <div className="run-record-list" aria-label="Workspace run records">
             {workspaceRunHistory.runs.map((run) => (
-              <RunRecordRow key={run.runId} run={run} />
+              <RunRecordRow
+                key={run.runId}
+                run={run}
+                selected={run.runId === selectedRun.runId}
+                onSelectRun={handleSelectRun}
+              />
             ))}
           </div>
 
@@ -1168,15 +1309,44 @@ function RunHistoryMetric({ metric }: { metric: WorkspaceRunHistoryMetric }) {
   );
 }
 
-function RunRecordRow({ run }: { run: WorkspaceRunRecordRow }) {
+function handleSelectionRowKeyDown(
+  event: KeyboardEvent<HTMLElement>,
+  selectionId: string,
+  onSelect: (selectionId: string) => void,
+) {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+  event.preventDefault();
+  onSelect(selectionId);
+}
+
+function RunRecordRow({
+  run,
+  selected,
+  onSelectRun,
+}: {
+  run: WorkspaceRunRecordRow;
+  selected: boolean;
+  onSelectRun: (runId: string) => void;
+}) {
   return (
-    <article className="run-record-row">
+    <article
+      className={`run-record-row selection-row${selected ? " selected" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      onClick={() => onSelectRun(run.runId)}
+      onKeyDown={(event) => handleSelectionRowKeyDown(event, run.runId, onSelectRun)}
+    >
       <div className="run-record-row-main">
         <div>
           <p className="eyebrow">{run.applicationRef}</p>
           <h4>{run.runId}</h4>
         </div>
-        <StatusBadge tone={run.status === "failed" ? "bad" : "good"}>{run.status}</StatusBadge>
+        <StatusBadge tone={selected ? "neutral" : run.status === "failed" ? "bad" : "good"}>
+          {selected ? "selected" : run.status}
+        </StatusBadge>
       </div>
       <dl className="run-record-row-meta">
         <div>
@@ -1643,16 +1813,33 @@ function WorkflowDefinitionMetric({ metric }: { metric: WorkspaceWorkflowDefinit
   );
 }
 
-function WorkflowDefinitionRow({ workflowDefinition }: { workflowDefinition: WorkspaceWorkflowDefinitionRow }) {
+function WorkflowDefinitionRow({
+  workflowDefinition,
+  selected,
+  onSelectWorkflowDefinition,
+}: {
+  workflowDefinition: WorkspaceWorkflowDefinitionRow;
+  selected: boolean;
+  onSelectWorkflowDefinition: (workflowDefinitionId: string) => void;
+}) {
   return (
-    <article className="workflow-definition-row">
+    <article
+      className={`workflow-definition-row selection-row${selected ? " selected" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      onClick={() => onSelectWorkflowDefinition(workflowDefinition.workflowDefinitionId)}
+      onKeyDown={(event) =>
+        handleSelectionRowKeyDown(event, workflowDefinition.workflowDefinitionId, onSelectWorkflowDefinition)
+      }
+    >
       <div className="workflow-definition-row-main">
         <div>
           <p className="eyebrow">{workflowDefinition.applicationRef}</p>
           <h4>{workflowDefinition.workflowDefinitionId}</h4>
         </div>
-        <StatusBadge tone={workflowDefinition.definitionStatus === "published" ? "good" : "neutral"}>
-          {workflowDefinition.definitionStatus}
+        <StatusBadge tone={selected ? "neutral" : workflowDefinition.definitionStatus === "published" ? "good" : "neutral"}>
+          {selected ? "selected" : workflowDefinition.definitionStatus}
         </StatusBadge>
       </div>
       <dl className="workflow-definition-row-meta">
@@ -2927,16 +3114,31 @@ function ApplicationMetric({ metric }: { metric: WorkspaceApplicationsMetric }) 
   );
 }
 
-function ApplicationRow({ application }: { application: WorkspaceApplicationRow }) {
+function ApplicationRow({
+  application,
+  selected,
+  onSelectApplication,
+}: {
+  application: WorkspaceApplicationRow;
+  selected: boolean;
+  onSelectApplication: (applicationRef: string) => void;
+}) {
   return (
-    <article className="application-row">
+    <article
+      className={`application-row selection-row${selected ? " selected" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      onClick={() => onSelectApplication(application.applicationRef)}
+      onKeyDown={(event) => handleSelectionRowKeyDown(event, application.applicationRef, onSelectApplication)}
+    >
       <div className="application-row-main">
         <div>
           <p className="eyebrow">{application.applicationKind}</p>
           <h4>{application.displayName}</h4>
         </div>
-        <StatusBadge tone={application.lastRunStatus === "blocked" ? "bad" : "good"}>
-          {application.lastRunStatus}
+        <StatusBadge tone={selected ? "neutral" : application.lastRunStatus === "blocked" ? "bad" : "good"}>
+          {selected ? "selected" : application.lastRunStatus}
         </StatusBadge>
       </div>
       <dl className="application-row-meta">
@@ -3036,6 +3238,23 @@ function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLi
       <StatusBadge tone={tone}>{state.status}</StatusBadge>
     </section>
   );
+}
+
+function toWorkflowDefinitionSummary(
+  workflowDefinition: WorkspaceWorkflowDefinitionRow,
+  tenantRef: string,
+): WorkflowDefinitionSummary {
+  return {
+    workflow_definition_id: workflowDefinition.workflowDefinitionId,
+    tenant_ref: tenantRef,
+    application_ref: workflowDefinition.applicationRef,
+    version: workflowDefinition.version,
+    definition_status: workflowDefinition.definitionStatus,
+    node_count: workflowDefinition.nodeCount,
+    risk_level: workflowDefinition.riskLevel,
+    requires_confirmation_capable: workflowDefinition.requiresConfirmationCapable,
+    updated_at: workflowDefinition.updatedAt,
+  };
 }
 
 function RouteCard({ route }: { route: ControlPlaneReadRouteCard }) {
