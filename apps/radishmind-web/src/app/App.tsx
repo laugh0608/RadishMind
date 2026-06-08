@@ -109,6 +109,18 @@ import {
   type WorkflowSurfaceOverviewViewModel,
 } from "../features/control-plane-read/workflowSurfaceOverview";
 import {
+  buildWorkflowScenarioInspectorViewModel,
+  type WorkflowScenario,
+  type WorkflowScenarioBlockedReason,
+  type WorkflowScenarioExpectedOutput,
+  type WorkflowScenarioInputField,
+  type WorkflowScenarioInspectorViewModel,
+  type WorkflowScenarioRelation,
+  type WorkflowScenarioStatus,
+  type WorkflowScenarioStopLine,
+  type WorkflowScenarioSummary,
+} from "../features/control-plane-read/workflowScenarioInspector";
+import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
   type WorkspaceRunHistoryStatePreview,
@@ -155,6 +167,7 @@ export function App() {
   const [selectedWorkflowDefinitionId, setSelectedWorkflowDefinitionId] = useState<string | null>(null);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
+  const [selectedWorkflowScenarioId, setSelectedWorkflowScenarioId] = useState<string | null>(null);
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -360,6 +373,31 @@ export function App() {
       workflowRuntimeReadinessInspector,
     ],
   );
+  const workflowScenarioInspector = useMemo(
+    () =>
+      buildWorkflowScenarioInspectorViewModel(
+        {
+          applicationDetail: workflowApplicationDetail,
+          definitionDetail: workflowDefinitionDetail,
+          runDetail: workflowRunDetail,
+          selectedDraft: selectedWorkflowDraft,
+          validationInspector: workflowDraftValidationInspector,
+          executionPlanPreview: workflowExecutionPlanPreview,
+          runtimeReadinessInspector: workflowRuntimeReadinessInspector,
+        },
+        selectedWorkflowScenarioId,
+      ),
+    [
+      workflowApplicationDetail,
+      workflowDefinitionDetail,
+      workflowRunDetail,
+      selectedWorkflowDraft,
+      workflowDraftValidationInspector,
+      workflowExecutionPlanPreview,
+      workflowRuntimeReadinessInspector,
+      selectedWorkflowScenarioId,
+    ],
+  );
   const handleSelectApplication = (applicationRef: string) => {
     const nextApplication = workspaceApplications.applications.find(
       (application) => application.applicationRef === applicationRef,
@@ -384,6 +422,7 @@ export function App() {
     setSelectedWorkflowDefinitionId(nextDefinition?.workflowDefinitionId ?? null);
     setSelectedRunId(nextRun?.runId ?? null);
     setSelectedWorkflowDraftId(null);
+    setSelectedWorkflowScenarioId(null);
   };
   const handleSelectWorkflowDefinition = (workflowDefinitionId: string) => {
     const nextDefinition = workspaceWorkflowDefinitions.workflowDefinitions.find(
@@ -401,6 +440,7 @@ export function App() {
     }
     setSelectedRunId(nextRun?.runId ?? null);
     setSelectedWorkflowDraftId(null);
+    setSelectedWorkflowScenarioId(null);
   };
   const handleSelectRun = (runId: string) => {
     const nextRun = workspaceRunHistory.runs.find((run) => run.runId === runId);
@@ -410,6 +450,7 @@ export function App() {
       setSelectedApplicationRef(nextRun.applicationRef);
       setSelectedWorkflowDefinitionId(nextRun.workflowDefinitionId);
       setSelectedWorkflowDraftId(null);
+      setSelectedWorkflowScenarioId(null);
     }
   };
   const handleSelectWorkflowDraft = (draftId: string) => {
@@ -425,6 +466,7 @@ export function App() {
       setSelectedApplicationRef(nextDraft.applicationRef);
       setSelectedWorkflowDefinitionId(nextDraft.workflowDefinitionId);
       setSelectedRunId(nextRun?.runId ?? null);
+      setSelectedWorkflowScenarioId(null);
     }
   };
 
@@ -442,6 +484,7 @@ export function App() {
           <a href="#workspace-applications">Applications</a>
           <a href="#workflow-application-detail">Application Detail</a>
           <a href="#workflow-surface-overview">Workflow Overview</a>
+          <a href="#workflow-scenario-inspector">Scenario Inspector</a>
           <a href="#workspace-api-keys">API Keys</a>
           <a href="#workspace-usage-quota">Usage Quota</a>
           <a href="#workspace-workflow-definitions">Workflows</a>
@@ -516,11 +559,20 @@ export function App() {
               label="Overview"
               value={workflowSurfaceOverview.canRenderSurfaceOverview ? "offline" : "blocked"}
             />
+            <Fact
+              label="Scenario"
+              value={workflowScenarioInspector.canRenderScenarioInspector ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
+        <WorkflowScenarioInspectorPanel
+          inspector={workflowScenarioInspector}
+          selectedScenarioId={workflowScenarioInspector.selectedScenarioId}
+          onSelectScenario={setSelectedWorkflowScenarioId}
+        />
 
         <section
           className="surface-band tenant-overview"
@@ -1229,6 +1281,291 @@ function WorkflowSurfaceOverviewStopLineCard({ stopLine }: { stopLine: WorkflowS
 }
 
 function workflowSurfaceOverviewTone(status: WorkflowSurfaceOverviewStatus): "good" | "bad" | "neutral" {
+  if (status === "blocked") {
+    return "bad";
+  }
+  if (status === "ready") {
+    return "good";
+  }
+  return "neutral";
+}
+
+function WorkflowScenarioInspectorPanel({
+  inspector,
+  selectedScenarioId,
+  onSelectScenario,
+}: {
+  inspector: WorkflowScenarioInspectorViewModel;
+  selectedScenarioId: string;
+  onSelectScenario: (scenarioId: string) => void;
+}) {
+  return (
+    <section
+      className="surface-band workflow-scenario-inspector"
+      id="workflow-scenario-inspector"
+      aria-labelledby="workflow-scenario-inspector-title"
+    >
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Workflow Scenario Inspector</p>
+          <h3 id="workflow-scenario-inspector-title">Scenario, input, output, blockers</h3>
+        </div>
+        <StatusBadge tone={inspector.canRenderScenarioInspector ? "neutral" : "bad"}>
+          {inspector.canRenderScenarioInspector ? "offline advisory" : "blocked"}
+        </StatusBadge>
+      </div>
+
+      <div className="workflow-scenario-selector-grid" aria-label="Workflow scenario selector">
+        {inspector.scenarios.map((scenario) => (
+          <WorkflowScenarioSelectorCard
+            key={scenario.scenarioId}
+            scenario={scenario}
+            selected={scenario.scenarioId === selectedScenarioId}
+            onSelectScenario={onSelectScenario}
+          />
+        ))}
+      </div>
+
+      <div className="workflow-scenario-summary-grid" aria-label="Workflow scenario summary">
+        {inspector.summary.map((summary) => (
+          <WorkflowScenarioSummaryCard key={summary.label} summary={summary} />
+        ))}
+      </div>
+
+      <WorkflowScenarioDetailCard scenario={inspector.selectedScenario} inspector={inspector} />
+
+      <div className="workflow-scenario-input-grid" aria-label="Workflow scenario input contract">
+        {inspector.selectedScenario.inputContract.map((input) => (
+          <WorkflowScenarioInputCard key={input.fieldId} input={input} />
+        ))}
+      </div>
+
+      <div className="workflow-scenario-output-grid" aria-label="Workflow scenario expected outputs">
+        {inspector.selectedScenario.expectedOutputs.map((output) => (
+          <WorkflowScenarioOutputCard key={output.outputId} output={output} />
+        ))}
+      </div>
+
+      <div className="workflow-scenario-relation-grid" aria-label="Workflow scenario relationship map">
+        {inspector.relationMap.map((relation) => (
+          <WorkflowScenarioRelationCard key={relation.relationId} relation={relation} />
+        ))}
+      </div>
+
+      <div className="workflow-scenario-blocked-grid" aria-label="Workflow scenario blocked reasons">
+        {inspector.blockedReasons.map((reason) => (
+          <WorkflowScenarioBlockedReasonCard key={reason.reasonId} reason={reason} />
+        ))}
+      </div>
+
+      <div className="workflow-scenario-stopline-grid" aria-label="Workflow scenario stop lines">
+        {inspector.stopLines.map((stopLine) => (
+          <WorkflowScenarioStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function WorkflowScenarioSelectorCard({
+  scenario,
+  selected,
+  onSelectScenario,
+}: {
+  scenario: WorkflowScenario;
+  selected: boolean;
+  onSelectScenario: (scenarioId: string) => void;
+}) {
+  return (
+    <article
+      className={`workflow-scenario-selector-card selection-row${selected ? " selected" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      onClick={() => onSelectScenario(scenario.scenarioId)}
+      onKeyDown={(event) => handleSelectionRowKeyDown(event, scenario.scenarioId, onSelectScenario)}
+    >
+      <div className="workflow-scenario-row-main">
+        <div>
+          <p className="eyebrow">{scenario.scenarioKind}</p>
+          <h5>{scenario.label}</h5>
+        </div>
+        <StatusBadge tone={selected ? "neutral" : workflowScenarioTone(scenario.requiresConfirmation ? "blocked" : "review_required")}>
+          {selected ? "selected" : scenario.requiresConfirmation ? "confirmation" : "advisory"}
+        </StatusBadge>
+      </div>
+      <p>{scenario.triggerSummary}</p>
+      <small>{scenario.scenarioId}</small>
+    </article>
+  );
+}
+
+function WorkflowScenarioSummaryCard({ summary }: { summary: WorkflowScenarioSummary }) {
+  return (
+    <article className="workflow-scenario-card">
+      <span>{summary.label}</span>
+      <strong>{summary.value}</strong>
+      <StatusBadge tone={workflowScenarioTone(summary.status)}>{summary.status}</StatusBadge>
+      <p>{summary.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowScenarioDetailCard({
+  scenario,
+  inspector,
+}: {
+  scenario: WorkflowScenario;
+  inspector: WorkflowScenarioInspectorViewModel;
+}) {
+  return (
+    <article className="workflow-scenario-card">
+      <div className="workflow-scenario-row-main">
+        <div>
+          <p className="eyebrow">{inspector.scenarioMode}</p>
+          <h5>{scenario.intent}</h5>
+        </div>
+        <StatusBadge tone={workflowScenarioTone(scenario.requiresConfirmation ? "blocked" : "review_required")}>
+          {scenario.requiresConfirmation ? "confirmation required" : "advisory only"}
+        </StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Application</dt>
+          <dd>{scenario.applicationRef}</dd>
+        </div>
+        <div>
+          <dt>Workflow definition</dt>
+          <dd>{scenario.workflowDefinitionId}</dd>
+        </div>
+        <div>
+          <dt>Selected draft</dt>
+          <dd>{scenario.draftId}</dd>
+        </div>
+        <div>
+          <dt>Latest run</dt>
+          <dd>{scenario.runId}</dd>
+        </div>
+        <div>
+          <dt>Risk</dt>
+          <dd>{scenario.riskLevel}</dd>
+        </div>
+        <div>
+          <dt>Scenario</dt>
+          <dd>{inspector.selectedScenarioId}</dd>
+        </div>
+      </dl>
+      <p>{scenario.validationFocus}</p>
+    </article>
+  );
+}
+
+function WorkflowScenarioInputCard({ input }: { input: WorkflowScenarioInputField }) {
+  return (
+    <article className="workflow-scenario-input">
+      <div className="workflow-scenario-row-main">
+        <div>
+          <p className="eyebrow">{input.fieldId}</p>
+          <h5>{input.label}</h5>
+        </div>
+        <StatusBadge tone="neutral">{input.required ? "required" : "optional"}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Source</dt>
+          <dd>{input.sourceRef}</dd>
+        </div>
+      </dl>
+      <p>{input.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowScenarioOutputCard({ output }: { output: WorkflowScenarioExpectedOutput }) {
+  return (
+    <article className="workflow-scenario-output">
+      <div className="workflow-scenario-row-main">
+        <div>
+          <p className="eyebrow">{output.outputId}</p>
+          <h5>{output.label}</h5>
+        </div>
+        <StatusBadge tone={workflowScenarioTone(output.status)}>{output.status}</StatusBadge>
+      </div>
+      <p>{output.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowScenarioRelationCard({ relation }: { relation: WorkflowScenarioRelation }) {
+  return (
+    <article className="workflow-scenario-relation">
+      <div className="workflow-scenario-row-main">
+        <div>
+          <p className="eyebrow">{relation.relationId}</p>
+          <h5>{relation.label}</h5>
+        </div>
+        <StatusBadge tone={workflowScenarioTone(relation.status)}>{relation.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Source</dt>
+          <dd>{relation.sourceRef}</dd>
+        </div>
+        <div>
+          <dt>Target</dt>
+          <dd>{relation.targetRef}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{relation.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{relation.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowScenarioBlockedReasonCard({ reason }: { reason: WorkflowScenarioBlockedReason }) {
+  return (
+    <article className="workflow-scenario-blocked-reason">
+      <div className="workflow-scenario-row-main">
+        <div>
+          <p className="eyebrow">{reason.sourceSurface}</p>
+          <h5>{reason.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{reason.status}</StatusBadge>
+      </div>
+      <dl className="workflow-run-guard-meta">
+        <div>
+          <dt>Missing prerequisite</dt>
+          <dd>{reason.missingPrerequisite}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{reason.auditRef}</dd>
+        </div>
+      </dl>
+      <p>{reason.summary}</p>
+    </article>
+  );
+}
+
+function WorkflowScenarioStopLineCard({ stopLine }: { stopLine: WorkflowScenarioStopLine }) {
+  return (
+    <article className="workflow-scenario-stopline">
+      <div className="workflow-scenario-row-main">
+        <div>
+          <p className="eyebrow">{stopLine.stopLineId}</p>
+          <h5>{stopLine.label}</h5>
+        </div>
+        <StatusBadge tone="bad">{stopLine.status}</StatusBadge>
+      </div>
+      <p>{stopLine.summary}</p>
+    </article>
+  );
+}
+
+function workflowScenarioTone(status: WorkflowScenarioStatus): "good" | "bad" | "neutral" {
   if (status === "blocked") {
     return "bad";
   }

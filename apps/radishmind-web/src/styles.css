@@ -292,6 +292,13 @@ h4 {
 .workflow-surface-overview-relation,
 .workflow-surface-overview-blocked-capability,
 .workflow-surface-overview-stopline,
+.workflow-scenario-card,
+.workflow-scenario-selector-card,
+.workflow-scenario-input,
+.workflow-scenario-output,
+.workflow-scenario-relation,
+.workflow-scenario-blocked-reason,
+.workflow-scenario-stopline,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -379,6 +386,13 @@ h4 {
 .workflow-surface-overview-relation-grid,
 .workflow-surface-overview-blocked-grid,
 .workflow-surface-overview-stopline-grid,
+.workflow-scenario-selector-grid,
+.workflow-scenario-summary-grid,
+.workflow-scenario-input-grid,
+.workflow-scenario-output-grid,
+.workflow-scenario-relation-grid,
+.workflow-scenario-blocked-grid,
+.workflow-scenario-stopline-grid,
 .run-history-metrics,
 .workflow-run-detail-summary-grid,
 .workflow-run-timeline,
@@ -457,6 +471,13 @@ h4 {
 .workflow-surface-overview-relation,
 .workflow-surface-overview-blocked-capability,
 .workflow-surface-overview-stopline,
+.workflow-scenario-card,
+.workflow-scenario-selector-card,
+.workflow-scenario-input,
+.workflow-scenario-output,
+.workflow-scenario-relation,
+.workflow-scenario-blocked-reason,
+.workflow-scenario-stopline,
 .run-history-metric,
 .workflow-run-detail-card,
 .workflow-run-timeline-event,
@@ -490,6 +511,7 @@ h4 {
 .workflow-execution-plan-card span,
 .workflow-runtime-readiness-card span,
 .workflow-surface-overview-card span,
+.workflow-scenario-card span,
 .run-history-metric span,
 .workflow-run-detail-card span,
 .workflow-blocked-action-card span,
@@ -531,6 +553,7 @@ h4 {
 .workflow-execution-plan-card strong,
 .workflow-runtime-readiness-card strong,
 .workflow-surface-overview-card strong,
+.workflow-scenario-card strong,
 .run-history-metric strong,
 .workflow-run-detail-card strong,
 .workflow-blocked-action-card strong,
@@ -580,6 +603,13 @@ h4 {
 .workflow-surface-overview-relation p,
 .workflow-surface-overview-blocked-capability p,
 .workflow-surface-overview-stopline p,
+.workflow-scenario-card p,
+.workflow-scenario-selector-card p,
+.workflow-scenario-input p,
+.workflow-scenario-output p,
+.workflow-scenario-relation p,
+.workflow-scenario-blocked-reason p,
+.workflow-scenario-stopline p,
 .run-history-metric p,
 .workflow-run-detail-card p,
 .workflow-run-timeline-event p,
@@ -658,6 +688,11 @@ h4 {
   padding-bottom: 24px;
 }
 
+.workflow-scenario-inspector {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .workflow-run-detail {
   display: grid;
   gap: 12px;
@@ -712,6 +747,10 @@ h4 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.workflow-scenario-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .workflow-confirmation-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -730,12 +769,24 @@ h4 {
 .workflow-runtime-readiness-gate-grid,
 .workflow-surface-overview-relation-grid,
 .workflow-surface-overview-stopline-grid,
+.workflow-scenario-selector-grid,
+.workflow-scenario-output-grid,
+.workflow-scenario-relation-grid,
+.workflow-scenario-stopline-grid,
 .workflow-confirmation-field-grid,
 .workflow-confirmation-prerequisite-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.workflow-scenario-input-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .workflow-surface-overview-blocked-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workflow-scenario-blocked-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -817,6 +868,27 @@ h4 {
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
+}
+
+.workflow-scenario-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-scenario-row-main h5,
+.workflow-scenario-selector-card h5 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.workflow-scenario-selector-card small {
+  display: block;
+  margin-top: 8px;
+  color: #607086;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .workflow-run-audit-list {
@@ -1295,6 +1367,13 @@ dd {
   .workflow-surface-overview-relation-grid,
   .workflow-surface-overview-blocked-grid,
   .workflow-surface-overview-stopline-grid,
+  .workflow-scenario-selector-grid,
+  .workflow-scenario-summary-grid,
+  .workflow-scenario-input-grid,
+  .workflow-scenario-output-grid,
+  .workflow-scenario-relation-grid,
+  .workflow-scenario-blocked-grid,
+  .workflow-scenario-stopline-grid,
   .run-history-metrics,
   .workflow-run-detail-summary-grid,
   .workflow-run-timeline,
