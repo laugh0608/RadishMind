@@ -352,13 +352,31 @@ def check_content_baseline() -> None:
         item.get("context")
         for item in ((required_check_rule.get("parameters") or {}).get("required_status_checks") or [])
     ]
-    if "Repo Hygiene" not in contexts:
-        raise SystemExit("master-protection.json is missing Repo Hygiene required check")
-    if "Planning Baseline" not in contexts:
-        raise SystemExit("master-protection.json is missing Planning Baseline required check")
+    required_contexts = {
+        "Repo Hygiene",
+        "Repository Baseline",
+        "RadishMind Web Build",
+        "Platform Go Tests",
+    }
+    missing_contexts = sorted(required_contexts - set(contexts))
+    if missing_contexts:
+        raise SystemExit(f"master-protection.json is missing required checks: {missing_contexts}")
 
     pr_workflow = (REPO_ROOT / ".github/workflows/pr-check.yml").read_text(encoding="utf-8")
-    for pattern in ("name: PR Checks", "- master", "name: Repo Hygiene", "name: Planning Baseline"):
+    for pattern in (
+        "name: PR Checks",
+        "pull_request:",
+        "push:",
+        "- dev",
+        "- master",
+        "name: Repo Hygiene",
+        "name: Repository Baseline",
+        "name: RadishMind Web Build",
+        "name: Platform Go Tests",
+        "npm ci",
+        "npm run build",
+        "go test ./...",
+    ):
         if pattern not in pr_workflow:
             raise SystemExit(f".github/workflows/pr-check.yml is missing expected content: {pattern}")
 
@@ -369,7 +387,12 @@ def check_content_baseline() -> None:
         "v*-test",
         "v*-release",
         "name: Release Repo Hygiene",
-        "name: Release Planning Baseline",
+        "name: Release Repository Baseline",
+        "name: Release RadishMind Web Build",
+        "name: Release Platform Go Tests",
+        "npm ci",
+        "npm run build",
+        "go test ./...",
     ):
         if pattern not in release_workflow:
             raise SystemExit(f".github/workflows/release-check.yml is missing expected content: {pattern}")

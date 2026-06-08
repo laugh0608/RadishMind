@@ -17,12 +17,12 @@
 - 禁止 force push
 - 禁止删除分支
 - 仅允许通过 Pull Request 合并
-- 要求 `Repo Hygiene` 与 `Planning Baseline` 检查通过
-- `PR Checks` 当前拆分为 `Repo Hygiene` 与 `Planning Baseline` 两个 job，保留拆分式门禁
-- 默认分支 ruleset required checks 应按 job 名配置为 `Repo Hygiene` 与 `Planning Baseline`
+- 要求 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests` 检查通过
+- `PR Checks` 当前拆分为仓库卫生、仓库治理基线、正式 web 产品面构建和 Go 平台测试四个 job，保留拆分式门禁
+- 默认分支 ruleset required checks 应按 job 名配置为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests`
 - PR 页面里可能显示 workflow 前缀或 `(pull_request)` 后缀，但这些不属于 ruleset 中需要配置的 check context
-- `PR Checks` 当前只响应 `pull_request -> master`；如默认分支切换为 `main`，需先同步调整 workflow 触发分支，再在远端套用该模板
-- tag push 与手动补跑使用独立的 `Release Checks` workflow，并显式使用 `Release Repo Hygiene` 与 `Release Planning Baseline` job 名，避免与 PR required checks 混淆
+- `PR Checks` 当前响应 `pull_request -> dev / master`、`push -> dev` 和手动触发；如默认分支切换为 `main`，需先同步调整 workflow 触发分支，再在远端套用该模板
+- tag push 与手动补跑使用独立的 `Release Checks` workflow，并显式使用 `Release Repo Hygiene`、`Release Repository Baseline`、`Release RadishMind Web Build` 与 `Release Platform Go Tests` job 名，避免与 PR required checks 混淆
 - 允许 `merge` 与 `rebase` 两种合并方式，禁用 `squash`
 - 管理员仅可通过 Pull Request 方式绕过规则，不开放直接 push
 
@@ -30,15 +30,17 @@
 
 - `dev` 是当前常态开发分支
 - 当前阶段不启用 branch protection
-- 当前默认不要求 push 到 `dev` 时自动触发仓库检查
-- 当前也不强制收口到 `pull_request -> dev`；tag 与手动补跑改由独立的 `Release Checks` workflow 承担
+- 当前 `push -> dev` 会自动触发 PR 同级检查，作为日常集成反馈
+- 当前支持 `pull_request -> dev`，但不把 `dev` 配成强制保护分支
 - 如后续进入多人并行开发，再评估是否对 `dev` 追加保护
 
 ## 检查入口
 
 - `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 当前是正式仓库级验证入口
 - `scripts/check-text-files.ps1` 与 `scripts/check-text-files.sh` 负责文本文件卫生检查
-- 当前基线重点是文本文件、治理文件齐备性和 GitHub 规则/工作流口径一致性
+- `apps/radishmind-web/` 的 CI 构建使用 `npm ci` 与 `npm run build`
+- `services/platform/` 的 CI 平台测试使用 `go test ./...`
+- 当前基线重点是文本文件、治理文件齐备性、GitHub 规则/工作流口径一致性、正式 web 产品面构建和 Go 平台测试
 
 ## 应用方式
 

@@ -48,7 +48,13 @@
             "context": "Repo Hygiene"
           },
           {
-            "context": "Planning Baseline"
+            "context": "Repository Baseline"
+          },
+          {
+            "context": "RadishMind Web Build"
+          },
+          {
+            "context": "Platform Go Tests"
           }
         ],
         "strict_required_status_checks_policy": true

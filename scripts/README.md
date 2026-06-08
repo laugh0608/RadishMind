@@ -17,6 +17,8 @@
   - `bootstrap-dev.sh` 与 `bootstrap-dev.ps1` 是首次拉取后的开发环境入口：它们创建仓库根 `.venv`，并用 `.venv` 安装 `requirements-dev.txt` 声明的 Python 检查依赖
   - `run-python.sh` 与 `run-python.ps1` 是 Python 脚本 wrapper，默认只使用仓库根 `.venv`，用于避免独立脚本隐式落到全局 Python
   - `check-repo.py` 支持 `--fast`，用于日常快速验证；`check-repo.sh --fast`、`check-repo-fast.sh`、`pwsh ./scripts/check-repo.ps1 -Fast` 与 `pwsh ./scripts/check-repo-fast.ps1` 默认使用仓库根 `.venv`，没有 `.venv` 时要求先执行 bootstrap；这些入口会跳过慢速回归和批量元数据重跑，但仍保留核心静态门禁
+  - GitHub Actions 当前把 PR / dev 集成检查拆为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests`：仓库治理仍走 `check-text-files` 和 `check-repo`，正式 web 产品面显式执行 `apps/radishmind-web/` 下的 `npm ci` / `npm run build`，Go 平台层显式执行 `services/platform/` 下的 `go test ./...`
+  - `Release Checks` 只复用同级预发布验证 job，不发布镜像、不部署、不访问 live backend、不写入 secret，也不声明 production ready
   - 当前还提供 `run-platform-service.sh` 与 `run-platform-service.ps1`，作为本地 Go platform service wrapper；支持 `serve`、`config-summary`、`config-check` 与 `diagnostics`，并统一处理 repo root、`services/platform` 工作目录、默认 `GOCACHE` 和默认本地配置文件
   - 当前还提供 `run-platform-overview-consumer-smoke.py`，用于把 `GET /v1/platform/overview` 转成未来本地 console 可展示的 overview view model；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回
   - 当前还提供 `run-platform-local-smoke.py`，用于把 `GET /v1/platform/local-smoke` 转成本地 readiness view model；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，只汇总 healthz、overview、model inventory、session/tooling、CORS 和停止线状态，不启动服务、不实现 supervisor、executor、durable store、confirmation、replay 或业务写回

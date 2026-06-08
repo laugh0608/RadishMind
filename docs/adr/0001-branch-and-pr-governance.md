@@ -1,6 +1,6 @@
 # ADR 0001: Branch And PR Governance
 
-更新时间：2026-03-30
+更新时间：2026-06-08
 
 ## 状态
 
@@ -58,7 +58,7 @@ Accepted
 1. 创建远端 `dev` 分支
 2. 将默认分支切换为 `dev`，或至少把开发 PR 默认目标改为 `dev`
 3. 对 `master` 启用 branch protection / ruleset
-4. 要求 `master` 通过 `Repo Hygiene` 与 `Planning Baseline` 状态检查
+4. 要求 `master` 通过 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests` 状态检查
 5. 对 `master` 开启 “Require a pull request before merging”
 6. 配置管理员仅通过 PR 绕过，不开放直接 push
 7. 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`，关闭 `Squash merging`
@@ -71,11 +71,11 @@ Accepted
 - `AGENTS.md`
 - PR 模板
 - GitHub Actions PR 检查工作流
-  - `PR Checks` 当前默认只在目标分支为 `master` 的 Pull Request 上自动触发
-  - 当前拆分为 `Repo Hygiene` 与 `Planning Baseline` 两个 job
-  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Planning Baseline`
+  - `PR Checks` 当前在目标分支为 `dev` / `master` 的 Pull Request、`push -> dev` 和手动触发时自动运行
+  - 当前拆分为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests` 四个 job
+  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Repository Baseline` / `RadishMind Web Build` / `Platform Go Tests`
   - PR 页面可能展示 workflow 前缀或 `(pull_request)` 后缀，但它们不属于 ruleset 中需要手动配置的 check context
-  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Planning Baseline` 独立 job 名，避免与 PR required check 名称漂移或混淆
+  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
 - 文本编码与文件格式检查脚本
 - 仓库治理基线检查脚本
 - `master` ruleset 模板
@@ -93,4 +93,4 @@ Accepted
 
 - 需要维护远端 `master` 保护设置
 - 开发节奏从“直接提交”切换为“分支 + PR”
-- 当前的 `Planning Baseline` 需要随着 `Python` 主实现栈落地而逐步升级到更具体的语言基线
+- CI 需要随着产品面推进继续保持分层：仓库治理、正式 web 产品面、Go 平台服务和后续发布验证不应混成一个难定位的状态
