@@ -288,6 +288,12 @@ h4 {
 .workflow-runtime-readiness-prerequisite,
 .workflow-runtime-readiness-blocker,
 .workflow-runtime-readiness-gate,
+.workflow-workspace-review-hero,
+.workflow-workspace-review-context,
+.workflow-workspace-review-stage,
+.workflow-workspace-review-relation,
+.workflow-workspace-review-blocked-group,
+.workflow-workspace-review-stopline,
 .workflow-surface-overview-card,
 .workflow-surface-overview-relation,
 .workflow-surface-overview-blocked-capability,
@@ -382,6 +388,11 @@ h4 {
 .workflow-runtime-readiness-prerequisite-grid,
 .workflow-runtime-readiness-blocker-grid,
 .workflow-runtime-readiness-gate-grid,
+.workflow-workspace-review-context-grid,
+.workflow-workspace-review-stage-grid,
+.workflow-workspace-review-relation-grid,
+.workflow-workspace-review-blocked-grid,
+.workflow-workspace-review-stopline-grid,
 .workflow-surface-overview-summary-grid,
 .workflow-surface-overview-relation-grid,
 .workflow-surface-overview-blocked-grid,
@@ -467,6 +478,12 @@ h4 {
 .workflow-runtime-readiness-prerequisite,
 .workflow-runtime-readiness-blocker,
 .workflow-runtime-readiness-gate,
+.workflow-workspace-review-hero,
+.workflow-workspace-review-context,
+.workflow-workspace-review-stage,
+.workflow-workspace-review-relation,
+.workflow-workspace-review-blocked-group,
+.workflow-workspace-review-stopline,
 .workflow-surface-overview-card,
 .workflow-surface-overview-relation,
 .workflow-surface-overview-blocked-capability,
@@ -510,6 +527,12 @@ h4 {
 .workflow-draft-validation-card span,
 .workflow-execution-plan-card span,
 .workflow-runtime-readiness-card span,
+.workflow-workspace-review-hero span,
+.workflow-workspace-review-context span,
+.workflow-workspace-review-stage span,
+.workflow-workspace-review-relation span,
+.workflow-workspace-review-blocked-group span,
+.workflow-workspace-review-stopline span,
 .workflow-surface-overview-card span,
 .workflow-scenario-card span,
 .run-history-metric span,
@@ -552,6 +575,12 @@ h4 {
 .workflow-draft-validation-card strong,
 .workflow-execution-plan-card strong,
 .workflow-runtime-readiness-card strong,
+.workflow-workspace-review-hero strong,
+.workflow-workspace-review-context strong,
+.workflow-workspace-review-stage strong,
+.workflow-workspace-review-relation strong,
+.workflow-workspace-review-blocked-group strong,
+.workflow-workspace-review-stopline strong,
 .workflow-surface-overview-card strong,
 .workflow-scenario-card strong,
 .run-history-metric strong,
@@ -599,6 +628,12 @@ h4 {
 .workflow-runtime-readiness-prerequisite p,
 .workflow-runtime-readiness-blocker p,
 .workflow-runtime-readiness-gate p,
+.workflow-workspace-review-hero p,
+.workflow-workspace-review-context p,
+.workflow-workspace-review-stage p,
+.workflow-workspace-review-relation p,
+.workflow-workspace-review-blocked-group p,
+.workflow-workspace-review-stopline p,
 .workflow-surface-overview-card p,
 .workflow-surface-overview-relation p,
 .workflow-surface-overview-blocked-capability p,
@@ -683,6 +718,11 @@ h4 {
   padding: 16px 0 4px;
 }
 
+.workflow-workspace-review {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .workflow-surface-overview {
   border-bottom: 1px solid #d8dee8;
   padding-bottom: 24px;
@@ -741,6 +781,20 @@ h4 {
 
 .workflow-runtime-readiness-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-workspace-review-context-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.workflow-workspace-review-stage-grid,
+.workflow-workspace-review-relation-grid,
+.workflow-workspace-review-stopline-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-workspace-review-blocked-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .workflow-surface-overview-summary-grid {
@@ -863,6 +917,13 @@ h4 {
   align-items: flex-start;
 }
 
+.workflow-workspace-review-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
 .workflow-surface-overview-row-main {
   display: flex;
   justify-content: space-between;
@@ -940,6 +1001,7 @@ h4 {
 .workflow-draft-validation-row-main h5,
 .workflow-execution-plan-row-main h5,
 .workflow-runtime-readiness-row-main h5,
+.workflow-workspace-review-row-main h5,
 .workflow-surface-overview-row-main h5,
 .workflow-run-detail-row-main h5,
 .workflow-blocked-row-main h5,
@@ -947,6 +1009,15 @@ h4 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
+}
+
+.workflow-workspace-review-stage small {
+  display: block;
+  margin-top: 10px;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .workflow-draft-template-button {
@@ -1001,6 +1072,24 @@ h4 {
 }
 
 .workflow-draft-validation-evidence code {
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 6px 8px;
+  color: #33445c;
+  font-size: 12px;
+}
+
+.workflow-workspace-review-token-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.workflow-workspace-review-token-list code {
+  min-width: 0;
+  overflow-wrap: anywhere;
   border: 1px solid #d8dee8;
   border-radius: 8px;
   background: #f8fafc;
@@ -1241,11 +1330,14 @@ dd {
 
 .status-badge {
   flex: 0 0 auto;
+  max-width: 100%;
   border-radius: 999px;
   padding: 5px 9px;
   font-size: 12px;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -1307,10 +1399,22 @@ dd {
 @media (max-width: 820px) {
   .product-shell {
     grid-template-columns: 1fr;
+    min-width: 0;
   }
 
   .product-nav {
     min-height: auto;
+    min-width: 0;
+  }
+
+  .product-workspace {
+    min-width: 0;
+    padding: 20px;
+  }
+
+  .nav-links a,
+  .nav-locks span {
+    overflow-wrap: anywhere;
   }
 
   .workspace-header,
@@ -1363,6 +1467,11 @@ dd {
   .workflow-runtime-readiness-prerequisite-grid,
   .workflow-runtime-readiness-blocker-grid,
   .workflow-runtime-readiness-gate-grid,
+  .workflow-workspace-review-context-grid,
+  .workflow-workspace-review-stage-grid,
+  .workflow-workspace-review-relation-grid,
+  .workflow-workspace-review-blocked-grid,
+  .workflow-workspace-review-stopline-grid,
   .workflow-surface-overview-summary-grid,
   .workflow-surface-overview-relation-grid,
   .workflow-surface-overview-blocked-grid,
@@ -1398,5 +1507,9 @@ dd {
 
   .guard-list {
     justify-content: flex-start;
+  }
+
+  .workflow-workspace-review-row-main {
+    flex-wrap: wrap;
   }
 }

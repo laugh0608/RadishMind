@@ -109,6 +109,10 @@ import {
   type WorkflowSurfaceOverviewViewModel,
 } from "../features/control-plane-read/workflowSurfaceOverview";
 import {
+  buildWorkflowWorkspaceReviewViewModel,
+} from "../features/control-plane-read/workflowWorkspaceReview";
+import { WorkflowWorkspaceReviewPanel } from "../features/control-plane-read/workflowWorkspaceReviewPanel";
+import {
   buildWorkflowScenarioInspectorViewModel,
   type WorkflowScenario,
   type WorkflowScenarioBlockedReason,
@@ -398,6 +402,31 @@ export function App() {
       selectedWorkflowScenarioId,
     ],
   );
+  const workflowWorkspaceReview = useMemo(
+    () =>
+      buildWorkflowWorkspaceReviewViewModel({
+        applicationDetail: workflowApplicationDetail,
+        definitionDetail: workflowDefinitionDetail,
+        runDetail: workflowRunDetail,
+        selectedDraft: selectedWorkflowDraft,
+        validationInspector: workflowDraftValidationInspector,
+        executionPlanPreview: workflowExecutionPlanPreview,
+        runtimeReadinessInspector: workflowRuntimeReadinessInspector,
+        surfaceOverview: workflowSurfaceOverview,
+        scenarioInspector: workflowScenarioInspector,
+      }),
+    [
+      workflowApplicationDetail,
+      workflowDefinitionDetail,
+      workflowRunDetail,
+      selectedWorkflowDraft,
+      workflowDraftValidationInspector,
+      workflowExecutionPlanPreview,
+      workflowRuntimeReadinessInspector,
+      workflowSurfaceOverview,
+      workflowScenarioInspector,
+    ],
+  );
   const handleSelectApplication = (applicationRef: string) => {
     const nextApplication = workspaceApplications.applications.find(
       (application) => application.applicationRef === applicationRef,
@@ -483,6 +512,7 @@ export function App() {
           <a href="#admin-audit-log">Audit Log</a>
           <a href="#workspace-applications">Applications</a>
           <a href="#workflow-application-detail">Application Detail</a>
+          <a href="#workflow-workspace-review">Workflow Review</a>
           <a href="#workflow-surface-overview">Workflow Overview</a>
           <a href="#workflow-scenario-inspector">Scenario Inspector</a>
           <a href="#workspace-api-keys">API Keys</a>
@@ -563,10 +593,15 @@ export function App() {
               label="Scenario"
               value={workflowScenarioInspector.canRenderScenarioInspector ? "offline" : "blocked"}
             />
+            <Fact
+              label="Review"
+              value={workflowWorkspaceReview.canRenderWorkspaceReview ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
+        <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel
           inspector={workflowScenarioInspector}
