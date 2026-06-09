@@ -93,6 +93,7 @@ import {
   type WorkflowRuntimeReadinessStatus,
   type WorkflowRuntimeReadinessSummary,
 } from "../features/control-plane-read/workflowRuntimeReadinessInspector";
+import { WorkflowReviewHandoffPanel } from "../features/control-plane-read/workflowReviewHandoffPanel";
 import {
   type WorkflowSurfaceOverviewBlockedCapability,
   type WorkflowSurfaceOverviewMetric,
@@ -280,6 +281,7 @@ export function App() {
     workflowScenarioInspector,
     workflowWorkspaceReview,
     workflowUserWorkspaceHome,
+    workflowReviewHandoff,
   } = workflowWorkspaceContext;
   const applyWorkflowSelectionPatch = ({
     applicationRef,
@@ -351,6 +353,7 @@ export function App() {
             <a href="#workflow-runtime-readiness-inspector">Runtime Readiness</a>
             <a href="#workflow-scenario-inspector">Scenario Inspector</a>
             <a href="#workflow-workspace-review">Review Workspace</a>
+            <a href="#workflow-review-handoff">Review Handoff</a>
             <a href="#workflow-surface-overview">Workflow Overview</a>
             <a href="#workflow-blocked-action-preview">Blocked Action</a>
             <a href="#workflow-confirmation-placeholder">Confirmation</a>
@@ -439,12 +442,17 @@ export function App() {
               label="Home"
               value={workflowUserWorkspaceHome.canRenderUserWorkspaceHome ? "offline" : "blocked"}
             />
+            <Fact
+              label="Handoff"
+              value={workflowReviewHandoff.canRenderReviewHandoff ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
         <WorkflowUserWorkspaceHomePanel home={workflowUserWorkspaceHome} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
+        <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel
           inspector={workflowScenarioInspector}

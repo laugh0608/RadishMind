@@ -773,6 +773,14 @@ h4 {
   padding: 16px;
 }
 
+.workflow-user-workspace-home-hero > * {
+  min-width: 0;
+}
+
+.workflow-user-workspace-home-hero h4 {
+  overflow-wrap: anywhere;
+}
+
 .workflow-user-workspace-home-card {
   padding: 14px;
 }

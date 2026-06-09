@@ -64,7 +64,8 @@
       "workflowSurfaceOverview",
       "workflowScenarioInspector",
       "workflowWorkspaceReview",
-      "workflowUserWorkspaceHome"
+      "workflowUserWorkspaceHome",
+      "workflowReviewHandoff"
     ]
   },
   "required_product_contexts": [
@@ -103,7 +104,8 @@
       "buildWorkflowSurfaceOverviewViewModel(",
       "buildWorkflowScenarioInspectorViewModel(",
       "buildWorkflowWorkspaceReviewViewModel(",
-      "buildWorkflowUserWorkspaceHomeViewModel("
+      "buildWorkflowUserWorkspaceHomeViewModel(",
+      "buildWorkflowReviewHandoffViewModel("
     ],
     "required_selection_helpers": [
       "selectionForApplication(",
@@ -153,20 +155,24 @@
   "required_doc_references": {
     "docs/radishmind-current-focus.md": [
       "workflow-workspace-context-consistency-v1",
-      "workflowWorkspaceContext"
+      "workflowWorkspaceContext",
+      "Workflow Review Handoff"
     ],
     "docs/devlogs/2026-W24.md": [
       "workflow-workspace-context-consistency-v1",
       "RadishFlow",
-      "Radish Docs"
+      "Radish Docs",
+      "Workflow Review Handoff"
     ],
     "apps/radishmind-web/README.md": [
       "workflowWorkspaceContext",
-      "workflow-workspace-context-consistency-v1"
+      "workflow-workspace-context-consistency-v1",
+      "Workflow Review Handoff"
     ],
     "scripts/README.md": [
       "check-workflow-workspace-context-consistency-v1.py",
-      "workflow-workspace-context-consistency-v1.json"
+      "workflow-workspace-context-consistency-v1.json",
+      "handoff"
     ]
   }
 }

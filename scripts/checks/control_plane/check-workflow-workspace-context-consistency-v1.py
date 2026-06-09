@@ -116,6 +116,7 @@ def assert_context_source(fixture: dict[str, Any]) -> None:
         "buildWorkflowScenarioInspectorViewModel(",
         "buildWorkflowWorkspaceReviewViewModel(",
         "buildWorkflowUserWorkspaceHomeViewModel(",
+        "buildWorkflowReviewHandoffViewModel(",
     }
     missing_calls = sorted(call for call in required_builder_calls if call not in context_text)
     require(not missing_calls, f"context builder lost owned builder calls: {missing_calls}")

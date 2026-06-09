@@ -38,6 +38,10 @@ import {
   type WorkflowRuntimeReadinessInspectorViewModel,
 } from "./workflowRuntimeReadinessInspector";
 import {
+  buildWorkflowReviewHandoffViewModel,
+  type WorkflowReviewHandoffViewModel,
+} from "./workflowReviewHandoff";
+import {
   buildWorkflowScenarioInspectorViewModel,
   type WorkflowScenarioInspectorViewModel,
 } from "./workflowScenarioInspector";
@@ -110,6 +114,7 @@ export type WorkflowWorkspaceContextViewModel = {
   workflowScenarioInspector: WorkflowScenarioInspectorViewModel;
   workflowWorkspaceReview: WorkflowWorkspaceReviewViewModel;
   workflowUserWorkspaceHome: WorkflowUserWorkspaceHomeViewModel;
+  workflowReviewHandoff: WorkflowReviewHandoffViewModel;
 };
 
 export function buildWorkflowWorkspaceContextViewModel(
@@ -216,6 +221,15 @@ export function buildWorkflowWorkspaceContextViewModel(
     workflowSurfaceOverview,
     workflowScenarioInspector,
   });
+  const workflowReviewHandoff = buildWorkflowReviewHandoffViewModel({
+    workflowUserWorkspaceHome,
+    workflowWorkspaceReview,
+    workflowSurfaceOverview,
+    workflowScenarioInspector,
+    workflowRuntimeReadinessInspector,
+    workflowBlockedActionPreview,
+    workflowConfirmationPlaceholder,
+  });
 
   return {
     selectedApplication,
@@ -237,6 +251,7 @@ export function buildWorkflowWorkspaceContextViewModel(
     workflowScenarioInspector,
     workflowWorkspaceReview,
     workflowUserWorkspaceHome,
+    workflowReviewHandoff,
   };
 }
 
