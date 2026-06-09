@@ -317,6 +317,12 @@ export function App() {
       buildWorkflowBlockedActionPreviewViewModel(
         workflowDefinitionDetail.blockedActionPreview,
         workflowRunDetail.blockedReplayPreview,
+        {
+          runId: workflowRunDetail.runId,
+          workflowDefinitionId: workflowDefinitionDetail.workflowDefinitionId,
+          requestId: workflowRunDetail.requestId,
+          auditRef: workflowRunDetail.auditRef,
+        },
       ),
     [workflowDefinitionDetail, workflowRunDetail],
   );

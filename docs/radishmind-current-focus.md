@@ -95,6 +95,8 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 3. 已补 `apps/radishmind-web/` 通用响应式换行规则，桌面和 390px 移动宽度浏览器检查均无横向溢出，浏览器 console 无错误。
 4. 已完成 User Workspace Home 使用性审查与产品信息架构收束：左侧导航按 `Workspace`、`Workflow Review`、`Admin` 和 `Contract` 分组，首页从全量详情堆叠收束为应用组合、审查路径、优先 readiness、最近 run、主要 route evidence 和关键 stop line 摘要。
 5. 详细 selected context、关系链、完整 blocked capability rollup 和停止线明细继续由 Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 承接；本次仍不新增专项 gate、不改变 read-side contract、不新增 live backend、Go route、数据库、OIDC、repository adapter、executor、confirmation、writeback 或 replay。
+6. 已完成 Workflow context selection 一致性审查与定向修正：`Blocked Action Preview` 和 `Confirmation Placeholder` 现在显式继承当前选中 run / workflow definition / request metadata，切换 RadishFlow 与 Docs 应用时 Home、Review、blocked action 和 confirmation 上下文保持一致。
+7. 该修正只治理离线只读 UI 的本地 selection 派生，不新增保存、发布、执行、确认提交、业务写回、replay / resume、live backend、Go route、数据库、OIDC 或 repository adapter。
 
 ## 最近完成（2026-06-08）
 
