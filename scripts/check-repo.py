@@ -1103,6 +1103,7 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-model-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-route-contract-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-response-fixtures-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-product-sample-consistency-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-negative-contract-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-implementation-preconditions-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py", [])

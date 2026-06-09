@@ -99,7 +99,8 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 7. 该修正只治理离线只读 UI 的本地 selection 派生，不新增保存、发布、执行、确认提交、业务写回、replay / resume、live backend、Go route、数据库、OIDC 或 repository adapter。
 8. 已完成 dev-only live read consumer 一致性复核与 fake-store 数据对齐：`control-plane-read-response-fixtures-v1`、Go fake store 和 route smoke 现在使用 RadishFlow Copilot 与 Radish Docs Assistant 两组应用、workflow definition、run history、API key 和 audit 示例，避免 dev-live 模式下 workflow 派生 surface 因旧 `wf_demo_v1` 数据退回 blocked。
 9. 浏览器验证覆盖 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` + `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`，确认 source ready、7 条 read route ready、Home / Review / Overview / Scenario / Blocked Action / Confirmation 在 RadishFlow 与 Docs 上下文下保持一致，390px 窄屏无横向溢出，console 无错误。
-10. 该推进仍只属于 dev-only fake-store-backed read consumer 和只读产品面验证；不启用 production API consumer、真实数据库、Radish OIDC、repository adapter、store selector、workflow executor、confirmation decision、business writeback、run replay / resume、API key lifecycle、quota enforcement 或 production ready 声明。
+10. 已进一步完成 `control-plane-read-product-sample-consistency-v1`：以 `control-plane-read-response-fixtures-v1` 的 success `items` / `next_cursor` 作为 canonical response fixture，用 Python checker 校验前端离线 view model 默认数据和 consumer smoke product refs，并用 Go 单测校验 Go fake store 输出，防止 RadishFlow Copilot 与 Radish Docs Assistant 两组只读产品样例再次漂移。
+11. 该推进仍只属于 dev-only fake-store-backed read consumer 和只读产品面验证；不启用 production API consumer、真实数据库、Radish OIDC、repository adapter、store selector、workflow executor、confirmation decision、business writeback、run replay / resume、API key lifecycle、quota enforcement 或 production ready 声明。
 
 ## 最近完成（2026-06-08）
 

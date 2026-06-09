@@ -8,6 +8,7 @@
 当前边界：
 
 - 默认只消费 `contracts/typescript/control-plane-read-api.ts` 的离线 read-side contract。
+- 前端离线 view model 默认数据必须与 `control-plane-read-response-fixtures-v1` 的 RadishFlow Copilot / Radish Docs Assistant success 样例保持一致；`control-plane-read-product-sample-consistency-v1` 会校验该 response fixture、Go fake store、consumer smoke product refs 和前端离线默认 envelope 没有漂移。
 - 当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 时，可通过 dev-only HTTP consumer 消费 fake-store-backed read handlers；后端必须同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 才会接受测试身份 header。
 - 只渲染 read route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、只读 `admin-audit-log`、只读 `workspace-applications`、只读 `workspace-api-keys`、只读 `workspace-usage-quota`、只读 `workspace-workflow-definitions`、只读 `workspace-run-history`、User Workspace Home 和 workflow function surface 面板。
 - `admin-tenant-overview` 只消费 `tenant-summary-route` 的离线 view model，展示租户摘要、route metadata、request / audit ref 和状态预览。
