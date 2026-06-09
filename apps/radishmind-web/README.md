@@ -26,7 +26,7 @@
 - Workflow workspace context selection 允许用户在本地选择 application、workflow definition、run record 和 draft template，并让 detail、draft validation、execution plan、runtime readiness 与 overview 随当前上下文联动；该选择只改变浏览器内查看状态，不保存、不发布、不执行、不提交确认、不写回业务数据。
 - Workflow Scenario Inspector 是普通离线只读场景检查区域，复用当前 application、definition、run、draft、validation、execution plan、runtime readiness 和 overview view model，展示 RadishFlow / Radish Docs 场景 intent、input contract、expected advisory output、risk / confirmation requirement、relationship map、blocked reason 和 stop lines；场景选择只改变浏览器内查看状态，不保存、不发布、不执行、不请求 live backend、不写回业务数据。
 - Workflow Review Workspace 是正式离线只读审查工作区，复用当前 application、workflow definition、run、draft、validation、execution plan、runtime readiness、overview 和 scenario inspector view model，把当前选中 application + definition + run + draft + scenario 的上下文、review stage、关系链、blocked capability rollup 和 stop line rollup 集中展示；它不新增专项 gate，不请求 live backend，不新增 Go route，不创建 review / draft / plan / readiness 持久化结果，不提供保存、发布、执行、确认提交、写回或 replay 控件。
-- User Workspace Home 是正式离线只读首页，复用 applications、workflow definitions、run history、API key / quota summary、Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 的 view model，集中展示应用组合、当前 review、最近 run、readiness、route evidence、blocked capability 和 stop line rollup；它不新增专项 gate，不请求 live backend，不新增 Go route，不创建首页持久化结果，不提供保存、发布、执行、确认提交、写回或 replay 控件。
+- User Workspace Home 是正式离线只读首页，复用 applications、workflow definitions、run history、API key / quota summary、Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 的 view model，集中展示应用组合、审查路径、最近 run、优先 readiness、主要 route evidence、blocked capability 和关键 stop line rollup；完整 selected context、关系链和停止线明细继续由 Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 承接。它不新增专项 gate，不请求 live backend，不新增 Go route，不创建首页持久化结果，不提供保存、发布、执行、确认提交、写回或 replay 控件。
 - `control-plane-read-formal-ui-readiness-close-v1` 已用聚合 surface matrix / checker 固定七个只读页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；后续普通只读展示页不再默认逐页新增专项门禁。
 - `workflow-function-surface-readiness-close-v1` 已用 workflow surface matrix / checker 固定当前 workflow 离线产品面的 builder、render anchor、CSS selector、关闭项和停止线；后续普通离线 workflow 展示，包括 Workflow Review Workspace 和 User Workspace Home，优先复用该聚合 gate、`npm run build` 和 fast baseline。
 - 不请求生产后端，不接 `Radish` OIDC，不接数据库，不实现 API key lifecycle、quota enforcement、rate limit、billing、cost ledger、workflow builder mutation、draft persistence、validation result persistence、execution plan persistence、runtime readiness persistence、publish、workflow executor、confirmation decision、execution unlock、writeback、run replay、run resume 或 repository adapter。
@@ -36,7 +36,8 @@
 
 User Workspace Home / Workflow Review Workspace 读法：
 
-- 先看 User Workspace Home，确认应用组合、当前 review、最近 run、readiness、route evidence 和 stop line rollup。
+- 左侧导航按 `Workspace`、`Workflow Review`、`Admin` 和 `Contract` 分组；用户端工作区入口和 workflow 审查入口不再与管理端、契约 guard 混排。
+- 先看 User Workspace Home，确认应用组合、审查路径、最近 run、优先 readiness、主要 route evidence 和关键 stop line rollup。
 - 先使用本地 context selection 选择 application、workflow definition、run record 和 draft template，再选择要审查的 scenario。
 - 先看 selected context 和 review stage，确认当前审查对象；再按 scenario、draft、validation、execution plan、runtime readiness 的顺序阅读证据链。
 - blocked capability rollup 和 stop line rollup 是审查结论入口，只解释为什么当前不能 publish / execute / confirm / writeback / replay，不提供解锁或提交按钮。

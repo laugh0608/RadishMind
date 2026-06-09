@@ -93,6 +93,8 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 1. 已完成普通离线 `workflow-user-workspace-home-offline-v1`：新增 User Workspace Home view model 和 panel，复用 applications、workflow definitions、run history、API key / quota summary、Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector。
 2. 新首页展示应用组合、当前选中 review context、review stage、readiness rollup、最近 run、route evidence 和 stop line rollup；继续不保存、不发布、不执行、不请求 live backend、不新增 Go route、不提交 confirmation decision、不写回业务数据、不提供 replay / resume 控件。
 3. 已补 `apps/radishmind-web/` 通用响应式换行规则，桌面和 390px 移动宽度浏览器检查均无横向溢出，浏览器 console 无错误。
+4. 已完成 User Workspace Home 使用性审查与产品信息架构收束：左侧导航按 `Workspace`、`Workflow Review`、`Admin` 和 `Contract` 分组，首页从全量详情堆叠收束为应用组合、审查路径、优先 readiness、最近 run、主要 route evidence 和关键 stop line 摘要。
+5. 详细 selected context、关系链、完整 blocked capability rollup 和停止线明细继续由 Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 承接；本次仍不新增专项 gate、不改变 read-side contract、不新增 live backend、Go route、数据库、OIDC、repository adapter、executor、confirmation、writeback 或 replay。
 
 ## 最近完成（2026-06-08）
 

@@ -8,7 +8,6 @@ import type {
   WorkflowUserWorkspaceHomeViewModel,
 } from "./workflowUserWorkspaceHome";
 import type {
-  WorkflowWorkspaceReviewContextCard,
   WorkflowWorkspaceReviewStage,
   WorkflowWorkspaceReviewStopLine,
 } from "./workflowWorkspaceReview";
@@ -20,6 +19,10 @@ export function WorkflowUserWorkspaceHomePanel({
 }: {
   home: WorkflowUserWorkspaceHomeViewModel;
 }) {
+  const primaryReadiness = home.readinessRollup.slice(0, 6);
+  const primaryRouteEvidence = home.routeEvidence.slice(0, 4);
+  const primaryStopLines = home.stopLines.slice(0, 4);
+
   return (
     <section
       className="surface-band workflow-user-workspace-home"
@@ -29,7 +32,7 @@ export function WorkflowUserWorkspaceHomePanel({
       <div className="section-heading">
         <div>
           <p className="eyebrow">User Workspace Home</p>
-          <h3 id="workflow-user-workspace-home-title">Applications, review, runs, blockers</h3>
+          <h3 id="workflow-user-workspace-home-title">Workspace status and review handoff</h3>
         </div>
         <StatusBadge tone={home.canRenderUserWorkspaceHome ? "neutral" : "bad"}>
           {home.canRenderUserWorkspaceHome ? "offline advisory" : "blocked"}
@@ -94,45 +97,63 @@ export function WorkflowUserWorkspaceHomePanel({
 
         <div className="workflow-user-workspace-home-column">
           <div className="workflow-user-workspace-home-subheading">
-            <p className="eyebrow">Selected Context</p>
-            <h4>Current review target</h4>
+            <p className="eyebrow">Review Path</p>
+            <h4>Current inspection order</h4>
           </div>
-          <div className="workflow-user-workspace-home-context-grid" aria-label="Selected review context">
-            {home.selectedContext.map((context) => (
-              <WorkflowUserWorkspaceHomeContextCard key={context.contextId} context={context} />
+          <div className="workflow-user-workspace-home-stage-grid" aria-label="Current workflow review stages">
+            {home.currentReviewStages.map((stage) => (
+              <WorkflowUserWorkspaceHomeStageCard key={stage.stageId} stage={stage} />
             ))}
           </div>
         </div>
       </div>
 
-      <div className="workflow-user-workspace-home-stage-grid" aria-label="Current workflow review stages">
-        {home.currentReviewStages.map((stage) => (
-          <WorkflowUserWorkspaceHomeStageCard key={stage.stageId} stage={stage} />
-        ))}
+      <div className="workflow-user-workspace-home-section">
+        <div className="workflow-user-workspace-home-subheading">
+          <p className="eyebrow">Readiness Priorities</p>
+          <h4>Primary blocked and offline signals</h4>
+        </div>
+        <div className="workflow-user-workspace-home-readiness-grid" aria-label="Workspace readiness rollup">
+          {primaryReadiness.map((readiness) => (
+            <WorkflowUserWorkspaceHomeReadinessCard key={readiness.readinessId} readiness={readiness} />
+          ))}
+        </div>
       </div>
 
-      <div className="workflow-user-workspace-home-readiness-grid" aria-label="Workspace readiness rollup">
-        {home.readinessRollup.map((readiness) => (
-          <WorkflowUserWorkspaceHomeReadinessCard key={readiness.readinessId} readiness={readiness} />
-        ))}
+      <div className="workflow-user-workspace-home-section">
+        <div className="workflow-user-workspace-home-subheading">
+          <p className="eyebrow">Run Evidence</p>
+          <h4>Recent workspace runs</h4>
+        </div>
+        <div className="workflow-user-workspace-home-run-grid" aria-label="Recent workspace runs">
+          {home.recentRuns.map((run) => (
+            <WorkflowUserWorkspaceHomeRunCard key={run.runId} run={run} />
+          ))}
+        </div>
       </div>
 
-      <div className="workflow-user-workspace-home-run-grid" aria-label="Recent workspace runs">
-        {home.recentRuns.map((run) => (
-          <WorkflowUserWorkspaceHomeRunCard key={run.runId} run={run} />
-        ))}
+      <div className="workflow-user-workspace-home-section">
+        <div className="workflow-user-workspace-home-subheading">
+          <p className="eyebrow">Route Evidence</p>
+          <h4>Read-side source routes</h4>
+        </div>
+        <div className="workflow-user-workspace-home-route-grid" aria-label="Workspace home route evidence">
+          {primaryRouteEvidence.map((route) => (
+            <WorkflowUserWorkspaceHomeRouteCard key={route.evidenceId} route={route} />
+          ))}
+        </div>
       </div>
 
-      <div className="workflow-user-workspace-home-route-grid" aria-label="Workspace home route evidence">
-        {home.routeEvidence.map((route) => (
-          <WorkflowUserWorkspaceHomeRouteCard key={route.evidenceId} route={route} />
-        ))}
-      </div>
-
-      <div className="workflow-user-workspace-home-stopline-grid" aria-label="Workspace home stop lines">
-        {home.stopLines.map((stopLine) => (
-          <WorkflowUserWorkspaceHomeStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
-        ))}
+      <div className="workflow-user-workspace-home-section">
+        <div className="workflow-user-workspace-home-subheading">
+          <p className="eyebrow">Stop Lines</p>
+          <h4>Locked capabilities</h4>
+        </div>
+        <div className="workflow-user-workspace-home-stopline-grid" aria-label="Workspace home stop lines">
+          {primaryStopLines.map((stopLine) => (
+            <WorkflowUserWorkspaceHomeStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -184,35 +205,6 @@ function WorkflowUserWorkspaceHomeApplicationCard({
         </div>
       </dl>
       <p>{application.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowUserWorkspaceHomeContextCard({ context }: { context: WorkflowWorkspaceReviewContextCard }) {
-  return (
-    <article className="workflow-user-workspace-home-card">
-      <div className="workflow-user-workspace-home-row-main">
-        <div>
-          <p className="eyebrow">{context.contextId}</p>
-          <h5>{context.label}</h5>
-        </div>
-        <StatusBadge tone={workflowUserWorkspaceHomeTone(context.status)}>{context.status}</StatusBadge>
-      </div>
-      <dl className="workflow-user-workspace-home-meta">
-        <div>
-          <dt>Primary</dt>
-          <dd>{context.primaryRef}</dd>
-        </div>
-        <div>
-          <dt>Secondary</dt>
-          <dd>{context.secondaryRef}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{context.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{context.summary}</p>
     </article>
   );
 }

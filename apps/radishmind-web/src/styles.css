@@ -93,7 +93,21 @@ h4 {
 
 .nav-links {
   display: grid;
+  gap: 18px;
+}
+
+.nav-link-group {
+  display: grid;
   gap: 8px;
+}
+
+.nav-link-group-label {
+  margin: 0;
+  color: #9fb3c8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .nav-links a,
@@ -787,6 +801,11 @@ h4 {
   gap: 10px;
 }
 
+.workflow-user-workspace-home-section {
+  display: grid;
+  gap: 10px;
+}
+
 .workflow-user-workspace-home-subheading {
   min-width: 0;
 }
@@ -803,6 +822,10 @@ h4 {
 .workflow-user-workspace-home-route-grid,
 .workflow-user-workspace-home-stopline-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-user-workspace-home-column .workflow-user-workspace-home-stage-grid {
+  grid-template-columns: 1fr;
 }
 
 .workflow-user-workspace-home-row-main {

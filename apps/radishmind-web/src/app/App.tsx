@@ -535,27 +535,39 @@ export function App() {
           <p className="nav-summary">Read-only product surface for tenant, workspace, usage, workflow, and audit views.</p>
         </div>
         <nav className="nav-links" aria-label="Read shell sections">
-          <a href="#workflow-user-workspace-home">Workspace Home</a>
-          <a href="#admin-tenant-overview">Tenant Overview</a>
-          <a href="#admin-audit-log">Audit Log</a>
-          <a href="#workspace-applications">Applications</a>
-          <a href="#workflow-application-detail">Application Detail</a>
-          <a href="#workflow-workspace-review">Workflow Review</a>
-          <a href="#workflow-surface-overview">Workflow Overview</a>
-          <a href="#workflow-scenario-inspector">Scenario Inspector</a>
-          <a href="#workspace-api-keys">API Keys</a>
-          <a href="#workspace-usage-quota">Usage Quota</a>
-          <a href="#workspace-workflow-definitions">Workflows</a>
-          <a href="#workflow-draft-designer">Draft Designer</a>
-          <a href="#workflow-draft-validation-inspector">Draft Validation</a>
-          <a href="#workflow-execution-plan-preview">Execution Plan</a>
-          <a href="#workflow-runtime-readiness-inspector">Runtime Readiness</a>
-          <a href="#workspace-run-history">Run History</a>
-          <a href="#workflow-blocked-action-preview">Blocked Action</a>
-          <a href="#workflow-confirmation-placeholder">Confirmation</a>
-          <a href="#routes">Route Catalog</a>
-          <a href="#states">Shared States</a>
-          <a href="#guard">Output Guard</a>
+          <div className="nav-link-group" aria-label="User workspace sections">
+            <p className="nav-link-group-label">Workspace</p>
+            <a href="#workflow-user-workspace-home">Workspace Home</a>
+            <a href="#workspace-applications">Applications</a>
+            <a href="#workspace-workflow-definitions">Workflows</a>
+            <a href="#workspace-run-history">Run History</a>
+            <a href="#workspace-api-keys">API Keys</a>
+            <a href="#workspace-usage-quota">Usage Quota</a>
+          </div>
+          <div className="nav-link-group" aria-label="Workflow review sections">
+            <p className="nav-link-group-label">Workflow Review</p>
+            <a href="#workflow-application-detail">Application Detail</a>
+            <a href="#workflow-draft-designer">Draft Designer</a>
+            <a href="#workflow-draft-validation-inspector">Draft Validation</a>
+            <a href="#workflow-execution-plan-preview">Execution Plan</a>
+            <a href="#workflow-runtime-readiness-inspector">Runtime Readiness</a>
+            <a href="#workflow-scenario-inspector">Scenario Inspector</a>
+            <a href="#workflow-workspace-review">Review Workspace</a>
+            <a href="#workflow-surface-overview">Workflow Overview</a>
+            <a href="#workflow-blocked-action-preview">Blocked Action</a>
+            <a href="#workflow-confirmation-placeholder">Confirmation</a>
+          </div>
+          <div className="nav-link-group" aria-label="Admin control plane sections">
+            <p className="nav-link-group-label">Admin</p>
+            <a href="#admin-tenant-overview">Tenant Overview</a>
+            <a href="#admin-audit-log">Audit Log</a>
+          </div>
+          <div className="nav-link-group" aria-label="Contract and guard sections">
+            <p className="nav-link-group-label">Contract</p>
+            <a href="#routes">Route Catalog</a>
+            <a href="#states">Shared States</a>
+            <a href="#guard">Output Guard</a>
+          </div>
         </nav>
         <div className="nav-locks" aria-label="Stop lines">
           {shell.lockedCapabilities.map((capability) => (
