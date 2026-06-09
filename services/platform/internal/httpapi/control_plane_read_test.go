@@ -41,7 +41,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		if envelope.FailureCode != nil || len(envelope.Items) != 1 {
 			t.Fatalf("unexpected tenant summary response: %#v", envelope)
 		}
-		if got := envelope.Items[0]["tenant_display_name"]; got != "Demo Tenant" {
+		if got := envelope.Items[0]["tenant_display_name"]; got != "Demo tenant" {
 			t.Fatalf("unexpected tenant display name: %#v", got)
 		}
 		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
@@ -83,20 +83,20 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		}{
 			{
 				name:           "application summaries",
-				path:           "/v1/user-workspace/applications?application_kind=workflow",
+				path:           "/v1/user-workspace/applications?application_kind=workflow_copilot",
 				scope:          "applications:read",
 				requestID:      "req-applications",
 				itemField:      "application_ref",
-				itemValue:      "app_demo_workflow",
-				expectedCursor: stringPointerForTest("cursor_apps_next"),
+				itemValue:      "app_flow_copilot",
+				expectedCursor: stringPointerForTest("cursor_workspace_applications_next"),
 			},
 			{
 				name:      "api key summaries",
-				path:      "/v1/user-workspace/api-keys?scope=chat:invoke",
+				path:      "/v1/user-workspace/api-keys?scope=runs:read",
 				scope:     "api_keys:read",
 				requestID: "req-api-keys",
 				itemField: "api_key_id",
-				itemValue: "ak_demo_001",
+				itemValue: "key_ops_readonly",
 			},
 			{
 				name:           "workflow definition summaries",
@@ -104,8 +104,8 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 				scope:          "applications:read",
 				requestID:      "req-workflow-definitions",
 				itemField:      "workflow_definition_id",
-				itemValue:      "wf_demo_v1",
-				expectedCursor: stringPointerForTest("cursor_workflows_next"),
+				itemValue:      "wf_radishflow_copilot_latest",
+				expectedCursor: stringPointerForTest("cursor_workspace_workflow_definitions_next"),
 			},
 			{
 				name:           "run record summaries",
@@ -113,17 +113,17 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 				scope:          "runs:read",
 				requestID:      "req-runs",
 				itemField:      "run_id",
-				itemValue:      "run_demo_001",
-				expectedCursor: stringPointerForTest("cursor_runs_next"),
+				itemValue:      "run_radishflow_copilot_20260531_001",
+				expectedCursor: stringPointerForTest("cursor_workspace_run_history_next"),
 			},
 			{
 				name:           "audit summaries",
-				path:           "/v1/control-plane/audit?event_kind=read_model_accessed",
+				path:           "/v1/control-plane/audit?event_kind=control_plane.read",
 				scope:          "audit:read",
 				requestID:      "req-audit",
 				itemField:      "audit_ref",
-				itemValue:      "audit_read_runs_001",
-				expectedCursor: stringPointerForTest("cursor_audit_next"),
+				itemValue:      "audit_admin_policy_read_20260601_001",
+				expectedCursor: stringPointerForTest("cursor_admin_audit_log_next"),
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {

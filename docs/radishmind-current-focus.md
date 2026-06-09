@@ -97,6 +97,9 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 5. 详细 selected context、关系链、完整 blocked capability rollup 和停止线明细继续由 Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 承接；本次仍不新增专项 gate、不改变 read-side contract、不新增 live backend、Go route、数据库、OIDC、repository adapter、executor、confirmation、writeback 或 replay。
 6. 已完成 Workflow context selection 一致性审查与定向修正：`Blocked Action Preview` 和 `Confirmation Placeholder` 现在显式继承当前选中 run / workflow definition / request metadata，切换 RadishFlow 与 Docs 应用时 Home、Review、blocked action 和 confirmation 上下文保持一致。
 7. 该修正只治理离线只读 UI 的本地 selection 派生，不新增保存、发布、执行、确认提交、业务写回、replay / resume、live backend、Go route、数据库、OIDC 或 repository adapter。
+8. 已完成 dev-only live read consumer 一致性复核与 fake-store 数据对齐：`control-plane-read-response-fixtures-v1`、Go fake store 和 route smoke 现在使用 RadishFlow Copilot 与 Radish Docs Assistant 两组应用、workflow definition、run history、API key 和 audit 示例，避免 dev-live 模式下 workflow 派生 surface 因旧 `wf_demo_v1` 数据退回 blocked。
+9. 浏览器验证覆盖 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` + `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`，确认 source ready、7 条 read route ready、Home / Review / Overview / Scenario / Blocked Action / Confirmation 在 RadishFlow 与 Docs 上下文下保持一致，390px 窄屏无横向溢出，console 无错误。
+10. 该推进仍只属于 dev-only fake-store-backed read consumer 和只读产品面验证；不启用 production API consumer、真实数据库、Radish OIDC、repository adapter、store selector、workflow executor、confirmation decision、business writeback、run replay / resume、API key lifecycle、quota enforcement 或 production ready 声明。
 
 ## 最近完成（2026-06-08）
 
