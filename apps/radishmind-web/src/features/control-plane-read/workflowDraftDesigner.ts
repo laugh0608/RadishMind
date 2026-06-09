@@ -3,6 +3,7 @@ import {
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
   CONTROL_PLANE_READ_ROUTES,
   controlPlaneReadResponseHasForbiddenOutput,
+  type WorkflowDefinitionSummary,
 } from "../../../../../contracts/typescript/control-plane-read-api";
 import {
   buildWorkflowDefinitionDetailViewModel,
@@ -98,12 +99,20 @@ export type WorkflowDraftDesignerDraft = {
 
 export type WorkflowDraftDesignerSource = {
   workflowDefinitions?: WorkspaceWorkflowDefinitionRow[];
+  tenantRef?: string;
+  detailSourcesByWorkflowDefinitionId?: Record<string, WorkflowDraftDesignerDefinitionDetailSource>;
   detailNodes?: WorkflowDefinitionDetailNode[];
   detailEdges?: WorkflowDefinitionDetailEdge[];
   blockedActionPreview?: WorkflowDefinitionBlockedActionPreview;
   confirmationPlaceholder?: WorkflowConfirmationPlaceholderViewModel;
   sourceRequestId?: string;
   sourceAuditRef?: string;
+};
+
+export type WorkflowDraftDesignerDefinitionDetailSource = {
+  nodes: WorkflowDefinitionDetailNode[];
+  edges: WorkflowDefinitionDetailEdge[];
+  blockedActionPreview: WorkflowDefinitionBlockedActionPreview;
 };
 
 export type WorkflowDraftDesignerViewModel = {
@@ -168,14 +177,27 @@ export function buildWorkflowDraftDesignerViewModel(
   const templates = workflowDefinitions.map((workflowDefinition) =>
     buildTemplate(workflowDefinition, confirmationPlaceholder),
   );
-  const nodes = buildDesignerNodes(source.detailNodes ?? detail.nodes);
-  const edges = buildDesignerEdges(source.detailEdges ?? detail.edges);
-  const blockedActionPreview = source.blockedActionPreview ?? detail.blockedActionPreview;
   const requestId = source.sourceRequestId ?? "req_workflow_draft_designer_offline_demo";
   const auditRef = source.sourceAuditRef ?? "audit_workflow_draft_designer_offline_demo";
-  const drafts = templates.map((template) =>
-    buildDraft(template, nodes, edges, blockedActionPreview, confirmationPlaceholder, requestId, auditRef),
-  );
+  const drafts = templates.map((template, index) => {
+    const workflowDefinition = workflowDefinitions[index];
+    const detailSource = workflowDefinition
+      ? detailSourceForWorkflowDefinition(workflowDefinition, source)
+      : {
+          nodes: detail.nodes,
+          edges: detail.edges,
+          blockedActionPreview: detail.blockedActionPreview,
+        };
+    return buildDraft(
+      template,
+      buildDesignerNodes(detailSource.nodes),
+      buildDesignerEdges(detailSource.edges),
+      detailSource.blockedActionPreview,
+      confirmationPlaceholder,
+      requestId,
+      auditRef,
+    );
+  });
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     draft: { [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[7]]: "blocked" },
   });
@@ -197,8 +219,7 @@ export function buildWorkflowDraftDesignerViewModel(
       route.canMutate === false &&
       templates.length >= 2 &&
       drafts.length === templates.length &&
-      nodes.length >= 4 &&
-      edges.length >= 4,
+      drafts.every((draft, index) => draft.nodes.length === templates[index]?.nodeCount && draft.edges.length >= 3),
     canInspectDraftLocally: true,
     canSwitchDraftLocally: true,
     canRequestLiveBackend: false,
@@ -209,6 +230,56 @@ export function buildWorkflowDraftDesignerViewModel(
     canSubmitConfirmationDecision: false,
     canWriteBusinessTruth: false,
     canReplayRun: false,
+  };
+}
+
+function detailSourceForWorkflowDefinition(
+  workflowDefinition: WorkspaceWorkflowDefinitionRow,
+  source: WorkflowDraftDesignerSource,
+): WorkflowDraftDesignerDefinitionDetailSource {
+  const explicitDetailSource =
+    source.detailSourcesByWorkflowDefinitionId?.[workflowDefinition.workflowDefinitionId];
+  if (explicitDetailSource) {
+    return explicitDetailSource;
+  }
+
+  if (
+    source.workflowDefinitions?.length === 1 &&
+    source.detailNodes &&
+    source.detailEdges &&
+    source.blockedActionPreview
+  ) {
+    return {
+      nodes: source.detailNodes,
+      edges: source.detailEdges,
+      blockedActionPreview: source.blockedActionPreview,
+    };
+  }
+
+  const detail = buildWorkflowDefinitionDetailViewModel(
+    toWorkflowDefinitionSummary(workflowDefinition, source.tenantRef ?? "tenant_demo"),
+  );
+  return {
+    nodes: detail.nodes,
+    edges: detail.edges,
+    blockedActionPreview: detail.blockedActionPreview,
+  };
+}
+
+function toWorkflowDefinitionSummary(
+  workflowDefinition: WorkspaceWorkflowDefinitionRow,
+  tenantRef: string,
+): WorkflowDefinitionSummary {
+  return {
+    workflow_definition_id: workflowDefinition.workflowDefinitionId,
+    tenant_ref: tenantRef,
+    application_ref: workflowDefinition.applicationRef,
+    version: workflowDefinition.version,
+    definition_status: workflowDefinition.definitionStatus,
+    node_count: workflowDefinition.nodeCount,
+    risk_level: workflowDefinition.riskLevel,
+    requires_confirmation_capable: workflowDefinition.requiresConfirmationCapable,
+    updated_at: workflowDefinition.updatedAt,
   };
 }
 

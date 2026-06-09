@@ -29,7 +29,6 @@ import {
   type WorkspaceApplicationsStatePreview,
 } from "../features/control-plane-read/workspaceApplications";
 import {
-  buildWorkflowApplicationDetailViewModel,
   type WorkflowApplicationBlockedCapabilityPreview,
   type WorkflowApplicationDetailViewModel,
   type WorkflowApplicationRiskSummary,
@@ -54,7 +53,6 @@ import {
   type WorkspaceWorkflowDefinitionsStatePreview,
 } from "../features/control-plane-read/workspaceWorkflowDefinitions";
 import {
-  buildWorkflowDefinitionDetailViewModel,
   type WorkflowDefinitionBlockedActionPreview,
   type WorkflowDefinitionDetailEdge,
   type WorkflowDefinitionDetailNode,
@@ -62,7 +60,6 @@ import {
   type WorkflowDefinitionDetailViewModel,
 } from "../features/control-plane-read/workflowDefinitionDetail";
 import {
-  buildWorkflowDraftDesignerViewModel,
   type WorkflowDraftDesignerBlockedCapability,
   type WorkflowDraftDesignerDraft,
   type WorkflowDraftDesignerEdge,
@@ -73,7 +70,6 @@ import {
   type WorkflowDraftDesignerViewModel,
 } from "../features/control-plane-read/workflowDraftDesigner";
 import {
-  buildWorkflowDraftValidationInspectorViewModel,
   type WorkflowDraftBlockedCapabilityCheck,
   type WorkflowDraftContractCheck,
   type WorkflowDraftStructuralCheck,
@@ -81,7 +77,6 @@ import {
   type WorkflowDraftValidationSummary,
 } from "../features/control-plane-read/workflowDraftValidationInspector";
 import {
-  buildWorkflowExecutionPlanPreviewViewModel,
   type WorkflowExecutionPlanBlockedReason,
   type WorkflowExecutionPlanGate,
   type WorkflowExecutionPlanNodeMapping,
@@ -91,7 +86,6 @@ import {
   type WorkflowExecutionPlanSummary,
 } from "../features/control-plane-read/workflowExecutionPlanPreview";
 import {
-  buildWorkflowRuntimeReadinessInspectorViewModel,
   type WorkflowRuntimeReadinessBlocker,
   type WorkflowRuntimeReadinessGate,
   type WorkflowRuntimeReadinessInspectorViewModel,
@@ -100,7 +94,6 @@ import {
   type WorkflowRuntimeReadinessSummary,
 } from "../features/control-plane-read/workflowRuntimeReadinessInspector";
 import {
-  buildWorkflowSurfaceOverviewViewModel,
   type WorkflowSurfaceOverviewBlockedCapability,
   type WorkflowSurfaceOverviewMetric,
   type WorkflowSurfaceOverviewRelation,
@@ -108,16 +101,16 @@ import {
   type WorkflowSurfaceOverviewStopLine,
   type WorkflowSurfaceOverviewViewModel,
 } from "../features/control-plane-read/workflowSurfaceOverview";
-import {
-  buildWorkflowWorkspaceReviewViewModel,
-} from "../features/control-plane-read/workflowWorkspaceReview";
 import { WorkflowWorkspaceReviewPanel } from "../features/control-plane-read/workflowWorkspaceReviewPanel";
-import {
-  buildWorkflowUserWorkspaceHomeViewModel,
-} from "../features/control-plane-read/workflowUserWorkspaceHome";
 import { WorkflowUserWorkspaceHomePanel } from "../features/control-plane-read/workflowUserWorkspaceHomePanel";
 import {
-  buildWorkflowScenarioInspectorViewModel,
+  buildWorkflowWorkspaceContextViewModel,
+  selectionForApplication,
+  selectionForDraft,
+  selectionForRun,
+  selectionForWorkflowDefinition,
+} from "../features/control-plane-read/workflowWorkspaceContext";
+import {
   type WorkflowScenario,
   type WorkflowScenarioBlockedReason,
   type WorkflowScenarioExpectedOutput,
@@ -135,21 +128,18 @@ import {
   type WorkspaceRunRecordRow,
 } from "../features/control-plane-read/workspaceRunHistory";
 import {
-  buildWorkflowRunDetailViewModel,
   type WorkflowRunDetailGuardPreview,
   type WorkflowRunDetailSummary,
   type WorkflowRunDetailTimelineEvent,
   type WorkflowRunDetailViewModel,
 } from "../features/control-plane-read/workflowRunDetail";
 import {
-  buildWorkflowBlockedActionPreviewViewModel,
   type WorkflowBlockedActionAuditStep,
   type WorkflowBlockedActionPreviewViewModel,
   type WorkflowBlockedActionRequirement,
   type WorkflowConfirmationPlaceholderPreview,
 } from "../features/control-plane-read/workflowBlockedActionPreview";
 import {
-  buildWorkflowConfirmationPlaceholderViewModel,
   type WorkflowConfirmationDecisionField,
   type WorkflowConfirmationPlaceholderPrerequisite,
   type WorkflowConfirmationPlaceholderViewModel,
@@ -157,7 +147,6 @@ import {
 import type {
   ControlPlaneReadCollectionViewModel,
   ControlPlaneReadRouteId,
-  WorkflowDefinitionSummary,
 } from "../../../../contracts/typescript/control-plane-read-api";
 
 const shell = buildControlPlaneReadShellViewModel();
@@ -228,23 +217,6 @@ export function App() {
     () => buildWorkspaceApplicationsViewModel(liveCollections["application-summary-list-route"]),
     [liveCollections],
   );
-  const selectedApplication = useMemo<WorkspaceApplicationRow>(() => {
-    const targetApplicationRef = selectedApplicationRef ?? workspaceApplications.applications[0]?.applicationRef;
-    return (
-      workspaceApplications.applications.find(
-        (application) => application.applicationRef === targetApplicationRef,
-      ) ?? workspaceApplications.applications[0]!
-    );
-  }, [selectedApplicationRef, workspaceApplications]);
-  const workflowApplicationDetail = useMemo(
-    () =>
-      buildWorkflowApplicationDetailViewModel(selectedApplication, {
-        tenantRef: workspaceApplications.collection.tenantRef,
-        requestId: workspaceApplications.requestId,
-        auditRef: workspaceApplications.auditRef,
-      }),
-    [selectedApplication, workspaceApplications],
-  );
   const workspaceApiKeys = useMemo(
     () => buildWorkspaceApiKeysViewModel(liveCollections["api-key-summary-list-route"]),
     [liveCollections],
@@ -257,197 +229,25 @@ export function App() {
     () => buildWorkspaceWorkflowDefinitionsViewModel(liveCollections["workflow-definition-summary-list-route"]),
     [liveCollections],
   );
-  const workflowDefinitionsForSelectedApplication = useMemo(() => {
-    const filteredDefinitions = workspaceWorkflowDefinitions.workflowDefinitions.filter(
-      (workflowDefinition) => workflowDefinition.applicationRef === selectedApplication.applicationRef,
-    );
-    return filteredDefinitions.length > 0 ? filteredDefinitions : workspaceWorkflowDefinitions.workflowDefinitions;
-  }, [selectedApplication, workspaceWorkflowDefinitions]);
-  const selectedWorkflowDefinition = useMemo<WorkspaceWorkflowDefinitionRow>(() => {
-    const targetWorkflowDefinitionId =
-      selectedWorkflowDefinitionId ??
-      selectedApplication.latestWorkflowDefinitionRef ??
-      workflowDefinitionsForSelectedApplication[0]?.workflowDefinitionId;
-    return (
-      workflowDefinitionsForSelectedApplication.find(
-        (workflowDefinition) => workflowDefinition.workflowDefinitionId === targetWorkflowDefinitionId,
-      ) ??
-      workflowDefinitionsForSelectedApplication.find(
-        (workflowDefinition) =>
-          workflowDefinition.workflowDefinitionId === selectedApplication.latestWorkflowDefinitionRef,
-      ) ??
-      workflowDefinitionsForSelectedApplication[0]!
-    );
-  }, [selectedApplication, selectedWorkflowDefinitionId, workflowDefinitionsForSelectedApplication]);
-  const workflowDefinitionDetail = useMemo(
-    () =>
-      buildWorkflowDefinitionDetailViewModel(
-        toWorkflowDefinitionSummary(selectedWorkflowDefinition, workspaceWorkflowDefinitions.collection.tenantRef),
-      ),
-    [selectedWorkflowDefinition, workspaceWorkflowDefinitions],
-  );
   const workspaceRunHistory = useMemo(
     () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
     [liveCollections],
   );
-  const runsForSelectedContext = useMemo(() => {
-    const definitionRuns = workspaceRunHistory.runs.filter(
-      (run) =>
-        run.applicationRef === selectedApplication.applicationRef &&
-        run.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId,
-    );
-    if (definitionRuns.length > 0) {
-      return definitionRuns;
-    }
-    const applicationRuns = workspaceRunHistory.runs.filter(
-      (run) => run.applicationRef === selectedApplication.applicationRef,
-    );
-    return applicationRuns.length > 0 ? applicationRuns : workspaceRunHistory.runs;
-  }, [selectedApplication, selectedWorkflowDefinition, workspaceRunHistory]);
-  const selectedRun = useMemo<WorkspaceRunRecordRow>(() => {
-    const targetRunId = selectedRunId ?? runsForSelectedContext[0]?.runId;
-    return runsForSelectedContext.find((run) => run.runId === targetRunId) ?? runsForSelectedContext[0]!;
-  }, [runsForSelectedContext, selectedRunId]);
-  const workflowRunDetail = useMemo(
-    () => buildWorkflowRunDetailViewModel(selectedRun),
-    [selectedRun],
-  );
-  const workflowBlockedActionPreview = useMemo(
+  const workflowWorkspaceContext = useMemo(
     () =>
-      buildWorkflowBlockedActionPreviewViewModel(
-        workflowDefinitionDetail.blockedActionPreview,
-        workflowRunDetail.blockedReplayPreview,
-        {
-          runId: workflowRunDetail.runId,
-          workflowDefinitionId: workflowDefinitionDetail.workflowDefinitionId,
-          requestId: workflowRunDetail.requestId,
-          auditRef: workflowRunDetail.auditRef,
-        },
-      ),
-    [workflowDefinitionDetail, workflowRunDetail],
-  );
-  const workflowConfirmationPlaceholder = useMemo(
-    () => buildWorkflowConfirmationPlaceholderViewModel(workflowBlockedActionPreview),
-    [workflowBlockedActionPreview],
-  );
-  const workflowDraftDesigner = useMemo(
-    () =>
-      buildWorkflowDraftDesignerViewModel({
-        workflowDefinitions: workspaceWorkflowDefinitions.workflowDefinitions,
-        detailNodes: workflowDefinitionDetail.nodes,
-        detailEdges: workflowDefinitionDetail.edges,
-        blockedActionPreview: workflowDefinitionDetail.blockedActionPreview,
-        confirmationPlaceholder: workflowConfirmationPlaceholder,
-        sourceRequestId: workspaceWorkflowDefinitions.requestId,
-        sourceAuditRef: workspaceWorkflowDefinitions.auditRef,
-      }),
-    [workspaceWorkflowDefinitions, workflowDefinitionDetail, workflowConfirmationPlaceholder],
-  );
-  const selectedWorkflowDraft = useMemo<WorkflowDraftDesignerDraft>(() => {
-    const definitionDraft = workflowDraftDesigner.drafts.find(
-      (draft) => draft.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId,
-    );
-    const targetDraftId = selectedWorkflowDraftId ?? definitionDraft?.draftId ?? workflowDraftDesigner.defaultDraftId;
-    return (
-      workflowDraftDesigner.drafts.find((draft) => draft.draftId === targetDraftId) ??
-      definitionDraft ??
-      workflowDraftDesigner.drafts[0]!
-    );
-  }, [selectedWorkflowDefinition, selectedWorkflowDraftId, workflowDraftDesigner]);
-  const workflowDraftValidationInspector = useMemo(
-    () => buildWorkflowDraftValidationInspectorViewModel(selectedWorkflowDraft),
-    [selectedWorkflowDraft],
-  );
-  const workflowExecutionPlanPreview = useMemo(
-    () => buildWorkflowExecutionPlanPreviewViewModel(selectedWorkflowDraft, workflowDraftValidationInspector),
-    [selectedWorkflowDraft, workflowDraftValidationInspector],
-  );
-  const workflowRuntimeReadinessInspector = useMemo(
-    () => buildWorkflowRuntimeReadinessInspectorViewModel(workflowExecutionPlanPreview),
-    [workflowExecutionPlanPreview],
-  );
-  const workflowSurfaceOverview = useMemo(
-    () =>
-      buildWorkflowSurfaceOverviewViewModel({
-        applicationDetail: workflowApplicationDetail,
-        definitionDetail: workflowDefinitionDetail,
-        runDetail: workflowRunDetail,
-        selectedDraft: selectedWorkflowDraft,
-        validationInspector: workflowDraftValidationInspector,
-        executionPlanPreview: workflowExecutionPlanPreview,
-        runtimeReadinessInspector: workflowRuntimeReadinessInspector,
-      }),
-    [
-      workflowApplicationDetail,
-      workflowDefinitionDetail,
-      workflowRunDetail,
-      selectedWorkflowDraft,
-      workflowDraftValidationInspector,
-      workflowExecutionPlanPreview,
-      workflowRuntimeReadinessInspector,
-    ],
-  );
-  const workflowScenarioInspector = useMemo(
-    () =>
-      buildWorkflowScenarioInspectorViewModel(
-        {
-          applicationDetail: workflowApplicationDetail,
-          definitionDetail: workflowDefinitionDetail,
-          runDetail: workflowRunDetail,
-          selectedDraft: selectedWorkflowDraft,
-          validationInspector: workflowDraftValidationInspector,
-          executionPlanPreview: workflowExecutionPlanPreview,
-          runtimeReadinessInspector: workflowRuntimeReadinessInspector,
-        },
-        selectedWorkflowScenarioId,
-      ),
-    [
-      workflowApplicationDetail,
-      workflowDefinitionDetail,
-      workflowRunDetail,
-      selectedWorkflowDraft,
-      workflowDraftValidationInspector,
-      workflowExecutionPlanPreview,
-      workflowRuntimeReadinessInspector,
-      selectedWorkflowScenarioId,
-    ],
-  );
-  const workflowWorkspaceReview = useMemo(
-    () =>
-      buildWorkflowWorkspaceReviewViewModel({
-        applicationDetail: workflowApplicationDetail,
-        definitionDetail: workflowDefinitionDetail,
-        runDetail: workflowRunDetail,
-        selectedDraft: selectedWorkflowDraft,
-        validationInspector: workflowDraftValidationInspector,
-        executionPlanPreview: workflowExecutionPlanPreview,
-        runtimeReadinessInspector: workflowRuntimeReadinessInspector,
-        surfaceOverview: workflowSurfaceOverview,
-        scenarioInspector: workflowScenarioInspector,
-      }),
-    [
-      workflowApplicationDetail,
-      workflowDefinitionDetail,
-      workflowRunDetail,
-      selectedWorkflowDraft,
-      workflowDraftValidationInspector,
-      workflowExecutionPlanPreview,
-      workflowRuntimeReadinessInspector,
-      workflowSurfaceOverview,
-      workflowScenarioInspector,
-    ],
-  );
-  const workflowUserWorkspaceHome = useMemo(
-    () =>
-      buildWorkflowUserWorkspaceHomeViewModel({
+      buildWorkflowWorkspaceContextViewModel({
         workspaceApplications,
         workspaceApiKeys,
         workspaceUsageQuota,
         workspaceWorkflowDefinitions,
         workspaceRunHistory,
-        workflowWorkspaceReview,
-        workflowSurfaceOverview,
-        workflowScenarioInspector,
+        selection: {
+          applicationRef: selectedApplicationRef,
+          workflowDefinitionId: selectedWorkflowDefinitionId,
+          runId: selectedRunId,
+          draftId: selectedWorkflowDraftId,
+          scenarioId: selectedWorkflowScenarioId,
+        },
       }),
     [
       workspaceApplications,
@@ -455,81 +255,73 @@ export function App() {
       workspaceUsageQuota,
       workspaceWorkflowDefinitions,
       workspaceRunHistory,
-      workflowWorkspaceReview,
-      workflowSurfaceOverview,
-      workflowScenarioInspector,
+      selectedApplicationRef,
+      selectedWorkflowDefinitionId,
+      selectedRunId,
+      selectedWorkflowDraftId,
+      selectedWorkflowScenarioId,
     ],
   );
-  const handleSelectApplication = (applicationRef: string) => {
-    const nextApplication = workspaceApplications.applications.find(
-      (application) => application.applicationRef === applicationRef,
-    );
-    const nextDefinition =
-      workspaceWorkflowDefinitions.workflowDefinitions.find(
-        (workflowDefinition) =>
-          workflowDefinition.applicationRef === applicationRef &&
-          workflowDefinition.workflowDefinitionId === nextApplication?.latestWorkflowDefinitionRef,
-      ) ??
-      workspaceWorkflowDefinitions.workflowDefinitions.find(
-        (workflowDefinition) => workflowDefinition.applicationRef === applicationRef,
-      );
-    const nextRun =
-      workspaceRunHistory.runs.find(
-        (run) =>
-          run.applicationRef === applicationRef &&
-          (!nextDefinition || run.workflowDefinitionId === nextDefinition.workflowDefinitionId),
-      ) ?? workspaceRunHistory.runs.find((run) => run.applicationRef === applicationRef);
-
+  const {
+    selectedApplication,
+    selectedWorkflowDefinition,
+    selectedRun,
+    selectedWorkflowDraft,
+    workflowApplicationDetail,
+    workflowDefinitionDetail,
+    workflowRunDetail,
+    workflowBlockedActionPreview,
+    workflowConfirmationPlaceholder,
+    workflowDraftDesigner,
+    workflowDraftValidationInspector,
+    workflowExecutionPlanPreview,
+    workflowRuntimeReadinessInspector,
+    workflowSurfaceOverview,
+    workflowScenarioInspector,
+    workflowWorkspaceReview,
+    workflowUserWorkspaceHome,
+  } = workflowWorkspaceContext;
+  const applyWorkflowSelectionPatch = ({
+    applicationRef,
+    workflowDefinitionId,
+    runId,
+    draftId,
+    scenarioId,
+  }: {
+    applicationRef: string | null;
+    workflowDefinitionId: string | null;
+    runId: string | null;
+    draftId: string | null;
+    scenarioId: string | null;
+  }) => {
     setSelectedApplicationRef(applicationRef);
-    setSelectedWorkflowDefinitionId(nextDefinition?.workflowDefinitionId ?? null);
-    setSelectedRunId(nextRun?.runId ?? null);
-    setSelectedWorkflowDraftId(null);
-    setSelectedWorkflowScenarioId(null);
+    setSelectedWorkflowDefinitionId(workflowDefinitionId);
+    setSelectedRunId(runId);
+    setSelectedWorkflowDraftId(draftId);
+    setSelectedWorkflowScenarioId(scenarioId);
+  };
+  const handleSelectApplication = (applicationRef: string) => {
+    applyWorkflowSelectionPatch(
+      selectionForApplication(applicationRef, {
+        workspaceApplications,
+        workspaceWorkflowDefinitions,
+        workspaceRunHistory,
+      }),
+    );
   };
   const handleSelectWorkflowDefinition = (workflowDefinitionId: string) => {
-    const nextDefinition = workspaceWorkflowDefinitions.workflowDefinitions.find(
-      (workflowDefinition) => workflowDefinition.workflowDefinitionId === workflowDefinitionId,
+    applyWorkflowSelectionPatch(
+      selectionForWorkflowDefinition(workflowDefinitionId, {
+        workspaceWorkflowDefinitions,
+        workspaceRunHistory,
+      }),
     );
-    const nextRun = workspaceRunHistory.runs.find(
-      (run) =>
-        run.workflowDefinitionId === workflowDefinitionId &&
-        (!nextDefinition || run.applicationRef === nextDefinition.applicationRef),
-    );
-
-    setSelectedWorkflowDefinitionId(workflowDefinitionId);
-    if (nextDefinition) {
-      setSelectedApplicationRef(nextDefinition.applicationRef);
-    }
-    setSelectedRunId(nextRun?.runId ?? null);
-    setSelectedWorkflowDraftId(null);
-    setSelectedWorkflowScenarioId(null);
   };
   const handleSelectRun = (runId: string) => {
-    const nextRun = workspaceRunHistory.runs.find((run) => run.runId === runId);
-
-    setSelectedRunId(runId);
-    if (nextRun) {
-      setSelectedApplicationRef(nextRun.applicationRef);
-      setSelectedWorkflowDefinitionId(nextRun.workflowDefinitionId);
-      setSelectedWorkflowDraftId(null);
-      setSelectedWorkflowScenarioId(null);
-    }
+    applyWorkflowSelectionPatch(selectionForRun(runId, { workspaceRunHistory }));
   };
   const handleSelectWorkflowDraft = (draftId: string) => {
-    const nextDraft = workflowDraftDesigner.drafts.find((draft) => draft.draftId === draftId);
-    const nextRun = workspaceRunHistory.runs.find(
-      (run) =>
-        run.applicationRef === nextDraft?.applicationRef &&
-        run.workflowDefinitionId === nextDraft?.workflowDefinitionId,
-    );
-
-    setSelectedWorkflowDraftId(draftId);
-    if (nextDraft) {
-      setSelectedApplicationRef(nextDraft.applicationRef);
-      setSelectedWorkflowDefinitionId(nextDraft.workflowDefinitionId);
-      setSelectedRunId(nextRun?.runId ?? null);
-      setSelectedWorkflowScenarioId(null);
-    }
+    applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
   };
 
   return (
@@ -3661,23 +3453,6 @@ function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLi
       <StatusBadge tone={tone}>{state.status}</StatusBadge>
     </section>
   );
-}
-
-function toWorkflowDefinitionSummary(
-  workflowDefinition: WorkspaceWorkflowDefinitionRow,
-  tenantRef: string,
-): WorkflowDefinitionSummary {
-  return {
-    workflow_definition_id: workflowDefinition.workflowDefinitionId,
-    tenant_ref: tenantRef,
-    application_ref: workflowDefinition.applicationRef,
-    version: workflowDefinition.version,
-    definition_status: workflowDefinition.definitionStatus,
-    node_count: workflowDefinition.nodeCount,
-    risk_level: workflowDefinition.riskLevel,
-    requires_confirmation_capable: workflowDefinition.requiresConfirmationCapable,
-    updated_at: workflowDefinition.updatedAt,
-  };
 }
 
 function RouteCard({ route }: { route: ControlPlaneReadRouteCard }) {

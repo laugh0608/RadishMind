@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_workspace_context_consistency_v1",
+  "slice": {
+    "id": "workflow-workspace-context-consistency-v1",
+    "track": "Workflow / Agent Runtime Function Surface v1",
+    "status": "workflow_workspace_context_consistency_guarded",
+    "does_not_claim": [
+      "runtime_api_implemented",
+      "production_api_consumer_ready",
+      "workflow_builder_ready",
+      "workflow_executor_ready",
+      "node_executor_ready",
+      "tool_executor_ready",
+      "agent_loop_ready",
+      "workflow_draft_persistence_ready",
+      "validation_result_persistence_ready",
+      "execution_plan_persistence_ready",
+      "runtime_readiness_persistence_ready",
+      "scenario_persistence_ready",
+      "review_persistence_ready",
+      "workflow_publish_ready",
+      "confirmation_flow_ready",
+      "confirmation_decision_ready",
+      "confirmation_decision_store_ready",
+      "execution_unlock_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "durable_run_store_ready",
+      "durable_result_store_ready",
+      "materialized_result_reader_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-function-surface-readiness-close-v1",
+    "control-plane-read-product-sample-consistency-v1"
+  ],
+  "context_source": {
+    "file": "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts",
+    "builder": "buildWorkflowWorkspaceContextViewModel",
+    "selection_helpers": [
+      "selectionForApplication",
+      "selectionForWorkflowDefinition",
+      "selectionForRun",
+      "selectionForDraft"
+    ],
+    "owned_outputs": [
+      "workflowApplicationDetail",
+      "workflowDefinitionDetail",
+      "workflowRunDetail",
+      "workflowBlockedActionPreview",
+      "workflowConfirmationPlaceholder",
+      "workflowDraftDesigner",
+      "selectedWorkflowDraft",
+      "workflowDraftValidationInspector",
+      "workflowExecutionPlanPreview",
+      "workflowRuntimeReadinessInspector",
+      "workflowSurfaceOverview",
+      "workflowScenarioInspector",
+      "workflowWorkspaceReview",
+      "workflowUserWorkspaceHome"
+    ]
+  },
+  "required_product_contexts": [
+    {
+      "application_ref": "app_flow_copilot",
+      "display_name": "RadishFlow Copilot",
+      "workflow_definition_id": "wf_radishflow_copilot_latest",
+      "run_id": "run_radishflow_copilot_20260531_001",
+      "draft_id": "draft_wf_radishflow_copilot_latest_offline",
+      "scenario_prefix": "scenario_radishflow_",
+      "node_prefix": "node_"
+    },
+    {
+      "application_ref": "app_docs_assistant",
+      "display_name": "Radish Docs Assistant",
+      "workflow_definition_id": "wf_radish_docs_qa_draft",
+      "run_id": "run_radish_docs_qa_20260531_002",
+      "draft_id": "draft_wf_radish_docs_qa_draft_offline",
+      "scenario_prefix": "scenario_radish_docs_",
+      "node_prefix": "node_docs_"
+    }
+  ],
+  "app_composition": {
+    "file": "apps/radishmind-web/src/app/App.tsx",
+    "required_builder": "buildWorkflowWorkspaceContextViewModel",
+    "forbidden_inline_builders": [
+      "buildWorkflowApplicationDetailViewModel(",
+      "buildWorkflowDefinitionDetailViewModel(",
+      "buildWorkflowRunDetailViewModel(",
+      "buildWorkflowBlockedActionPreviewViewModel(",
+      "buildWorkflowConfirmationPlaceholderViewModel(",
+      "buildWorkflowDraftDesignerViewModel(",
+      "buildWorkflowDraftValidationInspectorViewModel(",
+      "buildWorkflowExecutionPlanPreviewViewModel(",
+      "buildWorkflowRuntimeReadinessInspectorViewModel(",
+      "buildWorkflowSurfaceOverviewViewModel(",
+      "buildWorkflowScenarioInspectorViewModel(",
+      "buildWorkflowWorkspaceReviewViewModel(",
+      "buildWorkflowUserWorkspaceHomeViewModel("
+    ],
+    "required_selection_helpers": [
+      "selectionForApplication(",
+      "selectionForWorkflowDefinition(",
+      "selectionForRun(",
+      "selectionForDraft("
+    ]
+  },
+  "draft_designer_guard": {
+    "file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "required_literals": [
+      "detailSourcesByWorkflowDefinitionId",
+      "detailSourceForWorkflowDefinition",
+      "toWorkflowDefinitionSummary",
+      "drafts.every((draft, index) => draft.nodes.length === templates[index]?.nodeCount"
+    ],
+    "forbidden_literals": [
+      "const nodes = buildDesignerNodes(source.detailNodes ?? detail.nodes)",
+      "const edges = buildDesignerEdges(source.detailEdges ?? detail.edges)"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_workspace_context_consistency_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-workspace-context-consistency-v1.py"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not implement runtime API",
+    "do not request live backend from offline workflow context",
+    "do not persist draft validation execution plan runtime readiness scenario or review state",
+    "do not add workflow builder mutation publish executor confirmation decision writeback replay or resume",
+    "do not attach database Radish OIDC repository adapter store selector or production API consumer"
+  ],
+  "required_doc_references": {
+    "docs/radishmind-current-focus.md": [
+      "workflow-workspace-context-consistency-v1",
+      "workflowWorkspaceContext"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "workflow-workspace-context-consistency-v1",
+      "RadishFlow",
+      "Radish Docs"
+    ],
+    "apps/radishmind-web/README.md": [
+      "workflowWorkspaceContext",
+      "workflow-workspace-context-consistency-v1"
+    ],
+    "scripts/README.md": [
+      "check-workflow-workspace-context-consistency-v1.py",
+      "workflow-workspace-context-consistency-v1.json"
+    ]
+  }
+}
