@@ -13,6 +13,13 @@
 - [代码规范](docs/radishmind-code-standards.md)
 - [本地 Console 说明](apps/radishmind-console/README.md)
 
+## 本地启动
+
+- macOS / Linux / WSL：`./start.sh`
+- Windows / PowerShell：`pwsh ./start.ps1`
+- 产品 UI 联调直达：`./start.sh web-live`
+- 产品 UI 离线预览：`./start.sh web-offline`
+
 ## 仓库约定
 
 - 当前常态开发分支为 `dev`

@@ -172,6 +172,21 @@ console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local
 
 正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认是离线 read-side shell，只消费 `contracts/typescript/control-plane-read-api.ts`；当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 且平台服务设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，可用 dev-only live read consumer 通过 HTTP 读取 fake-store-backed handler 和测试身份上下文。RadishFlow Copilot 与 Radish Docs Assistant 的只读产品样例来自同一组 response fixture，并由 `control-plane-read-product-sample-consistency-v1` 防止 Go fake store、前端默认 view model 和 consumer smoke 之间漂移。该 live path 不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、read store repository 或 workflow executor ready。
 
+日常预览或前后端联调优先使用仓库根目录启动脚本，不再手动拼接环境变量：
+
+```bash
+./start.sh web-live
+./start.sh web-offline
+```
+
+Windows / PowerShell 使用：
+
+```powershell
+pwsh ./start.ps1 -Command web-live
+```
+
+`web-live` 会启动或复用 `http://127.0.0.1:7000` platform 后端和 `http://127.0.0.1:4100` 产品 UI，并只启用 dev-only fake read auth。它不是 production supervisor，不接真实数据库、Radish OIDC、repository adapter、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+
 ```bash
 cd apps/radishmind-web
 npm run build

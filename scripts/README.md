@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-06-08
+更新时间：2026-06-09
 
 ## 目录目标
 
@@ -69,6 +69,8 @@
   - 当前还提供 `check-radishmind-console-shell.py`，用于校验 `apps/radishmind-console/` 的 React + Vite + TypeScript 本地 console 壳仍只消费共享 overview contract 和 `GET /v1/platform/overview`，并保持 executor、durable store、confirmation、业务写回和 replay 停止线关闭
   - 当前还提供 `check-radishmind-console-behavior.py`，用于校验本地 console 的 ready path、refresh stale overview、Dev Diagnostics、Stop-line Details、连接失败诊断、overview 可读字段和只读停止线；该检查不启动浏览器、不启动长驻服务，也不调用真实 executor、store、confirmation 或 replay
   - 当前还提供 `check-radishmind-console-visual-smoke-record.py`，用于校验 P3 本地 console 视觉 smoke 记录：默认端口固定为前端 `4000` / 后端 `7000`，覆盖 desktop ready、narrow ready、`320px` 最小宽度、Dev Diagnostics、`Local Readiness` 面板、Stop-line Details、连接失败 stale overview 和 local-smoke failure stale overview 人工浏览器 QA 路径；该检查不启动浏览器、不提交截图，也不启用 executor、durable store、confirmation、业务写回或 replay
+  - 当前还提供仓库根 `start.sh` / `start.ps1`，参考 Radish 的根目录启动菜单，为产品 UI dev-live 联调、产品 UI 离线预览、本地 ops console、platform backend、web build、diagnostics 和 fast check 提供短命令入口；它们只是本地开发 launcher，不是 production supervisor
+  - 当前还提供 `scripts/run-radishmind-web-dev.ps1` 与 `scripts/run-radishmind-web-dev.sh`，作为 `apps/radishmind-web/` 的一键预览/联调入口：`--mode offline` 只启动或复用 `http://127.0.0.1:4100` 产品 UI；`--mode dev-live` 会启动或复用 platform 后端，并集中设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`、`VITE_RADISHMIND_READ_SOURCE=dev-live-http` 和 `VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL`。该入口会探测 web 页面、dev-live read route、CORS preflight 和测试身份 header，只连接 fake-store-backed handler，不接真实数据库、Radish OIDC、repository adapter、store selector、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay
   - 当前还提供 `scripts/run-radishmind-console-dev.ps1` 与 `scripts/run-radishmind-console-dev.sh`，作为本地开发用的一键 console 启动/验证入口：按既有 `scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 启动或复用 platform 后端，按 `npm run dev` 启动或复用 `apps/radishmind-console/` 前端，并探测 `http://127.0.0.1:7000/healthz`、`http://127.0.0.1:7000/v1/platform/overview`、`http://127.0.0.1:7000/v1/platform/local-smoke`、本地 console CORS preflight 和 `http://127.0.0.1:4000`；它会说明端口冲突、CORS / preflight 与浏览器 `unsafe port` 常见失败，且明确不是 production supervisor，不实现真实 executor、durable store、confirmation、业务写回或 replay
   - 当前还提供 `check-radishmind-console-dev-entry.py`，用于校验一键 console dev 入口、README 和 P3 checklist 的端口、探测 URL、CORS / unsafe port 诊断、dev-only 边界和 fast baseline 接入
   - 当前还提供 `check-radishmind-console-production-boundary.py`，用于校验本地 console 仍不是 production package：包必须保持 private、不添加 deploy / publish / release 脚本、不提交 `dist/` 或 `node_modules/`，并保持 production secret backend、正式鉴权、进程守护和环境隔离未完成的文档口径

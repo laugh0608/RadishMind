@@ -46,17 +46,27 @@ User Workspace Home / Workflow Review Workspace 读法：
 - 最后看 Review Handoff，确认给人工审查的 recipients、key findings、evidence checklist、decision blockers 和 boundary locks 已经与当前选中上下文一致。
 - blocked capability rollup 和 stop line rollup 是审查结论入口，只解释为什么当前不能 publish / execute / confirm / writeback / replay，不提供解锁或提交按钮。
 
-本地命令：
+本地启动从仓库根目录执行：
 
 ```bash
-npm run dev
-npm run build
-npm run preview
+./start.sh web-live
+./start.sh web-offline
+pwsh ./start.ps1 -Command web-live
 ```
 
-dev-only live read 示例：
+`web-live` 会启动或复用 platform 后端和 `apps/radishmind-web/` 前端，并集中设置 dev-only live read 所需的本地环境变量。它只连接 fake-store-backed handler 和测试身份上下文，不代表 production API consumer、真实数据库、Radish OIDC、repository adapter 或 workflow executor ready。
+
+底层 wrapper 也可单独执行：
 
 ```bash
-RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 go run ./services/platform/cmd/radishmind-platform
-VITE_RADISHMIND_READ_SOURCE=dev-live-http VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL=http://127.0.0.1:7000 npm run dev
+./scripts/run-radishmind-web-dev.sh --mode dev-live
+./scripts/run-radishmind-web-dev.sh --mode offline
+```
+
+常规包命令仍保留在 `apps/radishmind-web/` 下：
+
+```bash
+cd apps/radishmind-web
+npm run build
+npm run preview
 ```
