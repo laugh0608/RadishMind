@@ -113,6 +113,10 @@ import {
 } from "../features/control-plane-read/workflowWorkspaceReview";
 import { WorkflowWorkspaceReviewPanel } from "../features/control-plane-read/workflowWorkspaceReviewPanel";
 import {
+  buildWorkflowUserWorkspaceHomeViewModel,
+} from "../features/control-plane-read/workflowUserWorkspaceHome";
+import { WorkflowUserWorkspaceHomePanel } from "../features/control-plane-read/workflowUserWorkspaceHomePanel";
+import {
   buildWorkflowScenarioInspectorViewModel,
   type WorkflowScenario,
   type WorkflowScenarioBlockedReason,
@@ -427,6 +431,29 @@ export function App() {
       workflowScenarioInspector,
     ],
   );
+  const workflowUserWorkspaceHome = useMemo(
+    () =>
+      buildWorkflowUserWorkspaceHomeViewModel({
+        workspaceApplications,
+        workspaceApiKeys,
+        workspaceUsageQuota,
+        workspaceWorkflowDefinitions,
+        workspaceRunHistory,
+        workflowWorkspaceReview,
+        workflowSurfaceOverview,
+        workflowScenarioInspector,
+      }),
+    [
+      workspaceApplications,
+      workspaceApiKeys,
+      workspaceUsageQuota,
+      workspaceWorkflowDefinitions,
+      workspaceRunHistory,
+      workflowWorkspaceReview,
+      workflowSurfaceOverview,
+      workflowScenarioInspector,
+    ],
+  );
   const handleSelectApplication = (applicationRef: string) => {
     const nextApplication = workspaceApplications.applications.find(
       (application) => application.applicationRef === applicationRef,
@@ -508,6 +535,7 @@ export function App() {
           <p className="nav-summary">Read-only product surface for tenant, workspace, usage, workflow, and audit views.</p>
         </div>
         <nav className="nav-links" aria-label="Read shell sections">
+          <a href="#workflow-user-workspace-home">Workspace Home</a>
           <a href="#admin-tenant-overview">Tenant Overview</a>
           <a href="#admin-audit-log">Audit Log</a>
           <a href="#workspace-applications">Applications</a>
@@ -597,10 +625,15 @@ export function App() {
               label="Review"
               value={workflowWorkspaceReview.canRenderWorkspaceReview ? "offline" : "blocked"}
             />
+            <Fact
+              label="Home"
+              value={workflowUserWorkspaceHome.canRenderUserWorkspaceHome ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
+        <WorkflowUserWorkspaceHomePanel home={workflowUserWorkspaceHome} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel

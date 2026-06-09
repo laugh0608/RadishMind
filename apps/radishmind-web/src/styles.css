@@ -40,6 +40,7 @@ a {
 }
 
 .eyebrow {
+  overflow-wrap: anywhere;
   margin: 0 0 8px;
   color: #5d6f84;
   font-size: 12px;
@@ -128,15 +129,17 @@ h4 {
 }
 
 .workspace-header {
+  flex-wrap: wrap;
   border-bottom: 1px solid #d8dee8;
   padding-bottom: 20px;
 }
 
 .header-facts {
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(10, minmax(72px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
   gap: 10px;
-  min-width: min(1120px, 100%);
+  min-width: 0;
 }
 
 .fact {
@@ -148,6 +151,7 @@ h4 {
 
 .fact span {
   display: block;
+  overflow-wrap: anywhere;
   color: #5d6f84;
   font-size: 12px;
   font-weight: 700;
@@ -155,6 +159,7 @@ h4 {
 
 .fact strong {
   display: block;
+  overflow-wrap: anywhere;
   margin-top: 4px;
   font-size: 18px;
 }
@@ -664,6 +669,7 @@ h4 {
 .run-history-state p,
 .audit-log-state p,
 .tenant-state p {
+  overflow-wrap: anywhere;
   margin: 8px 0 0;
   color: #4e5f73;
   font-size: 13px;
@@ -731,6 +737,123 @@ h4 {
 .workflow-scenario-inspector {
   border-bottom: 1px solid #d8dee8;
   padding-bottom: 24px;
+}
+
+.workflow-user-workspace-home {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
+.workflow-user-workspace-home-hero,
+.workflow-user-workspace-home-card {
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.workflow-user-workspace-home-hero {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(300px, 0.8fr);
+  gap: 16px;
+  padding: 16px;
+}
+
+.workflow-user-workspace-home-card {
+  padding: 14px;
+}
+
+.workflow-user-workspace-home-layout,
+.workflow-user-workspace-home-metric-grid,
+.workflow-user-workspace-home-application-grid,
+.workflow-user-workspace-home-context-grid,
+.workflow-user-workspace-home-stage-grid,
+.workflow-user-workspace-home-readiness-grid,
+.workflow-user-workspace-home-run-grid,
+.workflow-user-workspace-home-route-grid,
+.workflow-user-workspace-home-stopline-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.workflow-user-workspace-home-layout {
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+  gap: 14px;
+}
+
+.workflow-user-workspace-home-column {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.workflow-user-workspace-home-subheading {
+  min-width: 0;
+}
+
+.workflow-user-workspace-home-metric-grid,
+.workflow-user-workspace-home-readiness-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-user-workspace-home-application-grid,
+.workflow-user-workspace-home-context-grid,
+.workflow-user-workspace-home-stage-grid,
+.workflow-user-workspace-home-run-grid,
+.workflow-user-workspace-home-route-grid,
+.workflow-user-workspace-home-stopline-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-user-workspace-home-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.workflow-user-workspace-home-row-main h5 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.workflow-user-workspace-home-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.workflow-user-workspace-home-meta div {
+  min-width: 0;
+}
+
+.workflow-user-workspace-home-card span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-user-workspace-home-card strong {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 6px;
+  color: #17202a;
+  font-size: 17px;
+}
+
+.workflow-user-workspace-home-hero p,
+.workflow-user-workspace-home-card p {
+  overflow-wrap: anywhere;
+  margin: 8px 0 0;
+  color: #4e5f73;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.workflow-user-workspace-home-meta dd {
+  overflow-wrap: anywhere;
 }
 
 .workflow-run-detail {
@@ -1009,6 +1132,27 @@ h4 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
+}
+
+.application-row-main > div,
+.api-key-row-main > div,
+.workflow-definition-row-main > div,
+.run-record-row-main > div,
+.audit-event-row-main > div,
+.workflow-application-row-main > div,
+.workflow-detail-row-main > div,
+.workflow-draft-row-main > div,
+.workflow-draft-validation-row-main > div,
+.workflow-execution-plan-row-main > div,
+.workflow-runtime-readiness-row-main > div,
+.workflow-workspace-review-row-main > div,
+.workflow-surface-overview-row-main > div,
+.workflow-scenario-row-main > div,
+.workflow-run-detail-row-main > div,
+.workflow-blocked-row-main > div,
+.workflow-confirmation-row-main > div,
+.workflow-user-workspace-home-row-main > div {
+  min-width: 0;
 }
 
 .workflow-workspace-review-stage small {
@@ -1510,6 +1654,50 @@ dd {
   }
 
   .workflow-workspace-review-row-main {
+    flex-wrap: wrap;
+  }
+
+  .application-row-main,
+  .api-key-row-main,
+  .workflow-definition-row-main,
+  .run-record-row-main,
+  .audit-event-row-main,
+  .workflow-application-row-main,
+  .workflow-detail-row-main,
+  .workflow-draft-row-main,
+  .workflow-draft-validation-row-main,
+  .workflow-execution-plan-row-main,
+  .workflow-runtime-readiness-row-main,
+  .workflow-surface-overview-row-main,
+  .workflow-scenario-row-main,
+  .workflow-run-detail-row-main,
+  .workflow-blocked-row-main,
+  .workflow-confirmation-row-main {
+    flex-wrap: wrap;
+  }
+
+  .status-badge {
+    flex-basis: auto;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 820px) {
+  .workflow-user-workspace-home-hero,
+  .workflow-user-workspace-home-layout,
+  .workflow-user-workspace-home-metric-grid,
+  .workflow-user-workspace-home-application-grid,
+  .workflow-user-workspace-home-context-grid,
+  .workflow-user-workspace-home-stage-grid,
+  .workflow-user-workspace-home-readiness-grid,
+  .workflow-user-workspace-home-run-grid,
+  .workflow-user-workspace-home-route-grid,
+  .workflow-user-workspace-home-stopline-grid,
+  .workflow-user-workspace-home-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-user-workspace-home-row-main {
     flex-wrap: wrap;
   }
 }
