@@ -23,6 +23,8 @@ import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-pla
 import { ModelGatewayRouteEvidencePanel } from "../features/control-plane-read/modelGatewayRouteEvidencePanel";
 import { buildModelGatewayUsageAuditEvidenceViewModel } from "../features/control-plane-read/modelGatewayUsageAuditEvidence";
 import { ModelGatewayUsageAuditEvidencePanel } from "../features/control-plane-read/modelGatewayUsageAuditEvidencePanel";
+import { buildModelGatewayEvidenceReviewViewModel } from "../features/control-plane-read/modelGatewayEvidenceReview";
+import { ModelGatewayEvidenceReviewPanel } from "../features/control-plane-read/modelGatewayEvidenceReviewPanel";
 import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
@@ -274,6 +276,15 @@ export function App() {
       adminAuditLog,
     ],
   );
+  const modelGatewayEvidenceReview = useMemo(
+    () =>
+      buildModelGatewayEvidenceReviewViewModel({
+        overview: modelGatewayOverview,
+        routeEvidence: modelGatewayRouteEvidence,
+        usageAuditEvidence: modelGatewayUsageAuditEvidence,
+      }),
+    [modelGatewayOverview, modelGatewayRouteEvidence, modelGatewayUsageAuditEvidence],
+  );
   const workflowWorkspaceContext = useMemo(
     () =>
       buildWorkflowWorkspaceContextViewModel({
@@ -389,6 +400,7 @@ export function App() {
             <a href="#model-gateway-overview">Gateway Overview</a>
             <a href="#model-gateway-route-evidence">Route Evidence</a>
             <a href="#model-gateway-usage-audit-evidence">Usage Evidence</a>
+            <a href="#model-gateway-evidence-review">Evidence Review</a>
           </div>
           <div className="nav-link-group" aria-label="Workflow review sections">
             <p className="nav-link-group-label">Workflow Review</p>
@@ -504,6 +516,10 @@ export function App() {
               label="Gateway usage"
               value={modelGatewayUsageAuditEvidence.canRenderUsageAuditEvidence ? "offline" : "blocked"}
             />
+            <Fact
+              label="Gateway review"
+              value={modelGatewayEvidenceReview.canRenderEvidenceReview ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
@@ -512,6 +528,7 @@ export function App() {
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
+        <ModelGatewayEvidenceReviewPanel review={modelGatewayEvidenceReview} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
