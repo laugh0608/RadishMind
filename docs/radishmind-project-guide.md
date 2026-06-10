@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-06-09
+更新时间：2026-06-10
 
 ## 这份文档讲什么
 
@@ -58,6 +58,10 @@
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
 如果你要继续推进开发，当前主线在 `Control Plane / User Workspace / Workflow v1`。已完成产品面边界、control plane 数据边界、Radish OIDC 前置条件、gateway API key / quota 前置条件、workflow definition / run record 边界，以及 read-side 的 read model、read-only route contract、response fixture、negative contract、implementation preconditions、fake-store-backed handler plan、七条 fake-store-backed handler implementation、auth/db preconditions、TypeScript consumer contract、formal UI boundary、formal UI implementation readiness、`apps/radishmind-web/` read-only shared shell、七个只读页面切片、formal UI readiness close、dev-only live read consumer、auth/store transition preconditions、repository contract/read store readiness、Go contract type、静态 contract smoke runner、repository interface readiness、adapter implementation readiness refresh、selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、store selector smoke readiness、production auth readiness、adapter smoke readiness、implementation trigger review、product sample consistency 和 workflow workspace context consistency；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。普通只读展示页不再默认逐页新增专项门禁；dev-only live read path 只验证 fake-store-backed handler 的 HTTP consumer shape；RadishFlow Copilot 与 Radish Docs Assistant 两组只读产品样例以 `control-plane-read-response-fixtures-v1` 的 success response 为 canonical source，再由 Go fake store、前端离线默认数据和 consumer smoke 一起校验一致性；repository/read store 当前只把迁移前的 type matrix、runner matrix、adapter matrix、selector gate、schema artifact manifest gate、production auth gate、adapter smoke gate、failure mapping 和停止线写成可检查证据，当前没有 implementation trigger satisfied。`Workflow / Agent Runtime Function Surface v1` 已在 `apps/radishmind-web/` 增加 application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home 和 Review Handoff；这些都是 fixture-derived、read-only、blocked-capability-first 的产品面，共享 `workflowWorkspaceContext` 负责统一派生当前 application、definition、run、draft 和 scenario 的组合关系，不新增 runtime API、builder mutation、draft / validation / execution plan / readiness / scenario / review / handoff persistence、executor、confirmation decision、writeback 或 replay。`Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片并进入 close candidate，不继续默认新增 provider 同层小切片；`Production Ops Hardening v1` 的静态边界已经收口，没有明确运行窗口时降为等待项。P2 停止线继续作为背景证据保留，不代表真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆、业务写回或 replay 已经完成。
+
+`Model Gateway / API Distribution` 的当前产品 UI 也已进入离线证据组织层：Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness 都位于 `apps/radishmind-web/`，复用 read shell、API key summary、quota summary、run history、audit log、provider runtime 与 gateway readiness 证据。它们只解释 northbound API surface、provider/profile、route binding、selection case、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist 和 locked capability，不新增真实网关 route、production gateway、secret resolver、API key lifecycle、quota enforcement、cost record write、retry/fallback execution、数据库、Radish auth 或 repository adapter。
+
+`Admin Operations Review / Readiness` 是同一只读产品壳中的管理端汇总面：它复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，把 readiness、evidence checklist、operational risk 和 boundary lock 放在一个审查视图里。它不代表 production admin console，不提供 tenant mutation、raw audit export、deployment preflight、secret resolver、workflow executor、writeback 或 replay。
 
 完整正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client、repository interface / adapter、read store repository implementation 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳，`apps/radishmind-web/` 默认是离线 read-side product UI shell，显式 dev-only live path 也不是 production API consumer。
 
@@ -224,8 +228,15 @@ npm run dev
 - Workflow Review Workspace
 - User Workspace Home
 - Workflow Review Handoff
+- Model Gateway Overview
+- Model Gateway Route Evidence
+- Model Gateway Usage/Audit Evidence
+- Model Gateway Evidence Review / Readiness
+- Admin Operations Review / Readiness
 
 七个 read-side summary 页面展示 route metadata、request / audit ref、状态预览和脱敏 summary；默认使用离线 view model，dev-only live mode 也只能读取 fake-store-backed handler。workflow function surface 面板继续复用这些 summary 和离线 fixture，展示 application / definition / run / draft / validation / execution plan / runtime readiness 的只读详情、风险、审计引用和 blocked capability。当前读法是先看 User Workspace Home 的应用组合、当前 review、最近 run、优先 readiness、主要 route evidence 和 stop-line 摘要，再进入 Workflow Review Workspace 查看 selected application + definition + run + draft + scenario 的关系、scenario intent、draft validation、execution plan、runtime readiness、blocked capability rollup 和 stop-line rollup，最后用 Workflow Review Handoff 读取人工审查交接摘要。所有派生链路都经由 `workflowWorkspaceContext` 组合；这些选择只改变本地查看上下文，不接数据库、OIDC、repository implementation、API key lifecycle、quota enforcement、workflow executor、confirmation decision、draft / validation / execution plan / readiness / scenario / review / handoff persistence、writeback、run replay 或 run resume。
+
+Model Gateway 四个页面的读法是先看 Overview 识别 northbound API surface 与 provider/profile inventory，再看 Route Evidence 确认 route binding、selection case 和 streaming / auth / secret ref 证据，再看 Usage/Audit Evidence 核对 key scope、quota snapshot、trace、failure 和 audit decision，最后看 Evidence Review / Readiness 汇总 readiness rollup、evidence checklist、route / usage / audit key risk 和 locked distribution capability。Admin Operations Review / Readiness 放在管理端视角收口，用于把 tenant、audit、gateway 和 Production Ops 证据串成审查摘要；它仍只是 evidence-only review surface。
 
 ### 3.7 使用 Docker 部署资产
 

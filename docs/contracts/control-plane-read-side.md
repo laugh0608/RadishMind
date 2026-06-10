@@ -1,6 +1,6 @@
 # Control Plane Read-Side 契约
 
-更新时间：2026-06-09
+更新时间：2026-06-10
 
 ## 契约目的
 
@@ -93,6 +93,10 @@
 `Workflow / Agent Runtime Function Surface v1` 是 read-side summary 之上的离线产品面契约，不新增 Go route 或 read store operation。它复用 `application-summary-list-route`、`workflow-definition-summary-list-route` 与 `run-record-summary-list-route` 的 TypeScript view model，再用 committed fixture 派生 application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview 和 runtime readiness inspector。该层只固定页面可展示的 identity、route / request / audit metadata、risk、node / edge、timeline、draft、validation、plan、readiness 和 blocked capability 信息，不实现 workflow executor、tool executor、confirmation decision、decision store、execution unlock、builder mutation、draft persistence、validation result persistence、execution plan persistence、runtime readiness persistence、business writeback、run replay、run resume、数据库、Radish OIDC 或 production API consumer。
 
 Workflow Surface Overview、workflow workspace context selection、Workflow Scenario Inspector、Workflow Review Workspace、User Workspace Home 和 Workflow Review Handoff 是同一契约层上的 UI-derived organization surface。它们不扩展 read route，不创建新的 repository operation，也不改变 `contracts/typescript/control-plane-read-api.ts`；它们只把当前选中的 application、definition、run、draft 和 scenario 与 draft validation、execution plan、runtime readiness、blocked capability、stop line、route / request / audit metadata 组织成可审查视图、工作区首页和人工审查交接摘要。`workflow-workspace-context-consistency-v1` 要求这些 surface 统一经由 `workflowWorkspaceContext` 派生，避免 App、panel、smoke 各自手拼 selected id 或重复维护 RadishFlow / Radish Docs 组合关系。context selection 只改变浏览器内当前查看状态；scenario inspector、review workspace、user workspace home 和 review handoff 只做场景解释、关系映射、blocked rollup、route evidence、human review advisory package 与 stop-line rollup，不保存 scenario / review / home / handoff，不发布，不执行，不提交 confirmation decision，不写回业务数据。
+
+Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness 是 read-side 之上的普通离线证据组织面。它们复用七条 read route 的 API key、quota、run history、audit summary，以及 provider runtime / gateway readiness 的既有静态证据，只把 northbound API surface、provider/profile、route binding、selection case、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit risk 和 locked capability 组织成可审查视图；它们不扩展 read route，不创建 repository operation，不实现 production gateway、secret resolver、API key lifecycle、quota enforcement、cost record write、retry/fallback execution、数据库、Radish OIDC 或 production API consumer。
+
+Admin Operations Review / Readiness 也是 UI-derived organization surface。它复用 tenant overview、admin audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，只汇总 readiness、evidence checklist、operational risk 和 boundary lock；它不保存 admin review，不导出 raw audit，不执行 tenant mutation、deployment preflight、workflow executor、writeback 或 replay，也不声明 production admin console ready。
 
 `control-plane-read-repository-contract-preconditions-v1` 是 auth/store transition preconditions 之后的 read store repository contract 前置切片：它固定未来 `ControlPlaneReadRepository` interface、`ReadRepositoryContext`、七条 route 到 repository operation 的映射、tenant predicate、sanitized projection、cursor/filter/sort allowlist、failure mapping 和 contract smoke 要求。该切片只定义 repository contract preconditions，不写 SQL、不建 migration、不实现 repository、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing / cost ledger、workflow executor、confirmation、writeback 或 replay。
 
@@ -309,7 +313,7 @@ Workflow Surface Overview、workflow workspace context selection、Workflow Scen
    - 固定 implementation trigger review：schema artifact、store selector、production auth 和 adapter smoke 四类候选均为 `not_satisfied`。
    - 不创建 implementation task card、migration manifest、SQL、selector、auth middleware、adapter smoke fixture / checker、repository interface、repository adapter、真实数据库、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
-补充一致性 gate 不改变上述 read-side implementation ladder 的顺序：`control-plane-read-product-sample-consistency-v1` 约束 committed response fixture、Go fake store、前端离线默认数据和 consumer smoke 的 RadishFlow / Radish Docs 样例一致性；`workflow-workspace-context-consistency-v1` 约束 workflow 离线产品面统一经由 `workflowWorkspaceContext` 派生 Home、Review、Handoff、Scenario、Blocked Action 和 Confirmation 视图。二者不新增 route、repository operation、live backend consumer 或任何写入 / 执行能力。
+补充一致性 gate 不改变上述 read-side implementation ladder 的顺序：`control-plane-read-product-sample-consistency-v1` 约束 committed response fixture、Go fake store、前端离线默认数据和 consumer smoke 的 RadishFlow / Radish Docs 样例一致性；`workflow-workspace-context-consistency-v1` 约束 workflow 离线产品面统一经由 `workflowWorkspaceContext` 派生 Home、Review、Handoff、Scenario、Blocked Action 和 Confirmation 视图。Model Gateway 与 Admin Operations Review 当前复用既有聚合 surface、`npm run build` 和仓库 fast baseline，不单独新增 route contract、repository contract、task card 或 checker。它们不新增 route、repository operation、live backend consumer 或任何写入 / 执行能力。
 
 ## 程序化证据
 
@@ -406,6 +410,8 @@ read-side 契约当前由以下 fixture 和 checker 固定：
 这些 checker 已接入 `scripts/check-repo.py --fast`。它们的作用是防止契约、样例、负向边界、实现前置条件、fake-store-backed read handler plan、handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared read shell、admin tenant overview、workspace applications、workspace api keys、workspace usage quota、workspace workflow definitions、workspace run history、admin audit log 页面切片、formal UI readiness close、dev-only live consumer、product sample consistency、auth/store transition preconditions、repository contract preconditions、disabled database read guard、repository contract smoke、repository implementation readiness、store selection readiness、schema migration readiness、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、store selector smoke readiness、production auth readiness、adapter smoke readiness、implementation trigger review 和文档说明互相漂移，不负责启动服务或模拟真实数据库。
 
 Workflow function surface 的 fixture / checker 同样位于 `scripts/checks/fixtures/` 与 `scripts/checks/control_plane/`，覆盖 `workflow-function-surface-boundary-v1`、application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline draft validation inspector、execution plan preview、runtime readiness inspector、readiness close 和 `workflow-workspace-context-consistency-v1`。它们验证离线 view model、UI panel、blocked capability、Home / Review / Handoff 派生链路和停止线一致，不启动 runtime、不请求真实后端、不写入 draft / validation / decision / run / scenario / review / handoff 状态。
+
+Model Gateway 与 Admin Operations Review 目前没有独立契约 checker；它们由 TypeScript build、read-side UI 边界说明、已有 view model 依赖关系和仓库 fast baseline 约束。若后续要把它们升级为可执行契约，必须先明确新的 canonical route / fixture / checker 所属层级，不能在普通 UI 汇总面里顺手加入真实 gateway、secret、quota、cost、deployment 或 executor 能力。
 
 ## 路由范围
 

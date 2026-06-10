@@ -40,6 +40,15 @@
 - `control-plane-read-auth-store-transition-preconditions-v1` 只固定未来 auth middleware / read store repository 迁移前置条件；不得解释为 Radish auth ready、token validation ready、database ready、repository implementation ready 或 production admin console ready。
 - 不替代 `apps/radishmind-console/`；后者仍是本地 ops surface。
 
+源码组织与派生关系：
+
+- `modelGatewayOverview.ts` / `modelGatewayOverviewPanel.tsx` 是模型网关证据根视图，汇总 northbound API surface、provider/profile inventory、route metadata 和 gateway readiness 证据。
+- `modelGatewayRouteEvidence.ts` / `modelGatewayRouteEvidencePanel.tsx` 只从 Overview 与 read shell 派生 route binding、selection case、streaming、auth mode、secret ref 和 route risk，不创建新的产品真相源。
+- `modelGatewayUsageAuditEvidence.ts` / `modelGatewayUsageAuditEvidencePanel.tsx` 只从 Overview、Route Evidence、API key、quota、run history 和 audit log 派生 usage / audit 证据，不执行 quota、rate limit、billing 或 cost write。
+- `modelGatewayEvidenceReview.ts` / `modelGatewayEvidenceReviewPanel.tsx` 只复用前三个 Model Gateway view model，集中生成 readiness rollup、evidence checklist、route / usage / audit risk 和 locked capability。
+- `adminOperationsReview.ts` / `adminOperationsReviewPanel.tsx` 只复用 tenant overview、admin audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，生成管理端 review/readiness 摘要。
+- `App.tsx` 只负责把这些 view model 接入分组导航和页面渲染；如果新增真实后端 route、持久化状态或执行能力，应先落契约、fixture、checker 和边界文档，而不是直接在 App 或 panel 中接线。
+
 User Workspace Home / Workflow Review Workspace 读法：
 
 - 左侧导航按 `Workspace`、`Model Gateway`、`Workflow Review`、`Admin` 和 `Contract` 分组；用户端工作区入口、模型网关证据、workflow 审查入口和管理端入口不再与契约 guard 混排。
