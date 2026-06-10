@@ -21,6 +21,8 @@ import { buildModelGatewayOverviewViewModel } from "../features/control-plane-re
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
 import { ModelGatewayRouteEvidencePanel } from "../features/control-plane-read/modelGatewayRouteEvidencePanel";
+import { buildModelGatewayUsageAuditEvidenceViewModel } from "../features/control-plane-read/modelGatewayUsageAuditEvidence";
+import { ModelGatewayUsageAuditEvidencePanel } from "../features/control-plane-read/modelGatewayUsageAuditEvidencePanel";
 import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
@@ -253,6 +255,25 @@ export function App() {
     () => buildModelGatewayRouteEvidenceViewModel({ overview: modelGatewayOverview, readShell: shell }),
     [modelGatewayOverview],
   );
+  const modelGatewayUsageAuditEvidence = useMemo(
+    () =>
+      buildModelGatewayUsageAuditEvidenceViewModel({
+        overview: modelGatewayOverview,
+        routeEvidence: modelGatewayRouteEvidence,
+        workspaceApiKeys,
+        workspaceUsageQuota,
+        workspaceRunHistory,
+        adminAuditLog,
+      }),
+    [
+      modelGatewayOverview,
+      modelGatewayRouteEvidence,
+      workspaceApiKeys,
+      workspaceUsageQuota,
+      workspaceRunHistory,
+      adminAuditLog,
+    ],
+  );
   const workflowWorkspaceContext = useMemo(
     () =>
       buildWorkflowWorkspaceContextViewModel({
@@ -367,6 +388,7 @@ export function App() {
             <p className="nav-link-group-label">Model Gateway</p>
             <a href="#model-gateway-overview">Gateway Overview</a>
             <a href="#model-gateway-route-evidence">Route Evidence</a>
+            <a href="#model-gateway-usage-audit-evidence">Usage Evidence</a>
           </div>
           <div className="nav-link-group" aria-label="Workflow review sections">
             <p className="nav-link-group-label">Workflow Review</p>
@@ -478,6 +500,10 @@ export function App() {
               label="Gateway route"
               value={modelGatewayRouteEvidence.canRenderRouteEvidenceDetail ? "offline" : "blocked"}
             />
+            <Fact
+              label="Gateway usage"
+              value={modelGatewayUsageAuditEvidence.canRenderUsageAuditEvidence ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
@@ -485,6 +511,7 @@ export function App() {
         <WorkflowUserWorkspaceHomePanel home={workflowUserWorkspaceHome} />
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
+        <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />

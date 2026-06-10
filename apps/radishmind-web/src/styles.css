@@ -768,6 +768,11 @@ h4 {
   padding-bottom: 24px;
 }
 
+.model-gateway-usage-audit-evidence {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .model-gateway-overview-hero,
 .model-gateway-overview-card,
 .model-gateway-overview-surface,
@@ -777,7 +782,10 @@ h4 {
 .model-gateway-route-evidence-hero,
 .model-gateway-route-evidence-card,
 .model-gateway-route-evidence-case,
-.model-gateway-route-evidence-guard {
+.model-gateway-route-evidence-guard,
+.model-gateway-usage-audit-evidence-hero,
+.model-gateway-usage-audit-evidence-card,
+.model-gateway-usage-audit-evidence-guard {
   min-width: 0;
   border: 1px solid #d8dee8;
   border-radius: 8px;
@@ -785,7 +793,8 @@ h4 {
 }
 
 .model-gateway-overview-hero,
-.model-gateway-route-evidence-hero {
+.model-gateway-route-evidence-hero,
+.model-gateway-usage-audit-evidence-hero {
   display: grid;
   grid-template-columns: minmax(280px, 1.2fr) minmax(300px, 0.8fr);
   gap: 16px;
@@ -793,7 +802,8 @@ h4 {
 }
 
 .model-gateway-overview-hero > *,
-.model-gateway-route-evidence-hero > * {
+.model-gateway-route-evidence-hero > *,
+.model-gateway-usage-audit-evidence-hero > * {
   min-width: 0;
 }
 
@@ -804,7 +814,9 @@ h4 {
 .model-gateway-overview-lock,
 .model-gateway-route-evidence-card,
 .model-gateway-route-evidence-case,
-.model-gateway-route-evidence-guard {
+.model-gateway-route-evidence-guard,
+.model-gateway-usage-audit-evidence-card,
+.model-gateway-usage-audit-evidence-guard {
   padding: 14px;
 }
 
@@ -818,7 +830,14 @@ h4 {
 .model-gateway-route-evidence-profile-grid,
 .model-gateway-route-evidence-route-grid,
 .model-gateway-route-evidence-selection-grid,
-.model-gateway-route-evidence-guard-grid {
+.model-gateway-route-evidence-guard-grid,
+.model-gateway-usage-audit-evidence-section,
+.model-gateway-usage-audit-evidence-rollup-grid,
+.model-gateway-usage-audit-evidence-key-grid,
+.model-gateway-usage-audit-evidence-quota-grid,
+.model-gateway-usage-audit-evidence-trace-grid,
+.model-gateway-usage-audit-evidence-audit-grid,
+.model-gateway-usage-audit-evidence-guard-grid {
   display: grid;
   gap: 10px;
 }
@@ -856,8 +875,24 @@ h4 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.model-gateway-usage-audit-evidence-rollup-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.model-gateway-usage-audit-evidence-key-grid,
+.model-gateway-usage-audit-evidence-trace-grid,
+.model-gateway-usage-audit-evidence-audit-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.model-gateway-usage-audit-evidence-quota-grid,
+.model-gateway-usage-audit-evidence-guard-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .model-gateway-overview-row-main,
-.model-gateway-route-evidence-row-main {
+.model-gateway-route-evidence-row-main,
+.model-gateway-usage-audit-evidence-row-main {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -865,19 +900,22 @@ h4 {
 }
 
 .model-gateway-overview-row-main > div,
-.model-gateway-route-evidence-row-main > div {
+.model-gateway-route-evidence-row-main > div,
+.model-gateway-usage-audit-evidence-row-main > div {
   min-width: 0;
 }
 
 .model-gateway-overview-row-main h5,
-.model-gateway-route-evidence-row-main h5 {
+.model-gateway-route-evidence-row-main h5,
+.model-gateway-usage-audit-evidence-row-main h5 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
 }
 
 .model-gateway-overview-meta,
-.model-gateway-route-evidence-meta {
+.model-gateway-route-evidence-meta,
+.model-gateway-usage-audit-evidence-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
@@ -885,18 +923,21 @@ h4 {
 }
 
 .model-gateway-overview-meta div,
-.model-gateway-route-evidence-meta div {
+.model-gateway-route-evidence-meta div,
+.model-gateway-usage-audit-evidence-meta div {
   min-width: 0;
 }
 
-.model-gateway-overview-card span {
+.model-gateway-overview-card span,
+.model-gateway-usage-audit-evidence-card span {
   color: #607086;
   font-size: 12px;
   font-weight: 700;
 }
 
 .model-gateway-overview-card strong,
-.model-gateway-overview-policy strong {
+.model-gateway-overview-policy strong,
+.model-gateway-usage-audit-evidence-card strong {
   display: block;
   overflow-wrap: anywhere;
   margin-top: 6px;
@@ -913,7 +954,10 @@ h4 {
 .model-gateway-route-evidence-hero p,
 .model-gateway-route-evidence-card p,
 .model-gateway-route-evidence-case p,
-.model-gateway-route-evidence-guard p {
+.model-gateway-route-evidence-guard p,
+.model-gateway-usage-audit-evidence-hero p,
+.model-gateway-usage-audit-evidence-card p,
+.model-gateway-usage-audit-evidence-guard p {
   overflow-wrap: anywhere;
   margin: 8px 0 0;
   color: #4e5f73;
@@ -921,26 +965,31 @@ h4 {
   line-height: 1.4;
 }
 
-.model-gateway-route-evidence-chip-row {
+.model-gateway-route-evidence-chip-row,
+.model-gateway-usage-audit-evidence-chip-row {
   display: grid;
   gap: 6px;
   margin-top: 10px;
 }
 
 .model-gateway-route-evidence-chip-row > span,
-.model-gateway-route-evidence-source {
+.model-gateway-route-evidence-source,
+.model-gateway-usage-audit-evidence-chip-row > span,
+.model-gateway-usage-audit-evidence-source {
   color: #607086;
   font-size: 12px;
   font-weight: 700;
 }
 
-.model-gateway-route-evidence-chip-row > div {
+.model-gateway-route-evidence-chip-row > div,
+.model-gateway-usage-audit-evidence-chip-row > div {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.model-gateway-route-evidence-chip-row code {
+.model-gateway-route-evidence-chip-row code,
+.model-gateway-usage-audit-evidence-chip-row code {
   max-width: 100%;
   border: 1px solid #d8dee8;
   border-radius: 6px;
@@ -1898,7 +1947,8 @@ dd {
   .workflow-run-detail-row-main,
   .workflow-blocked-row-main,
   .workflow-confirmation-row-main,
-  .model-gateway-route-evidence-row-main {
+  .model-gateway-route-evidence-row-main,
+  .model-gateway-usage-audit-evidence-row-main {
     flex-wrap: wrap;
   }
 
@@ -1939,12 +1989,21 @@ dd {
   .model-gateway-route-evidence-route-grid,
   .model-gateway-route-evidence-selection-grid,
   .model-gateway-route-evidence-guard-grid,
-  .model-gateway-route-evidence-meta {
+  .model-gateway-route-evidence-meta,
+  .model-gateway-usage-audit-evidence-hero,
+  .model-gateway-usage-audit-evidence-rollup-grid,
+  .model-gateway-usage-audit-evidence-key-grid,
+  .model-gateway-usage-audit-evidence-quota-grid,
+  .model-gateway-usage-audit-evidence-trace-grid,
+  .model-gateway-usage-audit-evidence-audit-grid,
+  .model-gateway-usage-audit-evidence-guard-grid,
+  .model-gateway-usage-audit-evidence-meta {
     grid-template-columns: 1fr;
   }
 
   .model-gateway-overview-row-main,
-  .model-gateway-route-evidence-row-main {
+  .model-gateway-route-evidence-row-main,
+  .model-gateway-usage-audit-evidence-row-main {
     flex-wrap: wrap;
   }
 }
