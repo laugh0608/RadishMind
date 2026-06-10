@@ -1,6 +1,6 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-06-09
+更新时间：2026-06-10
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface` 和 Control Plane read-side product UI shell。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
 
-`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home 和 Review Handoff。后续继续 formal UI 时，应复用这些组件、`workflowWorkspaceContext` 和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home、Review Handoff、Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。后续继续 formal UI 时，应复用这些组件、`workflowWorkspaceContext` 和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
 
 ## 设计定位
 
@@ -257,8 +257,12 @@ Control Plane read-side product UI 额外覆盖：
    - execution plan preview 与 runtime readiness inspector：只展示 stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates、runtime prerequisites、readiness blockers 和 implementation gates，不提供 plan persistence、executor 或 readiness unlock 控件
    - surface overview、context selection、scenario inspector、review workspace、User Workspace Home 与 Review Handoff：只把当前 application、definition、run、draft、scenario、blocked capability、human review handoff 和 stop line 组织成可审查关系图、工作区首页摘要与 advisory package；本地选择不保存，不触发 publish、execute、confirm、writeback、replay 或 resume
 
-10. `User Workspace Home / Review Handoff Layout`
-   - 左侧导航按 `Workspace`、`Workflow Review`、`Admin` 和 `Contract` 分组；首页优先展示应用组合、当前 review、最近 run、优先 readiness、主要 route evidence 和关键 stop line，而不是堆叠全部详情
+10. `Model Gateway / Admin Evidence Layout`
+   - Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness 只展示 northbound API surfaces、provider/profile、route binding、key / quota、trace / audit、risk 和 locked capability 证据，不展示真实 key、secret、quota 执行、cost write、retry/fallback execution 或 production gateway 控件
+   - Admin Operations Review / Readiness 只汇总 tenant、audit、gateway review 和 Production Ops 静态证据；readiness、risk、checklist 和 boundary lock 使用与网关 evidence 面板一致的紧凑卡片和长标识换行规则，不提供 tenant mutation、raw audit export、deployment preflight、writeback 或 replay 控件
+
+11. `User Workspace Home / Review Handoff Layout`
+   - 左侧导航按 `Workspace`、`Model Gateway`、`Workflow Review`、`Admin` 和 `Contract` 分组；首页优先展示应用组合、当前 review、最近 run、优先 readiness、主要 route evidence 和关键 stop line，而不是堆叠全部详情
    - Review Handoff 只展示 recipients、key findings、read-side evidence checklist、decision blockers 和 boundary locks；长 id、route、handoff ref 与 audit ref 必须换行或截断，不得溢出窄屏容器
    - RadishFlow Copilot 与 Radish Docs Assistant 的默认样例展示必须来自同一 read-side view model，不允许为两个产品分别硬编码不同信息架构或不同 stopping boundary
 

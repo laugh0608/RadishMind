@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-09
+更新时间：2026-06-10
 
 ## 核心定义
 
@@ -29,7 +29,7 @@
 
 2026-05-28 已新增 `control-plane-read-formal-ui-implementation-readiness-v1`，固定未来 `apps/radishmind-web/` 预留落点、`apps/radishmind-console/` app 边界、页面实现顺序、consumer contract 复用、测试策略和停止线。
 
-2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 默认只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。2026-06-01 已补显式 opt-in 的 dev-only live read consumer：只有设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且后端设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才通过 HTTP 消费 fake-store-backed read handlers 和测试身份上下文。2026-06-09 已把 RadishFlow Copilot 与 Radish Docs Assistant 两组只读产品样例收敛到 response fixture、Go fake store、consumer smoke 和前端离线默认数据的一致性校验，并把 User Workspace Home、Workflow Review Workspace、Workflow Review Handoff 和 workflow context selection 组织成普通离线审查流。2026-06-10 已新增普通离线 Model Gateway Overview、Route Evidence 与 Usage/Audit Evidence，复用 shared read shell、API key、quota、run history、audit、provider runtime 和 gateway readiness 证据，展示 northbound API surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision 与 locked distribution capabilities。该路径不接生产后端、不接数据库、OIDC、repository、API key lifecycle、quota enforcement、rate limit、billing、secret resolver、retry/fallback execution、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
+2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 默认只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。2026-06-01 已补显式 opt-in 的 dev-only live read consumer：只有设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且后端设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才通过 HTTP 消费 fake-store-backed read handlers 和测试身份上下文。2026-06-09 已把 RadishFlow Copilot 与 Radish Docs Assistant 两组只读产品样例收敛到 response fixture、Go fake store、consumer smoke 和前端离线默认数据的一致性校验，并把 User Workspace Home、Workflow Review Workspace、Workflow Review Handoff 和 workflow context selection 组织成普通离线审查流。2026-06-10 已新增普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，复用 shared read shell、API key、quota、run history、audit、provider runtime、gateway readiness 和前三个网关 view model 证据，展示 northbound API surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit risks 与 locked distribution capabilities；同日新增 Admin Operations Review / Readiness，复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，展示管理端 readiness、evidence checklist、operational risks 和 boundary locks。该路径不接生产后端、不接数据库、OIDC、repository、API key lifecycle、quota enforcement、rate limit、billing、secret resolver、retry/fallback execution、deployment preflight、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
 
 当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`control-plane-read-formal-ui-readiness-close-v1` 已用 surface matrix 聚合固定七个页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；`control-plane-read-auth-store-transition-preconditions-v1` 已固定从 dev fake auth / fixture-backed fake store 迁移到未来 auth middleware / read store repository 前必须满足的 gates。上述内容都不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、repository implementation 或 workflow executor ready。
 
@@ -49,13 +49,14 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
 - 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
-- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview` 和 `admin-audit-log` 页面切片；它不是 production admin console，也不提供 audit mutation、raw payload export、durable audit store 或生产管理操作。
+- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview`、`admin-audit-log` 和普通离线 Admin Operations Review / Readiness；它不是 production admin console，也不提供 tenant mutation、audit mutation、raw payload export、durable audit store、production backend、deployment preflight 或生产管理操作。
 
 3. `Model Gateway / API Distribution`
 
 - 面向 API 调用者和上层服务。
 - 提供 OpenAI-compatible / Responses / Messages / Models 等 northbound API，统一分发到多 provider、多 profile 和多模型。
 - 支持后续的 API key 分发、配额、限流、成本统计、trace、fallback / load balancing 和 provider health。
+- 当前 `apps/radishmind-web/` 已提供普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，只解释 provider/profile、route、key / quota、trace、audit、risk 和 locked capability 证据，不执行真实分发能力。
 - 模型 API 分发方向参考 `sub2api` 与 `axonhub`，但必须保留本仓库的 provider registry、审计和生产停止线。
 
 4. `Workflow / Agent Runtime`
