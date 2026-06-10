@@ -19,6 +19,8 @@ import {
 } from "../features/control-plane-read/devLiveReadConsumer";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
+import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
+import { ModelGatewayRouteEvidencePanel } from "../features/control-plane-read/modelGatewayRouteEvidencePanel";
 import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
@@ -247,6 +249,10 @@ export function App() {
       }),
     [workspaceApiKeys, workspaceUsageQuota, workspaceRunHistory, adminAuditLog],
   );
+  const modelGatewayRouteEvidence = useMemo(
+    () => buildModelGatewayRouteEvidenceViewModel({ overview: modelGatewayOverview, readShell: shell }),
+    [modelGatewayOverview],
+  );
   const workflowWorkspaceContext = useMemo(
     () =>
       buildWorkflowWorkspaceContextViewModel({
@@ -360,6 +366,7 @@ export function App() {
           <div className="nav-link-group" aria-label="Model gateway sections">
             <p className="nav-link-group-label">Model Gateway</p>
             <a href="#model-gateway-overview">Gateway Overview</a>
+            <a href="#model-gateway-route-evidence">Route Evidence</a>
           </div>
           <div className="nav-link-group" aria-label="Workflow review sections">
             <p className="nav-link-group-label">Workflow Review</p>
@@ -467,12 +474,17 @@ export function App() {
               label="Gateway"
               value={modelGatewayOverview.canRenderModelGatewayOverview ? "offline" : "blocked"}
             />
+            <Fact
+              label="Gateway route"
+              value={modelGatewayRouteEvidence.canRenderRouteEvidenceDetail ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
         <WorkflowUserWorkspaceHomePanel home={workflowUserWorkspaceHome} />
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
+        <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />

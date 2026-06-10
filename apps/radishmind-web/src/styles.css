@@ -763,26 +763,37 @@ h4 {
   padding-bottom: 24px;
 }
 
+.model-gateway-route-evidence {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
 .model-gateway-overview-hero,
 .model-gateway-overview-card,
 .model-gateway-overview-surface,
 .model-gateway-overview-policy,
 .model-gateway-overview-trace,
-.model-gateway-overview-lock {
+.model-gateway-overview-lock,
+.model-gateway-route-evidence-hero,
+.model-gateway-route-evidence-card,
+.model-gateway-route-evidence-case,
+.model-gateway-route-evidence-guard {
   min-width: 0;
   border: 1px solid #d8dee8;
   border-radius: 8px;
   background: #ffffff;
 }
 
-.model-gateway-overview-hero {
+.model-gateway-overview-hero,
+.model-gateway-route-evidence-hero {
   display: grid;
   grid-template-columns: minmax(280px, 1.2fr) minmax(300px, 0.8fr);
   gap: 16px;
   padding: 16px;
 }
 
-.model-gateway-overview-hero > * {
+.model-gateway-overview-hero > *,
+.model-gateway-route-evidence-hero > * {
   min-width: 0;
 }
 
@@ -790,7 +801,10 @@ h4 {
 .model-gateway-overview-surface,
 .model-gateway-overview-policy,
 .model-gateway-overview-trace,
-.model-gateway-overview-lock {
+.model-gateway-overview-lock,
+.model-gateway-route-evidence-card,
+.model-gateway-route-evidence-case,
+.model-gateway-route-evidence-guard {
   padding: 14px;
 }
 
@@ -799,7 +813,12 @@ h4 {
 .model-gateway-overview-surface-grid,
 .model-gateway-overview-policy-grid,
 .model-gateway-overview-trace-grid,
-.model-gateway-overview-lock-grid {
+.model-gateway-overview-lock-grid,
+.model-gateway-route-evidence-section,
+.model-gateway-route-evidence-profile-grid,
+.model-gateway-route-evidence-route-grid,
+.model-gateway-route-evidence-selection-grid,
+.model-gateway-route-evidence-guard-grid {
   display: grid;
   gap: 10px;
 }
@@ -821,31 +840,52 @@ h4 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.model-gateway-overview-row-main {
+.model-gateway-route-evidence-profile-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.model-gateway-route-evidence-route-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.model-gateway-route-evidence-selection-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.model-gateway-route-evidence-guard-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.model-gateway-overview-row-main,
+.model-gateway-route-evidence-row-main {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
 }
 
-.model-gateway-overview-row-main > div {
+.model-gateway-overview-row-main > div,
+.model-gateway-route-evidence-row-main > div {
   min-width: 0;
 }
 
-.model-gateway-overview-row-main h5 {
+.model-gateway-overview-row-main h5,
+.model-gateway-route-evidence-row-main h5 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
 }
 
-.model-gateway-overview-meta {
+.model-gateway-overview-meta,
+.model-gateway-route-evidence-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin: 12px 0 0;
 }
 
-.model-gateway-overview-meta div {
+.model-gateway-overview-meta div,
+.model-gateway-route-evidence-meta div {
   min-width: 0;
 }
 
@@ -869,12 +909,47 @@ h4 {
 .model-gateway-overview-surface p,
 .model-gateway-overview-policy p,
 .model-gateway-overview-trace p,
-.model-gateway-overview-lock p {
+.model-gateway-overview-lock p,
+.model-gateway-route-evidence-hero p,
+.model-gateway-route-evidence-card p,
+.model-gateway-route-evidence-case p,
+.model-gateway-route-evidence-guard p {
   overflow-wrap: anywhere;
   margin: 8px 0 0;
   color: #4e5f73;
   font-size: 13px;
   line-height: 1.4;
+}
+
+.model-gateway-route-evidence-chip-row {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.model-gateway-route-evidence-chip-row > span,
+.model-gateway-route-evidence-source {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.model-gateway-route-evidence-chip-row > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.model-gateway-route-evidence-chip-row code {
+  max-width: 100%;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  padding: 3px 6px;
+  background: #f6f8fb;
+  color: #17202a;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .workflow-user-workspace-home-hero,
@@ -1822,7 +1897,8 @@ dd {
   .workflow-scenario-row-main,
   .workflow-run-detail-row-main,
   .workflow-blocked-row-main,
-  .workflow-confirmation-row-main {
+  .workflow-confirmation-row-main,
+  .model-gateway-route-evidence-row-main {
     flex-wrap: wrap;
   }
 
@@ -1857,11 +1933,18 @@ dd {
   .model-gateway-overview-policy-grid,
   .model-gateway-overview-trace-grid,
   .model-gateway-overview-lock-grid,
-  .model-gateway-overview-meta {
+  .model-gateway-overview-meta,
+  .model-gateway-route-evidence-hero,
+  .model-gateway-route-evidence-profile-grid,
+  .model-gateway-route-evidence-route-grid,
+  .model-gateway-route-evidence-selection-grid,
+  .model-gateway-route-evidence-guard-grid,
+  .model-gateway-route-evidence-meta {
     grid-template-columns: 1fr;
   }
 
-  .model-gateway-overview-row-main {
+  .model-gateway-overview-row-main,
+  .model-gateway-route-evidence-row-main {
     flex-wrap: wrap;
   }
 }
