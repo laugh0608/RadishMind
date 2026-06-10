@@ -115,7 +115,7 @@ export type WorkflowReviewHandoffViewModel = {
   canWriteBusinessTruth: false;
   canReplayRun: false;
   canAttachDatabase: false;
-  canEnableRadishOidc: false;
+  canEnableRadishAuth: false;
   canImplementRepositoryAdapter: false;
 };
 
@@ -180,7 +180,7 @@ export function buildWorkflowReviewHandoffViewModel(
     canWriteBusinessTruth: false,
     canReplayRun: false,
     canAttachDatabase: false,
-    canEnableRadishOidc: false,
+    canEnableRadishAuth: false,
     canImplementRepositoryAdapter: false,
   };
 }

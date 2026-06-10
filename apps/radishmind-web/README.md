@@ -1,8 +1,9 @@
 # RadishMind Web
 
-`apps/radishmind-web/` 是正式产品 UI 的首个落点。当前承载两组离线只读 surface：
+`apps/radishmind-web/` 是正式产品 UI 的首个落点。当前承载三组离线只读 surface：
 
 - `Control Plane Read-Side`：`control-plane-read-shared-shell-v1`、`control-plane-read-admin-tenant-overview-v1`、`control-plane-read-admin-audit-log-v1`、`control-plane-read-workspace-applications-v1`、`control-plane-read-workspace-api-keys-v1`、`control-plane-read-workspace-usage-quota-v1`、`control-plane-read-workspace-workflow-definitions-v1`、`control-plane-read-workspace-run-history-v1`、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1` 和 `control-plane-read-auth-store-transition-preconditions-v1`。
+- `Model Gateway / API Distribution`：普通离线 Model Gateway Overview，复用 shared read shell、API key summary、quota summary、run history、audit log、provider runtime 和 `gateway-api-key-quota-readiness` 证据，展示 northbound API compatibility surfaces、key / quota / trace / audit evidence、usage traces 和 locked distribution capabilities。
 - `Workflow / Agent Runtime Function Surface`：`workflow-function-surface-boundary-v1`、`workflow-application-detail-read-v1`、`workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1`、`workflow-execution-plan-preview-offline-v1`、`workflow-runtime-readiness-inspector-offline-v1`、`workflow-function-surface-readiness-close-v1`、`workflow-workspace-context-consistency-v1`、`workflow-workspace-review-offline-v1`、`workflow-user-workspace-home-offline-v1` 和普通离线 Workflow Review Handoff。
 
 当前边界：
@@ -10,7 +11,7 @@
 - 默认只消费 `contracts/typescript/control-plane-read-api.ts` 的离线 read-side contract。
 - 前端离线 view model 默认数据必须与 `control-plane-read-response-fixtures-v1` 的 RadishFlow Copilot / Radish Docs Assistant success 样例保持一致；`control-plane-read-product-sample-consistency-v1` 会校验该 response fixture、Go fake store、consumer smoke product refs 和前端离线默认 envelope 没有漂移。
 - 当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 时，可通过 dev-only HTTP consumer 消费 fake-store-backed read handlers；后端必须同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 才会接受测试身份 header。
-- 只渲染 read route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、只读 `admin-audit-log`、只读 `workspace-applications`、只读 `workspace-api-keys`、只读 `workspace-usage-quota`、只读 `workspace-workflow-definitions`、只读 `workspace-run-history`、User Workspace Home 和 workflow function surface 面板。
+- 只渲染 read route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、只读 `admin-audit-log`、只读 `workspace-applications`、只读 `workspace-api-keys`、只读 `workspace-usage-quota`、只读 `workspace-workflow-definitions`、只读 `workspace-run-history`、User Workspace Home、Model Gateway Overview 和 workflow function surface 面板。
 - `admin-tenant-overview` 只消费 `tenant-summary-route` 的离线 view model，展示租户摘要、route metadata、request / audit ref 和状态预览。
 - `admin-audit-log` 只消费 `audit-summary-list-route` 的离线 view model，展示 audit ref、actor、event kind、resource、decision、failure code、trace id、recorded timestamp、route metadata、request / audit ref、cursor 和状态预览。
 - `workspace-applications` 只消费 `application-summary-list-route` 的离线 view model，展示应用摘要列表、cursor、route metadata、request / audit ref 和状态预览。
@@ -29,18 +30,20 @@
 - Workflow Scenario Inspector 是普通离线只读场景检查区域，复用当前 application、definition、run、draft、validation、execution plan、runtime readiness 和 overview view model，展示 RadishFlow / Radish Docs 场景 intent、input contract、expected advisory output、risk / confirmation requirement、relationship map、blocked reason 和 stop lines；场景选择只改变浏览器内查看状态，不保存、不发布、不执行、不请求 live backend、不写回业务数据。
 - Workflow Review Workspace 是正式离线只读审查工作区，复用当前 application、workflow definition、run、draft、validation、execution plan、runtime readiness、overview 和 scenario inspector view model，把当前选中 application + definition + run + draft + scenario 的上下文、review stage、关系链、blocked capability rollup 和 stop line rollup 集中展示；它不新增专项 gate，不请求 live backend，不新增 Go route，不创建 review / draft / plan / readiness 持久化结果，不提供保存、发布、执行、确认提交、写回或 replay 控件。
 - User Workspace Home 是正式离线只读首页，复用 applications、workflow definitions、run history、API key / quota summary、Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 的 view model，集中展示应用组合、审查路径、最近 run、优先 readiness、主要 route evidence、blocked capability 和关键 stop line rollup；完整 selected context、关系链和停止线明细继续由 Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector 承接。它不新增专项 gate，不请求 live backend，不新增 Go route，不创建首页持久化结果，不提供保存、发布、执行、确认提交、写回或 replay 控件。
+- Model Gateway Overview 是普通离线只读网关证据区，复用 read shell、API key、quota、run history、audit 和 provider/gateway readiness 证据，展示 `/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages` 的 northbound API distribution 关系，以及 key scope、quota policy、cost snapshot、trace records、audit summary 和 boundary locks；它不新增专项 gate，不请求 production gateway，不发放或验证真实 API key，不执行 quota / rate limit，不写 cost record，不解析 production secret，不启用 retry/fallback execution，不接数据库、Radish auth 或 repository adapter。
 - Workflow Review Handoff 是普通离线只读审查交接摘要，复用 User Workspace Home、Workflow Review Workspace、Workflow Surface Overview、Scenario Inspector、Runtime Readiness、Blocked Action Preview 和 Confirmation Placeholder 的 view model，集中展示 review recipients、key findings、read-side evidence checklist、decision blockers 和 boundary locks。它不导出、不发送、不保存 handoff，不请求 live backend，不新增 Go route，不提交 confirmation decision，不解锁执行，不写回或 replay。
 - `control-plane-read-formal-ui-readiness-close-v1` 已用聚合 surface matrix / checker 固定七个只读页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；后续普通只读展示页不再默认逐页新增专项门禁。
 - `workflow-function-surface-readiness-close-v1` 已用 workflow surface matrix / checker 固定当前 workflow 离线产品面的 builder、render anchor、CSS selector、关闭项和停止线；后续普通离线 workflow 展示，包括 Workflow Review Workspace、User Workspace Home 和 Workflow Review Handoff，优先复用该聚合 gate、`npm run build` 和 fast baseline。
-- 不请求生产后端，不接 `Radish` OIDC，不接数据库，不实现 API key lifecycle、quota enforcement、rate limit、billing、cost ledger、workflow builder mutation、draft persistence、validation result persistence、execution plan persistence、runtime readiness persistence、publish、workflow executor、confirmation decision、execution unlock、writeback、run replay、run resume 或 repository adapter。
+- 不请求生产后端，不接 `Radish` auth，不接数据库，不实现 API key lifecycle、quota enforcement、rate limit、cost record writes、workflow builder mutation、draft persistence、validation result persistence、execution plan persistence、runtime readiness persistence、publish、workflow executor、confirmation decision、execution unlock、writeback、run replay、run resume 或 repository adapter。
 - `control-plane-read-dev-live-consumer-v1` 只能连接 fake-store-backed handler 和测试身份上下文；不得解释为 production API consumer、真实 auth/db、repository、API key / quota 或 workflow executor ready。
-- `control-plane-read-auth-store-transition-preconditions-v1` 只固定未来 auth middleware / read store repository 迁移前置条件；不得解释为 Radish OIDC ready、token validation ready、database ready、repository implementation ready 或 production admin console ready。
+- `control-plane-read-auth-store-transition-preconditions-v1` 只固定未来 auth middleware / read store repository 迁移前置条件；不得解释为 Radish auth ready、token validation ready、database ready、repository implementation ready 或 production admin console ready。
 - 不替代 `apps/radishmind-console/`；后者仍是本地 ops surface。
 
 User Workspace Home / Workflow Review Workspace 读法：
 
 - 左侧导航按 `Workspace`、`Workflow Review`、`Admin` 和 `Contract` 分组；用户端工作区入口和 workflow 审查入口不再与管理端、契约 guard 混排。
 - 先看 User Workspace Home，确认应用组合、审查路径、最近 run、优先 readiness、主要 route evidence 和关键 stop line rollup。
+- 再看 Model Gateway Overview，确认 northbound API surfaces、API key / quota / trace / audit evidence 和 locked distribution capabilities；该区域只解释模型网关分发证据，不提供 key lifecycle、quota enforcement、cost record writes、secret resolver 或 fallback execution。
 - 先使用本地 context selection 选择 application、workflow definition、run record 和 draft template，再选择要审查的 scenario；blocked action preview 和 confirmation placeholder 应跟随当前 run / workflow definition，而不是停留在默认 fixture。
 - 先看 selected context 和 review stage，确认当前审查对象；再按 scenario、draft、validation、execution plan、runtime readiness 的顺序阅读证据链。
 - 最后看 Review Handoff，确认给人工审查的 recipients、key findings、evidence checklist、decision blockers 和 boundary locks 已经与当前选中上下文一致。
@@ -54,7 +57,7 @@ User Workspace Home / Workflow Review Workspace 读法：
 pwsh ./start.ps1 -Command web-live
 ```
 
-`web-live` 会启动或复用 platform 后端和 `apps/radishmind-web/` 前端，并集中设置 dev-only live read 所需的本地环境变量。它只连接 fake-store-backed handler 和测试身份上下文，不代表 production API consumer、真实数据库、Radish OIDC、repository adapter 或 workflow executor ready。
+`web-live` 会启动或复用 platform 后端和 `apps/radishmind-web/` 前端，并集中设置 dev-only live read 所需的本地环境变量。它只连接 fake-store-backed handler 和测试身份上下文，不代表 production API consumer、真实数据库、Radish auth、repository adapter 或 workflow executor ready。
 
 底层 wrapper 也可单独执行：
 

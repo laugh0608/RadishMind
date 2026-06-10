@@ -17,6 +17,8 @@ import {
   readControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
+import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
+import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
@@ -234,6 +236,17 @@ export function App() {
     () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
     [liveCollections],
   );
+  const modelGatewayOverview = useMemo(
+    () =>
+      buildModelGatewayOverviewViewModel({
+        readShell: shell,
+        workspaceApiKeys,
+        workspaceUsageQuota,
+        workspaceRunHistory,
+        adminAuditLog,
+      }),
+    [workspaceApiKeys, workspaceUsageQuota, workspaceRunHistory, adminAuditLog],
+  );
   const workflowWorkspaceContext = useMemo(
     () =>
       buildWorkflowWorkspaceContextViewModel({
@@ -344,6 +357,10 @@ export function App() {
             <a href="#workspace-api-keys">API Keys</a>
             <a href="#workspace-usage-quota">Usage Quota</a>
           </div>
+          <div className="nav-link-group" aria-label="Model gateway sections">
+            <p className="nav-link-group-label">Model Gateway</p>
+            <a href="#model-gateway-overview">Gateway Overview</a>
+          </div>
           <div className="nav-link-group" aria-label="Workflow review sections">
             <p className="nav-link-group-label">Workflow Review</p>
             <a href="#workflow-application-detail">Application Detail</a>
@@ -446,11 +463,16 @@ export function App() {
               label="Handoff"
               value={workflowReviewHandoff.canRenderReviewHandoff ? "offline" : "blocked"}
             />
+            <Fact
+              label="Gateway"
+              value={modelGatewayOverview.canRenderModelGatewayOverview ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
         <WorkflowUserWorkspaceHomePanel home={workflowUserWorkspaceHome} />
+        <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
@@ -774,7 +796,7 @@ export function App() {
           <div className="usage-quota-failure">
             <span>Over quota failure code</span>
             <strong>{workspaceUsageQuota.overQuotaFailureCode}</strong>
-            <p>Displayed as read-side metadata only; enforcement, rate limit and billing ledger remain outside this page.</p>
+            <p>Displayed as read-side metadata only; enforcement, rate limit and cost record writes remain outside this page.</p>
           </div>
 
           <div className="usage-quota-states" aria-label="Workspace usage quota states">

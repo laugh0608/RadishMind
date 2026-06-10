@@ -296,7 +296,7 @@ function buildRuntimePrerequisites(
       area: "auth_store",
       status: "blocked",
       currentEvidence: "control-plane-read-implementation-trigger-review-v1 has no satisfied trigger",
-      missingPrerequisite: "Radish OIDC, database schema artifact, store selector, and repository adapter gates",
+      missingPrerequisite: "Radish auth, database schema artifact, store selector, and repository adapter gates",
       sourceRefs: [
         "control-plane-read-production-auth-readiness-v1",
         "control-plane-read-schema-artifact-manifest-readiness-v1",
@@ -374,7 +374,7 @@ function buildImplementationGates(
       status: statusFor(runtimePrerequisites, "auth_db_repository_gate"),
       requiredBefore: "live_backend",
       evidenceRefs: ["auth_db_repository_gate"],
-      summary: "Live backend mode must wait for Radish OIDC, database schema, store selector, and repository adapter gates.",
+      summary: "Live backend mode must wait for Radish auth, database schema, store selector, and repository adapter gates.",
     },
     {
       gateId: "gate_writeback_replay_policy_before_unblock",

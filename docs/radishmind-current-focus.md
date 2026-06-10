@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-06-09
+更新时间：2026-06-10
 
 ## 文档目的
 
@@ -45,7 +45,9 @@ repository/read store 迁移链路已推进到 `control-plane-read-implementatio
 
 2026-06-09 已完成普通离线 `workflow-user-workspace-home-offline-v1`：复用现有 read-side applications、workflow definitions、run history、API key / quota summary、Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector view model，组织正式 User Workspace Home，让用户从工作区首页理解应用组合、最近运行、当前 review、readiness、route evidence、blocked capability 和 stop line 的关系。该切片继续只做 offline-only / read-only / advisory-only UI，普通展示复用既有聚合 gate、web build、浏览器布局检查和 fast baseline；不新增 live backend、Go route、数据库、OIDC、repository adapter、executor、confirmation、writeback 或 replay。
 
-2026-06-09 已继续完成普通离线 Workflow Review Handoff：复用 `workflowWorkspaceContext` 中的 User Workspace Home、Workflow Review Workspace、Workflow Surface Overview、Scenario Inspector、Runtime Readiness、Blocked Action Preview 和 Confirmation Placeholder view model，组织给人工审查使用的 advisory package，展示 review recipients、key findings、read-side evidence checklist、decision blockers 和 boundary locks。该面板只读、离线、advisory-only，不导出、不发送、不保存、不提交 confirmation decision、不解锁执行、不写回业务数据、不 replay / resume；普通展示继续复用 `workflow-workspace-context-consistency-v1`、web build、浏览器布局检查和 fast baseline。Workflow v1 的普通离线审查流已覆盖 Home、Review、Handoff 和上下文一致性治理，后续不再默认继续补同层只读 workflow 面板；下一条产品面建议转向 `Model Gateway / API Distribution` 的只读 overview / evidence 组织。
+2026-06-09 已继续完成普通离线 Workflow Review Handoff：复用 `workflowWorkspaceContext` 中的 User Workspace Home、Workflow Review Workspace、Workflow Surface Overview、Scenario Inspector、Runtime Readiness、Blocked Action Preview 和 Confirmation Placeholder view model，组织给人工审查使用的 advisory package，展示 review recipients、key findings、read-side evidence checklist、decision blockers 和 boundary locks。该面板只读、离线、advisory-only，不导出、不发送、不保存、不提交 confirmation decision、不解锁执行、不写回业务数据、不 replay / resume；普通展示继续复用 `workflow-workspace-context-consistency-v1`、web build、浏览器布局检查和 fast baseline。Workflow v1 的普通离线审查流已覆盖 Home、Review、Handoff 和上下文一致性治理，后续不再默认继续补同层只读 workflow 面板。
+
+2026-06-10 已开始转向 `Model Gateway / API Distribution` 产品面，并在 `apps/radishmind-web/` 新增普通离线 Model Gateway Overview：复用 shared read shell、API key summary、quota summary、run history、audit log、provider runtime 和 gateway-api-key-quota readiness 证据，展示 northbound API surfaces、key / quota / trace / audit evidence、usage traces 和 locked distribution capabilities。该 overview 只读、离线、evidence-only，不新增 Go route、不请求 production gateway、不发放或验证真实 API key、不执行 quota / rate limit、不写 billing ledger、不解析 production secret、不启用 retry/fallback execution、不接数据库、Radish OIDC 或 repository adapter。普通展示继续复用 web build 和 fast baseline，不为该组织层新增专项 gate。
 
 repository/read store 已完成状态字面量继续保留为：`repository_contract_preconditions_defined`、`disabled_database_guard_defined`、`repository_contract_smoke_defined`、`repository_implementation_readiness_defined`、`store_selection_readiness_defined`、`schema_migration_readiness_defined`、`repository_contract_types_readiness_defined`、`repository_contract_types_implemented`、`repository_contract_smoke_runner_readiness_defined`、`repository_contract_smoke_runner_implemented`、`repository_interface_readiness_defined`、`repository_adapter_implementation_readiness_refreshed`、`store_selector_enablement_preconditions_defined`、`schema_migration_implementation_preconditions_defined`、`repository_adapter_implementation_plan_defined`、`schema_artifact_manifest_readiness_defined`、`store_selector_smoke_readiness_defined`、`production_auth_readiness_defined`、`adapter_smoke_readiness_defined` 与 `implementation_trigger_review_defined`。
 
@@ -90,7 +92,14 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 5. `P3 Local Product Shell / Ops Surface`、`Conversation & Session`、`Tooling Framework` 与 `UI Design Topic / React 第二批` 均保持 close / governance-only 状态，不再默认新增同类只读 UI、P2 readiness / rollup / manifest 或 UI polish。P2 停止线证据继续保留为 `session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json`；`P2 short close` 边界不变，相关 `negative_regression_suite` 边界不变，这些 fixture 不代表 executor、durable store、confirmation、materialized result reader、长期记忆或 replay 已完成。
 6. `Evaluation & Governance`：当前阶段门禁已从“每个小 UI 展示项新增 fixture / checker / task card”调整为“能力边界与聚合门禁优先”。`control-plane-read-formal-ui-readiness-close-v1` 已作为聚合 surface matrix 接入 fast baseline，后续普通 UI 展示和文案 / 布局改动优先复用 web build、consumer smoke、聚合 read-side checker 和 fast baseline；只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项门禁。CI required checks 已同步升级为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests`，并让 `pull_request -> dev / master`、`push -> dev` 和 release precheck 覆盖正式 web 构建与 Go 平台测试；该更新不引入部署、镜像发布、live backend、数据库、OIDC、repository adapter、executor、confirmation、writeback 或 replay。
 
-## 今日完成（2026-06-09）
+## 今日完成（2026-06-10）
+
+1. 已完成普通离线 Model Gateway Overview：新增 `modelGatewayOverview` view model 和 panel，聚合 read shell、API key、quota、run trace、audit 与 provider/gateway readiness 证据。
+2. 新 overview 展示 northbound API compatibility surfaces、policy evidence、trace evidence 和 boundary locks，让 `Model Gateway / API Distribution` 成为 Workflow v1 审查流后的独立产品面入口。
+3. 该推进仍只属于 offline-only / read-only / evidence-only UI；不新增 backend route、production API consumer、数据库、Radish OIDC、API key lifecycle、quota enforcement、rate limit、billing、secret resolver、retry/fallback execution、executor、confirmation、writeback 或 replay。
+4. 已通过 `npm run build`；后续仍需跑仓库 fast baseline，并按需进行浏览器布局检查。
+
+## 最近完成（2026-06-09）
 
 1. 已完成普通离线 `workflow-user-workspace-home-offline-v1`：新增 User Workspace Home view model 和 panel，复用 applications、workflow definitions、run history、API key / quota summary、Workflow Review Workspace、Workflow Surface Overview 和 Scenario Inspector。
 2. 新首页展示应用组合、当前选中 review context、review stage、readiness rollup、最近 run、route evidence 和 stop line rollup；继续不保存、不发布、不执行、不请求 live backend、不新增 Go route、不提交 confirmation decision、不写回业务数据、不提供 replay / resume 控件。

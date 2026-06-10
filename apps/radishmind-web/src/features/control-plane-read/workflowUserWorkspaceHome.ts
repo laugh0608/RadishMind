@@ -120,7 +120,7 @@ export type WorkflowUserWorkspaceHomeViewModel = {
   canWriteBusinessTruth: false;
   canReplayRun: false;
   canAttachDatabase: false;
-  canEnableRadishOidc: false;
+  canEnableRadishAuth: false;
   canImplementRepositoryAdapter: false;
 };
 
@@ -192,7 +192,7 @@ export function buildWorkflowUserWorkspaceHomeViewModel(
     canWriteBusinessTruth: false,
     canReplayRun: false,
     canAttachDatabase: false,
-    canEnableRadishOidc: false,
+    canEnableRadishAuth: false,
     canImplementRepositoryAdapter: false,
   };
 }
@@ -233,7 +233,7 @@ function buildMetrics(source: WorkflowUserWorkspaceHomeSource): WorkflowUserWork
       label: "Quota",
       value: quotaSummary(source.workspaceUsageQuota),
       status: source.workspaceUsageQuota.canRenderQuota ? "offline_only" : "blocked",
-      summary: "Usage and quota are summarized without enforcement, rate limit, billing ledger, or cost writeback.",
+      summary: "Usage and quota are summarized without enforcement, rate limit, cost record writes, or cost writeback.",
     },
     {
       metricId: "recent_runs",
@@ -385,7 +385,7 @@ function buildRouteEvidence(source: WorkflowUserWorkspaceHomeSource): WorkflowUs
       requestId: source.workspaceUsageQuota.requestId,
       auditRef: source.workspaceUsageQuota.auditRef,
       status: source.workspaceUsageQuota.canRenderQuota ? "offline_only" : "blocked",
-      summary: "Quota summary is displayed without enforcement, billing, rate limit, or cost ledger writes.",
+      summary: "Quota summary is displayed without enforcement, rate limit, or cost record writes.",
     },
     {
       evidenceId: "review_workspace",

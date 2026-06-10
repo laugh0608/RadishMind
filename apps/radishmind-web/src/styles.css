@@ -758,6 +758,125 @@ h4 {
   padding-bottom: 24px;
 }
 
+.model-gateway-overview {
+  border-bottom: 1px solid #d8dee8;
+  padding-bottom: 24px;
+}
+
+.model-gateway-overview-hero,
+.model-gateway-overview-card,
+.model-gateway-overview-surface,
+.model-gateway-overview-policy,
+.model-gateway-overview-trace,
+.model-gateway-overview-lock {
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.model-gateway-overview-hero {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(300px, 0.8fr);
+  gap: 16px;
+  padding: 16px;
+}
+
+.model-gateway-overview-hero > * {
+  min-width: 0;
+}
+
+.model-gateway-overview-card,
+.model-gateway-overview-surface,
+.model-gateway-overview-policy,
+.model-gateway-overview-trace,
+.model-gateway-overview-lock {
+  padding: 14px;
+}
+
+.model-gateway-overview-section,
+.model-gateway-overview-metric-grid,
+.model-gateway-overview-surface-grid,
+.model-gateway-overview-policy-grid,
+.model-gateway-overview-trace-grid,
+.model-gateway-overview-lock-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.model-gateway-overview-metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.model-gateway-overview-surface-grid,
+.model-gateway-overview-policy-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.model-gateway-overview-trace-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.model-gateway-overview-lock-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.model-gateway-overview-row-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.model-gateway-overview-row-main > div {
+  min-width: 0;
+}
+
+.model-gateway-overview-row-main h5 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.model-gateway-overview-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.model-gateway-overview-meta div {
+  min-width: 0;
+}
+
+.model-gateway-overview-card span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.model-gateway-overview-card strong,
+.model-gateway-overview-policy strong {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 6px;
+  color: #17202a;
+  font-size: 17px;
+}
+
+.model-gateway-overview-hero p,
+.model-gateway-overview-card p,
+.model-gateway-overview-surface p,
+.model-gateway-overview-policy p,
+.model-gateway-overview-trace p,
+.model-gateway-overview-lock p {
+  overflow-wrap: anywhere;
+  margin: 8px 0 0;
+  color: #4e5f73;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .workflow-user-workspace-home-hero,
 .workflow-user-workspace-home-card {
   min-width: 0;
@@ -1729,6 +1848,20 @@ dd {
   }
 
   .workflow-user-workspace-home-row-main {
+    flex-wrap: wrap;
+  }
+
+  .model-gateway-overview-hero,
+  .model-gateway-overview-metric-grid,
+  .model-gateway-overview-surface-grid,
+  .model-gateway-overview-policy-grid,
+  .model-gateway-overview-trace-grid,
+  .model-gateway-overview-lock-grid,
+  .model-gateway-overview-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .model-gateway-overview-row-main {
     flex-wrap: wrap;
   }
 }
