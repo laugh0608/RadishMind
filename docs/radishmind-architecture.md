@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-06-10
+更新时间：2026-06-13
 
 ## 架构目标
 
@@ -24,7 +24,7 @@ Control Plane read store 的迁移架构固定为分层推进，而不是从 fak
 
 `Workflow / Agent Runtime Function Surface v1` 已在 `apps/radishmind-web/` 落地 application detail、workflow definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、Workflow Surface Overview、context selection、Workflow Scenario Inspector、Workflow Review Workspace、User Workspace Home 和 Workflow Review Handoff。它们都是 fixture-derived、read-only、blocked-capability-first 的产品面：detail / draft / validation / plan / readiness 负责解释对象和准入证据，overview / scenario / review workspace / home / handoff 负责把当前 application、definition、run、draft、scenario、blocked capability 和 stop line 组织成可审查的用户工作区视图；这一层不新增 runtime API、builder mutation、draft / validation / execution plan / readiness / scenario / review / home / handoff persistence、executor、confirmation decision、writeback、replay、数据库、Radish OIDC 或 production API consumer。
 
-2026-06-10 已在 `apps/radishmind-web/` 补齐普通离线 Model Gateway evidence 组织层和 Admin Operations Review / Readiness。Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness 复用 read shell、API key、quota、run history、audit、provider runtime 和 gateway readiness 证据；Admin Operations Review / Readiness 复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据。它们都只属于 read-only product surface，不新增 Go route、production gateway、secret resolver、API key lifecycle、quota enforcement、cost write、database、Radish auth、repository adapter、deployment preflight、executor、writeback 或 replay。
+2026-06-10 已在 `apps/radishmind-web/` 补齐普通离线 Model Gateway evidence 组织层和 Admin Operations Review / Readiness；2026-06-13 继续补齐 Admin Provider/Profile & Deployment Evidence Review / Readiness。Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness 复用 read shell、API key、quota、run history、audit、provider runtime 和 gateway readiness 证据；Admin Operations Review / Readiness 复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据；Admin Provider/Profile & Deployment Evidence Review / Readiness 继续复用 Model Gateway route / review、Admin Operations、tenant overview 和 audit log，只把 provider/profile readiness、model route readiness、secret / deployment evidence、operator risks 和 locked capabilities 组织成管理端审查视图。它们都只属于 read-only product surface，不新增 Go route、production gateway、secret resolver、API key lifecycle、quota enforcement、cost write、database、Radish auth、repository adapter、deployment preflight、executor、writeback 或 replay。
 
 ## 产品视角
 
@@ -40,7 +40,7 @@ Control Plane read store 的迁移架构固定为分层推进，而不是从 fak
 - 面向管理员管理租户、用户、角色、权限、provider/profile、模型路由、API key、quota、price、secret backend、审计和部署状态。
 - 登录 / 授权、数据库、部署方式优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth，不在 RadishMind 内部自建身份真相源。
 - Control Plane 默认使用 Go，可独立于 gateway 拆服务；当前不新增 `.NET` / ASP.NET Core 作为默认后端栈。
-- 当前 `apps/radishmind-web/` 已实现只读 `admin-tenant-overview`、`admin-audit-log` 和普通离线 Admin Operations Review / Readiness。它们都不代表 production admin console。
+- 当前 `apps/radishmind-web/` 已实现只读 `admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness 和 Admin Provider/Profile & Deployment Evidence Review / Readiness。它们都不代表 production admin console。
 - 当前本地 console 只是 ops surface，不等同于 production admin console。
 
 ### 3. `Model Gateway / API Distribution`
@@ -161,6 +161,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - Student models 用于本地化、小成本部署和回归实验。
 - `RadishMind-Core` 负责理解、推理、结构化建议、候选排序、风险标记和可选图片输入理解。
 - Image Generation Runtime 独立负责图片像素生成；主模型只输出结构化 image intent 和约束。
+- `services/runtime/image_artifact_runtime_mapper.py` 属于 metadata-only runtime helper：它只把已经通过 `image_generation_artifact` schema 的 artifact metadata 投影为 future CopilotResponse artifact citation / metadata reference，并在 blocked / failed / pending_review、hash mismatch、public URL claim、binary payload、provider raw dump、store / reader 缺失和 provenance 缺失时 fail closed。它不读取二进制、不查 store、不解析 public URL、不调用生图 backend、不上传 artifact，也不改变 `CopilotResponse` schema。
 
 ### 5. Rule Validation & Response Builder
 
@@ -188,14 +189,14 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `Runtime Service`：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`scripts/run-platform-bridge.py`
 - `Platform Service Layer`：`services/platform/`，使用 `Go` 承载 `HTTP API`、`gateway`、鉴权落点、流式转发、长驻进程、观测和部署壳；当前已落第一版 bridge-backed northbound、session/tooling metadata shell、blocked action shell、只读 platform overview、local smoke readiness route、七条 fake-store-backed control plane read route 和显式 dev-only fake auth header gate
 - `Control Plane`：长期默认使用 `Go`，可按职责拆出独立服务，覆盖 tenant、API key、quota、provider profile、OIDC client、audit 和 run records；当前 read-side 契约、Go fake-store-backed handler、TypeScript consumer contract、auth/db preconditions、formal UI boundary/readiness、dev-only live consumer、auth/store transition preconditions、repository contract smoke、repository implementation readiness、store selection readiness、schema migration readiness、repository contract types、静态 contract smoke runner、repository interface readiness、adapter implementation readiness refresh、selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness 和 store selector smoke readiness 说明见 `docs/contracts/control-plane-read-side.md`，不默认引入 `.NET`
-- `Product Surfaces`：目标形态包括 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution` 和 `Workflow / Agent Runtime`；当前已落地本地 ops console 壳、只读平台发现面、fake-store-backed read-side HTTP surface，以及 `apps/radishmind-web/` 的 read-only product UI shell。`apps/radishmind-web/` 默认离线，显式 opt-in 时可通过 dev-only HTTP consumer 消费 fake-store-backed handler；已覆盖 route catalog、共享状态、forbidden output guard、两个 admin 页面、五个 user workspace 只读页面、User Workspace Home、Workflow Review Workspace、Workflow Review Handoff、workflow function surface 离线产品面、Model Gateway 四个 evidence 面板和 Admin Operations Review / Readiness，但还不是完整 user workspace、production admin console、真实 workflow builder、production gateway 或真实 API consumer
+- `Product Surfaces`：目标形态包括 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution` 和 `Workflow / Agent Runtime`；当前已落地本地 ops console 壳、只读平台发现面、fake-store-backed read-side HTTP surface，以及 `apps/radishmind-web/` 的 read-only product UI shell。`apps/radishmind-web/` 默认离线，显式 opt-in 时可通过 dev-only HTTP consumer 消费 fake-store-backed handler；已覆盖 route catalog、共享状态、forbidden output guard、两个 admin 页面、五个 user workspace 只读页面、User Workspace Home、Workflow Review Workspace、Workflow Review Handoff、workflow function surface 离线产品面、Model Gateway 四个 evidence 面板、Admin Operations Review / Readiness 和 Admin Provider/Profile & Deployment Evidence Review / Readiness，但还不是完整 user workspace、production admin console、真实 workflow builder、production gateway 或真实 API consumer
 - `P3 Local Product Shell / Ops Surface`：`GET /v1/platform/overview`、`GET /v1/platform/local-smoke`、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、`scripts/run-platform-overview-consumer-smoke.py`、`scripts/run-platform-local-smoke.py`、`scripts/check-radishmind-console-behavior.py`、`scripts/check-radishmind-console-visual-smoke-record.py`、`scripts/check-radishmind-console-dev-entry.py`、`scripts/check-radishmind-console-production-boundary.py`、`scripts/check-p3-local-product-shell-short-close-checklist.py`、`apps/radishmind-console/`、`docs/contracts/platform-overview-ui-view.md`；当前本地只读壳已达到 `local usable / read-only close`
 - `Deployment Boundary Layer`：`deploy/README.md`、`deploy/docker-compose.local.yaml`、`deploy/docker-compose.yaml`、`deploy/.env.example`、`services/platform/Dockerfile`、`apps/radishmind-console/Dockerfile`、`apps/radishmind-console/nginx.local.conf`、`scripts/check-production-ops-docker-*.py`、`scripts/check-production-ops-deployment-readiness-smoke.py`、`scripts/check-production-ops-container-smoke-*.py`；当前只固定 docker local/test/prod 边界、镜像命名、静态展开、runbook 和记录模板
 - `Southbound Provider Layer`：`services/runtime/provider_registry.py`、`services/runtime/inference_provider.py`、`services/platform/internal/httpapi/northbound.go`、`scripts/checks/fixtures/provider-capability-matrix-v1.json`、`scripts/check-provider-capability-matrix.py`、`scripts/checks/fixtures/provider-health-smoke-v1.json`、`scripts/check-provider-health-smoke.py`、`scripts/checks/fixtures/provider-selection-policy-v1.json`、`scripts/check-provider-selection-policy.py`、`scripts/checks/fixtures/provider-retry-fallback-policy-v1.json`、`scripts/check-provider-retry-fallback-policy.py`、`scripts/checks/fixtures/provider-runtime-docs-refresh.json`、`scripts/check-provider-runtime-docs-refresh.py`
 - `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata、平台 checkpoint metadata-only route smoke、readiness summary、implementation preconditions、route smoke readiness rollup、short close readiness delta、stop-line manifest 和 storage / audit / result 边界 fixture
 - `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py`、confirmation flow design、executor boundary design、result materialization policy design、negative regression suite、deny-by-default gates、enablement plan 和各类 deterministic builder/check
 - `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records、promotion gates、negative consumption summary、negative coverage rollup、route negative coverage matrix、readiness consistency rollup、foundation status summary 和 P2 design gate checks
-- `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`
+- `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`；其中 `image_artifact_runtime_mapper.py` 只做图片 artifact metadata 到 future response reference 的纯 metadata 投影，不承担 store、reader、backend 或 public URL 职责
 
 ## 当前缺口
 
@@ -215,7 +216,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `RadishFlow` 的 gateway demo、service smoke matrix、UI consumption 和 candidate edit handoff 已作为未来接入门禁保留；在上层项目尚未具备真实接入能力前，当前只收口前置条件与阻塞项，不继续细化新的接线设计或模拟接入 summary。
 - `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 的真实 candidate record、audit、replay 和治理链已阶段性收口；新增真实 capture 需要先说明非重复 drift 假设。
 - `RadishMind-Core` 本地小模型观测显示 raw 仍 blocked；broader review 的 15/15 `reviewed_pass`、`3B/4B` guided capacity review、1.5B full-holdout-9 raw / repaired comparison 和 3B CPU 单样本 timeout 当前只保留为路线证据，在没有 GPU / 明确实验窗口 / 新能力假设前不再默认继续真实模型产出专题。
-- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata、最小评测 manifest、`image_adapter_handshake_safety_gate_defined`、`image_artifact_return_runbook_evidence_defined`、`image_safety_runbook_evidence_defined`、`image_backend_adapter_readiness_defined` 与 `image_artifact_runtime_mapping_readiness_defined` 证据；当前只固定 metadata reference / safety gate / 安全审查 runbook / backend adapter readiness / artifact runtime mapping readiness，不调用真实生图 backend，不实现 runtime mapper。
+- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata、评测 manifest、metadata reference、safety gate、安全审查 runbook、backend adapter readiness、artifact runtime mapping readiness、`image_adapter_handshake_safety_gate_defined`、`image_artifact_return_runbook_evidence_defined`、`image_safety_runbook_evidence_defined`、`image_backend_adapter_readiness_defined`、`image_artifact_runtime_mapping_readiness_defined` 与 `image_artifact_runtime_mapper_runtime_implemented` 证据；当前只实现 metadata-only artifact runtime mapper，不调用真实生图 backend，不生成图片，不读取 artifact 二进制，不实现 artifact store、binary reader、public URL resolver、backend adapter 或 response consumer 接线。
 
 ## 工程约束
 

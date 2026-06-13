@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-06-10
+更新时间：2026-06-13
 
 ## 这份文档讲什么
 
@@ -61,7 +61,9 @@
 
 `Model Gateway / API Distribution` 的当前产品 UI 也已进入离线证据组织层：Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness 都位于 `apps/radishmind-web/`，复用 read shell、API key summary、quota summary、run history、audit log、provider runtime 与 gateway readiness 证据。它们只解释 northbound API surface、provider/profile、route binding、selection case、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist 和 locked capability，不新增真实网关 route、production gateway、secret resolver、API key lifecycle、quota enforcement、cost record write、retry/fallback execution、数据库、Radish auth 或 repository adapter。
 
-`Admin Operations Review / Readiness` 是同一只读产品壳中的管理端汇总面：它复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，把 readiness、evidence checklist、operational risk 和 boundary lock 放在一个审查视图里。它不代表 production admin console，不提供 tenant mutation、raw audit export、deployment preflight、secret resolver、workflow executor、writeback 或 replay。
+`Admin Operations Review / Readiness` 是同一只读产品壳中的管理端汇总面：它复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，把 readiness、evidence checklist、operational risk 和 boundary lock 放在一个审查视图里。`Admin Provider/Profile & Deployment Evidence Review / Readiness` 继续复用 Model Gateway route / review、Admin Operations、tenant overview 和 audit log，把 provider/profile readiness、model route readiness、secret / deployment evidence、operator risks 和 locked capabilities 组织成管理端阅读路径。它们都不代表 production admin console，不提供 tenant mutation、provider/profile mutation、model route change、raw audit export、deployment preflight、secret resolver、workflow executor、writeback 或 replay。
+
+`Image Path` 当前已有 metadata-only artifact runtime mapper：`services/runtime/image_artifact_runtime_mapper.py` 只消费 `image_generation_artifact` metadata，并输出 future CopilotResponse artifact citation / metadata reference。它用于验证 `artifact://`、sha256、mime type、dimensions、safety review、provenance 和 fail-closed 语义，不读取图片二进制、不查 artifact store、不解析 public URL、不调用真实生图 backend、不上传 artifact、不改 response schema。
 
 完整正式用户端、生产管理端、workflow builder、租户 / quota / billing、Radish OIDC client、repository interface / adapter、read store repository implementation 和完整模型网关控制面仍未实现；当前本地 console 只是 ops surface 和只读产品壳，`apps/radishmind-web/` 默认是离线 read-side product UI shell，显式 dev-only live path 也不是 production API consumer。
 
@@ -172,7 +174,7 @@ pwsh ./scripts/run-radishmind-console-dev.ps1
 
 console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，展示 Runtime overview、Service Status、Model Inventory、Provider/Profile Details、Session And Tooling、Blocked Action Detail、Dev Diagnostics、Local Readiness、Stop Lines 和 Audit Boundary。它仍是本地只读 ops surface，不是 production console、正式用户端或生产管理端。
 
-### 3.8 运行正式 read-only product UI shell
+### 3.7 运行正式 read-only product UI shell
 
 正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认是离线 read-side shell，只消费 `contracts/typescript/control-plane-read-api.ts`；当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 且平台服务设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，可用 dev-only live read consumer 通过 HTTP 读取 fake-store-backed handler 和测试身份上下文。RadishFlow Copilot 与 Radish Docs Assistant 的只读产品样例来自同一组 response fixture，并由 `control-plane-read-product-sample-consistency-v1` 防止 Go fake store、前端默认 view model 和 consumer smoke 之间漂移。该 live path 不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、read store repository 或 workflow executor ready。
 
@@ -233,12 +235,25 @@ npm run dev
 - Model Gateway Usage/Audit Evidence
 - Model Gateway Evidence Review / Readiness
 - Admin Operations Review / Readiness
+- Admin Provider/Profile & Deployment Evidence Review / Readiness
 
 七个 read-side summary 页面展示 route metadata、request / audit ref、状态预览和脱敏 summary；默认使用离线 view model，dev-only live mode 也只能读取 fake-store-backed handler。workflow function surface 面板继续复用这些 summary 和离线 fixture，展示 application / definition / run / draft / validation / execution plan / runtime readiness 的只读详情、风险、审计引用和 blocked capability。当前读法是先看 User Workspace Home 的应用组合、当前 review、最近 run、优先 readiness、主要 route evidence 和 stop-line 摘要，再进入 Workflow Review Workspace 查看 selected application + definition + run + draft + scenario 的关系、scenario intent、draft validation、execution plan、runtime readiness、blocked capability rollup 和 stop-line rollup，最后用 Workflow Review Handoff 读取人工审查交接摘要。所有派生链路都经由 `workflowWorkspaceContext` 组合；这些选择只改变本地查看上下文，不接数据库、OIDC、repository implementation、API key lifecycle、quota enforcement、workflow executor、confirmation decision、draft / validation / execution plan / readiness / scenario / review / handoff persistence、writeback、run replay 或 run resume。
 
-Model Gateway 四个页面的读法是先看 Overview 识别 northbound API surface 与 provider/profile inventory，再看 Route Evidence 确认 route binding、selection case 和 streaming / auth / secret ref 证据，再看 Usage/Audit Evidence 核对 key scope、quota snapshot、trace、failure 和 audit decision，最后看 Evidence Review / Readiness 汇总 readiness rollup、evidence checklist、route / usage / audit key risk 和 locked distribution capability。Admin Operations Review / Readiness 放在管理端视角收口，用于把 tenant、audit、gateway 和 Production Ops 证据串成审查摘要；它仍只是 evidence-only review surface。
+Model Gateway 四个页面的读法是先看 Overview 识别 northbound API surface 与 provider/profile inventory，再看 Route Evidence 确认 route binding、selection case 和 streaming / auth / secret ref 证据，再看 Usage/Audit Evidence 核对 key scope、quota snapshot、trace、failure 和 audit decision，最后看 Evidence Review / Readiness 汇总 readiness rollup、evidence checklist、route / usage / audit key risk 和 locked distribution capability。Admin Operations Review / Readiness 放在管理端视角收口，用于把 tenant、audit、gateway 和 Production Ops 证据串成审查摘要；Admin Provider/Profile & Deployment Evidence Review / Readiness 则继续查看 provider/profile、model route、secret ref readiness、deployment status、operator risk 和 locked capability。两者都只是 evidence-only review surface。
 
-### 3.7 使用 Docker 部署资产
+### 3.8 使用 Image Path metadata-only runtime mapper
+
+图片生成路径当前只允许 metadata-only runtime helper。开发者可以在离线检查或后续 response consumer 评审中导入：
+
+```python
+from services.runtime.image_artifact_runtime_mapper import (
+    map_image_artifact_to_response_reference,
+)
+```
+
+输入必须是已符合 `contracts/image-generation-artifact.schema.json` 的 `image_generation_artifact` metadata。成功结果只返回 artifact citation 和 metadata reference；失败结果只返回 fail-closed failure code，不返回 citation。该 helper 不打开文件、不访问网络、不读取图片二进制、不查 store、不生成 public URL、不调用 backend。完整契约见 [图片生成契约](contracts/image-generation.md)。
+
+### 3.9 使用 Docker 部署资产
 
 Docker 资产位于 `deploy/`，长期说明见 [部署目录说明](../deploy/README.md)。当前固定三种模式：
 
@@ -302,6 +317,7 @@ docker compose -f deploy/docker-compose.local.yaml down
 - `apps/radishmind-web/` 的生产 API consumer、Radish OIDC / auth middleware、read store repository、数据库 query 和用户端 / 管理端写入能力
 - Control Plane Read-Side 的真实 Radish OIDC / auth middleware、repository interface / adapter、read store repository、数据库 query 和 migration
 - Workflow / Agent Runtime 的 builder mutation、draft persistence、validation result persistence、publish、executor、confirmation decision、execution unlock、business writeback、run replay 和 run resume
+- Image Path 的 response consumer 集成、artifact store、binary reader、public URL resolver、真实 backend adapter、安全 runtime、图片生成和 artifact upload
 - 测试环境 smoke 和生产前复核记录
 - 更完整的 route-level smoke、stream 组合和兼容性矩阵
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook

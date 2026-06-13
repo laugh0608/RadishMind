@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-10
+更新时间：2026-06-13
 
 ## 核心定义
 
@@ -29,7 +29,7 @@
 
 2026-05-28 已新增 `control-plane-read-formal-ui-implementation-readiness-v1`，固定未来 `apps/radishmind-web/` 预留落点、`apps/radishmind-console/` app 边界、页面实现顺序、consumer contract 复用、测试策略和停止线。
 
-2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 默认只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。2026-06-01 已补显式 opt-in 的 dev-only live read consumer：只有设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且后端设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才通过 HTTP 消费 fake-store-backed read handlers 和测试身份上下文。2026-06-09 已把 RadishFlow Copilot 与 Radish Docs Assistant 两组只读产品样例收敛到 response fixture、Go fake store、consumer smoke 和前端离线默认数据的一致性校验，并把 User Workspace Home、Workflow Review Workspace、Workflow Review Handoff 和 workflow context selection 组织成普通离线审查流。2026-06-10 已新增普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，复用 shared read shell、API key、quota、run history、audit、provider runtime、gateway readiness 和前三个网关 view model 证据，展示 northbound API surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit risks 与 locked distribution capabilities；同日新增 Admin Operations Review / Readiness，复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，展示管理端 readiness、evidence checklist、operational risks 和 boundary locks。该路径不接生产后端、不接数据库、OIDC、repository、API key lifecycle、quota enforcement、rate limit、billing、secret resolver、retry/fallback execution、deployment preflight、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
+2026-05-31 已创建 `apps/radishmind-web/`，作为正式产品 UI 的 read-only product shell 首个实现落点。当前 shell 默认只消费 `contracts/typescript/control-plane-read-api.ts` 中的离线 view model，已包含 route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、`admin-audit-log`、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions` 与 `workspace-run-history` 页面切片。2026-06-01 已补显式 opt-in 的 dev-only live read consumer：只有设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且后端设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才通过 HTTP 消费 fake-store-backed read handlers 和测试身份上下文。2026-06-09 已把 RadishFlow Copilot 与 Radish Docs Assistant 两组只读产品样例收敛到 response fixture、Go fake store、consumer smoke 和前端离线默认数据的一致性校验，并把 User Workspace Home、Workflow Review Workspace、Workflow Review Handoff 和 workflow context selection 组织成普通离线审查流。2026-06-10 已新增普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，复用 shared read shell、API key、quota、run history、audit、provider runtime、gateway readiness 和前三个网关 view model 证据，展示 northbound API surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit risks 与 locked distribution capabilities；同日新增 Admin Operations Review / Readiness，复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，展示管理端 readiness、evidence checklist、operational risks 和 boundary locks。2026-06-13 新增 Admin Provider/Profile & Deployment Evidence Review / Readiness，继续复用 Model Gateway route / review、Admin Operations、tenant overview 和 audit log，展示 provider/profile readiness、model route readiness、secret / deployment evidence、operator risks 和 locked capabilities。该路径不接生产后端、不接数据库、OIDC、repository、API key lifecycle、quota enforcement、rate limit、billing、secret resolver、retry/fallback execution、deployment preflight、workflow executor、confirmation、writeback 或 replay；`apps/radishmind-console/` 仍只是本地 ops surface。
 
 当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`control-plane-read-formal-ui-readiness-close-v1` 已用 surface matrix 聚合固定七个页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；`control-plane-read-auth-store-transition-preconditions-v1` 已固定从 dev fake auth / fixture-backed fake store 迁移到未来 auth middleware / read store repository 前必须满足的 gates。上述内容都不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、repository implementation 或 workflow executor ready。
 
@@ -49,7 +49,7 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
 - 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
-- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview`、`admin-audit-log` 和普通离线 Admin Operations Review / Readiness；它不是 production admin console，也不提供 tenant mutation、audit mutation、raw payload export、durable audit store、production backend、deployment preflight 或生产管理操作。
+- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness 和 Admin Provider/Profile & Deployment Evidence Review / Readiness；它不是 production admin console，也不提供 tenant mutation、audit mutation、provider/profile mutation、model route change、raw payload export、durable audit store、production backend、secret resolver、deployment preflight 或生产管理操作。
 
 3. `Model Gateway / API Distribution`
 
@@ -104,6 +104,8 @@ read store 的产品范围现在已经明确为“先固定未来迁移契约，
 
 - 主模型只输出结构化 image intent、约束、审查和 artifact metadata。
 - 真正的图片生成由独立 image adapter 和 backend 承接。
+- 当前 `services/runtime/image_artifact_runtime_mapper.py` 只负责 metadata-only artifact reference 投影：输入为 `image_generation_artifact` metadata，输出为 future CopilotResponse artifact citation / metadata reference；它不读取 artifact 二进制、不查 artifact store、不解析 public URL、不调用真实生图 backend、不上传 artifact、不修改 `CopilotResponse` schema。
+- `blocked / failed / pending_review` artifact、invalid metadata、hash / mime / dimensions mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、store / reader 缺失、safety review not passed 和 provenance missing 都必须 fail closed，不能进入成功 response。
 
 ### 7. 用户端、管理端和上层项目接入面
 

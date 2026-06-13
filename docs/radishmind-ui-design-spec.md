@@ -1,6 +1,6 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-06-10
+更新时间：2026-06-13
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface` 和 Control Plane read-side product UI shell。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
 
-`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home、Review Handoff、Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。后续继续 formal UI 时，应复用这些组件、`workflowWorkspaceContext` 和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness、Admin Provider/Profile & Deployment Evidence Review / Readiness、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、offline draft designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home、Review Handoff、Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。后续继续 formal UI 时，应复用这些组件、`workflowWorkspaceContext` 和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
 
 ## 设计定位
 
@@ -260,6 +260,7 @@ Control Plane read-side product UI 额外覆盖：
 10. `Model Gateway / Admin Evidence Layout`
    - Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness 只展示 northbound API surfaces、provider/profile、route binding、key / quota、trace / audit、risk 和 locked capability 证据，不展示真实 key、secret、quota 执行、cost write、retry/fallback execution 或 production gateway 控件
    - Admin Operations Review / Readiness 只汇总 tenant、audit、gateway review 和 Production Ops 静态证据；readiness、risk、checklist 和 boundary lock 使用与网关 evidence 面板一致的紧凑卡片和长标识换行规则，不提供 tenant mutation、raw audit export、deployment preflight、writeback 或 replay 控件
+   - Admin Provider/Profile & Deployment Evidence Review / Readiness 只展示 provider/profile readiness、model route readiness、secret / deployment evidence、operator risks 和 locked capabilities；该页面沿用 evidence review 的紧凑分组、短标题、长 id 换行和 locked capability 视觉语义，不提供 provider/profile mutation、model route change、secret reveal、deployment preflight、backend call、writeback 或 replay 控件
 
 11. `User Workspace Home / Review Handoff Layout`
    - 左侧导航按 `Workspace`、`Model Gateway`、`Workflow Review`、`Admin` 和 `Contract` 分组；首页优先展示应用组合、当前 review、最近 run、优先 readiness、主要 route evidence 和关键 stop line，而不是堆叠全部详情
