@@ -1,6 +1,6 @@
 # Control Plane Read-Side 契约
 
-更新时间：2026-06-10
+更新时间：2026-06-13
 
 ## 契约目的
 
@@ -44,17 +44,17 @@
 
 当前 `control-plane-read-adapter-smoke-readiness-v1` 已把 adapter smoke readiness 纳入同一 read-side 契约层；它只固定未来 durable adapter smoke 如何消费 schema artifact manifest readiness、store selector smoke readiness、production auth readiness、static runner 和 repository adapter implementation plan，状态为 `adapter_smoke_readiness_defined`；不创建 adapter smoke fixture / checker、repository interface、repository adapter、adapter test、selector、SQL、migration、真实数据库、auth middleware、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
-当前 `control-plane-read-implementation-trigger-review-v1` 已把 implementation trigger review 纳入同一 read-side 契约层；`control-plane-read-implementation-entry-review-v1` 已把 implementation entry review 固定为 `implementation_entry_review_defined`：四类候选仍为 `not_satisfied`，当前不打开实现入口，未来只有 trigger 满足后才允许选择单一方向进入任务卡；不创建 migration manifest、SQL、selector、auth middleware、adapter smoke fixture / checker、repository interface、repository adapter、真实数据库、token validation 或 production API consumer。
+当前 `control-plane-read-implementation-trigger-review-v1` 已把 implementation trigger review 纳入同一 read-side 契约层；`control-plane-read-implementation-entry-review-v1` 已把 implementation entry review 固定为 `implementation_entry_review_defined`：四类候选仍为 `not_satisfied`，当前不打开实现入口，未来只有 trigger 满足后才允许选择单一方向进入任务卡；不创建 migration manifest、SQL、selector、auth middleware、adapter smoke fixture / checker、repository interface、repository adapter、真实数据库、token validation 或 production API consumer。当前 `product-surface-usage-gap-triage-v1` 已把 Product Surface Usage Gap Triage 纳入同一 read-side 契约层，状态为 `product_surface_usage_gap_triage_defined`：它跨读产品面 readiness recheck、schema artifact evidence 和 implementation entry review，固定四个产品面的使用走查、用户决策问题、schema route crosscheck、定向修正策略和实现入口等待策略；不新增同层 UI 面板，不启动开发服务器，不创建 implementation task card，不创建 schema artifact manifest、SQL、migration、selector、repository adapter、auth middleware、真实数据库、Radish OIDC、token validation 或 production API consumer。
 
 这组 repository/read store readiness 的设计顺序是：先定义 repository contract 与 route operation matrix，再用 disabled database guard 防止误启用数据库模式，然后定义未来 contract smoke 的输入输出，随后固定 implementation readiness、store selection readiness、schema migration readiness、repository contract types readiness、repository contract types implementation、smoke runner readiness / implementation、repository interface readiness、repository adapter implementation readiness refresh、store selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、schema artifact evidence、store selector smoke readiness、production auth readiness、adapter smoke readiness、implementation trigger review 和 implementation entry review。任何一步都必须保留七条 read route 的 tenant predicate、sanitized projection、failure mapping、no fake fallback 和 no side effects，不能通过 fake store fallback 掩盖真实数据库、schema、adapter 或 production auth 的未就绪状态。
 
 ## Readiness checker 读法
 
-尾部四个 read-side checker 是同一条 read-side implementation ladder 的尾部说明，不是运行时能力：
+尾部 read-side checker 是同一条 read-side implementation ladder 的尾部说明，不是运行时能力：
 
 - `control-plane-read-production-auth-readiness-v1` 读取 OIDC preconditions、auth/store transition、route contract、negative contract 和 store selector smoke readiness，只证明未来 production auth 必须先具备 issuer evidence、token validation contract、claim mapping、tenant binding 和 scope projection。
 - `control-plane-read-adapter-smoke-readiness-v1` 读取 repository adapter plan、schema artifact manifest readiness、store selector smoke readiness、production auth readiness 和静态 runner，只证明未来 durable adapter smoke 应怎样组合这些证据。
-- `control-plane-read-implementation-trigger-review-v1` 读取 schema artifact、selector、production auth 和 adapter smoke 四类候选并保持 `not_satisfied`；`control-plane-read-implementation-entry-review-v1` 读取 trigger review、schema artifact evidence 和 product surface recheck，只证明当前实现入口未打开，未来若 trigger 满足也只能先选择一个实现方向进入任务卡。
+- `control-plane-read-implementation-trigger-review-v1` 读取 schema artifact、selector、production auth 和 adapter smoke 四类候选并保持 `not_satisfied`；`control-plane-read-implementation-entry-review-v1` 读取 trigger review、schema artifact evidence 和 product surface recheck，只证明当前实现入口未打开，未来若 trigger 满足也只能先选择一个实现方向进入任务卡；`product-surface-usage-gap-triage-v1` 只证明当前四个产品面的使用走查与后续定向修正口径稳定，不能把阅读路径完整、schema evidence defined 或 fake-store-backed dev path 提升为 implementation trigger satisfied。
 
 如果这些 checker 因 forbidden artifact、forbidden literal 或 `does_not_claim` 漂移失败，优先按“过早实现或误声明”处理：删除越界 artifact 或恢复停止线，而不是为了让检查通过去削弱 fixture。只有当外部真实证据和对应 task card 都已补齐后，才允许把某个候选从 readiness 改成实现切片。
 

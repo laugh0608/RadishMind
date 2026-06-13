@@ -1,0 +1,512 @@
+{
+  "schema_version": 1,
+  "kind": "product_surface_usage_gap_triage_v1",
+  "slice": {
+    "id": "product-surface-usage-gap-triage-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "product_surface_usage_gap_triage_defined",
+    "does_not_claim": [
+      "new_product_ui_panel_required",
+      "new_same_level_read_only_surface_created",
+      "implementation_trigger_satisfied",
+      "implementation_entry_opened",
+      "schema_artifact_manifest_ready",
+      "schema_artifact_files_created",
+      "production_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "repository_interface_ready",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "store_selector_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "production_gateway_ready",
+      "production_secret_resolver_ready",
+      "deployment_preflight_ready",
+      "workflow_builder_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-formal-ui-readiness-close-v1",
+    "workflow-workspace-context-consistency-v1",
+    "product-surface-readiness-implementation-trigger-recheck-v1",
+    "control-plane-read-schema-artifact-evidence-v1",
+    "control-plane-read-implementation-entry-review-v1"
+  ],
+  "triage_boundary": {
+    "status": "usage_gap_triage_defined_no_runtime_change",
+    "decision": "usage_walkthrough_complete_without_new_surface_or_runtime_artifact",
+    "current_development_mode": "product_usage_review_and_targeted_correction",
+    "same_level_panel_created_in_this_slice": false,
+    "implementation_task_card_created_in_this_slice": false,
+    "schema_artifact_manifest_created_in_this_slice": false,
+    "runtime_artifact_created_in_this_slice": false,
+    "dev_server_started_in_this_slice": false,
+    "browser_plugin_required": false,
+    "database_connection_allowed_now": false,
+    "production_auth_allowed_now": false,
+    "write_allowed_now": false
+  },
+  "usage_walkthrough_matrix": [
+    {
+      "surface_id": "user_workspace",
+      "label": "User Workspace",
+      "triage_status": "walkthrough_reviewed",
+      "current_gap_decision": "no_new_actionable_gap_from_static_walkthrough",
+      "reading_path": [
+        "User Workspace Home",
+        "application portfolio",
+        "current review stages",
+        "recent runs",
+        "route evidence",
+        "stop line rollup"
+      ],
+      "decision_questions": [
+        "Can the user identify the selected application and workflow definition?",
+        "Can the user connect recent run status to route evidence and failure code?",
+        "Can the user see API key and quota evidence without lifecycle controls?",
+        "Can the user understand why live backend, auth, database, execution and replay stay locked?"
+      ],
+      "evidence_refs": [
+        "workflow-user-workspace-home-offline-v1",
+        "workflow-workspace-context-consistency-v1",
+        "control-plane-read-product-sample-consistency-v1",
+        "control-plane-read-formal-ui-readiness-close-v1"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHome.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHomePanel.tsx",
+        "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts"
+      ],
+      "uses_existing_surface": true,
+      "new_surface_requested": false,
+      "targeted_correction_when_gap_confirmed": true
+    },
+    {
+      "surface_id": "workflow_review",
+      "label": "Workflow Review",
+      "triage_status": "walkthrough_reviewed",
+      "current_gap_decision": "no_new_actionable_gap_from_static_walkthrough",
+      "reading_path": [
+        "Workflow Review Workspace",
+        "Workflow Scenario Inspector",
+        "Blocked Action Preview",
+        "Confirmation Placeholder",
+        "Runtime Readiness",
+        "Workflow Review Handoff"
+      ],
+      "decision_questions": [
+        "Can the reviewer trace application, definition, run, draft and scenario from one context?",
+        "Can the reviewer distinguish blocked action preview from executable tool action?",
+        "Can the reviewer see confirmation shape without submitting a decision?",
+        "Can the reviewer understand why publish, execution, writeback and replay stay locked?"
+      ],
+      "evidence_refs": [
+        "workflow-function-surface-readiness-close-v1",
+        "workflow-workspace-context-consistency-v1",
+        "workflow-workspace-review-offline-v1",
+        "workflow-review-handoff-offline-v1"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceReview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workflowReviewHandoff.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts"
+      ],
+      "uses_existing_surface": true,
+      "new_surface_requested": false,
+      "targeted_correction_when_gap_confirmed": true
+    },
+    {
+      "surface_id": "model_gateway_api_distribution",
+      "label": "Model Gateway / API Distribution",
+      "triage_status": "walkthrough_reviewed",
+      "current_gap_decision": "no_new_actionable_gap_from_static_walkthrough",
+      "reading_path": [
+        "Model Gateway Overview",
+        "Route Evidence",
+        "Usage/Audit Evidence",
+        "Evidence Review / Readiness",
+        "provider/profile risks",
+        "locked distribution capabilities"
+      ],
+      "decision_questions": [
+        "Can the operator connect northbound API surfaces to provider/profile evidence?",
+        "Can the operator distinguish route selection cases from fallback execution?",
+        "Can the operator see API key, quota, trace and audit evidence without mutation?",
+        "Can the operator understand why production gateway, secret resolver and cost writes stay locked?"
+      ],
+      "evidence_refs": [
+        "gateway-api-key-quota-readiness",
+        "provider-runtime-docs-refresh",
+        "model-gateway-overview-offline-v1",
+        "model-gateway-evidence-review-offline-v1"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/modelGatewayOverview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/modelGatewayRouteEvidence.ts",
+        "apps/radishmind-web/src/features/control-plane-read/modelGatewayUsageAuditEvidence.ts",
+        "apps/radishmind-web/src/features/control-plane-read/modelGatewayEvidenceReview.ts"
+      ],
+      "uses_existing_surface": true,
+      "new_surface_requested": false,
+      "targeted_correction_when_gap_confirmed": true
+    },
+    {
+      "surface_id": "admin_control_plane",
+      "label": "Admin Control Plane",
+      "triage_status": "walkthrough_reviewed",
+      "current_gap_decision": "no_new_actionable_gap_from_static_walkthrough",
+      "reading_path": [
+        "Admin Tenant Overview",
+        "Admin Audit Log",
+        "Admin Operations Review",
+        "Admin Provider/Profile & Deployment Review",
+        "secret and deployment evidence",
+        "operator risk and boundary locks"
+      ],
+      "decision_questions": [
+        "Can the admin connect tenant and audit evidence to provider/profile readiness?",
+        "Can the admin distinguish secret reference evidence from secret resolver readiness?",
+        "Can the admin see deployment status without running preflight?",
+        "Can the admin understand why OIDC, database, repository adapter and production gateway stay locked?"
+      ],
+      "evidence_refs": [
+        "control-plane-read-admin-tenant-overview-v1",
+        "control-plane-read-admin-audit-log-v1",
+        "admin-operations-review-offline-v1",
+        "admin-provider-deployment-review-offline-v1"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/adminOperationsReview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/adminProviderDeploymentReview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/adminAuditLog.ts",
+        "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts"
+      ],
+      "uses_existing_surface": true,
+      "new_surface_requested": false,
+      "targeted_correction_when_gap_confirmed": true
+    }
+  ],
+  "schema_route_crosscheck": {
+    "schema_evidence_ref": "control-plane-read-schema-artifact-evidence-v1",
+    "schema_evidence_status": "schema_artifact_evidence_defined",
+    "route_mapping_count": 7,
+    "schema_artifact_manifest_ready_now": false,
+    "runtime_mapping_implemented_now": false,
+    "sql_allowed_now": false,
+    "repository_adapter_allowed_now": false,
+    "implementation_trigger_satisfied_now": false
+  },
+  "route_schema_trace": [
+    {
+      "route_id": "tenant-summary-route",
+      "surface_refs": [
+        "admin_control_plane"
+      ],
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "schema_artifact_ready_now": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "surface_refs": [
+        "user_workspace",
+        "workflow_review"
+      ],
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "schema_artifact_ready_now": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "surface_refs": [
+        "user_workspace",
+        "model_gateway_api_distribution"
+      ],
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "schema_artifact_ready_now": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "surface_refs": [
+        "user_workspace",
+        "model_gateway_api_distribution"
+      ],
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "schema_artifact_ready_now": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "surface_refs": [
+        "user_workspace",
+        "workflow_review"
+      ],
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "schema_artifact_ready_now": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "surface_refs": [
+        "user_workspace",
+        "workflow_review",
+        "model_gateway_api_distribution"
+      ],
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "schema_artifact_ready_now": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "surface_refs": [
+        "admin_control_plane",
+        "model_gateway_api_distribution"
+      ],
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "schema_artifact_ready_now": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false
+    }
+  ],
+  "targeted_correction_policy": {
+    "status": "targeted_correction_policy_defined",
+    "same_level_panel_default_allowed": false,
+    "ordinary_copy_or_layout_uses_existing_gates": true,
+    "new_checker_required_for_ordinary_copy_or_layout": false,
+    "confirmed_reading_gap_required_before_ui_change": true,
+    "allowed_correction_targets": [
+      "existing view model",
+      "existing panel copy or grouping",
+      "canonical response fixture",
+      "workflowWorkspaceContext derivation",
+      "read-side contract documentation",
+      "task card or README read path"
+    ],
+    "special_gate_required_when": [
+      "new API",
+      "execution boundary",
+      "production claim",
+      "data format",
+      "external provider risk",
+      "high-risk capability"
+    ],
+    "forbidden_correction_targets_now": [
+      "new same-level read-only product panel",
+      "production API consumer",
+      "database-backed read store",
+      "Radish OIDC auth middleware",
+      "repository adapter",
+      "store selector",
+      "workflow executor",
+      "confirmation decision store",
+      "business writeback",
+      "run replay"
+    ]
+  },
+  "implementation_wait_policy": {
+    "status": "wait_for_satisfied_trigger",
+    "implementation_entry_review_ref": "control-plane-read-implementation-entry-review-v1",
+    "implementation_entry_status": "implementation_entry_review_defined",
+    "selected_implementation_track_now": "none",
+    "implementation_task_card_allowed_now": false,
+    "parallel_implementation_tracks_allowed_now": false,
+    "if_trigger_remains_not_satisfied": "keep product usage triage and targeted correction only",
+    "if_single_trigger_satisfied": "open only that candidate task card after review",
+    "if_multiple_triggers_satisfied": "choose first review-order candidate and document deferral"
+  },
+  "forbidden_artifact_matrix": [
+    {
+      "path": "apps/radishmind-web/src/features/control-plane-read/productSurfaceUsageGapTriagePanel.tsx",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/manifest.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_store_selector.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_auth_middleware.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_repository_adapter.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/fixtures/control-plane-read-adapter-smoke-v1.json",
+      "created_in_this_slice": false
+    }
+  ],
+  "no_fake_fallback_policy": {
+    "reading_gap_promoted_to_runtime_success_allowed": false,
+    "schema_evidence_promoted_to_manifest_allowed": false,
+    "blocked_candidate_promoted_to_task_card_allowed": false,
+    "repository_mode_fallback_to_fixture_fake_store_allowed": false,
+    "database_mode_fallback_to_fixture_fake_store_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "dev_server_start_count=0",
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "dev_server_start",
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "deployment_preflight",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "source_absent_literals": [
+    "productSurfaceUsageGapTriagePanel",
+    "ControlPlaneReadSchemaMigrationRunner",
+    "control_plane_read_schema_migration_runner.go",
+    "control_plane_read_repository_interface.go",
+    "control_plane_read_repository_adapter.go",
+    "control_plane_read_store_selector.go",
+    "control_plane_read_auth_middleware.go",
+    "control-plane-read-adapter-smoke-v1.json",
+    "check-control-plane-read-adapter-smoke-v1.py",
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "RADISHMIND_CONTROL_PLANE_READ_STORE",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "oidc.Provider",
+    "github.com/coreos/go-oidc",
+    "ValidateToken",
+    "VerifyToken",
+    "NewRadishOIDCClient"
+  ],
+  "required_source_references": {
+    "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts": [
+      "buildWorkflowWorkspaceContextViewModel",
+      "workflowUserWorkspaceHome",
+      "workflowReviewHandoff"
+    ],
+    "apps/radishmind-web/src/features/control-plane-read/modelGatewayEvidenceReview.ts": [
+      "buildModelGatewayEvidenceReviewViewModel",
+      "canRequestProductionGateway: false",
+      "canResolveProductionSecret: false"
+    ],
+    "apps/radishmind-web/src/features/control-plane-read/adminProviderDeploymentReview.ts": [
+      "buildAdminProviderDeploymentReviewViewModel",
+      "canRequestProductionGateway: false",
+      "canRunDeploymentPreflight: false"
+    ],
+    "apps/radishmind-web/README.md": [
+      "User Workspace Home",
+      "Model Gateway Evidence Review / Readiness",
+      "Admin Provider/Profile & Deployment Evidence Review / Readiness",
+      "Workflow Review Handoff"
+    ]
+  },
+  "required_doc_references": {
+    "docs/radishmind-current-focus.md": [
+      "product-surface-usage-gap-triage-v1",
+      "product_surface_usage_gap_triage_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "product-surface-usage-gap-triage-v1",
+      "product_surface_usage_gap_triage_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "product-surface-usage-gap-triage-v1",
+      "product_surface_usage_gap_triage_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "product-surface-usage-gap-triage-v1",
+      "product_surface_usage_gap_triage_defined"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "product-surface-usage-gap-triage-v1",
+      "product_surface_usage_gap_triage_defined"
+    ],
+    "docs/task-cards/README.md": [
+      "product-surface-usage-gap-triage-v1",
+      "Product Surface Usage Gap Triage"
+    ],
+    "docs/task-cards/product-surface-usage-gap-triage-v1-plan.md": [
+      "product-surface-usage-gap-triage-v1",
+      "product_surface_usage_gap_triage_defined"
+    ],
+    "scripts/README.md": [
+      "check-product-surface-usage-gap-triage-v1.py",
+      "product-surface-usage-gap-triage-v1.json"
+    ],
+    "apps/radishmind-web/README.md": [
+      "product-surface-usage-gap-triage-v1",
+      "Product Surface Usage Gap Triage"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "product-surface-usage-gap-triage-v1",
+      "product_surface_usage_gap_triage_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/product-surface-usage-gap-triage-v1-plan.md",
+    "scripts/checks/fixtures/product-surface-usage-gap-triage-v1.json",
+    "scripts/checks/control_plane/check-product-surface-usage-gap-triage-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "apps/radishmind-web/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "docs/devlogs/2026-W24.md"
+  ]
+}
