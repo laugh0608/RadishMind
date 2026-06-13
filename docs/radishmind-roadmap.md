@@ -117,9 +117,9 @@
 
 ### `Image Path`
 
-状态：intent、backend request、artifact schema 与最小评测 manifest 已具备；`image-adapter-handshake-safety-gate-v1`、`image-artifact-return-runbook-evidence-v1`、`image-safety-runbook-evidence-v1`、`image-backend-adapter-readiness-evidence-v1`、`image-artifact-runtime-mapping-readiness-v1` 和 `image-artifact-runtime-mapping-implementation-entry-review-v1` 已分别固定 `image_adapter_handshake_safety_gate_defined`、`image_artifact_return_runbook_evidence_defined`、`image_safety_runbook_evidence_defined`、`image_backend_adapter_readiness_defined`、`image_artifact_runtime_mapping_readiness_defined` 与 `image_artifact_runtime_mapping_entry_review_defined`，明确结构化 intent handoff、adapter safety gate、artifact metadata-only、metadata reference、image safety runbook、backend adapter readiness、future artifact runtime mapping readiness 和 implementation entry review 边界；真实 backend 仍未接入。
+状态：intent、backend request、artifact schema 与最小评测 manifest 已具备；`image-adapter-handshake-safety-gate-v1`、`image-artifact-return-runbook-evidence-v1`、`image-safety-runbook-evidence-v1`、`image-backend-adapter-readiness-evidence-v1`、`image-artifact-runtime-mapping-readiness-v1`、`image-artifact-runtime-mapping-implementation-entry-review-v1` 和 `image-artifact-store-binary-reader-boundary-readiness-v1` 已分别固定 `image_adapter_handshake_safety_gate_defined`、`image_artifact_return_runbook_evidence_defined`、`image_safety_runbook_evidence_defined`、`image_backend_adapter_readiness_defined`、`image_artifact_runtime_mapping_readiness_defined`、`image_artifact_runtime_mapping_entry_review_defined` 与 `image_artifact_store_binary_reader_boundary_readiness_defined`，明确结构化 intent handoff、artifact metadata-only、metadata reference、image safety runbook、backend adapter readiness、artifact runtime mapping readiness、implementation entry review 和 artifact store / binary reader boundary readiness 边界；真实 backend 仍未接入。
 
-下一步：不直接实现 runtime mapper；先补 artifact store / binary reader boundary readiness，明确 storage、binary read、hash validation、public URL / signed URL failure gate 后，再评估单一 runtime mapping 实现方向。不下载模型、不生成图片、不接真实 backend。
+下一步：不直接实现 runtime mapper；先进入 runtime mapper implementation plan 评审，确认如何消费 store / binary reader boundary readiness、failure taxonomy 和 no side effect gate 后，再评估单一 runtime mapping 实现方向。不下载模型、不生成图片、不接真实 backend、不读取 artifact 二进制。
 
 ### 上层项目接入
 

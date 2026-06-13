@@ -1299,6 +1299,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-image-backend-adapter-readiness-evidence-v1.py", [])
     run_python_script("check-image-artifact-runtime-mapping-readiness-v1.py", [])
     run_python_script("check-image-artifact-runtime-mapping-implementation-entry-review-v1.py", [])
+    run_python_script("check-image-artifact-store-binary-reader-boundary-readiness-v1.py", [])
     check_path_budget()
     check_required_files()
     check_content_baseline()

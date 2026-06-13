@@ -29,6 +29,8 @@
 - Artifact runtime mapping readiness smoke：`scripts/check-image-artifact-runtime-mapping-readiness-v1.py`
 - Artifact runtime mapping implementation entry review fixture：`scripts/checks/fixtures/image-artifact-runtime-mapping-implementation-entry-review-v1.json`
 - Artifact runtime mapping implementation entry review smoke：`scripts/check-image-artifact-runtime-mapping-implementation-entry-review-v1.py`
+- Artifact store / binary reader boundary readiness fixture：`scripts/checks/fixtures/image-artifact-store-binary-reader-boundary-readiness-v1.json`
+- Artifact store / binary reader boundary readiness smoke：`scripts/check-image-artifact-store-binary-reader-boundary-readiness-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -266,3 +268,15 @@
 - runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选当前全部保持 `blocked`，不得创建对应 implementation task card 或 runtime artifact。
 - 当前不改 `CopilotResponse` schema，不创建 artifact store / public URL / binary reader，不调用真实 backend，不生成图片，不上传 artifact，也不进入 executor、confirmation、writeback 或 replay。
 - 后续若继续推进 Image Path，应先补 artifact store / binary reader boundary readiness，再评估单一 runtime mapping 实现方向。
+
+### Artifact store / binary reader boundary readiness
+
+`image-artifact-store-binary-reader-boundary-readiness-v1` 已把 store / binary reader 边界准入固定为 `image_artifact_store_binary_reader_boundary_readiness_defined`。该证据层只定义 future artifact store ownership、`artifact://` 解析边界、hash / mime type / dimensions revalidation、binary payload redaction、public URL / signed URL 禁止策略和 failure taxonomy，不实现 artifact store、binary reader、public URL resolver 或 runtime mapper。
+
+边界准入要求：
+
+- artifact store 未来只能消费 artifact metadata reference，不接收 `pixel_payload`、`base64_image`、provider raw response、public URL 或 signed public URL。
+- binary reader 未来必须在 artifact store lookup、`artifact://` scheme、sha256、mime type、dimensions、safety review 和 public URL policy 全部通过后才可读；当前仍不允许读取 artifact 二进制。
+- `artifact://` 仍不是 public URL、signed URL、production storage path 或 binary download endpoint；public URL / signed URL 行为必须等待 production storage policy 和 expiry policy。
+- store missing、binary reader missing、invalid URI、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、pending / blocked safety review 和 provenance missing 都必须 fail closed。
+- 该 readiness 只允许下一步进入 runtime mapper implementation plan 评审，不允许直接写 runtime mapper、artifact store、binary reader、backend adapter implementation 或 response schema 变更。
