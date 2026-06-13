@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-06-09
+更新时间：2026-06-13
 
 ## 目录目标
 
@@ -37,6 +37,7 @@
   - `workflow-function-surface-readiness-close-v1` 通过 `workflow-function-surface-readiness-close-v1.json` 与 `check-workflow-function-surface-readiness-close-v1.py` 固定 `workflow_function_surface_readiness_closed`：用 workflow surface matrix 聚合 application detail、definition detail、run detail、blocked action preview、confirmation placeholder、draft designer、validation inspector、execution plan preview 和 runtime readiness inspector；该检查不新增 Go route、live backend、runtime API、builder mutation、持久化、publish、executor、confirmation decision、writeback、replay、数据库、OIDC、repository adapter 或 production API consumer。
   - `workflow-workspace-context-consistency-v1` 通过 `workflow-workspace-context-consistency-v1.json` 与 `check-workflow-workspace-context-consistency-v1.py` 固定 `workflow_workspace_context_consistency_guarded`：校验 `workflowWorkspaceContext` 是 App 中 workflow 离线组合层的共享入口，并确认 RadishFlow / Radish Docs 的 application、definition、run、draft、scenario、overview、review、home 和 handoff 派生链路不会重新分散手拼；该检查不新增 live backend、runtime API、builder mutation、持久化、publish、executor、confirmation decision、writeback、replay、数据库、OIDC、repository adapter 或 production API consumer。
   - `product-surface-readiness-implementation-trigger-recheck-v1` 通过 `product-surface-readiness-implementation-trigger-recheck-v1.json` 与 `check-product-surface-readiness-implementation-trigger-recheck-v1.py` 固定 `product_surface_readiness_trigger_recheck_defined`：复核 User Workspace、Workflow Review、Model Gateway 和 Admin 四个产品面当前没有新的默认同层阅读缺口，并确认 read-side implementation trigger 仍未满足；该检查不新增 UI、不启动开发服务器、不接 live backend、不创建 repository / database / OIDC / executor / writeback / replay 实现。
+  - `control-plane-read-schema-artifact-evidence-v1` 通过 `control-plane-read-schema-artifact-evidence-v1.json` 与 `check-control-plane-read-schema-artifact-evidence-v1.py` 固定 `schema_artifact_evidence_defined`：补齐 durable read store 前的 DDL review evidence、rollback fixture evidence、schema version、tenant index、read-only role 和七条 read route 到未来 schema artifact 的映射关系；该检查不新增 UI、不启动开发服务器、不接真实数据库、不写 SQL migration、不实现 store selector、repository adapter 或 runtime artifact。
   - 当前还提供 `check-platform-ops-smoke.py`，用于固定 Go platform service 的测试入口、bridge registry 和 provider/profile inventory 基线
   - 当前还提供 `check-provider-capability-matrix.py`，用于校验 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 固定的 `Provider Runtime & Health v1` 第一切片：provider capability matrix 必须逐项匹配 `services/runtime/provider_registry.py`，并固定 profile model id、northbound protocol / route、offline-only baseline、无默认联网、无 credential 要求、无模型下载和无隐式 fallback 口径；该检查不执行 provider health、不访问外部 provider、不声明 production ready
   - 当前还提供 `check-provider-health-smoke.py`，用于校验 `scripts/checks/fixtures/provider-health-smoke-v1.json` 固定的 `Provider Runtime & Health v1` 第二切片：默认 fast baseline 只覆盖 mock runtime smoke 与 config-level inventory smoke，optional live health 保留为未来手动入口；该检查不联网、不要求真实 credential、不下载模型、不把 live probe 失败写成 production outage
@@ -110,11 +111,12 @@
 
 `scripts/checks/control_plane/` 下的 read-side checker 默认由 `./scripts/check-repo.sh --fast` 或 `pwsh ./scripts/check-repo.ps1 -Fast` 调用。它们只读取 committed fixture、说明文档和源码树，不启动 Go 服务、不访问网络、不启动 Docker、不连接数据库，也不写入 secret。
 
-尾部三个 checker 的失败含义需要区分：
+尾部四个 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
 - `check-control-plane-read-adapter-smoke-readiness-v1.py` 失败通常表示 adapter smoke 依赖链、七条 route matrix、no fake fallback / no side effects 或 future adapter artifact 边界漂移。
 - `check-control-plane-read-implementation-trigger-review-v1.py` 失败通常表示某个候选被误写成 implementation trigger satisfied，或源码树里提前出现 schema、selector、auth middleware、adapter smoke、repository interface / adapter 等实现 artifact。
+- `check-control-plane-read-schema-artifact-evidence-v1.py` 失败通常表示 schema evidence contract、七条 route 到未来 schema artifact 的映射、implementation trigger 未满足结论或 forbidden schema artifact 边界漂移。
 
 修复这类失败时，默认先恢复 fixture 和说明文档的停止线，或移除提前出现的实现 artifact。只有在新的实现任务卡、真实证据和对应 gate 都已满足后，才应新增 durable adapter、SQL、migration、store selector、auth middleware 或 production API consumer。
 

@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-08
+更新时间：2026-06-13
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -104,6 +104,7 @@
 54. [`Workflow Runtime Readiness Inspector Offline` v1 计划](workflow-runtime-readiness-inspector-offline-v1-plan.md)（`workflow-runtime-readiness-inspector-offline-v1`）
 55. [`Workflow Function Surface Readiness Close` v1 计划](workflow-function-surface-readiness-close-v1-plan.md)（`workflow-function-surface-readiness-close-v1`）
 56. [`Product Surface Readiness / Implementation Trigger Recheck` v1 计划](product-surface-readiness-implementation-trigger-recheck-v1-plan.md)（`product-surface-readiness-implementation-trigger-recheck-v1`）
+57. [`Control Plane Read Schema Artifact Evidence` v1 计划](control-plane-read-schema-artifact-evidence-v1-plan.md)（`control-plane-read-schema-artifact-evidence-v1`）
 
 ## UI 设计专题
 
