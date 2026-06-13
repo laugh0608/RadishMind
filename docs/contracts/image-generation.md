@@ -25,6 +25,8 @@
 - Safety runbook smoke：`scripts/check-image-safety-runbook-evidence-v1.py`
 - Backend adapter readiness fixture：`scripts/checks/fixtures/image-backend-adapter-readiness-evidence-v1.json`
 - Backend adapter readiness smoke：`scripts/check-image-backend-adapter-readiness-evidence-v1.py`
+- Artifact runtime mapping readiness fixture：`scripts/checks/fixtures/image-artifact-runtime-mapping-readiness-v1.json`
+- Artifact runtime mapping readiness smoke：`scripts/check-image-artifact-runtime-mapping-readiness-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -239,3 +241,15 @@
 - profile / credential / model dir / endpoint / timeout budget 当前都只是 implementation gate；缺失时必须映射到 fail-closed failure code，不能自动降级为可调用 backend。
 - backend response 未来只能进入 `image_generation_artifact` metadata；必须校验 `artifact://` URI、hash、backend/model、provenance 和 safety review，不接收 pixel payload、provider raw response 或 public URL。
 - 失败分类固定为 `image_backend_profile_missing`、`image_backend_credential_missing`、`image_backend_model_dir_missing`、`image_backend_endpoint_unavailable`、`image_backend_timeout`、`image_backend_safety_gate_blocked`、`image_backend_invalid_artifact_metadata`、`image_backend_artifact_hash_mismatch` 和 `image_backend_response_untrusted`；这些失败不触发 retry loop、fallback execution 或 success artifact reference。
+
+### Artifact runtime mapping readiness
+
+`image-artifact-runtime-mapping-readiness-v1` 已把 `image_generation_artifact` metadata 到未来 `CopilotResponse` artifact citation / metadata reference 的准入证据固定为 `image_artifact_runtime_mapping_readiness_defined`。该证据层只定义 future mapping gate，不改 `CopilotResponse` schema，不实现 runtime mapper，不创建 artifact store、public URL resolver 或 binary reader。
+
+映射准入要求：
+
+- 成功 reference 必须保留 `artifact://` URI、`sha256` hash、mime type、width / height、format、title、purpose、backend/model/seed、safety review、provenance 和 `created_at`。
+- `artifact://` 仍只是 metadata reference，不是 public URL、signed URL、production storage location 或 binary download endpoint。
+- 只有 `status=generated` 且 `safety.review_status=not_required` 或 `reviewed_pass` 的 artifact 才能进入未来成功 response artifact citation；`blocked / failed / pending_review` artifact 不得进入成功 response。
+- invalid metadata、hash mismatch、public URL claim、binary payload 和 provider raw dump 必须 fail closed，映射到 `image_artifact_invalid_metadata`、`image_artifact_hash_mismatch`、`image_artifact_public_url_claim`、`image_artifact_binary_payload_rejected` 或 `image_artifact_provider_raw_dump_rejected`。
+- 该 readiness 依赖 `image-backend-adapter-readiness-evidence-v1`、`image-safety-runbook-evidence-v1` 和 `image-artifact-return-runbook-evidence-v1`，不绕过 backend adapter readiness、artifact return runbook 或 safety runbook。

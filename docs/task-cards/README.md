@@ -129,6 +129,7 @@
 2. [`Image Artifact Return Runbook / Metadata Evidence` v1 计划](image-artifact-return-runbook-evidence-v1-plan.md)（`image-artifact-return-runbook-evidence-v1`）
 3. [`Image Safety Runbook Evidence` v1 计划](image-safety-runbook-evidence-v1-plan.md)（`image-safety-runbook-evidence-v1`）
 4. [`Image Backend Adapter Readiness Evidence` v1 计划](image-backend-adapter-readiness-evidence-v1-plan.md)（`image-backend-adapter-readiness-evidence-v1`）
+5. [`Image Artifact Runtime Mapping Readiness` v1 计划](image-artifact-runtime-mapping-readiness-v1-plan.md)（`image-artifact-runtime-mapping-readiness-v1`）
 
 使用原则：
 
