@@ -1,6 +1,6 @@
 # RadishMind 图片生成契约
 
-更新时间：2026-05-12
+更新时间：2026-06-13
 
 ## `RadishMind-Image Adapter` 第一版仓库级契约
 
@@ -17,6 +17,8 @@
 - Smoke：`scripts/check-image-generation-intent-contract.py`
 - 最小评测 manifest：`scripts/checks/fixtures/image-generation-eval-manifest-v0.json`
 - 评测 manifest smoke：`scripts/check-image-generation-eval-manifest.py`
+- Handshake / safety gate fixture：`scripts/checks/fixtures/image-adapter-handshake-safety-gate-v1.json`
+- Handshake / safety gate smoke：`scripts/check-image-adapter-handshake-safety-gate-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -188,3 +190,13 @@
 - `provenance`：source request、intent 和 backend request 必须进入 trace/provenance
 
 该 manifest 明确排除 `image_pixel_quality`、真实 backend 延迟、provider 渲染差异和模型权重质量；执行策略固定为不调用真实 backend、不生成图片、不下载模型、不启动训练。committed 资产只允许 manifest、小型 JSON fixture 和 expected summary，图片像素、provider raw dump、权重、checkpoint 与大规模 JSONL 均不得入仓。
+
+### Adapter handshake / safety gate evidence
+
+`image-adapter-handshake-safety-gate-v1` 已把 adapter handoff 和 safety gate 固定为 `image_adapter_handshake_safety_gate_defined`。该证据层只复用既有 intent、backend request、artifact metadata schema 和 eval manifest，说明五段关系：
+
+- `RadishMind-Core -> RadishMind-Image Adapter` 只交付结构化 `image_generation` intent，intent 本身不直接触发 backend。
+- Adapter 必须先执行 safety gate，只有低风险且 `requires_confirmation=false` 的 intent 才能映射到 `approved_for_backend` backend request；即便如此，当前仓库仍不调用真实 backend。
+- `requires_confirmation=true`、高风险或 policy unknown 场景必须在 backend submission 前停住，并保持 `blocked_requires_confirmation` 或等价 blocked gate。
+- backend result 只允许回写 `image_generation_artifact` metadata，当前不提交图片像素、provider raw dump、公开 URL 或 production artifact storage。
+- artifact metadata 回到上层响应前仍是 metadata-only reference，不实现 runtime response mapping、artifact upload、executor、confirmation decision、writeback 或 replay。

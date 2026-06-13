@@ -1293,6 +1293,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-model-adaptation-v1-preflight-result.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
     run_python_script("check-image-generation-eval-manifest.py", [])
+    run_python_script("check-image-adapter-handshake-safety-gate-v1.py", [])
     check_path_budget()
     check_required_files()
     check_content_baseline()
