@@ -28,6 +28,9 @@ ARTIFACT_SCHEMA_PATH = REPO_ROOT / "contracts/image-generation-artifact.schema.j
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 ARTIFACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-generation-artifact-basic.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+RUNTIME_MAPPER_IMPLEMENTATION_TASK_CARD = (
+    "docs/task-cards/image-artifact-runtime-mapper-implementation-v1-plan.md"
+)
 
 DEPENDENCY_STATUS_BY_SLICE = {
     "image-artifact-runtime-mapper-implementation-plan-v1": (
@@ -635,14 +638,14 @@ def assert_forbidden_artifacts(fixture: dict[str, Any]) -> None:
     require(set(task_cards) == EXPECTED_FORBIDDEN_TASK_CARDS, "forbidden task cards drifted")
     for relative_path, row in task_cards.items():
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
-        require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
+        if row.get("allowed_next") is not True:
+            require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
     require(
-        task_cards["docs/task-cards/image-artifact-runtime-mapper-implementation-v1-plan.md"].get("allowed_next")
-        is True,
+        task_cards[RUNTIME_MAPPER_IMPLEMENTATION_TASK_CARD].get("allowed_next") is True,
         "runtime mapper implementation task card should be the only allowed next card",
     )
     for relative_path, row in task_cards.items():
-        if relative_path != "docs/task-cards/image-artifact-runtime-mapper-implementation-v1-plan.md":
+        if relative_path != RUNTIME_MAPPER_IMPLEMENTATION_TASK_CARD:
             require(row.get("allowed_next") is False, f"{relative_path} must not be allowed next")
 
     artifacts = rows_by_id(fixture.get("forbidden_artifact_matrix") or [], "path")

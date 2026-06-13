@@ -31,6 +31,12 @@ ARTIFACT_SCHEMA_PATH = REPO_ROOT / "contracts/image-generation-artifact.schema.j
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 ARTIFACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-generation-artifact-basic.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+RUNTIME_MAPPER_IMPLEMENTATION_TASK_CARD = (
+    "docs/task-cards/image-artifact-runtime-mapper-implementation-v1-plan.md"
+)
+RUNTIME_MAPPER_IMPLEMENTATION_ENTRY_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-entry-v1.json"
+)
 
 DEPENDENCY_STATUS_BY_SLICE = {
     "image-artifact-store-binary-reader-boundary-readiness-v1": (
@@ -313,6 +319,21 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def read(relative_path: str) -> str:
     return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+
+def later_entry_allows_task_card(relative_path: str) -> bool:
+    if relative_path != RUNTIME_MAPPER_IMPLEMENTATION_TASK_CARD:
+        return False
+    if not RUNTIME_MAPPER_IMPLEMENTATION_ENTRY_PATH.exists():
+        return False
+
+    entry = load_json(RUNTIME_MAPPER_IMPLEMENTATION_ENTRY_PATH)
+    boundary = entry.get("implementation_entry_boundary") or {}
+    selected = entry.get("selected_track_contract") or {}
+    return (
+        boundary.get("decision") == "runtime_mapper_implementation_task_card_allowed_next"
+        and selected.get("next_task_card") == RUNTIME_MAPPER_IMPLEMENTATION_TASK_CARD
+    )
 
 
 def rows_by_id(rows: list[Any], key: str) -> dict[str, dict[str, Any]]:
@@ -641,7 +662,8 @@ def assert_forbidden_artifacts(fixture: dict[str, Any]) -> None:
     require(set(task_cards) == EXPECTED_FORBIDDEN_TASK_CARDS, "forbidden task cards drifted")
     for relative_path, row in task_cards.items():
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
-        require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
+        if not later_entry_allows_task_card(relative_path):
+            require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     artifacts = rows_by_id(fixture.get("forbidden_artifact_matrix") or [], "path")
     require(set(artifacts) == EXPECTED_FORBIDDEN_ARTIFACTS, "forbidden artifacts drifted")

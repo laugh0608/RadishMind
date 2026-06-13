@@ -35,6 +35,8 @@
 - Artifact runtime mapper implementation plan smoke：`scripts/check-image-artifact-runtime-mapper-implementation-plan-v1.py`
 - Artifact runtime mapper implementation entry fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-entry-v1.json`
 - Artifact runtime mapper implementation entry smoke：`scripts/check-image-artifact-runtime-mapper-implementation-entry-v1.py`
+- Artifact runtime mapper implementation fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-v1.json`
+- Artifact runtime mapper implementation smoke：`scripts/check-image-artifact-runtime-mapper-implementation-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -305,3 +307,13 @@
 - 下一张 runtime mapper implementation task card 只能覆盖 metadata-only mapper input validation、`image_generation_artifact` 到 future CopilotResponse artifact citation / metadata reference 的 projection、成功映射测试、fail-closed 测试和 no side effects smoke。
 - artifact store、binary reader、public URL resolver 和 backend adapter implementation 继续 deferred，不得与 runtime mapper implementation task card 并行打开。
 - 当前不允许 runtime mapping execution、artifact store lookup、artifact binary read、artifact upload、public / signed URL resolution、backend call、image generation、response schema change、executor、confirmation、writeback 或 replay。
+
+### Artifact runtime mapper implementation task card
+
+`image-artifact-runtime-mapper-implementation-v1` 已把 metadata-only runtime mapper implementation task card 固定为 `image_artifact_runtime_mapper_implementation_task_card_defined`。该证据层创建下一步 runtime mapper 代码实现前的任务卡、fixture 和 checker，明确后续代码只能消费 `image_generation_artifact` metadata，并投影到未来 CopilotResponse artifact citation / metadata reference；本切片仍不创建 runtime mapper 文件、不改 `CopilotResponse` schema、不创建 artifact store、binary reader、public URL resolver、backend adapter implementation 或 production storage。
+
+实现任务卡要求：
+
+- 后续 metadata-only runtime mapper 必须保留 `artifact://`、sha256、mime type、dimensions、safety review、provenance 和 metadata reference；`blocked / failed / pending_review` artifact 不得进入成功 response。
+- invalid metadata、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、missing store / reader、safety review not passed 和 provenance missing 都必须 fail closed。
+- 下一步可以进入 runtime mapper 代码实现，但只能实现 metadata-only mapper input validation、artifact citation projection、metadata reference projection、成功映射测试、fail-closed 测试和 no side effects smoke；store / reader / public URL / backend adapter 仍需独立任务卡。
