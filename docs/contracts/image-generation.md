@@ -23,6 +23,8 @@
 - Artifact return runbook smoke：`scripts/check-image-artifact-return-runbook-evidence-v1.py`
 - Safety runbook fixture：`scripts/checks/fixtures/image-safety-runbook-evidence-v1.json`
 - Safety runbook smoke：`scripts/check-image-safety-runbook-evidence-v1.py`
+- Backend adapter readiness fixture：`scripts/checks/fixtures/image-backend-adapter-readiness-evidence-v1.json`
+- Backend adapter readiness smoke：`scripts/check-image-backend-adapter-readiness-evidence-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -226,3 +228,14 @@
 - Adapter gate 必须在 backend request 前处理 `requires_confirmation=true`、high risk 和 policy unknown，输出 `blocked_requires_confirmation` 或等价 blocked 状态；不能写成自动提交 backend。
 - artifact safety review 必须保留 `risk_level`、`requires_confirmation`、`review_status`、`review_notes`、hash、`artifact://` URI 和 provenance；`pending_review` 与 `blocked` 都不能返回成功 artifact reference。
 - 失败分类固定为 `image_prompt_policy_unknown`、`image_intent_requires_confirmation`、`image_intent_high_risk`、`image_backend_safety_gate_blocked`、`image_backend_unavailable`、`image_artifact_safety_pending_review` 和 `image_artifact_safety_blocked`；这些失败不触发 retry loop、fallback execution、moderation provider 调用或真实 backend health 声明。
+
+### Backend adapter readiness evidence
+
+`image-backend-adapter-readiness-evidence-v1` 已把未来生图 backend adapter readiness 固定为 `image_backend_adapter_readiness_defined`。该证据层只定义 backend profile、credential / model-dir / endpoint 准入、failure envelope、artifact metadata 验收和 future smoke contract，不创建真实 backend client，也不调用真实生图 backend。
+
+准入证据要求：
+
+- backend adapter 必须消费 `image_generation_backend_request` 的 backend id、model、adapter profile、prompt、output、parameters、safety gate 和 trace，不得绕过 `image-safety-runbook-evidence-v1`。
+- profile / credential / model dir / endpoint / timeout budget 当前都只是 implementation gate；缺失时必须映射到 fail-closed failure code，不能自动降级为可调用 backend。
+- backend response 未来只能进入 `image_generation_artifact` metadata；必须校验 `artifact://` URI、hash、backend/model、provenance 和 safety review，不接收 pixel payload、provider raw response 或 public URL。
+- 失败分类固定为 `image_backend_profile_missing`、`image_backend_credential_missing`、`image_backend_model_dir_missing`、`image_backend_endpoint_unavailable`、`image_backend_timeout`、`image_backend_safety_gate_blocked`、`image_backend_invalid_artifact_metadata`、`image_backend_artifact_hash_mismatch` 和 `image_backend_response_untrusted`；这些失败不触发 retry loop、fallback execution 或 success artifact reference。

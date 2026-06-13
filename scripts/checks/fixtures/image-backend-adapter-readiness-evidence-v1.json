@@ -1,0 +1,576 @@
+{
+  "schema_version": 1,
+  "kind": "image_backend_adapter_readiness_evidence_v1",
+  "slice": {
+    "id": "image-backend-adapter-readiness-evidence-v1",
+    "track": "Image Path",
+    "status": "image_backend_adapter_readiness_defined",
+    "does_not_claim": [
+      "image_backend_adapter_implemented",
+      "image_backend_adapter_ready",
+      "image_backend_client_ready",
+      "backend_profile_registry_ready",
+      "credential_resolver_ready",
+      "model_dir_resolver_ready",
+      "endpoint_health_probe_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_quality_evaluated",
+      "model_download_ready",
+      "artifact_upload_ready",
+      "artifact_store_ready",
+      "production_artifact_storage_ready",
+      "public_artifact_url_ready",
+      "copilot_response_artifact_runtime_ready",
+      "runtime_mapping_ready",
+      "automatic_retry_ready",
+      "fallback_execution_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-adapter-handshake-safety-gate-v1",
+    "image-artifact-return-runbook-evidence-v1",
+    "image-safety-runbook-evidence-v1",
+    "image-generation-eval-manifest-v0",
+    "contracts/image-generation-backend-request.schema.json",
+    "contracts/image-generation-artifact.schema.json"
+  ],
+  "adapter_readiness_boundary": {
+    "status": "backend_adapter_readiness_defined_no_backend_client",
+    "decision": "adapter_implementation_gate_only",
+    "source_backend_request_schema": "contracts/image-generation-backend-request.schema.json",
+    "source_artifact_schema": "contracts/image-generation-artifact.schema.json",
+    "upstream_handshake_fixture": "scripts/checks/fixtures/image-adapter-handshake-safety-gate-v1.json",
+    "upstream_artifact_return_fixture": "scripts/checks/fixtures/image-artifact-return-runbook-evidence-v1.json",
+    "upstream_safety_fixture": "scripts/checks/fixtures/image-safety-runbook-evidence-v1.json",
+    "backend_adapter_created_in_this_slice": false,
+    "backend_client_created_in_this_slice": false,
+    "backend_profile_registry_created_in_this_slice": false,
+    "credential_resolver_created_in_this_slice": false,
+    "model_dir_resolver_created_in_this_slice": false,
+    "endpoint_health_probe_created_in_this_slice": false,
+    "backend_queue_created_in_this_slice": false,
+    "artifact_store_created_in_this_slice": false,
+    "copilot_response_runtime_mapping_created_in_this_slice": false,
+    "real_backend_call_allowed_now": false,
+    "image_generation_allowed_now": false,
+    "model_download_allowed_now": false,
+    "model_dir_read_allowed_now": false,
+    "credential_resolution_allowed_now": false,
+    "endpoint_health_probe_allowed_now": false,
+    "artifact_upload_allowed_now": false,
+    "public_url_allowed_now": false,
+    "production_storage_allowed_now": false,
+    "dev_server_started_in_this_slice": false
+  },
+  "adapter_contract_input_fields": {
+    "status": "defined_not_executable",
+    "runtime_backend_adapter_required_now": false,
+    "required_fields": [
+      {
+        "source": "backend_request",
+        "path": "request_id"
+      },
+      {
+        "source": "backend_request",
+        "path": "intent_id"
+      },
+      {
+        "source": "backend_request",
+        "path": "backend.id"
+      },
+      {
+        "source": "backend_request",
+        "path": "backend.model"
+      },
+      {
+        "source": "backend_request",
+        "path": "backend.adapter_profile"
+      },
+      {
+        "source": "backend_request",
+        "path": "prompt.positive"
+      },
+      {
+        "source": "backend_request",
+        "path": "prompt.negative"
+      },
+      {
+        "source": "backend_request",
+        "path": "output.width"
+      },
+      {
+        "source": "backend_request",
+        "path": "output.height"
+      },
+      {
+        "source": "backend_request",
+        "path": "output.count"
+      },
+      {
+        "source": "backend_request",
+        "path": "output.format"
+      },
+      {
+        "source": "backend_request",
+        "path": "parameters.seed"
+      },
+      {
+        "source": "backend_request",
+        "path": "parameters.steps"
+      },
+      {
+        "source": "backend_request",
+        "path": "parameters.guidance_scale"
+      },
+      {
+        "source": "backend_request",
+        "path": "safety.gate"
+      },
+      {
+        "source": "backend_request",
+        "path": "safety.requires_confirmation"
+      },
+      {
+        "source": "backend_request",
+        "path": "safety.risk_level"
+      },
+      {
+        "source": "backend_request",
+        "path": "trace.source_request_id"
+      },
+      {
+        "source": "backend_request",
+        "path": "trace.trace_ids"
+      },
+      {
+        "source": "artifact",
+        "path": "artifact.uri"
+      },
+      {
+        "source": "artifact",
+        "path": "artifact.sha256"
+      },
+      {
+        "source": "artifact",
+        "path": "generation.backend_id"
+      },
+      {
+        "source": "artifact",
+        "path": "generation.model"
+      },
+      {
+        "source": "artifact",
+        "path": "provenance.trace_ids"
+      }
+    ],
+    "forbidden_fields": [
+      "pixel_payload",
+      "base64_image",
+      "provider_raw_response",
+      "backend_auth_token",
+      "backend_secret_value",
+      "resolved_model_path",
+      "signed_public_url",
+      "storage_write_result",
+      "executor_ref",
+      "writeback_ref",
+      "replay_ref"
+    ]
+  },
+  "readiness_prerequisites": [
+    {
+      "gate_id": "backend_profile_contract",
+      "description": "profile id, backend id, adapter profile and model binding must be explicit",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "credential_reference_policy",
+      "description": "future credential must be reference-only and redacted",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "endpoint_or_model_dir_binding",
+      "description": "exact endpoint URL reference or local model dir reference must be selected before implementation",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "request_timeout_budget",
+      "description": "adapter timeout, cancellation and failure code budget must be fixed",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "safety_gate_integration",
+      "description": "backend adapter must consume safety runbook before dispatch",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "response_artifact_metadata_mapping",
+      "description": "backend result must map to image_generation_artifact metadata only",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "artifact_hash_validation",
+      "description": "adapter must fail closed when artifact hash is missing or mismatched",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "failure_envelope_mapping",
+      "description": "backend errors must map to stable fail-closed codes",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    },
+    {
+      "gate_id": "offline_contract_smoke",
+      "description": "future smoke must validate request, failure and artifact metadata without real backend by default",
+      "gate_status": "required_before_implementation",
+      "satisfied_now": false,
+      "implementation_allowed_now": false
+    }
+  ],
+  "backend_profile_matrix": [
+    {
+      "profile_id": "image-backend:contract-fixture",
+      "binding_kind": "contract_fixture_only",
+      "credential_required": false,
+      "endpoint_required": false,
+      "model_dir_required": false,
+      "current_binding_ready": false,
+      "real_backend_call_allowed_now": false
+    },
+    {
+      "profile_id": "image-backend:local-model-dir",
+      "binding_kind": "future_local_model_dir",
+      "credential_required": false,
+      "endpoint_required": false,
+      "model_dir_required": true,
+      "current_binding_ready": false,
+      "real_backend_call_allowed_now": false
+    },
+    {
+      "profile_id": "image-backend:http-service",
+      "binding_kind": "future_http_service",
+      "credential_required": true,
+      "endpoint_required": true,
+      "model_dir_required": false,
+      "current_binding_ready": false,
+      "real_backend_call_allowed_now": false
+    }
+  ],
+  "readiness_gate_matrix": [
+    {
+      "case_id": "profile_binding_missing",
+      "expected_failure_code": "image_backend_profile_missing",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    },
+    {
+      "case_id": "credential_reference_missing",
+      "expected_failure_code": "image_backend_credential_missing",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    },
+    {
+      "case_id": "model_dir_missing",
+      "expected_failure_code": "image_backend_model_dir_missing",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    },
+    {
+      "case_id": "endpoint_unavailable",
+      "expected_failure_code": "image_backend_endpoint_unavailable",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    },
+    {
+      "case_id": "timeout_budget_missing",
+      "expected_failure_code": "image_backend_timeout",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    },
+    {
+      "case_id": "safety_gate_not_approved",
+      "expected_failure_code": "image_backend_safety_gate_blocked",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    },
+    {
+      "case_id": "response_metadata_invalid",
+      "expected_failure_code": "image_backend_invalid_artifact_metadata",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    },
+    {
+      "case_id": "artifact_hash_missing_or_mismatch",
+      "expected_failure_code": "image_backend_artifact_hash_mismatch",
+      "adapter_implementation_allowed_now": false,
+      "retry_or_fallback_allowed_now": false
+    }
+  ],
+  "failure_taxonomy": [
+    {
+      "failure_code": "image_backend_profile_missing",
+      "source": "backend profile binding",
+      "response_policy": "fail closed before backend adapter implementation",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_credential_missing",
+      "source": "credential reference policy",
+      "response_policy": "fail closed without resolving secret",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_model_dir_missing",
+      "source": "local model dir binding",
+      "response_policy": "fail closed without reading model directory",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_endpoint_unavailable",
+      "source": "backend endpoint binding",
+      "response_policy": "fail closed without health probe loop",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_timeout",
+      "source": "backend adapter timeout budget",
+      "response_policy": "fail closed without automatic retry",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_safety_gate_blocked",
+      "source": "image safety runbook",
+      "response_policy": "block before backend dispatch",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_invalid_artifact_metadata",
+      "source": "backend response artifact metadata validation",
+      "response_policy": "fail closed without artifact reference",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_artifact_hash_mismatch",
+      "source": "artifact hash validation",
+      "response_policy": "fail closed until artifact metadata is reviewed",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_response_untrusted",
+      "source": "backend response provenance validation",
+      "response_policy": "fail closed without provider raw dump",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    }
+  ],
+  "future_adapter_smoke_contract": {
+    "status": "readiness_only",
+    "runtime_smoke_required_now": false,
+    "backend_call_allowed_now": false,
+    "required_inputs": [
+      "scripts/checks/fixtures/image-generation-backend-request-basic.json",
+      "scripts/checks/fixtures/image-generation-artifact-basic.json",
+      "scripts/checks/fixtures/image-safety-runbook-evidence-v1.json"
+    ],
+    "required_assertions": [
+      "validate_backend_request_schema",
+      "consume_safety_runbook_gate",
+      "map_backend_failure_to_fail_closed_code",
+      "validate_artifact_metadata_schema",
+      "validate_artifact_hash",
+      "reject_provider_raw_response",
+      "reject_pixel_payload",
+      "preserve_provenance_trace"
+    ]
+  },
+  "forbidden_artifact_matrix": [
+    {
+      "path": "adapters/image/image_backend_adapter.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_backend_adapter.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_backend_client.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_backend_profile_resolver.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_backend.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-backend-adapter.schema.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageBackendAdapterPanel.tsx",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/run-image-backend-adapter-smoke.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "deploy/image-backend-adapter.yaml",
+      "created_in_this_slice": false
+    }
+  ],
+  "source_absent_literals": [
+    "ImageBackendAdapter",
+    "ImageBackendClient",
+    "ImageBackendProfileResolver",
+    "ImageBackendCredentialResolver",
+    "image_backend_adapter",
+    "image_backend_client",
+    "image_backend_profile_resolver",
+    "IMAGE_BACKEND_ENDPOINT_URL",
+    "IMAGE_BACKEND_CREDENTIAL_REF",
+    "IMAGE_BACKEND_MODEL_DIR",
+    "ImageBackendAdapterPanel",
+    "runImageBackendAdapterSmoke",
+    "callImageGenerationBackend"
+  ],
+  "execution_policy": {
+    "does_not_call_backend": true,
+    "does_not_generate_images": true,
+    "does_not_download_models": true,
+    "does_not_resolve_credentials": true,
+    "does_not_read_model_dir": true,
+    "does_not_probe_endpoint": true,
+    "does_not_upload_artifacts": true,
+    "does_not_write_production_storage": true,
+    "does_not_start_dev_server": true,
+    "does_not_use_browser_plugin": true
+  },
+  "no_fake_fallback_policy": {
+    "missing_profile_promoted_to_success_allowed": false,
+    "missing_credential_promoted_to_backend_allowed": false,
+    "missing_model_dir_promoted_to_backend_allowed": false,
+    "endpoint_unavailable_promoted_to_retry_loop_allowed": false,
+    "safety_gate_blocked_promoted_to_backend_allowed": false,
+    "invalid_artifact_metadata_promoted_to_reference_allowed": false,
+    "hash_mismatch_promoted_to_reference_allowed": false,
+    "timeout_promoted_to_success_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "backend_call_count=0",
+      "credential_resolve_count=0",
+      "model_dir_read_count=0",
+      "endpoint_health_probe_count=0",
+      "image_generation_count=0",
+      "model_download_count=0",
+      "artifact_upload_count=0",
+      "production_storage_write_count=0",
+      "dev_server_start_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "real_backend_call",
+      "credential_resolution",
+      "model_dir_read",
+      "endpoint_health_probe",
+      "image_pixel_generation",
+      "model_download",
+      "artifact_upload",
+      "production_storage_write",
+      "public_url_resolution",
+      "dev_server_start",
+      "browser_plugin_open",
+      "executor_call",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/image-backend-adapter-readiness-evidence-v1-plan.md",
+    "docs/contracts/image-generation.md",
+    "scripts/checks/fixtures/image-backend-adapter-readiness-evidence-v1.json",
+    "scripts/check-image-backend-adapter-readiness-evidence-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-image-backend-adapter-readiness-evidence-v1.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-backend-adapter-readiness-evidence-v1",
+      "image_backend_adapter_readiness_defined",
+      "backend adapter readiness"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image_backend_adapter_readiness_defined",
+      "backend adapter readiness"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-backend-adapter-readiness-evidence-v1",
+      "backend adapter readiness"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Backend Adapter Readiness Evidence",
+      "image-backend-adapter-readiness-evidence-v1"
+    ],
+    "scripts/README.md": [
+      "check-image-backend-adapter-readiness-evidence-v1.py",
+      "不创建真实 backend client"
+    ],
+    "contracts/README.md": [
+      "image-backend-adapter-readiness-evidence-v1",
+      "backend adapter readiness"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image_backend_adapter_readiness_defined",
+      "artifact runtime mapping readiness"
+    ],
+    "docs/radishmind-architecture.md": [
+      "image_backend_adapter_readiness_defined",
+      "backend adapter readiness"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-backend-adapter-readiness-evidence-v1",
+      "image_backend_adapter_readiness_defined"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "image-backend-adapter-readiness-evidence-v1",
+      "image_backend_adapter_readiness_defined"
+    ]
+  }
+}
