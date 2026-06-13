@@ -16,6 +16,10 @@ ARTIFACT_SCHEMA_PATH = REPO_ROOT / "contracts/image-generation-artifact.schema.j
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 ARTIFACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-generation-artifact-basic.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+RUNTIME_MAPPER_MODULE_PATH = "services/runtime/image_artifact_runtime_mapper.py"
+RUNTIME_MAPPER_RUNTIME_IMPLEMENTATION_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json"
+)
 
 EXPECTED_FORBIDDEN_CLAIMS = {
     "copilot_response_schema_changed",
@@ -182,6 +186,22 @@ def read(relative_path: str) -> str:
     return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
 
 
+def later_runtime_mapper_allows_source_literal(path: Path, literal: str) -> bool:
+    relative_path = str(path.relative_to(REPO_ROOT))
+    if relative_path != RUNTIME_MAPPER_MODULE_PATH or literal != "image_artifact_store":
+        return False
+    if not RUNTIME_MAPPER_RUNTIME_IMPLEMENTATION_PATH.is_file():
+        return False
+
+    fixture = load_json(RUNTIME_MAPPER_RUNTIME_IMPLEMENTATION_PATH)
+    implementation = fixture.get("runtime_implementation") or {}
+    return (
+        fixture.get("kind") == "image_artifact_runtime_mapper_runtime_implementation_v1"
+        and (fixture.get("slice") or {}).get("status") == "image_artifact_runtime_mapper_runtime_implemented"
+        and implementation.get("module") == RUNTIME_MAPPER_MODULE_PATH
+    )
+
+
 def value_at_path(document: dict[str, Any], dotted_path: str) -> Any:
     current: Any = document
     for part in dotted_path.split("."):
@@ -343,6 +363,8 @@ def assert_forbidden_artifacts_and_sources(fixture: dict[str, Any]) -> None:
                 continue
             text = path.read_text(encoding="utf-8")
             for literal in configured:
+                if later_runtime_mapper_allows_source_literal(path, literal):
+                    continue
                 require(literal not in text, f"{path.relative_to(REPO_ROOT)} must not introduce {literal!r}")
 
 

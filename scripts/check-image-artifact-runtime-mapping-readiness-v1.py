@@ -17,6 +17,10 @@ ARTIFACT_SCHEMA_PATH = REPO_ROOT / "contracts/image-generation-artifact.schema.j
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 ARTIFACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-generation-artifact-basic.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+RUNTIME_MAPPER_MODULE_PATH = "services/runtime/image_artifact_runtime_mapper.py"
+RUNTIME_MAPPER_RUNTIME_IMPLEMENTATION_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json"
+)
 
 EXPECTED_FORBIDDEN_CLAIMS = {
     "copilot_response_schema_changed",
@@ -218,6 +222,22 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def read(relative_path: str) -> str:
     return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+
+def later_runtime_mapper_implementation_allows_artifact(relative_path: str) -> bool:
+    if relative_path != RUNTIME_MAPPER_MODULE_PATH:
+        return False
+    if not RUNTIME_MAPPER_RUNTIME_IMPLEMENTATION_PATH.exists():
+        return False
+
+    implementation = load_json(RUNTIME_MAPPER_RUNTIME_IMPLEMENTATION_PATH)
+    runtime = implementation.get("runtime_implementation") or {}
+    return (
+        (implementation.get("slice") or {}).get("status")
+        == "image_artifact_runtime_mapper_runtime_implemented"
+        and runtime.get("status") == "metadata_only_runtime_mapper_implemented"
+        and runtime.get("module") == RUNTIME_MAPPER_MODULE_PATH
+    )
 
 
 def value_at_path(document: dict[str, Any], dotted_path: str) -> Any:
@@ -491,7 +511,8 @@ def assert_forbidden_artifacts_and_sources(fixture: dict[str, Any]) -> None:
     require(set(artifacts) == EXPECTED_FORBIDDEN_ARTIFACTS, "forbidden artifact paths drifted")
     for relative_path, row in artifacts.items():
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
-        require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
+        if not later_runtime_mapper_implementation_allows_artifact(relative_path):
+            require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     configured = set(fixture.get("source_absent_literals") or [])
     require(EXPECTED_ABSENT_LITERALS.issubset(configured), "source absent literals drifted")

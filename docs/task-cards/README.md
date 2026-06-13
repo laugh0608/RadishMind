@@ -135,6 +135,7 @@
 8. [`Image Artifact Runtime Mapper Implementation Plan` v1 计划](image-artifact-runtime-mapper-implementation-plan-v1-plan.md)（`image-artifact-runtime-mapper-implementation-plan-v1`）
 9. [`Image Artifact Runtime Mapper Implementation Entry` v1 计划](image-artifact-runtime-mapper-implementation-entry-v1-plan.md)（`image-artifact-runtime-mapper-implementation-entry-v1`）
 10. [`Image Artifact Runtime Mapper Implementation` v1 计划](image-artifact-runtime-mapper-implementation-v1-plan.md)（`image-artifact-runtime-mapper-implementation-v1`）
+11. [`Image Artifact Runtime Mapper Runtime Implementation` v1 计划](image-artifact-runtime-mapper-runtime-implementation-v1-plan.md)（`image-artifact-runtime-mapper-runtime-implementation-v1`）
 
 使用原则：
 

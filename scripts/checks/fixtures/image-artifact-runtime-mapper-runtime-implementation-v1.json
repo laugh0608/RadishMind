@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "kind": "image_artifact_runtime_mapper_runtime_implementation_v1",
+  "slice": {
+    "id": "image-artifact-runtime-mapper-runtime-implementation-v1",
+    "track": "Image Path",
+    "status": "image_artifact_runtime_mapper_runtime_implemented",
+    "does_not_claim": [
+      "copilot_response_schema_changed",
+      "copilot_response_artifact_runtime_ready",
+      "artifact_store_ready",
+      "artifact_store_implemented",
+      "artifact_binary_reader_ready",
+      "artifact_binary_reader_implemented",
+      "artifact_binary_read_ready",
+      "public_artifact_url_ready",
+      "public_url_resolver_ready",
+      "signed_url_resolver_ready",
+      "production_artifact_storage_ready",
+      "image_backend_adapter_implemented",
+      "image_backend_client_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_payload_ready",
+      "provider_raw_dump_ready",
+      "automatic_retry_ready",
+      "fallback_execution_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-artifact-runtime-mapper-implementation-v1",
+    "image-artifact-runtime-mapping-readiness-v1",
+    "contracts/image-generation-artifact.schema.json",
+    "contracts/copilot-response.schema.json"
+  ],
+  "runtime_implementation": {
+    "status": "metadata_only_runtime_mapper_implemented",
+    "module": "services/runtime/image_artifact_runtime_mapper.py",
+    "function": "map_image_artifact_to_response_reference",
+    "result_type": "ImageArtifactMappingResult",
+    "input_kind": "image_generation_artifact",
+    "output_surface": "future CopilotResponse artifact citation plus metadata reference",
+    "input_must_be_metadata_only": true,
+    "output_must_be_metadata_only": true,
+    "copilot_response_schema_changed": false,
+    "artifact_store_lookup_allowed": false,
+    "artifact_binary_read_allowed": false,
+    "public_url_resolution_allowed": false,
+    "backend_call_allowed": false,
+    "image_generation_allowed": false,
+    "artifact_upload_allowed": false
+  },
+  "success_cases": [
+    {
+      "case_id": "generated_not_required",
+      "artifact_status": "generated",
+      "artifact_review_status": "not_required",
+      "expected_ok": true,
+      "expected_citation_kind": "artifact"
+    },
+    {
+      "case_id": "generated_reviewed_pass",
+      "artifact_status": "generated",
+      "artifact_review_status": "reviewed_pass",
+      "expected_ok": true,
+      "expected_citation_kind": "artifact"
+    }
+  ],
+  "blocked_cases": [
+    {
+      "case_id": "blocked_artifact_status",
+      "expected_failure_code": "image_artifact_safety_blocked"
+    },
+    {
+      "case_id": "failed_artifact_status",
+      "expected_failure_code": "image_artifact_invalid_metadata"
+    },
+    {
+      "case_id": "pending_review_artifact",
+      "expected_failure_code": "image_artifact_safety_pending_review"
+    }
+  ],
+  "fail_closed_cases": [
+    {
+      "case_id": "invalid_metadata_missing_required_field",
+      "expected_failure_code": "image_artifact_invalid_metadata"
+    },
+    {
+      "case_id": "hash_mismatch",
+      "expected_failure_code": "image_artifact_hash_mismatch"
+    },
+    {
+      "case_id": "mime_mismatch",
+      "expected_failure_code": "image_artifact_mime_mismatch"
+    },
+    {
+      "case_id": "dimension_mismatch",
+      "expected_failure_code": "image_artifact_dimension_mismatch"
+    },
+    {
+      "case_id": "public_url_claim",
+      "expected_failure_code": "image_artifact_public_url_claim"
+    },
+    {
+      "case_id": "signed_url_policy_missing",
+      "expected_failure_code": "image_artifact_signed_url_policy_missing"
+    },
+    {
+      "case_id": "binary_payload_present",
+      "expected_failure_code": "image_artifact_binary_payload_rejected"
+    },
+    {
+      "case_id": "provider_raw_dump_present",
+      "expected_failure_code": "image_artifact_provider_raw_dump_rejected"
+    },
+    {
+      "case_id": "artifact_store_missing",
+      "expected_failure_code": "image_artifact_store_missing"
+    },
+    {
+      "case_id": "artifact_store_unavailable",
+      "expected_failure_code": "image_artifact_store_unavailable"
+    },
+    {
+      "case_id": "artifact_binary_reader_missing",
+      "expected_failure_code": "image_artifact_binary_reader_missing"
+    },
+    {
+      "case_id": "artifact_binary_read_forbidden",
+      "expected_failure_code": "image_artifact_binary_read_forbidden"
+    },
+    {
+      "case_id": "safety_review_not_passed",
+      "expected_failure_code": "image_artifact_safety_review_not_passed"
+    },
+    {
+      "case_id": "provenance_missing",
+      "expected_failure_code": "image_artifact_provenance_missing"
+    }
+  ],
+  "expected_citation_fields": [
+    "id",
+    "kind",
+    "label",
+    "locator",
+    "source_uri"
+  ],
+  "expected_metadata_reference_fields": [
+    "artifact_id",
+    "uri",
+    "sha256",
+    "mime_type",
+    "dimensions.width",
+    "dimensions.height",
+    "format",
+    "title",
+    "purpose",
+    "backend_id",
+    "model",
+    "seed",
+    "safety.risk_level",
+    "safety.requires_confirmation",
+    "safety.review_status",
+    "provenance.source_request_id",
+    "provenance.trace_ids",
+    "created_at"
+  ],
+  "side_effect_counters_must_remain": [
+    "backend_call_count=0",
+    "image_generation_count=0",
+    "model_download_count=0",
+    "artifact_upload_count=0",
+    "artifact_binary_read_count=0",
+    "artifact_store_lookup_count=0",
+    "runtime_mapping_execution_count=0",
+    "production_storage_write_count=0",
+    "public_url_resolution_count=0",
+    "executor_call_count=0",
+    "confirmation_call_count=0",
+    "business_writeback_count=0",
+    "replay_call_count=0"
+  ],
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/runtime/image_artifact_store.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_binary_reader.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_public_url_resolver.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_backend_adapter.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-artifact-runtime-mapping.schema.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-artifact-store.schema.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-artifact-binary-reader.schema.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_artifacts.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageArtifactRuntimeMappingPanel.tsx",
+      "created_in_this_slice": false
+    }
+  ],
+  "evidence": [
+    "docs/task-cards/image-artifact-runtime-mapper-runtime-implementation-v1-plan.md",
+    "services/runtime/image_artifact_runtime_mapper.py",
+    "scripts/check-image-artifact-runtime-mapper-runtime-implementation-v1.py",
+    "scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json",
+    "scripts/checks/fixtures/image-generation-artifact-basic.json"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "image_artifact_runtime_mapper_runtime_implemented",
+      "metadata-only runtime mapper"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "image_artifact_runtime_mapper_runtime_implemented"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "metadata-only runtime mapper"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "metadata-only artifact runtime mapper"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "metadata-only runtime mapper"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Artifact Runtime Mapper Runtime Implementation",
+      "image-artifact-runtime-mapper-runtime-implementation-v1"
+    ],
+    "contracts/README.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "check-image-artifact-runtime-mapper-runtime-implementation-v1.py"
+    ],
+    "scripts/README.md": [
+      "check-image-artifact-runtime-mapper-runtime-implementation-v1.py",
+      "metadata-only runtime mapper"
+    ],
+    "docs/README.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "metadata-only runtime mapper"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "image-artifact-runtime-mapper-runtime-implementation-v1",
+      "image_artifact_runtime_mapper_runtime_implemented"
+    ]
+  }
+}

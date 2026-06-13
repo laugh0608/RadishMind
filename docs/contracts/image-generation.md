@@ -37,6 +37,8 @@
 - Artifact runtime mapper implementation entry smoke：`scripts/check-image-artifact-runtime-mapper-implementation-entry-v1.py`
 - Artifact runtime mapper implementation fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-v1.json`
 - Artifact runtime mapper implementation smoke：`scripts/check-image-artifact-runtime-mapper-implementation-v1.py`
+- Artifact runtime mapper runtime implementation fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json`
+- Artifact runtime mapper runtime implementation smoke：`scripts/check-image-artifact-runtime-mapper-runtime-implementation-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -317,3 +319,13 @@
 - 后续 metadata-only runtime mapper 必须保留 `artifact://`、sha256、mime type、dimensions、safety review、provenance 和 metadata reference；`blocked / failed / pending_review` artifact 不得进入成功 response。
 - invalid metadata、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、missing store / reader、safety review not passed 和 provenance missing 都必须 fail closed。
 - 下一步可以进入 runtime mapper 代码实现，但只能实现 metadata-only mapper input validation、artifact citation projection、metadata reference projection、成功映射测试、fail-closed 测试和 no side effects smoke；store / reader / public URL / backend adapter 仍需独立任务卡。
+
+### Artifact runtime mapper runtime implementation
+
+`image-artifact-runtime-mapper-runtime-implementation-v1` 已把 metadata-only runtime mapper 代码固定为 `image_artifact_runtime_mapper_runtime_implemented`。该实现由 `services/runtime/image_artifact_runtime_mapper.py` 承载，只消费 `image_generation_artifact` metadata，并输出 future CopilotResponse artifact citation / metadata reference；不读取 artifact 二进制、不查 artifact store、不解析 public URL、不调用真实 backend、不上传 artifact、不修改 `CopilotResponse` schema。
+
+runtime 实现要求：
+
+- 成功路径只允许 `generated + not_required` 与 `generated + reviewed_pass`，并保留 `artifact://`、sha256、mime type、dimensions、safety review、provenance 和 generation metadata。
+- `blocked / failed / pending_review`、invalid metadata、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、missing / unavailable store、missing / forbidden binary reader、safety review not passed 和 provenance missing 均返回 fail-closed failure code，不产生成功 citation。
+- 后续若要接入真实 response consumer、artifact store、binary reader、public URL resolver 或 backend adapter，仍需独立入口、fixture、checker 和验证。
