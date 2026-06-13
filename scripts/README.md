@@ -104,6 +104,7 @@
   - 当前还提供 `check-image-safety-runbook-evidence-v1.py`，用于校验 `image-safety-runbook-evidence-v1` 的 safety runbook、intent precheck、adapter gate、artifact safety review 和失败分类；该检查不接 moderation provider、不调用真实生图 backend、不生成图片、不下载模型
   - 当前还提供 `check-image-backend-adapter-readiness-evidence-v1.py`，用于校验 `image-backend-adapter-readiness-evidence-v1` 的 backend adapter readiness、profile / credential / model-dir / endpoint 准入、failure envelope 和 future smoke contract；该检查不创建真实 backend client、不调用真实生图 backend、不生成图片、不下载模型
   - 当前还提供 `check-image-artifact-runtime-mapping-readiness-v1.py`，用于校验 `image-artifact-runtime-mapping-readiness-v1` 的 runtime mapping readiness、future artifact citation / metadata reference 准入、blocked / failed / pending_review 禁入成功 response 和 fail-closed 映射；该检查不改 response schema、不实现 runtime mapper、不创建 artifact store、不读取图片二进制、不创建 public URL
+  - 当前还提供 `check-image-artifact-runtime-mapping-implementation-entry-review-v1.py`，用于校验 `image-artifact-runtime-mapping-implementation-entry-review-v1` 的 runtime mapping implementation entry review、前置证据消费、实现候选 blocked 状态、禁止实现 artifact 和下一步 artifact store / binary reader boundary readiness；该检查不改 response schema、不实现 runtime mapper、不创建 artifact store、不读取图片二进制、不创建 public URL、不调用 backend
 - `scripts/checks/`
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper

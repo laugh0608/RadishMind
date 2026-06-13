@@ -27,6 +27,8 @@
 - Backend adapter readiness smoke：`scripts/check-image-backend-adapter-readiness-evidence-v1.py`
 - Artifact runtime mapping readiness fixture：`scripts/checks/fixtures/image-artifact-runtime-mapping-readiness-v1.json`
 - Artifact runtime mapping readiness smoke：`scripts/check-image-artifact-runtime-mapping-readiness-v1.py`
+- Artifact runtime mapping implementation entry review fixture：`scripts/checks/fixtures/image-artifact-runtime-mapping-implementation-entry-review-v1.json`
+- Artifact runtime mapping implementation entry review smoke：`scripts/check-image-artifact-runtime-mapping-implementation-entry-review-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -253,3 +255,14 @@
 - 只有 `status=generated` 且 `safety.review_status=not_required` 或 `reviewed_pass` 的 artifact 才能进入未来成功 response artifact citation；`blocked / failed / pending_review` artifact 不得进入成功 response。
 - invalid metadata、hash mismatch、public URL claim、binary payload 和 provider raw dump 必须 fail closed，映射到 `image_artifact_invalid_metadata`、`image_artifact_hash_mismatch`、`image_artifact_public_url_claim`、`image_artifact_binary_payload_rejected` 或 `image_artifact_provider_raw_dump_rejected`。
 - 该 readiness 依赖 `image-backend-adapter-readiness-evidence-v1`、`image-safety-runbook-evidence-v1` 和 `image-artifact-return-runbook-evidence-v1`，不绕过 backend adapter readiness、artifact return runbook 或 safety runbook。
+
+### Artifact runtime mapping implementation entry review
+
+`image-artifact-runtime-mapping-implementation-entry-review-v1` 已把 runtime mapping 实现入口复核固定为 `image_artifact_runtime_mapping_entry_review_defined`。结论是 readiness 证据可被消费，但实现入口仍未打开；当前只能把下一步指向 artifact store / binary reader boundary readiness。
+
+入口评审要求：
+
+- checker 必须跨读 runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness，确认这些证据不会被提升为 runtime mapper implementation ready。
+- runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选当前全部保持 `blocked`，不得创建对应 implementation task card 或 runtime artifact。
+- 当前不改 `CopilotResponse` schema，不创建 artifact store / public URL / binary reader，不调用真实 backend，不生成图片，不上传 artifact，也不进入 executor、confirmation、writeback 或 replay。
+- 后续若继续推进 Image Path，应先补 artifact store / binary reader boundary readiness，再评估单一 runtime mapping 实现方向。
