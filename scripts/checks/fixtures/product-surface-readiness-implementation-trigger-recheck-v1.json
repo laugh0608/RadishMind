@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "kind": "product_surface_readiness_implementation_trigger_recheck_v1",
+  "slice": {
+    "id": "product-surface-readiness-implementation-trigger-recheck-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "product_surface_readiness_trigger_recheck_defined",
+    "does_not_claim": [
+      "new_product_ui_panel_required",
+      "implementation_trigger_satisfied",
+      "production_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "repository_interface_ready",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "store_selector_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "production_gateway_ready",
+      "production_secret_resolver_ready",
+      "deployment_preflight_ready",
+      "workflow_builder_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-formal-ui-readiness-close-v1",
+    "control-plane-read-product-sample-consistency-v1",
+    "workflow-function-surface-readiness-close-v1",
+    "workflow-workspace-context-consistency-v1",
+    "control-plane-read-implementation-trigger-review-v1"
+  ],
+  "recheck_boundary": {
+    "status": "product_surface_readiness_recheck_defined_no_runtime_change",
+    "decision": "no_new_reading_gap_and_no_implementation_trigger_satisfied",
+    "purpose": "Recheck the four product surfaces after User Workspace, Workflow Review, Model Gateway and Admin evidence organization, without adding another read-only panel or implementation artifact.",
+    "new_read_only_surface_allowed_by_default": false,
+    "implementation_task_card_allowed_now": false,
+    "direct_runtime_implementation_allowed_now": false,
+    "live_backend_allowed_now": false,
+    "dev_server_started_by_ai": false,
+    "database_connection_allowed_now": false,
+    "production_auth_allowed_now": false,
+    "write_allowed_now": false
+  },
+  "product_surface_matrix": [
+    {
+      "surface_id": "user_workspace",
+      "label": "User Workspace",
+      "status": "readiness_reviewed",
+      "reading_gap_decision": "no_new_reading_gap_identified",
+      "implementation_trigger_decision": "not_satisfied",
+      "default_next_action": "targeted_correction_only_after_real_reading_gap",
+      "evidence_refs": [
+        "control-plane-read-formal-ui-readiness-close-v1",
+        "control-plane-read-product-sample-consistency-v1",
+        "workflow-workspace-context-consistency-v1",
+        "workflow-user-workspace-home-offline-v1"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHome.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts"
+      ],
+      "blocked_capabilities": [
+        "production API consumer",
+        "database-backed workspace store",
+        "Radish OIDC",
+        "API key lifecycle",
+        "quota enforcement",
+        "billing"
+      ]
+    },
+    {
+      "surface_id": "workflow_review",
+      "label": "Workflow Review",
+      "status": "readiness_reviewed",
+      "reading_gap_decision": "no_new_reading_gap_identified",
+      "implementation_trigger_decision": "not_satisfied",
+      "default_next_action": "targeted_correction_only_after_real_reading_gap",
+      "evidence_refs": [
+        "workflow-function-surface-readiness-close-v1",
+        "workflow-workspace-context-consistency-v1",
+        "workflow-workspace-review-offline-v1",
+        "workflow-review-handoff-offline-v1"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceReview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workflowReviewHandoff.ts"
+      ],
+      "blocked_capabilities": [
+        "workflow builder mutation",
+        "workflow executor",
+        "confirmation decision store",
+        "business writeback",
+        "run replay",
+        "durable run/result store"
+      ]
+    },
+    {
+      "surface_id": "model_gateway_api_distribution",
+      "label": "Model Gateway / API Distribution",
+      "status": "readiness_reviewed",
+      "reading_gap_decision": "no_new_reading_gap_identified",
+      "implementation_trigger_decision": "not_satisfied",
+      "default_next_action": "targeted_correction_only_after_real_reading_gap",
+      "evidence_refs": [
+        "gateway-api-key-quota-readiness",
+        "provider-runtime-docs-refresh",
+        "model-gateway-overview-offline-v1",
+        "model-gateway-evidence-review-offline-v1"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/modelGatewayOverview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/modelGatewayEvidenceReview.ts"
+      ],
+      "blocked_capabilities": [
+        "production gateway",
+        "API key lifecycle",
+        "quota enforcement",
+        "rate limit",
+        "cost ledger",
+        "provider retry/fallback execution"
+      ]
+    },
+    {
+      "surface_id": "admin_control_plane",
+      "label": "Admin Control Plane",
+      "status": "readiness_reviewed",
+      "reading_gap_decision": "no_new_reading_gap_identified",
+      "implementation_trigger_decision": "not_satisfied",
+      "default_next_action": "targeted_correction_only_after_real_reading_gap",
+      "evidence_refs": [
+        "control-plane-read-admin-tenant-overview-v1",
+        "control-plane-read-admin-audit-log-v1",
+        "admin-operations-review-offline-v1",
+        "admin-provider-deployment-review-offline-v1",
+        "production-secret-reference-contract"
+      ],
+      "source_files": [
+        "apps/radishmind-web/src/features/control-plane-read/adminOperationsReview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/adminProviderDeploymentReview.ts"
+      ],
+      "blocked_capabilities": [
+        "tenant mutation",
+        "raw audit export",
+        "secret resolver",
+        "deployment preflight",
+        "Radish OIDC",
+        "repository adapter"
+      ]
+    }
+  ],
+  "implementation_trigger_recheck": [
+    {
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "source": "control-plane-read-implementation-trigger-review-v1",
+      "decision": "not_satisfied",
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false
+    },
+    {
+      "candidate_id": "store_selector_smoke_implementation",
+      "source": "control-plane-read-implementation-trigger-review-v1",
+      "decision": "not_satisfied",
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false
+    },
+    {
+      "candidate_id": "production_auth_implementation",
+      "source": "control-plane-read-implementation-trigger-review-v1",
+      "decision": "not_satisfied",
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false
+    },
+    {
+      "candidate_id": "adapter_smoke_execution",
+      "source": "control-plane-read-implementation-trigger-review-v1",
+      "decision": "not_satisfied",
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false
+    }
+  ],
+  "reading_gap_policy": {
+    "same_level_panel_default_allowed": false,
+    "targeted_correction_requires_real_reading_gap": true,
+    "new_checker_required_for_ordinary_copy_or_layout": false,
+    "special_gate_required_when": [
+      "new API",
+      "execution boundary",
+      "production claim",
+      "data format",
+      "external provider risk",
+      "high-risk capability"
+    ]
+  },
+  "dev_server_policy": {
+    "real_integration_server_owner": "developer",
+    "ai_auto_start_requires_explicit_request": true,
+    "background_process_must_be_closed_before_commit": true,
+    "this_slice_starts_dev_server": false
+  },
+  "forbidden_artifact_matrix": [
+    {
+      "path": "apps/radishmind-web/src/features/control-plane-read/productSurfaceReadinessRecheckPanel.tsx",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/manifest.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_store_selector.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_auth_middleware.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_repository_adapter.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/fixtures/control-plane-read-adapter-smoke-v1.json",
+      "created_in_this_slice": false
+    }
+  ],
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "dev_server_start_count=0",
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "dev_server_start",
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "deployment_preflight",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "required_source_references": {
+    "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHome.ts": [
+      "buildWorkflowUserWorkspaceHomeViewModel",
+      "canRequestLiveBackend: false"
+    ],
+    "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceReview.ts": [
+      "buildWorkflowWorkspaceReviewViewModel",
+      "canRequestLiveBackend: false"
+    ],
+    "apps/radishmind-web/src/features/control-plane-read/workflowReviewHandoff.ts": [
+      "buildWorkflowReviewHandoffViewModel",
+      "canRequestLiveBackend: false"
+    ],
+    "apps/radishmind-web/src/features/control-plane-read/modelGatewayEvidenceReview.ts": [
+      "buildModelGatewayEvidenceReviewViewModel",
+      "canRequestProductionGateway: false",
+      "canResolveProductionSecret: false"
+    ],
+    "apps/radishmind-web/src/features/control-plane-read/adminProviderDeploymentReview.ts": [
+      "buildAdminProviderDeploymentReviewViewModel",
+      "canRequestProductionGateway: false",
+      "canResolveProductionSecret: false",
+      "canRunDeploymentPreflight: false"
+    ],
+    "apps/radishmind-web/src/app/App.tsx": [
+      "WorkflowUserWorkspaceHomePanel",
+      "WorkflowWorkspaceReviewPanel",
+      "WorkflowReviewHandoffPanel",
+      "ModelGatewayEvidenceReviewPanel",
+      "AdminProviderDeploymentReviewPanel"
+    ]
+  },
+  "required_doc_references": {
+    "docs/radishmind-current-focus.md": [
+      "product-surface-readiness-implementation-trigger-recheck-v1",
+      "product_surface_readiness_trigger_recheck_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "product-surface-readiness-implementation-trigger-recheck-v1",
+      "product_surface_readiness_trigger_recheck_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "product-surface-readiness-implementation-trigger-recheck-v1",
+      "product_surface_readiness_trigger_recheck_defined"
+    ],
+    "docs/task-cards/README.md": [
+      "product-surface-readiness-implementation-trigger-recheck-v1",
+      "Product Surface Readiness / Implementation Trigger Recheck"
+    ],
+    "docs/task-cards/product-surface-readiness-implementation-trigger-recheck-v1-plan.md": [
+      "product-surface-readiness-implementation-trigger-recheck-v1",
+      "product_surface_readiness_trigger_recheck_defined"
+    ],
+    "scripts/README.md": [
+      "check-product-surface-readiness-implementation-trigger-recheck-v1.py",
+      "product-surface-readiness-implementation-trigger-recheck-v1.json"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "product-surface-readiness-implementation-trigger-recheck-v1",
+      "product_surface_readiness_trigger_recheck_defined"
+    ],
+    "AGENTS.md": [
+      "真实联调需要启动开发服务器",
+      "必须在任务结束、提交或交接前关闭对应后台进程"
+    ],
+    "CLAUDE.md": [
+      "真实联调需要启动开发服务器",
+      "必须在任务结束、提交或交接前关闭对应后台进程"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/product-surface-readiness-implementation-trigger-recheck-v1-plan.md",
+    "scripts/checks/fixtures/product-surface-readiness-implementation-trigger-recheck-v1.json",
+    "scripts/checks/control_plane/check-product-surface-readiness-implementation-trigger-recheck-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "docs/devlogs/2026-W24.md"
+  ]
+}
