@@ -33,6 +33,8 @@
 - Artifact store / binary reader boundary readiness smoke：`scripts/check-image-artifact-store-binary-reader-boundary-readiness-v1.py`
 - Artifact runtime mapper implementation plan fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-plan-v1.json`
 - Artifact runtime mapper implementation plan smoke：`scripts/check-image-artifact-runtime-mapper-implementation-plan-v1.py`
+- Artifact runtime mapper implementation entry fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-entry-v1.json`
+- Artifact runtime mapper implementation entry smoke：`scripts/check-image-artifact-runtime-mapper-implementation-entry-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -293,3 +295,13 @@
 - 成功路径必须保留 `artifact://`、sha256、mime type、dimensions、safety review、provenance 和 metadata reference；`blocked / failed / pending_review` artifact 不得进入成功 response。
 - invalid metadata、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、artifact store missing / unavailable、binary reader missing / forbidden、safety review not passed 和 provenance missing 都必须 fail closed。
 - 下一步只能进入 runtime mapper implementation entry review，由该 entry review 决定是否选择一个实现方向；当前仍不读取 artifact 二进制、不调用真实 backend、不生成图片、不上传 artifact、不启动 UI 或 dev server。
+
+### Artifact runtime mapper implementation entry review
+
+`image-artifact-runtime-mapper-implementation-entry-v1` 已把 runtime mapper implementation entry review 固定为 `image_artifact_runtime_mapper_implementation_entry_review_defined`。该证据层复核 implementation plan、store / binary reader boundary readiness、runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness 后，只选择下一步允许创建 metadata-only runtime mapper implementation task card；不创建该 task card，不实现 runtime mapper，不创建 artifact store、binary reader、public URL resolver、backend adapter implementation 或 production storage。
+
+入口复核要求：
+
+- 下一张 runtime mapper implementation task card 只能覆盖 metadata-only mapper input validation、`image_generation_artifact` 到 future CopilotResponse artifact citation / metadata reference 的 projection、成功映射测试、fail-closed 测试和 no side effects smoke。
+- artifact store、binary reader、public URL resolver 和 backend adapter implementation 继续 deferred，不得与 runtime mapper implementation task card 并行打开。
+- 当前不允许 runtime mapping execution、artifact store lookup、artifact binary read、artifact upload、public / signed URL resolution、backend call、image generation、response schema change、executor、confirmation、writeback 或 replay。

@@ -133,6 +133,7 @@
 6. [`Image Artifact Runtime Mapping Implementation Entry Review` v1 计划](image-artifact-runtime-mapping-implementation-entry-review-v1-plan.md)（`image-artifact-runtime-mapping-implementation-entry-review-v1`）
 7. [`Image Artifact Store / Binary Reader Boundary Readiness` v1 计划](image-artifact-store-binary-reader-boundary-readiness-v1-plan.md)（`image-artifact-store-binary-reader-boundary-readiness-v1`）
 8. [`Image Artifact Runtime Mapper Implementation Plan` v1 计划](image-artifact-runtime-mapper-implementation-plan-v1-plan.md)（`image-artifact-runtime-mapper-implementation-plan-v1`）
+9. [`Image Artifact Runtime Mapper Implementation Entry` v1 计划](image-artifact-runtime-mapper-implementation-entry-v1-plan.md)（`image-artifact-runtime-mapper-implementation-entry-v1`）
 
 使用原则：
 
