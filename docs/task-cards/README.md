@@ -105,6 +105,7 @@
 55. [`Workflow Function Surface Readiness Close` v1 计划](workflow-function-surface-readiness-close-v1-plan.md)（`workflow-function-surface-readiness-close-v1`）
 56. [`Product Surface Readiness / Implementation Trigger Recheck` v1 计划](product-surface-readiness-implementation-trigger-recheck-v1-plan.md)（`product-surface-readiness-implementation-trigger-recheck-v1`）
 57. [`Control Plane Read Schema Artifact Evidence` v1 计划](control-plane-read-schema-artifact-evidence-v1-plan.md)（`control-plane-read-schema-artifact-evidence-v1`）
+58. [`Control Plane Read Implementation Entry Review` v1 计划](control-plane-read-implementation-entry-review-v1-plan.md)（`control-plane-read-implementation-entry-review-v1`）
 
 ## UI 设计专题
 

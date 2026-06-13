@@ -95,9 +95,11 @@
 
 `control-plane-read-implementation-trigger-review-v1` 当前只固定 implementation trigger review，状态为 `implementation_trigger_review_defined`：schema artifact、store selector、production auth 和 adapter smoke 四类候选均为 `not_satisfied`，当前没有任何 read-side implementation trigger satisfied。它不创建 migration manifest、SQL、selector、auth middleware、adapter smoke fixture / checker、repository interface、repository adapter、真实数据库、token validation 或 production API consumer，不实现 API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
+`control-plane-read-implementation-entry-review-v1` 当前只固定 implementation entry review，状态为 `implementation_entry_review_defined`：读取 trigger review、schema artifact evidence 和 product surface recheck 后，结论仍是当前不打开实现入口；未来只有 trigger 满足后才允许选择单一实现方向进入任务卡。它不新增同层只读 UI、不启动开发服务器、不创建 implementation task card、migration manifest、SQL、selector、auth middleware、adapter smoke fixture / checker、repository interface、repository adapter、真实数据库、token validation 或 production API consumer。
+
 ## Control Plane Read-Side readiness 运行层说明
 
-平台服务层当前只注册 fake-store-backed read route 和 dev-only live consumer 所需的测试身份入口。`control-plane-read-production-auth-readiness-v1`、`control-plane-read-adapter-smoke-readiness-v1` 和 `control-plane-read-implementation-trigger-review-v1` 都是静态治理检查，不会改变 HTTP route 行为，也不会启用 `RADISHMIND_CONTROL_PLANE_READ_STORE`、production auth middleware、数据库连接或 production API consumer。
+平台服务层当前只注册 fake-store-backed read route 和 dev-only live consumer 所需的测试身份入口。`control-plane-read-production-auth-readiness-v1`、`control-plane-read-adapter-smoke-readiness-v1`、`control-plane-read-implementation-trigger-review-v1` 和 `control-plane-read-implementation-entry-review-v1` 都是静态治理检查，不会改变 HTTP route 行为，也不会启用 `RADISHMIND_CONTROL_PLANE_READ_STORE`、production auth middleware、数据库连接或 production API consumer。
 
 这些 checker 会刻意确认以下未来文件仍不存在：`control_plane_read_auth_middleware.go`、`control_plane_read_repository_interface.go`、`control_plane_read_repository_adapter.go`、`control_plane_read_store_selector.go`、`contracts/radish-oidc-token-validation.schema.json`、read-side migration manifest 和 adapter smoke fixture。平台代码如果提前出现这些文件，应先回到对应实现任务卡和 gate，而不是把当前 readiness checker 当成允许实现的依据。
 
