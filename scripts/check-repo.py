@@ -1295,6 +1295,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-image-generation-eval-manifest.py", [])
     run_python_script("check-image-adapter-handshake-safety-gate-v1.py", [])
     run_python_script("check-image-artifact-return-runbook-evidence-v1.py", [])
+    run_python_script("check-image-safety-runbook-evidence-v1.py", [])
     check_path_budget()
     check_required_files()
     check_content_baseline()

@@ -21,6 +21,8 @@
 - Handshake / safety gate smoke：`scripts/check-image-adapter-handshake-safety-gate-v1.py`
 - Artifact return runbook fixture：`scripts/checks/fixtures/image-artifact-return-runbook-evidence-v1.json`
 - Artifact return runbook smoke：`scripts/check-image-artifact-return-runbook-evidence-v1.py`
+- Safety runbook fixture：`scripts/checks/fixtures/image-safety-runbook-evidence-v1.json`
+- Safety runbook smoke：`scripts/check-image-safety-runbook-evidence-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -213,3 +215,14 @@
 - `artifact://` 只表示仓库契约里的 artifact reference，不是 public URL、signed URL、production storage location 或 binary download endpoint。
 - 上层响应当前只能消费 metadata reference 证据；`pixel_payload`、`base64_image`、provider raw response、storage write result、executor ref、writeback ref 和 replay ref 都不得进入该返回层。
 - 失败分类固定为 `image_backend_unavailable`、`image_artifact_metadata_missing`、`image_artifact_hash_mismatch` 和 `image_artifact_safety_blocked`；这些失败只能返回 blocked / failed metadata 状态，不触发自动 retry、fallback execution 或真实 backend health 声明。
+
+### Safety runbook evidence
+
+`image-safety-runbook-evidence-v1` 已把图片路径安全审查 runbook 固定为 `image_safety_runbook_evidence_defined`。该证据层只定义 intent precheck、adapter gate、artifact safety review 和 failure taxonomy，不接 moderation provider，不实现 runtime policy engine，也不调用真实生图 backend。
+
+安全证据要求：
+
+- intent precheck 必须读取 `prompt.positive`、`prompt.negative`、constraints、`safety.requires_confirmation`、`safety.risk_level` 和 `review_notes`；这些字段只进入 safety runbook 证据，不触发 backend。
+- Adapter gate 必须在 backend request 前处理 `requires_confirmation=true`、high risk 和 policy unknown，输出 `blocked_requires_confirmation` 或等价 blocked 状态；不能写成自动提交 backend。
+- artifact safety review 必须保留 `risk_level`、`requires_confirmation`、`review_status`、`review_notes`、hash、`artifact://` URI 和 provenance；`pending_review` 与 `blocked` 都不能返回成功 artifact reference。
+- 失败分类固定为 `image_prompt_policy_unknown`、`image_intent_requires_confirmation`、`image_intent_high_risk`、`image_backend_safety_gate_blocked`、`image_backend_unavailable`、`image_artifact_safety_pending_review` 和 `image_artifact_safety_blocked`；这些失败不触发 retry loop、fallback execution、moderation provider 调用或真实 backend health 声明。

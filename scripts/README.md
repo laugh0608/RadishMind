@@ -101,6 +101,7 @@
   - 当前还提供 `check-image-generation-eval-manifest.py`，用于校验 `scripts/checks/fixtures/image-generation-eval-manifest-v0.json` 的最小图片生成评测 manifest；该检查只覆盖结构化意图、backend request 映射、artifact metadata、safety gate 与 provenance，不调用真实生图 backend、不生成图片、不下载模型
   - 当前还提供 `check-image-adapter-handshake-safety-gate-v1.py`，用于校验 `image-adapter-handshake-safety-gate-v1` 的 adapter handoff、safety gate、blocked confirmation、backend unavailable 和 artifact metadata-only 返回边界；该检查不调用真实生图 backend、不生成图片、不下载模型、不上传 artifact、不启动开发服务器
   - 当前还提供 `check-image-artifact-return-runbook-evidence-v1.py`，用于校验 `image-artifact-return-runbook-evidence-v1` 的 artifact metadata reference、failure taxonomy 和返回 runbook；该检查不改 response schema、不实现 runtime mapping、不上传 artifact、不读取图片二进制、不创建 public URL
+  - 当前还提供 `check-image-safety-runbook-evidence-v1.py`，用于校验 `image-safety-runbook-evidence-v1` 的 safety runbook、intent precheck、adapter gate、artifact safety review 和失败分类；该检查不接 moderation provider、不调用真实生图 backend、不生成图片、不下载模型
 - `scripts/checks/`
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper

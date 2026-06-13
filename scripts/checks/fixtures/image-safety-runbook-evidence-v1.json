@@ -1,0 +1,537 @@
+{
+  "schema_version": 1,
+  "kind": "image_safety_runbook_evidence_v1",
+  "slice": {
+    "id": "image-safety-runbook-evidence-v1",
+    "track": "Image Path",
+    "status": "image_safety_runbook_evidence_defined",
+    "does_not_claim": [
+      "image_safety_runtime_ready",
+      "image_safety_classifier_ready",
+      "runtime_policy_engine_ready",
+      "moderation_provider_ready",
+      "image_backend_client_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_quality_evaluated",
+      "model_download_ready",
+      "artifact_upload_ready",
+      "production_artifact_storage_ready",
+      "public_artifact_url_ready",
+      "copilot_response_artifact_runtime_ready",
+      "automatic_retry_ready",
+      "fallback_execution_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-adapter-handshake-safety-gate-v1",
+    "image-artifact-return-runbook-evidence-v1",
+    "image-generation-eval-manifest-v0",
+    "contracts/image-generation-intent.schema.json",
+    "contracts/image-generation-backend-request.schema.json",
+    "contracts/image-generation-artifact.schema.json"
+  ],
+  "safety_runbook_boundary": {
+    "status": "image_safety_runbook_defined_no_runtime_policy_engine",
+    "decision": "safety_policy_runbook_only",
+    "source_intent_schema": "contracts/image-generation-intent.schema.json",
+    "source_backend_request_schema": "contracts/image-generation-backend-request.schema.json",
+    "source_artifact_schema": "contracts/image-generation-artifact.schema.json",
+    "upstream_handshake_fixture": "scripts/checks/fixtures/image-adapter-handshake-safety-gate-v1.json",
+    "upstream_artifact_return_fixture": "scripts/checks/fixtures/image-artifact-return-runbook-evidence-v1.json",
+    "copilot_response_schema_changed_in_this_slice": false,
+    "image_safety_runtime_created_in_this_slice": false,
+    "image_safety_classifier_created_in_this_slice": false,
+    "runtime_policy_engine_created_in_this_slice": false,
+    "moderation_provider_created_in_this_slice": false,
+    "image_backend_client_created_in_this_slice": false,
+    "artifact_store_created_in_this_slice": false,
+    "real_backend_call_allowed_now": false,
+    "image_generation_allowed_now": false,
+    "model_download_allowed_now": false,
+    "artifact_upload_allowed_now": false,
+    "public_url_allowed_now": false,
+    "production_storage_allowed_now": false,
+    "dev_server_started_in_this_slice": false
+  },
+  "policy_input_fields": {
+    "status": "defined_not_executable",
+    "runtime_policy_engine_required_now": false,
+    "required_fields": [
+      {
+        "source": "intent",
+        "path": "prompt.positive"
+      },
+      {
+        "source": "intent",
+        "path": "prompt.negative"
+      },
+      {
+        "source": "intent",
+        "path": "constraints.must_include"
+      },
+      {
+        "source": "intent",
+        "path": "constraints.must_avoid"
+      },
+      {
+        "source": "intent",
+        "path": "safety.requires_confirmation"
+      },
+      {
+        "source": "intent",
+        "path": "safety.risk_level"
+      },
+      {
+        "source": "intent",
+        "path": "safety.review_notes"
+      },
+      {
+        "source": "backend_request",
+        "path": "safety.gate"
+      },
+      {
+        "source": "backend_request",
+        "path": "safety.requires_confirmation"
+      },
+      {
+        "source": "backend_request",
+        "path": "safety.risk_level"
+      },
+      {
+        "source": "backend_request",
+        "path": "trace.trace_ids"
+      },
+      {
+        "source": "artifact",
+        "path": "safety.risk_level"
+      },
+      {
+        "source": "artifact",
+        "path": "safety.requires_confirmation"
+      },
+      {
+        "source": "artifact",
+        "path": "safety.review_status"
+      },
+      {
+        "source": "artifact",
+        "path": "safety.review_notes"
+      },
+      {
+        "source": "artifact",
+        "path": "artifact.sha256"
+      },
+      {
+        "source": "artifact",
+        "path": "provenance.trace_ids"
+      }
+    ],
+    "forbidden_fields": [
+      "pixel_payload",
+      "base64_image",
+      "provider_raw_response",
+      "external_moderation_result",
+      "signed_public_url",
+      "storage_write_result",
+      "human_confirmation_decision",
+      "executor_ref",
+      "writeback_ref",
+      "replay_ref"
+    ]
+  },
+  "safety_runbook_steps": [
+    {
+      "order": 1,
+      "step_id": "core_intent_safety_precheck",
+      "input": "image_generation intent",
+      "checks": [
+        "prompt present",
+        "negative prompt present",
+        "constraints present",
+        "risk level present",
+        "requires confirmation flag present"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 2,
+      "step_id": "adapter_safety_gate_before_backend_request",
+      "input": "image_generation intent",
+      "output": "image_generation_backend_request",
+      "required_evidence": [
+        "image-adapter-handshake-safety-gate-v1"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 3,
+      "step_id": "block_confirmation_required_or_high_risk",
+      "input": "intent safety",
+      "output": "blocked_requires_confirmation",
+      "blocked_conditions": [
+        "requires_confirmation=true",
+        "risk_level=high",
+        "policy_unknown"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 4,
+      "step_id": "backend_request_safety_trace_review",
+      "input": "image_generation_backend_request",
+      "checks": [
+        "safety gate present",
+        "risk level propagated",
+        "confirmation flag propagated",
+        "trace ids present"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 5,
+      "step_id": "artifact_metadata_safety_review",
+      "input": "image_generation_artifact",
+      "checks": [
+        "review status present",
+        "risk level present",
+        "confirmation flag present",
+        "hash present",
+        "provenance present"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 6,
+      "step_id": "route_failed_or_blocked_safety_metadata",
+      "input": "artifact safety review",
+      "output": "blocked or failed metadata status",
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 7,
+      "step_id": "defer_runtime_policy_engine_and_moderation_provider",
+      "input": "safety runbook",
+      "output": "blocked runtime implementation",
+      "allowed_now": false,
+      "runtime_implemented_now": false
+    }
+  ],
+  "safety_decision_matrix": [
+    {
+      "case_id": "low_risk_no_confirmation",
+      "intent_risk_level": "low",
+      "requires_confirmation": false,
+      "expected_backend_gate": "approved_for_backend",
+      "artifact_review_status": "not_required",
+      "metadata_reference_allowed_by_runbook": true,
+      "backend_call_allowed_now": false,
+      "runtime_return_implemented_now": false
+    },
+    {
+      "case_id": "confirmation_required",
+      "intent_risk_level": "medium",
+      "requires_confirmation": true,
+      "expected_backend_gate": "blocked_requires_confirmation",
+      "artifact_review_status": "pending_review",
+      "metadata_reference_allowed_by_runbook": false,
+      "backend_call_allowed_now": false,
+      "runtime_return_implemented_now": false
+    },
+    {
+      "case_id": "high_risk_or_policy_unknown",
+      "intent_risk_level": "high",
+      "requires_confirmation": true,
+      "expected_backend_gate": "blocked_requires_confirmation",
+      "artifact_review_status": "blocked",
+      "metadata_reference_allowed_by_runbook": false,
+      "backend_call_allowed_now": false,
+      "runtime_return_implemented_now": false
+    },
+    {
+      "case_id": "backend_unavailable_after_gate",
+      "intent_risk_level": "low",
+      "requires_confirmation": false,
+      "failure_code": "image_backend_unavailable",
+      "metadata_reference_allowed_by_runbook": false,
+      "backend_call_allowed_now": false,
+      "runtime_return_implemented_now": false
+    },
+    {
+      "case_id": "artifact_review_pending",
+      "intent_risk_level": "medium",
+      "requires_confirmation": true,
+      "failure_code": "image_artifact_safety_pending_review",
+      "artifact_review_status": "pending_review",
+      "metadata_reference_allowed_by_runbook": false,
+      "backend_call_allowed_now": false,
+      "runtime_return_implemented_now": false
+    },
+    {
+      "case_id": "artifact_review_blocked",
+      "intent_risk_level": "high",
+      "requires_confirmation": true,
+      "failure_code": "image_artifact_safety_blocked",
+      "artifact_review_status": "blocked",
+      "metadata_reference_allowed_by_runbook": false,
+      "backend_call_allowed_now": false,
+      "runtime_return_implemented_now": false
+    }
+  ],
+  "failure_taxonomy": [
+    {
+      "failure_code": "image_prompt_policy_unknown",
+      "source": "intent safety precheck",
+      "response_policy": "block before backend request mapping",
+      "retry_or_fallback_allowed_now": false,
+      "backend_request_created": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_intent_requires_confirmation",
+      "source": "intent safety precheck",
+      "response_policy": "block before backend submission",
+      "retry_or_fallback_allowed_now": false,
+      "backend_request_created": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_intent_high_risk",
+      "source": "intent safety precheck",
+      "response_policy": "block until human review and policy gate exist",
+      "retry_or_fallback_allowed_now": false,
+      "backend_request_created": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_safety_gate_blocked",
+      "source": "adapter safety gate",
+      "response_policy": "return blocked metadata status without backend call",
+      "retry_or_fallback_allowed_now": false,
+      "backend_request_created": true,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_backend_unavailable",
+      "source": "adapter safety gate or backend dispatch",
+      "response_policy": "return blocked metadata status without retry loop",
+      "retry_or_fallback_allowed_now": false,
+      "backend_request_created": true,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_artifact_safety_pending_review",
+      "source": "artifact safety review",
+      "response_policy": "return pending review metadata status only",
+      "retry_or_fallback_allowed_now": false,
+      "backend_request_created": true,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_artifact_safety_blocked",
+      "source": "artifact safety review",
+      "response_policy": "return safety blocked metadata status only",
+      "retry_or_fallback_allowed_now": false,
+      "backend_request_created": true,
+      "artifact_reference_returned": false
+    }
+  ],
+  "artifact_safety_review_requirements": {
+    "required_fields": [
+      "safety.risk_level",
+      "safety.requires_confirmation",
+      "safety.review_status",
+      "safety.review_notes",
+      "artifact.sha256",
+      "artifact.uri",
+      "provenance.trace_ids"
+    ],
+    "allowed_review_statuses": [
+      "not_required",
+      "pending_review",
+      "reviewed_pass",
+      "blocked"
+    ],
+    "blocked_review_statuses": [
+      "pending_review",
+      "blocked"
+    ],
+    "artifact_reference_return_blocked_when": [
+      "review_status=pending_review",
+      "review_status=blocked",
+      "risk_level=high",
+      "requires_confirmation=true"
+    ]
+  },
+  "artifact_visibility_policy": {
+    "metadata_visible_to_safety_runbook": true,
+    "pixel_payload_visible_to_safety_runbook": false,
+    "provider_raw_dump_visible_to_safety_runbook": false,
+    "external_moderation_dump_visible_to_safety_runbook": false,
+    "public_url_visible_to_safety_runbook": false,
+    "artifact_binary_download_allowed_now": false,
+    "artifact_upload_allowed_now": false,
+    "production_storage_allowed_now": false
+  },
+  "forbidden_artifact_matrix": [
+    {
+      "path": "adapters/image/image_safety_policy.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_safety_runtime.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_safety_classifier.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_safety.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-safety-runbook.schema.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageSafetyPanel.tsx",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/run-image-safety-classifier.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "deploy/image-safety-service.yaml",
+      "created_in_this_slice": false
+    }
+  ],
+  "source_absent_literals": [
+    "ImageSafetyRuntime",
+    "ImageSafetyClassifier",
+    "ImageSafetyPolicyEngine",
+    "ImageModerationProvider",
+    "image_safety_runtime",
+    "image_safety_classifier",
+    "image_safety_policy_engine",
+    "IMAGE_SAFETY_PROVIDER_URL",
+    "IMAGE_SAFETY_MODEL_DIR",
+    "ImageSafetyPanel",
+    "runImageSafetyClassifier",
+    "callImageModerationProvider"
+  ],
+  "execution_policy": {
+    "does_not_call_backend": true,
+    "does_not_call_moderation_provider": true,
+    "does_not_generate_images": true,
+    "does_not_download_models": true,
+    "does_not_upload_artifacts": true,
+    "does_not_write_production_storage": true,
+    "does_not_start_dev_server": true,
+    "does_not_use_browser_plugin": true
+  },
+  "no_fake_fallback_policy": {
+    "policy_unknown_promoted_to_success_allowed": false,
+    "requires_confirmation_promoted_to_backend_allowed": false,
+    "high_risk_promoted_to_backend_allowed": false,
+    "pending_review_promoted_to_success_allowed": false,
+    "blocked_artifact_promoted_to_reference_allowed": false,
+    "backend_unavailable_promoted_to_retry_loop_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "backend_call_count=0",
+      "moderation_provider_call_count=0",
+      "policy_engine_call_count=0",
+      "image_generation_count=0",
+      "model_download_count=0",
+      "artifact_upload_count=0",
+      "production_storage_write_count=0",
+      "dev_server_start_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "real_backend_call",
+      "moderation_provider_call",
+      "runtime_policy_engine_call",
+      "image_pixel_generation",
+      "model_download",
+      "artifact_upload",
+      "production_storage_write",
+      "public_url_resolution",
+      "dev_server_start",
+      "browser_plugin_open",
+      "executor_call",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/image-safety-runbook-evidence-v1-plan.md",
+    "docs/contracts/image-generation.md",
+    "scripts/checks/fixtures/image-safety-runbook-evidence-v1.json",
+    "scripts/check-image-safety-runbook-evidence-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-image-safety-runbook-evidence-v1.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-safety-runbook-evidence-v1",
+      "image_safety_runbook_evidence_defined",
+      "safety runbook"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image_safety_runbook_evidence_defined",
+      "safety runbook"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-safety-runbook-evidence-v1",
+      "安全审查 runbook"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Safety Runbook Evidence",
+      "image-safety-runbook-evidence-v1"
+    ],
+    "scripts/README.md": [
+      "check-image-safety-runbook-evidence-v1.py",
+      "不接 moderation provider"
+    ],
+    "contracts/README.md": [
+      "image-safety-runbook-evidence-v1",
+      "safety runbook"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image_safety_runbook_evidence_defined",
+      "真实 backend"
+    ],
+    "docs/radishmind-architecture.md": [
+      "image_safety_runbook_evidence_defined",
+      "安全审查 runbook"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-safety-runbook-evidence-v1",
+      "image_safety_runbook_evidence_defined"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "image-safety-runbook-evidence-v1",
+      "image_safety_runbook_evidence_defined"
+    ]
+  }
+}
