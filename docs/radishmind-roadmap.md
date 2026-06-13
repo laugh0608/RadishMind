@@ -117,9 +117,9 @@
 
 ### `Image Path`
 
-状态：intent、backend request、artifact schema 与最小评测 manifest 已具备；`image-adapter-handshake-safety-gate-v1` 已固定为 `image_adapter_handshake_safety_gate_defined`，明确结构化 intent handoff、adapter safety gate、blocked confirmation、backend unavailable 和 artifact metadata-only 返回边界；真实 backend 仍未接入。
+状态：intent、backend request、artifact schema 与最小评测 manifest 已具备；`image-adapter-handshake-safety-gate-v1` 已固定为 `image_adapter_handshake_safety_gate_defined`，`image-artifact-return-runbook-evidence-v1` 已固定为 `image_artifact_return_runbook_evidence_defined`，明确结构化 intent handoff、adapter safety gate、blocked confirmation、backend unavailable、artifact metadata-only 和 metadata reference 返回边界；真实 backend 仍未接入。
 
-下一步：继续收口 artifact 返回链路 runbook 与 image safety runbook 证据，不下载模型、不生成图片、不接真实 backend。
+下一步：继续收口 image safety runbook 证据，不下载模型、不生成图片、不接真实 backend。
 
 ### 上层项目接入
 

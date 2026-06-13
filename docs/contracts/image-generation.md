@@ -19,6 +19,8 @@
 - 评测 manifest smoke：`scripts/check-image-generation-eval-manifest.py`
 - Handshake / safety gate fixture：`scripts/checks/fixtures/image-adapter-handshake-safety-gate-v1.json`
 - Handshake / safety gate smoke：`scripts/check-image-adapter-handshake-safety-gate-v1.py`
+- Artifact return runbook fixture：`scripts/checks/fixtures/image-artifact-return-runbook-evidence-v1.json`
+- Artifact return runbook smoke：`scripts/check-image-artifact-return-runbook-evidence-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -200,3 +202,14 @@
 - `requires_confirmation=true`、高风险或 policy unknown 场景必须在 backend submission 前停住，并保持 `blocked_requires_confirmation` 或等价 blocked gate。
 - backend result 只允许回写 `image_generation_artifact` metadata，当前不提交图片像素、provider raw dump、公开 URL 或 production artifact storage。
 - artifact metadata 回到上层响应前仍是 metadata-only reference，不实现 runtime response mapping、artifact upload、executor、confirmation decision、writeback 或 replay。
+
+### Artifact return runbook evidence
+
+`image-artifact-return-runbook-evidence-v1` 已把 artifact 返回链路 runbook 固定为 `image_artifact_return_runbook_evidence_defined`。该证据层只定义 metadata reference，不改 `CopilotResponse` schema，不实现 runtime mapping，也不上传 artifact。
+
+返回证据要求：
+
+- metadata reference 必须来自 `image_generation_artifact`，保留 `artifact_id`、`intent_id`、`backend_request_id`、`artifact://` URI、mime type、尺寸、格式、hash、title、purpose、backend/model、seed、safety review、provenance 和 `created_at`。
+- `artifact://` 只表示仓库契约里的 artifact reference，不是 public URL、signed URL、production storage location 或 binary download endpoint。
+- 上层响应当前只能消费 metadata reference 证据；`pixel_payload`、`base64_image`、provider raw response、storage write result、executor ref、writeback ref 和 replay ref 都不得进入该返回层。
+- 失败分类固定为 `image_backend_unavailable`、`image_artifact_metadata_missing`、`image_artifact_hash_mismatch` 和 `image_artifact_safety_blocked`；这些失败只能返回 blocked / failed metadata 状态，不触发自动 retry、fallback execution 或真实 backend health 声明。

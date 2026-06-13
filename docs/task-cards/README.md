@@ -126,6 +126,7 @@
 ## Image Path
 
 1. [`Image Adapter Handshake / Safety Gate` v1 计划](image-adapter-handshake-safety-gate-v1-plan.md)（`image-adapter-handshake-safety-gate-v1`）
+2. [`Image Artifact Return Runbook / Metadata Evidence` v1 计划](image-artifact-return-runbook-evidence-v1-plan.md)（`image-artifact-return-runbook-evidence-v1`）
 
 使用原则：
 

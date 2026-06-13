@@ -215,7 +215,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `RadishFlow` 的 gateway demo、service smoke matrix、UI consumption 和 candidate edit handoff 已作为未来接入门禁保留；在上层项目尚未具备真实接入能力前，当前只收口前置条件与阻塞项，不继续细化新的接线设计或模拟接入 summary。
 - `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 的真实 candidate record、audit、replay 和治理链已阶段性收口；新增真实 capture 需要先说明非重复 drift 假设。
 - `RadishMind-Core` 本地小模型观测显示 raw 仍 blocked；broader review 的 15/15 `reviewed_pass`、`3B/4B` guided capacity review、1.5B full-holdout-9 raw / repaired comparison 和 3B CPU 单样本 timeout 当前只保留为路线证据，在没有 GPU / 明确实验窗口 / 新能力假设前不再默认继续真实模型产出专题。
-- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata、最小评测 manifest 与 `image_adapter_handshake_safety_gate_defined` 证据；当前只固定 metadata-only handoff / safety gate，不调用真实生图 backend。
+- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata、最小评测 manifest、`image_adapter_handshake_safety_gate_defined` 与 `image_artifact_return_runbook_evidence_defined` 证据；当前只固定 metadata reference / safety gate，不调用真实生图 backend。
 
 ## 工程约束
 
