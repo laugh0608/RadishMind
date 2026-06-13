@@ -46,7 +46,7 @@
 - `RadishFlow` 仍是第一优先应用面，但当前只冻结 gateway、UI consumption 和 candidate handoff 门禁；上层尚未具备真实接入能力前，不继续细化假想接线。
 - `Radish` 当前保留 docs QA、文档检索增强和结构化问答资产；真实上层接入仍等待。
 - `RadishCatalyst` 仍只做文档级预留，不扩真实 schema、adapter、gateway smoke 或模型接线。
-- 图片生成能力继续由 `RadishMind-Image Adapter` 与独立 backend 承接；主模型只负责结构化 intent、约束、审查和 artifact metadata。当前 Image Path 已补齐 artifact return、安全 runbook、backend adapter readiness、artifact runtime mapping readiness、implementation entry review 与 `image-artifact-store-binary-reader-boundary-readiness-v1` 证据；下一步进入 runtime mapper implementation plan 评审，仍不调用真实生图 backend、不改 `CopilotResponse` schema、不创建 artifact store 或 public URL。
+- 图片生成能力继续由 `RadishMind-Image Adapter` 与独立 backend 承接；主模型只负责结构化 intent、约束、审查和 artifact metadata。当前 Image Path 已补齐 artifact return、安全 runbook、backend adapter readiness、artifact runtime mapping readiness、implementation entry review、`image-artifact-store-binary-reader-boundary-readiness-v1` 与 `image-artifact-runtime-mapper-implementation-plan-v1` runtime mapper implementation plan 证据；下一步进入 runtime mapper implementation entry review，仍不调用真实生图 backend、不改 `CopilotResponse` schema、不创建 artifact store 或 public URL。
 
 ## 文档约束
 

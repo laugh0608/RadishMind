@@ -31,6 +31,8 @@
 - Artifact runtime mapping implementation entry review smoke：`scripts/check-image-artifact-runtime-mapping-implementation-entry-review-v1.py`
 - Artifact store / binary reader boundary readiness fixture：`scripts/checks/fixtures/image-artifact-store-binary-reader-boundary-readiness-v1.json`
 - Artifact store / binary reader boundary readiness smoke：`scripts/check-image-artifact-store-binary-reader-boundary-readiness-v1.py`
+- Artifact runtime mapper implementation plan fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-plan-v1.json`
+- Artifact runtime mapper implementation plan smoke：`scripts/check-image-artifact-runtime-mapper-implementation-plan-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -267,7 +269,7 @@
 - checker 必须跨读 runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness，确认这些证据不会被提升为 runtime mapper implementation ready。
 - runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选当前全部保持 `blocked`，不得创建对应 implementation task card 或 runtime artifact。
 - 当前不改 `CopilotResponse` schema，不创建 artifact store / public URL / binary reader，不调用真实 backend，不生成图片，不上传 artifact，也不进入 executor、confirmation、writeback 或 replay。
-- 后续若继续推进 Image Path，应先补 artifact store / binary reader boundary readiness，再评估单一 runtime mapping 实现方向。
+- 后续若继续推进 Image Path，应先补 runtime mapper implementation entry review，再评估单一 runtime mapping 实现方向。
 
 ### Artifact store / binary reader boundary readiness
 
@@ -280,3 +282,14 @@
 - `artifact://` 仍不是 public URL、signed URL、production storage path 或 binary download endpoint；public URL / signed URL 行为必须等待 production storage policy 和 expiry policy。
 - store missing、binary reader missing、invalid URI、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、pending / blocked safety review 和 provenance missing 都必须 fail closed。
 - 该 readiness 只允许下一步进入 runtime mapper implementation plan 评审，不允许直接写 runtime mapper、artifact store、binary reader、backend adapter implementation 或 response schema 变更。
+
+### Artifact runtime mapper implementation plan
+
+`image-artifact-runtime-mapper-implementation-plan-v1` 已把 future runtime mapper 的实现计划证据固定为 `image_artifact_runtime_mapper_implementation_plan_defined`。该证据层只组织 mapper 输入、future CopilotResponse artifact citation / metadata reference 目标、成功 / blocked 映射、fail-closed plan、单一实现方向策略和下一步 runtime mapper implementation entry review 条件；不改 `CopilotResponse` schema，不实现 runtime mapper，不创建 artifact store、binary reader、public URL resolver、backend adapter implementation 或 production storage。
+
+计划准入要求：
+
+- mapper 未来只能消费 `image_generation_artifact` metadata、store / binary reader boundary contract、runtime mapping readiness cases、artifact return runbook、image safety runbook 和 backend adapter readiness failure envelope。
+- 成功路径必须保留 `artifact://`、sha256、mime type、dimensions、safety review、provenance 和 metadata reference；`blocked / failed / pending_review` artifact 不得进入成功 response。
+- invalid metadata、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、artifact store missing / unavailable、binary reader missing / forbidden、safety review not passed 和 provenance missing 都必须 fail closed。
+- 下一步只能进入 runtime mapper implementation entry review，由该 entry review 决定是否选择一个实现方向；当前仍不读取 artifact 二进制、不调用真实 backend、不生成图片、不上传 artifact、不启动 UI 或 dev server。
