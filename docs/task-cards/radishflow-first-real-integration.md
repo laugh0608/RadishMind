@@ -37,7 +37,7 @@
 - `./scripts/run-python.sh scripts/check-radishflow-gateway-ui-consumption.py --check-summary scripts/checks/fixtures/radishflow-gateway-ui-consumption-summary.json`
 - `./scripts/run-python.sh scripts/check-radishflow-candidate-edit-handoff.py --check-summary scripts/checks/fixtures/radishflow-candidate-edit-handoff-summary.json`
 
-文档或治理改动完成后，仓库级最小验证继续优先使用：
+文档或治理改动完成后，仓库级必要验证继续优先使用：
 
 ```bash
 ./scripts/check-repo.sh --fast

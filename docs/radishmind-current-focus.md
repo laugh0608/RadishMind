@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-06-10
+更新时间：2026-06-13
 
 ## 文档目的
 
@@ -51,7 +51,11 @@ repository/read store 迁移链路已推进到 `control-plane-read-implementatio
 
 2026-06-10 已继续推进 `Admin Control Plane` 的普通离线只读汇总面：新增 Admin Operations Review / Readiness，复用 tenant overview、audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，把管理端 readiness rollup、evidence checklist、operational risks 和 boundary locks 集中展示。该面板只做 offline-only / read-only / evidence-only 审查组织，不新增真实后端 route、production gateway、API key lifecycle、quota enforcement、cost record write、secret resolver、数据库、Radish OIDC、repository adapter、deployment preflight、workflow executor、writeback 或 replay；普通展示继续复用 web build、浏览器布局检查和 fast baseline。
 
-2026-06-11 默认推进建议：优先做 `Admin Provider/Profile & Deployment Evidence Review / Readiness` 的只读证据组织。该方向接在今天的 Admin Operations Review 后面，复用现有 Model Gateway provider/profile evidence、tenant overview、audit log、Production Ops 静态证据和 Admin Operations Review，把 provider/profile、model route、secret ref readiness、deployment status、operator risk 和 boundary locks 的阅读路径整理清楚。明日仍不进入真实后端 route、production gateway、API key lifecycle、quota enforcement、cost record write、secret resolver、数据库、Radish OIDC、repository adapter、deployment preflight、workflow executor、writeback 或 replay；若实现前发现只是文案或导航阅读问题，应先做信息架构和说明同步，而不是新增同层面板。
+2026-06-13 已完成 `Admin Provider/Profile & Deployment Evidence Review / Readiness` 的普通离线只读证据组织：新增 `adminProviderDeploymentReview` view model 和 panel，复用 Model Gateway provider/profile evidence、route binding、selection case、tenant overview、audit log、Admin Operations Review 与 Production Ops 静态证据，把 provider/profile、model route、secret ref readiness、deployment status、operator risk 和 boundary locks 的阅读路径整理清楚。该面板继续只做 offline-only / read-only / evidence-only 管理端审查组织，不新增真实后端 route、production gateway、provider execution、API key lifecycle、quota enforcement、cost record write、secret resolver、数据库、Radish OIDC、repository adapter、deployment preflight、workflow executor、writeback 或 replay；普通展示继续复用 web build、浏览器布局检查和 fast baseline。
+
+2026-06-13 补充协作口径：真实联调需要启动开发服务器、平台后端或浏览器 dev server 时，默认由开发者在本机终端启动；AI 不默认自动启动或保留后台进程。只有开发者明确要求自动启动时，AI 才可启动，并必须在任务结束、提交或交接前关闭后台进程、说明验证方式。
+
+下一步默认不再继续新增同层 Admin / Gateway / Workflow 只读面板；优先做 `Product Surface Readiness / Implementation Trigger Recheck`：复核 User Workspace、Workflow Review、Model Gateway 和 Admin 四个产品面是否存在真实阅读缺口，并确认 read-side implementation trigger 是否仍未满足。若没有新的 trigger，继续不进入 repository adapter、数据库、Radish OIDC、API key lifecycle、quota enforcement、deployment preflight、executor、confirmation、writeback 或 replay。
 
 repository/read store 已完成状态字面量继续保留为：`repository_contract_preconditions_defined`、`disabled_database_guard_defined`、`repository_contract_smoke_defined`、`repository_implementation_readiness_defined`、`store_selection_readiness_defined`、`schema_migration_readiness_defined`、`repository_contract_types_readiness_defined`、`repository_contract_types_implemented`、`repository_contract_smoke_runner_readiness_defined`、`repository_contract_smoke_runner_implemented`、`repository_interface_readiness_defined`、`repository_adapter_implementation_readiness_refreshed`、`store_selector_enablement_preconditions_defined`、`schema_migration_implementation_preconditions_defined`、`repository_adapter_implementation_plan_defined`、`schema_artifact_manifest_readiness_defined`、`store_selector_smoke_readiness_defined`、`production_auth_readiness_defined`、`adapter_smoke_readiness_defined` 与 `implementation_trigger_review_defined`。
 
@@ -96,7 +100,14 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 5. `P3 Local Product Shell / Ops Surface`、`Conversation & Session`、`Tooling Framework` 与 `UI Design Topic / React 第二批` 均保持 close / governance-only 状态，不再默认新增同类只读 UI、P2 readiness / rollup / manifest 或 UI polish。P2 停止线证据继续保留为 `session-tooling-readiness-summary.json`、`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `session-tooling-short-close-entry-checklist.json`；`P2 short close` 边界不变，相关 `negative_regression_suite` 边界不变，这些 fixture 不代表 executor、durable store、confirmation、materialized result reader、长期记忆或 replay 已完成。
 6. `Evaluation & Governance`：当前阶段门禁已从“每个小 UI 展示项新增 fixture / checker / task card”调整为“能力边界与聚合门禁优先”。`control-plane-read-formal-ui-readiness-close-v1` 已作为聚合 surface matrix 接入 fast baseline，后续普通 UI 展示和文案 / 布局改动优先复用 web build、consumer smoke、聚合 read-side checker 和 fast baseline；只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项门禁。CI required checks 已同步升级为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests`，并让 `pull_request -> dev / master`、`push -> dev` 和 release precheck 覆盖正式 web 构建与 Go 平台测试；该更新不引入部署、镜像发布、live backend、数据库、OIDC、repository adapter、executor、confirmation、writeback 或 replay。
 
-## 今日完成（2026-06-10）
+## 今日完成（2026-06-13）
+
+1. 已完成普通离线 Admin Provider/Profile & Deployment Evidence Review / Readiness：新增 `adminProviderDeploymentReview` view model 和 panel，接入 `apps/radishmind-web/` Admin 分组导航、顶部 fact 和页面正文。
+2. 新面板复用 `modelGatewayRouteEvidence`、`modelGatewayEvidenceReview`、`adminOperationsReview`、tenant overview 和 audit log，集中展示 provider/profile readiness、model route readiness、secret / deployment evidence、operator risks 和 locked capabilities。
+3. 该推进只整理管理端证据阅读路径；不接真实生产后端、不实现 production gateway、不发放或验证真实 API key、不执行 quota / rate limit、不写 cost record、不解析 production secret、不接数据库或 Radish auth、不实现 repository adapter、不跑 deployment preflight、不启动 workflow runtime、不写回或 replay。
+4. 本轮已通过 `npm run build`、`./scripts/check-repo.sh --fast`，并完成桌面 1280px 与 390px 窄屏浏览器检查；新 Admin Provider/Profile & Deployment Evidence Review section、5 个 provider/profile cards、5 个 model route cards、8 个 secret / deployment evidence cards、14 个 operator risk cards 和 18 个 locked capability cards 均渲染，页面无横向溢出且 console error 为 0。
+
+## 最近完成（2026-06-10）
 
 1. 已完成普通离线 Model Gateway Overview：新增 `modelGatewayOverview` view model 和 panel，聚合 read shell、API key、quota、run trace、audit 与 provider/gateway readiness 证据。
 2. 已继续完成普通离线 Model Gateway Route Evidence：新增 `modelGatewayRouteEvidence` view model 和 panel，展示 provider/profile credential state、deployment mode、auth mode、streaming、route binding、selection cases 和 runtime guards。

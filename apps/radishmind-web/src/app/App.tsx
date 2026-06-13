@@ -13,6 +13,8 @@ import {
 } from "../features/control-plane-read/adminAuditLog";
 import { buildAdminOperationsReviewViewModel } from "../features/control-plane-read/adminOperationsReview";
 import { AdminOperationsReviewPanel } from "../features/control-plane-read/adminOperationsReviewPanel";
+import { buildAdminProviderDeploymentReviewViewModel } from "../features/control-plane-read/adminProviderDeploymentReview";
+import { AdminProviderDeploymentReviewPanel } from "../features/control-plane-read/adminProviderDeploymentReviewPanel";
 import {
   initialControlPlaneReadDevLiveLoadState,
   loadControlPlaneReadDevLiveCollections,
@@ -297,6 +299,17 @@ export function App() {
       }),
     [tenantOverview, adminAuditLog, modelGatewayEvidenceReview],
   );
+  const adminProviderDeploymentReview = useMemo(
+    () =>
+      buildAdminProviderDeploymentReviewViewModel({
+        tenantOverview,
+        adminAuditLog,
+        modelGatewayRouteEvidence,
+        modelGatewayEvidenceReview,
+        adminOperationsReview,
+      }),
+    [tenantOverview, adminAuditLog, modelGatewayRouteEvidence, modelGatewayEvidenceReview, adminOperationsReview],
+  );
   const workflowWorkspaceContext = useMemo(
     () =>
       buildWorkflowWorkspaceContextViewModel({
@@ -431,6 +444,7 @@ export function App() {
           <div className="nav-link-group" aria-label="Admin control plane sections">
             <p className="nav-link-group-label">Admin</p>
             <a href="#admin-operations-review">Operations Review</a>
+            <a href="#admin-provider-deployment-review">Provider Deployment</a>
             <a href="#admin-tenant-overview">Tenant Overview</a>
             <a href="#admin-audit-log">Audit Log</a>
           </div>
@@ -537,6 +551,10 @@ export function App() {
               label="Admin review"
               value={adminOperationsReview.canRenderAdminOperationsReview ? "offline" : "blocked"}
             />
+            <Fact
+              label="Admin provider"
+              value={adminProviderDeploymentReview.canRenderProviderDeploymentReview ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
@@ -547,6 +565,7 @@ export function App() {
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
         <ModelGatewayEvidenceReviewPanel review={modelGatewayEvidenceReview} />
         <AdminOperationsReviewPanel review={adminOperationsReview} />
+        <AdminProviderDeploymentReviewPanel review={adminProviderDeploymentReview} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
