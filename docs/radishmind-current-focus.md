@@ -38,7 +38,7 @@
 
 - Image Path 已完成 `coerce_response_document` metadata-only response builder runtime integration，状态为 `image_artifact_response_builder_runtime_integration_implemented`。它只把 request artifact metadata 合并为现有 `CopilotResponse.citations` artifact citation，不改 response schema，不接 artifact store / binary reader / public URL / backend adapter，不调用真实生图 backend。
 - Control Plane Read 已完成 `control-plane-durable-read-foundation-v1`，状态为 `durable_read_foundation_implemented`。七条 read handlers 已通过 `ControlPlaneReadRepository` interface 消费 fake store，response envelope、fake auth 和 dev-only 边界保持不变。
-- Workflow v1 的普通离线审查流已覆盖 Workspace Home、Review Workspace、Review Handoff、surface overview、scenario inspector、draft designer、validation inspector、execution plan preview 和 runtime readiness inspector。
+- Workflow v1 的普通离线审查流已覆盖 Workspace Home、Review Workspace、Review Handoff、surface overview、scenario inspector、draft designer、validation inspector、execution plan preview 和 runtime readiness inspector；`Saved Workflow Draft v1` 已完成设计口径和实现任务卡，下一步可按任务卡进入草案保存、读取、校验、schema 和受控存储边界实现。
 - Model Gateway 和 Admin Control Plane 已完成第一版普通离线 evidence / readiness 组织层。
 - Provider Runtime & Health v1 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh`，由 `provider-capability-matrix-v1.json` / `check-provider-capability-matrix.py`、`provider-health-smoke-v1.json` / `check-provider-health-smoke.py`、`provider-selection-policy-v1.json` / `check-provider-selection-policy.py`、`provider-retry-fallback-policy-v1.json` / `check-provider-retry-fallback-policy.py` 和 `check-provider-runtime-docs-refresh.py` 固定证据；当前进入 close candidate，不继续默认新增 provider 同层小切片，也不把 provider health 写成 production readiness。
 - 当前没有数据库 / OIDC / adapter implementation trigger satisfied；repository adapter、SQL / migration、store selector、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 和 replay 都仍未打开。
@@ -74,7 +74,7 @@
 
 推荐下一批开发目标从以下方向选择一个：
 
-1. `Workflow / Agent Runtime`：定义并实现“可保存 workflow draft”或“可执行 run”的第一条受控路径。
+1. `Workflow / Agent Runtime`：按 `Workflow Saved Draft v1 Implementation` 任务卡实现草案保存、读取、校验、版本冲突处理和 sanitized response。
 2. `User Workspace`：从只读工作区推进到真实用户工作流入口，例如应用草案创建、选择、审查和保存边界。
 3. `Model Gateway / API Distribution`：推进真实 API distribution 前的 key / quota / trace 设计，而不是继续新增 evidence 面板。
 4. `Admin Control Plane`：为未来 Radish OIDC 或 read store adapter 选择单一实现方向，不能和管理端写入并行打开。
