@@ -6,13 +6,20 @@
 
 - 切片：`workflow-saved-draft-v1-implementation`
 - 轨道：`Workflow / Agent Runtime`
-- 状态：`saved_workflow_draft_implementation_plan_defined`
+- 状态：`saved_workflow_draft_domain_service_implemented`
 
 ## 目标
 
-在 `Workflow / Agent Runtime` 功能文档已经明确 `Saved Workflow Draft v1` 可打开范围后，进入首个实现批次准备：固定 draft schema / 类型、存储边界、save / read / validate 契约、版本冲突、失败语义和验证策略。
+在 `Workflow / Agent Runtime` 功能文档已经明确 `Saved Workflow Draft v1` 可打开范围后，完成首个实现批次：固定 draft schema / 类型、存储边界、save / read / validate 契约、版本冲突、失败语义和验证策略。
 
 本任务卡用于约束后续代码实现批次。它允许打开草案保存、读取、校验、schema 和受控存储边界，但不把 saved draft 扩张为 publish、run、executor、confirmation decision、writeback、replay 或 production API。
+
+## 本轮实现
+
+- 已新增 `services/platform/internal/httpapi/workflow_saved_draft.go`，定义 `SavedWorkflowDraft` v1 结构化类型、failure code、validation summary、blocked capability summary、request / audit metadata、内存 dev store 和 `SaveDraft` / `ReadDraft` / `ValidateDraft` domain service。
+- 已新增 `services/platform/internal/httpapi/workflow_saved_draft_test.go`，覆盖成功保存与读取、invalid 可保存、blocked capability 可审查、版本冲突、scope denied、not found、schema unsupported、payload too large、store unavailable、write disabled、no sample fallback、无部分写入和无 executor / confirmation / writeback / replay 副作用。
+- 当前存储形态是 platform 内部 memory dev store boundary，不是 durable repository adapter、真实数据库、schema migration、store selector 或 public production API。
+- 当前未新增 HTTP route 或 web consumer；下一步若把 domain service 接到 UI / dev-only route，应先明确 consumer contract、dev auth / write enablement 和 sample / saved record 区分方式。
 
 ## 输入事实源
 
