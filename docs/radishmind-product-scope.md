@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-13
+更新时间：2026-06-14
 
 ## 核心定义
 
@@ -35,7 +35,7 @@
 
 当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`control-plane-read-formal-ui-readiness-close-v1` 已用 surface matrix 聚合固定七个页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；`control-plane-read-auth-store-transition-preconditions-v1` 已固定从 dev fake auth / fixture-backed fake store 迁移到未来 auth middleware / read store repository 前必须满足的 gates。2026-06-14 起，普通展示、文案、布局和 evidence 组织默认复用聚合门禁，不再逐项新增 task card / fixture / checker；新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项 gate。上述内容都不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、repository adapter 或 workflow executor ready。
 
-read store 的产品范围现在已经从“继续固定未来迁移契约”转为“先做一层可替换的后端接口，再实现真实持久化”。`control-plane-read-repository-contract-smoke-v1`、`control-plane-read-repository-implementation-readiness-v1`、`control-plane-read-store-selection-readiness-v1` 和 `control-plane-read-schema-migration-readiness-v1` 继续说明未来七条 read route 如何从 fake store 迁移到 repository/database；下一阶段 `Control Plane Durable Read Foundation v1` 只允许先定义 `ControlPlaneReadRepository` interface，并让现有 fake-store-backed read handlers 通过 interface 消费数据。它不把 read-side 页面升级成 production API consumer，也不实现 SQL、migration、repository adapter、真实数据库、Radish OIDC、token validation、API key lifecycle、quota enforcement 或 workflow executor。
+read store 的产品范围现在已经从“继续固定未来迁移契约”推进到“先做一层可替换的后端接口，再实现真实持久化”。`Control Plane Durable Read Foundation v1` 已定义 `ControlPlaneReadRepository` interface，并让现有七条 fake-store-backed read handlers 通过 interface 消费数据；`control-plane-read-repository-contract-smoke-v1`、`control-plane-read-repository-implementation-readiness-v1`、`control-plane-read-store-selection-readiness-v1` 和 `control-plane-read-schema-migration-readiness-v1` 继续说明未来七条 read route 如何从 fake store 迁移到 repository/database。它不把 read-side 页面升级成 production API consumer，也不实现 SQL、migration、repository adapter、真实数据库、Radish OIDC、token validation、API key lifecycle、quota enforcement 或 workflow executor。
 
 1. `User Workspace`
 
@@ -43,6 +43,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”转
 - 支持创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG 或知识问答应用。
 - 用户可以管理自己的应用、API key、调用量、运行记录和成本摘要。
 - 当前 `apps/radishmind-web/` 只提供 read-side 页面切片：applications、API keys、usage quota、workflow definitions 和 run history 默认都是离线只读展示；dev-only live read path 也只能读取 fake-store-backed handler，不提供创建、编辑、执行、replay 或写回控件。
+- `Saved Workflow Draft v1` 已具备 platform Go domain service、内存 dev store、save / read / validate 契约、版本冲突、失败语义、sanitized response 和 no sample fallback 测试；它还没有 HTTP route、web consumer、durable persistence 或 production API。
 - 工作流方向参考 `Dify` 的应用构建与 workflow 编排，但首版只实现 Radish 体系当前需要的可治理切片，不追求一次性复刻全量能力。
 
 2. `Admin Control Plane`
@@ -106,7 +107,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”转
 
 - 主模型只输出结构化 image intent、约束、审查和 artifact metadata。
 - 真正的图片生成由独立 image adapter 和 backend 承接。
-- 当前 `services/runtime/image_artifact_runtime_mapper.py` 与 `services/runtime/image_artifact_response_consumer.py` 只负责 metadata-only artifact reference 投影和现有 `CopilotResponse.citations` artifact citation 合并；下一步只允许在 `services/runtime/inference_response.py#coerce_response_document` 接入 metadata-only hook。它们不读取 artifact 二进制、不查 artifact store、不解析 public URL、不调用真实生图 backend、不上传 artifact、不修改 `CopilotResponse` schema。
+- 当前 `services/runtime/image_artifact_runtime_mapper.py`、`services/runtime/image_artifact_response_consumer.py` 与 `services/runtime/inference_response.py#coerce_response_document` 已形成 metadata-only response builder 链路：从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 读取 metadata，投影为 artifact citation，并合并进现有 `CopilotResponse.citations`。它们不读取 artifact 二进制、不查 artifact store、不解析 public URL、不调用真实生图 backend、不上传 artifact、不修改 `CopilotResponse` schema。
 - `blocked / failed / pending_review` artifact、invalid metadata、hash / mime / dimensions mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、store / reader 缺失、safety review not passed 和 provenance missing 都必须 fail closed，不能进入成功 response。
 
 ### 7. 用户端、管理端和上层项目接入面
@@ -124,7 +125,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”转
 
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“AI 工具 / 工作流 / 模型网关 / Copilot 集成平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
-- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。2026-06-14 阶段评估后，默认停止继续扩同层只读 UI / gate-only 切片；当前先收束 Image Path 的 metadata-only response builder 接线，随后转入 `Control Plane Durable Read Foundation v1` 的 repository interface + fake store interface 化，不在无运行窗口时继续补 console 小切片、provider 同层小切片、Production Ops 静态治理、真实模型长跑或假想上层接线。
+- 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。2026-06-14 阶段评估后，默认停止继续扩同层只读 UI / gate-only 切片；Image Path 的 metadata-only response builder 接线和 Control Plane Read 的 repository interface + fake store interface 化均已完成，后续产品范围按功能设计文档选择单一实现方向，不在无运行窗口时继续补 console 小切片、provider 同层小切片、Production Ops 静态治理、真实模型长跑或假想上层接线。
 - 训练 / 蒸馏样本继续只提交 manifest、summary、复核策略和实验说明；生成的 JSONL 和真实模型产物默认留在 `tmp/`。
 
 ## 当前优先支持的应用面

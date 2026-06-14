@@ -56,6 +56,13 @@
 - Artifact response builder runtime integration implementation fixture：`scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-implementation-v1.json`
 - Artifact response builder runtime integration implementation smoke：`scripts/check-image-artifact-response-builder-runtime-integration-implementation-v1.py`
 
+当前实现读法：
+
+- `services/runtime/image_artifact_runtime_mapper.py` 只做 `image_generation_artifact` metadata 到 artifact citation / metadata reference 的投影。
+- `services/runtime/image_artifact_response_consumer.py` 只把 mapper 成功结果合并进现有 `CopilotResponse.citations`，`metadata_reference` 只作为内部 handoff。
+- `services/runtime/inference_response.py#coerce_response_document` 只从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 发现 request-side metadata，按 request artifact 顺序经过 mapper / consumer 合并，并在最终 `CopilotResponse` schema validation 前 fail closed。
+- 这条链路不改 `CopilotResponse` schema，不读取 artifact 二进制，不查 artifact store，不解析 public URL，不调用真实生图 backend，不上传 artifact，也不接 gateway / platform HTTP route。
+
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
 ```json
@@ -235,11 +242,11 @@
 - Adapter 必须先执行 safety gate，只有低风险且 `requires_confirmation=false` 的 intent 才能映射到 `approved_for_backend` backend request；即便如此，当前仓库仍不调用真实 backend。
 - `requires_confirmation=true`、高风险或 policy unknown 场景必须在 backend submission 前停住，并保持 `blocked_requires_confirmation` 或等价 blocked gate。
 - backend result 只允许回写 `image_generation_artifact` metadata，当前不提交图片像素、provider raw dump、公开 URL 或 production artifact storage。
-- artifact metadata 回到上层响应前仍是 metadata-only reference，不实现 runtime response mapping、artifact upload、executor、confirmation decision、writeback 或 replay。
+- artifact metadata 回到上层响应前仍是 metadata-only reference；后续已通过 metadata-only mapper / consumer / response builder hook 接入现有 `CopilotResponse.citations`，但仍不实现 artifact upload、executor、confirmation decision、writeback 或 replay。
 
 ### Artifact return runbook evidence
 
-`image-artifact-return-runbook-evidence-v1` 已把 artifact 返回链路 runbook 固定为 `image_artifact_return_runbook_evidence_defined`。该证据层只定义 metadata reference，不改 `CopilotResponse` schema，不实现 runtime mapping，也不上传 artifact。
+`image-artifact-return-runbook-evidence-v1` 已把 artifact 返回链路 runbook 固定为 `image_artifact_return_runbook_evidence_defined`。该证据层本身只定义 metadata reference，不改 `CopilotResponse` schema，也不上传 artifact；runtime mapping、response consumer 与 response builder hook 已在后续 metadata-only 实现切片中单独落地。
 
 返回证据要求：
 
@@ -284,12 +291,12 @@
 
 ### Artifact runtime mapping implementation entry review
 
-`image-artifact-runtime-mapping-implementation-entry-review-v1` 已把 runtime mapping 实现入口复核固定为 `image_artifact_runtime_mapping_entry_review_defined`。结论是 readiness 证据可被消费，但实现入口仍未打开；当前只能把下一步指向 artifact store / binary reader boundary readiness。
+`image-artifact-runtime-mapping-implementation-entry-review-v1` 已把 runtime mapping 实现入口复核固定为 `image_artifact_runtime_mapping_entry_review_defined`。该 entry review 当时只允许把下一步指向 artifact store / binary reader boundary readiness，后续实现已按单一 metadata-only mapper / consumer / response builder hook 方向推进。
 
 入口评审要求：
 
 - checker 必须跨读 runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness，确认这些证据不会被提升为 runtime mapper implementation ready。
-- runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选当前全部保持 `blocked`，不得创建对应 implementation task card 或 runtime artifact。
+- 在该 entry review 切片内，runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选保持 `blocked`；后续只放宽了 metadata-only runtime mapper、response consumer 和 response builder hook，artifact store、binary reader、public URL resolver 与 backend adapter implementation 仍保持 deferred。
 - 当前不改 `CopilotResponse` schema，不创建 artifact store / public URL / binary reader，不调用真实 backend，不生成图片，不上传 artifact，也不进入 executor、confirmation、writeback 或 replay。
 - 后续若继续推进 Image Path，应先补 runtime mapper implementation entry review，再评估单一 runtime mapping 实现方向。
 
@@ -348,13 +355,13 @@ runtime 实现要求：
 
 ### Artifact runtime mapper response consumer integration review
 
-`image-artifact-runtime-mapper-response-consumer-integration-review-v1` 已把 metadata-only runtime mapper 到未来 response consumer 的入口评审固定为 `image_artifact_runtime_mapper_response_consumer_integration_review_defined`。该证据层只确认未来消费应沿现有 `CopilotResponse.citations` 的 `kind=artifact` citation 形状和 mapper 返回的 `metadata_reference` 进行 metadata-only handoff；不改 `CopilotResponse` schema，不实现 response consumer，不修改 response builder，不创建 artifact store、binary reader、public URL resolver 或 backend adapter。
+`image-artifact-runtime-mapper-response-consumer-integration-review-v1` 已把 metadata-only runtime mapper 到未来 response consumer 的入口评审固定为 `image_artifact_runtime_mapper_response_consumer_integration_review_defined`。该证据层只确认未来消费应沿现有 `CopilotResponse.citations` 的 `kind=artifact` citation 形状和 mapper 返回的 `metadata_reference` 进行 metadata-only handoff；后续已实现 response consumer 和 response builder hook，但仍不改 `CopilotResponse` schema，不创建 artifact store、binary reader、public URL resolver 或 backend adapter。
 
 response consumer 集成评审要求：
 
 - 只有 mapper 返回 `ok=true` 且 citation 符合 `CopilotResponse` citation schema 时，未来 consumer 才允许进入成功 response 路径。
 - `metadata_reference` 仍是内部 metadata-only handoff，不得作为 public URL、signed URL、binary payload、provider raw dump 或 production storage claim 暴露。
-- `blocked / failed / pending_review`、public URL claim、binary payload、provider raw dump 和其它 fail-closed case 不得生成成功 citation；现有 response builder 本切片仍保持未接线。
+- `blocked / failed / pending_review`、public URL claim、binary payload、provider raw dump 和其它 fail-closed case 不得生成成功 citation；该切片本身不接 response builder，后续接线只发生在 `coerce_response_document` metadata-only hook。
 
 ### Artifact response consumer implementation readiness
 
@@ -378,7 +385,7 @@ response consumer implementation task card 要求：
 
 ### Artifact response consumer runtime implementation
 
-`image-artifact-response-consumer-runtime-implementation-v1` 已把 metadata-only response consumer runtime 固定为 `image_artifact_response_consumer_runtime_implemented`。该实现由 `services/runtime/image_artifact_response_consumer.py` 承载，只消费已有 `CopilotResponse` draft 与 `ImageArtifactMappingResult`，成功时把 artifact citation append 到 `CopilotResponse.citations`，并把 `metadata_reference` 作为内部 handoff 随 result 返回；不改 `CopilotResponse` schema，不修改现有 response builder，不接 artifact store、binary reader、public URL resolver、gateway、platform HTTP route 或 backend adapter。
+`image-artifact-response-consumer-runtime-implementation-v1` 已把 metadata-only response consumer runtime 固定为 `image_artifact_response_consumer_runtime_implemented`。该实现由 `services/runtime/image_artifact_response_consumer.py` 承载，只消费已有 `CopilotResponse` draft 与 `ImageArtifactMappingResult`，成功时把 artifact citation append 到 `CopilotResponse.citations`，并把 `metadata_reference` 作为内部 handoff 随 result 返回；不改 `CopilotResponse` schema，不接 artifact store、binary reader、public URL resolver、gateway、platform HTTP route 或 backend adapter。后续 response builder hook 只调用这条 consumer 链路，不改变其职责边界。
 
 response consumer runtime implementation 要求：
 
