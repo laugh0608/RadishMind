@@ -418,7 +418,7 @@ response builder runtime integration entry review 要求：
 
 ### Artifact response builder runtime integration implementation task card
 
-`image-artifact-response-builder-runtime-integration-implementation-v1` 已把 metadata-only response builder runtime integration implementation task card 固定为 `image_artifact_response_builder_runtime_integration_implementation_task_card_defined`。该证据层只定义未来 runtime code 如何接入 `services/runtime/inference_response.py#coerce_response_document`，包括 hook contract、request metadata discovery、mapper / consumer merge pipeline、multiple metadata ordering、failure propagation、runtime test plan 和 no side effects；当前不修改 response builder，不改 `CopilotResponse` schema，不接 artifact store、binary reader、public URL resolver、gateway、platform route 或 backend adapter。
+`image-artifact-response-builder-runtime-integration-implementation-v1` 已把 metadata-only response builder runtime integration implementation task card 固定为 `image_artifact_response_builder_runtime_integration_implementation_task_card_defined`。该证据层定义当前 Image Path 收束实现切片如何接入 `services/runtime/inference_response.py#coerce_response_document`，包括 hook contract、request metadata discovery、mapper / consumer merge pipeline、multiple metadata ordering、failure propagation、runtime test plan 和 no side effects；完成该 hook 后不继续扩同层 Image gate。当前仍不改 `CopilotResponse` schema，不接 artifact store、binary reader、public URL resolver、gateway、platform route 或 backend adapter。
 
 response builder runtime integration implementation task card 要求：
 
