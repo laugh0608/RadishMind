@@ -29,24 +29,34 @@
 - 不要把 fast mode 当成最终门禁
 - 重要阶段性决策除了改代码，还应同步更新对应文档；如果属于本周重要推进，追加到周志
 
+## 开发节奏
+
+- 当前常态节奏为“功能设计文档先行”：长期功能或开发目标先更新 `docs/features/`，再拆具体实现任务
+- `docs/task-cards/` 只用于具体实现批次、前置条件或高风险边界，不再作为产品功能的默认主文档
+- 普通 UI、文案、布局、只读 evidence 组织和使用性整理，默认复用现有聚合门禁、web build、consumer smoke 和仓库基线
+- 只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时，才新增专项 task card、fixture 或 checker
+- 回答“下一步做什么”时，应先判断要推进哪个功能设计文档，而不是默认继续新增同层 gate-only 切片
+
 ## 文档真相源
 
 `docs/` 是本仓库的正式文档源，优先级最高的文档如下：
 
 1. `docs/radishmind-current-focus.md`
-2. `docs/radishmind-product-scope.md`
-3. `docs/radishmind-architecture.md`
-4. `docs/radishmind-roadmap.md`
-5. `docs/radishmind-integration-contracts.md`
-6. `docs/radishmind-code-standards.md`
-7. `docs/adr/0001-branch-and-pr-governance.md`
-8. `docs/devlogs/README.md`
+2. `docs/features/README.md`
+3. `docs/radishmind-product-scope.md`
+4. `docs/radishmind-architecture.md`
+5. `docs/radishmind-roadmap.md`
+6. `docs/radishmind-integration-contracts.md`
+7. `docs/radishmind-code-standards.md`
+8. `docs/adr/0001-branch-and-pr-governance.md`
+9. `docs/devlogs/README.md`
 
 规则：
 
 - 若代码与文档冲突，先判断是代码偏离文档，还是文档已过期，再统一修正
 - 优先更新已有文档，不为一次性讨论创建大量散文档
 - 回答“今天要做什么以推进开发”时，默认先读 `docs/radishmind-current-focus.md`，长契约、长评测文档和周志细节只在需要实施具体任务时按需读取
+- 实施具体功能时，先读或更新对应 `docs/features/*.md`；如果没有对应功能文档，应先创建短设计与开发文档，再进入实现
 - `docs/README.md`、产品范围、架构和路线图等关键入口文档应尽量简约，只保留定位、最近阶段、当前进度、下一步和明确停止线
 - 文档默认按“短入口 + 专题页 + 证据附件”组织；入口文档超过 `250` 行、普通 Markdown 超过 `800` 行、周志或任务卡超过 `600` 行会触发仓库检查失败
 - 普通 Markdown 超过 `500` 行、周志或任务卡超过 `350` 行会触发 warning；接近 warning 时应优先拆分专题、分片、manifest、summary 或 run record
@@ -92,6 +102,7 @@
 ### 规划与文档
 
 - `docs/`: 项目定位、架构、路线图、ADR、周志
+- `docs/features/`: 功能设计与开发文档，承载长期产品能力、开发目标、当前状态、下一批开发和停止线
 - `scripts/`: 仓库检查与自动化脚本
 - `.github/`: PR 模板、ruleset 模板、GitHub Actions
 
@@ -257,55 +268,6 @@ chore(PR): establish branch and pr conventions
 - 治理、检查和协作规则更稳定
 - 没有把后续实现复杂度提前压进本次范围
 
-## 开发原则
-
-1. 不做“玩具式最小实现”
-
-- 交付必须覆盖用户真实需求和主要使用路径。
-- 可以控制修改范围，但不能用临时方案、占位逻辑或半成品糊弄完成。
-
-2. 测试和验证按风险分层
-
-- 不要求任何改动都跑完整测试。
-- 小改动优先做精准验证；涉及核心流程、公共模块、数据一致性或用户可见行为时，再扩大测试范围。
-- 说明已验证的内容，以及未验证但存在风险的部分。
-
-3. 代码优先清晰、直观、易维护
-
-- 避免为了炫技引入复杂设计模式、过度抽象或晦涩写法。
-- 代码应让新人和实习生也能顺着业务逻辑读懂。
-- 只有在能明显降低复杂度、减少重复或符合现有架构时，才新增抽象。
-
-4. 保持架构清晰
-
-- 修改前先理解现有模块边界和调用关系。
-- 优先沿用项目已有风格、目录结构和设计习惯。
-- 不做无关重构，但遇到影响当前需求的结构问题时，应做小范围、必要的架构修正。
-
-5. 不做无意义的“安全兜底”
-
-- 不要为了表面稳妥到处吞异常、返回默认值或隐藏错误。
-- 对明确的外部输入、边界条件、IO、网络、权限、并发等风险点，应做必要校验和错误处理。
-- 兜底逻辑必须有明确目的，并且不能掩盖真实问题。
-
-6. 避免不必要的函数嵌套
-
-- 不写函数套函数、回调套回调等影响可读性的结构。
-- 优先使用命名清晰的普通函数、早返回和顺序流程。
-- 只有在闭包能明显简化状态管理且不影响阅读时，才允许局部函数。
-
-7. 优先最小化修改范围
-
-- 在满足需求和质量保证的前提下，尽量少改文件、少引入新变量、少新增函数。
-- 不为单次需求扩展无关能力。
-- 每个新增结构都应有明确用途，避免“顺手优化”和范围蔓延。
-
-8. 决策顺序
-
-- 先保证需求完整正确。
-- 再保证架构边界清晰。
-- 再控制修改范围和实现复杂度。
-- 最后根据风险选择合适的验证方式。
 ## 开发原则
 
 1. 不做“玩具式最小实现”

@@ -17,7 +17,8 @@
 5. [战略定义](radishmind-strategy.md)
 6. [能力矩阵](radishmind-capability-matrix.md)
 7. [阶段路线图](radishmind-roadmap.md)
-8. 与当次任务直接相关的架构、契约、任务卡、评测或周志
+8. [功能设计文档入口](features/README.md)
+9. 与当次任务直接相关的架构、契约、任务卡、评测或周志
 
 ## 当前状态
 
@@ -35,6 +36,7 @@
 - `Production Ops Hardening v1` 的静态边界已收口：production config / secret boundary、process supervisor / startup、deployment environment isolation、console production packaging、Docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 都已可检查。2026-05-26 已完成一次本地 `docker_local` container smoke 运行记录；后续只有在明确测试或生产前复核窗口时才补测试环境 smoke 或 production preflight 证据。
 - `Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片，均已进入 fast baseline。当前结论是 provider capability、离线 health smoke、request-side selection、retry/fallback 审计策略和文档收口已可复验；不把 provider health 写成 production readiness，也不把 optional live health、retry/fallback execution 或 production secret backend 写成已完成。`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
 - `Control Plane / User Workspace / Workflow v1` 已用 `product-surface-v1-boundary`、`control-plane-data-boundary`、`radish-oidc-client-preconditions`、`gateway-api-key-quota-readiness`、`workflow-definition-run-record-boundary`、`control-plane-read-model-v1`、`control-plane-read-route-contract-v1`、`control-plane-read-response-fixtures-v1`、`control-plane-read-negative-contract-v1`、任务卡、fixture 和 checker 固定四个产品面的服务边界、数据边界、read model、read-only route、response fixture、negative contract、fake-store-backed handler、正式 UI 边界、七个只读页面、dev-only live consumer、auth/store transition、repository/read store readiness、workflow definition / run record、Workflow review surface、`workflow-function-surface-readiness-close-v1` / `workflow_function_surface_readiness_closed`、Model Gateway evidence 和 Admin readiness。当前仍没有数据库 / OIDC / adapter implementation trigger satisfied；下一主线只允许先进入 `Control Plane Durable Read Foundation v1` 的 repository interface + fake store interface 化，不实现完整 read-side API，不接真实 OIDC、不发放真实 API key、不创建数据库 schema 或 migration，不创建 manifest，不实现 repository adapter、store selector、API key lifecycle、quota enforcement、billing、production gateway、secret resolver、deployment preflight、workflow executor、confirmation、writeback 或 replay。
+- 2026-06-14 起，开发节奏改为功能设计文档先行：长期产品能力写入 `docs/features/`，task card 只服务具体实现批次、前置条件或高风险边界，专项 checker 只在协议、schema、执行边界、生产声明、外部 provider 风险或高风险能力变化时新增。普通只读 UI、文案、布局和 evidence 组织默认复用聚合门禁、web build、consumer smoke 和仓库基线。
 - read-side 证据锚点继续保留为：read model、read-only route、response fixture、negative contract、fake store、`control-plane-read-implementation-preconditions-v1`、`control-plane-read-fake-store-handler-plan-v1` / fake-store-backed read handler plan / 不实现 Go handler、`control-plane-read-fake-store-handler-implementation-v1` / fake-store-backed read handler implementation、`control-plane-read-auth-db-preconditions-v1` / 真实 auth/db 前置条件、`control-plane-read-consumer-contract-v1` / TypeScript consumer contract、`control-plane-read-formal-ui-boundary-v1` / 正式 UI 边界、`control-plane-read-formal-ui-implementation-readiness-v1` / 正式 UI 实现 readiness。
 - `control-plane-read-auth-db-preconditions-v1` 仍只固定真实 auth/db 前置条件，不代表真实 auth middleware、数据库 query、repository、OIDC 或 production API consumer 已实现。
 - `control-plane-read-formal-ui-boundary-v1` 只固定正式 UI 边界，`control-plane-read-formal-ui-implementation-readiness-v1` 只固定正式 UI 实现 readiness；二者不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
@@ -75,6 +77,7 @@
 - [能力矩阵](radishmind-capability-matrix.md)
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
+- [功能设计文档入口](features/README.md)
 - [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)
 - [UI 设计规范](radishmind-ui-design-spec.md)
 - [UI 设计参考](radishmind-ui-design-reference.md)

@@ -29,24 +29,34 @@
 - 不要把 fast mode 当成最终门禁
 - 重要阶段性决策除了改代码，还应同步更新对应文档；如果属于本周重要推进，追加到周志
 
+## 开发节奏
+
+- 当前常态节奏为“功能设计文档先行”：长期功能或开发目标先更新 `docs/features/`，再拆具体实现任务
+- `docs/task-cards/` 只用于具体实现批次、前置条件或高风险边界，不再作为产品功能的默认主文档
+- 普通 UI、文案、布局、只读 evidence 组织和使用性整理，默认复用现有聚合门禁、web build、consumer smoke 和仓库基线
+- 只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时，才新增专项 task card、fixture 或 checker
+- 回答“下一步做什么”时，应先判断要推进哪个功能设计文档，而不是默认继续新增同层 gate-only 切片
+
 ## 文档真相源
 
 `docs/` 是本仓库的正式文档源，优先级最高的文档如下：
 
 1. `docs/radishmind-current-focus.md`
-2. `docs/radishmind-product-scope.md`
-3. `docs/radishmind-architecture.md`
-4. `docs/radishmind-roadmap.md`
-5. `docs/radishmind-integration-contracts.md`
-6. `docs/radishmind-code-standards.md`
-7. `docs/adr/0001-branch-and-pr-governance.md`
-8. `docs/devlogs/README.md`
+2. `docs/features/README.md`
+3. `docs/radishmind-product-scope.md`
+4. `docs/radishmind-architecture.md`
+5. `docs/radishmind-roadmap.md`
+6. `docs/radishmind-integration-contracts.md`
+7. `docs/radishmind-code-standards.md`
+8. `docs/adr/0001-branch-and-pr-governance.md`
+9. `docs/devlogs/README.md`
 
 规则：
 
 - 若代码与文档冲突，先判断是代码偏离文档，还是文档已过期，再统一修正
 - 优先更新已有文档，不为一次性讨论创建大量散文档
 - 回答“今天要做什么以推进开发”时，默认先读 `docs/radishmind-current-focus.md`，长契约、长评测文档和周志细节只在需要实施具体任务时按需读取
+- 实施具体功能时，先读或更新对应 `docs/features/*.md`；如果没有对应功能文档，应先创建短设计与开发文档，再进入实现
 - `docs/README.md`、产品范围、架构和路线图等关键入口文档应尽量简约，只保留定位、最近阶段、当前进度、下一步和明确停止线
 - 文档默认按“短入口 + 专题页 + 证据附件”组织；入口文档超过 `250` 行、普通 Markdown 超过 `800` 行、周志或任务卡超过 `600` 行会触发仓库检查失败
 - 普通 Markdown 超过 `500` 行、周志或任务卡超过 `350` 行会触发 warning；接近 warning 时应优先拆分专题、分片、manifest、summary 或 run record
@@ -92,6 +102,7 @@
 ### 规划与文档
 
 - `docs/`: 项目定位、架构、路线图、ADR、周志
+- `docs/features/`: 功能设计与开发文档，承载长期产品能力、开发目标、当前状态、下一批开发和停止线
 - `scripts/`: 仓库检查与自动化脚本
 - `.github/`: PR 模板、ruleset 模板、GitHub Actions
 
@@ -162,7 +173,6 @@
 补充说明：
 
 - `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致；日常协作默认走它们的快速参数或对应 fast wrapper
-- `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
 - `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
 - `scripts/bootstrap-dev.ps1` 与 `scripts/bootstrap-dev.sh` 是仓库 Python 开发环境入口；仓库级检查默认使用 `.venv`，不再隐式落到全局 Python
 - 仓库按职责分层：模型训练、评测与脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` / `control plane` 默认采用 `Go`；不因参考 `Radish` 而默认引入 `.NET` / ASP.NET Core；评测、回归与仓库级校验仍统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责

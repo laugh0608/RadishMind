@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-06-13
+更新时间：2026-06-14
 
 ## 这份文档讲什么
 
@@ -12,6 +12,8 @@
 - 如果你要继续推进开发，先看哪几条主线
 
 它不替代 `docs/radishmind-current-focus.md`、`docs/devlogs/` 或任务卡，也不记录阶段推进流水。
+
+2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
 ## 项目定位
 
@@ -49,6 +51,8 @@
 3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API，多 provider / profile / model 分发。
 4. `Workflow / Agent Runtime`：Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和受控 agent loop。
 
+这些产品面及 Image Path 的后续开发入口已整理到 `docs/features/`。
+
 ## 当前五条主线
 
 1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础；当前已达到 short close，request observability 和 error taxonomy 已进入平台门禁。
@@ -70,6 +74,7 @@
 ## 目录速览
 
 - `docs/`：正式文档源
+- `docs/features/`：功能设计与开发文档
 - `contracts/`：JSON Schema 真相源
 - `scripts/`：检查、运行、转换、评测和最小运维入口
 - `deploy/`：Docker local / test / prod 部署边界说明和 compose 资产

@@ -8,6 +8,7 @@
 
 - 当前仓库主线已经切回平台本体建设；因此这里的文档更多承担“应用面任务边界”和“真实接入前置条件”职责。
 - 如果你现在要判断应该优先做什么，先读 `docs/radishmind-current-focus.md`、`docs/radishmind-capability-matrix.md` 和 `docs/radishmind-roadmap.md`，不要把这些任务卡误解成当前唯一主线。
+- 2026-06-14 起，长期功能设计默认写入 `docs/features/`；任务卡只用于具体实现批次、前置条件或高风险边界。普通只读展示、文案、布局和 evidence 组织不再默认逐项新增任务卡。
 
 当前已冻结的应用面任务：
 
