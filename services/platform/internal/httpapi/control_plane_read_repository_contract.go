@@ -47,50 +47,53 @@ type ReadRepositoryResult[T any] struct {
 }
 
 type TenantSummary struct {
-	TenantRef         string
-	TenantDisplayName string
-	State             string
-	Plan              string
-	UserCount         int
-	ApplicationCount  int
-	AuditRef          string
+	TenantRef           string
+	TenantDisplayName   string
+	TenantState         string
+	PlanRef             string
+	QuotaSummaryRef     string
+	DeploymentStatusRef string
+	AuditSummaryRef     string
 }
 
 type ApplicationSummary struct {
-	ApplicationRef  string
-	ApplicationKind string
-	DisplayName     string
-	OwnerSubjectRef string
-	Status          string
-	LastRunStatus   string
-	UpdatedAt       string
+	ApplicationRef              string
+	TenantRef                   string
+	ApplicationKind             string
+	DisplayName                 string
+	OwnerSubjectRef             string
+	LatestWorkflowDefinitionRef string
+	LastRunStatus               string
+	UpdatedAt                   string
 }
 
 type APIKeySummary struct {
 	APIKeyID        string
+	TenantRef       string
 	OwnerSubjectRef string
-	Scope           string
+	Scopes          []string
 	State           string
 	CreatedAt       string
-	ExpiresAt       string
+	ExpiresAt       *string
+	LastUsedAt      *string
 }
 
 type QuotaSummary struct {
-	QuotaID          string
-	Period           string
-	RequestLimit     int
-	TokenLimit       int
-	CostLimit        string
-	RequestUsage     int
-	TokenUsage       int
-	CostUsage        string
-	OverQuotaFailure ReadRepositoryFailureCode
+	QuotaID              string
+	TenantRef            string
+	Period               string
+	RequestLimit         int
+	TokenLimit           int
+	CostLimit            float64
+	UsageSnapshot        map[string]any
+	OverQuotaFailureCode string
 }
 
 type WorkflowDefinitionSummary struct {
 	WorkflowDefinitionID        string
+	TenantRef                   string
 	ApplicationRef              string
-	Version                     string
+	Version                     int
 	DefinitionStatus            string
 	NodeCount                   int
 	RiskLevel                   string
@@ -99,25 +102,26 @@ type WorkflowDefinitionSummary struct {
 }
 
 type RunRecordSummary struct {
-	RunID                 string
-	WorkflowDefinitionRef string
-	ApplicationRef        string
-	Status                string
-	FailureCode           ReadRepositoryFailureCode
-	CostSummary           string
-	TraceID               string
-	StartedAt             string
-	CompletedAt           string
+	RunID                string
+	TenantRef            string
+	WorkflowDefinitionID string
+	ApplicationRef       string
+	Status               string
+	FailureCode          *ReadRepositoryFailureCode
+	CostSummary          map[string]any
+	TraceID              string
+	StartedAt            string
+	CompletedAt          string
 }
 
 type AuditSummary struct {
 	AuditRef        string
+	TenantRef       string
 	ActorSubjectRef string
 	EventKind       string
-	ResourceKind    string
 	ResourceRef     string
 	Decision        string
-	FailureCode     ReadRepositoryFailureCode
+	FailureCode     *ReadRepositoryFailureCode
 	TraceID         string
 	RecordedAt      string
 }

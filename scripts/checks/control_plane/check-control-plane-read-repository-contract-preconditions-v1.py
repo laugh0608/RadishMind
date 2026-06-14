@@ -21,6 +21,9 @@ ROUTE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane
 NEGATIVE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
 RESPONSE_FIXTURES_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+DURABLE_READ_FOUNDATION_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/control-plane-durable-read-foundation-v1.json"
+)
 
 EXPECTED_ROUTE_IDS = {
     "tenant-summary-route",
@@ -102,11 +105,7 @@ EXPECTED_FORBIDDEN_SCOPE = {
     "business writeback",
     "replay execution",
 }
-REQUIRED_SOURCE_ABSENT_LITERALS = {
-    "database/sql",
-    "CREATE TABLE",
-    "ALTER TABLE",
-    "CREATE INDEX",
+REPOSITORY_INTERFACE_IMPLEMENTATION_LITERALS = {
     "ReadTenantSummary(",
     "ListApplicationSummaries(",
     "ListAPIKeySummaries(",
@@ -114,9 +113,15 @@ REQUIRED_SOURCE_ABSENT_LITERALS = {
     "ListWorkflowDefinitionSummaries(",
     "ListRunRecordSummaries(",
     "ListAuditSummaries(",
+}
+REQUIRED_SOURCE_ABSENT_LITERALS = {
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
     "oidc.Provider",
     "ValidateToken",
-}
+} | REPOSITORY_INTERFACE_IMPLEMENTATION_LITERALS
 
 
 def require(condition: bool, message: str) -> None:
@@ -132,6 +137,24 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def read(relative_path: str) -> str:
     return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+
+def durable_read_foundation_implemented() -> bool:
+    if not DURABLE_READ_FOUNDATION_FIXTURE_PATH.exists():
+        return False
+    fixture = load_json(DURABLE_READ_FOUNDATION_FIXTURE_PATH)
+    slice_info = fixture.get("slice") or {}
+    return (
+        slice_info.get("id") == "control-plane-durable-read-foundation-v1"
+        and slice_info.get("status") == "durable_read_foundation_implemented"
+    )
+
+
+def source_absent_literals_for_current_stage() -> set[str]:
+    literals = set(REQUIRED_SOURCE_ABSENT_LITERALS)
+    if durable_read_foundation_implemented():
+        literals -= REPOSITORY_INTERFACE_IMPLEMENTATION_LITERALS
+    return literals
 
 
 def route_contracts_by_id() -> dict[str, dict[str, Any]]:
@@ -346,6 +369,7 @@ def assert_contract_smoke_and_policy_docs(fixture: dict[str, Any]) -> None:
 
 
 def assert_no_implementation_leaked() -> None:
+    source_absent_literals = source_absent_literals_for_current_stage()
     source_roots = [
         REPO_ROOT / "services/platform/internal",
         REPO_ROOT / "apps/radishmind-web/src",
@@ -355,7 +379,7 @@ def assert_no_implementation_leaked() -> None:
             if path.suffix not in {".go", ".ts", ".tsx"}:
                 continue
             text = path.read_text(encoding="utf-8")
-            for literal in REQUIRED_SOURCE_ABSENT_LITERALS:
+            for literal in source_absent_literals:
                 require(
                     literal not in text,
                     f"{path.relative_to(REPO_ROOT)} must not introduce {literal!r} in this preconditions slice",

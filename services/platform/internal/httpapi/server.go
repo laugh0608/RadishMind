@@ -29,6 +29,7 @@ type Server struct {
 	bridge                bridgeClient
 	config                config.Config
 	controlPlaneReadStore controlPlaneReadStore
+	controlPlaneReadRepo  ControlPlaneReadRepository
 }
 
 type errorDocument struct {
