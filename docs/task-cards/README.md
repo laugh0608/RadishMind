@@ -137,6 +137,7 @@
 10. [`Image Artifact Runtime Mapper Implementation` v1 计划](image-artifact-runtime-mapper-implementation-v1-plan.md)（`image-artifact-runtime-mapper-implementation-v1`）
 11. [`Image Artifact Runtime Mapper Runtime Implementation` v1 计划](image-artifact-runtime-mapper-runtime-implementation-v1-plan.md)（`image-artifact-runtime-mapper-runtime-implementation-v1`）
 12. [`Image Artifact Runtime Mapper Response Consumer Integration Review` v1 计划](image-artifact-runtime-mapper-response-consumer-integration-review-v1-plan.md)（`image-artifact-runtime-mapper-response-consumer-integration-review-v1`）
+13. [`Image Artifact Response Consumer Implementation Readiness` v1 计划](image-artifact-response-consumer-implementation-readiness-v1-plan.md)（`image-artifact-response-consumer-implementation-readiness-v1`）
 
 使用原则：
 

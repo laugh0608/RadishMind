@@ -41,6 +41,8 @@
 - Artifact runtime mapper runtime implementation smoke：`scripts/check-image-artifact-runtime-mapper-runtime-implementation-v1.py`
 - Artifact runtime mapper response consumer integration review fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-response-consumer-integration-review-v1.json`
 - Artifact runtime mapper response consumer integration review smoke：`scripts/check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py`
+- Artifact response consumer implementation readiness fixture：`scripts/checks/fixtures/image-artifact-response-consumer-implementation-readiness-v1.json`
+- Artifact response consumer implementation readiness smoke：`scripts/check-image-artifact-response-consumer-implementation-readiness-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -341,3 +343,13 @@ response consumer 集成评审要求：
 - 只有 mapper 返回 `ok=true` 且 citation 符合 `CopilotResponse` citation schema 时，未来 consumer 才允许进入成功 response 路径。
 - `metadata_reference` 仍是内部 metadata-only handoff，不得作为 public URL、signed URL、binary payload、provider raw dump 或 production storage claim 暴露。
 - `blocked / failed / pending_review`、public URL claim、binary payload、provider raw dump 和其它 fail-closed case 不得生成成功 citation；现有 response builder 本切片仍保持未接线。
+
+### Artifact response consumer implementation readiness
+
+`image-artifact-response-consumer-implementation-readiness-v1` 已把 metadata-only response consumer implementation readiness 固定为 `image_artifact_response_consumer_implementation_readiness_defined`。该证据层只定义未来 `services/runtime/image_artifact_response_consumer.py` 与 `apply_image_artifact_reference_to_response` 的准入条件、输入输出、failure propagation test plan、禁止实现 artifact 和禁止接线项；当前不创建 response consumer 模块，不修改 response builder，不改 `CopilotResponse` schema，不实现 store、binary reader、public URL resolver 或 backend adapter。
+
+response consumer implementation readiness 要求：
+
+- 未来实现只能把 mapper 成功结果合并进 `CopilotResponse.citations` 的 `kind=artifact` citation，`metadata_reference` 继续保持内部 handoff。
+- citation id 冲突、citation schema 不匹配、mapper failure 或 `metadata_reference` 外泄都必须 fail closed，且不能生成成功 citation。
+- 本 readiness 切片继续证明现有 `inference_response`、`inference_support`、gateway 和 platform response route 未接入未来 consumer。

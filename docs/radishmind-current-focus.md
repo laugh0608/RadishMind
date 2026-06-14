@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-06-13
+更新时间：2026-06-14
 
 ## 文档目的
 
@@ -69,7 +69,7 @@ repository/read store 迁移链路已推进到 `control-plane-read-implementatio
 
 2026-06-13 已完成 `image-artifact-runtime-mapper-implementation-plan-v1`，状态固定为 `image_artifact_runtime_mapper_implementation_plan_defined`：固定 future runtime mapper 的输入、future CopilotResponse artifact citation / metadata reference 目标、成功 / blocked 映射、fail-closed plan、单一实现方向策略和 runtime mapper implementation entry review 条件；当前仍不实现 mapper / store / reader / public URL resolver，不改 response schema，不调用 backend，不生成或上传图片。
 
-2026-06-13 已完成 `image-artifact-runtime-mapper-implementation-entry-v1`、`image-artifact-runtime-mapper-implementation-v1` 与 `image-artifact-runtime-mapper-runtime-implementation-v1`，状态固定为 `image_artifact_runtime_mapper_implementation_entry_review_defined`、`image_artifact_runtime_mapper_implementation_task_card_defined` 与 `image_artifact_runtime_mapper_runtime_implemented`；2026-06-14 已完成 `image-artifact-runtime-mapper-response-consumer-integration-review-v1`，状态固定到 `image_artifact_runtime_mapper_response_consumer_integration_review_defined`：metadata-only runtime mapper 已实现为 `services/runtime/image_artifact_runtime_mapper.py`，response consumer 评审确认未来只能沿现有 `CopilotResponse.citations` artifact citation 形状和内部 `metadata_reference` handoff 消费；仍不改 response schema、不实现 consumer、不接 store / reader / backend / public URL、不调用 backend、不生成或上传图片。
+2026-06-13 已完成 `image-artifact-runtime-mapper-implementation-entry-v1`、`image-artifact-runtime-mapper-implementation-v1` 与 `image-artifact-runtime-mapper-runtime-implementation-v1`，状态固定为 `image_artifact_runtime_mapper_implementation_entry_review_defined`、`image_artifact_runtime_mapper_implementation_task_card_defined` 与 `image_artifact_runtime_mapper_runtime_implemented`；2026-06-14 已完成 `image-artifact-runtime-mapper-response-consumer-integration-review-v1` 与 `image-artifact-response-consumer-implementation-readiness-v1`，状态固定到 `image_artifact_runtime_mapper_response_consumer_integration_review_defined` 与 `image_artifact_response_consumer_implementation_readiness_defined`：metadata-only runtime mapper 已实现为 `services/runtime/image_artifact_runtime_mapper.py`，未来 response consumer 准入只允许沿现有 `CopilotResponse.citations` artifact citation 形状和内部 `metadata_reference` handoff 消费；仍不改 response schema、不实现 consumer、不接 store / reader / backend / public URL、不调用 backend、不生成或上传图片。
 
 repository/read store 已完成状态字面量继续保留为：`repository_contract_preconditions_defined`、`disabled_database_guard_defined`、`repository_contract_smoke_defined`、`repository_implementation_readiness_defined`、`store_selection_readiness_defined`、`schema_migration_readiness_defined`、`repository_contract_types_readiness_defined`、`repository_contract_types_implemented`、`repository_contract_smoke_runner_readiness_defined`、`repository_contract_smoke_runner_implemented`、`repository_interface_readiness_defined`、`repository_adapter_implementation_readiness_refreshed`、`store_selector_enablement_preconditions_defined`、`schema_migration_implementation_preconditions_defined`、`repository_adapter_implementation_plan_defined`、`schema_artifact_manifest_readiness_defined`、`store_selector_smoke_readiness_defined`、`production_auth_readiness_defined`、`adapter_smoke_readiness_defined`、`implementation_trigger_review_defined`、`schema_artifact_evidence_defined` 与 `implementation_entry_review_defined`。
 
@@ -116,14 +116,14 @@ read-side 程序化证据包括：`control-plane-read-model-v1`（`control-plane
 
 ## 今日完成（2026-06-14）
 
-1. 已完成 `image-artifact-runtime-mapper-response-consumer-integration-review-v1`，用任务卡、fixture 与 checker 固定 metadata-only runtime mapper 到未来 response consumer 的入口评审。
-2. 评审结论是未来只能沿现有 `CopilotResponse.citations` 的 `kind=artifact` citation 形状和 mapper 返回的内部 `metadata_reference` handoff 消费；本切片不改 response schema、不实现 response consumer、不修改 response builder。
-3. checker 会验证 runtime mapper 已实现、artifact citation schema 仍可用、success / blocked / failed / pending_review / public URL / binary payload / provider raw dump 的传播规则，以及现有 response builder 未被本切片接线。
-4. 停止线保持不变：不实现 artifact store、binary reader、public URL resolver、backend adapter、production storage、真实 backend call、图片生成、artifact upload、executor、confirmation、writeback 或 replay。
+1. 已完成 `image-artifact-runtime-mapper-response-consumer-integration-review-v1` 与 `image-artifact-response-consumer-implementation-readiness-v1`，用任务卡、fixture 与 checker 固定 metadata-only runtime mapper 到未来 response consumer implementation 的准入链。
+2. readiness 结论是未来只能沿现有 `CopilotResponse.citations` 的 `kind=artifact` citation 形状和 mapper 返回的内部 `metadata_reference` handoff 消费；本切片不改 response schema、不实现 response consumer、不修改 response builder。
+3. checker 会验证 runtime mapper 已实现、artifact citation schema 仍可用、success / blocked / failed / pending_review / public URL / binary payload / provider raw dump 的传播规则、future consumer failure code、禁止实现 artifact，以及现有 response builder 未被本切片接线。
+4. 停止线保持不变：不创建 `services/runtime/image_artifact_response_consumer.py`，不实现 artifact store、binary reader、public URL resolver、backend adapter、production storage、真实 backend call、图片生成、artifact upload、executor、confirmation、writeback 或 replay。
 5. 该推进不新增 UI、不启动开发服务器、不打开浏览器联调，不读取 artifact 二进制，也不上传 artifact。
 6. 前序 Admin Provider/Profile、Product Surface trigger recheck、schema artifact evidence、implementation entry review 和 usage gap triage 已在 2026-06-13 完成并进入 fast baseline。
 7. 前序 Image Path runtime mapper 相关切片已在 2026-06-13 完成，`services/runtime/image_artifact_runtime_mapper.py` 仍只负责 metadata-only mapping。
-8. 本轮仅补 response consumer 集成入口治理链，后续若继续推进真实 consumer implementation，仍需独立任务卡、fixture、checker 和验证。
+8. 本轮仅补 response consumer implementation readiness，后续若继续推进真实 consumer implementation，仍需独立任务卡、fixture、checker 和验证。
 
 ## 最近完成（2026-06-10）
 
