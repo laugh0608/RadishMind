@@ -45,6 +45,10 @@
 - Artifact response consumer implementation readiness smoke：`scripts/check-image-artifact-response-consumer-implementation-readiness-v1.py`
 - Artifact response consumer implementation fixture：`scripts/checks/fixtures/image-artifact-response-consumer-implementation-v1.json`
 - Artifact response consumer implementation smoke：`scripts/check-image-artifact-response-consumer-implementation-v1.py`
+- Artifact response consumer runtime implementation fixture：`scripts/checks/fixtures/image-artifact-response-consumer-runtime-implementation-v1.json`
+- Artifact response consumer runtime implementation smoke：`scripts/check-image-artifact-response-consumer-runtime-implementation-v1.py`
+- Artifact response builder integration entry review fixture：`scripts/checks/fixtures/image-artifact-response-builder-integration-entry-review-v1.json`
+- Artifact response builder integration entry review smoke：`scripts/check-image-artifact-response-builder-integration-entry-review-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -365,3 +369,23 @@ response consumer implementation task card 要求：
 - 后续 runtime code 只能消费已有 `CopilotResponse` draft 和 `ImageArtifactMappingResult`，成功时把 artifact citation 合并进 `CopilotResponse.citations`。
 - `metadata_reference` 只保留为内部 handoff；citation id conflict、citation schema invalid、mapper failure 和 metadata reference leak 都必须 fail closed。
 - 本切片只允许下一步进入 metadata-only response consumer runtime code；store / reader / public URL / backend adapter 仍不得并行打开。
+
+### Artifact response consumer runtime implementation
+
+`image-artifact-response-consumer-runtime-implementation-v1` 已把 metadata-only response consumer runtime 固定为 `image_artifact_response_consumer_runtime_implemented`。该实现由 `services/runtime/image_artifact_response_consumer.py` 承载，只消费已有 `CopilotResponse` draft 与 `ImageArtifactMappingResult`，成功时把 artifact citation append 到 `CopilotResponse.citations`，并把 `metadata_reference` 作为内部 handoff 随 result 返回；不改 `CopilotResponse` schema，不修改现有 response builder，不接 artifact store、binary reader、public URL resolver、gateway、platform HTTP route 或 backend adapter。
+
+response consumer runtime implementation 要求：
+
+- 成功路径必须保留已有 citations 顺序，不原地修改输入 response draft 或 mapper citation，输出 response 仍通过 `contracts/copilot-response.schema.json`。
+- mapper failure、citation id conflict、citation schema invalid 和 metadata reference leak 必须 fail closed，且不产生成功 citation。
+- side-effect counters 继续保持为零；现有 `inference_response`、`inference_support`、gateway 和 platform response route 不得引用 response consumer runtime。
+
+### Artifact response builder integration entry review
+
+`image-artifact-response-builder-integration-entry-review-v1` 已把 metadata-only response builder integration entry review 固定为 `image_artifact_response_builder_integration_entry_review_defined`。该证据层只评审未来是否允许把 response consumer runtime 接入现有 response builder，并选择 `services/runtime/inference_response.py#coerce_response_document` 的 response normalization / schema validation 边界作为未来候选；当前不修改 response builder，不改 `CopilotResponse` schema，不接 gateway、platform route、artifact store、binary reader、public URL resolver 或 backend adapter。
+
+response builder integration entry review 要求：
+
+- 未来接线前必须证明 mapper success、consumer success、post-merge `CopilotResponse` schema validation、citation conflict fail-closed 和 `metadata_reference` internal-only 都成立。
+- `services/runtime/inference_support.py#build_citations` 只负责请求上下文 citation，不承接生成 artifact runtime handoff；gateway 和 platform northbound route 也不承接 metadata merge。
+- 本切片只允许下一步创建 response builder integration task card；仍不得直接修改 `inference_response`、`inference_support`、gateway 或 platform route。

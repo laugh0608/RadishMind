@@ -27,6 +27,10 @@ FIXTURE_PATH = (
 RUNTIME_IMPLEMENTATION_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json"
 )
+RESPONSE_CONSUMER_RUNTIME_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-consumer-runtime-implementation-v1.json"
+)
+RESPONSE_CONSUMER_MODULE_PATH = "services/runtime/image_artifact_response_consumer.py"
 ARTIFACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-generation-artifact-basic.json"
 ARTIFACT_SCHEMA_PATH = REPO_ROOT / "contracts/image-generation-artifact.schema.json"
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
@@ -144,6 +148,18 @@ def rows_by_id(rows: list[Any], key: str) -> dict[str, dict[str, Any]]:
         require(row_id, f"{key} row missing id")
         result[row_id] = row
     return result
+
+
+def response_consumer_runtime_allows_artifact(relative_path: str) -> bool:
+    if relative_path != RESPONSE_CONSUMER_MODULE_PATH:
+        return False
+    if not RESPONSE_CONSUMER_RUNTIME_PATH.exists():
+        return False
+    runtime = load_json(RESPONSE_CONSUMER_RUNTIME_PATH)
+    return (
+        (runtime.get("slice") or {}).get("status")
+        == "image_artifact_response_consumer_runtime_implemented"
+    )
 
 
 def artifact_fixture() -> dict[str, Any]:
@@ -318,7 +334,8 @@ def assert_no_implementation_artifacts(fixture: dict[str, Any]) -> None:
     require(set(artifacts) == EXPECTED_FORBIDDEN_ARTIFACTS, "forbidden artifact matrix drifted")
     for relative_path, row in artifacts.items():
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
-        require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
+        if not response_consumer_runtime_allows_artifact(relative_path):
+            require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     forbidden_literals = set(fixture.get("forbidden_source_literals") or [])
     require(forbidden_literals, "forbidden source literals missing")

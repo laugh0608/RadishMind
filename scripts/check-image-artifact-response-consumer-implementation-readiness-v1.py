@@ -38,6 +38,10 @@ IMPLEMENTATION_TASK_CARD_PATH = "docs/task-cards/image-artifact-response-consume
 IMPLEMENTATION_FIXTURE_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-consumer-implementation-v1.json"
 )
+RUNTIME_CONSUMER_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-consumer-runtime-implementation-v1.json"
+)
+RESPONSE_CONSUMER_MODULE_PATH = "services/runtime/image_artifact_response_consumer.py"
 
 EXPECTED_DEPENDENCIES = {
     "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
@@ -174,6 +178,18 @@ def later_implementation_task_card_allows_artifact(relative_path: str) -> bool:
     return (
         (implementation.get("slice") or {}).get("status")
         == "image_artifact_response_consumer_implementation_task_card_defined"
+    )
+
+
+def later_runtime_implementation_allows_artifact(relative_path: str) -> bool:
+    if relative_path != RESPONSE_CONSUMER_MODULE_PATH:
+        return False
+    if not RUNTIME_CONSUMER_FIXTURE_PATH.exists():
+        return False
+    runtime = load_json(RUNTIME_CONSUMER_FIXTURE_PATH)
+    return (
+        (runtime.get("slice") or {}).get("status")
+        == "image_artifact_response_consumer_runtime_implemented"
     )
 
 
@@ -362,7 +378,9 @@ def assert_no_implementation_artifacts(fixture: dict[str, Any]) -> None:
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
         if row.get("allowed_next") is True:
             require(relative_path == IMPLEMENTATION_TASK_CARD_PATH, f"{relative_path} must not be allowed next")
-        if not later_implementation_task_card_allows_artifact(relative_path):
+        if not later_implementation_task_card_allows_artifact(
+            relative_path
+        ) and not later_runtime_implementation_allows_artifact(relative_path):
             require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     forbidden_literals = set(fixture.get("forbidden_source_literals") or [])

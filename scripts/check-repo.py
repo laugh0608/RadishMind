@@ -1307,6 +1307,8 @@ def check_fast_baseline() -> None:
     run_python_script("check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py", [])
     run_python_script("check-image-artifact-response-consumer-implementation-readiness-v1.py", [])
     run_python_script("check-image-artifact-response-consumer-implementation-v1.py", [])
+    run_python_script("check-image-artifact-response-consumer-runtime-implementation-v1.py", [])
+    run_python_script("check-image-artifact-response-builder-integration-entry-review-v1.py", [])
     check_path_budget()
     check_required_files()
     check_content_baseline()

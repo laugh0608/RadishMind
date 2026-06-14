@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "kind": "image_artifact_response_builder_integration_entry_review_v1",
+  "slice": {
+    "id": "image-artifact-response-builder-integration-entry-review-v1",
+    "track": "Image Path",
+    "status": "image_artifact_response_builder_integration_entry_review_defined",
+    "does_not_claim": [
+      "response_builder_changed",
+      "response_builder_connected",
+      "copilot_response_schema_changed",
+      "copilot_response_artifact_runtime_ready",
+      "artifact_store_ready",
+      "artifact_store_implemented",
+      "artifact_binary_reader_ready",
+      "artifact_binary_reader_implemented",
+      "artifact_binary_read_ready",
+      "public_artifact_url_ready",
+      "public_url_resolver_ready",
+      "signed_url_resolver_ready",
+      "production_artifact_storage_ready",
+      "image_backend_adapter_implemented",
+      "image_backend_client_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_payload_ready",
+      "provider_raw_dump_ready",
+      "automatic_retry_ready",
+      "fallback_execution_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-artifact-response-consumer-runtime-implementation-v1",
+    "image-artifact-response-consumer-implementation-v1",
+    "image-artifact-runtime-mapper-runtime-implementation-v1",
+    "contracts/copilot-response.schema.json",
+    "services/runtime/image_artifact_response_consumer.py",
+    "services/runtime/image_artifact_runtime_mapper.py",
+    "services/runtime/inference_response.py",
+    "services/runtime/inference_support.py",
+    "services/gateway/copilot_gateway.py",
+    "services/platform/internal/httpapi/responses.go"
+  ],
+  "integration_entry_review": {
+    "status": "response_builder_integration_entry_review_defined",
+    "conclusion": "future_connection_must_use_python_response_normalization_boundary_with_schema_validation",
+    "selected_future_hook": "services/runtime/inference_response.py#coerce_response_document",
+    "implementation_created_in_this_slice": false,
+    "response_builder_changed_in_this_slice": false,
+    "response_builder_connected_in_this_slice": false,
+    "copilot_response_schema_change_allowed": false,
+    "metadata_reference_public_output_allowed": false,
+    "artifact_store_lookup_allowed": false,
+    "artifact_binary_read_allowed": false,
+    "public_url_resolution_allowed": false,
+    "backend_call_allowed": false,
+    "image_generation_allowed": false,
+    "gateway_route_change_allowed": false,
+    "platform_route_change_allowed": false
+  },
+  "entry_candidate_matrix": [
+    {
+      "candidate_id": "python_response_coercion_post_citations",
+      "surface": "services/runtime/inference_response.py#coerce_response_document",
+      "decision": "selected_future_hook",
+      "implementation_created": false,
+      "reason": "owns response normalization and final CopilotResponse schema validation"
+    },
+    {
+      "candidate_id": "inference_support_context_citation_builder",
+      "surface": "services/runtime/inference_support.py#build_citations",
+      "decision": "not_selected_context_citation_builder",
+      "implementation_created": false,
+      "reason": "builds request context citations and should not own generated artifact runtime handoff"
+    },
+    {
+      "candidate_id": "gateway_envelope_handler",
+      "surface": "services/gateway/copilot_gateway.py#handle_copilot_request",
+      "decision": "blocked_gateway_envelope_boundary",
+      "implementation_created": false,
+      "reason": "gateway validates envelope and provider route and should not merge artifact metadata"
+    },
+    {
+      "candidate_id": "platform_responses_route",
+      "surface": "services/platform/internal/httpapi/responses.go#buildOpenAIResponsesResponse",
+      "decision": "blocked_northbound_protocol_boundary",
+      "implementation_created": false,
+      "reason": "northbound protocol conversion should not consume Python runtime artifact handoff"
+    }
+  ],
+  "future_connection_gates": [
+    {
+      "gate_id": "runtime_mapper_success_required",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "response_consumer_success_required",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "copilot_response_schema_validation_required",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "citation_id_conflict_fail_closed_required",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "metadata_reference_internal_only_required",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "current_response_builder_unmodified",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "store_reader_public_url_backend_tracks",
+      "status": "blocked"
+    },
+    {
+      "gate_id": "response_builder_connection_task_card",
+      "status": "deferred"
+    }
+  ],
+  "future_failure_propagation": [
+    "image_artifact_mapper_failed",
+    "image_artifact_citation_id_conflict",
+    "image_artifact_citation_schema_invalid",
+    "image_artifact_metadata_reference_leak"
+  ],
+  "allowed_next_scope": [
+    "create image-artifact-response-builder-integration-v1 task card",
+    "define exact coerce_response_document hook placement",
+    "define request artifact metadata discovery input",
+    "define post-merge CopilotResponse schema validation",
+    "define source-level no side effects checks"
+  ],
+  "forbidden_next_scope": [
+    "direct response builder code connection in this slice",
+    "CopilotResponse schema change",
+    "gateway route change",
+    "platform HTTP route change",
+    "artifact store implementation",
+    "artifact binary reader implementation",
+    "public URL resolver implementation",
+    "backend adapter implementation",
+    "real backend call",
+    "image generation",
+    "artifact upload",
+    "executor implementation",
+    "confirmation implementation",
+    "writeback implementation",
+    "replay implementation"
+  ],
+  "source_files_that_must_not_be_connected": [
+    "services/runtime/inference_response.py",
+    "services/runtime/inference_support.py",
+    "services/gateway/copilot_gateway.py",
+    "services/platform/internal/httpapi/responses.go"
+  ],
+  "forbidden_source_literals": [
+    "image_artifact_response_consumer",
+    "apply_image_artifact_reference_to_response",
+    "ImageArtifactResponseConsumerResult",
+    "response_consumer_side_effect_counters",
+    "map_image_artifact_to_response_reference",
+    "ImageArtifactMappingResult",
+    "IMAGE_ARTIFACT_PUBLIC_BASE_URL",
+    "ReadImageArtifactBinary",
+    "ResolveImageArtifactPublicURL",
+    "callImageGenerationBackend"
+  ],
+  "forbidden_artifact_matrix": [
+    {
+      "path": "docs/task-cards/image-artifact-response-builder-integration-v1-plan.md",
+      "created_in_this_slice": false,
+      "allowed_next": true
+    },
+    {
+      "path": "services/runtime/image_artifact_store.py",
+      "created_in_this_slice": false,
+      "allowed_next": false
+    },
+    {
+      "path": "services/runtime/image_artifact_binary_reader.py",
+      "created_in_this_slice": false,
+      "allowed_next": false
+    },
+    {
+      "path": "services/runtime/image_artifact_public_url_resolver.py",
+      "created_in_this_slice": false,
+      "allowed_next": false
+    },
+    {
+      "path": "services/runtime/image_backend_adapter.py",
+      "created_in_this_slice": false,
+      "allowed_next": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_artifacts.go",
+      "created_in_this_slice": false,
+      "allowed_next": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageArtifactResponseBuilderPanel.tsx",
+      "created_in_this_slice": false,
+      "allowed_next": false
+    }
+  ],
+  "side_effect_counters_must_remain": [
+    "backend_call_count=0",
+    "image_generation_count=0",
+    "model_download_count=0",
+    "artifact_upload_count=0",
+    "artifact_binary_read_count=0",
+    "artifact_store_lookup_count=0",
+    "runtime_mapping_execution_count=0",
+    "production_storage_write_count=0",
+    "public_url_resolution_count=0",
+    "response_consumer_call_count=0",
+    "response_builder_change_count=0",
+    "executor_call_count=0",
+    "confirmation_call_count=0",
+    "business_writeback_count=0",
+    "replay_call_count=0"
+  ],
+  "evidence": [
+    "docs/task-cards/image-artifact-response-builder-integration-entry-review-v1-plan.md",
+    "scripts/check-image-artifact-response-builder-integration-entry-review-v1.py",
+    "scripts/checks/fixtures/image-artifact-response-builder-integration-entry-review-v1.json",
+    "scripts/checks/fixtures/image-artifact-response-consumer-runtime-implementation-v1.json",
+    "services/runtime/image_artifact_response_consumer.py",
+    "services/runtime/image_artifact_runtime_mapper.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-artifact-response-builder-integration-entry-review-v1",
+      "image_artifact_response_builder_integration_entry_review_defined",
+      "metadata-only response builder integration entry review"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-artifact-response-builder-integration-entry-review-v1",
+      "image_artifact_response_builder_integration_entry_review_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image-artifact-response-builder-integration-entry-review-v1",
+      "response builder integration entry review"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image-artifact-response-builder-integration-entry-review-v1",
+      "response builder integration entry review"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-artifact-response-builder-integration-entry-review-v1",
+      "response builder integration entry review"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Artifact Response Builder Integration Entry Review",
+      "image-artifact-response-builder-integration-entry-review-v1"
+    ],
+    "scripts/README.md": [
+      "check-image-artifact-response-builder-integration-entry-review-v1.py",
+      "image-artifact-response-builder-integration-entry-review-v1"
+    ],
+    "contracts/README.md": [
+      "image-artifact-response-builder-integration-entry-review-v1",
+      "response builder integration entry review"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "image-artifact-response-builder-integration-entry-review-v1",
+      "image_artifact_response_builder_integration_entry_review_defined"
+    ]
+  }
+}
