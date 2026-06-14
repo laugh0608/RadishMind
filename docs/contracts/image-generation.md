@@ -51,6 +51,8 @@
 - Artifact response builder integration entry review smoke：`scripts/check-image-artifact-response-builder-integration-entry-review-v1.py`
 - Artifact response builder integration fixture：`scripts/checks/fixtures/image-artifact-response-builder-integration-v1.json`
 - Artifact response builder integration smoke：`scripts/check-image-artifact-response-builder-integration-v1.py`
+- Artifact response builder runtime integration entry review fixture：`scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-entry-review-v1.json`
+- Artifact response builder runtime integration entry review smoke：`scripts/check-image-artifact-response-builder-runtime-integration-entry-review-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -401,3 +403,13 @@ response builder integration task card 要求：
 - 未来 hook placement 固定为 `coerce_response_document` 内 response top-level filtering 之后、现有 `validate_response_document(coerced)` 之前。
 - v1 只允许从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 发现 request-side artifact metadata；缺失 metadata 时保持 no-op，发现 metadata 时必须先校验 `image_generation_artifact` schema，再走 mapper / consumer。
 - mapper failure、consumer failure 和 post-merge schema validation failure 必须 fail closed，不触发 retry、fallback execution、backend call、artifact upload 或 public URL resolution。
+
+### Artifact response builder runtime integration entry review
+
+`image-artifact-response-builder-runtime-integration-entry-review-v1` 已把 metadata-only response builder runtime integration entry review 固定为 `image_artifact_response_builder_runtime_integration_entry_review_defined`。该证据层只判断是否允许下一步创建 single response builder runtime integration implementation 任务卡，结论是只允许单一选择 `services/runtime/inference_response.py#coerce_response_document`，继续复用既有函数签名、exact hook placement、request metadata discovery、mapper / consumer handoff 和 post-merge schema validation；当前不修改 response builder，不改 `CopilotResponse` schema，不接 artifact store、binary reader、public URL resolver、gateway、platform route 或 backend adapter。
+
+response builder runtime integration entry review 要求：
+
+- 下一步只允许创建 `image-artifact-response-builder-runtime-integration-implementation-v1` 任务卡，不在本切片实现 runtime code。
+- checker 必须证明当前 `inference_response.py`、`inference_support.py`、gateway 和 platform route 仍未接入 image artifact consumer。
+- store、binary reader、public URL、signed URL、backend adapter、artifact upload、production storage、真实 backend call、图片生成、executor、confirmation、writeback 和 replay 继续 deferred。
