@@ -1,6 +1,6 @@
 # RadishMind 图片生成契约
 
-更新时间：2026-06-13
+更新时间：2026-06-14
 
 ## `RadishMind-Image Adapter` 第一版仓库级契约
 
@@ -49,6 +49,8 @@
 - Artifact response consumer runtime implementation smoke：`scripts/check-image-artifact-response-consumer-runtime-implementation-v1.py`
 - Artifact response builder integration entry review fixture：`scripts/checks/fixtures/image-artifact-response-builder-integration-entry-review-v1.json`
 - Artifact response builder integration entry review smoke：`scripts/check-image-artifact-response-builder-integration-entry-review-v1.py`
+- Artifact response builder integration fixture：`scripts/checks/fixtures/image-artifact-response-builder-integration-v1.json`
+- Artifact response builder integration smoke：`scripts/check-image-artifact-response-builder-integration-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -389,3 +391,13 @@ response builder integration entry review 要求：
 - 未来接线前必须证明 mapper success、consumer success、post-merge `CopilotResponse` schema validation、citation conflict fail-closed 和 `metadata_reference` internal-only 都成立。
 - `services/runtime/inference_support.py#build_citations` 只负责请求上下文 citation，不承接生成 artifact runtime handoff；gateway 和 platform northbound route 也不承接 metadata merge。
 - 本切片只允许下一步创建 response builder integration task card；仍不得直接修改 `inference_response`、`inference_support`、gateway 或 platform route。
+
+### Artifact response builder integration task card
+
+`image-artifact-response-builder-integration-v1` 已把 metadata-only response builder integration task card 固定为 `image_artifact_response_builder_integration_task_card_defined`。该证据层只定义未来接入 `services/runtime/inference_response.py#coerce_response_document` 的 exact hook placement、request artifact metadata discovery input、post-merge `CopilotResponse` schema validation、failure propagation 和 no side effects；当前不修改 response builder，不改 `CopilotResponse` schema，不接 artifact store、binary reader、public URL resolver、gateway、platform route 或 backend adapter。
+
+response builder integration task card 要求：
+
+- 未来 hook placement 固定为 `coerce_response_document` 内 response top-level filtering 之后、现有 `validate_response_document(coerced)` 之前。
+- v1 只允许从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 发现 request-side artifact metadata；缺失 metadata 时保持 no-op，发现 metadata 时必须先校验 `image_generation_artifact` schema，再走 mapper / consumer。
+- mapper failure、consumer failure 和 post-merge schema validation failure 必须 fail closed，不触发 retry、fallback execution、backend call、artifact upload 或 public URL resolution。

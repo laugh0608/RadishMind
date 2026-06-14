@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-06-13
+更新时间：2026-06-14
 
 ## 目录目标
 
@@ -115,6 +115,7 @@
   - 当前还提供 `check-image-artifact-response-consumer-implementation-v1.py`，用于校验 `image-artifact-response-consumer-implementation-v1` 的 response consumer implementation task card、future module / function contract、runtime test plan、禁止实现 artifact 和禁止接线项；该检查不改 response schema、不实现 response consumer、不修改 response builder、不实现 store / reader、不读取图片二进制、不调用 backend
   - 当前还提供 `check-image-artifact-response-consumer-runtime-implementation-v1.py`，用于校验 `image-artifact-response-consumer-runtime-implementation-v1` 的 metadata-only response consumer runtime、citation merge、failure propagation、metadata_reference 内部 handoff 和 no side effects；该检查不改 response schema、不修改现有 response builder、不实现 store / reader、不读取图片二进制、不调用 backend
   - 当前还提供 `check-image-artifact-response-builder-integration-entry-review-v1.py`，用于校验 `image-artifact-response-builder-integration-entry-review-v1` 的 response builder integration entry review、候选接入点、future connection gates、禁止接线源码扫描和 no side effects；该检查不改 response schema、不修改现有 response builder、不实现 store / reader、不读取图片二进制、不调用 backend
+  - 当前还提供 `check-image-artifact-response-builder-integration-v1.py`，用于校验 `image-artifact-response-builder-integration-v1` 的 response builder integration task card、exact hook placement、request artifact metadata discovery input、post-merge schema validation、failure propagation 和 no side effects；该检查不改 response schema、不修改现有 response builder、不实现 store / reader、不读取图片二进制、不调用 backend
 - `scripts/checks/`
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper

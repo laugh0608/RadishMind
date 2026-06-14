@@ -40,6 +40,9 @@ ARTIFACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-generation-ar
 ARTIFACT_SCHEMA_PATH = REPO_ROOT / "contracts/image-generation-artifact.schema.json"
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+SUCCESSOR_INTEGRATION_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-builder-integration-v1.json"
+)
 
 EXPECTED_DEPENDENCIES = {
     "image-artifact-response-consumer-runtime-implementation-v1",
@@ -230,6 +233,18 @@ def source_path(surface: str) -> Path:
     return REPO_ROOT / path_text
 
 
+def successor_integration_task_card_allows(relative_path: str) -> bool:
+    if relative_path != "docs/task-cards/image-artifact-response-builder-integration-v1-plan.md":
+        return False
+    if not SUCCESSOR_INTEGRATION_FIXTURE_PATH.exists():
+        return False
+    successor = load_json(SUCCESSOR_INTEGRATION_FIXTURE_PATH)
+    return (
+        (successor.get("slice") or {}).get("status")
+        == "image_artifact_response_builder_integration_task_card_defined"
+    )
+
+
 def assert_slice_and_dependencies(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "schema_version drifted")
     require(fixture.get("kind") == "image_artifact_response_builder_integration_entry_review_v1", "kind drifted")
@@ -355,7 +370,8 @@ def assert_forbidden_artifacts_and_no_source_connection(fixture: dict[str, Any])
             )
         else:
             require(row.get("allowed_next") is False, f"{relative_path} allowed_next drifted")
-        require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
+        if not successor_integration_task_card_allows(relative_path):
+            require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     forbidden_literals = set(fixture.get("forbidden_source_literals") or [])
     require(forbidden_literals, "forbidden source literal list missing")
