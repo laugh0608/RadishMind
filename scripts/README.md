@@ -112,6 +112,7 @@
   - 当前还提供 `check-image-artifact-runtime-mapper-runtime-implementation-v1.py`，用于校验 `image-artifact-runtime-mapper-runtime-implementation-v1` 的 metadata-only runtime mapper 实现、success / blocked / fail-closed cases、CopilotResponse citation shape 和 no side effects；该检查不改 response schema、不实现 store / reader、不读取图片二进制、不上传 artifact、不调用 backend
   - 当前还提供 `check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py`，用于校验 `image-artifact-runtime-mapper-response-consumer-integration-review-v1` 的 response consumer integration review、未来 `CopilotResponse.citations` 消费边界、错误传播和禁止接线项；该检查不改 response schema、不实现 response consumer、不实现 store / reader、不读取图片二进制、不调用 backend
   - 当前还提供 `check-image-artifact-response-consumer-implementation-readiness-v1.py`，用于校验 `image-artifact-response-consumer-implementation-readiness-v1` 的 response consumer implementation readiness、未来 consumer 函数边界、failure propagation test plan、禁止实现 artifact 和禁止接线项；该检查不改 response schema、不实现 response consumer、不修改 response builder、不实现 store / reader、不读取图片二进制、不调用 backend
+  - 当前还提供 `check-image-artifact-response-consumer-implementation-v1.py`，用于校验 `image-artifact-response-consumer-implementation-v1` 的 response consumer implementation task card、future module / function contract、runtime test plan、禁止实现 artifact 和禁止接线项；该检查不改 response schema、不实现 response consumer、不修改 response builder、不实现 store / reader、不读取图片二进制、不调用 backend
 - `scripts/checks/`
   - 放仓库检查相关的内部模块与静态 fixture
   - 当前已用于承载 `check-repo` 的 fixture JSON，以及 `radish docs QA real batch summary` 的内部 helper

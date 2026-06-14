@@ -184,7 +184,8 @@
   "forbidden_artifact_matrix": [
     {
       "path": "docs/task-cards/image-artifact-response-consumer-implementation-v1-plan.md",
-      "created_in_this_slice": false
+      "created_in_this_slice": false,
+      "allowed_next": true
     },
     {
       "path": "services/runtime/image_artifact_response_consumer.py",

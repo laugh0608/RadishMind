@@ -43,6 +43,8 @@
 - Artifact runtime mapper response consumer integration review smoke：`scripts/check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py`
 - Artifact response consumer implementation readiness fixture：`scripts/checks/fixtures/image-artifact-response-consumer-implementation-readiness-v1.json`
 - Artifact response consumer implementation readiness smoke：`scripts/check-image-artifact-response-consumer-implementation-readiness-v1.py`
+- Artifact response consumer implementation fixture：`scripts/checks/fixtures/image-artifact-response-consumer-implementation-v1.json`
+- Artifact response consumer implementation smoke：`scripts/check-image-artifact-response-consumer-implementation-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -353,3 +355,13 @@ response consumer implementation readiness 要求：
 - 未来实现只能把 mapper 成功结果合并进 `CopilotResponse.citations` 的 `kind=artifact` citation，`metadata_reference` 继续保持内部 handoff。
 - citation id 冲突、citation schema 不匹配、mapper failure 或 `metadata_reference` 外泄都必须 fail closed，且不能生成成功 citation。
 - 本 readiness 切片继续证明现有 `inference_response`、`inference_support`、gateway 和 platform response route 未接入未来 consumer。
+
+### Artifact response consumer implementation task card
+
+`image-artifact-response-consumer-implementation-v1` 已把 metadata-only response consumer implementation task card 固定为 `image_artifact_response_consumer_implementation_task_card_defined`。该证据层只创建后续 runtime code 的任务卡、fixture 与 checker，定义 `services/runtime/image_artifact_response_consumer.py`、`apply_image_artifact_reference_to_response` 和 `ImageArtifactResponseConsumerResult` 的职责边界；当前不创建 response consumer 模块，不修改 response builder，不改 `CopilotResponse` schema，不实现 store、binary reader、public URL resolver 或 backend adapter。
+
+response consumer implementation task card 要求：
+
+- 后续 runtime code 只能消费已有 `CopilotResponse` draft 和 `ImageArtifactMappingResult`，成功时把 artifact citation 合并进 `CopilotResponse.citations`。
+- `metadata_reference` 只保留为内部 handoff；citation id conflict、citation schema invalid、mapper failure 和 metadata reference leak 都必须 fail closed。
+- 本切片只允许下一步进入 metadata-only response consumer runtime code；store / reader / public URL / backend adapter 仍不得并行打开。

@@ -20,36 +20,38 @@ from services.runtime.image_artifact_runtime_mapper import (  # noqa: E402
 )
 
 
-FIXTURE_PATH = (
-    REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-consumer-implementation-readiness-v1.json"
+FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-consumer-implementation-v1.json"
+READINESS_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/image-artifact-response-consumer-implementation-readiness-v1.json"
 )
 INTEGRATION_REVIEW_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/image-artifact-runtime-mapper-response-consumer-integration-review-v1.json"
 )
-RUNTIME_IMPLEMENTATION_PATH = (
+RUNTIME_MAPPER_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json"
 )
 ARTIFACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/image-generation-artifact-basic.json"
 ARTIFACT_SCHEMA_PATH = REPO_ROOT / "contracts/image-generation-artifact.schema.json"
 COPILOT_RESPONSE_SCHEMA_PATH = REPO_ROOT / "contracts/copilot-response.schema.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
-IMPLEMENTATION_TASK_CARD_PATH = "docs/task-cards/image-artifact-response-consumer-implementation-v1-plan.md"
-IMPLEMENTATION_FIXTURE_PATH = (
-    REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-consumer-implementation-v1.json"
+TASK_CARD_PATH = REPO_ROOT / "docs/task-cards/image-artifact-response-consumer-implementation-v1-plan.md"
+RUNTIME_IMPLEMENTATION_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/image-artifact-response-consumer-runtime-implementation-v1.json"
 )
+RESPONSE_CONSUMER_MODULE = "services/runtime/image_artifact_response_consumer.py"
 
 EXPECTED_DEPENDENCIES = {
+    "image-artifact-response-consumer-implementation-readiness-v1",
     "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
     "image-artifact-runtime-mapper-runtime-implementation-v1",
     "contracts/copilot-response.schema.json",
     "services/runtime/image_artifact_runtime_mapper.py",
-    "services/runtime/inference_response.py",
-    "services/runtime/inference_support.py",
 }
 EXPECTED_FORBIDDEN_CLAIMS = {
     "response_consumer_implemented",
-    "response_consumer_task_card_created",
+    "response_consumer_files_created",
     "response_builder_changed",
     "copilot_response_schema_changed",
     "copilot_response_artifact_runtime_ready",
@@ -76,66 +78,57 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "replay_ready",
     "production_ready",
 }
-EXPECTED_FALSE_FIELDS = {
-    "implementation_created_in_this_slice",
-    "task_card_created_in_this_slice",
+EXPECTED_BOUNDARY_FALSE_FIELDS = {
+    "response_consumer_created_in_this_slice",
     "response_builder_changed_in_this_slice",
-    "copilot_response_schema_change_allowed",
+    "copilot_response_schema_changed_in_this_slice",
+    "artifact_store_created_in_this_slice",
+    "artifact_binary_reader_created_in_this_slice",
+    "public_url_resolver_created_in_this_slice",
+    "backend_adapter_created_in_this_slice",
+    "store_reader_public_url_backend_parallel_tracks_allowed",
+    "artifact_store_lookup_allowed_now",
+    "artifact_binary_read_allowed_now",
+    "artifact_upload_allowed_now",
+    "production_storage_write_allowed_now",
+    "public_url_allowed_now",
+    "signed_url_allowed_now",
+    "real_backend_call_allowed_now",
+    "image_generation_allowed_now",
+    "dev_server_started_in_this_slice",
+}
+EXPECTED_SCOPE_FALSE_FIELDS = {
     "metadata_reference_public_output_allowed",
-    "artifact_store_lookup_allowed",
-    "artifact_binary_read_allowed",
-    "public_url_resolution_allowed",
+    "copilot_response_schema_change_required_now",
+    "artifact_store_required_now",
+    "binary_reader_required_now",
+    "public_url_required_now",
+    "backend_adapter_required_now",
     "backend_call_allowed",
-    "image_generation_allowed",
+    "binary_payload_allowed",
+    "provider_raw_dump_allowed",
 }
-EXPECTED_GATES = {
-    "integration_review_consumed": "satisfied",
-    "runtime_mapper_implementation_consumed": "satisfied",
-    "copilot_response_citation_schema_preserved": "satisfied",
-    "future_consumer_function_contract_defined": "satisfied",
-    "failure_propagation_test_plan_defined": "satisfied",
-    "existing_response_builder_unmodified": "satisfied",
-    "response_consumer_implementation_task_card": "deferred",
-    "artifact_store_binary_reader_backend_adapter": "blocked",
-}
-EXPECTED_ALLOWED_NEXT_SCOPE = {
-    "create image-artifact-response-consumer-implementation-v1 task card",
-    "implement metadata-only response consumer",
-    "merge artifact citation into CopilotResponse.citations",
-    "keep metadata_reference internal",
-    "add success and fail-closed unit tests",
-    "add no side effects smoke",
-}
-EXPECTED_FORBIDDEN_NEXT_SCOPE = {
-    "CopilotResponse schema change",
-    "artifact store implementation",
-    "artifact binary reader implementation",
-    "public URL resolver implementation",
-    "backend adapter implementation",
-    "real backend call",
-    "image generation",
-    "artifact upload",
-    "UI implementation",
-    "platform HTTP route implementation",
-    "executor implementation",
-    "confirmation implementation",
-    "writeback implementation",
-    "replay implementation",
+EXPECTED_FAILURE_CODES = {
+    "image_artifact_mapper_failed",
+    "image_artifact_citation_id_conflict",
+    "image_artifact_citation_schema_invalid",
+    "image_artifact_metadata_reference_leak",
 }
 EXPECTED_TEST_CASES = {
     "append_generated_not_required_citation",
     "append_generated_reviewed_pass_citation",
-    "reject_blocked_artifact_status",
-    "reject_failed_artifact_status",
-    "reject_pending_review_artifact",
-    "reject_public_url_claim",
-    "reject_binary_payload_present",
-    "reject_provider_raw_dump_present",
+    "reject_mapper_blocked_failure",
+    "reject_mapper_invalid_metadata_failure",
+    "reject_mapper_pending_review_failure",
+    "reject_public_url_claim_failure",
+    "reject_binary_payload_failure",
+    "reject_provider_raw_dump_failure",
     "reject_duplicate_citation_id",
+    "reject_schema_invalid_citation",
     "reject_metadata_reference_leak",
+    "preserve_no_side_effects",
 }
 EXPECTED_FORBIDDEN_ARTIFACTS = {
-    "docs/task-cards/image-artifact-response-consumer-implementation-v1-plan.md",
     "services/runtime/image_artifact_response_consumer.py",
     "services/runtime/copilot_response_artifact_mapper.py",
     "services/runtime/image_artifact_store.py",
@@ -156,25 +149,13 @@ EXPECTED_ZERO_COUNTERS = {
     "runtime_mapping_execution_count=0",
     "production_storage_write_count=0",
     "public_url_resolution_count=0",
+    "response_consumer_call_count=0",
+    "response_builder_change_count=0",
     "executor_call_count=0",
     "confirmation_call_count=0",
     "business_writeback_count=0",
     "replay_call_count=0",
-    "response_consumer_call_count=0",
-    "response_builder_change_count=0",
 }
-
-
-def later_implementation_task_card_allows_artifact(relative_path: str) -> bool:
-    if relative_path != IMPLEMENTATION_TASK_CARD_PATH:
-        return False
-    if not IMPLEMENTATION_FIXTURE_PATH.exists():
-        return False
-    implementation = load_json(IMPLEMENTATION_FIXTURE_PATH)
-    return (
-        (implementation.get("slice") or {}).get("status")
-        == "image_artifact_response_consumer_implementation_task_card_defined"
-    )
 
 
 def require(condition: bool, message: str) -> None:
@@ -204,90 +185,113 @@ def artifact_fixture() -> dict[str, Any]:
     return artifact
 
 
+def runtime_implementation_allows_artifact(relative_path: str) -> bool:
+    if relative_path != RESPONSE_CONSUMER_MODULE:
+        return False
+    if not RUNTIME_IMPLEMENTATION_FIXTURE_PATH.exists():
+        return False
+    runtime = load_json(RUNTIME_IMPLEMENTATION_FIXTURE_PATH)
+    return (
+        (runtime.get("slice") or {}).get("status")
+        == "image_artifact_response_consumer_runtime_implemented"
+    )
+
+
+def citation_schema() -> dict[str, Any]:
+    schema = load_json(COPILOT_RESPONSE_SCHEMA_PATH)
+    properties = set((schema.get("properties") or {}).keys())
+    require("citations" in properties, "CopilotResponse.citations missing")
+    require("artifacts" not in properties, "CopilotResponse.artifacts must not be added")
+    require("artifact_metadata" not in properties, "CopilotResponse.artifact_metadata must not be added")
+    citation = ((schema.get("$defs") or {}).get("citation") or {})
+    kind_enum = ((((citation.get("properties") or {}).get("kind") or {}).get("enum")) or [])
+    require("artifact" in kind_enum, "CopilotResponse citation kind must allow artifact")
+    return citation
+
+
 def assert_slice_and_dependencies(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "schema_version drifted")
-    require(fixture.get("kind") == "image_artifact_response_consumer_implementation_readiness_v1", "kind drifted")
+    require(fixture.get("kind") == "image_artifact_response_consumer_implementation_v1", "kind drifted")
     slice_info = fixture.get("slice") or {}
-    require(slice_info.get("id") == "image-artifact-response-consumer-implementation-readiness-v1", "slice id drifted")
+    require(slice_info.get("id") == "image-artifact-response-consumer-implementation-v1", "slice id drifted")
     require(slice_info.get("track") == "Image Path", "slice track drifted")
     require(
-        slice_info.get("status") == "image_artifact_response_consumer_implementation_readiness_defined",
+        slice_info.get("status") == "image_artifact_response_consumer_implementation_task_card_defined",
         "slice status drifted",
     )
     require(set(slice_info.get("does_not_claim") or []) == EXPECTED_FORBIDDEN_CLAIMS, "forbidden claims drifted")
     require(set(fixture.get("depends_on") or []) == EXPECTED_DEPENDENCIES, "dependencies drifted")
+    require(TASK_CARD_PATH.exists(), "implementation task card must exist")
 
+    readiness = load_json(READINESS_PATH)
+    require(
+        (readiness.get("slice") or {}).get("status")
+        == "image_artifact_response_consumer_implementation_readiness_defined",
+        "response consumer readiness status drifted",
+    )
     integration = load_json(INTEGRATION_REVIEW_PATH)
     require(
         (integration.get("slice") or {}).get("status")
         == "image_artifact_runtime_mapper_response_consumer_integration_review_defined",
         "integration review status drifted",
     )
-    runtime = load_json(RUNTIME_IMPLEMENTATION_PATH)
+    runtime = load_json(RUNTIME_MAPPER_PATH)
     require(
         (runtime.get("slice") or {}).get("status") == "image_artifact_runtime_mapper_runtime_implemented",
         "runtime mapper status drifted",
     )
 
 
-def assert_readiness_contract(fixture: dict[str, Any]) -> None:
-    readiness = fixture.get("implementation_readiness") or {}
-    require(readiness.get("status") == "response_consumer_implementation_readiness_defined", "readiness status drifted")
-    require(readiness.get("selected_track") == "metadata_only_response_consumer", "selected track drifted")
-    require(readiness.get("future_module") == "services/runtime/image_artifact_response_consumer.py", "future module drifted")
+def assert_implementation_contract(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("implementation_task_card_boundary") or {}
+    require(boundary.get("status") == "implementation_task_card_defined_no_runtime_code", "boundary status drifted")
+    require(boundary.get("decision") == "response_consumer_runtime_code_allowed_next", "boundary decision drifted")
+    require(boundary.get("selected_track") == "metadata_only_response_consumer", "selected track drifted")
+    require(boundary.get("task_card_created_in_this_slice") is True, "task card must be created in this slice")
     require(
-        readiness.get("future_function") == "apply_image_artifact_reference_to_response",
+        boundary.get("response_consumer_runtime_code_allowed_after_this_slice") is True,
+        "runtime code should be allowed after this slice",
+    )
+    for field in EXPECTED_BOUNDARY_FALSE_FIELDS:
+        require(boundary.get(field) is False, f"implementation_task_card_boundary.{field} must remain false")
+
+    scope = fixture.get("implementation_scope") or {}
+    require(scope.get("status") == "metadata_only_response_consumer_scope_defined", "scope status drifted")
+    require(scope.get("future_module") == RESPONSE_CONSUMER_MODULE, "future module drifted")
+    require(
+        scope.get("future_function") == "apply_image_artifact_reference_to_response",
         "future function drifted",
     )
-    require(readiness.get("future_result_type") == "ImageArtifactResponseConsumerResult", "future result type drifted")
-    for field in EXPECTED_FALSE_FIELDS:
-        require(readiness.get(field) is False, f"implementation_readiness.{field} must remain false")
+    require(scope.get("future_result_type") == "ImageArtifactResponseConsumerResult", "future result type drifted")
+    require(scope.get("output_surface") == "CopilotResponse.citations", "output surface drifted")
+    require(scope.get("target_citation_kind") == "artifact", "citation kind drifted")
+    for field in EXPECTED_SCOPE_FALSE_FIELDS:
+        require(scope.get(field) is False, f"implementation_scope.{field} must remain false")
 
-    contract = fixture.get("future_function_contract") or {}
-    for field in (
-        "input_response_document",
-        "input_mapping_result",
-        "success_output",
-        "internal_output",
-        "failure_output",
-        "citation_id_conflict_failure_code",
-        "schema_failure_code",
-        "metadata_reference_leak_failure_code",
-    ):
-        require(str(contract.get(field) or ""), f"future_function_contract.{field} missing")
-    require(
-        contract.get("citation_id_conflict_failure_code") == "image_artifact_citation_id_conflict",
-        "citation conflict failure code drifted",
-    )
-    require(
-        contract.get("metadata_reference_leak_failure_code") == "image_artifact_metadata_reference_leak",
-        "metadata leak failure code drifted",
-    )
-
-    gates = rows_by_id(fixture.get("readiness_gate_matrix") or [], "gate_id")
-    require(set(gates) == set(EXPECTED_GATES), "readiness gates drifted")
-    for gate_id, status in EXPECTED_GATES.items():
-        require(gates[gate_id].get("status") == status, f"{gate_id} status drifted")
-
-    require(set(fixture.get("allowed_next_scope") or []) == EXPECTED_ALLOWED_NEXT_SCOPE, "allowed next scope drifted")
-    require(set(fixture.get("forbidden_next_scope") or []) == EXPECTED_FORBIDDEN_NEXT_SCOPE, "forbidden next scope drifted")
+    require(set(fixture.get("failure_taxonomy") or []) == EXPECTED_FAILURE_CODES, "failure taxonomy drifted")
 
 
-def assert_future_test_plan(fixture: dict[str, Any]) -> None:
-    rows = rows_by_id(fixture.get("future_test_plan") or [], "case_id")
-    require(set(rows) == EXPECTED_TEST_CASES, "future test plan drifted")
+def assert_future_runtime_test_plan(fixture: dict[str, Any]) -> None:
+    rows = rows_by_id(fixture.get("future_runtime_test_plan") or [], "case_id")
+    require(set(rows) == EXPECTED_TEST_CASES, "future runtime test plan drifted")
+    for case_id, row in rows.items():
+        require(row.get("runtime_test_required_next") is True, f"{case_id} must require runtime test next")
+        action = str(row.get("expected_consumer_action") or "")
+        require(
+            action in {"merge_artifact_citation", "reject_success_response", "preserve_no_side_effects"},
+            f"{case_id} action drifted",
+        )
+
     base = artifact_fixture()
-
     success = map_image_artifact_to_response_reference(base)
-    require(success.ok is True and success.citation is not None, "generated_not_required must support future success test")
+    require(success.ok is True and success.citation is not None, "generated_not_required must support success test")
     jsonschema.validate(success.citation, citation_schema())
-    require_no_forbidden_payload(success.metadata_reference or {}, "generated_not_required")
 
     reviewed = copy.deepcopy(base)
     reviewed["safety"]["requires_confirmation"] = True
     reviewed["safety"]["review_status"] = "reviewed_pass"
     reviewed_success = map_image_artifact_to_response_reference(reviewed)
-    require(reviewed_success.ok is True and reviewed_success.citation is not None, "reviewed_pass must support future success test")
+    require(reviewed_success.ok is True and reviewed_success.citation is not None, "reviewed_pass must support success test")
     jsonschema.validate(reviewed_success.citation, citation_schema())
 
     blocked = copy.deepcopy(base)
@@ -315,22 +319,6 @@ def assert_future_test_plan(fixture: dict[str, Any]) -> None:
     raw["provider_raw_response"] = {"raw": True}
     assert_mapper_failure(raw, "image_artifact_provider_raw_dump_rejected", "provider_raw")
 
-    for case_id in EXPECTED_TEST_CASES:
-        action = str(rows[case_id].get("expected_consumer_action") or "")
-        require(action in {"merge_artifact_citation", "reject_success_response"}, f"{case_id} action drifted")
-
-
-def citation_schema() -> dict[str, Any]:
-    schema = load_json(COPILOT_RESPONSE_SCHEMA_PATH)
-    properties = set((schema.get("properties") or {}).keys())
-    require("citations" in properties, "CopilotResponse.citations missing")
-    require("artifacts" not in properties, "CopilotResponse.artifacts must not be added")
-    require("artifact_metadata" not in properties, "CopilotResponse.artifact_metadata must not be added")
-    citation = ((schema.get("$defs") or {}).get("citation") or {})
-    kind_enum = ((((citation.get("properties") or {}).get("kind") or {}).get("enum")) or [])
-    require("artifact" in kind_enum, "CopilotResponse citation kind must allow artifact")
-    return citation
-
 
 def assert_mapper_failure(artifact: dict[str, Any], expected_code: str, label: str) -> None:
     result = map_image_artifact_to_response_reference(artifact)
@@ -340,29 +328,16 @@ def assert_mapper_failure(artifact: dict[str, Any], expected_code: str, label: s
     require(result.metadata_reference is None, f"{label} must not return metadata reference")
 
 
-def require_no_forbidden_payload(metadata_reference: dict[str, Any], case_id: str) -> None:
-    text = json.dumps(metadata_reference, sort_keys=True)
-    for literal in (
-        "base64_image",
-        "pixel_payload",
-        "binary_payload",
-        "provider_raw_response",
-        "provider_raw_dump",
-        "public_url",
-        "signed_public_url",
-        "signed_url",
-    ):
-        require(literal not in text, f"{case_id} metadata reference leaked {literal}")
-
-
-def assert_no_implementation_artifacts(fixture: dict[str, Any]) -> None:
+def assert_forbidden_artifacts(fixture: dict[str, Any]) -> None:
     artifacts = rows_by_id(fixture.get("forbidden_artifact_matrix") or [], "path")
     require(set(artifacts) == EXPECTED_FORBIDDEN_ARTIFACTS, "forbidden artifact matrix drifted")
     for relative_path, row in artifacts.items():
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
         if row.get("allowed_next") is True:
-            require(relative_path == IMPLEMENTATION_TASK_CARD_PATH, f"{relative_path} must not be allowed next")
-        if not later_implementation_task_card_allows_artifact(relative_path):
+            require(relative_path == RESPONSE_CONSUMER_MODULE, f"{relative_path} must not be allowed next")
+        else:
+            require(row.get("allowed_next") is False, f"{relative_path} allowed_next drifted")
+        if not runtime_implementation_allows_artifact(relative_path):
             require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     forbidden_literals = set(fixture.get("forbidden_source_literals") or [])
@@ -394,24 +369,24 @@ def assert_references_and_check_repo(fixture: dict[str, Any]) -> None:
         require(not missing, f"{relative_path} missing doc literals: {missing}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    previous_checker = "check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py"
-    current_checker = "check-image-artifact-response-consumer-implementation-readiness-v1.py"
-    require(current_checker in check_repo, "check-repo.py must run response consumer readiness checker")
+    previous_checker = "check-image-artifact-response-consumer-implementation-readiness-v1.py"
+    current_checker = "check-image-artifact-response-consumer-implementation-v1.py"
+    require(current_checker in check_repo, "check-repo.py must run response consumer implementation checker")
     require(
         check_repo.index(previous_checker) < check_repo.index(current_checker),
-        "response consumer readiness checker must run after integration review checker",
+        "response consumer implementation checker must run after readiness checker",
     )
 
 
 def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_slice_and_dependencies(fixture)
-    assert_readiness_contract(fixture)
-    assert_future_test_plan(fixture)
-    assert_no_implementation_artifacts(fixture)
+    assert_implementation_contract(fixture)
+    assert_future_runtime_test_plan(fixture)
+    assert_forbidden_artifacts(fixture)
     assert_side_effects(fixture)
     assert_references_and_check_repo(fixture)
-    print("image artifact response consumer implementation readiness v1 checks passed.")
+    print("image artifact response consumer implementation v1 checks passed.")
 
 
 if __name__ == "__main__":
