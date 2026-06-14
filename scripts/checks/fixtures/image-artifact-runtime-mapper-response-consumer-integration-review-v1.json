@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "kind": "image_artifact_runtime_mapper_response_consumer_integration_review_v1",
+  "slice": {
+    "id": "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+    "track": "Image Path",
+    "status": "image_artifact_runtime_mapper_response_consumer_integration_review_defined",
+    "does_not_claim": [
+      "response_consumer_implemented",
+      "response_builder_changed",
+      "copilot_response_schema_changed",
+      "copilot_response_artifact_runtime_ready",
+      "artifact_store_ready",
+      "artifact_store_implemented",
+      "artifact_binary_reader_ready",
+      "artifact_binary_reader_implemented",
+      "artifact_binary_read_ready",
+      "public_artifact_url_ready",
+      "public_url_resolver_ready",
+      "signed_url_resolver_ready",
+      "production_artifact_storage_ready",
+      "image_backend_adapter_implemented",
+      "image_backend_client_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_payload_ready",
+      "provider_raw_dump_ready",
+      "automatic_retry_ready",
+      "fallback_execution_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-artifact-runtime-mapper-runtime-implementation-v1",
+    "contracts/copilot-response.schema.json",
+    "contracts/image-generation-artifact.schema.json",
+    "services/runtime/image_artifact_runtime_mapper.py",
+    "services/runtime/inference_response.py",
+    "services/runtime/inference_support.py"
+  ],
+  "integration_review": {
+    "status": "response_consumer_integration_entry_review_defined",
+    "conclusion": "future_consumer_must_use_existing_copilot_response_citations_path_and_metadata_only_mapper",
+    "selected_future_surface": "CopilotResponse.citations artifact citation plus internal metadata_reference handoff",
+    "implementation_created_in_this_slice": false,
+    "response_builder_changed_in_this_slice": false,
+    "copilot_response_schema_change_allowed": false,
+    "metadata_reference_public_output_allowed": false,
+    "artifact_store_lookup_allowed": false,
+    "artifact_binary_read_allowed": false,
+    "public_url_resolution_allowed": false,
+    "backend_call_allowed": false,
+    "image_generation_allowed": false
+  },
+  "consumer_entry_candidates": [
+    {
+      "candidate_id": "copilot_response_citations_schema",
+      "surface": "contracts/copilot-response.schema.json#/properties/citations",
+      "decision": "selected_schema_surface",
+      "implementation_created": false
+    },
+    {
+      "candidate_id": "runtime_response_coercion",
+      "surface": "services/runtime/inference_response.py",
+      "decision": "future_implementation_candidate",
+      "implementation_created": false
+    },
+    {
+      "candidate_id": "runtime_context_citation_builder",
+      "surface": "services/runtime/inference_support.py",
+      "decision": "future_implementation_candidate",
+      "implementation_created": false
+    },
+    {
+      "candidate_id": "platform_http_response_route",
+      "surface": "services/platform/internal/httpapi/responses.go",
+      "decision": "blocked_for_this_slice",
+      "implementation_created": false
+    }
+  ],
+  "consumer_gate_matrix": [
+    {
+      "gate_id": "runtime_mapper_implementation_consumed",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "copilot_response_citation_schema_accepts_artifact",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "success_result_can_supply_artifact_citation",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "metadata_reference_remains_internal_metadata_only",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "blocked_failed_pending_review_rejected_before_success_response",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "fail_closed_errors_do_not_emit_success_citation",
+      "status": "satisfied"
+    },
+    {
+      "gate_id": "response_consumer_implementation_task_card",
+      "status": "deferred"
+    },
+    {
+      "gate_id": "artifact_store_binary_reader_backend_adapter",
+      "status": "blocked"
+    }
+  ],
+  "propagation_cases": [
+    {
+      "case_id": "generated_not_required_success",
+      "mapper_ok": true,
+      "expected_consumer_action": "allow_future_success_response_citation"
+    },
+    {
+      "case_id": "generated_reviewed_pass_success",
+      "mapper_ok": true,
+      "expected_consumer_action": "allow_future_success_response_citation"
+    },
+    {
+      "case_id": "blocked_artifact_status",
+      "mapper_ok": false,
+      "expected_failure_code": "image_artifact_safety_blocked",
+      "expected_consumer_action": "reject_success_response"
+    },
+    {
+      "case_id": "failed_artifact_status",
+      "mapper_ok": false,
+      "expected_failure_code": "image_artifact_invalid_metadata",
+      "expected_consumer_action": "reject_success_response"
+    },
+    {
+      "case_id": "pending_review_artifact",
+      "mapper_ok": false,
+      "expected_failure_code": "image_artifact_safety_pending_review",
+      "expected_consumer_action": "reject_success_response"
+    },
+    {
+      "case_id": "public_url_claim",
+      "mapper_ok": false,
+      "expected_failure_code": "image_artifact_public_url_claim",
+      "expected_consumer_action": "reject_success_response"
+    },
+    {
+      "case_id": "binary_payload_present",
+      "mapper_ok": false,
+      "expected_failure_code": "image_artifact_binary_payload_rejected",
+      "expected_consumer_action": "reject_success_response"
+    },
+    {
+      "case_id": "provider_raw_dump_present",
+      "mapper_ok": false,
+      "expected_failure_code": "image_artifact_provider_raw_dump_rejected",
+      "expected_consumer_action": "reject_success_response"
+    }
+  ],
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/runtime/image_artifact_response_consumer.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/copilot_response_artifact_mapper.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_store.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_binary_reader.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_public_url_resolver.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_backend_adapter.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/image-artifact-runtime-mapper-response-consumer-integration-v1-plan.md",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-artifact-response-reference.schema.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_artifacts.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageArtifactResponseConsumerPanel.tsx",
+      "created_in_this_slice": false
+    }
+  ],
+  "source_files_that_must_not_be_connected": [
+    "services/runtime/inference_response.py",
+    "services/runtime/inference_support.py",
+    "services/gateway/copilot_gateway.py",
+    "services/platform/internal/httpapi/responses.go"
+  ],
+  "forbidden_source_literals": [
+    "map_image_artifact_to_response_reference",
+    "ImageArtifactMappingResult",
+    "image_artifact_response_consumer",
+    "copilot_response_artifact_mapper",
+    "IMAGE_ARTIFACT_PUBLIC_BASE_URL",
+    "ReadImageArtifactBinary",
+    "ResolveImageArtifactPublicURL",
+    "callImageGenerationBackend"
+  ],
+  "side_effect_counters_must_remain": [
+    "backend_call_count=0",
+    "image_generation_count=0",
+    "model_download_count=0",
+    "artifact_upload_count=0",
+    "artifact_binary_read_count=0",
+    "artifact_store_lookup_count=0",
+    "runtime_mapping_execution_count=0",
+    "production_storage_write_count=0",
+    "public_url_resolution_count=0",
+    "executor_call_count=0",
+    "confirmation_call_count=0",
+    "business_writeback_count=0",
+    "replay_call_count=0",
+    "response_consumer_call_count=0",
+    "response_builder_change_count=0"
+  ],
+  "evidence": [
+    "docs/task-cards/image-artifact-runtime-mapper-response-consumer-integration-review-v1-plan.md",
+    "scripts/check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py",
+    "scripts/checks/fixtures/image-artifact-runtime-mapper-response-consumer-integration-review-v1.json",
+    "scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json",
+    "services/runtime/image_artifact_runtime_mapper.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "image_artifact_runtime_mapper_response_consumer_integration_review_defined"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "image_artifact_runtime_mapper_response_consumer_integration_review_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "response consumer integration review"
+    ],
+    "docs/radishmind-architecture.md": [
+      "image_artifact_runtime_mapper_response_consumer_integration_review_defined",
+      "response consumer"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "response consumer integration review"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "metadata-only response consumer integration review"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Artifact Runtime Mapper Response Consumer Integration Review",
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1"
+    ],
+    "contracts/README.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py"
+    ],
+    "scripts/README.md": [
+      "check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py",
+      "response consumer integration review"
+    ],
+    "docs/README.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "response consumer"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "image-artifact-runtime-mapper-response-consumer-integration-review-v1",
+      "image_artifact_runtime_mapper_response_consumer_integration_review_defined"
+    ]
+  }
+}

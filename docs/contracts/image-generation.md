@@ -39,6 +39,8 @@
 - Artifact runtime mapper implementation smoke：`scripts/check-image-artifact-runtime-mapper-implementation-v1.py`
 - Artifact runtime mapper runtime implementation fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json`
 - Artifact runtime mapper runtime implementation smoke：`scripts/check-image-artifact-runtime-mapper-runtime-implementation-v1.py`
+- Artifact runtime mapper response consumer integration review fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-response-consumer-integration-review-v1.json`
+- Artifact runtime mapper response consumer integration review smoke：`scripts/check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py`
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -329,3 +331,13 @@ runtime 实现要求：
 - 成功路径只允许 `generated + not_required` 与 `generated + reviewed_pass`，并保留 `artifact://`、sha256、mime type、dimensions、safety review、provenance 和 generation metadata。
 - `blocked / failed / pending_review`、invalid metadata、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、missing / unavailable store、missing / forbidden binary reader、safety review not passed 和 provenance missing 均返回 fail-closed failure code，不产生成功 citation。
 - 后续若要接入真实 response consumer、artifact store、binary reader、public URL resolver 或 backend adapter，仍需独立入口、fixture、checker 和验证。
+
+### Artifact runtime mapper response consumer integration review
+
+`image-artifact-runtime-mapper-response-consumer-integration-review-v1` 已把 metadata-only runtime mapper 到未来 response consumer 的入口评审固定为 `image_artifact_runtime_mapper_response_consumer_integration_review_defined`。该证据层只确认未来消费应沿现有 `CopilotResponse.citations` 的 `kind=artifact` citation 形状和 mapper 返回的 `metadata_reference` 进行 metadata-only handoff；不改 `CopilotResponse` schema，不实现 response consumer，不修改 response builder，不创建 artifact store、binary reader、public URL resolver 或 backend adapter。
+
+response consumer 集成评审要求：
+
+- 只有 mapper 返回 `ok=true` 且 citation 符合 `CopilotResponse` citation schema 时，未来 consumer 才允许进入成功 response 路径。
+- `metadata_reference` 仍是内部 metadata-only handoff，不得作为 public URL、signed URL、binary payload、provider raw dump 或 production storage claim 暴露。
+- `blocked / failed / pending_review`、public URL claim、binary payload、provider raw dump 和其它 fail-closed case 不得生成成功 citation；现有 response builder 本切片仍保持未接线。
