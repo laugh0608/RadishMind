@@ -4,11 +4,8 @@
   "slice": {
     "id": "image-artifact-response-builder-runtime-integration-implementation-v1",
     "track": "Image Path",
-    "status": "image_artifact_response_builder_runtime_integration_implementation_task_card_defined",
+    "status": "image_artifact_response_builder_runtime_integration_implemented",
     "does_not_claim": [
-      "response_builder_changed",
-      "response_builder_connected",
-      "response_builder_runtime_implemented",
       "copilot_response_schema_changed",
       "copilot_response_artifact_runtime_ready",
       "artifact_store_ready",
@@ -48,14 +45,14 @@
     "services/runtime/image_artifact_runtime_mapper.py"
   ],
   "implementation_task_card_boundary": {
-    "status": "runtime_integration_implementation_task_card_defined_no_runtime_code",
-    "decision": "coerce_response_document_runtime_integration_code_allowed_next",
+    "status": "runtime_integration_implemented_metadata_only",
+    "decision": "coerce_response_document_runtime_integration_implemented",
     "selected_track": "single_python_response_builder_hook",
     "task_card_created_in_this_slice": true,
-    "runtime_code_allowed_after_this_slice": true,
-    "runtime_code_created_in_this_slice": false,
-    "response_builder_changed_in_this_slice": false,
-    "response_builder_connected_in_this_slice": false,
+    "runtime_code_allowed_after_this_slice": false,
+    "runtime_code_created_in_this_slice": true,
+    "response_builder_changed_in_this_slice": true,
+    "response_builder_connected_in_this_slice": true,
     "copilot_response_schema_changed_in_this_slice": false,
     "artifact_store_created_in_this_slice": false,
     "artifact_binary_reader_created_in_this_slice": false,
@@ -98,7 +95,7 @@
       "satisfied": true
     }
   ],
-  "future_runtime_hook_contract": {
+  "runtime_hook_contract": {
     "target_file": "services/runtime/inference_response.py",
     "function": "services/runtime/inference_response.py#coerce_response_document",
     "function_signature": [
@@ -109,12 +106,12 @@
     "placement": "after_response_top_level_filter_before_existing_schema_validation",
     "after_anchor": "coerced = {key: value for key, value in coerced.items() if key in RESPONSE_TOP_LEVEL_KEYS}",
     "before_anchor": "validate_response_document(coerced)",
-    "allowed_future_source_change": "single_hook_inside_coerce_response_document",
+    "implemented_source_change": "single_hook_inside_coerce_response_document",
     "signature_change_allowed": false,
     "gateway_route_allowed": false,
     "platform_route_allowed": false,
     "inference_support_build_citations_allowed": false,
-    "implementation_created_in_this_slice": false
+    "implementation_created_in_this_slice": true
   },
   "metadata_discovery_contract": {
     "source": "copilot_request",
@@ -181,60 +178,59 @@
       "expected_action": "fail_closed_without_retry_or_backend_call"
     }
   ],
-  "future_runtime_test_plan": [
+  "runtime_test_coverage": [
     {
       "case_id": "single_artifact_success_appends_citation",
       "expected_action": "merge_artifact_citation",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "multiple_artifacts_preserve_request_order",
       "expected_action": "merge_artifact_citations_in_order",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "missing_metadata_no_op_preserves_response",
       "expected_action": "no_op_preserve_response",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "artifact_metadata_schema_invalid_fail_closed",
       "expected_action": "fail_closed_response_builder_failure",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "mapper_blocked_failure_fail_closed",
       "expected_action": "fail_closed_response_builder_failure",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "consumer_citation_id_conflict_fail_closed",
       "expected_action": "fail_closed_response_builder_failure",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "consumer_citation_schema_invalid_fail_closed",
       "expected_action": "fail_closed_response_builder_failure",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "consumer_metadata_reference_leak_fail_closed",
       "expected_action": "fail_closed_response_builder_failure",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "post_merge_schema_invalid_fail_closed",
       "expected_action": "fail_closed_without_retry_or_backend_call",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     },
     {
       "case_id": "no_retry_backend_upload_or_binary_side_effects",
       "expected_action": "preserve_no_side_effects",
-      "runtime_test_required_next": true
+      "runtime_test_covered_now": true
     }
   ],
   "source_files_that_must_not_be_connected": [
-    "services/runtime/inference_response.py",
     "services/runtime/inference_support.py",
     "services/gateway/copilot_gateway.py",
     "services/platform/internal/httpapi/responses.go"
@@ -327,28 +323,28 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "image_artifact_response_builder_runtime_integration_implementation_task_card_defined",
+      "image_artifact_response_builder_runtime_integration_implemented",
       "multiple metadata"
     ],
     "docs/radishmind-current-focus.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "image_artifact_response_builder_runtime_integration_implementation_task_card_defined"
+      "image_artifact_response_builder_runtime_integration_implemented"
     ],
     "docs/radishmind-roadmap.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "runtime integration implementation task card"
+      "image_artifact_response_builder_runtime_integration_implemented"
     ],
     "docs/radishmind-capability-matrix.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "runtime integration implementation task card"
+      "image_artifact_response_builder_runtime_integration_implemented"
     ],
     "docs/radishmind-integration-contracts.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "runtime integration implementation task card"
+      "image_artifact_response_builder_runtime_integration_implemented"
     ],
     "docs/README.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "runtime integration implementation task card"
+      "image_artifact_response_builder_runtime_integration_implemented"
     ],
     "docs/task-cards/README.md": [
       "Image Artifact Response Builder Runtime Integration Implementation",
@@ -364,7 +360,7 @@
     ],
     "docs/devlogs/2026-W24.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "image_artifact_response_builder_runtime_integration_implementation_task_card_defined"
+      "image_artifact_response_builder_runtime_integration_implemented"
     ]
   }
 }

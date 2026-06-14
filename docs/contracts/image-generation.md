@@ -416,12 +416,12 @@ response builder runtime integration entry review 要求：
 - checker 必须证明当前 `inference_response.py`、`inference_support.py`、gateway 和 platform route 仍未接入 image artifact consumer。
 - store、binary reader、public URL、signed URL、backend adapter、artifact upload、production storage、真实 backend call、图片生成、executor、confirmation、writeback 和 replay 继续 deferred。
 
-### Artifact response builder runtime integration implementation task card
+### Artifact response builder runtime integration implementation
 
-`image-artifact-response-builder-runtime-integration-implementation-v1` 已把 metadata-only response builder runtime integration implementation task card 固定为 `image_artifact_response_builder_runtime_integration_implementation_task_card_defined`。该证据层定义当前 Image Path 收束实现切片如何接入 `services/runtime/inference_response.py#coerce_response_document`，包括 hook contract、request metadata discovery、mapper / consumer merge pipeline、multiple metadata ordering、failure propagation、runtime test plan 和 no side effects；完成该 hook 后不继续扩同层 Image gate。当前仍不改 `CopilotResponse` schema，不接 artifact store、binary reader、public URL resolver、gateway、platform route 或 backend adapter。
+`image-artifact-response-builder-runtime-integration-implementation-v1` 已把 metadata-only response builder runtime integration 固定为 `image_artifact_response_builder_runtime_integration_implemented`。该实现只在 `services/runtime/inference_response.py#coerce_response_document` 内接入 hook，覆盖 request metadata discovery、mapper / consumer merge pipeline、multiple metadata ordering、failure propagation、runtime test coverage 和 no side effects；该 hook 完成后不继续扩同层 Image gate。当前仍不改 `CopilotResponse` schema，不接 artifact store、binary reader、public URL resolver、gateway、platform route 或 backend adapter。
 
-response builder runtime integration implementation task card 要求：
+response builder runtime integration implementation 要求：
 
-- 未来 runtime code 只允许修改 `services/runtime/inference_response.py`，并保持 `coerce_response_document(document, copilot_request, raw_text)` 签名不变。
+- runtime code 只修改 `services/runtime/inference_response.py`，并保持 `coerce_response_document(document, copilot_request, raw_text)` 签名不变。
 - metadata discovery 只能从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 读取，缺失 metadata no-op，多个 metadata 必须按 request artifact 顺序合并。
 - metadata schema invalid、mapper failure、consumer failure 和 post-merge schema invalid 必须 fail closed，不触发 retry、fallback execution、binary read、store lookup、artifact upload、public URL resolution 或 backend call。

@@ -225,7 +225,6 @@
     }
   ],
   "source_files_that_must_not_be_connected": [
-    "services/runtime/inference_response.py",
     "services/runtime/inference_support.py",
     "services/gateway/copilot_gateway.py",
     "services/platform/internal/httpapi/responses.go"

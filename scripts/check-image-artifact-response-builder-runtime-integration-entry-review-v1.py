@@ -300,7 +300,20 @@ def successor_task_card_allows(relative_path: str) -> bool:
     successor = load_json(SUCCESSOR_IMPLEMENTATION_FIXTURE_PATH)
     return (
         (successor.get("slice") or {}).get("status")
-        == "image_artifact_response_builder_runtime_integration_implementation_task_card_defined"
+        in {
+            "image_artifact_response_builder_runtime_integration_implementation_task_card_defined",
+            "image_artifact_response_builder_runtime_integration_implemented",
+        }
+    )
+
+
+def successor_runtime_integration_implemented() -> bool:
+    if not SUCCESSOR_IMPLEMENTATION_FIXTURE_PATH.exists():
+        return False
+    successor = load_json(SUCCESSOR_IMPLEMENTATION_FIXTURE_PATH)
+    return (
+        (successor.get("slice") or {}).get("status")
+        == "image_artifact_response_builder_runtime_integration_implemented"
     )
 
 
@@ -450,10 +463,17 @@ def assert_mapper_consumer_chain_and_current_noop() -> None:
         for citation in coerced.get("citations") or []
         if isinstance(citation, dict) and citation.get("kind") == "artifact"
     }
-    require(
-        str(mapping.citation.get("id") or "") not in artifact_citation_ids,
-        "current response builder must not already connect image artifact metadata",
-    )
+    expected_citation_id = str(mapping.citation.get("id") or "")
+    if successor_runtime_integration_implemented():
+        require(
+            expected_citation_id in artifact_citation_ids,
+            "implemented response builder must connect image artifact metadata",
+        )
+    else:
+        require(
+            expected_citation_id not in artifact_citation_ids,
+            "current response builder must not already connect image artifact metadata",
+        )
 
     no_metadata = request_with_image_artifact_metadata(None)
     require(discover_request_image_artifact_metadata(no_metadata) == [], "missing metadata must remain no-op")

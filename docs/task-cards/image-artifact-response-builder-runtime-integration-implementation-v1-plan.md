@@ -6,13 +6,13 @@
 
 - 切片：`image-artifact-response-builder-runtime-integration-implementation-v1`
 - 轨道：`Image Path`
-- 状态：`image_artifact_response_builder_runtime_integration_implementation_task_card_defined`
+- 状态：`image_artifact_response_builder_runtime_integration_implemented`
 
 ## 目标
 
-在 `image-artifact-response-builder-runtime-integration-entry-review-v1` 已确认只允许单一 response builder runtime integration implementation 方向后，创建后续 runtime code 的实现任务卡、fixture 和 checker。
+在 `image-artifact-response-builder-runtime-integration-entry-review-v1` 已确认只允许单一 response builder runtime integration implementation 方向后，实现 `services/runtime/inference_response.py#coerce_response_document` 的 metadata-only runtime hook，并用 fixture / checker 固定行为边界。
 
-本切片只定义未来实现 `services/runtime/inference_response.py#coerce_response_document` 接线时必须满足的实现边界、测试矩阵、失败传播、no side effects 和停止线。当前不修改 `services/runtime/inference_response.py`，不改 `CopilotResponse` schema，不创建 artifact store、binary reader、public URL resolver 或 backend adapter，也不调用真实生图 backend。
+本切片只实现 `services/runtime/inference_response.py#coerce_response_document` 的 metadata-only 接线，覆盖实现边界、测试矩阵、失败传播、no side effects 和停止线。不改 `CopilotResponse` schema，不创建 artifact store、binary reader、public URL resolver 或 backend adapter，也不调用真实生图 backend。
 
 ## 输入事实源
 
@@ -28,15 +28,15 @@
 - `contracts/copilot-response.schema.json`
 - `contracts/image-generation-artifact.schema.json`
 
-## 后续 runtime code 边界
+## runtime code 边界
 
 1. 允许的实现落点
-   - 未来 runtime code 只允许修改 `services/runtime/inference_response.py`。
-   - 未来接线函数固定为 `coerce_response_document(document, copilot_request, raw_text)`，不得改变调用签名。
+   - runtime code 只修改 `services/runtime/inference_response.py`。
+   - 接线函数固定为 `coerce_response_document(document, copilot_request, raw_text)`，不得改变调用签名。
    - hook 固定在 `coerced = {key: value for key, value in coerced.items() if key in RESPONSE_TOP_LEVEL_KEYS}` 之后、现有 `validate_response_document(coerced)` 之前。
 
 2. request metadata discovery
-   - 未来实现只能从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 按 request artifact 顺序发现 metadata。
+   - 实现只能从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 按 request artifact 顺序发现 metadata。
    - 缺失 metadata 时必须 no-op，保留原 response builder 行为。
    - discovery 不得读取 response draft、`raw_text`、环境变量、artifact store、binary reader、public URL、signed URL 或 backend response。
    - 发现 metadata 后必须先通过 `contracts/image-generation-artifact.schema.json` 校验，再进入 mapper。
@@ -56,15 +56,14 @@
 
 ## 验收口径
 
-- `scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-implementation-v1.json` 固定 implementation task card boundary、future runtime hook、metadata discovery、merge pipeline、failure propagation、runtime test plan、forbidden artifact matrix 和 no side effects。
+- `scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-implementation-v1.json` 固定 implementation boundary、runtime hook、metadata discovery、merge pipeline、failure propagation、runtime test coverage、forbidden artifact matrix 和 no side effects。
 - `scripts/check-image-artifact-response-builder-runtime-integration-implementation-v1.py` 进入 `./scripts/check-repo.sh --fast`，并在 `check-image-artifact-response-builder-runtime-integration-entry-review-v1.py` 之后运行。
 - checker 必须证明前置 entry review、integration task card、runtime mapper 和 response consumer 状态稳定。
-- checker 必须用 request-side metadata 模拟 single artifact、multiple artifacts ordering、missing metadata no-op、schema invalid、mapper failure、consumer failure 和 post-merge schema invalid。
-- checker 必须证明本切片未修改 `inference_response.py`，未改 response schema，未创建 store / reader / public URL / backend adapter，未调用真实 backend。
+- checker 必须用 request-side metadata 通过 `coerce_response_document` 验证 single artifact、multiple artifacts ordering、missing metadata no-op、schema invalid、mapper failure、consumer failure 和 post-merge schema invalid。
+- checker 必须证明本切片只修改 `inference_response.py` 的 metadata-only hook，未改 response schema，未创建 store / reader / public URL / backend adapter，未调用真实 backend。
 
 ## 非目标
 
-- 不修改 `services/runtime/inference_response.py`。
 - 不修改 `services/runtime/inference_support.py`、gateway 或 platform response route。
 - 不改 `CopilotResponse` schema，不新增 response 顶层 artifact 字段。
 - 不创建 artifact store、binary reader、public URL resolver、signed URL resolver、backend adapter、artifact upload 或 production storage。
@@ -73,7 +72,7 @@
 
 ## 停止线
 
-- 不能把本任务卡写成 response builder runtime integration 已实现。
+- 不能把本任务卡写成完整 image runtime ready。
 - 后续 runtime code 只能接入 metadata-only mapper / consumer 链路，不得绕过 schema validation 或 fail-closed 结果生成成功 citation。
 - `metadata_reference` 仍只允许作为内部 handoff，不得进入 public `CopilotResponse`。
 - store / reader / public URL / backend adapter 仍需分别独立任务卡、fixture、checker 和验证链路。

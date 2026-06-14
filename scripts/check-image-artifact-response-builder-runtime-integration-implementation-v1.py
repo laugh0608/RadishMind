@@ -26,7 +26,7 @@ from services.runtime.image_artifact_runtime_mapper import (  # noqa: E402
     map_image_artifact_to_response_reference,
     runtime_mapper_side_effect_counters,
 )
-from services.runtime.inference_response import coerce_response_document  # noqa: E402
+import services.runtime.inference_response as inference_response  # noqa: E402
 
 
 FIXTURE_PATH = (
@@ -69,9 +69,6 @@ EXPECTED_DEPENDENCIES = {
     "services/runtime/image_artifact_runtime_mapper.py",
 }
 EXPECTED_FORBIDDEN_CLAIMS = {
-    "response_builder_changed",
-    "response_builder_connected",
-    "response_builder_runtime_implemented",
     "copilot_response_schema_changed",
     "copilot_response_artifact_runtime_ready",
     "artifact_store_ready",
@@ -97,10 +94,14 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "replay_ready",
     "production_ready",
 }
-EXPECTED_FALSE_FIELDS = {
+EXPECTED_TRUE_FIELDS = {
+    "task_card_created_in_this_slice",
     "runtime_code_created_in_this_slice",
     "response_builder_changed_in_this_slice",
     "response_builder_connected_in_this_slice",
+}
+EXPECTED_FALSE_FIELDS = {
+    "runtime_code_allowed_after_this_slice",
     "copilot_response_schema_changed_in_this_slice",
     "artifact_store_created_in_this_slice",
     "artifact_binary_reader_created_in_this_slice",
@@ -163,6 +164,16 @@ EXPECTED_FORBIDDEN_ARTIFACTS = {
     "contracts/image-artifact-response-reference.schema.json",
     "services/platform/internal/httpapi/image_artifacts.go",
     "apps/radishmind-web/src/features/image-generation/ImageArtifactResponseBuilderPanel.tsx",
+}
+EXPECTED_RUNTIME_SOURCE_LITERALS = {
+    "IMAGE_GENERATION_ARTIFACT_SCHEMA_PATH",
+    "discover_request_image_artifact_metadata",
+    "merge_image_artifact_metadata_into_response",
+    "map_image_artifact_to_response_reference",
+    "apply_image_artifact_reference_to_response",
+    "image_generation_artifact",
+    "validate_response_document(consumer_result.response_document)",
+    "coerced = merge_image_artifact_metadata_into_response(coerced, copilot_request, raw_text)",
 }
 EXPECTED_ZERO_COUNTERS = {
     "backend_call_count=0",
@@ -274,17 +285,54 @@ def request_with_image_artifact_metadata(artifact_documents: list[dict[str, Any]
 
 
 def discover_request_image_artifact_metadata(copilot_request: Mapping[str, Any]) -> list[dict[str, Any]]:
-    candidates: list[dict[str, Any]] = []
+    candidates: list[Any] = []
     for artifact in copilot_request.get("artifacts") or []:
         if not isinstance(artifact, Mapping):
             continue
         metadata = artifact.get("metadata") or {}
         if not isinstance(metadata, Mapping):
             continue
-        candidate = metadata.get("image_generation_artifact")
-        if isinstance(candidate, dict):
-            candidates.append(copy.deepcopy(candidate))
+        if "image_generation_artifact" in metadata:
+            candidates.append(copy.deepcopy(metadata["image_generation_artifact"]))
     return candidates
+
+
+def response_failure_code(response: Mapping[str, Any]) -> str:
+    issues = response.get("issues") or []
+    if not issues or not isinstance(issues[0], Mapping):
+        return ""
+    return str(issues[0].get("code") or "")
+
+
+def require_failed_response(response: Mapping[str, Any], expected_code: str) -> None:
+    require(response.get("status") == "failed", f"{expected_code} must return a failed response")
+    require(response_failure_code(response) == expected_code, f"expected failure code {expected_code}")
+
+
+def coerce_with_mapper_patch(
+    document: dict[str, Any],
+    request: dict[str, Any],
+    mapper,
+) -> dict[str, Any]:
+    original_mapper = inference_response.map_image_artifact_to_response_reference
+    inference_response.map_image_artifact_to_response_reference = mapper
+    try:
+        return inference_response.coerce_response_document(document, request, raw_text="{}")
+    finally:
+        inference_response.map_image_artifact_to_response_reference = original_mapper
+
+
+def coerce_with_consumer_patch(
+    document: dict[str, Any],
+    request: dict[str, Any],
+    consumer,
+) -> dict[str, Any]:
+    original_consumer = inference_response.apply_image_artifact_reference_to_response
+    inference_response.apply_image_artifact_reference_to_response = consumer
+    try:
+        return inference_response.coerce_response_document(document, request, raw_text="{}")
+    finally:
+        inference_response.apply_image_artifact_reference_to_response = original_consumer
 
 
 def assert_slice_and_dependencies(fixture: dict[str, Any]) -> None:
@@ -301,7 +349,7 @@ def assert_slice_and_dependencies(fixture: dict[str, Any]) -> None:
     require(slice_info.get("track") == "Image Path", "slice track drifted")
     require(
         slice_info.get("status")
-        == "image_artifact_response_builder_runtime_integration_implementation_task_card_defined",
+        == "image_artifact_response_builder_runtime_integration_implemented",
         "slice status drifted",
     )
     require(set(slice_info.get("does_not_claim") or []) == EXPECTED_FORBIDDEN_CLAIMS, "forbidden claims drifted")
@@ -332,22 +380,22 @@ def assert_slice_and_dependencies(fixture: dict[str, Any]) -> None:
 def assert_task_card_boundary(fixture: dict[str, Any]) -> None:
     boundary = fixture.get("implementation_task_card_boundary") or {}
     require(
-        boundary.get("status") == "runtime_integration_implementation_task_card_defined_no_runtime_code",
+        boundary.get("status") == "runtime_integration_implemented_metadata_only",
         "task card boundary status drifted",
     )
     require(
-        boundary.get("decision") == "coerce_response_document_runtime_integration_code_allowed_next",
+        boundary.get("decision") == "coerce_response_document_runtime_integration_implemented",
         "task card boundary decision drifted",
     )
     require(boundary.get("selected_track") == "single_python_response_builder_hook", "selected track drifted")
-    require(boundary.get("task_card_created_in_this_slice") is True, "task card must be created")
-    require(boundary.get("runtime_code_allowed_after_this_slice") is True, "runtime code must be allowed next")
+    for field in EXPECTED_TRUE_FIELDS:
+        require(boundary.get(field) is True, f"implementation_task_card_boundary.{field} must be true")
     for field in EXPECTED_FALSE_FIELDS:
         require(boundary.get(field) is False, f"implementation_task_card_boundary.{field} must remain false")
 
 
-def assert_future_runtime_hook_contract(fixture: dict[str, Any]) -> None:
-    hook = fixture.get("future_runtime_hook_contract") or {}
+def assert_runtime_hook_contract(fixture: dict[str, Any]) -> None:
+    hook = fixture.get("runtime_hook_contract") or {}
     require(hook.get("target_file") == "services/runtime/inference_response.py", "target file drifted")
     require(
         hook.get("function") == "services/runtime/inference_response.py#coerce_response_document",
@@ -359,17 +407,17 @@ def assert_future_runtime_hook_contract(fixture: dict[str, Any]) -> None:
         "hook placement drifted",
     )
     require(
-        hook.get("allowed_future_source_change") == "single_hook_inside_coerce_response_document",
-        "allowed future source change drifted",
+        hook.get("implemented_source_change") == "single_hook_inside_coerce_response_document",
+        "implemented source change drifted",
     )
     for field in (
         "signature_change_allowed",
         "gateway_route_allowed",
         "platform_route_allowed",
         "inference_support_build_citations_allowed",
-        "implementation_created_in_this_slice",
     ):
         require(hook.get(field) is False, f"future_runtime_hook_contract.{field} must remain false")
+    require(hook.get("implementation_created_in_this_slice") is True, "runtime hook must be implemented")
 
     source = INFERENCE_RESPONSE_PATH.read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -378,9 +426,16 @@ def assert_future_runtime_hook_contract(fixture: dict[str, Any]) -> None:
     require([arg.arg for arg in function.args.args] == hook.get("function_signature"), "function signature drifted")
     after_anchor = str(hook.get("after_anchor") or "")
     before_anchor = str(hook.get("before_anchor") or "")
+    hook_anchor = "coerced = merge_image_artifact_metadata_into_response(coerced, copilot_request, raw_text)"
     require(after_anchor in source, "after anchor missing from inference_response.py")
     require(before_anchor in source, "before anchor missing from inference_response.py")
-    require(source.index(after_anchor) < source.index(before_anchor), "hook anchors are in the wrong order")
+    require(hook_anchor in source, "runtime hook call missing from inference_response.py")
+    require(
+        source.index(after_anchor) < source.index(hook_anchor) < source.index(before_anchor),
+        "runtime hook placement drifted",
+    )
+    missing_literals = sorted(literal for literal in EXPECTED_RUNTIME_SOURCE_LITERALS if literal not in source)
+    require(not missing_literals, f"inference_response.py missing runtime hook literals: {missing_literals}")
 
 
 def assert_metadata_discovery_and_merge_pipeline(fixture: dict[str, Any]) -> None:
@@ -415,7 +470,7 @@ def assert_metadata_discovery_and_merge_pipeline(fixture: dict[str, Any]) -> Non
     first = copied_artifact(artifact_id="image-artifact-first", uri_suffix="first")
     second = copied_artifact(artifact_id="image-artifact-second", uri_suffix="second")
     request = request_with_image_artifact_metadata([first, None, second])
-    discovered = discover_request_image_artifact_metadata(request)
+    discovered = inference_response.discover_request_image_artifact_metadata(request)
     require([item["artifact_id"] for item in discovered] == ["image-artifact-first", "image-artifact-second"], "metadata discovery order drifted")
 
     response = valid_response_document()
@@ -434,11 +489,27 @@ def assert_metadata_discovery_and_merge_pipeline(fixture: dict[str, Any]) -> Non
         "artifact citation ordering drifted",
     )
 
-    current_builder_response = coerce_response_document(valid_response_document(), request, raw_text="{}")
+    current_builder_response = inference_response.coerce_response_document(valid_response_document(), request, raw_text="{}")
     jsonschema.validate(current_builder_response, schema)
     require(
-        all(citation.get("kind") != "artifact" for citation in current_builder_response.get("citations") or []),
-        "current response builder must not already append image artifact citations",
+        [citation["id"] for citation in current_builder_response["citations"]]
+        == ["existing-rule", "image-artifact-first", "image-artifact-second"],
+        "coerce_response_document must append image artifact citations in request order",
+    )
+    require(
+        all("metadata_reference" not in citation for citation in current_builder_response["citations"]),
+        "metadata_reference must remain internal",
+    )
+
+    no_op_response = inference_response.coerce_response_document(
+        valid_response_document(),
+        request_with_image_artifact_metadata([None]),
+        raw_text="{}",
+    )
+    jsonschema.validate(no_op_response, schema)
+    require(
+        [citation["id"] for citation in no_op_response["citations"]] == ["existing-rule"],
+        "missing image artifact metadata must preserve response citations",
     )
 
 
@@ -451,10 +522,10 @@ def assert_failure_propagation_and_test_plan(fixture: dict[str, Any]) -> None:
         "metadata schema invalid failure code drifted",
     )
 
-    test_rows = rows_by_id(fixture.get("future_runtime_test_plan") or [], "case_id")
-    require(set(test_rows) == EXPECTED_TEST_CASES, "future runtime test plan drifted")
+    test_rows = rows_by_id(fixture.get("runtime_test_coverage") or [], "case_id")
+    require(set(test_rows) == EXPECTED_TEST_CASES, "runtime test coverage drifted")
     for case_id, row in test_rows.items():
-        require(row.get("runtime_test_required_next") is True, f"{case_id} must require runtime test next")
+        require(row.get("runtime_test_covered_now") is True, f"{case_id} must be covered by runtime test")
 
     invalid_metadata = artifact_fixture()
     invalid_metadata.pop("artifact")
@@ -464,6 +535,12 @@ def assert_failure_propagation_and_test_plan(fixture: dict[str, Any]) -> None:
         pass
     else:
         raise SystemExit("invalid image artifact metadata should fail schema validation")
+    invalid_metadata_response = inference_response.coerce_response_document(
+        valid_response_document(),
+        request_with_image_artifact_metadata([invalid_metadata]),
+        raw_text="{}",
+    )
+    require_failed_response(invalid_metadata_response, "image_artifact_metadata_schema_invalid")
 
     blocked = artifact_fixture()
     blocked["status"] = "blocked"
@@ -473,6 +550,13 @@ def assert_failure_propagation_and_test_plan(fixture: dict[str, Any]) -> None:
     propagated = apply_image_artifact_reference_to_response(valid_response_document(), mapper_failure)
     require(propagated.ok is False, "mapper failure must propagate through consumer")
     require(propagated.failure_code == "image_artifact_mapper_failed", "mapper failure propagation drifted")
+    blocked_response = inference_response.coerce_response_document(
+        valid_response_document(),
+        request_with_image_artifact_metadata([blocked]),
+        raw_text="{}",
+    )
+    require_failed_response(blocked_response, "image_artifact_mapper_failed")
+    require("image_artifact_safety_blocked" in blocked_response.get("summary", ""), "mapper original failure code missing")
 
     success_mapping = map_image_artifact_to_response_reference(artifact_fixture())
     require(success_mapping.ok is True and success_mapping.citation is not None, "success mapping missing")
@@ -482,6 +566,13 @@ def assert_failure_propagation_and_test_plan(fixture: dict[str, Any]) -> None:
     duplicate = apply_image_artifact_reference_to_response(duplicate_response, success_mapping)
     require(duplicate.ok is False, "duplicate citation id must fail closed")
     require(duplicate.failure_code == "image_artifact_citation_id_conflict", "duplicate failure code drifted")
+    duplicate_artifact = copied_artifact(artifact_id="existing-rule", uri_suffix="duplicate")
+    duplicate_runtime_response = inference_response.coerce_response_document(
+        valid_response_document(),
+        request_with_image_artifact_metadata([duplicate_artifact]),
+        raw_text="{}",
+    )
+    require_failed_response(duplicate_runtime_response, "image_artifact_citation_id_conflict")
 
     invalid_mapping = ImageArtifactMappingResult(
         ok=True,
@@ -491,6 +582,12 @@ def assert_failure_propagation_and_test_plan(fixture: dict[str, Any]) -> None:
     invalid = apply_image_artifact_reference_to_response(valid_response_document(), invalid_mapping)
     require(invalid.ok is False, "invalid citation must fail closed")
     require(invalid.failure_code == "image_artifact_citation_schema_invalid", "invalid citation failure drifted")
+    invalid_runtime_response = coerce_with_mapper_patch(
+        valid_response_document(),
+        request_with_image_artifact_metadata([artifact_fixture()]),
+        lambda artifact_document: invalid_mapping,
+    )
+    require_failed_response(invalid_runtime_response, "image_artifact_citation_schema_invalid")
 
     leak_mapping = ImageArtifactMappingResult(
         ok=True,
@@ -500,6 +597,12 @@ def assert_failure_propagation_and_test_plan(fixture: dict[str, Any]) -> None:
     leak = apply_image_artifact_reference_to_response(valid_response_document(), leak_mapping)
     require(leak.ok is False, "metadata reference leak must fail closed")
     require(leak.failure_code == "image_artifact_metadata_reference_leak", "metadata leak failure drifted")
+    leak_runtime_response = coerce_with_mapper_patch(
+        valid_response_document(),
+        request_with_image_artifact_metadata([artifact_fixture()]),
+        lambda artifact_document: leak_mapping,
+    )
+    require_failed_response(leak_runtime_response, "image_artifact_metadata_reference_leak")
 
     invalid_response = valid_response_document()
     invalid_response["confidence"] = 2.0
@@ -511,6 +614,22 @@ def assert_failure_propagation_and_test_plan(fixture: dict[str, Any]) -> None:
         pass
     else:
         raise SystemExit("post-merge schema validation failure was not detected")
+
+    def invalid_post_merge_consumer(response_document: Mapping[str, Any], mapping_result: ImageArtifactMappingResult) -> ImageArtifactResponseConsumerResult:
+        next_response = copy.deepcopy(dict(response_document))
+        next_response["confidence"] = 2.0
+        return ImageArtifactResponseConsumerResult(
+            ok=True,
+            response_document=next_response,
+            metadata_reference=copy.deepcopy(mapping_result.metadata_reference),
+        )
+
+    post_merge_invalid_response = coerce_with_consumer_patch(
+        valid_response_document(),
+        request_with_image_artifact_metadata([artifact_fixture()]),
+        invalid_post_merge_consumer,
+    )
+    require_failed_response(post_merge_invalid_response, "image_artifact_response_schema_invalid")
 
 
 def assert_response_schema_unchanged() -> None:
@@ -524,7 +643,7 @@ def assert_response_schema_unchanged() -> None:
     require("artifact" in kind_enum, "CopilotResponse citation kind must continue allowing artifact")
 
 
-def assert_forbidden_artifacts_and_no_source_connection(fixture: dict[str, Any]) -> None:
+def assert_forbidden_artifacts_and_source_boundaries(fixture: dict[str, Any]) -> None:
     artifacts = rows_by_id(fixture.get("forbidden_artifact_matrix") or [], "path")
     require(set(artifacts) == EXPECTED_FORBIDDEN_ARTIFACTS, "forbidden artifact matrix drifted")
     for relative_path, row in artifacts.items():
@@ -537,7 +656,7 @@ def assert_forbidden_artifacts_and_no_source_connection(fixture: dict[str, Any])
     for relative_path in fixture.get("source_files_that_must_not_be_connected") or []:
         source = (REPO_ROOT / str(relative_path)).read_text(encoding="utf-8")
         leaked = sorted(literal for literal in forbidden_literals if literal in source)
-        require(not leaked, f"{relative_path} must not be connected in task-card-only slice: {leaked}")
+        require(not leaked, f"{relative_path} must not connect image artifact response builder runtime: {leaked}")
 
 
 def assert_side_effects(fixture: dict[str, Any]) -> None:
@@ -575,11 +694,11 @@ def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_slice_and_dependencies(fixture)
     assert_task_card_boundary(fixture)
-    assert_future_runtime_hook_contract(fixture)
+    assert_runtime_hook_contract(fixture)
     assert_metadata_discovery_and_merge_pipeline(fixture)
     assert_failure_propagation_and_test_plan(fixture)
     assert_response_schema_unchanged()
-    assert_forbidden_artifacts_and_no_source_connection(fixture)
+    assert_forbidden_artifacts_and_source_boundaries(fixture)
     assert_side_effects(fixture)
     assert_references_and_check_repo(fixture)
     print("image artifact response builder runtime integration implementation v1 checks passed.")
