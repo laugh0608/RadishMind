@@ -17,7 +17,8 @@
 - `Saved Workflow Draft Schema / Migration Preconditions v1` 已固定 `saved_workflow_draft_record` logical schema、index strategy、migration gate、failure mapping 和 artifact guard。
 - `Saved Workflow Draft Auth Context Preconditions v1` 已固定 future repository actor context、workspace membership、owner policy、scope grants 和 audit / sanitization policy。
 - `Saved Workflow Draft Store Selector Enablement Preconditions v1` 已固定 `memory_dev` / `repository_disabled` / `repository` store mode、selector gate、failure mapping、no fallback、no side effects 和 dev flag boundary。
-- 当前仍没有 schema artifact manifest、DDL review artifact、SQL migration、migration runner、store selector、repository adapter、database schema、Radish OIDC middleware、token validation 或 production API consumer。
+- `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 `draft_store_selector_smoke_readiness_defined`，覆盖 future selector smoke mode matrix、operation matrix、schema artifact failure、failure mapping、no fallback 和 no side effects。
+- 当前仍没有 schema artifact manifest、DDL review artifact、SQL migration、migration runner、store selector、selector smoke fixture、repository adapter、database schema、Radish OIDC middleware、token validation 或 production API consumer。
 
 ## Schema Artifact Evidence Contract
 
@@ -71,8 +72,8 @@ schema artifact evidence 相关 failure 必须继续使用既有 fail-closed cod
 
 本专题之后仍不能直接创建 repository adapter。后续若继续 durable store 方向，应选择一个独立批次：
 
-1. selector smoke readiness / repository contract smoke，消费本专题的 schema failure 和 no fallback 证据。
-2. repository adapter implementation plan，必须消费 schema preconditions、auth context、store selector gate 和 schema artifact evidence。
+1. repository contract smoke，消费本专题的 schema failure、selector smoke readiness 和 no fallback 证据。
+2. repository adapter implementation plan，必须消费 schema preconditions、auth context、store selector gate、selector smoke readiness 和 schema artifact evidence。
 3. schema artifact materialization review，另行决定是否创建 manifest / DDL review / migration smoke artifact；进入该批前仍不得连接真实数据库。
 
 ## 验收方式

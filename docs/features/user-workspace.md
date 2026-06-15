@@ -16,6 +16,7 @@
 - `Saved Workflow Draft Auth Context Preconditions v1` 已固定 `draft_auth_context_preconditions_defined`，明确 future saved draft repository actor context 的身份来源、workspace membership、owner policy、scope grants 和 audit / sanitization 边界，仍不代表 Radish OIDC 或 production auth ready。
 - `Saved Workflow Draft Store Selector Enablement Preconditions v1` 已固定 `draft_store_selector_enablement_preconditions_defined`，明确 future saved draft store mode、selector gate、failure mapping、no fallback 和 dev flag boundary，仍不代表 store selector ready 或 repository mode ready。
 - `Saved Workflow Draft Schema Artifact Evidence v1` 已固定 `draft_schema_artifact_evidence_defined`，明确 future saved draft schema artifact manifest、DDL review、rollback evidence、migration smoke 和 artifact guard，仍不代表 schema artifact ready、migration ready 或 database ready。
+- `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 `draft_store_selector_smoke_readiness_defined`，明确 future saved draft selector smoke mode matrix、operation matrix、schema artifact failure、no fallback 和 no side effects，仍不代表 selector smoke ready 或 store selector ready。
 - dev-only live read consumer 只能在显式 opt-in 下读取 fake-store-backed Go handlers。
 - `ControlPlaneReadRepository` interface 已落地，七条 read handlers 已通过 fake-store repository bridge 消费数据。
 - 当前仍不具备 production API consumer、真实数据库、Radish OIDC、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
@@ -29,7 +30,7 @@
 
 ## 下一批开发方向
 
-1. 继续整理真实用户工作流：本地草案创建、durable store 迁移前置设计、repository contract preconditions、schema / migration preconditions、auth context preconditions、store selector enablement preconditions 和 schema artifact evidence 已落地，下一步应选择 saved draft list、selector smoke readiness、repository contract smoke，或更完整的 Draft Designer 编辑模型。
+1. 继续整理真实用户工作流：本地草案创建、durable store 迁移前置设计、repository contract preconditions、schema / migration preconditions、auth context preconditions、store selector enablement preconditions、schema artifact evidence 和 selector smoke readiness 已落地，下一步应选择 saved draft list、repository contract smoke、repository adapter implementation plan，或更完整的 Draft Designer 编辑模型。
 2. 在进入任何生产写入前，先补用户工作区功能设计更新，明确创建、保存、发布、执行、确认和回滚边界。
 3. 若下一步只改展示、分组、文案或使用性，不新增专项 gate，复用 web build、consumer smoke 和仓库基线。
 4. 若新增 API、写入、真实 auth、真实数据源或执行能力，必须新增 task card，并按风险补 fixture / checker。

@@ -1,0 +1,496 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_store_selector_smoke_readiness_v1",
+  "slice": {
+    "id": "workflow-saved-draft-store-selector-smoke-readiness-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_store_selector_smoke_readiness_defined",
+    "does_not_claim": [
+      "store_selector_smoke_ready",
+      "store_selector_implemented",
+      "formal_store_config_ready",
+      "selector_config_entry_ready",
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "schema_artifact_manifest_ready",
+      "ddl_review_ready",
+      "database_schema_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "migration_runner_implemented",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "saved_draft_list_implemented",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-repository-contract-preconditions-v1",
+    "workflow-saved-draft-auth-context-preconditions-v1",
+    "workflow-saved-draft-store-selector-enablement-preconditions-v1",
+    "workflow-saved-draft-schema-artifact-evidence-v1"
+  ],
+  "selector_smoke_boundary": {
+    "status": "store_selector_smoke_readiness_defined_not_implemented",
+    "current_default_mode": "memory_dev",
+    "current_store_source": "platform memory dev store",
+    "future_store_source": "future SavedWorkflowDraftRepository adapter",
+    "future_config_key": "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+    "future_selector_name": "SelectWorkflowSavedDraftStore",
+    "future_selector_type": "WorkflowSavedDraftStoreSelector",
+    "future_selector_file": "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+    "future_selector_test_file": "services/platform/internal/httpapi/workflow_saved_draft_store_selector_test.go",
+    "future_selector_smoke_fixture": "scripts/checks/fixtures/workflow-saved-draft-store-selector-smoke-v1.json",
+    "future_selector_smoke_checker": "scripts/checks/control_plane/check-workflow-saved-draft-store-selector-smoke-v1.py",
+    "purpose": "Define the future selector smoke evidence required before a saved workflow draft store selector or formal store config entry can be implemented.",
+    "formal_config_entry_created": false,
+    "selector_file_created_in_this_slice": false,
+    "selector_test_created_in_this_slice": false,
+    "selector_smoke_fixture_created_in_this_slice": false,
+    "selector_smoke_checker_created_in_this_slice": false,
+    "store_selector_implemented_in_this_slice": false,
+    "repository_interface_created_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "saved_draft_list_allowed_in_this_slice": false,
+    "publish_or_run_allowed_in_this_slice": false,
+    "executor_allowed_in_this_slice": false,
+    "writeback_or_replay_allowed_in_this_slice": false
+  },
+  "planned_selector_smoke_artifacts": [
+    {
+      "path": "scripts/checks/fixtures/workflow-saved-draft-store-selector-smoke-v1.json",
+      "purpose": "Future selector smoke fixture covering unset/default, reserved disabled modes, unknown mode fail-closed and no memory dev fallback.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-workflow-saved-draft-store-selector-smoke-v1.py",
+      "purpose": "Future checker for selector smoke fixture and docs/code drift.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "purpose": "Future selector implementation file; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_store_selector_test.go",
+      "purpose": "Future Go selector unit tests; not created by this readiness slice.",
+      "created_in_this_slice": false
+    }
+  ],
+  "smoke_readiness_gate_matrix": [
+    {
+      "id": "repository_contract_preconditions_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-repository-contract-preconditions-v1"
+    },
+    {
+      "id": "selector_enablement_preconditions_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-store-selector-enablement-preconditions-v1"
+    },
+    {
+      "id": "schema_artifact_evidence_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-schema-artifact-evidence-v1"
+    },
+    {
+      "id": "selector_smoke_contract_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "unset source selects memory_dev",
+        "explicit memory_dev selects platform memory dev store",
+        "repository_disabled returns repository_store_disabled",
+        "repository returns repository_store_disabled before adapter enablement",
+        "unknown mode returns invalid_draft_store_mode",
+        "reserved and unknown modes never fall back to memory_dev or sample"
+      ]
+    },
+    {
+      "id": "selector_config_entry_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "formal config key added in future slice",
+        "operator docs for allowed values",
+        "unset source behavior",
+        "redacted diagnostics"
+      ]
+    },
+    {
+      "id": "selector_code_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "selector function",
+        "selector type",
+        "mode parser",
+        "unit tests"
+      ]
+    },
+    {
+      "id": "memory_dev_default_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "unset source selects memory_dev",
+        "explicit memory_dev selects platform memory dev store",
+        "dev HTTP and write flags remain independent"
+      ]
+    },
+    {
+      "id": "reserved_mode_fail_closed_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "repository_disabled returns repository_store_disabled",
+        "repository returns repository_store_disabled until adapter/schema/auth/smoke gates pass",
+        "reserved modes never fall back to memory_dev"
+      ]
+    },
+    {
+      "id": "unknown_mode_fail_closed_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "unknown mode returns invalid_draft_store_mode",
+        "unknown mode produces no repository call",
+        "unknown mode has no side effects"
+      ]
+    },
+    {
+      "id": "schema_artifact_failure_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "draft_schema_migration_not_applied",
+        "draft_store_schema_version_mismatch",
+        "draft_store_migration_unavailable",
+        "schema artifact failure never falls back to memory_dev or sample"
+      ]
+    },
+    {
+      "id": "repository_adapter_enablement_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "repository adapter implementation plan",
+        "repository contract smoke",
+        "schema artifact evidence",
+        "auth context preconditions",
+        "selector smoke readiness"
+      ]
+    },
+    {
+      "id": "no_selector_smoke_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no formal config entry",
+        "no selector file",
+        "no selector smoke fixture",
+        "no selector smoke checker",
+        "no selector tests",
+        "no repository adapter",
+        "no SQL or migration files"
+      ]
+    }
+  ],
+  "selector_smoke_mode_matrix": [
+    {
+      "mode": "memory_dev",
+      "expected_selector_input": "unset or explicit memory_dev in future selector",
+      "current_status": "current_default",
+      "expected_failure_code": null,
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "mode": "repository_disabled",
+      "expected_selector_input": "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE=repository_disabled",
+      "current_status": "reserved_disabled",
+      "expected_failure_code": "repository_store_disabled",
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "mode": "repository",
+      "expected_selector_input": "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE=repository",
+      "current_status": "future_reserved_disabled",
+      "expected_failure_code": "repository_store_disabled",
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "mode": "unknown",
+      "expected_selector_input": "any unrecognized future selector value",
+      "current_status": "fail_closed",
+      "expected_failure_code": "invalid_draft_store_mode",
+      "smoke_required": true,
+      "selector_smoke_ready": false,
+      "selector_implementation_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "operation_selector_smoke_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "default_mode": "memory_dev",
+      "reserved_modes": [
+        "repository_disabled",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "schema_artifact_failure_codes": [
+        "draft_schema_migration_not_applied",
+        "draft_store_schema_version_mismatch",
+        "draft_store_migration_unavailable"
+      ],
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "repository_adapter_dependency_required": true,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "default_mode": "memory_dev",
+      "reserved_modes": [
+        "repository_disabled",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "schema_artifact_failure_codes": [
+        "draft_schema_migration_not_applied",
+        "draft_store_schema_version_mismatch",
+        "draft_store_migration_unavailable"
+      ],
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "repository_adapter_dependency_required": true,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "default_mode": "memory_dev",
+      "reserved_modes": [
+        "repository_disabled",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "schema_artifact_failure_codes": [
+        "draft_schema_migration_not_applied",
+        "draft_store_schema_version_mismatch",
+        "draft_store_migration_unavailable"
+      ],
+      "selector_smoke_required": true,
+      "selector_smoke_ready": false,
+      "repository_adapter_dependency_required": true,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "schema_artifact_failure_smoke_matrix": [
+    {
+      "id": "migration_not_applied_failure",
+      "failure_code": "draft_schema_migration_not_applied",
+      "source_evidence": "workflow-saved-draft-schema-artifact-evidence-v1",
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "id": "store_schema_version_mismatch_failure",
+      "failure_code": "draft_store_schema_version_mismatch",
+      "source_evidence": "workflow-saved-draft-schema-artifact-evidence-v1",
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "id": "store_migration_unavailable_failure",
+      "failure_code": "draft_store_migration_unavailable",
+      "source_evidence": "workflow-saved-draft-schema-artifact-evidence-v1",
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_mapping": {
+    "status": "fail_closed_required",
+    "required_failure_codes": [
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "draft_auth_context_contract_mismatch",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable"
+    ],
+    "preserve_existing_failure_codes": [
+      "draft_version_conflict",
+      "draft_scope_denied",
+      "draft_store_unavailable"
+    ],
+    "missing_selector_success_allowed": false,
+    "reserved_mode_success_allowed": false,
+    "unknown_mode_success_allowed": false,
+    "schema_artifact_failure_success_allowed": false,
+    "fallback_to_memory_dev_store_allowed": false,
+    "fallback_to_sample_allowed": false,
+    "fallback_to_fixture_allowed": false,
+    "version_conflict_must_not_be_rewritten_as_selector_failure": true
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "implementation_artifact_guard": {
+    "status": "forbid_implementation_artifacts",
+    "future_files_must_not_exist": [
+      "scripts/checks/fixtures/workflow-saved-draft-store-selector-smoke-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-store-selector-smoke-v1.py",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http_test.go"
+    ],
+    "future_literals_must_not_appear_in_source": [
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+      "SelectWorkflowSavedDraftStore",
+      "WorkflowSavedDraftStoreSelector",
+      "workflow_saved_draft_store_selector.go",
+      "workflow_saved_draft_store_selector_test.go",
+      "workflow-saved-draft-store-selector-smoke-v1.json",
+      "check-workflow-saved-draft-store-selector-smoke-v1.py",
+      "NewSavedWorkflowDraftRepositoryAdapter",
+      "SavedWorkflowDraftRepository",
+      "database/sql",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "CREATE INDEX",
+      "DROP TABLE",
+      "INSERT INTO",
+      "UPDATE ",
+      "DELETE FROM",
+      "services/platform/migrations/workflow_saved_drafts",
+      "oidc.Provider",
+      "ValidateToken"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-store-selector-smoke-readiness-v1.md",
+      "must_contain": [
+        "状态：`draft_store_selector_smoke_readiness_defined`",
+        "Selector Smoke Contract",
+        "Operation Smoke Matrix",
+        "Failure Mapping",
+        "不创建正式 config entry"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Store Selector Smoke Readiness v1",
+        "draft_store_selector_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Store Selector Smoke Readiness v1",
+        "draft_store_selector_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-store-selector-enablement-preconditions-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Store Selector Smoke Readiness v1",
+        "draft_store_selector_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-schema-artifact-evidence-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Store Selector Smoke Readiness v1",
+        "draft_store_selector_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-store-selector-smoke-readiness-v1-plan.md",
+      "must_contain": [
+        "draft_store_selector_smoke_readiness_defined",
+        "不创建正式 config entry",
+        "workflow-saved-draft-store-selector-smoke-readiness-v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-store-selector-smoke-readiness-v1",
+        "draft_store_selector_smoke_readiness_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_only",
+    "required_checks": [
+      "workflow_saved_draft_store_selector_smoke_readiness_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_create_config_entry": true,
+    "does_not_create_selector": true,
+    "does_not_create_selector_smoke_fixture": true,
+    "does_not_create_repository_adapter": true,
+    "does_not_connect_database": true,
+    "does_not_call_oidc": true
+  }
+}

@@ -150,6 +150,8 @@
 
 当前 Saved Workflow Draft schema artifact evidence 前置证据还提供 `check-workflow-saved-draft-schema-artifact-evidence-v1.py`，用于校验 future schema artifact manifest、DDL review、rollback evidence、migration smoke、logical entity / index mapping、failure mapping、no fallback、no side effects 和禁止提前出现的 migration root / SQL / repository / selector / OIDC artifact；该检查不启动服务、不创建 manifest、不写 DDL、不连接数据库、不创建 repository adapter、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft store selector smoke readiness 前置证据还提供 `check-workflow-saved-draft-store-selector-smoke-readiness-v1.py`，用于校验 future selector smoke mode matrix、save / read / list operation matrix、schema artifact failure matrix、failure mapping、no fallback、no side effects 和禁止提前出现的正式 config / selector / selector smoke / repository / SQL / OIDC artifact；该检查不启动服务、不创建 config entry、不创建 selector、不创建 selector smoke fixture、不连接数据库、不创建 repository adapter、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
+
 尾部五个 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
@@ -157,6 +159,7 @@
 - `check-control-plane-read-implementation-trigger-review-v1.py` 失败通常表示某个候选被误写成 implementation trigger satisfied，或源码树里提前出现 schema、selector、auth middleware、adapter smoke、repository adapter 等实现 artifact；`control_plane_read_repository.go` 属于 durable read foundation，不应作为 forbidden interface 文件处理。
 - `check-control-plane-read-schema-artifact-evidence-v1.py` 失败通常表示 schema evidence contract、七条 route 到未来 schema artifact 的映射、implementation trigger 未满足结论或 forbidden schema artifact 边界漂移。
 - `check-workflow-saved-draft-schema-artifact-evidence-v1.py` 失败通常表示 saved workflow draft schema artifact evidence、logical entity / index mapping、DDL review gate、migration smoke、no fallback / no side effects 或 forbidden schema artifact 边界漂移。
+- `check-workflow-saved-draft-store-selector-smoke-readiness-v1.py` 失败通常表示 saved workflow draft selector smoke readiness、mode / operation matrix、schema artifact failure matrix、no fallback / no side effects 或 forbidden selector artifact 边界漂移。
 - `check-control-plane-read-implementation-entry-review-v1.py` 失败通常表示 entry review 被误写成实现入口已打开、某个 future implementation task card 提前创建，或 schema evidence 被提升为 implementation trigger satisfied。
 
 修复这类失败时，默认先恢复 fixture 和说明文档的停止线，或移除提前出现的实现 artifact。只有在新的实现任务卡、真实证据和对应 gate 都已满足后，才应新增 durable adapter、SQL、migration、store selector、auth middleware 或 production API consumer。
