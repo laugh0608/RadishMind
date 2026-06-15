@@ -94,7 +94,7 @@ export type WorkflowDraftDesignerDraft = {
   risks: WorkflowDraftDesignerRisk[];
   blockedCapabilities: WorkflowDraftDesignerBlockedCapability[];
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
-  localOnlyInteraction: "inspect_only";
+  localOnlyInteraction: "inspect_only" | "local_edit";
 };
 
 export type WorkflowDraftDesignerSource = {

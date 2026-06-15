@@ -372,10 +372,80 @@ export function App() {
     workflowUserWorkspaceHome,
     workflowReviewHandoff,
   } = workflowWorkspaceContext;
+  const [editableWorkflowDraft, setEditableWorkflowDraft] = useState<WorkflowDraftDesignerDraft | null>(null);
+  const [workflowDraftEditDirty, setWorkflowDraftEditDirty] = useState(false);
+  const activeWorkflowDraft = editableWorkflowDraft ?? selectedWorkflowDraft;
 
   useEffect(() => {
     setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
+    setWorkflowDraftEditDirty(false);
   }, [selectedWorkflowDraft.draftId]);
+
+  const markWorkflowDraftLocallyEdited = () => {
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "unsaved_local",
+      sourceLabel: "unsaved local",
+      summary:
+        state.mode === "dev_saved_draft_http"
+          ? "Local draft has unsaved edits; validate or save through the dev-only saved draft route."
+          : "Local draft has unsaved edits and remains in sample-only mode.",
+      failureCode: null,
+      conflictDraftVersion: null,
+    }));
+  };
+
+  const handleWorkflowDraftLabelChange = (label: string) => {
+    setEditableWorkflowDraft((draft) => ({
+      ...(draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft)),
+      label,
+      localOnlyInteraction: "local_edit",
+    }));
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftSummaryChange = (summary: string) => {
+    setEditableWorkflowDraft((draft) => ({
+      ...(draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft)),
+      summary,
+      localOnlyInteraction: "local_edit",
+    }));
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftNodeLabelChange = (nodeId: string, label: string) => {
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        nodes: currentDraft.nodes.map((node) => (node.nodeId === nodeId ? { ...node, label } : node)),
+      };
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftEdgeConditionChange = (edgeId: string, conditionSummary: string) => {
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        edges: currentDraft.edges.map((edge) =>
+          edge.edgeId === edgeId ? { ...edge, conditionSummary } : edge,
+        ),
+      };
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftEditReset = () => {
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
+    setWorkflowDraftEditDirty(false);
+    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
+  };
 
   const applyWorkflowSelectionPatch = ({
     applicationRef,
@@ -430,7 +500,7 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    validateWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig)
+    validateWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig)
       .then(setSavedDraftConsumerState)
       .catch((error: unknown) => {
         setSavedDraftConsumerState((state) => ({
@@ -455,8 +525,16 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    saveWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
-      .then(setSavedDraftConsumerState)
+    saveWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
+      .then((nextState) => {
+        setSavedDraftConsumerState(nextState);
+        if (nextState.status === "saved_dev_record") {
+          setEditableWorkflowDraft((draft) =>
+            draft === null ? null : { ...draft, localOnlyInteraction: "inspect_only" },
+          );
+          setWorkflowDraftEditDirty(false);
+        }
+      })
       .catch((error: unknown) => {
         setSavedDraftConsumerState((state) => ({
           ...state,
@@ -479,7 +557,7 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    readWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig)
+    readWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig)
       .then(setSavedDraftConsumerState)
       .catch((error: unknown) => {
         setSavedDraftConsumerState((state) => ({
@@ -1056,10 +1134,16 @@ export function App() {
           <WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} />
           <WorkflowDraftDesignerPanel
             designer={workflowDraftDesigner}
-            selectedDraft={selectedWorkflowDraft}
+            selectedDraft={activeWorkflowDraft}
             selectedDraftId={selectedWorkflowDraft.draftId}
             savedDraftConsumerState={savedDraftConsumerState}
+            draftEditDirty={workflowDraftEditDirty}
             onSelectDraft={handleSelectWorkflowDraft}
+            onUpdateDraftLabel={handleWorkflowDraftLabelChange}
+            onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
+            onUpdateNodeLabel={handleWorkflowDraftNodeLabelChange}
+            onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}
+            onResetDraftEdits={handleWorkflowDraftEditReset}
             onValidateDraft={handleValidateWorkflowDraft}
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
@@ -2453,7 +2537,13 @@ function WorkflowDraftDesignerPanel({
   selectedDraft,
   selectedDraftId,
   savedDraftConsumerState,
+  draftEditDirty,
   onSelectDraft,
+  onUpdateDraftLabel,
+  onUpdateDraftSummary,
+  onUpdateNodeLabel,
+  onUpdateEdgeCondition,
+  onResetDraftEdits,
   onValidateDraft,
   onSaveDraft,
   onReadDraft,
@@ -2462,13 +2552,20 @@ function WorkflowDraftDesignerPanel({
   selectedDraft: WorkflowDraftDesignerDraft;
   selectedDraftId: string;
   savedDraftConsumerState: WorkflowSavedDraftConsumerState;
+  draftEditDirty: boolean;
   onSelectDraft: (draftId: string) => void;
+  onUpdateDraftLabel: (label: string) => void;
+  onUpdateDraftSummary: (summary: string) => void;
+  onUpdateNodeLabel: (nodeId: string, label: string) => void;
+  onUpdateEdgeCondition: (edgeId: string, conditionSummary: string) => void;
+  onResetDraftEdits: () => void;
   onValidateDraft: () => void;
   onSaveDraft: () => void;
   onReadDraft: () => void;
 }) {
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
+  const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
   return (
     <div
       className="workflow-draft-designer"
@@ -2519,6 +2616,37 @@ function WorkflowDraftDesignerPanel({
         </article>
       </div>
 
+      <div className="workflow-draft-edit-grid" aria-label="Workflow draft local editing">
+        <label className="workflow-draft-edit-field">
+          <span>Draft name</span>
+          <input
+            type="text"
+            value={selectedDraft.label}
+            maxLength={160}
+            disabled={operationPending}
+            onChange={(event) => onUpdateDraftLabel(event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-edit-field wide">
+          <span>Draft summary</span>
+          <textarea
+            value={selectedDraft.summary}
+            maxLength={4000}
+            rows={3}
+            disabled={operationPending}
+            onChange={(event) => onUpdateDraftSummary(event.currentTarget.value)}
+          />
+        </label>
+        <article className="workflow-draft-card workflow-draft-edit-state">
+          <span>Local edit</span>
+          <strong>{editStateLabel}</strong>
+          <p>{draftEditDirty ? "Local draft changes are ready for validation or save." : selectedDraft.templateRef}</p>
+          <button type="button" disabled={!draftEditDirty || operationPending} onClick={onResetDraftEdits}>
+            Reset
+          </button>
+        </article>
+      </div>
+
       <div className="workflow-draft-consumer-grid" aria-label="Saved workflow draft dev consumer">
         <article className="workflow-draft-card">
           <span>Saved state</span>
@@ -2560,13 +2688,23 @@ function WorkflowDraftDesignerPanel({
 
       <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
         {selectedDraft.nodes.map((node) => (
-          <WorkflowDraftNodeCard key={node.nodeId} node={node} />
+          <WorkflowDraftNodeCard
+            key={node.nodeId}
+            node={node}
+            editingDisabled={operationPending}
+            onUpdateLabel={onUpdateNodeLabel}
+          />
         ))}
       </div>
 
       <div className="workflow-draft-edge-grid" aria-label="Workflow draft edges">
         {selectedDraft.edges.map((edge) => (
-          <WorkflowDraftEdgeCard key={edge.edgeId} edge={edge} />
+          <WorkflowDraftEdgeCard
+            key={edge.edgeId}
+            edge={edge}
+            editingDisabled={operationPending}
+            onUpdateCondition={onUpdateEdgeCondition}
+          />
         ))}
       </div>
 
@@ -2601,6 +2739,18 @@ function workflowSavedDraftConsumerTone(status: WorkflowSavedDraftConsumerState[
   return "neutral";
 }
 
+function cloneWorkflowDraftForEditing(draft: WorkflowDraftDesignerDraft): WorkflowDraftDesignerDraft {
+  return {
+    ...draft,
+    nodes: draft.nodes.map((node) => ({ ...node })),
+    edges: draft.edges.map((edge) => ({ ...edge })),
+    readiness: draft.readiness.map((readiness) => ({ ...readiness })),
+    risks: draft.risks.map((risk) => ({ ...risk })),
+    blockedCapabilities: draft.blockedCapabilities.map((capability) => ({ ...capability })),
+    routeMetadata: { ...draft.routeMetadata },
+  };
+}
+
 function WorkflowDraftTemplateButton({
   template,
   selected,
@@ -2627,7 +2777,15 @@ function WorkflowDraftTemplateButton({
   );
 }
 
-function WorkflowDraftNodeCard({ node }: { node: WorkflowDraftDesignerNode }) {
+function WorkflowDraftNodeCard({
+  node,
+  editingDisabled,
+  onUpdateLabel,
+}: {
+  node: WorkflowDraftDesignerNode;
+  editingDisabled: boolean;
+  onUpdateLabel: (nodeId: string, label: string) => void;
+}) {
   return (
     <article className="workflow-draft-node">
       <div className="workflow-draft-row-main">
@@ -2635,7 +2793,15 @@ function WorkflowDraftNodeCard({ node }: { node: WorkflowDraftDesignerNode }) {
           <p className="eyebrow">
             {node.lane} / {node.nodeType}
           </p>
-          <h5>{node.label}</h5>
+          <input
+            className="workflow-draft-node-label-input"
+            type="text"
+            value={node.label}
+            maxLength={160}
+            disabled={editingDisabled}
+            aria-label={`Node label ${node.nodeId}`}
+            onChange={(event) => onUpdateLabel(node.nodeId, event.currentTarget.value)}
+          />
         </div>
         <StatusBadge tone={node.readiness === "blocked" ? "bad" : node.readiness === "ready" ? "good" : "neutral"}>
           {node.readiness}
@@ -2663,14 +2829,30 @@ function WorkflowDraftNodeCard({ node }: { node: WorkflowDraftDesignerNode }) {
   );
 }
 
-function WorkflowDraftEdgeCard({ edge }: { edge: WorkflowDraftDesignerEdge }) {
+function WorkflowDraftEdgeCard({
+  edge,
+  editingDisabled,
+  onUpdateCondition,
+}: {
+  edge: WorkflowDraftDesignerEdge;
+  editingDisabled: boolean;
+  onUpdateCondition: (edgeId: string, conditionSummary: string) => void;
+}) {
   return (
     <article className="workflow-draft-edge">
       <span>{edge.edgeKind}</span>
       <strong>
         {edge.fromNodeId} to {edge.toNodeId}
       </strong>
-      <p>{edge.conditionSummary}</p>
+      <textarea
+        className="workflow-draft-edge-condition-input"
+        value={edge.conditionSummary}
+        maxLength={4000}
+        rows={3}
+        disabled={editingDisabled}
+        aria-label={`Edge condition ${edge.edgeId}`}
+        onChange={(event) => onUpdateCondition(edge.edgeId, event.currentTarget.value)}
+      />
     </article>
   );
 }

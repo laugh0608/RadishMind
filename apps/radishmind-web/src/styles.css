@@ -1169,6 +1169,10 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.workflow-draft-edit-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(220px, 0.8fr);
+}
+
 .workflow-draft-consumer-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -1485,6 +1489,85 @@ h4 {
   margin-top: 10px;
   color: #607086;
   font-size: 12px;
+}
+
+.workflow-draft-edit-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.workflow-draft-edit-field span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-draft-edit-field input,
+.workflow-draft-edit-field textarea,
+.workflow-draft-node-label-input,
+.workflow-draft-edge-condition-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.workflow-draft-edit-field input,
+.workflow-draft-node-label-input {
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
+.workflow-draft-edit-field textarea,
+.workflow-draft-edge-condition-input {
+  resize: vertical;
+  min-height: 76px;
+  padding: 10px;
+}
+
+.workflow-draft-edit-field input:disabled,
+.workflow-draft-edit-field textarea:disabled,
+.workflow-draft-node-label-input:disabled,
+.workflow-draft-edge-condition-input:disabled {
+  background: #f4f6f8;
+  color: #6d7a8b;
+}
+
+.workflow-draft-edit-state {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workflow-draft-edit-state button {
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workflow-draft-edit-state button:disabled {
+  color: #8793a4;
+  background: #f4f6f8;
+}
+
+.workflow-draft-node-label-input {
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.workflow-draft-edge-condition-input {
+  margin-top: 8px;
 }
 
 .workflow-draft-consumer-actions {
@@ -1899,6 +1982,7 @@ dd {
   .workflow-detail-edge-list,
   .workflow-draft-template-grid,
   .workflow-draft-summary-grid,
+  .workflow-draft-edit-grid,
   .workflow-draft-consumer-grid,
   .workflow-draft-node-grid,
   .workflow-draft-edge-grid,

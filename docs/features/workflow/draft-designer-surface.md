@@ -6,13 +6,14 @@
 
 `Workflow Draft Designer Surface` 是 `apps/radishmind-web/` 中承载 workflow 草案查看、模板切换、节点 / 边审查、风险摘要和 blocked capability 展示的页面专题。
 
-它不是 workflow builder 完整实现，也不是 workflow executor。当前页面的核心职责是把草案设计状态组织成可审查信息，并为后续 `Saved Workflow Draft v1` consumer integration 预留清晰状态边界。
+它不是 workflow builder 完整实现，也不是 workflow executor。当前页面的核心职责是把草案设计状态组织成可审查信息，并通过 `Workflow Draft Editing Entry v1` 提供受控本地编辑入口。
 
 ## 当前状态
 
-- 当前 surface 为 offline-only，数据来自离线 view model 和 workflow context。
+- 当前 surface 以离线 view model 和 workflow context 作为初始数据来源。
 - 已展示 draft templates、本地 template switch、draft nodes、edges、readiness、risk summary、route / request / audit metadata 和 blocked capability preview。
 - 当前已可在显式 dev-only consumer 配置下保存、读取和校验 saved draft，并在页面上区分 sample / unsaved / saved / failed 状态。
+- 当前已提供受控本地编辑入口，可编辑草案名称、说明、节点名称和边条件摘要；validate / save / read 使用当前本地草案。
 - 当前不做 durable persistence，不持久化 validation result / execution plan / runtime readiness，也不发布或执行 workflow。
 
 ## 页面状态模型
@@ -20,7 +21,8 @@
 后续接入 saved draft consumer 时，页面必须至少区分：
 
 - `sample`：离线样例，只用于审查和演示。
-- `unsaved_local`：用户当前本地改动，尚未写入 dev store。
+- `local_edit`：用户当前本地改动，尚未写入 dev store；这是页面交互状态，不是 production persistence 状态。
+- `unsaved_local`：saved draft consumer 显示用户当前本地改动尚未写入 dev store。
 - `saving`：正在通过 dev-only consumer 保存。
 - `saved_dev_record`：已保存到 dev-only memory store，可读取和校验。
 - `version_conflict`：保存时发现当前 saved draft 版本已变化，页面展示 current version metadata，并保留用户当前本地草案。

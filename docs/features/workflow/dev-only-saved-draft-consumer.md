@@ -20,6 +20,7 @@
 - 前端 consumer：`apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts`，默认 sample-only；只有 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 才调用 dev route。
 - 页面状态：`sample`、`unsaved_local`、`saving`、`validating`、`reading`、`saved_dev_record`、`validation_ready`、`version_conflict`、`save_failed`、`read_failed`、`validation_failed`。
 - 路径稳定化：已补 route contract、consumer smoke 和 `version_conflict` UI 状态；冲突时展示当前 saved draft version metadata，保留用户当前本地草案，不回退 sample。
+- Draft Designer 已补 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)，validate / save / read 使用当前本地草案，而不是只读取原始离线 sample。
 
 ## 推荐实现路径
 
