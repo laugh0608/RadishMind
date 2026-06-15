@@ -4,7 +4,7 @@
 
 ## 专题定位
 
-`Saved Workflow Draft Auth Context Preconditions v1` 承接 [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md)，用于在 store selector、repository adapter、真实数据库或 production API 前固定 saved workflow draft 的 auth context contract。
+`Saved Workflow Draft Auth Context Preconditions v1` 承接 [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md)，用于在 store selector、repository adapter、真实数据库或 production API 前固定 saved workflow draft 的 auth context contract。[Saved Workflow Draft Store Selector Enablement Preconditions v1](saved-workflow-draft-store-selector-enablement-preconditions-v1.md) 已在本专题之后固定 `draft_store_selector_enablement_preconditions_defined`。
 
 本专题只定义 auth context preconditions，不创建 Radish OIDC middleware、token validation、session cookie、workspace membership adapter、repository interface、repository adapter、store selector、真实数据库、production API、publish、run、executor、confirmation、writeback 或 replay。
 
@@ -92,9 +92,9 @@ audit context 只能保存 request / actor / tenant / workspace / application / 
 
 本专题之后仍不能直接创建 repository adapter。后续若继续 durable store 方向，应按顺序选择一个独立批次：
 
-1. store selector enablement，固定 dev store、disabled repository mode 和 future repository mode 的切换策略。
-2. schema artifact manifest / DDL review evidence，继续补足实际 schema artifact 前置证据。
-3. repository contract smoke / adapter smoke，覆盖 auth context、scope denied、owner denied、version conflict、store unavailable、schema migration failure、no sample fallback 和 no side effects。
+1. schema artifact manifest / DDL review evidence，继续补足实际 schema artifact 前置证据。
+2. selector smoke readiness / repository contract smoke，覆盖 auth context、scope denied、owner denied、version conflict、store unavailable、schema migration failure、no sample fallback 和 no side effects。
+3. repository interface / adapter implementation plan，必须消费 schema、auth、selector 和 smoke gate。
 
 ## 验收方式
 

@@ -16,7 +16,8 @@
 - `Saved Workflow Draft Durable Store Preconditions v1` 已明确 draft scope、owner / workspace、version conflict、no sample fallback 和 store 切换停止线。
 - [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md) 已固定 `draft_schema_migration_preconditions_defined`，覆盖 future durable store logical schema、index strategy、migration gate、failure mapping、no sample fallback 和 artifact guard。
 - [Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) 已固定 `draft_auth_context_preconditions_defined`，覆盖 future repository actor context 的身份来源、workspace membership、owner policy、scope grants、failure policy 和 audit / sanitization policy。
-- 当前仍没有 durable repository adapter、database schema、store selector、Radish OIDC middleware、token validation 或 production API consumer。
+- [Saved Workflow Draft Store Selector Enablement Preconditions v1](saved-workflow-draft-store-selector-enablement-preconditions-v1.md) 已固定 `draft_store_selector_enablement_preconditions_defined`，覆盖 future store mode、selector gate、failure mapping、no fallback、no side effects 和 artifact guard。
+- 当前仍没有 durable repository adapter、database schema、store selector implementation、Radish OIDC middleware、token validation 或 production API consumer。
 
 ## Repository Actor Context
 

@@ -117,6 +117,7 @@
 66. [`Workflow Saved Draft Repository Contract Preconditions` v1 任务卡](workflow-saved-draft-repository-contract-preconditions-v1-plan.md)（`workflow-saved-draft-repository-contract-preconditions-v1`）
 67. [`Workflow Saved Draft Schema / Migration Preconditions` v1 任务卡](workflow-saved-draft-schema-migration-preconditions-v1-plan.md)（`workflow-saved-draft-schema-migration-preconditions-v1`）
 68. [`Workflow Saved Draft Auth Context Preconditions` v1 任务卡](workflow-saved-draft-auth-context-preconditions-v1-plan.md)（`workflow-saved-draft-auth-context-preconditions-v1`）
+69. [`Workflow Saved Draft Store Selector Enablement Preconditions` v1 任务卡](workflow-saved-draft-store-selector-enablement-preconditions-v1-plan.md)（`workflow-saved-draft-store-selector-enablement-preconditions-v1`）
 
 ## UI 设计专题
 
