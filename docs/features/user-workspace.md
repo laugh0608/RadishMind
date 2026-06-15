@@ -30,10 +30,11 @@
 
 ## 下一批开发方向
 
-1. 继续整理真实用户工作流：本地草案创建、durable store 迁移前置设计、repository contract preconditions、schema / migration preconditions、auth context preconditions、store selector enablement preconditions、schema artifact evidence 和 selector smoke readiness 已落地，下一步应选择 saved draft list、repository contract smoke、repository adapter implementation plan，或更完整的 Draft Designer 编辑模型。
-2. 在进入任何生产写入前，先补用户工作区功能设计更新，明确创建、保存、发布、执行、确认和回滚边界。
-3. 若下一步只改展示、分组、文案或使用性，不新增专项 gate，复用 web build、consumer smoke 和仓库基线。
-4. 若新增 API、写入、真实 auth、真实数据源或执行能力，必须新增 task card，并按风险补 fixture / checker。
+1. 下一批默认优先评估 `User Workspace Saved Draft List v1`：在本地草案创建和 dev-only saved draft consumer 已落地后，让用户看到已保存 dev draft 的 sanitized summary、恢复入口、empty state 和 failure state；如果需要新增 list route 或 consumer contract，先补专题与任务卡。
+2. durable store 方向仍只能作为独立准入推进：repository contract smoke、repository adapter implementation plan、schema migration 或 auth contract 不能和用户工作区列表实现并行打开。
+3. 在进入任何生产写入前，先补用户工作区功能设计更新，明确创建、保存、发布、执行、确认和回滚边界。
+4. 若下一步只改展示、分组、文案或使用性，不新增专项 gate，复用 web build、consumer smoke 和仓库基线。
+5. 若新增 API、写入、真实 auth、真实数据源或执行能力，必须新增 task card，并按风险补 fixture / checker。
 
 ## 验收方式
 
