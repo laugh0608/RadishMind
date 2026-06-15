@@ -83,6 +83,7 @@ export type WorkflowWorkspaceContextSource = {
   workspaceUsageQuota: WorkspaceUsageQuotaViewModel;
   workspaceWorkflowDefinitions: WorkspaceWorkflowDefinitionsViewModel;
   workspaceRunHistory: WorkspaceRunHistoryViewModel;
+  localWorkflowDrafts?: WorkflowDraftDesignerDraft[];
   selection: WorkflowWorkspaceSelectionState;
 };
 
@@ -171,6 +172,7 @@ export function buildWorkflowWorkspaceContextViewModel(
   );
   const workflowDraftDesigner = buildWorkflowDraftDesignerViewModel({
     workflowDefinitions: source.workspaceWorkflowDefinitions.workflowDefinitions,
+    localDrafts: source.localWorkflowDrafts,
     tenantRef: source.workspaceWorkflowDefinitions.collection.tenantRef,
     detailSourcesByWorkflowDefinitionId: toDraftDesignerDetailSources(workflowDefinitionDetailsById),
     confirmationPlaceholder: workflowConfirmationPlaceholder,

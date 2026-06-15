@@ -120,7 +120,8 @@
       "detailSourcesByWorkflowDefinitionId",
       "detailSourceForWorkflowDefinition",
       "toWorkflowDefinitionSummary",
-      "drafts.every((draft, index) => draft.nodes.length === templates[index]?.nodeCount"
+      "baseDrafts.every(",
+      "localDrafts.every((draft) => draft.nodes.length > 0 && draft.edges.length >= 3)"
     ],
     "forbidden_literals": [
       "const nodes = buildDesignerNodes(source.detailNodes ?? detail.nodes)",

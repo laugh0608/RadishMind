@@ -14,6 +14,7 @@
 - 已展示 draft templates、本地 template switch、draft nodes、edges、readiness、risk summary、route / request / audit metadata 和 blocked capability preview。
 - 当前已可在显式 dev-only consumer 配置下保存、读取和校验 saved draft，并在页面上区分 sample / unsaved / saved / failed 状态。
 - 当前已提供受控本地编辑入口，可编辑草案名称、说明、节点名称和边条件摘要；validate / save / read 使用当前本地草案。
+- 当前已接入 `User Workspace Draft Creation v1`，可从 Workspace Home 或 workflow definitions 派生本地草案并进入 Draft Designer。
 - 当前不做 durable persistence，不持久化 validation result / execution plan / runtime readiness，也不发布或执行 workflow。
 
 ## 页面状态模型

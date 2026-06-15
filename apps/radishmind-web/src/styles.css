@@ -1131,6 +1131,42 @@ h4 {
   overflow-wrap: anywhere;
 }
 
+.workflow-user-workspace-home-actions,
+.workflow-definition-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.workflow-user-workspace-home-actions span,
+.workflow-definition-row-actions span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-user-workspace-home-actions button,
+.workflow-definition-row-actions button {
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workflow-user-workspace-home-actions button {
+  padding: 7px 12px;
+}
+
+.workflow-definition-row-actions button {
+  padding: 7px 10px;
+}
+
 .workflow-run-detail {
   display: grid;
   gap: 12px;
@@ -2093,6 +2129,12 @@ dd {
 
   .workflow-user-workspace-home-row-main {
     flex-wrap: wrap;
+  }
+
+  .workflow-user-workspace-home-actions,
+  .workflow-definition-row-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .model-gateway-overview-hero,

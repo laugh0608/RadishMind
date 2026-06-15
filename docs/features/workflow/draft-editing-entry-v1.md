@@ -50,11 +50,11 @@
 
 ## 下一批建议
 
-完成本专题后，Workflow 方向的下一批应从以下方向择一推进：
+完成本专题后，`User Workspace Draft Creation v1` 已补从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口。Workflow 方向的后续批次应从以下方向择一推进：
 
-- `User Workspace` 草案创建流程：从 workspace home 或 workflow list 创建新草案并进入 Draft Designer。
 - dev store 到未来 durable store 的迁移前置设计：先定义 store selector / repository adapter / schema migration 准入条件。
 - Draft Designer 更完整的编辑模型：节点新增 / 删除 / 重排必须先补独立专题和任务卡，不能顺手并入当前入口。
+- User Workspace saved draft list：读取已保存 dev draft 的列表视图，但必须先明确 no sample fallback、scope 和未来 durable store 边界。
 
 ## 停止线
 

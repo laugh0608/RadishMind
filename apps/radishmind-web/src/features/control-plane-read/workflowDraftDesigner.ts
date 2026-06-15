@@ -99,6 +99,7 @@ export type WorkflowDraftDesignerDraft = {
 
 export type WorkflowDraftDesignerSource = {
   workflowDefinitions?: WorkspaceWorkflowDefinitionRow[];
+  localDrafts?: WorkflowDraftDesignerDraft[];
   tenantRef?: string;
   detailSourcesByWorkflowDefinitionId?: Record<string, WorkflowDraftDesignerDefinitionDetailSource>;
   detailNodes?: WorkflowDefinitionDetailNode[];
@@ -179,7 +180,7 @@ export function buildWorkflowDraftDesignerViewModel(
   );
   const requestId = source.sourceRequestId ?? "req_workflow_draft_designer_offline_demo";
   const auditRef = source.sourceAuditRef ?? "audit_workflow_draft_designer_offline_demo";
-  const drafts = templates.map((template, index) => {
+  const baseDrafts = templates.map((template, index) => {
     const workflowDefinition = workflowDefinitions[index];
     const detailSource = workflowDefinition
       ? detailSourceForWorkflowDefinition(workflowDefinition, source)
@@ -198,6 +199,12 @@ export function buildWorkflowDraftDesignerViewModel(
       auditRef,
     );
   });
+  const localDrafts = (source.localDrafts ?? []).filter((draft) =>
+    workflowDefinitions.some(
+      (workflowDefinition) => workflowDefinition.workflowDefinitionId === draft.workflowDefinitionId,
+    ),
+  );
+  const drafts = [...baseDrafts, ...localDrafts];
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     draft: { [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[7]]: "blocked" },
   });
@@ -218,8 +225,11 @@ export function buildWorkflowDraftDesignerViewModel(
       route.path === routePath &&
       route.canMutate === false &&
       templates.length >= 2 &&
-      drafts.length === templates.length &&
-      drafts.every((draft, index) => draft.nodes.length === templates[index]?.nodeCount && draft.edges.length >= 3),
+      baseDrafts.length === templates.length &&
+      baseDrafts.every(
+        (draft, index) => draft.nodes.length === templates[index]?.nodeCount && draft.edges.length >= 3,
+      ) &&
+      localDrafts.every((draft) => draft.nodes.length > 0 && draft.edges.length >= 3),
     canInspectDraftLocally: true,
     canSwitchDraftLocally: true,
     canRequestLiveBackend: false,

@@ -136,6 +136,8 @@
 
 当前 workflow 编辑入口还提供 `check-workflow-draft-editing-entry-v1.py`，用于校验 Draft Designer 的受控本地编辑状态、active draft validate / save / read 路径、样式和文档停止线；该检查不启动浏览器、不调用 dev HTTP route、不实现 durable store、public production API、executor、confirmation、writeback 或 replay。
 
+当前用户工作区草案创建入口还提供 `check-user-workspace-draft-creation-v1.py`，用于校验 Workspace Home / workflow definitions 的本地草案创建入口、workflow context local draft source、Draft Designer local draft merge、样式和文档停止线；该检查不启动浏览器、不新增 API、不实现 durable store、public production API、executor、confirmation、writeback 或 replay。
+
 尾部五个 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。

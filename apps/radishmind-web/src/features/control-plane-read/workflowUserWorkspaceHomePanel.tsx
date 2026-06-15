@@ -16,8 +16,12 @@ type StatusBadgeTone = "good" | "bad" | "neutral";
 
 export function WorkflowUserWorkspaceHomePanel({
   home,
+  createdDraftCountsByWorkflowDefinition,
+  onCreateDraftForWorkflowDefinition,
 }: {
   home: WorkflowUserWorkspaceHomeViewModel;
+  createdDraftCountsByWorkflowDefinition: Record<string, number>;
+  onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
 }) {
   const primaryReadiness = home.readinessRollup.slice(0, 6);
   const primaryRouteEvidence = home.routeEvidence.slice(0, 4);
@@ -90,6 +94,10 @@ export function WorkflowUserWorkspaceHomePanel({
               <WorkflowUserWorkspaceHomeApplicationCard
                 key={application.applicationRef}
                 application={application}
+                createdDraftCount={
+                  createdDraftCountsByWorkflowDefinition[application.workflowDefinitionId] ?? 0
+                }
+                onCreateDraftForWorkflowDefinition={onCreateDraftForWorkflowDefinition}
               />
             ))}
           </div>
@@ -172,8 +180,12 @@ function WorkflowUserWorkspaceHomeMetricCard({ metric }: { metric: WorkflowUserW
 
 function WorkflowUserWorkspaceHomeApplicationCard({
   application,
+  createdDraftCount,
+  onCreateDraftForWorkflowDefinition,
 }: {
   application: WorkflowUserWorkspaceHomeApplication;
+  createdDraftCount: number;
+  onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
 }) {
   return (
     <article className="workflow-user-workspace-home-card">
@@ -205,6 +217,15 @@ function WorkflowUserWorkspaceHomeApplicationCard({
         </div>
       </dl>
       <p>{application.summary}</p>
+      <div className="workflow-user-workspace-home-actions">
+        <span>{createdDraftCount} local drafts</span>
+        <button
+          type="button"
+          onClick={() => onCreateDraftForWorkflowDefinition(application.workflowDefinitionId)}
+        >
+          Create draft
+        </button>
+      </div>
     </article>
   );
 }

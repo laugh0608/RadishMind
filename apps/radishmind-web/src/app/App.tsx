@@ -191,6 +191,7 @@ export function App() {
   const [savedDraftConsumerState, setSavedDraftConsumerState] = useState<WorkflowSavedDraftConsumerState>(() =>
     initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig),
   );
+  const [workspaceCreatedDrafts, setWorkspaceCreatedDrafts] = useState<WorkflowDraftDesignerDraft[]>([]);
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -331,6 +332,7 @@ export function App() {
         workspaceUsageQuota,
         workspaceWorkflowDefinitions,
         workspaceRunHistory,
+        localWorkflowDrafts: workspaceCreatedDrafts,
         selection: {
           applicationRef: selectedApplicationRef,
           workflowDefinitionId: selectedWorkflowDefinitionId,
@@ -345,6 +347,7 @@ export function App() {
       workspaceUsageQuota,
       workspaceWorkflowDefinitions,
       workspaceRunHistory,
+      workspaceCreatedDrafts,
       selectedApplicationRef,
       selectedWorkflowDefinitionId,
       selectedRunId,
@@ -375,10 +378,23 @@ export function App() {
   const [editableWorkflowDraft, setEditableWorkflowDraft] = useState<WorkflowDraftDesignerDraft | null>(null);
   const [workflowDraftEditDirty, setWorkflowDraftEditDirty] = useState(false);
   const activeWorkflowDraft = editableWorkflowDraft ?? selectedWorkflowDraft;
+  const createdWorkspaceDraftCountsByDefinition = useMemo(
+    () =>
+      workspaceCreatedDrafts.reduce<Record<string, number>>((counts, draft) => {
+        counts[draft.workflowDefinitionId] = (counts[draft.workflowDefinitionId] ?? 0) + 1;
+        return counts;
+      }, {}),
+    [workspaceCreatedDrafts],
+  );
 
   useEffect(() => {
-    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
+    if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
+      setWorkflowDraftEditDirty(true);
+      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, selectedWorkflowDraft));
+      return;
+    }
+    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
     setWorkflowDraftEditDirty(false);
   }, [selectedWorkflowDraft.draftId]);
 
@@ -443,6 +459,11 @@ export function App() {
 
   const handleWorkflowDraftEditReset = () => {
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
+    if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
+      setWorkflowDraftEditDirty(true);
+      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, selectedWorkflowDraft));
+      return;
+    }
     setWorkflowDraftEditDirty(false);
     setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
   };
@@ -489,6 +510,32 @@ export function App() {
   const handleSelectWorkflowDraft = (draftId: string) => {
     applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
   };
+  const handleCreateWorkspaceDraftFromDefinition = (workflowDefinitionId: string) => {
+    const createdDraft = buildWorkspaceCreatedDraft(
+      workflowDefinitionId,
+      workflowDraftDesigner,
+      workspaceCreatedDrafts,
+    );
+    if (!createdDraft) {
+      return;
+    }
+    const nextRun = workspaceRunHistory.runs.find(
+      (run) =>
+        run.applicationRef === createdDraft.applicationRef &&
+        run.workflowDefinitionId === createdDraft.workflowDefinitionId,
+    );
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({
+      applicationRef: createdDraft.applicationRef,
+      workflowDefinitionId: createdDraft.workflowDefinitionId,
+      runId: nextRun?.runId ?? null,
+      draftId: createdDraft.draftId,
+      scenarioId: null,
+    });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+  };
   const handleValidateWorkflowDraft = () => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
       return;
@@ -529,6 +576,13 @@ export function App() {
       .then((nextState) => {
         setSavedDraftConsumerState(nextState);
         if (nextState.status === "saved_dev_record") {
+          setWorkspaceCreatedDrafts((drafts) =>
+            drafts.map((draft) =>
+              draft.draftId === activeWorkflowDraft.draftId
+                ? { ...activeWorkflowDraft, localOnlyInteraction: "inspect_only" }
+                : draft,
+            ),
+          );
           setEditableWorkflowDraft((draft) =>
             draft === null ? null : { ...draft, localOnlyInteraction: "inspect_only" },
           );
@@ -728,7 +782,11 @@ export function App() {
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
-        <WorkflowUserWorkspaceHomePanel home={workflowUserWorkspaceHome} />
+        <WorkflowUserWorkspaceHomePanel
+          home={workflowUserWorkspaceHome}
+          createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
+          onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
+        />
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
@@ -1126,7 +1184,11 @@ export function App() {
                 key={workflowDefinition.workflowDefinitionId}
                 workflowDefinition={workflowDefinition}
                 selected={workflowDefinition.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId}
+                createdDraftCount={
+                  createdWorkspaceDraftCountsByDefinition[workflowDefinition.workflowDefinitionId] ?? 0
+                }
                 onSelectWorkflowDefinition={handleSelectWorkflowDefinition}
+                onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
               />
             ))}
           </div>
@@ -2333,11 +2395,15 @@ function WorkflowDefinitionMetric({ metric }: { metric: WorkspaceWorkflowDefinit
 function WorkflowDefinitionRow({
   workflowDefinition,
   selected,
+  createdDraftCount,
   onSelectWorkflowDefinition,
+  onCreateDraftForWorkflowDefinition,
 }: {
   workflowDefinition: WorkspaceWorkflowDefinitionRow;
   selected: boolean;
+  createdDraftCount: number;
   onSelectWorkflowDefinition: (workflowDefinitionId: string) => void;
+  onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
 }) {
   return (
     <article
@@ -2381,6 +2447,18 @@ function WorkflowDefinitionRow({
           <dd>{workflowDefinition.updatedAt}</dd>
         </div>
       </dl>
+      <div className="workflow-definition-row-actions">
+        <span>{createdDraftCount} local drafts</span>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onCreateDraftForWorkflowDefinition(workflowDefinition.workflowDefinitionId);
+          }}
+        >
+          Create draft
+        </button>
+      </div>
     </article>
   );
 }
@@ -2748,6 +2826,60 @@ function cloneWorkflowDraftForEditing(draft: WorkflowDraftDesignerDraft): Workfl
     risks: draft.risks.map((risk) => ({ ...risk })),
     blockedCapabilities: draft.blockedCapabilities.map((capability) => ({ ...capability })),
     routeMetadata: { ...draft.routeMetadata },
+  };
+}
+
+function workspaceDraftCreatedConsumerState(
+  config: ReturnType<typeof readWorkflowSavedDraftConsumerConfig>,
+  draft: WorkflowDraftDesignerDraft,
+): WorkflowSavedDraftConsumerState {
+  const initialState = initialWorkflowSavedDraftConsumerState(config);
+  return {
+    ...initialState,
+    status: "unsaved_local",
+    sourceLabel: "workspace draft",
+    summary:
+      config.mode === "dev_saved_draft_http"
+        ? `Workspace draft ${draft.draftId} is ready for validation or save through the dev-only saved draft route.`
+        : `Workspace draft ${draft.draftId} is local only until the dev-only saved draft route is enabled.`,
+    failureCode: null,
+    currentDraftVersion: 0,
+    conflictDraftVersion: null,
+    auditRef: draft.routeMetadata.auditRef,
+    requestId: draft.routeMetadata.requestId,
+  };
+}
+
+function buildWorkspaceCreatedDraft(
+  workflowDefinitionId: string,
+  designer: WorkflowDraftDesignerViewModel,
+  existingDrafts: WorkflowDraftDesignerDraft[],
+): WorkflowDraftDesignerDraft | null {
+  const template = designer.templates.find(
+    (draftTemplate) => draftTemplate.workflowDefinitionId === workflowDefinitionId,
+  );
+  const baseDraft = template
+    ? designer.drafts.find((draft) => draft.draftId === template.draftId)
+    : designer.drafts.find((draft) => draft.workflowDefinitionId === workflowDefinitionId);
+  if (!baseDraft) {
+    return null;
+  }
+  const nextDraftNumber =
+    existingDrafts.filter((draft) => draft.workflowDefinitionId === workflowDefinitionId).length + 1;
+  const draftNumberLabel = String(nextDraftNumber).padStart(2, "0");
+  const createdDraftId = `draft_${workflowDefinitionId}_workspace_${draftNumberLabel}`;
+  return {
+    ...cloneWorkflowDraftForEditing(baseDraft),
+    draftId: createdDraftId,
+    templateRef: baseDraft.draftId,
+    label: `${baseDraft.label} workspace ${draftNumberLabel}`,
+    summary: `Workspace-created draft derived from ${workflowDefinitionId}; edit locally, validate, and save through the dev-only saved draft route before review.`,
+    localOnlyInteraction: "local_edit",
+    routeMetadata: {
+      ...baseDraft.routeMetadata,
+      requestId: `${baseDraft.routeMetadata.requestId}_workspace_${draftNumberLabel}`,
+      auditRef: `${baseDraft.routeMetadata.auditRef}_workspace_${draftNumberLabel}`,
+    },
   };
 }
 

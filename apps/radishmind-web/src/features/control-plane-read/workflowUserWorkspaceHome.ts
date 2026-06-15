@@ -88,7 +88,7 @@ export type WorkflowUserWorkspaceHomeRouteEvidence = {
 export type WorkflowUserWorkspaceHomeViewModel = {
   pageId: "workflow-user-workspace-home-offline";
   sourcePageIds: string[];
-  homeMode: "offline_read_only_advisory";
+  homeMode: "offline_draft_creation_advisory";
   tenantRef: string;
   applicationId: string;
   workflowDefinitionId: string;
@@ -108,6 +108,7 @@ export type WorkflowUserWorkspaceHomeViewModel = {
   stopLines: WorkflowWorkspaceReviewStopLine[];
   canRenderUserWorkspaceHome: boolean;
   canInspectWorkspaceLocally: true;
+  canCreateDraftLocally: true;
   canRequestLiveBackend: false;
   canMutateApplications: false;
   canCreateApiKey: false;
@@ -147,7 +148,7 @@ export function buildWorkflowUserWorkspaceHomeViewModel(
       source.workflowScenarioInspector.pageId,
       source.workflowWorkspaceReview.pageId,
     ],
-    homeMode: "offline_read_only_advisory",
+    homeMode: "offline_draft_creation_advisory",
     tenantRef: source.workspaceApplications.collection.tenantRef,
     applicationId: source.workflowWorkspaceReview.applicationId,
     workflowDefinitionId: source.workflowWorkspaceReview.workflowDefinitionId,
@@ -180,6 +181,7 @@ export function buildWorkflowUserWorkspaceHomeViewModel(
       routeEvidence.length >= 5 &&
       stopLines.length >= 6,
     canInspectWorkspaceLocally: true,
+    canCreateDraftLocally: true,
     canRequestLiveBackend: false,
     canMutateApplications: false,
     canCreateApiKey: false,

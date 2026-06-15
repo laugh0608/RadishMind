@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "kind": "user_workspace_draft_creation_v1",
+  "slice": {
+    "id": "user-workspace-draft-creation-v1",
+    "track": "User Workspace / Workflow",
+    "status": "user_workspace_draft_creation_implemented",
+    "does_not_claim": [
+      "complete_builder_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-draft-editing-entry-v1",
+    "workflow-saved-draft-consumer-smoke-v1",
+    "workflow-workspace-context-consistency-v1"
+  ],
+  "frontend_contract": {
+    "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "context_file": "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts",
+    "designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "home_file": "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHome.ts",
+    "home_panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHomePanel.tsx",
+    "style_file": "apps/radishmind-web/src/styles.css",
+    "required_app_literals": [
+      "workspaceCreatedDrafts",
+      "createdWorkspaceDraftCountsByDefinition",
+      "handleCreateWorkspaceDraftFromDefinition",
+      "buildWorkspaceCreatedDraft",
+      "workspaceDraftCreatedConsumerState",
+      "localWorkflowDrafts: workspaceCreatedDrafts",
+      "draftId: createdDraft.draftId",
+      "sourceLabel: \"workspace draft\"",
+      "localOnlyInteraction: \"local_edit\"",
+      "setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft])",
+      "setWorkflowDraftEditDirty(true)",
+      "draft.draftId === activeWorkflowDraft.draftId",
+      "onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}",
+      "createdDraftCount=",
+      "workflow-definition-row-actions",
+      "Create draft",
+      "event.stopPropagation()"
+    ],
+    "required_context_literals": [
+      "localWorkflowDrafts?: WorkflowDraftDesignerDraft[];",
+      "localDrafts: source.localWorkflowDrafts"
+    ],
+    "required_designer_literals": [
+      "localDrafts?: WorkflowDraftDesignerDraft[];",
+      "const localDrafts = (source.localDrafts ?? []).filter",
+      "const drafts = [...baseDrafts, ...localDrafts];",
+      "baseDrafts.length === templates.length",
+      "localDrafts.every((draft) => draft.nodes.length > 0 && draft.edges.length >= 3)"
+    ],
+    "required_home_literals": [
+      "homeMode: \"offline_draft_creation_advisory\";",
+      "canCreateDraftLocally: true;"
+    ],
+    "required_home_panel_literals": [
+      "createdDraftCountsByWorkflowDefinition",
+      "onCreateDraftForWorkflowDefinition",
+      "workflow-user-workspace-home-actions",
+      "Create draft"
+    ],
+    "required_style_selectors": [
+      ".workflow-user-workspace-home-actions",
+      ".workflow-definition-row-actions",
+      ".workflow-user-workspace-home-actions button",
+      ".workflow-definition-row-actions button"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/user-workspace-draft-creation-v1.md": [
+      "User Workspace Draft Creation v1",
+      "状态：`implemented`",
+      "Workspace Home",
+      "不创建 public production API"
+    ],
+    "docs/features/workflow/README.md": [
+      "User Workspace Draft Creation v1",
+      "Workspace Home / workflow definitions"
+    ],
+    "docs/features/user-workspace.md": [
+      "创建本地 workflow 草案",
+      "dev-only saved draft consumer"
+    ],
+    "docs/task-cards/user-workspace-draft-creation-v1-plan.md": [
+      "user_workspace_draft_creation_implemented",
+      "localWorkflowDrafts"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "User Workspace Draft Creation",
+      "user-workspace-draft-creation-v1"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "user_workspace_draft_creation_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-user-workspace-draft-creation-v1.py"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

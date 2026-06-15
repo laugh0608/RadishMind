@@ -15,6 +15,7 @@
 - 当前已新增 dev-only HTTP route 和 web consumer 状态区分：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate` 默认关闭，只在显式 dev 配置下工作。
 - 当前已补 route contract 和 consumer smoke：Go route test 固定 envelope、header、CORS、not found / store unavailable no sample fallback；前端 consumer 固定 `version_conflict` 状态，version conflict 时保留本地草案并展示当前 saved draft version metadata。
 - 当前已接入 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)：Draft Designer 可编辑草案名称、说明、节点名称和边条件摘要，validate / save / read 使用当前本地草案。
+- 当前已接入 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md)：用户可从 Workspace Home 或 workflow definitions 创建本地草案，再复用 dev-only saved draft consumer 保存。
 - 当前仍没有 durable persistence、repository adapter、schema migration、store selector、Radish OIDC 或 production API。
 - 当前任务卡为 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md)，状态是 `saved_workflow_draft_domain_service_implemented`。
 
@@ -85,7 +86,7 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 
 ## 下一批开发
 
-dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口已按 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) 落地。后续如果继续推进，应在“User Workspace 草案创建流程”“dev store 与未来 durable store 迁移前置设计”或“Draft Designer 更完整编辑模型”中选择一个独立专题；任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
+dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口已按 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) 落地；User Workspace 创建入口已按 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) 落地。后续如果继续推进，应在“dev store 与未来 durable store 迁移前置设计”“Draft Designer 更完整编辑模型”或“User Workspace saved draft list”中选择一个独立专题；任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
 
 ## 验收方式
 
