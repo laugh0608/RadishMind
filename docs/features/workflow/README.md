@@ -12,7 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `domain_service_implemented` | 固定草案保存、读取、校验、版本冲突、失败语义和 saved / sample 区分 |
+| [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `dev_consumer_stabilized` | 固定草案保存、读取、校验、版本冲突、失败语义和 saved / sample 区分 |
 | [Workflow Draft Designer Surface](draft-designer-surface.md) | 页面 / Surface 专题 | `offline_surface_defined` | 固定 draft designer 的页面状态、数据来源和后续 saved draft 接线边界 |
 | [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) | 实现专题 | `implemented` | 固定 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 
@@ -25,7 +25,7 @@
 
 ## 当前下一步
 
-`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现。下一步不直接进入 executor / confirmation / writeback / replay，而是根据真实使用反馈选择是否补更细的 conflict UI、consumer smoke 或 route contract 固化；若新增专项 gate，应先更新对应 task card。
+`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现，并已补 route contract、consumer smoke 和 `version_conflict` 状态。下一步不直接进入 executor / confirmation / writeback / replay，而是在正式草案编辑入口、dev store 到未来 durable store 的迁移前置设计，或 User Workspace 草案创建流程中选择一个方向；若新增 API、schema、持久化或生产声明，应先更新对应功能专题和 task card。
 
 ## 停止线
 

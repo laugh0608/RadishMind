@@ -26,6 +26,7 @@ export type WorkflowSavedDraftConsumerStatus =
   | "reading"
   | "saved_dev_record"
   | "validation_ready"
+  | "version_conflict"
   | "save_failed"
   | "read_failed"
   | "validation_failed";
@@ -37,6 +38,7 @@ export type WorkflowSavedDraftConsumerState = {
   summary: string;
   failureCode: string | null;
   currentDraftVersion: number;
+  conflictDraftVersion: number | null;
   auditRef: string;
   requestId: string;
 };
@@ -139,6 +141,7 @@ export function initialWorkflowSavedDraftConsumerState(
       summary: "Offline sample draft is available for review without persistence.",
       failureCode: null,
       currentDraftVersion: 0,
+      conflictDraftVersion: null,
       auditRef: "audit_workflow_saved_draft_sample",
       requestId: "workflow-saved-draft-sample",
     };
@@ -150,6 +153,7 @@ export function initialWorkflowSavedDraftConsumerState(
     summary: "Local draft can be validated or saved through the dev-only saved draft route.",
     failureCode: null,
     currentDraftVersion: 0,
+    conflictDraftVersion: null,
     auditRef: "audit_workflow_saved_draft_unsaved",
     requestId: "workflow-saved-draft-unsaved",
   };
@@ -204,7 +208,7 @@ export async function readWorkflowDraftDevRecord(
 }
 
 export function nextWorkflowSavedDraftExpectedVersion(state: WorkflowSavedDraftConsumerState): number {
-  return state.status === "saved_dev_record" ? state.currentDraftVersion : 0;
+  return state.status === "saved_dev_record" || state.status === "version_conflict" ? state.currentDraftVersion : 0;
 }
 
 function stateFromSavedWorkflowDraftEnvelope(
@@ -215,10 +219,21 @@ function stateFromSavedWorkflowDraftEnvelope(
     mode: "dev_saved_draft_http" as const,
     failureCode: envelope.failure_code,
     currentDraftVersion: envelope.current_draft_version,
+    conflictDraftVersion: null,
     auditRef: envelope.audit_ref,
     requestId: envelope.request_id,
   };
   if (envelope.failure_code) {
+    if (envelope.failure_code === "draft_version_conflict") {
+      return {
+        ...base,
+        status: "version_conflict",
+        sourceLabel: "version conflict",
+        conflictDraftVersion: envelope.current_draft_version,
+        summary:
+          "Saved draft version conflict. Local draft was kept unchanged; review the current dev record version before saving again.",
+      };
+    }
     return {
       ...base,
       status: operation === "read" ? "read_failed" : operation === "validate" ? "validation_failed" : "save_failed",

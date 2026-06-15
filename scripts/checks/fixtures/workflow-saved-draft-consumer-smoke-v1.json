@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_consumer_smoke_v1",
+  "slice": {
+    "id": "workflow-saved-draft-consumer-smoke-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "saved_draft_consumer_smoke_guarded",
+    "does_not_claim": [
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-consumer-integration-v1",
+    "workflow-workspace-context-consistency-v1"
+  ],
+  "route_contract": {
+    "go_handler_file": "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+    "go_test_file": "services/platform/internal/httpapi/workflow_saved_draft_http_test.go",
+    "routes": [
+      "POST /v1/user-workspace/workflow-drafts",
+      "GET /v1/user-workspace/workflow-drafts/{draft_id}",
+      "POST /v1/user-workspace/workflow-drafts/validate"
+    ],
+    "headers": [
+      "X-RadishMind-Dev-Workflow-Workspace",
+      "X-RadishMind-Dev-Workflow-Application"
+    ],
+    "env_flags": [
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE"
+    ],
+    "required_failure_codes": [
+      "draft_version_conflict",
+      "draft_write_disabled",
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_store_unavailable"
+    ],
+    "required_envelope_keys": [
+      "request_id",
+      "workspace_id",
+      "application_id",
+      "draft",
+      "failure_code",
+      "current_draft_version",
+      "validation_summary",
+      "blocked_capabilities",
+      "audit_ref"
+    ]
+  },
+  "consumer_contract": {
+    "file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
+    "required_statuses": [
+      "sample",
+      "unsaved_local",
+      "saving",
+      "validating",
+      "reading",
+      "saved_dev_record",
+      "validation_ready",
+      "version_conflict",
+      "save_failed",
+      "read_failed",
+      "validation_failed"
+    ],
+    "required_state_fields": [
+      "failureCode",
+      "currentDraftVersion",
+      "conflictDraftVersion",
+      "auditRef",
+      "requestId"
+    ],
+    "required_literals": [
+      "draft_version_conflict",
+      "Local draft was kept unchanged",
+      "nextWorkflowSavedDraftExpectedVersion",
+      "VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE",
+      "dev-saved-draft-http"
+    ]
+  },
+  "app_contract": {
+    "file": "apps/radishmind-web/src/app/App.tsx",
+    "required_literals": [
+      "workflow-draft-consumer-grid",
+      "version_conflict",
+      "Conflict current version",
+      "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/saved-workflow-draft-v1.md": [
+      "version conflict",
+      "consumer smoke",
+      "route contract"
+    ],
+    "docs/features/workflow/dev-only-saved-draft-consumer.md": [
+      "version_conflict",
+      "consumer smoke",
+      "route contract"
+    ],
+    "docs/task-cards/workflow-saved-draft-consumer-integration-v1-plan.md": [
+      "route contract",
+      "consumer smoke",
+      "version conflict"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "Saved Draft Consumer Path Stabilization",
+      "version conflict",
+      "consumer smoke"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_saved_draft_consumer_smoke_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-consumer-smoke-v1.py"
+    },
+    {
+      "id": "platform_go_tests",
+      "status": "required_now",
+      "command": "go test ./...",
+      "working_directory": "services/platform/"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

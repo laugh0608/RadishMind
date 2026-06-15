@@ -428,6 +428,7 @@ export function App() {
       status: "validating",
       summary: "Validating local draft through the dev-only saved draft route.",
       failureCode: null,
+      conflictDraftVersion: null,
     }));
     validateWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig)
       .then(setSavedDraftConsumerState)
@@ -438,6 +439,7 @@ export function App() {
           sourceLabel: "validation_failed",
           summary: error instanceof Error ? error.message : "Saved draft validation failed.",
           failureCode: "dev_saved_draft_consumer_failed",
+          conflictDraftVersion: null,
         }));
       });
   };
@@ -451,6 +453,7 @@ export function App() {
       status: "saving",
       summary: "Saving local draft through the dev-only saved draft route.",
       failureCode: null,
+      conflictDraftVersion: null,
     }));
     saveWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
       .then(setSavedDraftConsumerState)
@@ -461,6 +464,7 @@ export function App() {
           sourceLabel: "save_failed",
           summary: error instanceof Error ? error.message : "Saved draft save failed.",
           failureCode: "dev_saved_draft_consumer_failed",
+          conflictDraftVersion: null,
         }));
       });
   };
@@ -473,6 +477,7 @@ export function App() {
       status: "reading",
       summary: "Reading local draft through the dev-only saved draft route.",
       failureCode: null,
+      conflictDraftVersion: null,
     }));
     readWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig)
       .then(setSavedDraftConsumerState)
@@ -483,6 +488,7 @@ export function App() {
           sourceLabel: "read_failed",
           summary: error instanceof Error ? error.message : "Saved draft read failed.",
           failureCode: "dev_saved_draft_consumer_failed",
+          conflictDraftVersion: null,
         }));
       });
   };
@@ -2522,7 +2528,11 @@ function WorkflowDraftDesignerPanel({
         <article className="workflow-draft-card">
           <span>Version</span>
           <strong>{String(savedDraftConsumerState.currentDraftVersion)}</strong>
-          <p>{savedDraftConsumerState.auditRef}</p>
+          <p>
+            {savedDraftConsumerState.conflictDraftVersion === null
+              ? savedDraftConsumerState.auditRef
+              : `Conflict current version ${savedDraftConsumerState.conflictDraftVersion}`}
+          </p>
         </article>
         <article className="workflow-draft-card">
           <span>Failure</span>
@@ -2585,7 +2595,7 @@ function workflowSavedDraftConsumerTone(status: WorkflowSavedDraftConsumerState[
   if (status === "saved_dev_record" || status === "validation_ready") {
     return "good";
   }
-  if (status === "save_failed" || status === "read_failed" || status === "validation_failed") {
+  if (status === "version_conflict" || status === "save_failed" || status === "read_failed" || status === "validation_failed") {
     return "bad";
   }
   return "neutral";

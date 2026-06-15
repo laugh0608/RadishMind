@@ -23,6 +23,7 @@
 - `unsaved_local`：用户当前本地改动，尚未写入 dev store。
 - `saving`：正在通过 dev-only consumer 保存。
 - `saved_dev_record`：已保存到 dev-only memory store，可读取和校验。
+- `version_conflict`：保存时发现当前 saved draft 版本已变化，页面展示 current version metadata，并保留用户当前本地草案。
 - `save_failed`：保存失败，必须展示 failure code。
 - `read_failed`：读取失败，不能回退成 sample 伪装成功。
 
@@ -43,7 +44,7 @@
 - 保存前必须从页面状态生成 sanitized payload，而不是提交 UI-only 字段。
 - 保存失败必须保留当前本地草案，不得用 sample 或旧 saved record 覆盖用户当前状态。
 - 读取失败必须 fail closed，不得静默回退 sample。
-- 版本冲突必须展示当前版本 metadata，并要求用户显式选择后续处理。
+- 版本冲突必须展示当前版本 metadata，并要求用户显式选择后续处理；不得自动覆盖本地草案或用 sample 回退。
 
 ## 验收方式
 

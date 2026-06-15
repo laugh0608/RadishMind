@@ -13,6 +13,7 @@
 - Platform Go domain service 已实现，文件为 `services/platform/internal/httpapi/workflow_saved_draft.go`。
 - 已覆盖 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft`、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
 - 当前已新增 dev-only HTTP route 和 web consumer 状态区分：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate` 默认关闭，只在显式 dev 配置下工作。
+- 当前已补 route contract 和 consumer smoke：Go route test 固定 envelope、header、CORS、not found / store unavailable no sample fallback；前端 consumer 固定 `version_conflict` 状态，version conflict 时保留本地草案并展示当前 saved draft version metadata。
 - 当前仍没有 durable persistence、repository adapter、schema migration、store selector、Radish OIDC 或 production API。
 - 当前任务卡为 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md)，状态是 `saved_workflow_draft_domain_service_implemented`。
 
@@ -83,12 +84,14 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 
 ## 下一批开发
 
-dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地。后续可选择补更细的 conflict UI、consumer smoke 或 route contract 固化；任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
+dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态。后续如果继续推进，应在“正式草案编辑入口”“dev store 与未来 durable store 迁移前置设计”或“User Workspace 草案创建流程”中选择一个独立专题；任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
 
 ## 验收方式
 
 - Go 单元测试覆盖 save / read / validate 成功和失败路径。
 - Consumer 能区分 sample / unsaved draft 与 saved draft record。
+- Consumer 能区分 `version_conflict`，并在冲突时保留本地草案、展示当前版本 metadata，不把失败回退成 sample。
+- route contract 和 consumer smoke checker 进入 fast baseline。
 - Web build 和 workflow 相关聚合检查通过。
 - `./scripts/check-repo.sh --fast` 通过。
 - 若新增 committed schema、route contract、fixture 或 checker，先更新 task card，并按风险补全专项验证。
