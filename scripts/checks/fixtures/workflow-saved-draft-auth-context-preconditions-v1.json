@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_auth_context_preconditions_v1",
+  "slice": {
+    "id": "workflow-saved-draft-auth-context-preconditions-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_auth_context_preconditions_defined",
+    "does_not_claim": [
+      "radish_oidc_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "session_cookie_ready",
+      "workspace_membership_adapter_ready",
+      "production_auth_ready",
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "database_schema_ready",
+      "database_migration_ready",
+      "store_selector_implemented",
+      "production_api_consumer_ready",
+      "saved_draft_list_implemented",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-durable-store-preconditions-v1",
+    "workflow-saved-draft-repository-contract-preconditions-v1",
+    "workflow-saved-draft-schema-migration-preconditions-v1",
+    "radish-oidc-client-preconditions"
+  ],
+  "auth_context_boundary": {
+    "status": "auth_context_preconditions_defined_not_implemented",
+    "current_auth_source": "dev fake auth header or test-only fake auth context",
+    "future_auth_source": "future Radish OIDC / workspace auth context",
+    "current_store_source": "platform memory dev store",
+    "future_store_source": "future SavedWorkflowDraftRepository adapter",
+    "context_preconditions_defined_in_this_slice": true,
+    "oidc_middleware_created_in_this_slice": false,
+    "token_validation_created_in_this_slice": false,
+    "session_cookie_created_in_this_slice": false,
+    "workspace_membership_adapter_created_in_this_slice": false,
+    "repository_interface_created_in_this_slice": false,
+    "repository_adapter_created_in_this_slice": false,
+    "store_selector_created_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "saved_draft_list_created_in_this_slice": false,
+    "publish_or_run_created_in_this_slice": false,
+    "executor_created_in_this_slice": false,
+    "writeback_or_replay_created_in_this_slice": false
+  },
+  "repository_actor_context_mapping": {
+    "status": "actor_context_mapping_defined_not_implemented",
+    "context_type": "SavedWorkflowDraftRepositoryActorContext",
+    "required_context_fields": [
+      "request_id",
+      "tenant_ref",
+      "workspace_id",
+      "application_id",
+      "actor_subject_ref",
+      "owner_subject_ref",
+      "scope_grants",
+      "audit_ref"
+    ],
+    "field_sources": {
+      "request_id": "request audit context",
+      "tenant_ref": "future Radish OIDC tenant binding",
+      "workspace_id": "verified workspace context",
+      "application_id": "verified workspace application context",
+      "actor_subject_ref": "future subject claim mapping",
+      "owner_subject_ref": "owner policy resolution",
+      "scope_grants": "future permission role scope projection",
+      "audit_ref": "sanitized audit context"
+    },
+    "must_not_depend_on": [
+      "http_request",
+      "query_string_tenant_override",
+      "query_string_workspace_override",
+      "query_string_application_override",
+      "draft_payload_scope_override",
+      "raw_authorization_header",
+      "cookie_value",
+      "global_current_user",
+      "sample_fixture_fallback",
+      "memory_dev_store_fallback",
+      "provider_runtime",
+      "workflow_executor"
+    ]
+  },
+  "workspace_membership_policy": {
+    "status": "membership_contract_required_before_adapter",
+    "tenant_binding_required": true,
+    "workspace_membership_required": true,
+    "application_membership_required": true,
+    "owner_subject_ref_required": true,
+    "tenant_workspace_application_must_match": true,
+    "draft_id_scope_must_remain": [
+      "tenant_ref",
+      "workspace_id",
+      "application_id",
+      "draft_id"
+    ],
+    "team_owner_policy_deferred": true,
+    "sharing_transfer_policy_deferred": true,
+    "cross_workspace_owner_grant_allowed": false
+  },
+  "scope_grant_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "owner_policy": "owner_or_workspace_write_grant",
+      "failure_code_when_missing": "draft_scope_grant_missing",
+      "fallback_to_sample_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed_on_denied": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "owner_policy": "owner_or_workspace_read_grant",
+      "failure_code_when_missing": "draft_scope_grant_missing",
+      "fallback_to_sample_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed_on_denied": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "owner_policy": "owner_or_workspace_list_grant",
+      "failure_code_when_missing": "draft_scope_grant_missing",
+      "fallback_to_sample_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed_on_denied": false
+    }
+  ],
+  "failure_policy": {
+    "status": "fail_closed_required",
+    "required_failure_codes": [
+      "draft_identity_context_missing",
+      "draft_tenant_binding_missing",
+      "draft_workspace_membership_denied",
+      "draft_application_scope_denied",
+      "draft_owner_scope_denied",
+      "draft_scope_grant_missing",
+      "draft_auth_context_contract_mismatch",
+      "draft_audit_context_missing",
+      "draft_scope_denied"
+    ],
+    "fallback_to_sample_allowed": false,
+    "fallback_to_fixture_allowed": false,
+    "fallback_to_memory_dev_store_allowed": false,
+    "return_draft_body_on_denied": false,
+    "write_allowed_on_denied": false,
+    "publish_or_run_allowed_on_denied": false
+  },
+  "audit_sanitization_policy": {
+    "status": "sanitized_reference_only",
+    "allowed_audit_fields": [
+      "request_id",
+      "audit_ref",
+      "tenant_ref",
+      "workspace_id",
+      "application_id",
+      "actor_subject_ref",
+      "owner_subject_ref",
+      "scope_grant_ids",
+      "failure_code"
+    ],
+    "forbidden_audit_fields": [
+      "id_token",
+      "access_token",
+      "refresh_token",
+      "authorization_header",
+      "cookie_value",
+      "client_secret",
+      "raw_claim_dump",
+      "raw_permission_payload",
+      "raw_oidc_response",
+      "raw_jwks_response"
+    ]
+  },
+  "dev_auth_boundary": {
+    "status": "dev_only_opt_in_must_remain",
+    "backend_dev_auth_env": "RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1",
+    "saved_draft_dev_http_env": "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1",
+    "saved_draft_dev_write_env": "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1",
+    "fake_auth_allowed_in_production": false,
+    "fake_auth_header_public_api_allowed": false,
+    "dev_auth_may_override_tenant_from_query": false,
+    "dev_auth_may_override_workspace_from_query": false
+  },
+  "implementation_artifact_guard": {
+    "status": "forbid_implementation_artifacts",
+    "future_files_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_auth_context.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_oidc.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http_test.go"
+    ],
+    "future_literals_must_not_appear_in_source": [
+      "oidc.Provider",
+      "ValidateToken",
+      "id_token",
+      "access_token",
+      "refresh_token",
+      "SavedWorkflowDraftAuthMiddleware",
+      "SavedWorkflowDraftOIDC",
+      "SavedWorkflowDraftTokenValidator",
+      "NewSavedWorkflowDraftRepositoryAdapter",
+      "SavedWorkflowDraftStoreSelector",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_OIDC",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_PRODUCTION_AUTH"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-auth-context-preconditions-v1.md",
+      "must_contain": [
+        "状态：`draft_auth_context_preconditions_defined`",
+        "Auth Context Contract",
+        "Workspace Membership Policy",
+        "Scope Grant Matrix",
+        "Failure Policy",
+        "不创建 Radish OIDC middleware"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Auth Context Preconditions v1",
+        "draft_auth_context_preconditions_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Auth Context Preconditions v1",
+        "draft_auth_context_preconditions_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-repository-contract-preconditions-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Auth Context Preconditions v1",
+        "draft_auth_context_preconditions_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-schema-migration-preconditions-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Auth Context Preconditions v1",
+        "draft_auth_context_preconditions_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-auth-context-preconditions-v1-plan.md",
+      "must_contain": [
+        "draft_auth_context_preconditions_defined",
+        "不创建 Radish OIDC middleware",
+        "workflow-saved-draft-auth-context-preconditions-v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-auth-context-preconditions-v1",
+        "draft_auth_context_preconditions_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_only",
+    "required_checks": [
+      "workflow_saved_draft_auth_context_preconditions_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_call_oidc": true,
+    "does_not_validate_tokens": true,
+    "does_not_connect_database": true,
+    "does_not_create_repository_adapter": true
+  }
+}

@@ -15,6 +15,7 @@
 - `Saved Workflow Draft v1` 已有 memory dev store、save / read / validate、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
 - `Saved Workflow Draft Durable Store Preconditions v1` 已固定 draft scope、owner / workspace 归属、version conflict、no sample fallback 和 dev store 切换停止线。
 - `Saved Workflow Draft Repository Contract Preconditions v1` 已固定 future repository actor context、`SaveWorkflowDraftRecord` / `ReadWorkflowDraftRecord` / `ListWorkflowDraftRecords` operation matrix、request / result、failure 和 projection 边界。
+- [Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) 已固定 `draft_auth_context_preconditions_defined`，覆盖 future repository actor context 的身份来源、workspace membership、owner policy、scope grants、failure policy 和 audit / sanitization policy。
 - 当前仍没有 durable repository、database schema、SQL migration、migration runner、store selector、Radish OIDC 或 production API consumer。
 
 ## Logical Schema Scope
@@ -76,9 +77,8 @@ schema / migration gate 必须保持 fail closed，并新增 future store 层失
 本专题之后仍不能直接创建 repository adapter。后续若继续 durable store 方向，应按顺序选择一个独立批次：
 
 1. schema artifact manifest / DDL review evidence。
-2. auth context contract，固定 tenant、workspace membership、subject、owner 和 scope grant 映射。
-3. store selector enablement，固定 dev store 与 future repository adapter 的切换策略，且 repository / database mode 不允许 fallback 到 memory dev store。
-4. repository contract smoke / adapter smoke，覆盖 no sample fallback、scope denied、version conflict、store unavailable、schema migration failure 和 no side effects。
+2. store selector enablement，固定 dev store 与 future repository adapter 的切换策略，且 repository / database mode 不允许 fallback 到 memory dev store。
+3. repository contract smoke / adapter smoke，覆盖 no sample fallback、scope denied、owner denied、version conflict、store unavailable、schema migration failure 和 no side effects。
 
 ## 验收方式
 
