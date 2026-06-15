@@ -50,6 +50,7 @@
 | [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Saved Workflow Draft Durable Store Preconditions v1](workflow/saved-workflow-draft-durable-store-preconditions-v1.md) | 前置设计专题 | 固定 saved draft durable store 迁移前的 scope、owner / workspace、version conflict、no sample fallback 和 store 切换停止线 |
+| [Saved Workflow Draft Repository Contract Preconditions v1](workflow/saved-workflow-draft-repository-contract-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft repository contract 的 actor context、operation matrix、failure 和 projection 边界 |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

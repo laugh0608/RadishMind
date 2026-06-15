@@ -1,0 +1,370 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_repository_contract_preconditions_v1",
+  "slice": {
+    "id": "workflow-saved-draft-repository-contract-preconditions-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_repository_contract_preconditions_defined",
+    "does_not_claim": [
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "database_schema_ready",
+      "database_migration_ready",
+      "store_selector_implemented",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "saved_draft_list_implemented",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-durable-store-preconditions-v1"
+  ],
+  "repository_contract_boundary": {
+    "status": "contract_preconditions_defined_not_implemented",
+    "future_interface_name": "SavedWorkflowDraftRepository",
+    "current_store_source": "platform memory dev store",
+    "future_store_source": "future SavedWorkflowDraftRepository adapter",
+    "contract_preconditions_defined_in_this_slice": true,
+    "repository_interface_created_in_this_slice": false,
+    "repository_adapter_created_in_this_slice": false,
+    "store_selector_created_in_this_slice": false,
+    "database_schema_created_in_this_slice": false,
+    "database_migration_created_in_this_slice": false,
+    "oidc_validation_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "saved_draft_list_created_in_this_slice": false,
+    "publish_or_run_created_in_this_slice": false,
+    "executor_created_in_this_slice": false,
+    "writeback_or_replay_created_in_this_slice": false
+  },
+  "actor_context_contract": {
+    "status": "actor_context_contract_defined_not_implemented",
+    "context_type": "SavedWorkflowDraftRepositoryActorContext",
+    "required_context_fields": [
+      "request_id",
+      "tenant_ref",
+      "workspace_id",
+      "application_id",
+      "actor_subject_ref",
+      "owner_subject_ref",
+      "scope_grants",
+      "audit_ref"
+    ],
+    "must_not_depend_on": [
+      "http_request",
+      "query_string_tenant_override",
+      "query_string_workspace_override",
+      "raw_authorization_header",
+      "cookie_value",
+      "global_current_tenant",
+      "provider_runtime",
+      "workflow_executor"
+    ],
+    "tenant_predicate_required": true,
+    "workspace_membership_required": true,
+    "owner_subject_ref_required_before_adapter": true
+  },
+  "repository_operations": [
+    {
+      "operation_id": "save-draft-record",
+      "method_name": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "request_type": "SaveWorkflowDraftRecordRequest",
+      "result_type": "SaveWorkflowDraftRecordResult",
+      "required_request_fields": [
+        "repository_actor_context",
+        "draft_scope",
+        "expected_draft_version",
+        "sanitized_draft_payload",
+        "validation_summary",
+        "blocked_capability_summary",
+        "request_audit_metadata"
+      ],
+      "required_result_fields": [
+        "draft_id",
+        "draft_version",
+        "schema_version",
+        "draft_status",
+        "owner_subject_ref",
+        "created_by_actor_ref",
+        "updated_by_actor_ref",
+        "validation_summary",
+        "blocked_capability_summary",
+        "failure_code",
+        "request_id",
+        "audit_ref"
+      ],
+      "required_failure_codes": [
+        "draft_scope_denied",
+        "draft_schema_version_unsupported",
+        "draft_payload_invalid",
+        "draft_version_conflict",
+        "draft_store_unavailable",
+        "draft_store_contract_mismatch"
+      ],
+      "uses_expected_draft_version": true,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_dev_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation_id": "read-draft-record",
+      "method_name": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ReadWorkflowDraftRecordRequest",
+      "result_type": "ReadWorkflowDraftRecordResult",
+      "required_request_fields": [
+        "repository_actor_context",
+        "draft_scope",
+        "draft_id",
+        "projection"
+      ],
+      "required_result_fields": [
+        "draft_id",
+        "draft_version",
+        "schema_version",
+        "draft_status",
+        "owner_subject_ref",
+        "created_by_actor_ref",
+        "updated_by_actor_ref",
+        "validation_summary",
+        "blocked_capability_summary",
+        "failure_code",
+        "request_id",
+        "audit_ref"
+      ],
+      "required_failure_codes": [
+        "draft_scope_denied",
+        "draft_not_found",
+        "draft_schema_version_unsupported",
+        "draft_store_unavailable",
+        "draft_store_contract_mismatch"
+      ],
+      "uses_expected_draft_version": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_dev_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation_id": "list-draft-records",
+      "method_name": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ListWorkflowDraftRecordsRequest",
+      "result_type": "ListWorkflowDraftRecordsResult",
+      "required_request_fields": [
+        "repository_actor_context",
+        "workspace_id",
+        "application_id",
+        "owner_subject_ref",
+        "cursor",
+        "limit",
+        "sort"
+      ],
+      "required_result_fields": [
+        "draft_id",
+        "draft_version",
+        "schema_version",
+        "draft_status",
+        "owner_subject_ref",
+        "updated_by_actor_ref",
+        "validation_summary",
+        "blocked_capability_summary",
+        "failure_code",
+        "request_id",
+        "audit_ref"
+      ],
+      "required_failure_codes": [
+        "draft_scope_denied",
+        "draft_store_unavailable",
+        "draft_store_contract_mismatch",
+        "invalid_draft_store_mode",
+        "repository_store_disabled"
+      ],
+      "uses_expected_draft_version": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_dev_store_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_policy": {
+    "status": "fail_closed_required",
+    "required_failure_codes": [
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_schema_version_unsupported",
+      "draft_payload_invalid",
+      "draft_version_conflict",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "repository_store_disabled",
+      "invalid_draft_store_mode"
+    ],
+    "fallback_to_sample_allowed": false,
+    "fallback_to_fixture_allowed": false,
+    "fallback_to_memory_dev_store_allowed": false,
+    "conflict_overwrite_allowed": false
+  },
+  "sanitized_projection_policy": {
+    "status": "sanitized_projection_required",
+    "allowed_output_kinds": [
+      "saved_draft_record",
+      "saved_draft_summary",
+      "validation_summary",
+      "blocked_capability_summary",
+      "request_audit_metadata",
+      "current_version_metadata"
+    ],
+    "forbidden_output_fields": [
+      "secret_value",
+      "api_key_value",
+      "oauth_token",
+      "authorization_header",
+      "cookie_value",
+      "raw_prompt_dump",
+      "raw_tool_payload",
+      "provider_response_body",
+      "execution_plan_persistence",
+      "runtime_readiness_persistence",
+      "confirmation_decision",
+      "business_writeback_payload",
+      "run_result",
+      "replay_state",
+      "resume_state"
+    ]
+  },
+  "implementation_gate_matrix": [
+    {
+      "id": "schema_migration_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "tenant workspace application draft owner indexes",
+        "draft version optimistic concurrency",
+        "schema version compatibility",
+        "read-only role and write role separation"
+      ]
+    },
+    {
+      "id": "store_selector_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "repository mode disabled until adapter smoke",
+        "no fallback from repository mode to memory dev store",
+        "invalid mode failure code"
+      ]
+    },
+    {
+      "id": "auth_context_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "Radish OIDC tenant mapping",
+        "workspace membership",
+        "actor subject",
+        "owner subject",
+        "scope grants"
+      ]
+    },
+    {
+      "id": "repository_contract_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "save/read/list success",
+        "scope denied",
+        "not found",
+        "version conflict",
+        "store unavailable",
+        "contract mismatch",
+        "no sample fallback",
+        "no executor confirmation writeback replay side effects"
+      ]
+    }
+  ],
+  "implementation_artifact_guard": {
+    "future_files_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_test.go",
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_without_future_literals": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go"
+    ],
+    "absent_literals": [
+      "type SavedWorkflowDraftRepository interface",
+      "func NewSavedWorkflowDraftRepository",
+      "workflow_saved_draft_repository",
+      "workflow_saved_draft_store_selector",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+      "database/sql",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "oidc.Provider",
+      "ValidateToken"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/saved-workflow-draft-repository-contract-preconditions-v1.md": [
+      "Saved Workflow Draft Repository Contract Preconditions v1",
+      "状态：`draft_repository_contract_preconditions_defined`",
+      "SavedWorkflowDraftRepository",
+      "SaveWorkflowDraftRecord",
+      "ListWorkflowDraftRecords",
+      "sanitized projection"
+    ],
+    "docs/features/workflow/saved-workflow-draft-durable-store-preconditions-v1.md": [
+      "Saved Workflow Draft Repository Contract Preconditions v1",
+      "draft_repository_contract_preconditions_defined"
+    ],
+    "docs/features/workflow/saved-workflow-draft-v1.md": [
+      "Saved Workflow Draft Repository Contract Preconditions v1",
+      "SaveWorkflowDraftRecord",
+      "ListWorkflowDraftRecords"
+    ],
+    "docs/features/workflow/README.md": [
+      "Saved Workflow Draft Repository Contract Preconditions v1",
+      "draft_repository_contract_preconditions_defined"
+    ],
+    "docs/features/user-workspace.md": [
+      "repository contract preconditions",
+      "saved draft list"
+    ],
+    "docs/task-cards/workflow-saved-draft-repository-contract-preconditions-v1-plan.md": [
+      "workflow-saved-draft-repository-contract-preconditions-v1",
+      "draft_repository_contract_preconditions_defined",
+      "SaveWorkflowDraftRecord",
+      "ListWorkflowDraftRecords"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-saved-draft-repository-contract-preconditions-v1",
+      "draft_repository_contract_preconditions_defined"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "Saved Draft Repository Contract Preconditions",
+      "workflow-saved-draft-repository-contract-preconditions-v1"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_saved_draft_repository_contract_preconditions_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-repository-contract-preconditions-v1.py"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

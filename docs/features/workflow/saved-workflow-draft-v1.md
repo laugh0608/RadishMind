@@ -17,6 +17,7 @@
 - 当前已接入 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)：Draft Designer 可编辑草案名称、说明、节点名称和边条件摘要，validate / save / read 使用当前本地草案。
 - 当前已接入 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md)：用户可从 Workspace Home 或 workflow definitions 创建本地草案，再复用 dev-only saved draft consumer 保存。
 - 当前已新增 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md)：固定 durable store 迁移前的 draft scope、`owner_subject_ref` / workspace 归属、version conflict、no sample fallback、dev store 与未来 repository adapter 的切换停止线；它只定义前置设计，不实现 durable persistence。
+- 当前已新增 [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md)：固定 future `SavedWorkflowDraftRepository` 的 `SaveWorkflowDraftRecord`、`ReadWorkflowDraftRecord` 和 `ListWorkflowDraftRecords` contract preconditions；它只定义 actor context、request / result、failure 和 projection 边界，不创建 repository interface。
 - 当前仍没有 durable persistence、repository adapter、schema migration、store selector、Radish OIDC 或 production API。
 - 当前任务卡为 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md)，状态是 `saved_workflow_draft_domain_service_implemented`。
 
@@ -88,7 +89,7 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 
 ## 下一批开发
 
-dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口已按 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) 落地；User Workspace 创建入口已按 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) 落地；durable store 迁移前置设计已按 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) 固定。后续如果继续推进，应在 repository contract / schema migration / auth contract、Draft Designer 更完整编辑模型或 User Workspace saved draft list 中选择一个独立专题；任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
+dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口已按 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) 落地；User Workspace 创建入口已按 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) 落地；durable store 迁移前置设计已按 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) 固定；future repository contract preconditions 已按 [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md) 固定。后续如果继续推进，应在 schema migration / auth context / store selector enablement、Draft Designer 更完整编辑模型或 User Workspace saved draft list 中选择一个独立专题；任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
 
 ## 验收方式
 
