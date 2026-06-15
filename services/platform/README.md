@@ -36,6 +36,9 @@
 - `GET /v1/user-workspace/workflow-definitions`
 - `GET /v1/user-workspace/runs`
 - `GET /v1/control-plane/audit`
+- `POST /v1/user-workspace/workflow-drafts`
+- `GET /v1/user-workspace/workflow-drafts/{draft_id}`
+- `POST /v1/user-workspace/workflow-drafts/validate`
 
 其中 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口：它汇总服务状态、可选 model/profile、session/tooling metadata route、blocked action route 和当前停止线，供 `apps/radishmind-console/` 本地控制台或上层 UI 一次读取。它不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
@@ -281,6 +284,9 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_PLATFORM_BASE_URL` | 空 | 显式 provider base URL 覆盖 |
 | `RADISHMIND_PLATFORM_API_KEY` | 空 | 显式 provider API key 覆盖；不得写入文档或提交 |
 | `RADISHMIND_PLATFORM_TEMPERATURE` | `0` | provider 调用温度 |
+| `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH` | `false` | 显式启用 read-side / saved draft dev-only 测试身份 header |
+| `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP` | `false` | 显式启用 saved workflow draft dev-only HTTP route |
+| `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE` | `false` | 显式允许 saved workflow draft dev-only save 操作；read / validate 不用该开关 |
 
 配置优先级固定为 `default < config file < env`。配置文件当前使用 JSON，字段名与脱敏 summary 保持一致，例如：
 
@@ -424,6 +430,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - `/v1/session/recovery/checkpoints/session-checkpoint-0001` 返回 `session_recovery_checkpoint_read_result`，且 `access_policy.metadata_only=true`、`materialized_results_included=false`、`auto_replay_enabled=false`，`result.tool_audit_summary.execution_enabled=false`。
 - `/v1/tools/metadata` 返回 `tooling_metadata`，其中 `registry_policy.execution_enabled=false`，每个工具的 execution mode 为 `contract_only`。
 - 七条 control-plane read route 目前只在 Go test 中通过 test-only fake auth context 验证；直接 curl 未带未来 auth context 时应 fail closed，而不是匿名返回跨租户数据。
+- 三条 workflow saved draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 才能 read / validate，保存还必须设置 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`，并带上 `X-RadishMind-Dev-Workflow-Workspace` / `X-RadishMind-Dev-Workflow-Application` 与匹配 scope。
 - `/v1/tools/actions` 返回 `tool_action_blocked_response`，且不会运行工具、返回 materialized result、写 durable memory 或写业务真相源。
 - `/v1/chat/completions` 在 `mock` provider 下返回 advisory 文本，不访问外部 provider，不写回任何上层项目。
 
