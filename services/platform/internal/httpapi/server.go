@@ -30,6 +30,8 @@ type Server struct {
 	config                config.Config
 	controlPlaneReadStore controlPlaneReadStore
 	controlPlaneReadRepo  ControlPlaneReadRepository
+
+	savedWorkflowDraftStore savedWorkflowDraftStore
 }
 
 type errorDocument struct {
@@ -49,9 +51,10 @@ type errorBody struct {
 func NewServer(cfg config.Config, options Options) *Server {
 	mux := http.NewServeMux()
 	server := &Server{
-		options: options,
-		bridge:  bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
-		config:  cfg,
+		options:                 options,
+		bridge:                  bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
+		config:                  cfg,
+		savedWorkflowDraftStore: newMemorySavedWorkflowDraftStore(),
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -73,6 +76,9 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux.HandleFunc(controlPlaneWorkflowDefinitionSummaryListRoute, server.handleUserWorkspaceWorkflowDefinitionSummaryList)
 	mux.HandleFunc(controlPlaneRunRecordSummaryListRoute, server.handleUserWorkspaceRunRecordSummaryList)
 	mux.HandleFunc(controlPlaneAuditSummaryListRoute, server.handleControlPlaneAuditSummaryList)
+	mux.HandleFunc(savedWorkflowDraftSaveRoute, server.handleSaveWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
@@ -142,6 +148,8 @@ func localConsoleAllowedHeaders() []string {
 		controlPlaneReadDevSubjectHeader,
 		controlPlaneReadDevScopesHeader,
 		controlPlaneReadDevAuditHeader,
+		savedWorkflowDraftDevWorkspaceHeader,
+		savedWorkflowDraftDevApplicationHeader,
 	}
 }
 

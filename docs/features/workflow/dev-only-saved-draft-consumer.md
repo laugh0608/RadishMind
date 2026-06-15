@@ -8,6 +8,18 @@
 
 这是 dev-only / non-production 实现专题，不是 public production API、durable database persistence、workflow publish 或 executor。
 
+状态：`implemented`
+
+## 当前实现
+
+已实现 `dev-only HTTP route + web consumer`：
+
+- 后端 route：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}`、`POST /v1/user-workspace/workflow-drafts/validate`。
+- 后端显式开关：`RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 才允许访问 route；`RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1` 才允许保存。
+- dev auth 继续要求 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`，并通过 `X-RadishMind-Dev-Workflow-Workspace`、`X-RadishMind-Dev-Workflow-Application`、subject、tenant 和 scope headers 固定开发态 scope。
+- 前端 consumer：`apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts`，默认 sample-only；只有 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 才调用 dev route。
+- 页面状态：`sample`、`unsaved_local`、`saving`、`validating`、`reading`、`saved_dev_record`、`validation_ready`、`save_failed`、`read_failed`、`validation_failed`。
+
 ## 推荐实现路径
 
 默认路径为 `dev-only HTTP route + web consumer`。

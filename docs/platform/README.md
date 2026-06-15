@@ -23,7 +23,7 @@
 | Repository Adapter / Store Selector | readiness 已有证据，implementation trigger 未满足 | `control-plane-read-*repository*` 与 `*store-selector*` task cards | 不在当前默认推进 |
 | Provider Runtime & Health | close candidate | [Provider Runtime & Health v1 任务卡](../task-cards/provider-runtime-health-v1-plan.md) | 不继续扩同层 provider 小切片 |
 | Production Ops / Deployment | 静态边界已 close | [Production Ops Hardening v1](../task-cards/production-ops-hardening-v1-plan.md)、[Docker Deployment v1](../task-cards/production-ops-docker-deployment-v1-plan.md) | 等测试或生产前复核窗口 |
-| Dev-only Write Path | planned | [Dev-only Saved Draft Consumer](../features/workflow/dev-only-saved-draft-consumer.md) | 先服务 saved draft consumer integration |
+| Dev-only Write Path | implemented | [Dev-only Saved Draft Consumer](../features/workflow/dev-only-saved-draft-consumer.md) | 已服务 saved draft consumer integration；后续按 conflict UI / smoke / contract 固化拆批次 |
 
 ## 停止线
 

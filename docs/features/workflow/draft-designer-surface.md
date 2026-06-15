@@ -12,7 +12,8 @@
 
 - 当前 surface 为 offline-only，数据来自离线 view model 和 workflow context。
 - 已展示 draft templates、本地 template switch、draft nodes、edges、readiness、risk summary、route / request / audit metadata 和 blocked capability preview。
-- 当前不保存草案、不读取 saved record、不持久化 validation result / execution plan / runtime readiness，也不发布或执行 workflow。
+- 当前已可在显式 dev-only consumer 配置下保存、读取和校验 saved draft，并在页面上区分 sample / unsaved / saved / failed 状态。
+- 当前不做 durable persistence，不持久化 validation result / execution plan / runtime readiness，也不发布或执行 workflow。
 
 ## 页面状态模型
 

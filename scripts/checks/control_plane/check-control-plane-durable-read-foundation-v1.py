@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -225,7 +226,10 @@ def assert_source(fixture: dict[str, Any], paths: dict[str, Path]) -> None:
     for literal in fixture.get("required_source_literals") or []:
         haystack = "\n".join([repository_text, handler_text, contract_text, server_text])
         require(str(literal) in haystack, f"missing source literal: {literal}")
-    require("controlPlaneReadRepo  ControlPlaneReadRepository" in server_text, "server must expose repository injection point")
+    require(
+        re.search(r"\bcontrolPlaneReadRepo\s+ControlPlaneReadRepository\b", server_text) is not None,
+        "server must expose repository injection point",
+    )
     require("s.controlPlaneReadDataStore()" not in handler_text, "read handlers must not call fake store directly")
     require("s.controlPlaneReadRepository()" in handler_text, "read handlers must call repository interface")
     require("TenantState" in contract_text and "UsageSnapshot" in contract_text, "typed summaries must cover response fixture fields")

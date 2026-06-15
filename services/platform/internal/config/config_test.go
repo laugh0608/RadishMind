@@ -77,6 +77,8 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_PLATFORM_BRIDGE_TIMEOUT", "12s")
 	t.Setenv("RADISHMIND_PLATFORM_API_KEY", "env-secret")
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -98,6 +100,12 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	if !cfg.ControlPlaneReadDevAuthEnabled {
 		t.Fatalf("expected control plane read dev auth env override")
 	}
+	if !cfg.WorkflowSavedDraftDevHTTPEnabled {
+		t.Fatalf("expected workflow saved draft dev http env override")
+	}
+	if !cfg.WorkflowSavedDraftDevWriteEnabled {
+		t.Fatalf("expected workflow saved draft dev write env override")
+	}
 
 	summary := cfg.SanitizedSummary()
 	if summary.FieldSources["listen_addr"] != "file" {
@@ -114,6 +122,12 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["control_plane_read_dev_auth"] != "env" {
 		t.Fatalf("expected control_plane_read_dev_auth source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["workflow_saved_draft_dev_http"] != "env" {
+		t.Fatalf("expected workflow_saved_draft_dev_http source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["workflow_saved_draft_dev_write"] != "env" {
+		t.Fatalf("expected workflow_saved_draft_dev_write source=env, got %#v", summary.FieldSources)
 	}
 	if summary.ConfigFile.Path != configPath || !summary.ConfigFile.Configured || !summary.ConfigFile.Loaded {
 		t.Fatalf("unexpected config file summary: %#v", summary.ConfigFile)

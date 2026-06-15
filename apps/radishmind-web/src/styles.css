@@ -388,6 +388,7 @@ h4 {
 .workflow-detail-edge-list,
 .workflow-draft-template-grid,
 .workflow-draft-summary-grid,
+.workflow-draft-consumer-grid,
 .workflow-draft-node-grid,
 .workflow-draft-edge-grid,
 .workflow-draft-readiness-grid,
@@ -1168,6 +1169,10 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.workflow-draft-consumer-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .workflow-draft-validation-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -1480,6 +1485,34 @@ h4 {
   margin-top: 10px;
   color: #607086;
   font-size: 12px;
+}
+
+.workflow-draft-consumer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workflow-draft-action-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workflow-draft-action-row button {
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workflow-draft-action-row button:disabled {
+  color: #8793a4;
+  background: #f4f6f8;
 }
 
 .workflow-draft-validation-evidence {
@@ -1866,6 +1899,7 @@ dd {
   .workflow-detail-edge-list,
   .workflow-draft-template-grid,
   .workflow-draft-summary-grid,
+  .workflow-draft-consumer-grid,
   .workflow-draft-node-grid,
   .workflow-draft-edge-grid,
   .workflow-draft-readiness-grid,

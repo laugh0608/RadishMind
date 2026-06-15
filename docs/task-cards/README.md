@@ -110,6 +110,7 @@
 59. [`Product Surface Usage Gap Triage` v1 计划](product-surface-usage-gap-triage-v1-plan.md)（`product-surface-usage-gap-triage-v1`）
 60. [`Control Plane Durable Read Foundation` v1 任务卡](control-plane-durable-read-foundation-v1-plan.md)（`control-plane-durable-read-foundation-v1`）
 61. [`Workflow Saved Draft` v1 implementation 任务卡](workflow-saved-draft-v1-implementation-plan.md)（`workflow-saved-draft-v1-implementation`）
+62. [`Workflow Saved Draft Consumer Integration` v1 任务卡](workflow-saved-draft-consumer-integration-v1-plan.md)（`workflow-saved-draft-consumer-integration-v1`）
 
 ## UI 设计专题
 

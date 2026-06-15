@@ -43,7 +43,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 支持创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG 或知识问答应用。
 - 用户可以管理自己的应用、API key、调用量、运行记录和成本摘要。
 - 当前 `apps/radishmind-web/` 只提供 read-side 页面切片：applications、API keys、usage quota、workflow definitions 和 run history 默认都是离线只读展示；dev-only live read path 也只能读取 fake-store-backed handler，不提供创建、编辑、执行、replay 或写回控件。
-- `Saved Workflow Draft v1` 已具备 platform Go domain service、内存 dev store、save / read / validate 契约、版本冲突、失败语义、sanitized response 和 no sample fallback 测试；它还没有 HTTP route、web consumer、durable persistence 或 production API。
+- `Saved Workflow Draft v1` 已具备 platform Go domain service、内存 dev store、dev-only HTTP route、web consumer、save / read / validate 契约、版本冲突、失败语义、sanitized response 和 no sample fallback 测试；它还没有 durable persistence、production API、publish、run 或 executor。
 - 工作流方向参考 `Dify` 的应用构建与 workflow 编排，但首版只实现 Radish 体系当前需要的可治理切片，不追求一次性复刻全量能力。
 
 2. `Admin Control Plane`

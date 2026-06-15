@@ -26,41 +26,45 @@ const (
 )
 
 type Config struct {
-	ListenAddr                     string
-	ReadHeaderTimeout              time.Duration
-	WriteTimeout                   time.Duration
-	BridgeTimeout                  time.Duration
-	ControlPlaneReadDevAuthEnabled bool
-	PythonBinary                   string
-	BridgeScript                   string
-	Provider                       string
-	ProviderProfile                string
-	Model                          string
-	BaseURL                        string
-	APIKey                         string
-	Temperature                    float64
-	ConfigFile                     string
-	FieldSources                   map[string]string
+	ListenAddr                        string
+	ReadHeaderTimeout                 time.Duration
+	WriteTimeout                      time.Duration
+	BridgeTimeout                     time.Duration
+	ControlPlaneReadDevAuthEnabled    bool
+	WorkflowSavedDraftDevHTTPEnabled  bool
+	WorkflowSavedDraftDevWriteEnabled bool
+	PythonBinary                      string
+	BridgeScript                      string
+	Provider                          string
+	ProviderProfile                   string
+	Model                             string
+	BaseURL                           string
+	APIKey                            string
+	Temperature                       float64
+	ConfigFile                        string
+	FieldSources                      map[string]string
 }
 
 type ConfigSummary struct {
-	ListenAddr                     string            `json:"listen_addr"`
-	ControlPlaneReadDevAuthEnabled bool              `json:"control_plane_read_dev_auth_enabled"`
-	Provider                       string            `json:"provider"`
-	Profile                        string            `json:"profile"`
-	Model                          string            `json:"model"`
-	ModelConfigured                bool              `json:"model_configured"`
-	BaseURLConfigured              bool              `json:"base_url_configured"`
-	CredentialState                string            `json:"credential_state"`
-	Timeouts                       map[string]string `json:"timeouts"`
-	PythonBridge                   PythonBridge      `json:"python_bridge"`
-	Temperature                    float64           `json:"temperature"`
-	RequiredFields                 []string          `json:"required_fields"`
-	MissingRequiredFields          []string          `json:"missing_required_fields"`
-	SecretFields                   []string          `json:"secret_fields"`
-	ConfigFile                     ConfigFileSummary `json:"config_file"`
-	FieldSources                   map[string]string `json:"field_sources"`
-	Sanitized                      bool              `json:"sanitized"`
+	ListenAddr                        string            `json:"listen_addr"`
+	ControlPlaneReadDevAuthEnabled    bool              `json:"control_plane_read_dev_auth_enabled"`
+	WorkflowSavedDraftDevHTTPEnabled  bool              `json:"workflow_saved_draft_dev_http_enabled"`
+	WorkflowSavedDraftDevWriteEnabled bool              `json:"workflow_saved_draft_dev_write_enabled"`
+	Provider                          string            `json:"provider"`
+	Profile                           string            `json:"profile"`
+	Model                             string            `json:"model"`
+	ModelConfigured                   bool              `json:"model_configured"`
+	BaseURLConfigured                 bool              `json:"base_url_configured"`
+	CredentialState                   string            `json:"credential_state"`
+	Timeouts                          map[string]string `json:"timeouts"`
+	PythonBridge                      PythonBridge      `json:"python_bridge"`
+	Temperature                       float64           `json:"temperature"`
+	RequiredFields                    []string          `json:"required_fields"`
+	MissingRequiredFields             []string          `json:"missing_required_fields"`
+	SecretFields                      []string          `json:"secret_fields"`
+	ConfigFile                        ConfigFileSummary `json:"config_file"`
+	FieldSources                      map[string]string `json:"field_sources"`
+	Sanitized                         bool              `json:"sanitized"`
 }
 
 type PythonBridge struct {
@@ -124,20 +128,22 @@ func defaultConfig() Config {
 		APIKey:            "",
 		Temperature:       0,
 		FieldSources: map[string]string{
-			"listen_addr":                 configSourceDefault,
-			"read_header_timeout":         configSourceDefault,
-			"write_timeout":               configSourceDefault,
-			"bridge_timeout":              configSourceDefault,
-			"control_plane_read_dev_auth": configSourceDefault,
-			"python_binary":               configSourceDefault,
-			"bridge_script":               configSourceDefault,
-			"provider":                    configSourceDefault,
-			"profile":                     configSourceDefault,
-			"model":                       configSourceDefault,
-			"base_url":                    configSourceDefault,
-			"credential":                  configSourceDefault,
-			"temperature":                 configSourceDefault,
-			"config_file":                 configSourceDefault,
+			"listen_addr":                    configSourceDefault,
+			"read_header_timeout":            configSourceDefault,
+			"write_timeout":                  configSourceDefault,
+			"bridge_timeout":                 configSourceDefault,
+			"control_plane_read_dev_auth":    configSourceDefault,
+			"workflow_saved_draft_dev_http":  configSourceDefault,
+			"workflow_saved_draft_dev_write": configSourceDefault,
+			"python_binary":                  configSourceDefault,
+			"bridge_script":                  configSourceDefault,
+			"provider":                       configSourceDefault,
+			"profile":                        configSourceDefault,
+			"model":                          configSourceDefault,
+			"base_url":                       configSourceDefault,
+			"credential":                     configSourceDefault,
+			"temperature":                    configSourceDefault,
+			"config_file":                    configSourceDefault,
 		},
 	}
 }
@@ -269,6 +275,22 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.ControlPlaneReadDevAuthEnabled = parsed
 		cfg.FieldSources["control_plane_read_dev_auth"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowSavedDraftDevHTTPEnabled = parsed
+		cfg.FieldSources["workflow_saved_draft_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowSavedDraftDevWriteEnabled = parsed
+		cfg.FieldSources["workflow_saved_draft_dev_write"] = configSourceEnv
+	}
 	return nil
 }
 
@@ -285,14 +307,16 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
 
 	return ConfigSummary{
-		ListenAddr:                     strings.TrimSpace(cfg.ListenAddr),
-		ControlPlaneReadDevAuthEnabled: cfg.ControlPlaneReadDevAuthEnabled,
-		Provider:                       provider,
-		Profile:                        profile,
-		Model:                          model,
-		ModelConfigured:                model != "",
-		BaseURLConfigured:              baseURLConfigured,
-		CredentialState:                credentialState,
+		ListenAddr:                        strings.TrimSpace(cfg.ListenAddr),
+		ControlPlaneReadDevAuthEnabled:    cfg.ControlPlaneReadDevAuthEnabled,
+		WorkflowSavedDraftDevHTTPEnabled:  cfg.WorkflowSavedDraftDevHTTPEnabled,
+		WorkflowSavedDraftDevWriteEnabled: cfg.WorkflowSavedDraftDevWriteEnabled,
+		Provider:                          provider,
+		Profile:                           profile,
+		Model:                             model,
+		ModelConfigured:                   model != "",
+		BaseURLConfigured:                 baseURLConfigured,
+		CredentialState:                   credentialState,
 		Timeouts: map[string]string{
 			"read_header": cfg.ReadHeaderTimeout.String(),
 			"write":       cfg.WriteTimeout.String(),

@@ -12,7 +12,8 @@
 
 - Platform Go domain service 已实现，文件为 `services/platform/internal/httpapi/workflow_saved_draft.go`。
 - 已覆盖 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft`、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
-- 当前没有 HTTP route、web consumer、durable persistence、repository adapter、schema migration、store selector、Radish OIDC 或 production API。
+- 当前已新增 dev-only HTTP route 和 web consumer 状态区分：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate` 默认关闭，只在显式 dev 配置下工作。
+- 当前仍没有 durable persistence、repository adapter、schema migration、store selector、Radish OIDC 或 production API。
 - 当前任务卡为 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md)，状态是 `saved_workflow_draft_domain_service_implemented`。
 
 ## 目标用户
@@ -82,7 +83,7 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 
 ## 下一批开发
 
-下一批应推进 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md)：把 domain service 接到 dev-only HTTP route 和 web consumer，或者先补 web 本地提交 / saved record 区分。进入实现前必须明确 dev auth、write enablement、scope check、version conflict、sample / saved record 区分、no sample fallback 和 public production API 停止线。
+dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地。后续可选择补更细的 conflict UI、consumer smoke 或 route contract 固化；任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
 
 ## 验收方式
 

@@ -21,6 +21,15 @@ import {
   readControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
+import {
+  initialWorkflowSavedDraftConsumerState,
+  nextWorkflowSavedDraftExpectedVersion,
+  readWorkflowDraftDevRecord,
+  readWorkflowSavedDraftConsumerConfig,
+  saveWorkflowDraftDevRecord,
+  validateWorkflowDraftDevRecord,
+  type WorkflowSavedDraftConsumerState,
+} from "../features/control-plane-read/savedWorkflowDraftConsumer";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
@@ -164,6 +173,7 @@ import type {
 
 const shell = buildControlPlaneReadShellViewModel();
 const devLiveConfig = readControlPlaneReadDevLiveConfig();
+const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
 
 type ControlPlaneReadCollectionsByRoute = Partial<
   Record<ControlPlaneReadRouteId, ControlPlaneReadCollectionViewModel>
@@ -178,6 +188,9 @@ export function App() {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
   const [selectedWorkflowScenarioId, setSelectedWorkflowScenarioId] = useState<string | null>(null);
+  const [savedDraftConsumerState, setSavedDraftConsumerState] = useState<WorkflowSavedDraftConsumerState>(() =>
+    initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig),
+  );
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -359,6 +372,11 @@ export function App() {
     workflowUserWorkspaceHome,
     workflowReviewHandoff,
   } = workflowWorkspaceContext;
+
+  useEffect(() => {
+    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
+  }, [selectedWorkflowDraft.draftId]);
+
   const applyWorkflowSelectionPatch = ({
     applicationRef,
     workflowDefinitionId,
@@ -400,6 +418,73 @@ export function App() {
   };
   const handleSelectWorkflowDraft = (draftId: string) => {
     applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
+  };
+  const handleValidateWorkflowDraft = () => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "validating",
+      summary: "Validating local draft through the dev-only saved draft route.",
+      failureCode: null,
+    }));
+    validateWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig)
+      .then(setSavedDraftConsumerState)
+      .catch((error: unknown) => {
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "validation_failed",
+          sourceLabel: "validation_failed",
+          summary: error instanceof Error ? error.message : "Saved draft validation failed.",
+          failureCode: "dev_saved_draft_consumer_failed",
+        }));
+      });
+  };
+  const handleSaveWorkflowDraft = () => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    const expectedDraftVersion = nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState);
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "saving",
+      summary: "Saving local draft through the dev-only saved draft route.",
+      failureCode: null,
+    }));
+    saveWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
+      .then(setSavedDraftConsumerState)
+      .catch((error: unknown) => {
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "save_failed",
+          sourceLabel: "save_failed",
+          summary: error instanceof Error ? error.message : "Saved draft save failed.",
+          failureCode: "dev_saved_draft_consumer_failed",
+        }));
+      });
+  };
+  const handleReadWorkflowDraft = () => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "reading",
+      summary: "Reading local draft through the dev-only saved draft route.",
+      failureCode: null,
+    }));
+    readWorkflowDraftDevRecord(selectedWorkflowDraft, savedDraftConsumerConfig)
+      .then(setSavedDraftConsumerState)
+      .catch((error: unknown) => {
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "read_failed",
+          sourceLabel: "read_failed",
+          summary: error instanceof Error ? error.message : "Saved draft read failed.",
+          failureCode: "dev_saved_draft_consumer_failed",
+        }));
+      });
   };
 
   return (
@@ -967,7 +1052,11 @@ export function App() {
             designer={workflowDraftDesigner}
             selectedDraft={selectedWorkflowDraft}
             selectedDraftId={selectedWorkflowDraft.draftId}
+            savedDraftConsumerState={savedDraftConsumerState}
             onSelectDraft={handleSelectWorkflowDraft}
+            onValidateDraft={handleValidateWorkflowDraft}
+            onSaveDraft={handleSaveWorkflowDraft}
+            onReadDraft={handleReadWorkflowDraft}
           />
           <WorkflowDraftValidationInspectorPanel inspector={workflowDraftValidationInspector} />
           <WorkflowExecutionPlanPreviewPanel preview={workflowExecutionPlanPreview} />
@@ -2357,13 +2446,23 @@ function WorkflowDraftDesignerPanel({
   designer,
   selectedDraft,
   selectedDraftId,
+  savedDraftConsumerState,
   onSelectDraft,
+  onValidateDraft,
+  onSaveDraft,
+  onReadDraft,
 }: {
   designer: WorkflowDraftDesignerViewModel;
   selectedDraft: WorkflowDraftDesignerDraft;
   selectedDraftId: string;
+  savedDraftConsumerState: WorkflowSavedDraftConsumerState;
   onSelectDraft: (draftId: string) => void;
+  onValidateDraft: () => void;
+  onSaveDraft: () => void;
+  onReadDraft: () => void;
 }) {
+  const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
+  const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
   return (
     <div
       className="workflow-draft-designer"
@@ -2414,6 +2513,41 @@ function WorkflowDraftDesignerPanel({
         </article>
       </div>
 
+      <div className="workflow-draft-consumer-grid" aria-label="Saved workflow draft dev consumer">
+        <article className="workflow-draft-card">
+          <span>Saved state</span>
+          <strong>{savedDraftConsumerState.sourceLabel}</strong>
+          <p>{savedDraftConsumerState.summary}</p>
+        </article>
+        <article className="workflow-draft-card">
+          <span>Version</span>
+          <strong>{String(savedDraftConsumerState.currentDraftVersion)}</strong>
+          <p>{savedDraftConsumerState.auditRef}</p>
+        </article>
+        <article className="workflow-draft-card">
+          <span>Failure</span>
+          <strong>{savedDraftConsumerState.failureCode ?? "none"}</strong>
+          <p>{savedDraftConsumerState.requestId}</p>
+        </article>
+        <article className="workflow-draft-card workflow-draft-consumer-actions">
+          <span>Dev consumer</span>
+          <StatusBadge tone={workflowSavedDraftConsumerTone(savedDraftConsumerState.status)}>
+            {savedDraftConsumerState.status}
+          </StatusBadge>
+          <div className="workflow-draft-action-row" aria-label="Saved draft dev consumer actions">
+            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onValidateDraft}>
+              Validate
+            </button>
+            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onSaveDraft}>
+              Save
+            </button>
+            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onReadDraft}>
+              Read
+            </button>
+          </div>
+        </article>
+      </div>
+
       <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
         {selectedDraft.nodes.map((node) => (
           <WorkflowDraftNodeCard key={node.nodeId} node={node} />
@@ -2445,6 +2579,16 @@ function WorkflowDraftDesignerPanel({
       </div>
     </div>
   );
+}
+
+function workflowSavedDraftConsumerTone(status: WorkflowSavedDraftConsumerState["status"]): "good" | "bad" | "neutral" {
+  if (status === "saved_dev_record" || status === "validation_ready") {
+    return "good";
+  }
+  if (status === "save_failed" || status === "read_failed" || status === "validation_failed") {
+    return "bad";
+  }
+  return "neutral";
 }
 
 function WorkflowDraftTemplateButton({
