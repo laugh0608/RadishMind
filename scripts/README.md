@@ -142,6 +142,8 @@
 
 当前 Saved Workflow Draft repository contract 前置设计还提供 `check-workflow-saved-draft-repository-contract-preconditions-v1.py`，用于校验 future repository actor context、save / read / list operation matrix、request / result、failure policy、sanitized projection 和禁止提前出现的 repository interface / adapter / selector / SQL / OIDC artifact；该检查不启动服务、不连接数据库、不创建 repository interface、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft schema / migration 前置设计还提供 `check-workflow-saved-draft-schema-migration-preconditions-v1.py`，用于校验 future durable store logical schema、index strategy、migration gate、failure mapping、no sample fallback 和禁止提前出现的 schema / migration / repository / selector / OIDC artifact；该检查不启动服务、不连接数据库、不创建 SQL migration、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
+
 尾部五个 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。

@@ -12,6 +12,7 @@
 - Workspace Home 和 workflow definitions 已支持创建本地 workflow 草案并进入 Draft Designer；草案保存仍复用 dev-only saved draft consumer，不代表 production persistence。
 - `Saved Workflow Draft Durable Store Preconditions v1` 已固定 durable store 迁移前置设计，明确 draft scope、owner / workspace 归属、version conflict、no sample fallback，以及 dev store 到未来 repository adapter 的切换停止线。
 - `Saved Workflow Draft Repository Contract Preconditions v1` 已固定 repository contract preconditions，明确 future saved draft list 需要的 list operation 只能返回 sanitized summary / metadata，仍不代表 durable persistence 或 production API ready。
+- `Saved Workflow Draft Schema / Migration Preconditions v1` 已固定 `draft_schema_migration_preconditions_defined`，明确 future saved draft durable store 的 logical schema、index strategy、migration gate 和 failure mapping，仍不代表 database ready 或 migration ready。
 - dev-only live read consumer 只能在显式 opt-in 下读取 fake-store-backed Go handlers。
 - `ControlPlaneReadRepository` interface 已落地，七条 read handlers 已通过 fake-store repository bridge 消费数据。
 - 当前仍不具备 production API consumer、真实数据库、Radish OIDC、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
@@ -25,7 +26,7 @@
 
 ## 下一批开发方向
 
-1. 继续整理真实用户工作流：本地草案创建、durable store 迁移前置设计和 repository contract preconditions 已落地，下一步应选择 saved draft list、schema / auth / store selector 准入，或更完整的 Draft Designer 编辑模型。
+1. 继续整理真实用户工作流：本地草案创建、durable store 迁移前置设计、repository contract preconditions 和 schema / migration preconditions 已落地，下一步应选择 saved draft list、auth context / store selector 准入、schema artifact manifest / DDL review evidence，或更完整的 Draft Designer 编辑模型。
 2. 在进入任何生产写入前，先补用户工作区功能设计更新，明确创建、保存、发布、执行、确认和回滚边界。
 3. 若下一步只改展示、分组、文案或使用性，不新增专项 gate，复用 web build、consumer smoke 和仓库基线。
 4. 若新增 API、写入、真实 auth、真实数据源或执行能力，必须新增 task card，并按风险补 fixture / checker。

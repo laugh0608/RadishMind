@@ -16,6 +16,7 @@
 - `Dev-only Saved Draft Consumer` 已有默认关闭的 dev-only HTTP route 与 web consumer；保存仍要求 dev auth、workspace / application header 和 write enablement。
 - `Workflow Draft Editing Entry v1` 与 `User Workspace Draft Creation v1` 已让用户从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer。
 - [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md) 已固定 `draft_repository_contract_preconditions_defined`，覆盖 future `SavedWorkflowDraftRepository` actor context、operation matrix、request / result contract、failure policy 和 sanitized projection policy。
+- [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md) 已固定 `draft_schema_migration_preconditions_defined`，覆盖 future durable store logical schema、index strategy、migration gate、failure mapping 和 artifact guard。
 - 当前没有 durable repository、数据库、schema migration、store selector、Radish OIDC、production API consumer 或执行链路。
 
 ## Draft Scope
@@ -73,7 +74,7 @@ UI 可以继续展示 sample / unsaved local draft，但必须标记为 sample /
 当前唯一可用 store 是 memory dev store。未来 repository adapter 只能在下列条件全部满足后进入实现任务：
 
 1. [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md) 明确 `SavedWorkflowDraftRepository` contract 输入、输出、scope predicate、owner 字段、version conflict、failure code 和 sanitized projection。
-2. committed schema / migration 设计已固定，并覆盖 tenant / workspace / application / draft / owner / version 索引。
+2. committed schema / migration preconditions 已固定，并覆盖 tenant / workspace / application / draft / owner / version 索引；真实 schema artifact、DDL review evidence 和 SQL migration 仍需后续独立批次。
 3. store selector 设计已固定，默认仍为 dev store；repository / database mode 不允许隐式 fallback 到 dev store。
 4. Radish OIDC / auth context contract 已固定；没有 token validation 前不得声明 production auth ready。
 5. repository contract smoke、adapter smoke、no sample fallback、scope denied、version conflict、store unavailable 和 no side effects 测试已进入 fast 或专项验证链路。
