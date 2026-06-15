@@ -1,12 +1,12 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-06-14
+更新时间：2026-06-15
 
 ## 文档目的
 
 本文档用于回答“根据项目规划和开发进度，今天要做什么以推进开发”。它是新会话短入口，只保留当前阶段、最近结论、下一顺位和停止线。
 
-功能细节默认进入 [功能设计文档](features/README.md)，实现批次进入 `docs/task-cards/`，长验证记录进入周志、manifest、summary 或 run record。
+功能细节默认先进入 [功能设计文档入口](features/README.md) 所定义的专题层级：产品面大方向进入 `docs/features/*.md`，具体功能和复杂页面进入对应子目录，平台横切能力进入 `docs/platform/`，外部接入进入 `docs/integrations/`。实现批次进入 `docs/task-cards/`，长验证记录进入周志、manifest、summary 或 run record。
 
 ## 当前阶段
 
@@ -24,15 +24,18 @@
 
 ## 节奏调整
 
-2026-06-14 起，开发节奏从“按小 task card / fixture / checker 连续推进”调整为“按功能设计文档推进”：
+2026-06-14 起，开发节奏从“按小 task card / fixture / checker 连续推进”调整为“按专题文档推进”；2026-06-15 起，专题粒度进一步拆成产品面大方向、具体功能、页面 / surface、平台能力和外部集成：
 
-- 大功能或长期开发目标先写入 `docs/features/`。
+- 产品面大方向写入 `docs/features/*.md`。
+- 具体功能和复杂页面 / surface 写入对应子目录，例如 `docs/features/workflow/`。
+- 平台横切能力写入 `docs/platform/`。
+- 外部项目、外部 backend 或真实 provider 接入写入 `docs/integrations/`。
 - `docs/task-cards/` 只服务具体实现批次、前置条件或高风险边界。
 - 普通 UI、文案、布局、只读 evidence 组织和使用性整理，不再默认逐项新增 task card / fixture / checker。
 - 只有新增 API、执行边界、生产声明、数据格式、外部 provider 风险、schema 变化或高风险能力时，才新增专项 gate。
-- 实现完成后回写功能设计文档、当前焦点和必要周志；不再把入口文档写成长流水。
+- 实现完成后回写对应专题文档、当前焦点和必要周志；不再把入口文档写成长流水。
 
-这个调整的目标是让后续工作围绕“一个功能如何设计、如何交付、如何验收”推进，而不是在同一层停止线和 readiness gate 中反复打转。
+这个调整的目标是让后续工作围绕“一个专题如何设计、如何交付、如何验收”推进，而不是在同一层停止线和 readiness gate 中反复打转。
 
 ## 当前已完成的关键事实
 
@@ -62,7 +65,7 @@
 
 ## 当前优先做什么
 
-第一顺位不是继续扩同层 gate，而是把已经完成的产品面证据收束到功能设计文档，并按功能选择下一批真实开发目标。
+第一顺位不是继续扩同层 gate，而是把已经完成的产品面证据收束到合适粒度的专题文档，并按专题选择下一批真实开发目标。
 
 当前功能入口：
 
@@ -71,6 +74,15 @@
 3. [Model Gateway / API Distribution](features/model-gateway-api-distribution.md)
 4. [Workflow / Agent Runtime](features/workflow-agent-runtime.md)
 5. [Image Generation / Artifact Return](features/image-generation-artifact-return.md)
+
+当前细专题入口：
+
+1. [Workflow 细专题入口](features/workflow/README.md)
+2. [Saved Workflow Draft v1](features/workflow/saved-workflow-draft-v1.md)
+3. [Workflow Draft Designer Surface](features/workflow/draft-designer-surface.md)
+4. [Dev-only Saved Draft Consumer](features/workflow/dev-only-saved-draft-consumer.md)
+5. [平台专题入口](platform/README.md)
+6. [扩展 / 集成专题入口](integrations/README.md)
 
 推荐下一批开发目标从以下方向选择一个：
 
@@ -84,7 +96,7 @@
 
 - 不继续为普通只读展示页、evidence review、文案和布局逐项新增 task card / fixture / checker。
 - 不把 task card 当成功能长期设计文档。
-- 不在没有功能设计文档更新的情况下启动新的大功能实现。
+- 不在没有对应专题文档更新的情况下启动新的大功能或高风险实现。
 - 不把 Image Path metadata-only 接线解释为 artifact store、public delivery 或真实 backend ready。
 - 不把 durable read foundation 解释为 repository adapter、真实数据库、OIDC、production API consumer 或完整 read-side API ready。
 - 不把 Workflow / Gateway / Admin 的普通离线 evidence surface 写成生产能力 ready。
@@ -99,9 +111,10 @@
 2. [文档入口](README.md)
 3. 本文件
 4. [功能设计文档入口](features/README.md)
-5. 必要时读取 [产品范围](radishmind-product-scope.md)、[路线图](radishmind-roadmap.md)、[能力矩阵](radishmind-capability-matrix.md)
+5. 与当次专题直接相关的细专题，例如 [Workflow 细专题入口](features/workflow/README.md)
+6. 必要时读取 [产品范围](radishmind-product-scope.md)、[路线图](radishmind-roadmap.md)、[能力矩阵](radishmind-capability-matrix.md)
 
-实施具体功能时，先读对应 `docs/features/*.md`，再读相关 contract、task card、checker 或周志。
+实施具体功能时，先读产品面大方向和对应细专题，再读相关 contract、task card、checker 或周志。
 
 ## 验证基线
 

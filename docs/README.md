@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-06-14
+更新时间：2026-06-15
 
 ## 阅读原则
 
@@ -18,12 +18,12 @@
 6. [能力矩阵](radishmind-capability-matrix.md)
 7. [阶段路线图](radishmind-roadmap.md)
 8. [功能设计文档入口](features/README.md)
-9. 与当次任务直接相关的架构、契约、任务卡、评测或周志
+9. 与当次任务直接相关的细专题、平台专题、集成专题、架构、契约、任务卡、评测或周志
 
 ## 当前状态
 
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
-- 当前仓库主线不再只是等待其他项目真实接入；接下来按四个产品面和五条工程主线推进。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
+- 当前仓库主线不再只是等待其他项目真实接入；接下来按五个产品面和五条工程主线推进。五个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`、`Image Generation / Artifact Return`；五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。
 - 部署方式、数据库和登录 / 授权默认参考 `Radish`（https://github.com/laugh0608/Radish）；未来 RadishMind 应作为 OIDC client 接入 `Radish`，不自建第二套身份与权限真相源，也不因参考 Radish 默认引入 `.NET` / ASP.NET Core。
 - 平台后续必须同时具备两类兼容能力：南向接入自研模型与外部模型，北向对外提供常见 AI 协议接口；当前仓库已落地最小 `provider registry` 骨架，并由同一 southbound 入口收口 `openai-compatible / HuggingFace / Ollama / gemini-native / anthropic-messages` 调用基础，同时已落地 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的第一版 bridge-backed 兼容面，其中 `/v1/models` 已暴露 provider-qualified profile inventory 和 `/v1/models/{id}` lookup，并与请求选择、diagnostics 共享 selectable profile metadata。
@@ -36,7 +36,7 @@
 - `Production Ops Hardening v1` 的静态边界已收口：production config / secret boundary、process supervisor / startup、deployment environment isolation、console production packaging、Docker local/test/prod compose、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook 和 record template 都已可检查。2026-05-26 已完成一次本地 `docker_local` container smoke 运行记录；后续只有在明确测试或生产前复核窗口时才补测试环境 smoke 或 production preflight 证据。
 - `Provider Runtime & Health v1` 已完成 `provider-capability-matrix-v1`、`provider-health-smoke-v1`、`provider-selection-policy-v1`、`provider-retry-fallback-policy-v1` 和 `provider-runtime-docs-refresh` 五个可检查切片，均已进入 fast baseline。当前结论是 provider capability、离线 health smoke、request-side selection、retry/fallback 审计策略和文档收口已可复验；不把 provider health 写成 production readiness，也不把 optional live health、retry/fallback execution 或 production secret backend 写成已完成。`UI Design Topic / React 第二批` 已进入 close candidate，P4 真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题。
 - `Control Plane / User Workspace / Workflow v1` 已用 `product-surface-v1-boundary`、`control-plane-data-boundary`、`radish-oidc-client-preconditions`、`gateway-api-key-quota-readiness`、`workflow-definition-run-record-boundary`、`control-plane-read-model-v1`、`control-plane-read-route-contract-v1`、`control-plane-read-response-fixtures-v1`、`control-plane-read-negative-contract-v1`、任务卡、fixture 和 checker 固定四个产品面的服务边界、数据边界、read model、read-only route、response fixture、negative contract、fake-store-backed handler、正式 UI 边界、七个只读页面、dev-only live consumer、auth/store transition、repository/read store readiness、workflow definition / run record、Workflow review surface、`workflow-function-surface-readiness-close-v1` / `workflow_function_surface_readiness_closed`、Model Gateway evidence 和 Admin readiness。`Control Plane Durable Read Foundation v1` 已把七条 read handler 收束到 `ControlPlaneReadRepository` interface + fake-store bridge；`Saved Workflow Draft v1` 已落地 platform Go domain service，但尚未注册 HTTP route 或 web consumer。当前仍没有真实数据库 / OIDC / adapter implementation trigger satisfied，不实现完整 read-side API，不接真实 OIDC、不发放真实 API key、不创建数据库 schema 或 migration，不创建 manifest，不实现 repository adapter、store selector、API key lifecycle、quota enforcement、billing、production gateway、secret resolver、deployment preflight、workflow executor、confirmation、writeback 或 replay。
-- 2026-06-14 起，开发节奏改为功能设计文档先行：长期产品能力写入 `docs/features/`，task card 只服务具体实现批次、前置条件或高风险边界，专项 checker 只在协议、schema、执行边界、生产声明、外部 provider 风险或高风险能力变化时新增。普通只读 UI、文案、布局和 evidence 组织默认复用聚合门禁、web build、consumer smoke 和仓库基线。
+- 2026-06-14 起，开发节奏改为功能设计文档先行；2026-06-15 起，专题进一步分层：产品面大方向写入 `docs/features/*.md`，具体功能和复杂页面写入对应子目录，平台横切能力写入 `docs/platform/`，外部接入写入 `docs/integrations/`。task card 只服务具体实现批次、前置条件或高风险边界，专项 checker 只在协议、schema、执行边界、生产声明、外部 provider 风险或高风险能力变化时新增。
 - read-side 证据锚点继续保留为：read model、read-only route、response fixture、negative contract、fake store、`control-plane-read-implementation-preconditions-v1`、`control-plane-read-fake-store-handler-plan-v1` / fake-store-backed read handler plan、`control-plane-read-fake-store-handler-implementation-v1` / fake-store-backed read handler implementation、`control-plane-durable-read-foundation-v1` / repository interface + fake-store bridge、`control-plane-read-auth-db-preconditions-v1` / 真实 auth/db 前置条件、`control-plane-read-consumer-contract-v1` / TypeScript consumer contract、`control-plane-read-formal-ui-boundary-v1` / 正式 UI 边界、`control-plane-read-formal-ui-implementation-readiness-v1` / 正式 UI 实现 readiness。
 - `control-plane-read-auth-db-preconditions-v1` 仍只固定真实 auth/db 前置条件，不代表真实 auth middleware、数据库 query、repository、OIDC 或 production API consumer 已实现。
 - `control-plane-read-formal-ui-boundary-v1` 只固定正式 UI 边界，`control-plane-read-formal-ui-implementation-readiness-v1` 只固定正式 UI 实现 readiness；二者不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。
@@ -78,6 +78,10 @@
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
 - [功能设计文档入口](features/README.md)
+- [Workflow 细专题入口](features/workflow/README.md)
+- [Saved Workflow Draft v1 功能专题](features/workflow/saved-workflow-draft-v1.md)
+- [平台专题入口](platform/README.md)
+- [扩展与集成专题入口](integrations/README.md)
 - [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)
 - [UI 设计规范](radishmind-ui-design-spec.md)
 - [UI 设计参考](radishmind-ui-design-reference.md)

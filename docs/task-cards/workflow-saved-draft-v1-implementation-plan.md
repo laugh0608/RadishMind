@@ -1,6 +1,6 @@
 # Workflow Saved Draft v1 Implementation 任务卡
 
-更新时间：2026-06-14
+更新时间：2026-06-15
 
 ## 任务标识
 
@@ -24,6 +24,9 @@
 ## 输入事实源
 
 - [Workflow / Agent Runtime 设计与开发文档](../features/workflow-agent-runtime.md)
+- [Saved Workflow Draft v1 功能专题](../features/workflow/saved-workflow-draft-v1.md)
+- [Dev-only Saved Draft Consumer 实现专题](../features/workflow/dev-only-saved-draft-consumer.md)
+- [Workflow Draft Designer Surface 专题](../features/workflow/draft-designer-surface.md)
 - [功能设计文档入口](../features/README.md)
 - [当前推进焦点](../radishmind-current-focus.md)
 - [`Workflow Draft Designer Offline` v1 计划](workflow-draft-designer-offline-v1-plan.md)
