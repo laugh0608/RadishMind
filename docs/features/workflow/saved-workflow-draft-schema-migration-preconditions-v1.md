@@ -17,7 +17,8 @@
 - `Saved Workflow Draft Repository Contract Preconditions v1` 已固定 future repository actor context、`SaveWorkflowDraftRecord` / `ReadWorkflowDraftRecord` / `ListWorkflowDraftRecords` operation matrix、request / result、failure 和 projection 边界。
 - [Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) 已固定 `draft_auth_context_preconditions_defined`，覆盖 future repository actor context 的身份来源、workspace membership、owner policy、scope grants、failure policy 和 audit / sanitization policy。
 - [Saved Workflow Draft Store Selector Enablement Preconditions v1](saved-workflow-draft-store-selector-enablement-preconditions-v1.md) 已固定 `draft_store_selector_enablement_preconditions_defined`，覆盖 future store mode、selector gate、failure mapping、no fallback、no side effects 和 artifact guard。
-- 当前仍没有 durable repository、database schema、SQL migration、migration runner、store selector、Radish OIDC 或 production API consumer。
+- [Saved Workflow Draft Schema Artifact Evidence v1](saved-workflow-draft-schema-artifact-evidence-v1.md) 已固定 `draft_schema_artifact_evidence_defined`，覆盖 future schema artifact manifest、DDL review、rollback evidence、migration smoke、failure mapping 和 artifact guard。
+- 当前仍没有 durable repository、schema artifact manifest、DDL review artifact、database schema、SQL migration、migration runner、store selector、Radish OIDC 或 production API consumer。
 
 ## Logical Schema Scope
 
@@ -75,11 +76,11 @@ schema / migration gate 必须保持 fail closed，并新增 future store 层失
 
 ## 后续准入
 
-本专题之后仍不能直接创建 repository adapter。后续若继续 durable store 方向，应按顺序选择一个独立批次：
+本专题之后仍不能直接创建 repository adapter。`Saved Workflow Draft Schema Artifact Evidence v1` 已补足 schema artifact manifest / DDL review evidence 的前置证据链；后续若继续 durable store 方向，应按顺序选择一个独立批次：
 
-1. schema artifact manifest / DDL review evidence。
-2. schema artifact manifest / DDL review evidence，继续补足实际 schema artifact 前置证据。
-3. selector smoke readiness / repository contract smoke，覆盖 no sample fallback、scope denied、owner denied、version conflict、store unavailable、schema migration failure 和 no side effects。
+1. selector smoke readiness / repository contract smoke，覆盖 no sample fallback、scope denied、owner denied、version conflict、store unavailable、schema migration failure 和 no side effects。
+2. repository adapter implementation plan，必须消费 schema preconditions、auth context、store selector gate 和 schema artifact evidence。
+3. schema artifact materialization review，另行决定是否创建 manifest / DDL review / migration smoke artifact；进入该批前仍不得连接真实数据库。
 
 ## 验收方式
 

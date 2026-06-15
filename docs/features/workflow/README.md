@@ -21,6 +21,7 @@
 | [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md) | 前置设计专题 | `draft_schema_migration_preconditions_defined` | 固定 future durable store 的 logical schema、index strategy、migration gate、failure 和 artifact guard |
 | [Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) | 前置设计专题 | `draft_auth_context_preconditions_defined` | 固定 future repository actor context 的身份来源、workspace membership、owner policy、scope grants 和 audit 边界 |
 | [Saved Workflow Draft Store Selector Enablement Preconditions v1](saved-workflow-draft-store-selector-enablement-preconditions-v1.md) | 前置设计专题 | `draft_store_selector_enablement_preconditions_defined` | 固定 future store mode、selector gate、failure、no fallback 和 artifact guard |
+| [Saved Workflow Draft Schema Artifact Evidence v1](saved-workflow-draft-schema-artifact-evidence-v1.md) | 前置证据专题 | `draft_schema_artifact_evidence_defined` | 固定 future schema artifact manifest、DDL review、rollback、migration smoke 和 artifact guard |
 | [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) | 实现专题 | `implemented` | 固定 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 
 ## 选题规则
@@ -32,7 +33,7 @@
 
 ## 当前下一步
 
-`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现，并已补 route contract、consumer smoke 和 `version_conflict` 状态；`Workflow Draft Editing Entry v1` 已补受控本地编辑入口，并让 validate / save / read 使用当前本地草案；`User Workspace Draft Creation v1` 已补 Workspace Home / workflow definitions 创建本地草案入口；`Saved Workflow Draft Durable Store Preconditions v1`、`Saved Workflow Draft Repository Contract Preconditions v1`、`Saved Workflow Draft Schema / Migration Preconditions v1`、`Saved Workflow Draft Auth Context Preconditions v1` 和 `Saved Workflow Draft Store Selector Enablement Preconditions v1` 已固定 durable store 迁移前置设计、future repository contract preconditions、future schema / migration preconditions、auth context preconditions 和 store selector enablement preconditions。下一步不直接进入 executor / confirmation / writeback / replay；若继续推进 durable store，只能先补 schema artifact manifest / DDL review evidence、selector smoke readiness 或 repository adapter implementation plan 等独立准入，不得绕过 dev store 与未来 repository adapter 的切换停止线。
+`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现，并已补 route contract、consumer smoke 和 `version_conflict` 状态；`Workflow Draft Editing Entry v1` 已补受控本地编辑入口，并让 validate / save / read 使用当前本地草案；`User Workspace Draft Creation v1` 已补 Workspace Home / workflow definitions 创建本地草案入口；`Saved Workflow Draft Durable Store Preconditions v1`、`Saved Workflow Draft Repository Contract Preconditions v1`、`Saved Workflow Draft Schema / Migration Preconditions v1`、`Saved Workflow Draft Auth Context Preconditions v1`、`Saved Workflow Draft Store Selector Enablement Preconditions v1` 和 `Saved Workflow Draft Schema Artifact Evidence v1` 已固定 durable store 迁移前置设计、future repository contract preconditions、future schema / migration preconditions、auth context preconditions、store selector enablement preconditions 和 schema artifact evidence。下一步不直接进入 executor / confirmation / writeback / replay；若继续推进 durable store，只能先补 selector smoke readiness、repository contract smoke 或 repository adapter implementation plan 等独立准入，不得绕过 dev store 与未来 repository adapter 的切换停止线。
 
 ## 停止线
 

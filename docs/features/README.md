@@ -54,6 +54,7 @@
 | [Saved Workflow Draft Schema / Migration Preconditions v1](workflow/saved-workflow-draft-schema-migration-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft durable store 的 logical schema、index strategy、migration gate 和 artifact guard |
 | [Saved Workflow Draft Auth Context Preconditions v1](workflow/saved-workflow-draft-auth-context-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft repository actor context 的身份来源、membership、owner、scope 和 audit 边界 |
 | [Saved Workflow Draft Store Selector Enablement Preconditions v1](workflow/saved-workflow-draft-store-selector-enablement-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft store mode、selector gate、failure、no fallback 和 artifact guard |
+| [Saved Workflow Draft Schema Artifact Evidence v1](workflow/saved-workflow-draft-schema-artifact-evidence-v1.md) | 前置证据专题 | 固定 future saved draft schema artifact manifest、DDL review、rollback、migration smoke 和 artifact guard |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 
