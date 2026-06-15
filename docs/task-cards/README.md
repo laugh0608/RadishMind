@@ -113,6 +113,7 @@
 62. [`Workflow Saved Draft Consumer Integration` v1 任务卡](workflow-saved-draft-consumer-integration-v1-plan.md)（`workflow-saved-draft-consumer-integration-v1`）
 63. [`Workflow Draft Editing Entry` v1 任务卡](workflow-draft-editing-entry-v1-plan.md)（`workflow-draft-editing-entry-v1`）
 64. [`User Workspace Draft Creation` v1 任务卡](user-workspace-draft-creation-v1-plan.md)（`user-workspace-draft-creation-v1`）
+65. [`Workflow Saved Draft Durable Store Preconditions` v1 任务卡](workflow-saved-draft-durable-store-preconditions-v1-plan.md)（`workflow-saved-draft-durable-store-preconditions-v1`）
 
 ## UI 设计专题
 

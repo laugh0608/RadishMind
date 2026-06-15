@@ -16,6 +16,7 @@
 | [Workflow Draft Designer Surface](draft-designer-surface.md) | 页面 / Surface 专题 | `local_editing_entry_implemented` | 固定 draft designer 的页面状态、数据来源和后续 saved draft 接线边界 |
 | [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) | 功能 / 页面专题 | `implemented` | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | `implemented` | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
+| [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) | 前置设计专题 | `draft_durable_store_preconditions_defined` | 固定 durable store 迁移前的 draft scope、owner / workspace、版本冲突、no sample fallback 和 store 切换停止线 |
 | [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) | 实现专题 | `implemented` | 固定 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 
 ## 选题规则
@@ -27,7 +28,7 @@
 
 ## 当前下一步
 
-`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现，并已补 route contract、consumer smoke 和 `version_conflict` 状态；`Workflow Draft Editing Entry v1` 已补受控本地编辑入口，并让 validate / save / read 使用当前本地草案；`User Workspace Draft Creation v1` 已补 Workspace Home / workflow definitions 创建本地草案入口。下一步不直接进入 executor / confirmation / writeback / replay，而是在 dev store 到未来 durable store 的迁移前置设计、Draft Designer 更完整编辑模型，或 User Workspace saved draft list 中选择一个方向；若新增 API、schema、持久化或生产声明，应先更新对应功能专题和 task card。
+`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现，并已补 route contract、consumer smoke 和 `version_conflict` 状态；`Workflow Draft Editing Entry v1` 已补受控本地编辑入口，并让 validate / save / read 使用当前本地草案；`User Workspace Draft Creation v1` 已补 Workspace Home / workflow definitions 创建本地草案入口；`Saved Workflow Draft Durable Store Preconditions v1` 已固定 durable store 迁移前置设计和 checker。下一步不直接进入 executor / confirmation / writeback / replay；若继续推进 durable store，只能先补 repository contract / schema migration / auth contract 等独立准入，不得绕过 dev store 与未来 repository adapter 的切换停止线。
 
 ## 停止线
 

@@ -47,7 +47,7 @@
 
 完成本专题后，Workflow 方向下一批应在以下方向择一推进：
 
-- dev store 到未来 durable store 的迁移前置设计：定义 store selector、repository adapter、schema migration 和 auth 准入条件。
+- durable store 迁移后续准入：在 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) 已固定的停止线之后，选择 repository contract、schema migration 或 auth contract 中一个方向独立推进。
 - Draft Designer 更完整编辑模型：节点新增 / 删除 / 重排需要独立专题、任务卡和更强验证。
 - User Workspace saved draft list：读取已保存 dev draft 的列表视图，但必须先明确 no sample fallback、scope 和未来 durable store 边界。
 

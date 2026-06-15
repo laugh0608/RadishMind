@@ -138,6 +138,8 @@
 
 当前用户工作区草案创建入口还提供 `check-user-workspace-draft-creation-v1.py`，用于校验 Workspace Home / workflow definitions 的本地草案创建入口、workflow context local draft source、Draft Designer local draft merge、样式和文档停止线；该检查不启动浏览器、不新增 API、不实现 durable store、public production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft durable store 迁移前置设计还提供 `check-workflow-saved-draft-durable-store-preconditions-v1.py`，用于校验 draft scope、owner / workspace 归属、version conflict、no sample fallback、dev store 与未来 repository adapter 的切换停止线和禁止提前出现的实现 artifact；该检查不启动服务、不连接数据库、不新增 store selector、不实现 Radish OIDC、production API、executor、confirmation、writeback 或 replay。
+
 尾部五个 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
