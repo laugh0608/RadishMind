@@ -164,6 +164,8 @@
 
 当前 Saved Workflow Draft repository contract smoke 前置证据还提供 `check-workflow-saved-draft-repository-contract-smoke-v1.py`，用于校验 future repository contract smoke boundary、`SavedWorkflowDraftRepositoryContractSmoke` I/O、save / read / list operation matrix、failure mapping、no fallback、no side effects 和禁止提前出现的 smoke runner / repository interface / adapter / selector / SQL / OIDC artifact；该检查不启动服务、不创建 smoke runner、不创建 repository interface、不连接数据库、不创建 repository adapter、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft repository contract smoke runner readiness 前置证据还提供 `check-workflow-saved-draft-repository-contract-smoke-runner-readiness-v1.py`，用于校验 future `SavedWorkflowDraftRepositoryContractSmokeRunner` 的 runner boundary、I/O、save / read / list operation runner matrix、failure mapping、no fallback、no side effects 和禁止提前出现的 runner / repository interface / adapter / selector / SQL / OIDC artifact；该检查不启动服务、不创建 runner Go 文件、不创建 repository interface、不连接数据库、不创建 repository adapter、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
+
 尾部五个 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
@@ -173,6 +175,7 @@
 - `check-workflow-saved-draft-schema-artifact-evidence-v1.py` 失败通常表示 saved workflow draft schema artifact evidence、logical entity / index mapping、DDL review gate、migration smoke、no fallback / no side effects 或 forbidden schema artifact 边界漂移。
 - `check-workflow-saved-draft-store-selector-smoke-readiness-v1.py` 失败通常表示 saved workflow draft selector smoke readiness、mode / operation matrix、schema artifact failure matrix、no fallback / no side effects 或 forbidden selector artifact 边界漂移。
 - `check-workflow-saved-draft-repository-contract-smoke-v1.py` 失败通常表示 saved workflow draft repository contract smoke、I/O contract、save / read / list operation matrix、failure mapping、no fallback / no side effects 或 forbidden smoke runner / repository artifact 边界漂移。
+- `check-workflow-saved-draft-repository-contract-smoke-runner-readiness-v1.py` 失败通常表示 saved workflow draft repository contract smoke runner readiness、runner I/O、operation runner matrix、failure mapping、no fallback / no side effects 或 forbidden runner / repository artifact 边界漂移。
 - `check-user-workspace-saved-draft-list-v1.py` 失败通常表示 dev-only list route、sanitized summary projection、Workspace Home saved draft list / restore、empty / failure state 或 no sample fallback 边界漂移。
 - `check-workflow-draft-designer-editing-model-v2.py` 失败通常表示 Draft Designer 本地结构编辑、边重建、active draft 下游预览或 saved restore lane mapping 边界漂移。
 - `check-workflow-draft-node-attribute-editing-model-v1.py` 失败通常表示 Draft Designer 节点属性编辑、保存 / 恢复映射、platform schema 或下游 validation / plan 消费边界漂移。

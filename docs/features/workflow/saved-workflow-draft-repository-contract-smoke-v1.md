@@ -16,6 +16,7 @@
 - `Saved Workflow Draft Auth Context Preconditions v1` 已固定 future repository actor context 的身份来源、workspace membership、owner policy、scope grants、failure policy 和 audit / sanitization 边界。
 - `Saved Workflow Draft Schema Artifact Evidence v1` 已固定 future schema artifact manifest、DDL review、rollback evidence、migration smoke、schema failure mapping 和 artifact guard。
 - `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 future selector smoke 的 `memory_dev` / `repository_disabled` / `repository` / unknown mode、operation matrix、schema artifact failure、no fallback 和 no side effects。
+- `Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 已固定 `draft_repository_contract_smoke_runner_readiness_defined`，覆盖 future `SavedWorkflowDraftRepositoryContractSmokeRunner` 的 runner I/O、operation runner matrix、failure mapping、no fallback、no side effects 和 artifact guard。
 - 当前仍没有 repository contract smoke runner、repository interface、repository adapter、store selector implementation、SQL migration、真实数据库、Radish OIDC middleware、token validation 或 production API consumer。
 
 ## Smoke Boundary
@@ -87,9 +88,9 @@ repository contract smoke 必须保留以下 failure code：
 
 ## 后续准入
 
-本专题完成后仍不能直接创建 repository adapter。后续若继续 durable store 方向，应选择一个独立批次：
+本专题完成后仍不能直接创建 repository adapter。`Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 已固定 `draft_repository_contract_smoke_runner_readiness_defined`；后续若继续 durable store 方向，应选择一个独立批次：
 
-1. repository contract smoke runner readiness / implementation，消费本专题定义的 harness、operation matrix、failure mapping 和 no side effects 约束，但仍不连接真实数据库。
+1. repository contract smoke runner implementation，消费本专题定义的 harness、operation matrix、failure mapping 和 no side effects 约束，但仍不连接真实数据库。
 2. repository adapter implementation plan，必须消费 schema artifact evidence、auth context、store selector smoke readiness 和 repository contract smoke；进入前仍需明确 adapter smoke、migration artifact、auth middleware 和 production API 的停止线。
 3. selector implementation entry review，另行决定是否创建 formal config、selector 函数、selector tests 和 selector smoke fixture；进入该批前仍不得连接真实数据库。
 

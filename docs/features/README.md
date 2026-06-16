@@ -64,6 +64,7 @@
 | [Saved Workflow Draft Schema Artifact Evidence v1](workflow/saved-workflow-draft-schema-artifact-evidence-v1.md) | 前置证据专题 | 固定 future saved draft schema artifact manifest、DDL review、rollback、migration smoke 和 artifact guard |
 | [Saved Workflow Draft Store Selector Smoke Readiness v1](workflow/saved-workflow-draft-store-selector-smoke-readiness-v1.md) | 前置证据专题 | 固定 future saved draft selector smoke 的 mode matrix、operation matrix、failure 和 artifact guard |
 | [Saved Workflow Draft Repository Contract Smoke v1](workflow/saved-workflow-draft-repository-contract-smoke-v1.md) | 前置证据专题 | 固定 future saved draft repository contract smoke 的 I/O、operation matrix、failure 和 artifact guard |
+| [Saved Workflow Draft Repository Contract Smoke Runner Readiness v1](workflow/saved-workflow-draft-repository-contract-smoke-runner-readiness-v1.md) | 前置证据专题 | 固定 future saved draft repository contract smoke runner 的 I/O、operation matrix、failure 和 artifact guard |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 
