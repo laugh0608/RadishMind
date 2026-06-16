@@ -62,9 +62,9 @@ selector smoke readiness 必须保留以下 failure code：
 
 ## 后续准入
 
-本专题之后仍不能直接创建 repository adapter。后续若继续 durable store 方向，应选择一个独立批次：
+本专题之后的 repository contract smoke 已由 [Saved Workflow Draft Repository Contract Smoke v1](saved-workflow-draft-repository-contract-smoke-v1.md) 固定为 `draft_repository_contract_smoke_defined`。后续仍不能直接创建 repository adapter；若继续 durable store 方向，应选择一个独立批次：
 
-1. repository contract smoke，消费 selector smoke readiness、schema artifact evidence、auth context 和 repository operation matrix。
+1. repository contract smoke runner readiness / implementation，消费 selector smoke readiness、schema artifact evidence、auth context、repository operation matrix 和 repository contract smoke。
 2. repository adapter implementation plan，必须消费 schema preconditions、schema artifact evidence、auth context、store selector readiness 和 repository contract smoke。
 3. selector implementation entry review，另行决定是否创建 formal config、selector 函数、selector tests 和 selector smoke fixture；进入该批前仍不得连接真实数据库。
 
