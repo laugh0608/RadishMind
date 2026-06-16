@@ -49,7 +49,7 @@
 
 - durable store 迁移后续准入：在 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) 已固定的停止线之后，选择 repository contract、schema migration 或 auth contract 中一个方向独立推进。
 - Draft Designer 更完整编辑模型：节点新增 / 删除 / 重排需要独立专题、任务卡和更强验证。
-- User Workspace saved draft list：读取已保存 dev draft 的列表视图，但必须先明确 no sample fallback、scope 和未来 durable store 边界。
+- User Workspace saved draft list 已由 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md) 落地；后续可继续评估恢复后的审查 handoff 或更完整编辑模型。
 
 ## 停止线
 

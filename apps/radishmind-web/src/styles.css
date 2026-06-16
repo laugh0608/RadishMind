@@ -1037,7 +1037,8 @@ h4 {
 .workflow-user-workspace-home-readiness-grid,
 .workflow-user-workspace-home-run-grid,
 .workflow-user-workspace-home-route-grid,
-.workflow-user-workspace-home-stopline-grid {
+.workflow-user-workspace-home-stopline-grid,
+.saved-draft-summary-grid {
   display: grid;
   gap: 10px;
 }
@@ -1062,6 +1063,30 @@ h4 {
   min-width: 0;
 }
 
+.saved-draft-list-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saved-draft-list-heading button {
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 12px;
+}
+
+.saved-draft-list-heading button:disabled {
+  color: #8793a4;
+  background: #f4f6f8;
+}
+
 .workflow-user-workspace-home-metric-grid,
 .workflow-user-workspace-home-readiness-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1072,7 +1097,8 @@ h4 {
 .workflow-user-workspace-home-stage-grid,
 .workflow-user-workspace-home-run-grid,
 .workflow-user-workspace-home-route-grid,
-.workflow-user-workspace-home-stopline-grid {
+.workflow-user-workspace-home-stopline-grid,
+.saved-draft-summary-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1088,6 +1114,12 @@ h4 {
 }
 
 .workflow-user-workspace-home-row-main h5 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.saved-draft-summary-card h5 {
   margin: 2px 0 0;
   overflow-wrap: anywhere;
   font-size: 15px;
@@ -2123,11 +2155,13 @@ dd {
   .workflow-user-workspace-home-run-grid,
   .workflow-user-workspace-home-route-grid,
   .workflow-user-workspace-home-stopline-grid,
+  .saved-draft-summary-grid,
   .workflow-user-workspace-home-meta {
     grid-template-columns: 1fr;
   }
 
-  .workflow-user-workspace-home-row-main {
+  .workflow-user-workspace-home-row-main,
+  .saved-draft-list-heading {
     flex-wrap: wrap;
   }
 

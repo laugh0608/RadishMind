@@ -15,12 +15,14 @@
 已实现 `dev-only HTTP route + web consumer`：
 
 - 后端 route：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}`、`POST /v1/user-workspace/workflow-drafts/validate`。
+- 后端 list route：`GET /v1/user-workspace/workflow-drafts` 返回当前 workspace + application scope 下的 sanitized `draft_summaries`，不返回完整草案主体。
 - 后端显式开关：`RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 才允许访问 route；`RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1` 才允许保存。
 - dev auth 继续要求 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`，并通过 `X-RadishMind-Dev-Workflow-Workspace`、`X-RadishMind-Dev-Workflow-Application`、subject、tenant 和 scope headers 固定开发态 scope。
 - 前端 consumer：`apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts`，默认 sample-only；只有 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 才调用 dev route。
 - 页面状态：`sample`、`unsaved_local`、`saving`、`validating`、`reading`、`saved_dev_record`、`validation_ready`、`version_conflict`、`save_failed`、`read_failed`、`validation_failed`。
 - 路径稳定化：已补 route contract、consumer smoke 和 `version_conflict` UI 状态；冲突时展示当前 saved draft version metadata，保留用户当前本地草案，不回退 sample。
 - Draft Designer 已补 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)，validate / save / read 使用当前本地草案，而不是只读取原始离线 sample。
+- Workspace Home 已补 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md)，可展示 saved dev draft list、empty / failure state，并通过 read route 恢复到 Draft Designer。
 
 ## 推荐实现路径
 
@@ -53,6 +55,7 @@ consumer 至少需要表达四类状态：
 | `sample` | 离线样例，只能审查，不能当作保存结果 |
 | `unsaved_local` | 用户当前本地草案，尚未写入 dev store |
 | `saved_dev_record` | 已通过 dev-only consumer 保存并可读取的草案 |
+| `ready` / `empty` | saved draft list 已加载或当前 application 没有 saved dev draft summary |
 | `version_conflict` | 保存遇到当前版本冲突，展示 current version metadata，保留本地草案 |
 | `save_failed` | 保存失败，展示 failure code 和可恢复建议 |
 

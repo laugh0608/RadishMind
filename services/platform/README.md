@@ -37,6 +37,7 @@
 - `GET /v1/user-workspace/runs`
 - `GET /v1/control-plane/audit`
 - `POST /v1/user-workspace/workflow-drafts`
+- `GET /v1/user-workspace/workflow-drafts`
 - `GET /v1/user-workspace/workflow-drafts/{draft_id}`
 - `POST /v1/user-workspace/workflow-drafts/validate`
 
@@ -102,7 +103,7 @@
 
 `control-plane-durable-read-foundation-v1` 当前固定为 `durable_read_foundation_implemented`：`ControlPlaneReadRepository` interface 边界已在 `services/platform/internal/httpapi/control_plane_read_repository.go` 落地，现有七条 fake-store-backed read handlers 已通过 repository interface 消费数据。当前 repository 只包裹 fixture-backed fake store，保持 response envelope、dev-only fake auth、product sample fixture 和 no-side-effects 行为稳定；它不实现 repository adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
-`workflow-saved-draft-v1-implementation` 当前已落地 platform 内部 domain service：`services/platform/internal/httpapi/workflow_saved_draft.go` 定义 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft`、版本冲突、失败语义、sanitized response、no sample fallback 和 no-side-effects 边界。`workflow-saved-draft-consumer-integration-v1` 进一步新增 dev-only route：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate`，由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 显式启用，并由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1` 单独允许保存。当前没有 durable persistence、没有 repository adapter、没有真实数据库 / OIDC / store selector，也不进入 publish、run、executor、confirmation decision、writeback 或 replay。
+`workflow-saved-draft-v1-implementation` 当前已落地 platform 内部 domain service：`services/platform/internal/httpapi/workflow_saved_draft.go` 定义 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft`、版本冲突、失败语义、sanitized response、no sample fallback 和 no-side-effects 边界。`workflow-saved-draft-consumer-integration-v1` 进一步新增 dev-only route：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate`，由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 显式启用，并由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1` 单独允许保存。`user-workspace-saved-draft-list-v1` 新增 `GET /v1/user-workspace/workflow-drafts`，只返回当前 workspace + application scope 下的 sanitized `draft_summaries`，用于 Workspace Home 恢复入口。当前没有 durable persistence、没有 repository adapter、没有真实数据库 / OIDC / store selector，也不进入 publish、run、executor、confirmation decision、writeback 或 replay。
 
 ## Control Plane Read-Side readiness 运行层说明
 

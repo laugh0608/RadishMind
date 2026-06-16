@@ -1228,6 +1228,10 @@ def check_fast_baseline() -> None:
         [],
     )
     run_python_script(
+        "checks/control_plane/check-user-workspace-saved-draft-list-v1.py",
+        [],
+    )
+    run_python_script(
         "checks/control_plane/check-workflow-saved-draft-durable-store-preconditions-v1.py",
         [],
     )

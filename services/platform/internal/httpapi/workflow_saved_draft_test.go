@@ -130,6 +130,50 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 			t.Fatalf("blocked draft save should not execute runtime capabilities: %#v", got)
 		}
 	})
+
+	t.Run("list returns sanitized summaries for current scope", func(t *testing.T) {
+		store := newMemorySavedWorkflowDraftStore()
+		service := newSavedWorkflowDraftService(store)
+		service.now = fixedSavedWorkflowDraftClock()
+		context := savedWorkflowDraftTestContext()
+		firstPayload := validSavedWorkflowDraftPayload()
+		secondPayload := validSavedWorkflowDraftPayload()
+		secondPayload.DraftID = "draft_radishflow_copilot_saved_v2"
+		secondPayload.Name = "RadishFlow copilot saved draft v2"
+		outOfScopeDraft := savedWorkflowDraftFromPayload(validSavedWorkflowDraftPayload())
+		outOfScopeDraft.DraftID = "draft_other_scope"
+		outOfScopeDraft.ApplicationID = "app_other"
+
+		if first := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: firstPayload}); first.FailureCode != "" {
+			t.Fatalf("first save should succeed: %#v", first)
+		}
+		if second := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: secondPayload}); second.FailureCode != "" {
+			t.Fatalf("second save should succeed: %#v", second)
+		}
+		if err := store.WriteDraft(outOfScopeDraft); err != nil {
+			t.Fatalf("failed to seed out-of-scope draft: %v", err)
+		}
+
+		result := service.ListDrafts(context, ListWorkflowDraftsRequest{})
+
+		if result.FailureCode != "" {
+			t.Fatalf("list should succeed: %#v", result)
+		}
+		if len(result.Summaries) != 2 {
+			t.Fatalf("list should return only current scope summaries: %#v", result.Summaries)
+		}
+		for _, summary := range result.Summaries {
+			if summary.ApplicationID != context.ApplicationID ||
+				summary.SampleOrUnsavedDraftStatus != "saved_draft_record" ||
+				summary.NodeCount == 0 ||
+				summary.EdgeCount == 0 {
+				t.Fatalf("list summary drifted or exposed wrong scope: %#v", summary)
+			}
+		}
+		if got := store.SideEffects(); got.DraftWriteCount != 3 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
+			t.Fatalf("list should not add side effects: %#v", got)
+		}
+	})
 }
 
 func TestSavedWorkflowDraftFailureSemantics(t *testing.T) {
@@ -318,6 +362,34 @@ func TestSavedWorkflowDraftFailureSemantics(t *testing.T) {
 		}
 		if got := store.SideEffects(); got.DraftWriteCount != 0 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
 			t.Fatalf("store unavailable should not write or execute: %#v", got)
+		}
+	})
+
+	t.Run("list fails closed without sample fallback", func(t *testing.T) {
+		store := newMemorySavedWorkflowDraftStore()
+		service := newSavedWorkflowDraftService(store)
+		context := savedWorkflowDraftTestContext()
+		empty := service.ListDrafts(context, ListWorkflowDraftsRequest{})
+		if empty.FailureCode != "" || len(empty.Summaries) != 0 {
+			t.Fatalf("empty list should return no saved summaries without fallback: %#v", empty)
+		}
+
+		scopeDeniedContext := context
+		scopeDeniedContext.ApplicationID = ""
+		scopeDenied := service.ListDrafts(scopeDeniedContext, ListWorkflowDraftsRequest{})
+		if scopeDenied.FailureCode != SavedWorkflowDraftFailureScopeDenied ||
+			len(scopeDenied.Summaries) != 0 {
+			t.Fatalf("list should fail closed on missing scope: %#v", scopeDenied)
+		}
+
+		store.unavailable = true
+		unavailable := service.ListDrafts(context, ListWorkflowDraftsRequest{})
+		if unavailable.FailureCode != SavedWorkflowDraftFailureStoreUnavailable ||
+			len(unavailable.Summaries) != 0 {
+			t.Fatalf("list should fail closed on store unavailable: %#v", unavailable)
+		}
+		if got := store.SideEffects(); got.DraftWriteCount != 0 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
+			t.Fatalf("list failure should not write or execute: %#v", got)
 		}
 	})
 }

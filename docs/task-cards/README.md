@@ -113,13 +113,14 @@
 62. [`Workflow Saved Draft Consumer Integration` v1 任务卡](workflow-saved-draft-consumer-integration-v1-plan.md)（`workflow-saved-draft-consumer-integration-v1`）
 63. [`Workflow Draft Editing Entry` v1 任务卡](workflow-draft-editing-entry-v1-plan.md)（`workflow-draft-editing-entry-v1`）
 64. [`User Workspace Draft Creation` v1 任务卡](user-workspace-draft-creation-v1-plan.md)（`user-workspace-draft-creation-v1`）
-65. [`Workflow Saved Draft Durable Store Preconditions` v1 任务卡](workflow-saved-draft-durable-store-preconditions-v1-plan.md)（`workflow-saved-draft-durable-store-preconditions-v1`）
-66. [`Workflow Saved Draft Repository Contract Preconditions` v1 任务卡](workflow-saved-draft-repository-contract-preconditions-v1-plan.md)（`workflow-saved-draft-repository-contract-preconditions-v1`）
-67. [`Workflow Saved Draft Schema / Migration Preconditions` v1 任务卡](workflow-saved-draft-schema-migration-preconditions-v1-plan.md)（`workflow-saved-draft-schema-migration-preconditions-v1`）
-68. [`Workflow Saved Draft Auth Context Preconditions` v1 任务卡](workflow-saved-draft-auth-context-preconditions-v1-plan.md)（`workflow-saved-draft-auth-context-preconditions-v1`）
-69. [`Workflow Saved Draft Store Selector Enablement Preconditions` v1 任务卡](workflow-saved-draft-store-selector-enablement-preconditions-v1-plan.md)（`workflow-saved-draft-store-selector-enablement-preconditions-v1`）
-70. [`Workflow Saved Draft Schema Artifact Evidence` v1 任务卡](workflow-saved-draft-schema-artifact-evidence-v1-plan.md)（`workflow-saved-draft-schema-artifact-evidence-v1`）
-71. [`Workflow Saved Draft Store Selector Smoke Readiness` v1 任务卡](workflow-saved-draft-store-selector-smoke-readiness-v1-plan.md)（`workflow-saved-draft-store-selector-smoke-readiness-v1`）
+65. [`User Workspace Saved Draft List` v1 任务卡](user-workspace-saved-draft-list-v1-plan.md)（`user-workspace-saved-draft-list-v1`）
+66. [`Workflow Saved Draft Durable Store Preconditions` v1 任务卡](workflow-saved-draft-durable-store-preconditions-v1-plan.md)（`workflow-saved-draft-durable-store-preconditions-v1`）
+67. [`Workflow Saved Draft Repository Contract Preconditions` v1 任务卡](workflow-saved-draft-repository-contract-preconditions-v1-plan.md)（`workflow-saved-draft-repository-contract-preconditions-v1`）
+68. [`Workflow Saved Draft Schema / Migration Preconditions` v1 任务卡](workflow-saved-draft-schema-migration-preconditions-v1-plan.md)（`workflow-saved-draft-schema-migration-preconditions-v1`）
+69. [`Workflow Saved Draft Auth Context Preconditions` v1 任务卡](workflow-saved-draft-auth-context-preconditions-v1-plan.md)（`workflow-saved-draft-auth-context-preconditions-v1`）
+70. [`Workflow Saved Draft Store Selector Enablement Preconditions` v1 任务卡](workflow-saved-draft-store-selector-enablement-preconditions-v1-plan.md)（`workflow-saved-draft-store-selector-enablement-preconditions-v1`）
+71. [`Workflow Saved Draft Schema Artifact Evidence` v1 任务卡](workflow-saved-draft-schema-artifact-evidence-v1-plan.md)（`workflow-saved-draft-schema-artifact-evidence-v1`）
+72. [`Workflow Saved Draft Store Selector Smoke Readiness` v1 任务卡](workflow-saved-draft-store-selector-smoke-readiness-v1-plan.md)（`workflow-saved-draft-store-selector-smoke-readiness-v1`）
 
 ## UI 设计专题
 

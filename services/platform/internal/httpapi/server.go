@@ -77,6 +77,7 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux.HandleFunc(controlPlaneRunRecordSummaryListRoute, server.handleUserWorkspaceRunRecordSummaryList)
 	mux.HandleFunc(controlPlaneAuditSummaryListRoute, server.handleControlPlaneAuditSummaryList)
 	mux.HandleFunc(savedWorkflowDraftSaveRoute, server.handleSaveWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftListRoute, server.handleListWorkflowDrafts)
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
 

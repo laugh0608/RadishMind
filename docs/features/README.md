@@ -50,6 +50,9 @@
 | [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突和失败语义 |
 | [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
+| [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
+| [User Workspace Draft Creation v1](workflow/user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
+| [User Workspace Saved Draft List v1](workflow/user-workspace-saved-draft-list-v1.md) | 功能 / 页面专题 | 固定 Workspace Home 的 saved dev draft summary、empty / failure state 和恢复入口 |
 | [Saved Workflow Draft Durable Store Preconditions v1](workflow/saved-workflow-draft-durable-store-preconditions-v1.md) | 前置设计专题 | 固定 saved draft durable store 迁移前的 scope、owner / workspace、version conflict、no sample fallback 和 store 切换停止线 |
 | [Saved Workflow Draft Repository Contract Preconditions v1](workflow/saved-workflow-draft-repository-contract-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft repository contract 的 actor context、operation matrix、failure 和 projection 边界 |
 | [Saved Workflow Draft Schema / Migration Preconditions v1](workflow/saved-workflow-draft-schema-migration-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft durable store 的 logical schema、index strategy、migration gate 和 artifact guard |

@@ -71,6 +71,27 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 			t.Fatalf("read should return saved draft record: %#v", readEnvelope)
 		}
 
+		listReq := httptest.NewRequest(
+			http.MethodGet,
+			"/v1/user-workspace/workflow-drafts?workspace_id="+payload.WorkspaceID+"&application_id="+payload.ApplicationID,
+			nil,
+		)
+		setSavedWorkflowDraftDevHeaders(listReq, "workflow_drafts:read,workflow_drafts:write")
+		listRec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(listRec, listReq)
+
+		listEnvelope := decodeSavedWorkflowDraftListEnvelope(t, listRec, http.StatusOK)
+		assertSavedWorkflowDraftListEnvelopeContract(t, listRec)
+		if listEnvelope.FailureCode != nil || len(listEnvelope.DraftSummaries) != 1 {
+			t.Fatalf("list should return one saved draft summary: %#v", listEnvelope)
+		}
+		if listEnvelope.DraftSummaries[0].DraftID != payload.DraftID ||
+			listEnvelope.DraftSummaries[0].SampleOrUnsavedDraftStatus != "saved_draft_record" ||
+			listEnvelope.DraftSummaries[0].NodeCount == 0 {
+			t.Fatalf("list summary should stay sanitized and scoped: %#v", listEnvelope.DraftSummaries[0])
+		}
+
 		validateBody := mustSavedWorkflowDraftJSON(t, savedWorkflowDraftValidateHTTPBody{
 			Draft: savedWorkflowDraftPayloadDocumentFromDraftPayload(payload),
 		})
@@ -121,6 +142,21 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 		if readEnvelope.FailureCode == nil || *readEnvelope.FailureCode != string(SavedWorkflowDraftFailureNotFound) {
 			t.Fatalf("write disabled save must not leave partial draft: %#v", readEnvelope)
 		}
+
+		listReq := httptest.NewRequest(
+			http.MethodGet,
+			"/v1/user-workspace/workflow-drafts?workspace_id="+payload.WorkspaceID+"&application_id="+payload.ApplicationID,
+			nil,
+		)
+		setSavedWorkflowDraftDevHeaders(listReq, "workflow_drafts:read,workflow_drafts:write")
+		listRec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(listRec, listReq)
+
+		listEnvelope := decodeSavedWorkflowDraftListEnvelope(t, listRec, http.StatusOK)
+		if listEnvelope.FailureCode != nil || len(listEnvelope.DraftSummaries) != 0 {
+			t.Fatalf("write disabled save must not leave list fallback: %#v", listEnvelope)
+		}
 	})
 
 	t.Run("stale version and scope mismatch fail closed", func(t *testing.T) {
@@ -165,6 +201,22 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 		if scopeEnvelope.FailureCode == nil || *scopeEnvelope.FailureCode != string(SavedWorkflowDraftFailureScopeDenied) {
 			t.Fatalf("scope mismatch should fail closed: %#v", scopeEnvelope)
 		}
+
+		scopeListReq := httptest.NewRequest(
+			http.MethodGet,
+			"/v1/user-workspace/workflow-drafts?workspace_id="+payload.WorkspaceID+"&application_id=app_other",
+			nil,
+		)
+		setSavedWorkflowDraftDevHeaders(scopeListReq, "workflow_drafts:read,workflow_drafts:write")
+		scopeListReq.Header.Set(savedWorkflowDraftDevApplicationHeader, "app_other")
+		scopeListRec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(scopeListRec, scopeListReq)
+
+		scopeListEnvelope := decodeSavedWorkflowDraftListEnvelope(t, scopeListRec, http.StatusOK)
+		if scopeListEnvelope.FailureCode != nil || len(scopeListEnvelope.DraftSummaries) != 0 {
+			t.Fatalf("list for wrong application must not fallback to saved sample: %#v", scopeListEnvelope)
+		}
 	})
 
 	t.Run("route contract keeps failure envelope fail closed", func(t *testing.T) {
@@ -207,6 +259,24 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 			*unavailableEnvelope.FailureCode != string(SavedWorkflowDraftFailureStoreUnavailable) ||
 			unavailableEnvelope.Draft != nil {
 			t.Fatalf("store unavailable must stay fail closed without sample fallback: %#v", unavailableEnvelope)
+		}
+
+		unavailableListReq := httptest.NewRequest(
+			http.MethodGet,
+			"/v1/user-workspace/workflow-drafts?workspace_id="+payload.WorkspaceID+"&application_id="+payload.ApplicationID,
+			nil,
+		)
+		setSavedWorkflowDraftDevHeaders(unavailableListReq, "workflow_drafts:read,workflow_drafts:write")
+		unavailableListRec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(unavailableListRec, unavailableListReq)
+
+		unavailableListEnvelope := decodeSavedWorkflowDraftListEnvelope(t, unavailableListRec, http.StatusOK)
+		assertSavedWorkflowDraftListEnvelopeContract(t, unavailableListRec)
+		if unavailableListEnvelope.FailureCode == nil ||
+			*unavailableListEnvelope.FailureCode != string(SavedWorkflowDraftFailureStoreUnavailable) ||
+			len(unavailableListEnvelope.DraftSummaries) != 0 {
+			t.Fatalf("store unavailable list must stay fail closed without sample fallback: %#v", unavailableListEnvelope)
 		}
 	})
 
@@ -272,6 +342,22 @@ func decodeSavedWorkflowDraftEnvelope(
 	return envelope
 }
 
+func decodeSavedWorkflowDraftListEnvelope(
+	t *testing.T,
+	rec *httptest.ResponseRecorder,
+	expectedStatus int,
+) savedWorkflowDraftListEnvelope {
+	t.Helper()
+	if rec.Code != expectedStatus {
+		t.Fatalf("expected status %d, got %d: %s", expectedStatus, rec.Code, rec.Body.String())
+	}
+	var envelope savedWorkflowDraftListEnvelope
+	if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
+		t.Fatalf("decode saved workflow draft list envelope: %v\n%s", err, rec.Body.String())
+	}
+	return envelope
+}
+
 func assertSavedWorkflowDraftEnvelopeContract(t *testing.T, rec *httptest.ResponseRecorder) {
 	t.Helper()
 	if contentType := rec.Header().Get("Content-Type"); contentType != "application/json; charset=utf-8" {
@@ -303,6 +389,59 @@ func assertSavedWorkflowDraftEnvelopeContract(t *testing.T, rec *httptest.Respon
 	for _, key := range []string{"validation_state", "valid_for_review", "findings"} {
 		if _, ok := validationSummary[key]; !ok {
 			t.Fatalf("saved draft validation_summary missing required key %q: %#v", key, validationSummary)
+		}
+	}
+}
+
+func assertSavedWorkflowDraftListEnvelopeContract(t *testing.T, rec *httptest.ResponseRecorder) {
+	t.Helper()
+	if contentType := rec.Header().Get("Content-Type"); contentType != "application/json; charset=utf-8" {
+		t.Fatalf("saved draft list route must return JSON content type, got %q", contentType)
+	}
+	var document map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &document); err != nil {
+		t.Fatalf("decode saved workflow draft list contract envelope: %v\n%s", err, rec.Body.String())
+	}
+	for _, key := range []string{
+		"request_id",
+		"workspace_id",
+		"application_id",
+		"draft_summaries",
+		"failure_code",
+		"audit_ref",
+	} {
+		if _, ok := document[key]; !ok {
+			t.Fatalf("saved draft list envelope missing required key %q: %#v", key, document)
+		}
+	}
+	summaries, ok := document["draft_summaries"].([]any)
+	if !ok {
+		t.Fatalf("saved draft list envelope must expose draft_summaries array: %#v", document["draft_summaries"])
+	}
+	for _, rawSummary := range summaries {
+		summary, ok := rawSummary.(map[string]any)
+		if !ok {
+			t.Fatalf("saved draft list summary must be an object: %#v", rawSummary)
+		}
+		for _, key := range []string{
+			"draft_id",
+			"workspace_id",
+			"application_id",
+			"source_definition_id",
+			"draft_version",
+			"schema_version",
+			"draft_status",
+			"name",
+			"updated_at",
+			"node_count",
+			"edge_count",
+			"validation_state",
+			"valid_for_review",
+			"sample_or_unsaved_draft_status",
+		} {
+			if _, ok := summary[key]; !ok {
+				t.Fatalf("saved draft list summary missing key %q: %#v", key, summary)
+			}
 		}
 	}
 }

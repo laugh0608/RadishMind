@@ -67,6 +67,8 @@ type ReadWorkflowDraftRequest struct {
 	DraftID string
 }
 
+type ListWorkflowDraftsRequest struct{}
+
 type ValidateWorkflowDraftRequest struct {
 	Payload SavedWorkflowDraftPayload
 }
@@ -182,8 +184,35 @@ type SavedWorkflowDraftResult struct {
 	RequestAuditMetadata SavedWorkflowDraftAuditMetadata
 }
 
+type SavedWorkflowDraftSummary struct {
+	DraftID                    string
+	WorkspaceID                string
+	ApplicationID              string
+	SourceDefinitionID         string
+	DraftVersion               int
+	SchemaVersion              string
+	DraftStatus                SavedWorkflowDraftStatus
+	Name                       string
+	Description                string
+	UpdatedAt                  string
+	UpdatedByActorRef          string
+	NodeCount                  int
+	EdgeCount                  int
+	BlockedCapabilityCount     int
+	ValidationState            SavedWorkflowDraftStatus
+	ValidForReview             bool
+	SampleOrUnsavedDraftStatus string
+}
+
+type SavedWorkflowDraftListResult struct {
+	Summaries            []SavedWorkflowDraftSummary
+	FailureCode          SavedWorkflowDraftFailureCode
+	RequestAuditMetadata SavedWorkflowDraftAuditMetadata
+}
+
 type savedWorkflowDraftStore interface {
 	ReadDraftByID(draftID string) (SavedWorkflowDraft, bool, error)
+	ListDraftsByScope(workspaceID string, applicationID string) ([]SavedWorkflowDraft, error)
 	WriteDraft(draft SavedWorkflowDraft) error
 	SideEffects() SavedWorkflowDraftSideEffects
 }
@@ -368,6 +397,40 @@ func (service savedWorkflowDraftService) ReadDraft(
 	}
 }
 
+func (service savedWorkflowDraftService) ListDrafts(
+	context SavedWorkflowDraftContext,
+	_ ListWorkflowDraftsRequest,
+) SavedWorkflowDraftListResult {
+	auditMetadata := savedWorkflowDraftAuditMetadata(context)
+	if strings.TrimSpace(context.WorkspaceID) == "" || strings.TrimSpace(context.ApplicationID) == "" {
+		return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
+	}
+
+	drafts, err := service.store.ListDraftsByScope(context.WorkspaceID, context.ApplicationID)
+	if err != nil {
+		return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureStoreUnavailable, auditMetadata)
+	}
+
+	summaries := make([]SavedWorkflowDraftSummary, 0, len(drafts))
+	for _, draft := range drafts {
+		if !savedWorkflowDraftMatchesScope(draft, context.WorkspaceID, context.ApplicationID) {
+			return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
+		}
+		summaries = append(summaries, savedWorkflowDraftSummaryFromDraft(draft))
+	}
+	sort.Slice(summaries, func(i, j int) bool {
+		if summaries[i].UpdatedAt == summaries[j].UpdatedAt {
+			return summaries[i].DraftID < summaries[j].DraftID
+		}
+		return summaries[i].UpdatedAt > summaries[j].UpdatedAt
+	})
+
+	return SavedWorkflowDraftListResult{
+		Summaries:            summaries,
+		RequestAuditMetadata: auditMetadata,
+	}
+}
+
 func (service savedWorkflowDraftService) ValidateDraft(
 	context SavedWorkflowDraftContext,
 	request ValidateWorkflowDraftRequest,
@@ -462,6 +525,28 @@ func (store *memorySavedWorkflowDraftStore) ReadDraftByID(draftID string) (Saved
 	return cloneSavedWorkflowDraft(draft), true, nil
 }
 
+func (store *memorySavedWorkflowDraftStore) ListDraftsByScope(
+	workspaceID string,
+	applicationID string,
+) ([]SavedWorkflowDraft, error) {
+	if store.unavailable {
+		return nil, errors.New("saved workflow draft store unavailable")
+	}
+	drafts := make([]SavedWorkflowDraft, 0)
+	for _, draft := range store.drafts {
+		if savedWorkflowDraftMatchesScope(draft, workspaceID, applicationID) {
+			drafts = append(drafts, cloneSavedWorkflowDraft(draft))
+		}
+	}
+	sort.Slice(drafts, func(i, j int) bool {
+		if drafts[i].UpdatedAt == drafts[j].UpdatedAt {
+			return drafts[i].DraftID < drafts[j].DraftID
+		}
+		return drafts[i].UpdatedAt > drafts[j].UpdatedAt
+	})
+	return drafts, nil
+}
+
 func (store *memorySavedWorkflowDraftStore) WriteDraft(draft SavedWorkflowDraft) error {
 	if store.unavailable {
 		return errors.New("saved workflow draft store unavailable")
@@ -488,6 +573,16 @@ func savedWorkflowDraftFailure(
 	auditMetadata SavedWorkflowDraftAuditMetadata,
 ) SavedWorkflowDraftResult {
 	return SavedWorkflowDraftResult{
+		FailureCode:          failureCode,
+		RequestAuditMetadata: auditMetadata,
+	}
+}
+
+func savedWorkflowDraftListFailure(
+	failureCode SavedWorkflowDraftFailureCode,
+	auditMetadata SavedWorkflowDraftAuditMetadata,
+) SavedWorkflowDraftListResult {
+	return SavedWorkflowDraftListResult{
 		FailureCode:          failureCode,
 		RequestAuditMetadata: auditMetadata,
 	}
@@ -750,6 +845,28 @@ func savedWorkflowDraftPayloadFromDraft(draft SavedWorkflowDraft) SavedWorkflowD
 		ToolRefs:              cloneStringSlice(draft.ToolRefs),
 		RAGRefs:               cloneStringSlice(draft.RAGRefs),
 		RequestedCapabilities: cloneStringSlice(draft.RequestedCapabilities),
+	}
+}
+
+func savedWorkflowDraftSummaryFromDraft(draft SavedWorkflowDraft) SavedWorkflowDraftSummary {
+	return SavedWorkflowDraftSummary{
+		DraftID:                    draft.DraftID,
+		WorkspaceID:                draft.WorkspaceID,
+		ApplicationID:              draft.ApplicationID,
+		SourceDefinitionID:         draft.SourceDefinitionID,
+		DraftVersion:               draft.DraftVersion,
+		SchemaVersion:              draft.SchemaVersion,
+		DraftStatus:                draft.DraftStatus,
+		Name:                       draft.Name,
+		Description:                draft.Description,
+		UpdatedAt:                  draft.UpdatedAt,
+		UpdatedByActorRef:          draft.UpdatedByActorRef,
+		NodeCount:                  len(draft.Nodes),
+		EdgeCount:                  len(draft.Edges),
+		BlockedCapabilityCount:     len(draft.BlockedCapabilitySummary),
+		ValidationState:            draft.ValidationSummary.ValidationState,
+		ValidForReview:             draft.ValidationSummary.ValidForReview,
+		SampleOrUnsavedDraftStatus: draft.SampleOrUnsavedDraftStatus,
 	}
 }
 

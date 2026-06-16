@@ -8,6 +8,7 @@ import (
 
 const (
 	savedWorkflowDraftSaveRoute     = "POST /v1/user-workspace/workflow-drafts"
+	savedWorkflowDraftListRoute     = "GET /v1/user-workspace/workflow-drafts"
 	savedWorkflowDraftReadRoute     = "GET /v1/user-workspace/workflow-drafts/{draft_id}"
 	savedWorkflowDraftValidateRoute = "POST /v1/user-workspace/workflow-drafts/validate"
 )
@@ -36,6 +37,15 @@ type savedWorkflowDraftEnvelope struct {
 	ValidationSummary   savedWorkflowDraftValidationDocument `json:"validation_summary"`
 	BlockedCapabilities []savedWorkflowDraftBlockedDocument  `json:"blocked_capabilities"`
 	AuditRef            string                               `json:"audit_ref"`
+}
+
+type savedWorkflowDraftListEnvelope struct {
+	RequestID      string                              `json:"request_id"`
+	WorkspaceID    string                              `json:"workspace_id"`
+	ApplicationID  string                              `json:"application_id"`
+	DraftSummaries []savedWorkflowDraftSummaryDocument `json:"draft_summaries"`
+	FailureCode    *string                             `json:"failure_code"`
+	AuditRef       string                              `json:"audit_ref"`
 }
 
 type savedWorkflowDraftPayloadDocument struct {
@@ -70,6 +80,26 @@ type savedWorkflowDraftDocument struct {
 	BlockedCapabilitySummary   []savedWorkflowDraftBlockedDocument  `json:"blocked_capability_summary"`
 	RequestAuditMetadata       savedWorkflowDraftAuditDocument      `json:"request_audit_metadata"`
 	SampleOrUnsavedDraftStatus string                               `json:"sample_or_unsaved_draft_status"`
+}
+
+type savedWorkflowDraftSummaryDocument struct {
+	DraftID                    string `json:"draft_id"`
+	WorkspaceID                string `json:"workspace_id"`
+	ApplicationID              string `json:"application_id"`
+	SourceDefinitionID         string `json:"source_definition_id"`
+	DraftVersion               int    `json:"draft_version"`
+	SchemaVersion              string `json:"schema_version"`
+	DraftStatus                string `json:"draft_status"`
+	Name                       string `json:"name"`
+	Description                string `json:"description"`
+	UpdatedAt                  string `json:"updated_at"`
+	UpdatedByActorRef          string `json:"updated_by_actor_ref"`
+	NodeCount                  int    `json:"node_count"`
+	EdgeCount                  int    `json:"edge_count"`
+	BlockedCapabilityCount     int    `json:"blocked_capability_count"`
+	ValidationState            string `json:"validation_state"`
+	ValidForReview             bool   `json:"valid_for_review"`
+	SampleOrUnsavedDraftStatus string `json:"sample_or_unsaved_draft_status"`
 }
 
 type savedWorkflowDraftNodeDocument struct {
@@ -181,6 +211,35 @@ func (s *Server) handleReadWorkflowDraft(writer http.ResponseWriter, request *ht
 	writeSavedWorkflowDraftResult(writer, trace, context, result)
 }
 
+func (s *Server) handleListWorkflowDrafts(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, savedWorkflowDraftListRoute)
+	if !s.allowSavedWorkflowDraftDevHTTP(writer, request, trace) {
+		return
+	}
+	workspaceID := strings.TrimSpace(request.URL.Query().Get("workspace_id"))
+	applicationID := strings.TrimSpace(request.URL.Query().Get("application_id"))
+	context, failureCode := savedWorkflowDraftContextFromRequest(
+		request,
+		trace,
+		workspaceID,
+		applicationID,
+		"workflow_drafts:read",
+		false,
+		"list",
+	)
+	if failureCode != "" {
+		writeSavedWorkflowDraftListResult(
+			writer,
+			trace,
+			context,
+			savedWorkflowDraftListFailure(failureCode, savedWorkflowDraftAuditMetadata(context)),
+		)
+		return
+	}
+	result := s.savedWorkflowDraftService().ListDrafts(context, ListWorkflowDraftsRequest{})
+	writeSavedWorkflowDraftListResult(writer, trace, context, result)
+}
+
 func (s *Server) handleValidateWorkflowDraft(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, savedWorkflowDraftValidateRoute)
 	if !s.allowSavedWorkflowDraftDevHTTP(writer, request, trace) {
@@ -281,6 +340,23 @@ func writeSavedWorkflowDraftResult(
 	})
 }
 
+func writeSavedWorkflowDraftListResult(
+	writer http.ResponseWriter,
+	trace requestTrace,
+	context SavedWorkflowDraftContext,
+	result SavedWorkflowDraftListResult,
+) {
+	failureCode := savedWorkflowDraftFailureCodePointer(result.FailureCode)
+	writeObservedJSON(writer, http.StatusOK, trace, savedWorkflowDraftListEnvelope{
+		RequestID:      trace.requestID,
+		WorkspaceID:    strings.TrimSpace(context.WorkspaceID),
+		ApplicationID:  strings.TrimSpace(context.ApplicationID),
+		DraftSummaries: savedWorkflowDraftSummariesToDocuments(result.Summaries),
+		FailureCode:    failureCode,
+		AuditRef:       strings.TrimSpace(result.RequestAuditMetadata.AuditRef),
+	})
+}
+
 func savedWorkflowDraftPayloadFromDocument(document savedWorkflowDraftPayloadDocument) SavedWorkflowDraftPayload {
 	return SavedWorkflowDraftPayload{
 		DraftID:               document.DraftID,
@@ -321,6 +397,34 @@ func savedWorkflowDraftDocumentPointer(draft *SavedWorkflowDraft) *savedWorkflow
 		RequestAuditMetadata:              savedWorkflowDraftAuditToDocument(draft.RequestAuditMetadata),
 		SampleOrUnsavedDraftStatus:        draft.SampleOrUnsavedDraftStatus,
 	}
+}
+
+func savedWorkflowDraftSummariesToDocuments(
+	summaries []SavedWorkflowDraftSummary,
+) []savedWorkflowDraftSummaryDocument {
+	documents := make([]savedWorkflowDraftSummaryDocument, 0, len(summaries))
+	for _, summary := range summaries {
+		documents = append(documents, savedWorkflowDraftSummaryDocument{
+			DraftID:                    summary.DraftID,
+			WorkspaceID:                summary.WorkspaceID,
+			ApplicationID:              summary.ApplicationID,
+			SourceDefinitionID:         summary.SourceDefinitionID,
+			DraftVersion:               summary.DraftVersion,
+			SchemaVersion:              summary.SchemaVersion,
+			DraftStatus:                string(summary.DraftStatus),
+			Name:                       summary.Name,
+			Description:                summary.Description,
+			UpdatedAt:                  summary.UpdatedAt,
+			UpdatedByActorRef:          summary.UpdatedByActorRef,
+			NodeCount:                  summary.NodeCount,
+			EdgeCount:                  summary.EdgeCount,
+			BlockedCapabilityCount:     summary.BlockedCapabilityCount,
+			ValidationState:            string(summary.ValidationState),
+			ValidForReview:             summary.ValidForReview,
+			SampleOrUnsavedDraftStatus: summary.SampleOrUnsavedDraftStatus,
+		})
+	}
+	return documents
 }
 
 func savedWorkflowDraftPayloadDocumentFromDraftPayload(payload SavedWorkflowDraftPayload) savedWorkflowDraftPayloadDocument {

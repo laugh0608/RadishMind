@@ -23,11 +23,16 @@ import {
 } from "../features/control-plane-read/devLiveReadConsumer";
 import {
   initialWorkflowSavedDraftConsumerState,
+  initialWorkflowSavedDraftListState,
+  listWorkflowDraftDevRecords,
   nextWorkflowSavedDraftExpectedVersion,
   readWorkflowDraftDevRecord,
   readWorkflowSavedDraftConsumerConfig,
+  restoreWorkflowDraftDevRecord,
   saveWorkflowDraftDevRecord,
   validateWorkflowDraftDevRecord,
+  type WorkflowSavedDraftListState,
+  type WorkflowSavedDraftSummary,
   type WorkflowSavedDraftConsumerState,
 } from "../features/control-plane-read/savedWorkflowDraftConsumer";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
@@ -190,6 +195,9 @@ export function App() {
   const [selectedWorkflowScenarioId, setSelectedWorkflowScenarioId] = useState<string | null>(null);
   const [savedDraftConsumerState, setSavedDraftConsumerState] = useState<WorkflowSavedDraftConsumerState>(() =>
     initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig),
+  );
+  const [savedDraftListState, setSavedDraftListState] = useState<WorkflowSavedDraftListState>(() =>
+    initialWorkflowSavedDraftListState(savedDraftConsumerConfig),
   );
   const [workspaceCreatedDrafts, setWorkspaceCreatedDrafts] = useState<WorkflowDraftDesignerDraft[]>([]);
 
@@ -536,6 +544,108 @@ export function App() {
     setWorkflowDraftEditDirty(true);
     setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
   };
+  const refreshSavedWorkflowDraftList = (applicationRef: string) => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, applicationRef));
+      return;
+    }
+    setSavedDraftListState((state) => ({
+      ...state,
+      status: "loading",
+      mode: "dev_saved_draft_http",
+      sourceLabel: "loading",
+      summary: "Loading saved dev draft summaries for the selected application.",
+      applicationRef,
+      failureCode: null,
+      summaries: [],
+    }));
+    listWorkflowDraftDevRecords(applicationRef, savedDraftConsumerConfig)
+      .then(setSavedDraftListState)
+      .catch((error: unknown) => {
+        setSavedDraftListState((state) => ({
+          ...state,
+          status: "list_failed",
+          sourceLabel: "list_failed",
+          summary: error instanceof Error ? error.message : "Saved draft list failed.",
+          applicationRef,
+          failureCode: "dev_saved_draft_list_failed",
+          summaries: [],
+        }));
+      });
+  };
+  useEffect(() => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, selectedApplication.applicationRef));
+      return;
+    }
+    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
+  }, [selectedApplication.applicationRef]);
+  const handleRefreshSavedWorkflowDraftList = () => {
+    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
+  };
+  const handleRestoreSavedWorkflowDraft = (summary: WorkflowSavedDraftSummary) => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "reading",
+      summary: `Restoring saved draft ${summary.draftId} through the dev-only read route.`,
+      failureCode: null,
+      conflictDraftVersion: null,
+    }));
+    restoreWorkflowDraftDevRecord(summary, savedDraftConsumerConfig)
+      .then((result) => {
+        setSavedDraftConsumerState(result.state);
+        if (!result.draft) {
+          setSavedDraftListState((state) => ({
+            ...state,
+            status: "restore_failed",
+            sourceLabel: "restore_failed",
+            summary: result.state.summary,
+            failureCode: result.state.failureCode ?? "dev_saved_draft_restore_failed",
+          }));
+          return;
+        }
+        const restoredDraft = result.draft;
+        const nextRun = workspaceRunHistory.runs.find(
+          (run) =>
+            run.applicationRef === restoredDraft.applicationRef &&
+            run.workflowDefinitionId === restoredDraft.workflowDefinitionId,
+        );
+        setWorkspaceCreatedDrafts((drafts) => [
+          ...drafts.filter((draft) => draft.draftId !== restoredDraft.draftId),
+          restoredDraft,
+        ]);
+        applyWorkflowSelectionPatch({
+          applicationRef: restoredDraft.applicationRef,
+          workflowDefinitionId: restoredDraft.workflowDefinitionId,
+          runId: nextRun?.runId ?? null,
+          draftId: restoredDraft.draftId,
+          scenarioId: null,
+        });
+        setEditableWorkflowDraft(cloneWorkflowDraftForEditing(restoredDraft));
+        setWorkflowDraftEditDirty(false);
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : "Saved draft restore failed.";
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "read_failed",
+          sourceLabel: "restore_failed",
+          summary: message,
+          failureCode: "dev_saved_draft_restore_failed",
+          conflictDraftVersion: null,
+        }));
+        setSavedDraftListState((state) => ({
+          ...state,
+          status: "restore_failed",
+          sourceLabel: "restore_failed",
+          summary: message,
+          failureCode: "dev_saved_draft_restore_failed",
+        }));
+      });
+  };
   const handleValidateWorkflowDraft = () => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
       return;
@@ -587,6 +697,7 @@ export function App() {
             draft === null ? null : { ...draft, localOnlyInteraction: "inspect_only" },
           );
           setWorkflowDraftEditDirty(false);
+          refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef);
         }
       })
       .catch((error: unknown) => {
@@ -785,7 +896,10 @@ export function App() {
         <WorkflowUserWorkspaceHomePanel
           home={workflowUserWorkspaceHome}
           createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
+          savedDraftListState={savedDraftListState}
           onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
+          onRefreshSavedDrafts={handleRefreshSavedWorkflowDraftList}
+          onRestoreSavedDraft={handleRestoreSavedWorkflowDraft}
         />
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />

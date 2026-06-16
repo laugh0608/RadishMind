@@ -8,6 +8,10 @@ import type {
   WorkflowUserWorkspaceHomeViewModel,
 } from "./workflowUserWorkspaceHome";
 import type {
+  WorkflowSavedDraftListState,
+  WorkflowSavedDraftSummary,
+} from "./savedWorkflowDraftConsumer";
+import type {
   WorkflowWorkspaceReviewStage,
   WorkflowWorkspaceReviewStopLine,
 } from "./workflowWorkspaceReview";
@@ -17,11 +21,17 @@ type StatusBadgeTone = "good" | "bad" | "neutral";
 export function WorkflowUserWorkspaceHomePanel({
   home,
   createdDraftCountsByWorkflowDefinition,
+  savedDraftListState,
   onCreateDraftForWorkflowDefinition,
+  onRefreshSavedDrafts,
+  onRestoreSavedDraft,
 }: {
   home: WorkflowUserWorkspaceHomeViewModel;
   createdDraftCountsByWorkflowDefinition: Record<string, number>;
+  savedDraftListState: WorkflowSavedDraftListState;
   onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
+  onRefreshSavedDrafts: () => void;
+  onRestoreSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
 }) {
   const primaryReadiness = home.readinessRollup.slice(0, 6);
   const primaryRouteEvidence = home.routeEvidence.slice(0, 4);
@@ -113,6 +123,62 @@ export function WorkflowUserWorkspaceHomePanel({
               <WorkflowUserWorkspaceHomeStageCard key={stage.stageId} stage={stage} />
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="workflow-user-workspace-home-section saved-draft-list" aria-label="User workspace saved draft list">
+        <div className="workflow-user-workspace-home-subheading saved-draft-list-heading">
+          <div>
+            <p className="eyebrow">Saved Drafts</p>
+            <h4>Dev saved draft restore</h4>
+          </div>
+          <button
+            type="button"
+            disabled={savedDraftListState.mode !== "dev_saved_draft_http" || savedDraftListState.status === "loading"}
+            onClick={onRefreshSavedDrafts}
+          >
+            Refresh
+          </button>
+        </div>
+        <article className="workflow-user-workspace-home-card saved-draft-list-status">
+          <div className="workflow-user-workspace-home-row-main">
+            <div>
+              <span>{savedDraftListState.sourceLabel}</span>
+              <strong>{savedDraftListState.status}</strong>
+            </div>
+            <StatusBadge tone={workflowSavedDraftListTone(savedDraftListState.status)}>
+              {savedDraftListState.mode}
+            </StatusBadge>
+          </div>
+          <dl className="workflow-user-workspace-home-meta">
+            <div>
+              <dt>Application</dt>
+              <dd>{savedDraftListState.applicationRef || home.applicationId}</dd>
+            </div>
+            <div>
+              <dt>Summaries</dt>
+              <dd>{savedDraftListState.summaries.length}</dd>
+            </div>
+            <div>
+              <dt>Failure</dt>
+              <dd>{savedDraftListState.failureCode ?? "none"}</dd>
+            </div>
+            <div>
+              <dt>Audit</dt>
+              <dd>{savedDraftListState.auditRef}</dd>
+            </div>
+          </dl>
+          <p>{savedDraftListState.summary}</p>
+        </article>
+        <div className="saved-draft-summary-grid" aria-label="Saved draft summaries">
+          {savedDraftListState.summaries.map((summary) => (
+            <WorkflowSavedDraftSummaryCard
+              key={summary.draftId}
+              summary={summary}
+              restoringDisabled={savedDraftListState.status === "loading"}
+              onRestoreSavedDraft={onRestoreSavedDraft}
+            />
+          ))}
         </div>
       </div>
 
@@ -224,6 +290,55 @@ function WorkflowUserWorkspaceHomeApplicationCard({
           onClick={() => onCreateDraftForWorkflowDefinition(application.workflowDefinitionId)}
         >
           Create draft
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function WorkflowSavedDraftSummaryCard({
+  summary,
+  restoringDisabled,
+  onRestoreSavedDraft,
+}: {
+  summary: WorkflowSavedDraftSummary;
+  restoringDisabled: boolean;
+  onRestoreSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
+}) {
+  return (
+    <article className="workflow-user-workspace-home-card saved-draft-summary-card">
+      <div className="workflow-user-workspace-home-row-main">
+        <div>
+          <p className="eyebrow">{summary.workflowDefinitionId}</p>
+          <h5>{summary.name}</h5>
+        </div>
+        <StatusBadge tone={summary.validForReview ? "good" : "neutral"}>{summary.validationState}</StatusBadge>
+      </div>
+      <dl className="workflow-user-workspace-home-meta">
+        <div>
+          <dt>Draft</dt>
+          <dd>{summary.draftId}</dd>
+        </div>
+        <div>
+          <dt>Version</dt>
+          <dd>{summary.draftVersion}</dd>
+        </div>
+        <div>
+          <dt>Graph</dt>
+          <dd>
+            {summary.nodeCount} nodes / {summary.edgeCount} edges
+          </dd>
+        </div>
+        <div>
+          <dt>Blocked</dt>
+          <dd>{summary.blockedCapabilityCount}</dd>
+        </div>
+      </dl>
+      <p>{summary.description}</p>
+      <div className="workflow-user-workspace-home-actions">
+        <span>{summary.sampleOrUnsavedDraftStatus}</span>
+        <button type="button" disabled={restoringDisabled} onClick={() => onRestoreSavedDraft(summary)}>
+          Restore
         </button>
       </div>
     </article>
@@ -379,6 +494,16 @@ function workflowUserWorkspaceHomeTone(status: WorkflowUserWorkspaceHomeStatus):
   }
   if (status === "ready") {
     return "good";
+  }
+  return "neutral";
+}
+
+function workflowSavedDraftListTone(status: WorkflowSavedDraftListState["status"]): StatusBadgeTone {
+  if (status === "ready") {
+    return "good";
+  }
+  if (status === "list_failed" || status === "restore_failed") {
+    return "bad";
   }
   return "neutral";
 }
