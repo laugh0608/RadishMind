@@ -51,7 +51,7 @@
 
 完成本专题后，Draft Designer 已具备字段编辑、用户工作区创建、saved draft list / restore、本地图结构编辑和节点属性编辑；`Workflow Review Handoff Active Draft v1` 已补恢复后的审查交接记录。下一批若继续 Workflow Builder 方向，应优先从以下方向择一推进：
 
-- durable store 独立准入：只在 repository contract smoke 或 repository adapter implementation plan 中选择一个方向推进。
+- durable store 独立准入：只在 repository adapter implementation plan 或 selector implementation entry review 中选择一个方向推进。
 - 节点属性后续增强：仅在新增明确 schema、参数边界或执行前置评审时推进，不直接扩成 executor 配置。
 
 ## 停止线
