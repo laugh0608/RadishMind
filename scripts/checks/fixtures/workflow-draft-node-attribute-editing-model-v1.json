@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_draft_node_attribute_editing_model_v1",
+  "slice": {
+    "id": "workflow-draft-node-attribute-editing-model-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "workflow_draft_node_attribute_editing_model_v1_implemented",
+    "does_not_claim": [
+      "complete_canvas_builder_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-draft-designer-editing-model-v2",
+    "workflow-saved-draft-consumer-smoke-v1"
+  ],
+  "frontend_contract": {
+    "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
+    "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+    "execution_plan_file": "apps/radishmind-web/src/features/control-plane-read/workflowExecutionPlanPreview.ts",
+    "style_file": "apps/radishmind-web/src/styles.css",
+    "platform_domain_file": "services/platform/internal/httpapi/workflow_saved_draft.go",
+    "platform_http_file": "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+    "platform_test_file": "services/platform/internal/httpapi/workflow_saved_draft_test.go",
+    "required_designer_literals": [
+      "providerRef: string;",
+      "toolRef: string;",
+      "ragRef: string;",
+      "inputContractFields: string[];",
+      "outputContractFields: string[];",
+      "outputMappingSummary: string;",
+      "deriveWorkflowDraftContractFields(",
+      "defaultWorkflowDraftOutputMappingSummary("
+    ],
+    "required_app_literals": [
+      "handleWorkflowDraftNodeProviderRefChange",
+      "handleWorkflowDraftNodeToolRefChange",
+      "handleWorkflowDraftNodeRagRefChange",
+      "handleWorkflowDraftNodeInputFieldsChange",
+      "handleWorkflowDraftNodeOutputFieldsChange",
+      "handleWorkflowDraftNodeOutputMappingChange",
+      "parseWorkflowDraftContractFields",
+      "workflow-draft-node-attribute-grid",
+      "inputContractFields: [...node.inputContractFields]",
+      "outputContractFields: [...node.outputContractFields]"
+    ],
+    "required_consumer_literals": [
+      "input_summary",
+      "output_summary",
+      "input_contract_fields",
+      "output_contract_fields",
+      "output_mapping_summary",
+      "workflowDraftRequiredFields",
+      "workflowDraftProviderRefs",
+      "workflowDraftToolRefs",
+      "workflowDraftRagRefs",
+      "normalizedWorkflowDraftFields"
+    ],
+    "required_validation_literals": [
+      "node.inputContractFields",
+      "node.outputContractFields",
+      "explicitFieldSet",
+      "node.outputMappingSummary"
+    ],
+    "required_execution_plan_literals": [
+      "node.providerRef.trim()",
+      "node.toolRef.trim()",
+      "providerRequirementRef("
+    ],
+    "required_style_selectors": [
+      ".workflow-draft-node-attribute-grid",
+      ".workflow-draft-node-attribute-field",
+      ".workflow-draft-node-attribute-field.wide"
+    ],
+    "required_platform_literals": [
+      "InputSummary",
+      "OutputSummary",
+      "InputContractFields",
+      "OutputContractFields",
+      "OutputMappingSummary",
+      "nodes.contract_fields",
+      "input_summary",
+      "input_contract_fields",
+      "output_mapping_summary",
+      "saved draft did not preserve node attributes"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/draft-node-attribute-editing-model-v1.md": [
+      "Workflow Draft Node Attribute Editing Model v1",
+      "状态：`workflow_draft_node_attribute_editing_model_v1_implemented`",
+      "provider / profile、tool ref、RAG ref、input / output contract fields 和 output mapping",
+      "不实现 publish、run、executor"
+    ],
+    "docs/task-cards/workflow-draft-node-attribute-editing-model-v1-plan.md": [
+      "workflow_draft_node_attribute_editing_model_v1_implemented",
+      "节点属性必须进入 dev-only saved draft payload",
+      "Go save / read / validate tests 必须覆盖节点属性保留"
+    ],
+    "docs/features/workflow/README.md": [
+      "Workflow Draft Node Attribute Editing Model v1",
+      "workflow_draft_node_attribute_editing_model_v1_implemented"
+    ],
+    "docs/features/README.md": [
+      "Workflow Draft Node Attribute Editing Model v1"
+    ],
+    "docs/features/workflow/draft-designer-surface.md": [
+      "Workflow Draft Node Attribute Editing Model v1",
+      "节点属性编辑"
+    ],
+    "docs/features/workflow/saved-workflow-draft-v1.md": [
+      "Workflow Draft Node Attribute Editing Model v1",
+      "节点级 summary、contract fields、output mapping"
+    ],
+    "docs/features/workflow-agent-runtime.md": [
+      "Workflow Draft Node Attribute Editing Model v1",
+      "节点属性编辑"
+    ],
+    "docs/features/user-workspace.md": [
+      "Workflow Draft Node Attribute Editing Model v1"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "Workflow Draft Node Attribute Editing Model v1",
+      "workflow-draft-node-attribute-editing-model-v1"
+    ],
+    "docs/task-cards/README.md": [
+      "Workflow Draft Node Attribute Editing Model"
+    ],
+    "scripts/README.md": [
+      "workflow-draft-node-attribute-editing-model-v1"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_draft_node_attribute_editing_model_v1_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-draft-node-attribute-editing-model-v1.py"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "platform_go_tests",
+      "status": "required_now",
+      "command": "go test ./...",
+      "working_directory": "services/platform/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

@@ -32,7 +32,7 @@
 
 ## 下一批开发方向
 
-1. `User Workspace Saved Draft List v1` 和 `Workflow Draft Designer Editing Model v2` 已落地；下一批若继续用户工作区方向，可评估节点属性编辑模型，或把恢复后的审查 handoff 路径整理为独立专题。
+1. `User Workspace Saved Draft List v1`、`Workflow Draft Designer Editing Model v2` 和 `Workflow Draft Node Attribute Editing Model v1` 已落地；下一批若继续用户工作区方向，可把恢复后的审查 handoff 路径整理为独立专题。
 2. durable store 方向仍只能作为独立准入推进：repository contract smoke、repository adapter implementation plan、schema migration 或 auth contract 不能和用户工作区列表实现并行打开。
 3. 在进入任何生产写入前，先补用户工作区功能设计更新，明确创建、保存、发布、执行、确认和回滚边界。
 4. 若下一步只改展示、分组、文案或使用性，不新增专项 gate，复用 web build、consumer smoke 和仓库基线。

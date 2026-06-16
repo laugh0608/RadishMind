@@ -165,8 +165,13 @@ type SavedWorkflowDraftNode = {
   node_id: string;
   node_type: string;
   label: string;
+  input_summary?: string;
+  output_summary?: string;
   input_contract_ref: string;
   output_contract_ref: string;
+  input_contract_fields?: string[];
+  output_contract_fields?: string[];
+  output_mapping_summary?: string;
   provider_ref: string;
   tool_ref: string;
   rag_ref: string;
@@ -560,15 +565,23 @@ function toSavedWorkflowDraftPayload(
     description: draft.summary,
     nodes: draft.nodes.map((node) => {
       const nodeType = String(node.nodeType);
+      const providerRef = workflowDraftNodeProviderRef(draft, node);
+      const toolRef = workflowDraftNodeToolRef(node);
+      const ragRef = workflowDraftNodeRagRef(node);
       return {
         node_id: node.nodeId,
         node_type: nodeType,
         label: node.label,
+        input_summary: node.inputSummary,
+        output_summary: node.outputSummary,
         input_contract_ref: "contract_input",
         output_contract_ref: nodeType === "output" ? "contract_output" : "contract_intermediate",
-        provider_ref: nodeType === "llm" ? draft.providerProfileRef : "",
-        tool_ref: nodeType === "http_tool" ? "tool:workflow-preview-readonly" : "",
-        rag_ref: nodeType === "rag_retrieval" ? "rag:workflow-docs" : "",
+        input_contract_fields: normalizedWorkflowDraftFields(node.inputContractFields),
+        output_contract_fields: normalizedWorkflowDraftFields(node.outputContractFields),
+        output_mapping_summary: node.outputMappingSummary,
+        provider_ref: providerRef,
+        tool_ref: toolRef,
+        rag_ref: ragRef,
         risk_level: node.riskLevel,
         requires_confirmation: node.requiresConfirmation,
       };
@@ -581,17 +594,17 @@ function toSavedWorkflowDraftPayload(
     })),
     input_contract: {
       contract_id: "contract_input",
-      required_fields: ["workspace_id", "application_id", "selection_summary"],
+      required_fields: workflowDraftRequiredFields(draft.nodes, "input"),
       summary: "Workspace-scoped draft input contract.",
     },
     output_contract: {
       contract_id: "contract_output",
-      required_fields: ["answer_summary", "risk_summary", "audit_refs"],
+      required_fields: workflowDraftRequiredFields(draft.nodes, "output"),
       summary: "Reviewable advisory output contract.",
     },
-    provider_refs: [draft.providerProfileRef],
-    tool_refs: ["tool:workflow-preview-readonly"],
-    rag_refs: [],
+    provider_refs: workflowDraftProviderRefs(draft),
+    tool_refs: workflowDraftToolRefs(draft),
+    rag_refs: workflowDraftRagRefs(draft),
     requested_capabilities: ["publish", "run", "confirmation_decision", "writeback", "replay"],
   };
 }
@@ -680,12 +693,95 @@ function toWorkflowDraftDesignerNode(node: SavedWorkflowDraftNode): WorkflowDraf
     label: node.label,
     lane: workflowDraftLaneForNodeType(nodeType),
     readiness: node.requires_confirmation || node.risk_level === "high" ? "review_required" : "ready",
-    inputSummary: node.input_contract_ref || "saved draft input",
-    outputSummary: node.output_contract_ref || "saved draft output",
+    inputSummary: node.input_summary || node.input_contract_ref || "saved draft input",
+    outputSummary: node.output_summary || node.output_contract_ref || "saved draft output",
+    providerRef: node.provider_ref ?? "",
+    toolRef: node.tool_ref ?? "",
+    ragRef: node.rag_ref ?? "",
+    inputContractFields: normalizedWorkflowDraftFields(node.input_contract_fields ?? [node.input_contract_ref]),
+    outputContractFields: normalizedWorkflowDraftFields(node.output_contract_fields ?? [node.output_contract_ref]),
+    outputMappingSummary: node.output_mapping_summary || "Saved draft output mapping restored from dev record.",
     riskLevel: toWorkflowDraftRiskLevel(node.risk_level),
     requiresConfirmation: node.requires_confirmation,
     previewOnlyReason: "Restored from dev-only saved draft record; execution remains blocked.",
   };
+}
+
+function workflowDraftNodeProviderRef(
+  draft: WorkflowDraftDesignerDraft,
+  node: WorkflowDraftDesignerNode,
+): string {
+  const providerRef = node.providerRef.trim();
+  if (providerRef) {
+    return providerRef;
+  }
+  if (node.nodeType === "llm") {
+    return draft.providerProfileRef;
+  }
+  if (node.nodeType === "condition") {
+    return "policy:confirmation-gated";
+  }
+  return "";
+}
+
+function workflowDraftNodeToolRef(node: WorkflowDraftDesignerNode): string {
+  const toolRef = node.toolRef.trim();
+  if (toolRef) {
+    return toolRef;
+  }
+  return node.nodeType === "http_tool" ? "tool:workflow-preview-readonly" : "";
+}
+
+function workflowDraftNodeRagRef(node: WorkflowDraftDesignerNode): string {
+  return node.ragRef.trim();
+}
+
+function workflowDraftProviderRefs(draft: WorkflowDraftDesignerDraft): string[] {
+  const modelProviderRefs = draft.nodes
+    .filter((node) => node.nodeType === "llm")
+    .map((node) => workflowDraftNodeProviderRef(draft, node));
+  return uniqueWorkflowDraftRefs([draft.providerProfileRef, ...modelProviderRefs]);
+}
+
+function workflowDraftToolRefs(draft: WorkflowDraftDesignerDraft): string[] {
+  return uniqueWorkflowDraftRefs(draft.nodes.map(workflowDraftNodeToolRef));
+}
+
+function workflowDraftRagRefs(draft: WorkflowDraftDesignerDraft): string[] {
+  return uniqueWorkflowDraftRefs(draft.nodes.map(workflowDraftNodeRagRef));
+}
+
+function workflowDraftRequiredFields(
+  nodes: WorkflowDraftDesignerNode[],
+  contractKind: "input" | "output",
+): string[] {
+  const fields = nodes.flatMap((node) =>
+    contractKind === "input" ? node.inputContractFields : node.outputContractFields,
+  );
+  const normalized = normalizedWorkflowDraftFields(fields);
+  if (normalized.length > 0) {
+    return normalized;
+  }
+  return contractKind === "input"
+    ? ["workspace_id", "application_id", "selection_summary"]
+    : ["answer_summary", "risk_summary", "audit_refs"];
+}
+
+function normalizedWorkflowDraftFields(fields: string[]): string[] {
+  return uniqueWorkflowDraftRefs(fields.map((field) => field.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")));
+}
+
+function uniqueWorkflowDraftRefs(values: string[]): string[] {
+  const seen = new Set<string>();
+  return values
+    .map((value) => value.trim())
+    .filter((value) => {
+      if (!value || seen.has(value)) {
+        return false;
+      }
+      seen.add(value);
+      return true;
+    });
 }
 
 function toWorkflowDraftDesignerNodeType(nodeType: string): WorkflowDraftDesignerNode["nodeType"] {

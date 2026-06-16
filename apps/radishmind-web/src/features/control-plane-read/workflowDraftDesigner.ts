@@ -35,6 +35,12 @@ export type WorkflowDraftDesignerNode = {
   readiness: "ready" | "review_required" | "blocked";
   inputSummary: string;
   outputSummary: string;
+  providerRef: string;
+  toolRef: string;
+  ragRef: string;
+  inputContractFields: string[];
+  outputContractFields: string[];
+  outputMappingSummary: string;
   riskLevel: "low" | "medium" | "high";
   requiresConfirmation: boolean;
   previewOnlyReason: string;
@@ -359,12 +365,57 @@ function buildDesignerNodes(detailNodes: WorkflowDefinitionDetailNode[]): Workfl
     readiness: node.requiresConfirmation ? "review_required" : "ready",
     inputSummary: node.inputSummary,
     outputSummary: node.outputSummary,
+    providerRef: defaultWorkflowDraftProviderRef(node.nodeType),
+    toolRef: node.nodeType === "http_tool" ? "tool:workflow-preview-readonly" : "",
+    ragRef: "",
+    inputContractFields: deriveWorkflowDraftContractFields(node.inputSummary, "input"),
+    outputContractFields: deriveWorkflowDraftContractFields(node.outputSummary, "output"),
+    outputMappingSummary: defaultWorkflowDraftOutputMappingSummary(node.nodeType),
     riskLevel: node.riskLevel,
     requiresConfirmation: node.requiresConfirmation,
     previewOnlyReason: node.requiresConfirmation
       ? "The node is visible for local inspection, with future execution gated by confirmation and executor prerequisites."
       : "The node is visible for local inspection only; no runtime request is made.",
   }));
+}
+
+function defaultWorkflowDraftProviderRef(nodeType: WorkflowDefinitionDetailNode["nodeType"]): string {
+  if (nodeType === "llm") {
+    return "profile:radishmind-default-workflow";
+  }
+  if (nodeType === "condition") {
+    return "policy:confirmation-gated";
+  }
+  return "";
+}
+
+function defaultWorkflowDraftOutputMappingSummary(nodeType: WorkflowDefinitionDetailNode["nodeType"]): string {
+  if (nodeType === "llm") {
+    return "Map advisory answer, candidate actions, risk summary, and audit refs into reviewable output fields.";
+  }
+  if (nodeType === "http_tool") {
+    return "Map preview-only action metadata into audit-visible candidate action fields.";
+  }
+  if (nodeType === "condition") {
+    return "Map policy result into review-required branch metadata without unlocking execution.";
+  }
+  if (nodeType === "output") {
+    return "Map final advisory fields into the read-only workspace review surface.";
+  }
+  return "Map sanitized context fields into the next draft node contract.";
+}
+
+function deriveWorkflowDraftContractFields(
+  summary: string,
+  contractKind: "input" | "output",
+): string[] {
+  const summaryText = summary.toLowerCase();
+  const candidates =
+    contractKind === "input"
+      ? ["tenant_ref", "application_ref", "workspace_id", "selection_summary", "diagnostic_summary"]
+      : ["answer_summary", "candidate_actions", "risk_summary", "audit_refs", "citation_summary"];
+  const matched = candidates.filter((field) => field.split("_").every((word) => summaryText.includes(word)));
+  return matched.length > 0 ? matched : contractKind === "input" ? ["workspace_id"] : ["audit_refs"];
 }
 
 function buildDesignerEdges(detailEdges: WorkflowDefinitionDetailEdge[]): WorkflowDraftDesignerEdge[] {

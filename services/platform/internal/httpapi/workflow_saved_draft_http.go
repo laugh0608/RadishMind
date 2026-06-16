@@ -103,16 +103,21 @@ type savedWorkflowDraftSummaryDocument struct {
 }
 
 type savedWorkflowDraftNodeDocument struct {
-	NodeID               string `json:"node_id"`
-	NodeType             string `json:"node_type"`
-	Label                string `json:"label"`
-	InputContractRef     string `json:"input_contract_ref"`
-	OutputContractRef    string `json:"output_contract_ref"`
-	ProviderRef          string `json:"provider_ref"`
-	ToolRef              string `json:"tool_ref"`
-	RAGRef               string `json:"rag_ref"`
-	RiskLevel            string `json:"risk_level"`
-	RequiresConfirmation bool   `json:"requires_confirmation"`
+	NodeID               string   `json:"node_id"`
+	NodeType             string   `json:"node_type"`
+	Label                string   `json:"label"`
+	InputSummary         string   `json:"input_summary"`
+	OutputSummary        string   `json:"output_summary"`
+	InputContractRef     string   `json:"input_contract_ref"`
+	OutputContractRef    string   `json:"output_contract_ref"`
+	InputContractFields  []string `json:"input_contract_fields"`
+	OutputContractFields []string `json:"output_contract_fields"`
+	OutputMappingSummary string   `json:"output_mapping_summary"`
+	ProviderRef          string   `json:"provider_ref"`
+	ToolRef              string   `json:"tool_ref"`
+	RAGRef               string   `json:"rag_ref"`
+	RiskLevel            string   `json:"risk_level"`
+	RequiresConfirmation bool     `json:"requires_confirmation"`
 }
 
 type savedWorkflowDraftEdgeDocument struct {
@@ -456,8 +461,13 @@ func savedWorkflowDraftNodesFromDocuments(documents []savedWorkflowDraftNodeDocu
 			NodeID:               document.NodeID,
 			NodeType:             document.NodeType,
 			Label:                document.Label,
+			InputSummary:         document.InputSummary,
+			OutputSummary:        document.OutputSummary,
 			InputContractRef:     document.InputContractRef,
 			OutputContractRef:    document.OutputContractRef,
+			InputContractFields:  cloneStringSlice(document.InputContractFields),
+			OutputContractFields: cloneStringSlice(document.OutputContractFields),
+			OutputMappingSummary: document.OutputMappingSummary,
 			ProviderRef:          document.ProviderRef,
 			ToolRef:              document.ToolRef,
 			RAGRef:               document.RAGRef,
@@ -475,8 +485,13 @@ func savedWorkflowDraftNodesToDocuments(nodes []SavedWorkflowDraftNode) []savedW
 			NodeID:               node.NodeID,
 			NodeType:             node.NodeType,
 			Label:                node.Label,
+			InputSummary:         node.InputSummary,
+			OutputSummary:        node.OutputSummary,
 			InputContractRef:     node.InputContractRef,
 			OutputContractRef:    node.OutputContractRef,
+			InputContractFields:  cloneStringSlice(node.InputContractFields),
+			OutputContractFields: cloneStringSlice(node.OutputContractFields),
+			OutputMappingSummary: node.OutputMappingSummary,
 			ProviderRef:          node.ProviderRef,
 			ToolRef:              node.ToolRef,
 			RAGRef:               node.RAGRef,

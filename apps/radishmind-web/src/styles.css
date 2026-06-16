@@ -1612,7 +1612,32 @@ h4 {
   min-width: 0;
 }
 
+.workflow-draft-node-attribute-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e3e8ef;
+}
+
+.workflow-draft-node-attribute-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.workflow-draft-node-attribute-field.wide {
+  grid-column: 1 / -1;
+}
+
 .workflow-draft-edit-field span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-draft-node-attribute-field span {
   color: #607086;
   font-size: 12px;
   font-weight: 700;
@@ -1621,6 +1646,8 @@ h4 {
 .workflow-draft-edit-field input,
 .workflow-draft-edit-field textarea,
 .workflow-draft-node-label-input,
+.workflow-draft-node-attribute-field input,
+.workflow-draft-node-attribute-field textarea,
 .workflow-draft-edge-condition-input {
   width: 100%;
   min-width: 0;
@@ -1634,12 +1661,14 @@ h4 {
 }
 
 .workflow-draft-edit-field input,
-.workflow-draft-node-label-input {
+.workflow-draft-node-label-input,
+.workflow-draft-node-attribute-field input {
   min-height: 38px;
   padding: 8px 10px;
 }
 
 .workflow-draft-edit-field textarea,
+.workflow-draft-node-attribute-field textarea,
 .workflow-draft-edge-condition-input {
   resize: vertical;
   min-height: 76px;
@@ -1649,6 +1678,8 @@ h4 {
 .workflow-draft-edit-field input:disabled,
 .workflow-draft-edit-field textarea:disabled,
 .workflow-draft-node-label-input:disabled,
+.workflow-draft-node-attribute-field input:disabled,
+.workflow-draft-node-attribute-field textarea:disabled,
 .workflow-draft-edge-condition-input:disabled {
   background: #f4f6f8;
   color: #6d7a8b;
@@ -2125,6 +2156,7 @@ dd {
   .workflow-draft-structure-controls,
   .workflow-draft-add-node-grid,
   .workflow-draft-node-grid,
+  .workflow-draft-node-attribute-grid,
   .workflow-draft-edge-grid,
   .workflow-draft-readiness-grid,
   .workflow-draft-risk-grid,

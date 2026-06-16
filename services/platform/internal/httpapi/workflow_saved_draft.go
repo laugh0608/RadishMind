@@ -98,8 +98,13 @@ type SavedWorkflowDraftNode struct {
 	NodeID               string
 	NodeType             string
 	Label                string
+	InputSummary         string
+	OutputSummary        string
 	InputContractRef     string
 	OutputContractRef    string
+	InputContractFields  []string
+	OutputContractFields []string
+	OutputMappingSummary string
 	ProviderRef          string
 	ToolRef              string
 	RAGRef               string
@@ -623,6 +628,11 @@ func savedWorkflowDraftPayloadTooLarge(payload SavedWorkflowDraftPayload) bool {
 		if len(node.Label) > maxSavedWorkflowDraftLabelLength {
 			return true
 		}
+		for _, text := range []string{node.InputSummary, node.OutputSummary, node.OutputMappingSummary} {
+			if len(text) > maxSavedWorkflowDraftTextLength {
+				return true
+			}
+		}
 	}
 	return false
 }
@@ -718,6 +728,18 @@ func validateSavedWorkflowDraftContracts(payload SavedWorkflowDraftPayload) []Sa
 			Field:    "output_contract",
 			Summary:  "Output contract must define a contract id and required fields.",
 		})
+	}
+	for _, node := range payload.Nodes {
+		if node.InputContractRef == "" || node.OutputContractRef == "" ||
+			len(node.InputContractFields) == 0 || len(node.OutputContractFields) == 0 {
+			findings = append(findings, SavedWorkflowDraftValidationFinding{
+				Code:       SavedWorkflowDraftFailureContractInvalid,
+				Severity:   SavedWorkflowDraftValidationBlocking,
+				Field:      "nodes.contract_fields",
+				Summary:    "Saved workflow draft nodes must define contract refs and explicit contract fields.",
+				EvidenceID: node.NodeID,
+			})
+		}
 	}
 	return findings
 }
@@ -911,8 +933,13 @@ func cloneSavedWorkflowDraftNodes(nodes []SavedWorkflowDraftNode) []SavedWorkflo
 		node.NodeID = strings.TrimSpace(node.NodeID)
 		node.NodeType = strings.TrimSpace(node.NodeType)
 		node.Label = strings.TrimSpace(node.Label)
+		node.InputSummary = strings.TrimSpace(node.InputSummary)
+		node.OutputSummary = strings.TrimSpace(node.OutputSummary)
 		node.InputContractRef = strings.TrimSpace(node.InputContractRef)
 		node.OutputContractRef = strings.TrimSpace(node.OutputContractRef)
+		node.InputContractFields = normalizedStringSet(node.InputContractFields)
+		node.OutputContractFields = normalizedStringSet(node.OutputContractFields)
+		node.OutputMappingSummary = strings.TrimSpace(node.OutputMappingSummary)
 		node.ProviderRef = strings.TrimSpace(node.ProviderRef)
 		node.ToolRef = strings.TrimSpace(node.ToolRef)
 		node.RAGRef = strings.TrimSpace(node.RAGRef)

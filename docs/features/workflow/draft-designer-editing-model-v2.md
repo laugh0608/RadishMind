@@ -45,9 +45,8 @@
 
 ## 后续方向
 
-完成本专题后，Draft Designer 已具备字段编辑、用户工作区创建、保存列表恢复和本地图结构编辑能力。下一批若继续 Workflow Builder 方向，应优先从以下方向择一推进：
+完成本专题后，Draft Designer 已具备字段编辑、用户工作区创建、保存列表恢复和本地图结构编辑能力；`Workflow Draft Node Attribute Editing Model v1` 已进一步补齐节点属性编辑、保存映射、恢复映射和下游 validation / plan 消费。下一批若继续 Workflow Builder 方向，应优先从以下方向择一推进：
 
-- 节点属性编辑模型：provider / profile、tool ref、RAG ref、input / output contract 字段的受控表单和保存映射。
 - 恢复后的 Review Handoff：把 active draft validation / plan / readiness 汇总为可交接审查记录。
 - durable store 独立准入：只在 repository contract smoke 或 repository adapter implementation plan 中选择一个方向推进。
 

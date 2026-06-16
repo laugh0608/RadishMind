@@ -50,10 +50,9 @@
 
 ## 下一批建议
 
-完成本专题后，`User Workspace Draft Creation v1` 已补从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口；`User Workspace Saved Draft List v1` 已补保存列表与恢复入口；`Workflow Draft Designer Editing Model v2` 已补节点新增 / 删除 / 重排、本地边重建和 active draft 下游预览。Workflow 方向的后续批次应从以下方向择一推进：
+完成本专题后，`User Workspace Draft Creation v1` 已补从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口；`User Workspace Saved Draft List v1` 已补保存列表与恢复入口；`Workflow Draft Designer Editing Model v2` 已补节点新增 / 删除 / 重排、本地边重建和 active draft 下游预览；`Workflow Draft Node Attribute Editing Model v1` 已补 provider / profile、tool ref、RAG ref、input / output contract 字段和 output mapping 的节点属性编辑。Workflow 方向的后续批次应从以下方向择一推进：
 
 - dev store 到未来 durable store 的迁移前置设计：先定义 store selector / repository adapter / schema migration 准入条件。
-- 节点属性编辑模型：provider / profile、tool ref、RAG ref、input / output contract 字段必须先补独立专题和任务卡。
 - 恢复后的 Review Handoff：把 active draft validation / plan / readiness 汇总为可交接审查记录。
 
 ## 停止线

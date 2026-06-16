@@ -37,6 +37,12 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		if saveResult.Draft.RequestAuditMetadata.RequestID != context.RequestID {
 			t.Fatalf("saved draft did not preserve audit metadata: %#v", saveResult.Draft.RequestAuditMetadata)
 		}
+		if len(saveResult.Draft.Nodes) < 2 ||
+			saveResult.Draft.Nodes[1].ProviderRef != "profile:radishmind-default-workflow" ||
+			!reflect.DeepEqual(saveResult.Draft.Nodes[1].OutputContractFields, []string{"answer_summary", "audit_refs", "candidate_actions", "risk_summary"}) ||
+			saveResult.Draft.Nodes[1].OutputMappingSummary == "" {
+			t.Fatalf("saved draft did not preserve node attributes: %#v", saveResult.Draft.Nodes)
+		}
 		if got := store.SideEffects(); got.DraftWriteCount != 1 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
 			t.Fatalf("unexpected side effects after save: %#v", got)
 		}
@@ -49,6 +55,9 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		if readResult.Draft.DraftID != saveResult.Draft.DraftID ||
 			readResult.CurrentDraftVersion != saveResult.Draft.DraftVersion {
 			t.Fatalf("read returned unexpected draft: %#v", readResult)
+		}
+		if !reflect.DeepEqual(readResult.Draft.Nodes[0].InputContractFields, []string{"application_ref", "diagnostic_summary", "selection_summary", "tenant_ref"}) {
+			t.Fatalf("read did not preserve normalized node contract fields: %#v", readResult.Draft.Nodes[0])
 		}
 		if got := store.SideEffects(); got.DraftWriteCount != 1 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
 			t.Fatalf("read should not add side effects: %#v", got)
@@ -464,29 +473,44 @@ func validSavedWorkflowDraftPayload() SavedWorkflowDraftPayload {
 		Description:           "Saved draft for reviewable workflow design.",
 		Nodes: []SavedWorkflowDraftNode{
 			{
-				NodeID:            "node_context",
-				NodeType:          "prompt",
-				Label:             "Collect context",
-				InputContractRef:  "contract_input",
-				OutputContractRef: "contract_model_input",
-				RiskLevel:         "low",
+				NodeID:               "node_context",
+				NodeType:             "prompt",
+				Label:                "Collect context",
+				InputSummary:         "Tenant, application, selection summary, and diagnostic summary.",
+				OutputSummary:        "Sanitized prompt context for advisory reasoning.",
+				InputContractRef:     "contract_input",
+				OutputContractRef:    "contract_model_input",
+				InputContractFields:  []string{"tenant_ref", "application_ref", "selection_summary", "diagnostic_summary"},
+				OutputContractFields: []string{"prompt_context"},
+				OutputMappingSummary: "Map sanitized workspace context into model prompt input.",
+				RiskLevel:            "low",
 			},
 			{
-				NodeID:            "node_model",
-				NodeType:          "llm",
-				Label:             "Draft advisory response",
-				InputContractRef:  "contract_model_input",
-				OutputContractRef: "contract_output",
-				ProviderRef:       "profile:radishmind-default-workflow",
-				RiskLevel:         "low",
+				NodeID:               "node_model",
+				NodeType:             "llm",
+				Label:                "Draft advisory response",
+				InputSummary:         "Prompt context, answer contract, and provider profile reference.",
+				OutputSummary:        "Advisory answer, candidate actions, risk summary, and audit refs.",
+				InputContractRef:     "contract_model_input",
+				OutputContractRef:    "contract_output",
+				InputContractFields:  []string{"prompt_context", "answer_contract", "provider_profile_ref"},
+				OutputContractFields: []string{"answer_summary", "candidate_actions", "risk_summary", "audit_refs"},
+				OutputMappingSummary: "Map model response into reviewable advisory output fields.",
+				ProviderRef:          "profile:radishmind-default-workflow",
+				RiskLevel:            "low",
 			},
 			{
-				NodeID:            "node_output",
-				NodeType:          "output",
-				Label:             "Return reviewable draft output",
-				InputContractRef:  "contract_output",
-				OutputContractRef: "contract_output",
-				RiskLevel:         "low",
+				NodeID:               "node_output",
+				NodeType:             "output",
+				Label:                "Return reviewable draft output",
+				InputSummary:         "Answer summary, risk summary, audit refs, and review context.",
+				OutputSummary:        "Read-only advisory output for workspace review.",
+				InputContractRef:     "contract_output",
+				OutputContractRef:    "contract_output",
+				InputContractFields:  []string{"answer_summary", "risk_summary", "audit_refs"},
+				OutputContractFields: []string{"answer_summary", "risk_summary", "audit_refs"},
+				OutputMappingSummary: "Map final advisory fields into the workspace review surface.",
+				RiskLevel:            "low",
 			},
 		},
 		Edges: []SavedWorkflowDraftEdge{

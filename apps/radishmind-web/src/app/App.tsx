@@ -484,12 +484,55 @@ export function App() {
   };
 
   const handleWorkflowDraftNodeLabelChange = (nodeId: string, label: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { label });
+  };
+
+  const handleWorkflowDraftNodeInputSummaryChange = (nodeId: string, inputSummary: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { inputSummary });
+  };
+
+  const handleWorkflowDraftNodeOutputSummaryChange = (nodeId: string, outputSummary: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { outputSummary });
+  };
+
+  const handleWorkflowDraftNodeProviderRefChange = (nodeId: string, providerRef: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { providerRef });
+  };
+
+  const handleWorkflowDraftNodeToolRefChange = (nodeId: string, toolRef: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { toolRef });
+  };
+
+  const handleWorkflowDraftNodeRagRefChange = (nodeId: string, ragRef: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { ragRef });
+  };
+
+  const handleWorkflowDraftNodeInputFieldsChange = (nodeId: string, inputFieldsText: string) => {
+    handleWorkflowDraftNodePatch(nodeId, {
+      inputContractFields: parseWorkflowDraftContractFields(inputFieldsText),
+    });
+  };
+
+  const handleWorkflowDraftNodeOutputFieldsChange = (nodeId: string, outputFieldsText: string) => {
+    handleWorkflowDraftNodePatch(nodeId, {
+      outputContractFields: parseWorkflowDraftContractFields(outputFieldsText),
+    });
+  };
+
+  const handleWorkflowDraftNodeOutputMappingChange = (nodeId: string, outputMappingSummary: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { outputMappingSummary });
+  };
+
+  const handleWorkflowDraftNodePatch = (
+    nodeId: string,
+    patch: Partial<WorkflowDraftDesignerNode>,
+  ) => {
     setEditableWorkflowDraft((draft) => {
       const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
       return {
         ...currentDraft,
         localOnlyInteraction: "local_edit",
-        nodes: currentDraft.nodes.map((node) => (node.nodeId === nodeId ? { ...node, label } : node)),
+        nodes: currentDraft.nodes.map((node) => (node.nodeId === nodeId ? { ...node, ...patch } : node)),
       };
     });
     markWorkflowDraftLocallyEdited();
@@ -1399,6 +1442,14 @@ export function App() {
             onUpdateDraftLabel={handleWorkflowDraftLabelChange}
             onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
             onUpdateNodeLabel={handleWorkflowDraftNodeLabelChange}
+            onUpdateNodeInputSummary={handleWorkflowDraftNodeInputSummaryChange}
+            onUpdateNodeOutputSummary={handleWorkflowDraftNodeOutputSummaryChange}
+            onUpdateNodeProviderRef={handleWorkflowDraftNodeProviderRefChange}
+            onUpdateNodeToolRef={handleWorkflowDraftNodeToolRefChange}
+            onUpdateNodeRagRef={handleWorkflowDraftNodeRagRefChange}
+            onUpdateNodeInputFields={handleWorkflowDraftNodeInputFieldsChange}
+            onUpdateNodeOutputFields={handleWorkflowDraftNodeOutputFieldsChange}
+            onUpdateNodeOutputMapping={handleWorkflowDraftNodeOutputMappingChange}
             onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}
             onAddNode={handleWorkflowDraftAddNode}
             onMoveNode={handleWorkflowDraftMoveNode}
@@ -2818,6 +2869,14 @@ function WorkflowDraftDesignerPanel({
   onUpdateDraftLabel,
   onUpdateDraftSummary,
   onUpdateNodeLabel,
+  onUpdateNodeInputSummary,
+  onUpdateNodeOutputSummary,
+  onUpdateNodeProviderRef,
+  onUpdateNodeToolRef,
+  onUpdateNodeRagRef,
+  onUpdateNodeInputFields,
+  onUpdateNodeOutputFields,
+  onUpdateNodeOutputMapping,
   onUpdateEdgeCondition,
   onAddNode,
   onMoveNode,
@@ -2836,6 +2895,14 @@ function WorkflowDraftDesignerPanel({
   onUpdateDraftLabel: (label: string) => void;
   onUpdateDraftSummary: (summary: string) => void;
   onUpdateNodeLabel: (nodeId: string, label: string) => void;
+  onUpdateNodeInputSummary: (nodeId: string, inputSummary: string) => void;
+  onUpdateNodeOutputSummary: (nodeId: string, outputSummary: string) => void;
+  onUpdateNodeProviderRef: (nodeId: string, providerRef: string) => void;
+  onUpdateNodeToolRef: (nodeId: string, toolRef: string) => void;
+  onUpdateNodeRagRef: (nodeId: string, ragRef: string) => void;
+  onUpdateNodeInputFields: (nodeId: string, inputFieldsText: string) => void;
+  onUpdateNodeOutputFields: (nodeId: string, outputFieldsText: string) => void;
+  onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
   onUpdateEdgeCondition: (edgeId: string, conditionSummary: string) => void;
   onAddNode: (nodeType: WorkflowDraftDesignerNode["nodeType"]) => void;
   onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
@@ -3001,6 +3068,14 @@ function WorkflowDraftDesignerPanel({
             canDelete={canRemoveWorkflowDraftNode(selectedDraft, node.nodeId)}
             editingDisabled={operationPending}
             onUpdateLabel={onUpdateNodeLabel}
+            onUpdateInputSummary={onUpdateNodeInputSummary}
+            onUpdateOutputSummary={onUpdateNodeOutputSummary}
+            onUpdateProviderRef={onUpdateNodeProviderRef}
+            onUpdateToolRef={onUpdateNodeToolRef}
+            onUpdateRagRef={onUpdateNodeRagRef}
+            onUpdateInputFields={onUpdateNodeInputFields}
+            onUpdateOutputFields={onUpdateNodeOutputFields}
+            onUpdateOutputMapping={onUpdateNodeOutputMapping}
             onMoveNode={onMoveNode}
             onRemoveNode={onRemoveNode}
           />
@@ -3052,7 +3127,11 @@ function workflowSavedDraftConsumerTone(status: WorkflowSavedDraftConsumerState[
 function cloneWorkflowDraftForEditing(draft: WorkflowDraftDesignerDraft): WorkflowDraftDesignerDraft {
   return {
     ...draft,
-    nodes: draft.nodes.map((node) => ({ ...node })),
+    nodes: draft.nodes.map((node) => ({
+      ...node,
+      inputContractFields: [...node.inputContractFields],
+      outputContractFields: [...node.outputContractFields],
+    })),
     edges: draft.edges.map((edge) => ({ ...edge })),
     readiness: draft.readiness.map((readiness) => ({ ...readiness })),
     risks: draft.risks.map((risk) => ({ ...risk })),
@@ -3131,10 +3210,30 @@ function buildLocalWorkflowDraftNode(
     readiness: requiresConfirmation ? "review_required" : "ready",
     inputSummary: workflowDraftNodeInputSummary(option),
     outputSummary: workflowDraftNodeOutputSummary(option),
+    providerRef: workflowDraftNodeProviderRef(option.nodeType),
+    toolRef: option.nodeType === "http_tool" ? "tool:workflow-preview-readonly" : "",
+    ragRef: "",
+    inputContractFields: workflowDraftContractFieldsForNode(option.nodeType, "input"),
+    outputContractFields: workflowDraftContractFieldsForNode(option.nodeType, "output"),
+    outputMappingSummary: workflowDraftNodeOutputMappingSummary(option),
     riskLevel: requiresConfirmation ? "medium" : "low",
     requiresConfirmation,
     previewOnlyReason: "Local structure edit only; workflow execution remains blocked.",
   };
+}
+
+function parseWorkflowDraftContractFields(fieldsText: string): string[] {
+  const seen = new Set<string>();
+  return fieldsText
+    .split(/[\n,]+/)
+    .map((field) => workflowDraftSafeKey(field, 80))
+    .filter((field) => {
+      if (!field || seen.has(field)) {
+        return false;
+      }
+      seen.add(field);
+      return true;
+    });
 }
 
 function workflowDraftWithStructureEdits(
@@ -3374,6 +3473,66 @@ function workflowDraftNodeOutputSummary(option: WorkflowDraftNodeTypeOption): st
   return "Read-only advisory output or sanitized audit projection.";
 }
 
+function workflowDraftNodeProviderRef(nodeType: WorkflowDraftDesignerNode["nodeType"]): string {
+  if (nodeType === "llm") {
+    return "profile:radishmind-default-workflow";
+  }
+  if (nodeType === "condition") {
+    return "policy:confirmation-gated";
+  }
+  return "";
+}
+
+function workflowDraftContractFieldsForNode(
+  nodeType: WorkflowDraftDesignerNode["nodeType"],
+  contractKind: "input" | "output",
+): string[] {
+  if (contractKind === "input") {
+    if (nodeType === "prompt") {
+      return ["tenant_ref", "application_ref", "selection_summary", "diagnostic_summary"];
+    }
+    if (nodeType === "llm") {
+      return ["prompt_context", "answer_contract", "provider_profile_ref"];
+    }
+    if (nodeType === "condition") {
+      return ["candidate_action", "risk_level", "confirmation_policy"];
+    }
+    if (nodeType === "http_tool") {
+      return ["candidate_action", "audit_refs"];
+    }
+    return ["answer_summary", "risk_summary", "audit_refs"];
+  }
+  if (nodeType === "prompt") {
+    return ["prompt_context"];
+  }
+  if (nodeType === "llm") {
+    return ["answer_summary", "candidate_actions", "risk_summary", "audit_refs"];
+  }
+  if (nodeType === "condition") {
+    return ["policy_result", "requires_confirmation"];
+  }
+  if (nodeType === "http_tool") {
+    return ["preview_action_metadata", "audit_refs"];
+  }
+  return ["answer_summary", "risk_summary", "audit_refs"];
+}
+
+function workflowDraftNodeOutputMappingSummary(option: WorkflowDraftNodeTypeOption): string {
+  if (option.nodeType === "llm") {
+    return "Map advisory answer, candidate actions, risk summary, and audit refs into reviewable output fields.";
+  }
+  if (option.nodeType === "condition") {
+    return "Map policy result into review-required branch metadata without unlocking execution.";
+  }
+  if (option.nodeType === "http_tool") {
+    return "Map preview-only action metadata into audit-visible candidate action fields.";
+  }
+  if (option.nodeType === "output") {
+    return "Map advisory fields into the read-only workspace review surface.";
+  }
+  return "Map sanitized context fields into the next draft node contract.";
+}
+
 function hasWorkflowDraftLane(
   nodes: WorkflowDraftDesignerNode[],
   lane: WorkflowDraftDesignerNode["lane"],
@@ -3425,6 +3584,14 @@ function WorkflowDraftNodeCard({
   canDelete,
   editingDisabled,
   onUpdateLabel,
+  onUpdateInputSummary,
+  onUpdateOutputSummary,
+  onUpdateProviderRef,
+  onUpdateToolRef,
+  onUpdateRagRef,
+  onUpdateInputFields,
+  onUpdateOutputFields,
+  onUpdateOutputMapping,
   onMoveNode,
   onRemoveNode,
 }: {
@@ -3434,6 +3601,14 @@ function WorkflowDraftNodeCard({
   canDelete: boolean;
   editingDisabled: boolean;
   onUpdateLabel: (nodeId: string, label: string) => void;
+  onUpdateInputSummary: (nodeId: string, inputSummary: string) => void;
+  onUpdateOutputSummary: (nodeId: string, outputSummary: string) => void;
+  onUpdateProviderRef: (nodeId: string, providerRef: string) => void;
+  onUpdateToolRef: (nodeId: string, toolRef: string) => void;
+  onUpdateRagRef: (nodeId: string, ragRef: string) => void;
+  onUpdateInputFields: (nodeId: string, inputFieldsText: string) => void;
+  onUpdateOutputFields: (nodeId: string, outputFieldsText: string) => void;
+  onUpdateOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
   onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
   onRemoveNode: (nodeId: string) => void;
 }) {
@@ -3499,6 +3674,88 @@ function WorkflowDraftNodeCard({
           <dd>{node.previewOnlyReason}</dd>
         </div>
       </dl>
+      <div className="workflow-draft-node-attribute-grid" aria-label={`Node attributes ${node.nodeId}`}>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Provider ref</span>
+          <input
+            type="text"
+            value={node.providerRef}
+            maxLength={240}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateProviderRef(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Tool ref</span>
+          <input
+            type="text"
+            value={node.toolRef}
+            maxLength={240}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateToolRef(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>RAG ref</span>
+          <input
+            type="text"
+            value={node.ragRef}
+            maxLength={240}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateRagRef(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field wide">
+          <span>Input summary</span>
+          <textarea
+            value={node.inputSummary}
+            maxLength={4000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateInputSummary(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field wide">
+          <span>Output summary</span>
+          <textarea
+            value={node.outputSummary}
+            maxLength={4000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateOutputSummary(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Input fields</span>
+          <textarea
+            value={node.inputContractFields.join(", ")}
+            maxLength={1000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateInputFields(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Output fields</span>
+          <textarea
+            value={node.outputContractFields.join(", ")}
+            maxLength={1000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateOutputFields(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field wide">
+          <span>Output mapping</span>
+          <textarea
+            value={node.outputMappingSummary}
+            maxLength={4000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateOutputMapping(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+      </div>
     </article>
   );
 }
