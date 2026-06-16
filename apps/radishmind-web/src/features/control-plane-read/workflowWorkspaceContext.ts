@@ -234,6 +234,8 @@ export function buildWorkflowWorkspaceContextViewModel(
     workflowWorkspaceReview,
     workflowSurfaceOverview,
     workflowScenarioInspector,
+    workflowDraftValidationInspector,
+    workflowExecutionPlanPreview,
     workflowRuntimeReadinessInspector,
     workflowBlockedActionPreview,
     workflowConfirmationPlaceholder,

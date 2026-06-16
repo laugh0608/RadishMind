@@ -1,5 +1,7 @@
 import type { WorkflowBlockedActionPreviewViewModel } from "./workflowBlockedActionPreview";
 import type { WorkflowConfirmationPlaceholderViewModel } from "./workflowConfirmationPlaceholder";
+import type { WorkflowDraftValidationInspectorViewModel } from "./workflowDraftValidationInspector";
+import type { WorkflowExecutionPlanPreviewViewModel } from "./workflowExecutionPlanPreview";
 import type {
   WorkflowRuntimeReadinessBlocker,
   WorkflowRuntimeReadinessInspectorViewModel,
@@ -34,6 +36,7 @@ export type WorkflowReviewHandoffFinding = {
   sourceSurface:
     | "scenario"
     | "review"
+    | "validation"
     | "plan"
     | "readiness"
     | "blocked_action"
@@ -48,7 +51,16 @@ export type WorkflowReviewHandoffFinding = {
 export type WorkflowReviewHandoffEvidence = {
   evidenceId: string;
   label: string;
-  sourceSurface: "home" | "review" | "scenario" | "overview" | "blocked_action" | "confirmation";
+  sourceSurface:
+    | "home"
+    | "review"
+    | "scenario"
+    | "overview"
+    | "validation"
+    | "plan"
+    | "readiness"
+    | "blocked_action"
+    | "confirmation";
   routeOrPageId: string;
   requestId: string;
   auditRef: string;
@@ -73,11 +85,44 @@ export type WorkflowReviewHandoffBoundaryLock = {
   summary: string;
 };
 
+export type WorkflowReviewHandoffActiveDraftReviewSection = {
+  sectionId: "active_draft_validation" | "active_draft_execution_plan" | "active_draft_runtime_readiness";
+  label: string;
+  sourceSurface: "validation" | "plan" | "readiness";
+  status: WorkflowReviewHandoffStatus;
+  primaryRef: string;
+  requestId: string;
+  auditRef: string;
+  blockerCount: number;
+  summary: string;
+  reviewerQuestion: string;
+  evidenceRefs: string[];
+};
+
+export type WorkflowReviewHandoffActiveDraftReviewRecord = {
+  recordId: "active_draft_review_record";
+  recordMode: "active_draft_advisory_only";
+  draftId: string;
+  validationStatus: WorkflowReviewHandoffStatus;
+  planPreviewStatus: WorkflowReviewHandoffStatus;
+  runtimeReadinessStatus: "blocked";
+  sections: WorkflowReviewHandoffActiveDraftReviewSection[];
+  canRenderActiveDraftReviewRecord: boolean;
+  canPersistRecord: false;
+  canExportRecord: false;
+  canSendRecord: false;
+  canStartRuntime: false;
+  canSubmitConfirmationDecision: false;
+  canWriteBusinessTruth: false;
+};
+
 export type WorkflowReviewHandoffSource = {
   workflowUserWorkspaceHome: WorkflowUserWorkspaceHomeViewModel;
   workflowWorkspaceReview: WorkflowWorkspaceReviewViewModel;
   workflowSurfaceOverview: WorkflowSurfaceOverviewViewModel;
   workflowScenarioInspector: WorkflowScenarioInspectorViewModel;
+  workflowDraftValidationInspector: WorkflowDraftValidationInspectorViewModel;
+  workflowExecutionPlanPreview: WorkflowExecutionPlanPreviewViewModel;
   workflowRuntimeReadinessInspector: WorkflowRuntimeReadinessInspectorViewModel;
   workflowBlockedActionPreview: WorkflowBlockedActionPreviewViewModel;
   workflowConfirmationPlaceholder: WorkflowConfirmationPlaceholderViewModel;
@@ -97,6 +142,7 @@ export type WorkflowReviewHandoffViewModel = {
   requestId: string;
   auditRef: string;
   handoffNarrative: string;
+  activeDraftReviewRecord: WorkflowReviewHandoffActiveDraftReviewRecord;
   recipients: WorkflowReviewHandoffRecipient[];
   keyFindings: WorkflowReviewHandoffFinding[];
   evidenceChecklist: WorkflowReviewHandoffEvidence[];
@@ -122,6 +168,7 @@ export type WorkflowReviewHandoffViewModel = {
 export function buildWorkflowReviewHandoffViewModel(
   source: WorkflowReviewHandoffSource,
 ): WorkflowReviewHandoffViewModel {
+  const activeDraftReviewRecord = buildActiveDraftReviewRecord(source);
   const recipients = buildRecipients(source);
   const keyFindings = buildKeyFindings(source);
   const evidenceChecklist = buildEvidenceChecklist(source);
@@ -135,6 +182,8 @@ export function buildWorkflowReviewHandoffViewModel(
       source.workflowWorkspaceReview.pageId,
       source.workflowSurfaceOverview.pageId,
       source.workflowScenarioInspector.pageId,
+      source.workflowDraftValidationInspector.pageId,
+      source.workflowExecutionPlanPreview.pageId,
       source.workflowRuntimeReadinessInspector.pageId,
       source.workflowBlockedActionPreview.pageId,
       source.workflowConfirmationPlaceholder.pageId,
@@ -149,7 +198,8 @@ export function buildWorkflowReviewHandoffViewModel(
     scenarioId: source.workflowWorkspaceReview.scenarioId,
     requestId: source.workflowWorkspaceReview.requestId,
     auditRef: source.workflowWorkspaceReview.auditRef,
-    handoffNarrative: buildHandoffNarrative(source, decisionBlockers, boundaryLocks),
+    handoffNarrative: buildHandoffNarrative(source, activeDraftReviewRecord, decisionBlockers, boundaryLocks),
+    activeDraftReviewRecord,
     recipients,
     keyFindings,
     evidenceChecklist,
@@ -160,12 +210,15 @@ export function buildWorkflowReviewHandoffViewModel(
       source.workflowWorkspaceReview.canRenderWorkspaceReview &&
       source.workflowSurfaceOverview.canRenderSurfaceOverview &&
       source.workflowScenarioInspector.canRenderScenarioInspector &&
+      source.workflowDraftValidationInspector.canRenderDraftValidationInspector &&
+      source.workflowExecutionPlanPreview.canRenderExecutionPlanPreview &&
       source.workflowRuntimeReadinessInspector.canRenderRuntimeReadinessInspector &&
       source.workflowBlockedActionPreview.canRenderBlockedActionPreview &&
       source.workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder &&
+      activeDraftReviewRecord.canRenderActiveDraftReviewRecord &&
       recipients.length === 4 &&
       keyFindings.length >= 7 &&
-      evidenceChecklist.length >= 8 &&
+      evidenceChecklist.length >= 11 &&
       decisionBlockers.length >= 6 &&
       boundaryLocks.length >= 8,
     canInspectHandoffLocally: true,
@@ -191,10 +244,117 @@ function buildHandoffPackageId(source: WorkflowReviewHandoffSource): string {
 
 function buildHandoffNarrative(
   source: WorkflowReviewHandoffSource,
+  activeDraftReviewRecord: WorkflowReviewHandoffActiveDraftReviewRecord,
   decisionBlockers: WorkflowReviewHandoffDecisionBlocker[],
   boundaryLocks: WorkflowReviewHandoffBoundaryLock[],
 ): string {
-  return `${source.workflowScenarioInspector.selectedScenario.label} is packaged for human review with ${source.workflowWorkspaceReview.reviewStages.length} review stages, ${decisionBlockers.length} decision blockers, ${source.workflowUserWorkspaceHome.routeEvidence.length} route evidence entries, and ${boundaryLocks.length} locked boundaries.`;
+  return `${source.workflowScenarioInspector.selectedScenario.label} is packaged for human review with ${activeDraftReviewRecord.sections.length} active draft review sections, ${source.workflowWorkspaceReview.reviewStages.length} review stages, ${decisionBlockers.length} decision blockers, ${source.workflowUserWorkspaceHome.routeEvidence.length} route evidence entries, and ${boundaryLocks.length} locked boundaries.`;
+}
+
+function buildActiveDraftReviewRecord(
+  source: WorkflowReviewHandoffSource,
+): WorkflowReviewHandoffActiveDraftReviewRecord {
+  const sections = buildActiveDraftReviewSections(source);
+  const validationStatus = validationStatusToHandoffStatus(
+    source.workflowDraftValidationInspector.validationStatus,
+  );
+  const planPreviewStatus = source.workflowExecutionPlanPreview.canRenderExecutionPlanPreview
+    ? "review_required"
+    : "blocked";
+  const draftIdsMatch =
+    source.workflowWorkspaceReview.draftId === source.workflowDraftValidationInspector.inspectedDraftId &&
+    source.workflowDraftValidationInspector.inspectedDraftId ===
+      source.workflowExecutionPlanPreview.selectedDraftId &&
+    source.workflowExecutionPlanPreview.selectedDraftId ===
+      source.workflowRuntimeReadinessInspector.selectedDraftId;
+
+  return {
+    recordId: "active_draft_review_record",
+    recordMode: "active_draft_advisory_only",
+    draftId: source.workflowWorkspaceReview.draftId,
+    validationStatus,
+    planPreviewStatus,
+    runtimeReadinessStatus: "blocked",
+    sections,
+    canRenderActiveDraftReviewRecord:
+      draftIdsMatch &&
+      source.workflowDraftValidationInspector.canRenderDraftValidationInspector &&
+      source.workflowExecutionPlanPreview.canRenderExecutionPlanPreview &&
+      source.workflowRuntimeReadinessInspector.canRenderRuntimeReadinessInspector &&
+      sections.length === 3 &&
+      sections.every((section) => section.requestId.length > 0 && section.auditRef.length > 0),
+    canPersistRecord: false,
+    canExportRecord: false,
+    canSendRecord: false,
+    canStartRuntime: false,
+    canSubmitConfirmationDecision: false,
+    canWriteBusinessTruth: false,
+  };
+}
+
+function buildActiveDraftReviewSections(
+  source: WorkflowReviewHandoffSource,
+): WorkflowReviewHandoffActiveDraftReviewSection[] {
+  const validationInspector = source.workflowDraftValidationInspector;
+  const executionPlanPreview = source.workflowExecutionPlanPreview;
+  const runtimeReadinessInspector = source.workflowRuntimeReadinessInspector;
+  const validationBlockedCount =
+    validationInspector.structuralChecks.filter((check) => check.status === "blocked").length +
+    validationInspector.contractChecks.filter((check) => check.status !== "passed").length +
+    validationInspector.blockedCapabilityChecks.length;
+
+  return [
+    {
+      sectionId: "active_draft_validation",
+      label: "Active draft validation",
+      sourceSurface: "validation",
+      status: validationStatusToHandoffStatus(validationInspector.validationStatus),
+      primaryRef: validationInspector.inspectedDraftId,
+      requestId: validationInspector.requestId,
+      auditRef: validationInspector.auditRef,
+      blockerCount: validationBlockedCount,
+      summary: `Validation inspects ${validationInspector.structuralChecks.length} structural checks, ${validationInspector.contractChecks.length} contract checks, and ${validationInspector.blockedCapabilityChecks.length} blocked capability checks for the active draft.`,
+      reviewerQuestion: "Which structural, contract, or blocked capability findings need review before any future implementation gate?",
+      evidenceRefs: [
+        ...validationInspector.structuralChecks.map((check) => check.checkId),
+        ...validationInspector.contractChecks.map((check) => check.checkId),
+        ...validationInspector.blockedCapabilityChecks.map((check) => check.checkId),
+      ].slice(0, 8),
+    },
+    {
+      sectionId: "active_draft_execution_plan",
+      label: "Active draft execution plan preview",
+      sourceSurface: "plan",
+      status: executionPlanPreview.canRenderExecutionPlanPreview ? "review_required" : "blocked",
+      primaryRef: executionPlanPreview.selectedDraftId,
+      requestId: executionPlanPreview.requestId,
+      auditRef: executionPlanPreview.auditRef,
+      blockerCount: executionPlanPreview.blockedPlanReasons.length,
+      summary: `Plan preview orders ${executionPlanPreview.stageOrder.length} offline stages, ${executionPlanPreview.providerProfileRequirements.length} provider requirements, and ${executionPlanPreview.confirmationAuditGates.length} gates without creating an executable plan.`,
+      reviewerQuestion: "Does the previewed stage order explain future execution intent while keeping runtime and writeback blocked?",
+      evidenceRefs: [
+        ...executionPlanPreview.stageOrder.map((stage) => stage.stageId),
+        ...executionPlanPreview.providerProfileRequirements.map((requirement) => requirement.requirementId),
+        ...executionPlanPreview.confirmationAuditGates.map((gate) => gate.gateId),
+      ].slice(0, 8),
+    },
+    {
+      sectionId: "active_draft_runtime_readiness",
+      label: "Active draft runtime readiness",
+      sourceSurface: "readiness",
+      status: "blocked",
+      primaryRef: runtimeReadinessInspector.selectedDraftId,
+      requestId: runtimeReadinessInspector.requestId,
+      auditRef: runtimeReadinessInspector.auditRef,
+      blockerCount: runtimeReadinessInspector.readinessBlockers.length,
+      summary: `Runtime readiness keeps ${runtimeReadinessInspector.runtimePrerequisites.length} prerequisites and ${runtimeReadinessInspector.implementationGates.length} implementation gates visible while runtime start stays blocked.`,
+      reviewerQuestion: "Which executor, store, auth, confirmation, writeback, or replay prerequisites still block runtime readiness?",
+      evidenceRefs: [
+        ...runtimeReadinessInspector.runtimePrerequisites.map((prerequisite) => prerequisite.prerequisiteId),
+        ...runtimeReadinessInspector.implementationGates.map((gate) => gate.gateId),
+      ].slice(0, 8),
+    },
+  ];
 }
 
 function buildRecipients(source: WorkflowReviewHandoffSource): WorkflowReviewHandoffRecipient[] {
@@ -270,19 +430,19 @@ function buildKeyFindings(source: WorkflowReviewHandoffSource): WorkflowReviewHa
     {
       findingId: "draft_validation",
       label: "Draft validation",
-      sourceSurface: "review",
-      status: validationStage.status,
-      summary: validationStage.summary,
-      evidenceRef: validationStage.primaryRef,
+      sourceSurface: "validation",
+      status: validationStatusToHandoffStatus(source.workflowDraftValidationInspector.validationStatus),
+      summary: `Active draft validation is ${source.workflowDraftValidationInspector.validationStatus} with ${source.workflowDraftValidationInspector.blockedCapabilityChecks.length} blocked capability checks.`,
+      evidenceRef: source.workflowDraftValidationInspector.inspectedDraftId,
       humanReviewQuestion: validationStage.reviewQuestion,
     },
     {
       findingId: "execution_plan_preview",
       label: "Execution plan preview",
       sourceSurface: "plan",
-      status: planStage.status,
-      summary: planStage.summary,
-      evidenceRef: source.workflowSurfaceOverview.selectedDraftId,
+      status: source.workflowExecutionPlanPreview.canRenderExecutionPlanPreview ? "review_required" : "blocked",
+      summary: `Active draft plan preview has ${source.workflowExecutionPlanPreview.stageOrder.length} stages, ${source.workflowExecutionPlanPreview.providerProfileRequirements.length} provider requirements, and ${source.workflowExecutionPlanPreview.blockedPlanReasons.length} blocked reasons.`,
+      evidenceRef: source.workflowExecutionPlanPreview.selectedDraftId,
       humanReviewQuestion: planStage.reviewQuestion,
     },
     {
@@ -350,6 +510,36 @@ function buildEvidenceChecklist(source: WorkflowReviewHandoffSource): WorkflowRe
       auditRef: source.workflowScenarioInspector.relationMap[0]?.auditRef ?? source.workflowScenarioInspector.scenarioMode,
       status: source.workflowScenarioInspector.canRenderScenarioInspector ? "offline_only" : "blocked",
       summary: "Scenario inspector supplies the advisory intent, input contract, expected output, and blocked reasons.",
+    },
+    {
+      evidenceId: "active_draft_validation_inspector",
+      label: "Active draft validation inspector",
+      sourceSurface: "validation",
+      routeOrPageId: source.workflowDraftValidationInspector.draftRouteId,
+      requestId: source.workflowDraftValidationInspector.requestId,
+      auditRef: source.workflowDraftValidationInspector.auditRef,
+      status: validationStatusToHandoffStatus(source.workflowDraftValidationInspector.validationStatus),
+      summary: "Validation inspector supplies active draft structural, contract, and blocked capability findings.",
+    },
+    {
+      evidenceId: "active_draft_execution_plan_preview",
+      label: "Active draft execution plan preview",
+      sourceSurface: "plan",
+      routeOrPageId: source.workflowExecutionPlanPreview.draftRouteId,
+      requestId: source.workflowExecutionPlanPreview.requestId,
+      auditRef: source.workflowExecutionPlanPreview.auditRef,
+      status: source.workflowExecutionPlanPreview.canRenderExecutionPlanPreview ? "review_required" : "blocked",
+      summary: "Execution plan preview supplies active draft stage order, provider requirements, gates, and blocked reasons.",
+    },
+    {
+      evidenceId: "active_draft_runtime_readiness_inspector",
+      label: "Active draft runtime readiness inspector",
+      sourceSurface: "readiness",
+      routeOrPageId: source.workflowRuntimeReadinessInspector.readinessRouteId,
+      requestId: source.workflowRuntimeReadinessInspector.requestId,
+      auditRef: source.workflowRuntimeReadinessInspector.auditRef,
+      status: "blocked",
+      summary: "Runtime readiness inspector supplies active draft prerequisites, blockers, and implementation gates.",
     },
     {
       evidenceId: "blocked_action_preview",
@@ -462,4 +652,16 @@ function requireStage(
   stageId: string,
 ): WorkflowWorkspaceReviewStage {
   return stages.find((stage) => stage.stageId === stageId) ?? stages[0]!;
+}
+
+function validationStatusToHandoffStatus(
+  status: WorkflowDraftValidationInspectorViewModel["validationStatus"],
+): WorkflowReviewHandoffStatus {
+  if (status === "passed") {
+    return "ready";
+  }
+  if (status === "blocked") {
+    return "blocked";
+  }
+  return "review_required";
 }

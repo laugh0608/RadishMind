@@ -20,6 +20,7 @@
 - saved draft restore 会把节点属性恢复到 Draft Designer 节点模型，读取失败仍按既有 fail-closed 语义处理。
 - validation inspector 优先消费显式 contract fields，再结合 summary / output mapping 做补充识别。
 - execution plan preview 优先消费节点自己的 provider / tool / policy ref，再落到 draft 默认 provider profile。
+- `Workflow Review Handoff Active Draft v1` 已消费上述 active draft validation / plan / readiness 派生结果，生成 advisory-only active draft review record。
 - platform dev-only saved draft schema 扩展节点级 `input_summary`、`output_summary`、`input_contract_fields`、`output_contract_fields` 和 `output_mapping_summary`，Go save / read / validate tests 覆盖节点属性保留。
 
 ## 数据边界
@@ -48,9 +49,8 @@
 
 ## 后续方向
 
-完成本专题后，Draft Designer 已具备字段编辑、用户工作区创建、saved draft list / restore、本地图结构编辑和节点属性编辑。下一批若继续 Workflow Builder 方向，应优先从以下方向择一推进：
+完成本专题后，Draft Designer 已具备字段编辑、用户工作区创建、saved draft list / restore、本地图结构编辑和节点属性编辑；`Workflow Review Handoff Active Draft v1` 已补恢复后的审查交接记录。下一批若继续 Workflow Builder 方向，应优先从以下方向择一推进：
 
-- 恢复后的 Review Handoff：把 active draft validation / plan / readiness 汇总为可交接审查记录。
 - durable store 独立准入：只在 repository contract smoke 或 repository adapter implementation plan 中选择一个方向推进。
 - 节点属性后续增强：仅在新增明确 schema、参数边界或执行前置评审时推进，不直接扩成 executor 配置。
 

@@ -17,6 +17,7 @@
 - 当前已接入 `User Workspace Draft Creation v1`，可从 Workspace Home 或 workflow definitions 派生本地草案并进入 Draft Designer。
 - 当前已接入 `Workflow Draft Designer Editing Model v2`，可在本地新增节点、移动节点、删除非受保护节点，并让 validation inspector、execution plan preview 和 runtime readiness inspector 消费 active draft。
 - 当前已接入 `Workflow Draft Node Attribute Editing Model v1`，可编辑 provider / profile、tool ref、RAG ref、input / output contract fields、output mapping 和节点输入输出摘要，并保存 / 恢复到 dev-only saved draft。
+- 当前已接入 `Workflow Review Handoff Active Draft v1`，Review Handoff 会把 active draft validation / plan / readiness 汇总为 advisory-only 审查交接记录。
 - 当前不做 durable persistence，不持久化 validation result / execution plan / runtime readiness，也不发布或执行 workflow。
 
 ## 页面状态模型

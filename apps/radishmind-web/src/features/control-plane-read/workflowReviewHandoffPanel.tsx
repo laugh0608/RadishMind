@@ -1,4 +1,5 @@
 import type {
+  WorkflowReviewHandoffActiveDraftReviewSection,
   WorkflowReviewHandoffBoundaryLock,
   WorkflowReviewHandoffDecisionBlocker,
   WorkflowReviewHandoffEvidence,
@@ -15,7 +16,7 @@ export function WorkflowReviewHandoffPanel({
 }: {
   handoff: WorkflowReviewHandoffViewModel;
 }) {
-  const primaryEvidence = handoff.evidenceChecklist.slice(0, 8);
+  const primaryEvidence = handoff.evidenceChecklist.slice(0, 11);
   const primaryBoundaries = handoff.boundaryLocks.slice(0, 8);
 
   return (
@@ -67,6 +68,18 @@ export function WorkflowReviewHandoffPanel({
           </div>
         </dl>
       </article>
+
+      <div className="workflow-user-workspace-home-section">
+        <div className="workflow-user-workspace-home-subheading">
+          <p className="eyebrow">Active Draft Review Record</p>
+          <h4>Validation, plan, readiness</h4>
+        </div>
+        <div className="workflow-user-workspace-home-route-grid" aria-label="Workflow review handoff active draft record">
+          {handoff.activeDraftReviewRecord.sections.map((section) => (
+            <WorkflowReviewHandoffActiveDraftSectionCard key={section.sectionId} section={section} />
+          ))}
+        </div>
+      </div>
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
@@ -128,6 +141,49 @@ export function WorkflowReviewHandoffPanel({
         </div>
       </div>
     </section>
+  );
+}
+
+function WorkflowReviewHandoffActiveDraftSectionCard({
+  section,
+}: {
+  section: WorkflowReviewHandoffActiveDraftReviewSection;
+}) {
+  return (
+    <article className="workflow-user-workspace-home-card">
+      <div className="workflow-user-workspace-home-row-main">
+        <div>
+          <p className="eyebrow">{section.sourceSurface}</p>
+          <h5>{section.label}</h5>
+        </div>
+        <StatusBadge tone={workflowReviewHandoffTone(section.status)}>{section.status}</StatusBadge>
+      </div>
+      <dl className="workflow-user-workspace-home-meta">
+        <div>
+          <dt>Primary ref</dt>
+          <dd>{section.primaryRef}</dd>
+        </div>
+        <div>
+          <dt>Blockers</dt>
+          <dd>{section.blockerCount}</dd>
+        </div>
+        <div>
+          <dt>Request</dt>
+          <dd>{section.requestId}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{section.auditRef}</dd>
+        </div>
+      </dl>
+      <div className="workflow-workspace-review-token-list" aria-label={`${section.label} evidence refs`}>
+        {section.evidenceRefs.map((evidenceRef) => (
+          <code key={evidenceRef}>{evidenceRef}</code>
+        ))}
+      </div>
+      <p>{section.summary}</p>
+      <p>{section.reviewerQuestion}</p>
+    </article>
   );
 }
 
