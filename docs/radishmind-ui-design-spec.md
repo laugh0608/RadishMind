@@ -1,6 +1,6 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface` 和 Control Plane read-side product UI shell。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
 
-`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness、Admin Provider/Profile & Deployment Evidence Review / Readiness、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、Draft Designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home、Review Handoff、Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。Draft Designer 当前只允许受控本地编辑和 dev-only saved draft validate / save / read 状态展示，不代表 production builder。后续继续 formal UI 时，应复用这些组件、`workflowWorkspaceContext` 和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness、Admin Provider/Profile & Deployment Evidence Review / Readiness、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、Draft Designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home、Review Handoff、Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。Draft Designer 当前允许草案字段、本地节点结构和节点属性的受控本地编辑，并可在显式 dev-only 配置下进行 saved draft validate / save / read / list / restore；Workflow Review Handoff 可展示 active draft review record。上述能力仍不代表 production builder、durable persistence、publish、run、executor、confirmation decision、writeback 或 replay ready。后续继续 formal UI 时，应复用这些组件、`workflowWorkspaceContext` 和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
 
 ## 设计定位
 

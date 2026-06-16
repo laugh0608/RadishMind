@@ -4,15 +4,15 @@
 
 ## 专题定位
 
-`Saved Workflow Draft v1` 是 `Workflow / Agent Runtime` 中第一个从只读审查面走向可保存用户草案的功能专题。它让用户工作区中的 workflow 草案可以被保存、读取和校验，并让 reviewer 看到同一份可审查记录。
+`Saved Workflow Draft v1` 是 `Workflow / Agent Runtime` 中第一个从只读审查面走向可保存用户草案的功能专题。它让用户工作区中的 workflow 草案可以被保存、读取、列出和校验，并让 reviewer 看到同一份可审查记录。
 
 本专题不是 workflow publish / run / executor 专题。成功保存只表示“草案已保存且可审查”，不表示 workflow 已发布、可执行或已接入上层项目。
 
 ## 当前状态
 
 - Platform Go domain service 已实现，文件为 `services/platform/internal/httpapi/workflow_saved_draft.go`。
-- 已覆盖 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft`、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
-- 当前已新增 dev-only HTTP route 和 web consumer 状态区分：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate` 默认关闭，只在显式 dev 配置下工作。
+- 已覆盖 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft` / `ListDrafts`、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
+- 当前已新增 dev-only HTTP route 和 web consumer 状态区分：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}`、`GET /v1/user-workspace/workflow-drafts` 和 `POST /v1/user-workspace/workflow-drafts/validate` 默认关闭，只在显式 dev 配置下工作。
 - 当前已补 route contract 和 consumer smoke：Go route test 固定 envelope、header、CORS、not found / store unavailable no sample fallback；前端 consumer 固定 `version_conflict` 状态，version conflict 时保留本地草案并展示当前 saved draft version metadata。
 - 当前已接入 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)：Draft Designer 可编辑草案名称、说明、节点名称和边条件摘要，validate / save / read 使用当前本地草案。
 - 当前已接入 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md)：用户可从 Workspace Home 或 workflow definitions 创建本地草案，再复用 dev-only saved draft consumer 保存。
@@ -106,7 +106,7 @@ dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-sa
 
 ## 验收方式
 
-- Go 单元测试覆盖 save / read / validate 成功和失败路径。
+- Go 单元测试覆盖 save / read / validate / list 成功和失败路径。
 - Consumer 能区分 sample / unsaved draft 与 saved draft record。
 - Workspace Home 能读取 saved dev draft sanitized summary，并通过 read route 恢复到 Draft Designer；empty / failure state 不回退 sample。
 - Draft Designer 本地结构编辑后的 active draft 能继续 validate / save / read，validation inspector、execution plan preview 和 runtime readiness inspector 能消费当前 active draft。
