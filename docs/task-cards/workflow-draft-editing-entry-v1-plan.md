@@ -43,6 +43,6 @@
 
 ## 停止线
 
-- 不实现拖拽 builder、节点新增 / 删除、workflow executor、node executor、tool executor、agent loop、publish、run、confirmation decision、decision store、execution unlock、business writeback、run replay、run resume 或 materialized result reader。
+- 本任务卡不实现拖拽 builder、节点新增 / 删除、workflow executor、node executor、tool executor、agent loop、publish、run、confirmation decision、decision store、execution unlock、business writeback、run replay、run resume 或 materialized result reader；节点新增 / 删除 / 重排已由 `Workflow Draft Designer Editing Model v2` 独立承接。
 - 不创建 public production API，不接真实数据库、repository adapter、schema migration、store selector、Radish OIDC、token validation、API key lifecycle、quota enforcement、billing 或 cost ledger。
 - 不把本地编辑、dev-only saved record、validation summary 或 `valid_for_review` 解释为 durable persistence、publish、run 或 production readiness。

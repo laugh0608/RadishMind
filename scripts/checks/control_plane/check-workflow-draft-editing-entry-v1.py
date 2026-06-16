@@ -69,19 +69,19 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         require(str(selector) in style_text, f"styles.css missing selector: {selector}")
 
     require(
-        app_text.index("const activeWorkflowDraft = editableWorkflowDraft ?? selectedWorkflowDraft;")
+        app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
         < app_text.index("validateWorkflowDraftDevRecord(activeWorkflowDraft"),
-        "validate must consume active workflow draft after local edit state is defined",
+        "validate must consume context-owned active workflow draft after local edit state is wired",
     )
     require(
-        app_text.index("const activeWorkflowDraft = editableWorkflowDraft ?? selectedWorkflowDraft;")
+        app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
         < app_text.index("saveWorkflowDraftDevRecord(activeWorkflowDraft"),
-        "save must consume active workflow draft after local edit state is defined",
+        "save must consume context-owned active workflow draft after local edit state is wired",
     )
     require(
-        app_text.index("const activeWorkflowDraft = editableWorkflowDraft ?? selectedWorkflowDraft;")
+        app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
         < app_text.index("readWorkflowDraftDevRecord(activeWorkflowDraft"),
-        "read must consume active workflow draft after local edit state is defined",
+        "read must consume context-owned active workflow draft after local edit state is wired",
     )
 
     for edit_handler in (

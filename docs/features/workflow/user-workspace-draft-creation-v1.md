@@ -48,11 +48,11 @@
 完成本专题后，Workflow 方向下一批应在以下方向择一推进：
 
 - durable store 迁移后续准入：在 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) 已固定的停止线之后，选择 repository contract、schema migration 或 auth contract 中一个方向独立推进。
-- Draft Designer 更完整编辑模型：节点新增 / 删除 / 重排需要独立专题、任务卡和更强验证。
-- User Workspace saved draft list 已由 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md) 落地；后续可继续评估恢复后的审查 handoff 或更完整编辑模型。
+- Draft Designer 本地结构编辑已由 [Workflow Draft Designer Editing Model v2](draft-designer-editing-model-v2.md) 落地；后续可评估节点属性编辑模型。
+- User Workspace saved draft list 已由 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md) 落地；后续可继续评估恢复后的审查 handoff。
 
 ## 停止线
 
-- 不实现完整 builder、拖拽编排、节点新增 / 删除、publish、run、executor、agent loop、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader。
+- 本专题不实现完整 builder、拖拽编排、节点新增 / 删除、publish、run、executor、agent loop、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader；节点新增 / 删除 / 重排已由 `Workflow Draft Designer Editing Model v2` 独立承接。
 - 不创建 public production API，不接真实数据库、repository adapter、schema migration、store selector、Radish OIDC、token validation、API key lifecycle、quota enforcement、billing 或 cost ledger。
 - 不把本地创建草案、dev-only saved record、validation summary、risk summary 或 readiness summary 解释为 durable persistence ready、publish ready、run ready 或 production ready。

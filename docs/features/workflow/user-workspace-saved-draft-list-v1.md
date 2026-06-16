@@ -51,5 +51,5 @@
 ## 停止线
 
 - 不实现 durable persistence、repository adapter、真实数据库、schema migration、store selector、Radish OIDC middleware、token validation、public production API、API key lifecycle、quota enforcement、billing 或 cost ledger。
-- 不实现完整 builder、节点新增 / 删除 / 拖拽编排、publish、run、executor、agent loop、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader。
+- 本专题不实现完整 builder、节点新增 / 删除 / 拖拽编排、publish、run、executor、agent loop、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader；节点新增 / 删除 / 重排已由 `Workflow Draft Designer Editing Model v2` 独立承接。
 - 不把 saved draft list、restore、`valid_for_review`、validation summary 或 risk summary 解释为 durable persistence ready、publish ready、run ready 或 production ready。

@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_draft_designer_editing_model_v2",
+  "slice": {
+    "id": "workflow-draft-designer-editing-model-v2",
+    "track": "Workflow / Agent Runtime",
+    "status": "workflow_draft_designer_editing_model_v2_implemented",
+    "does_not_claim": [
+      "complete_canvas_builder_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-draft-editing-entry-v1",
+    "user-workspace-draft-creation-v1",
+    "user-workspace-saved-draft-list-v1"
+  ],
+  "frontend_contract": {
+    "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "context_file": "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts",
+    "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
+    "style_file": "apps/radishmind-web/src/styles.css",
+    "required_app_literals": [
+      "WORKFLOW_DRAFT_NODE_TYPE_OPTIONS",
+      "WorkflowDraftNodeMoveDirection",
+      "activeWorkflowDraftOverride: editableWorkflowDraft",
+      "activeWorkflowDraftValidationInspector",
+      "activeWorkflowExecutionPlanPreview",
+      "activeWorkflowRuntimeReadinessInspector",
+      "handleWorkflowDraftAddNode",
+      "handleWorkflowDraftMoveNode",
+      "handleWorkflowDraftRemoveNode",
+      "buildLocalWorkflowDraftNode",
+      "workflowDraftWithStructureEdits",
+      "insertWorkflowDraftNode",
+      "moveWorkflowDraftNode",
+      "canRemoveWorkflowDraftNode",
+      "rebuildWorkflowDraftEdges",
+      "workflow-draft-structure-controls",
+      "workflow-draft-add-node-grid",
+      "workflow-draft-node-type-button",
+      "workflow-draft-node-actions",
+      "onAddNode={handleWorkflowDraftAddNode}",
+      "onMoveNode={handleWorkflowDraftMoveNode}",
+      "onRemoveNode={handleWorkflowDraftRemoveNode}",
+      "inspector={activeWorkflowDraftValidationInspector}",
+      "preview={activeWorkflowExecutionPlanPreview}",
+      "readiness={activeWorkflowRuntimeReadinessInspector}"
+    ],
+    "required_context_literals": [
+      "activeWorkflowDraftOverride?: WorkflowDraftDesignerDraft | null;",
+      "activeWorkflowDraft: WorkflowDraftDesignerDraft;",
+      "const activeWorkflowDraft =",
+      "source.activeWorkflowDraftOverride?.draftId === selectedWorkflowDraft.draftId",
+      "buildWorkflowDraftValidationInspectorViewModel(",
+      "buildWorkflowExecutionPlanPreviewViewModel(",
+      "buildWorkflowRuntimeReadinessInspectorViewModel(",
+      "selectedDraft: activeWorkflowDraft"
+    ],
+    "required_consumer_literals": [
+      "case \"http_tool\":",
+      "return \"preview\";"
+    ],
+    "required_style_selectors": [
+      ".workflow-draft-structure-controls",
+      ".workflow-draft-add-node-grid",
+      ".workflow-draft-node-type-button",
+      ".workflow-draft-node-actions",
+      ".workflow-draft-node-actions button"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/draft-designer-editing-model-v2.md": [
+      "Workflow Draft Designer Editing Model v2",
+      "状态：`workflow_draft_designer_editing_model_v2_implemented`",
+      "validation inspector、execution plan preview 和 runtime readiness inspector 改为消费当前 active draft",
+      "不实现画布拖拽编排"
+    ],
+    "docs/task-cards/workflow-draft-designer-editing-model-v2-plan.md": [
+      "workflow_draft_designer_editing_model_v2_implemented",
+      "结构编辑必须重建 `edges`",
+      "validate / save / read、validation inspector、execution plan preview 和 runtime readiness inspector 必须消费当前 active draft"
+    ],
+    "docs/features/workflow/README.md": [
+      "Workflow Draft Designer Editing Model v2",
+      "workflow_draft_designer_editing_model_v2_implemented"
+    ],
+    "docs/features/workflow/draft-designer-surface.md": [
+      "Workflow Draft Designer Editing Model v2",
+      "本地图结构编辑"
+    ],
+    "docs/features/workflow/draft-editing-entry-v1.md": [
+      "Workflow Draft Designer Editing Model v2",
+      "节点新增 / 删除 / 重排"
+    ],
+    "docs/features/workflow/saved-workflow-draft-v1.md": [
+      "Workflow Draft Designer Editing Model v2",
+      "本地图结构编辑"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "Workflow Draft Designer Editing Model v2",
+      "workflow-draft-designer-editing-model-v2"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_draft_designer_editing_model_v2_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-draft-designer-editing-model-v2.py"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

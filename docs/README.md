@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 阅读原则
 
@@ -81,6 +81,7 @@
 - [Workflow 细专题入口](features/workflow/README.md)
 - [Saved Workflow Draft v1 功能专题](features/workflow/saved-workflow-draft-v1.md)
 - [User Workspace Saved Draft List v1 专题](features/workflow/user-workspace-saved-draft-list-v1.md)
+- [Workflow Draft Designer Editing Model v2 专题](features/workflow/draft-designer-editing-model-v2.md)
 - [平台专题入口](platform/README.md)
 - [扩展与集成专题入口](integrations/README.md)
 - [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)

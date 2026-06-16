@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 文档目的
 
@@ -53,6 +53,7 @@
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](workflow/user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
 | [User Workspace Saved Draft List v1](workflow/user-workspace-saved-draft-list-v1.md) | 功能 / 页面专题 | 固定 Workspace Home 的 saved dev draft summary、empty / failure state 和恢复入口 |
+| [Workflow Draft Designer Editing Model v2](workflow/draft-designer-editing-model-v2.md) | 功能 / 页面专题 | 固定 Draft Designer 的本地节点新增、删除保护、重排和 active draft 下游预览 |
 | [Saved Workflow Draft Durable Store Preconditions v1](workflow/saved-workflow-draft-durable-store-preconditions-v1.md) | 前置设计专题 | 固定 saved draft durable store 迁移前的 scope、owner / workspace、version conflict、no sample fallback 和 store 切换停止线 |
 | [Saved Workflow Draft Repository Contract Preconditions v1](workflow/saved-workflow-draft-repository-contract-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft repository contract 的 actor context、operation matrix、failure 和 projection 边界 |
 | [Saved Workflow Draft Schema / Migration Preconditions v1](workflow/saved-workflow-draft-schema-migration-preconditions-v1.md) | 前置设计专题 | 固定 future saved draft durable store 的 logical schema、index strategy、migration gate 和 artifact guard |

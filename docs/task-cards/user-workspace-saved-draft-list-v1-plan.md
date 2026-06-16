@@ -43,5 +43,5 @@
 ## 停止线
 
 - 不实现 durable persistence、repository adapter、真实数据库、schema migration、store selector、Radish OIDC、token validation、API key lifecycle、quota enforcement、billing、cost ledger 或 public production API。
-- 不实现完整 builder、拖拽编排、节点新增 / 删除、workflow executor、node executor、tool executor、agent loop、publish、run、confirmation decision、decision store、execution unlock、business writeback、run replay、run resume 或 materialized result reader。
+- 本任务卡不实现完整 builder、拖拽编排、节点新增 / 删除、workflow executor、node executor、tool executor、agent loop、publish、run、confirmation decision、decision store、execution unlock、business writeback、run replay、run resume 或 materialized result reader；节点新增 / 删除 / 重排已由 `Workflow Draft Designer Editing Model v2` 独立承接。
 - 不把 saved draft list、restore、dev-only memory store、validation summary 或 `valid_for_review` 解释为 durable persistence、publish、run 或 production readiness。

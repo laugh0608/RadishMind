@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-06-14
+更新时间：2026-06-16
 
 ## 目录目标
 
@@ -38,6 +38,7 @@
   - `workflow-workspace-context-consistency-v1` 通过 `workflow-workspace-context-consistency-v1.json` 与 `check-workflow-workspace-context-consistency-v1.py` 固定 `workflow_workspace_context_consistency_guarded`：校验 `workflowWorkspaceContext` 是 App 中 workflow 离线组合层的共享入口，并确认 RadishFlow / Radish Docs 的 application、definition、run、draft、scenario、overview、review、home 和 handoff 派生链路不会重新分散手拼；该检查不新增 live backend、runtime API、builder mutation、持久化、publish、executor、confirmation decision、writeback、replay、数据库、OIDC、repository adapter 或 production API consumer。
   - `workflow-saved-draft-consumer-smoke-v1` 通过 `workflow-saved-draft-consumer-smoke-v1.json` 与 `check-workflow-saved-draft-consumer-smoke-v1.py` 固定 saved draft dev-only route contract、consumer 状态映射、`version_conflict` 展示和 no sample fallback 断言；该检查不新增 durable persistence、public production API、数据库、OIDC、repository adapter、store selector、publish、executor、confirmation decision、writeback 或 replay。
   - `user-workspace-saved-draft-list-v1` 通过 `user-workspace-saved-draft-list-v1.json` 与 `check-user-workspace-saved-draft-list-v1.py` 固定 dev-only saved draft list route、sanitized `draft_summaries`、Workspace Home saved draft list / restore、empty / failure state 和 no sample fallback；该检查不新增 durable persistence、public production API、数据库、OIDC、repository adapter、store selector、publish、executor、confirmation decision、writeback 或 replay。
+  - `workflow-draft-designer-editing-model-v2` 通过 `workflow-draft-designer-editing-model-v2.json` 与 `check-workflow-draft-designer-editing-model-v2.py` 固定 Draft Designer 本地节点新增、删除保护、重排、边重建、active draft 下游预览和 saved restore lane mapping；该检查不新增拖拽 builder、durable persistence、public production API、数据库、OIDC、repository adapter、store selector、publish、executor、confirmation decision、writeback 或 replay。
   - `product-surface-readiness-implementation-trigger-recheck-v1` 通过 `product-surface-readiness-implementation-trigger-recheck-v1.json` 与 `check-product-surface-readiness-implementation-trigger-recheck-v1.py` 固定 `product_surface_readiness_trigger_recheck_defined`：复核 User Workspace、Workflow Review、Model Gateway 和 Admin 四个产品面当前没有新的默认同层阅读缺口，并确认 read-side implementation trigger 仍未满足；该检查不新增 UI、不启动开发服务器、不接 live backend、不创建 repository / database / OIDC / executor / writeback / replay 实现。
   - `control-plane-read-schema-artifact-evidence-v1` 通过 `control-plane-read-schema-artifact-evidence-v1.json` 与 `check-control-plane-read-schema-artifact-evidence-v1.py` 固定 `schema_artifact_evidence_defined`：补齐 durable read store 前的 DDL review evidence、rollback fixture evidence、schema version、tenant index、read-only role 和七条 read route 到未来 schema artifact 的映射关系；该检查不新增 UI、不启动开发服务器、不接真实数据库、不写 SQL migration、不实现 store selector、repository adapter 或 runtime artifact。
   - `control-plane-read-implementation-entry-review-v1` 通过 `control-plane-read-implementation-entry-review-v1.json` 与 `check-control-plane-read-implementation-entry-review-v1.py` 固定 `implementation_entry_review_defined`：读取 trigger review、schema artifact evidence 和 product surface recheck 后确认当前不打开实现入口；该检查不新增 UI、不启动开发服务器、不创建 implementation task card、不接真实数据库、不写 SQL migration、不实现 store selector、repository adapter 或 runtime artifact。
@@ -139,6 +140,8 @@
 
 当前用户工作区草案创建入口还提供 `check-user-workspace-draft-creation-v1.py`，用于校验 Workspace Home / workflow definitions 的本地草案创建入口、workflow context local draft source、Draft Designer local draft merge、样式和文档停止线；该检查不启动浏览器、不新增 API、不实现 durable store、public production API、executor、confirmation、writeback 或 replay。
 
+当前 Draft Designer 本地结构编辑还提供 `check-workflow-draft-designer-editing-model-v2.py`，用于校验节点新增、删除保护、节点重排、边重建、active draft 下游预览、样式和文档停止线；该检查不启动浏览器、不调用 dev HTTP route、不实现拖拽 builder、durable store、public production API、executor、confirmation、writeback 或 replay。
+
 当前 Saved Workflow Draft durable store 迁移前置设计还提供 `check-workflow-saved-draft-durable-store-preconditions-v1.py`，用于校验 draft scope、owner / workspace 归属、version conflict、no sample fallback、dev store 与未来 repository adapter 的切换停止线和禁止提前出现的实现 artifact；该检查不启动服务、不连接数据库、不新增 store selector、不实现 Radish OIDC、production API、executor、confirmation、writeback 或 replay。
 
 当前 Saved Workflow Draft repository contract 前置设计还提供 `check-workflow-saved-draft-repository-contract-preconditions-v1.py`，用于校验 future repository actor context、save / read / list operation matrix、request / result、failure policy、sanitized projection 和禁止提前出现的 repository interface / adapter / selector / SQL / OIDC artifact；该检查不启动服务、不连接数据库、不创建 repository interface、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
@@ -162,6 +165,7 @@
 - `check-workflow-saved-draft-schema-artifact-evidence-v1.py` 失败通常表示 saved workflow draft schema artifact evidence、logical entity / index mapping、DDL review gate、migration smoke、no fallback / no side effects 或 forbidden schema artifact 边界漂移。
 - `check-workflow-saved-draft-store-selector-smoke-readiness-v1.py` 失败通常表示 saved workflow draft selector smoke readiness、mode / operation matrix、schema artifact failure matrix、no fallback / no side effects 或 forbidden selector artifact 边界漂移。
 - `check-user-workspace-saved-draft-list-v1.py` 失败通常表示 dev-only list route、sanitized summary projection、Workspace Home saved draft list / restore、empty / failure state 或 no sample fallback 边界漂移。
+- `check-workflow-draft-designer-editing-model-v2.py` 失败通常表示 Draft Designer 本地结构编辑、边重建、active draft 下游预览或 saved restore lane mapping 边界漂移。
 - `check-control-plane-read-implementation-entry-review-v1.py` 失败通常表示 entry review 被误写成实现入口已打开、某个 future implementation task card 提前创建，或 schema evidence 被提升为 implementation trigger satisfied。
 
 修复这类失败时，默认先恢复 fixture 和说明文档的停止线，或移除提前出现的实现 artifact。只有在新的实现任务卡、真实证据和对应 gate 都已满足后，才应新增 durable adapter、SQL、migration、store selector、auth middleware 或 production API consumer。

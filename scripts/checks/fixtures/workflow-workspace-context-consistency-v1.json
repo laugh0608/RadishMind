@@ -58,6 +58,7 @@
       "workflowConfirmationPlaceholder",
       "workflowDraftDesigner",
       "selectedWorkflowDraft",
+      "activeWorkflowDraft",
       "workflowDraftValidationInspector",
       "workflowExecutionPlanPreview",
       "workflowRuntimeReadinessInspector",

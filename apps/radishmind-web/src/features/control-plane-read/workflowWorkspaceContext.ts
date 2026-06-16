@@ -84,6 +84,7 @@ export type WorkflowWorkspaceContextSource = {
   workspaceWorkflowDefinitions: WorkspaceWorkflowDefinitionsViewModel;
   workspaceRunHistory: WorkspaceRunHistoryViewModel;
   localWorkflowDrafts?: WorkflowDraftDesignerDraft[];
+  activeWorkflowDraftOverride?: WorkflowDraftDesignerDraft | null;
   selection: WorkflowWorkspaceSelectionState;
 };
 
@@ -100,6 +101,7 @@ export type WorkflowWorkspaceContextViewModel = {
   selectedWorkflowDefinition: WorkspaceWorkflowDefinitionRow;
   selectedRun: WorkspaceRunRecordRow;
   selectedWorkflowDraft: WorkflowDraftDesignerDraft;
+  activeWorkflowDraft: WorkflowDraftDesignerDraft;
   workflowDefinitionsForSelectedApplication: WorkspaceWorkflowDefinitionRow[];
   runsForSelectedContext: WorkspaceRunRecordRow[];
   workflowApplicationDetail: WorkflowApplicationDetailViewModel;
@@ -184,11 +186,15 @@ export function buildWorkflowWorkspaceContextViewModel(
     selectedWorkflowDefinition,
     source.selection.draftId,
   );
+  const activeWorkflowDraft =
+    source.activeWorkflowDraftOverride?.draftId === selectedWorkflowDraft.draftId
+      ? source.activeWorkflowDraftOverride
+      : selectedWorkflowDraft;
   const workflowDraftValidationInspector = buildWorkflowDraftValidationInspectorViewModel(
-    selectedWorkflowDraft,
+    activeWorkflowDraft,
   );
   const workflowExecutionPlanPreview = buildWorkflowExecutionPlanPreviewViewModel(
-    selectedWorkflowDraft,
+    activeWorkflowDraft,
     workflowDraftValidationInspector,
   );
   const workflowRuntimeReadinessInspector = buildWorkflowRuntimeReadinessInspectorViewModel(
@@ -198,7 +204,7 @@ export function buildWorkflowWorkspaceContextViewModel(
     applicationDetail: workflowApplicationDetail,
     definitionDetail: workflowDefinitionDetail,
     runDetail: workflowRunDetail,
-    selectedDraft: selectedWorkflowDraft,
+    selectedDraft: activeWorkflowDraft,
     validationInspector: workflowDraftValidationInspector,
     executionPlanPreview: workflowExecutionPlanPreview,
     runtimeReadinessInspector: workflowRuntimeReadinessInspector,
@@ -238,6 +244,7 @@ export function buildWorkflowWorkspaceContextViewModel(
     selectedWorkflowDefinition,
     selectedRun,
     selectedWorkflowDraft,
+    activeWorkflowDraft,
     workflowDefinitionsForSelectedApplication,
     runsForSelectedContext,
     workflowApplicationDetail,

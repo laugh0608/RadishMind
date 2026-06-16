@@ -1,6 +1,6 @@
 # Saved Workflow Draft v1 功能专题
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 专题定位
 
@@ -17,6 +17,7 @@
 - 当前已接入 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)：Draft Designer 可编辑草案名称、说明、节点名称和边条件摘要，validate / save / read 使用当前本地草案。
 - 当前已接入 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md)：用户可从 Workspace Home 或 workflow definitions 创建本地草案，再复用 dev-only saved draft consumer 保存。
 - 当前已接入 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md)：Workspace Home 可读取当前 application 的 saved dev draft sanitized summary，并通过 read route 恢复到 Draft Designer。
+- 当前已接入 [Workflow Draft Designer Editing Model v2](draft-designer-editing-model-v2.md)：Draft Designer 可本地新增节点、移动节点、删除非受保护节点并重建边，validate / save / read 继续消费当前 active draft。
 - 当前已新增 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md)：固定 durable store 迁移前的 draft scope、`owner_subject_ref` / workspace 归属、version conflict、no sample fallback、dev store 与未来 repository adapter 的切换停止线；它只定义前置设计，不实现 durable persistence。
 - 当前已新增 [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md)：固定 future `SavedWorkflowDraftRepository` 的 `SaveWorkflowDraftRecord`、`ReadWorkflowDraftRecord` 和 `ListWorkflowDraftRecords` contract preconditions；它只定义 actor context、request / result、failure 和 projection 边界，不创建 repository interface。
 - 当前已新增 [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md)：固定 future durable store 的 logical schema、index strategy、migration gate、failure mapping、no sample fallback 和 artifact guard；状态为 `draft_schema_migration_preconditions_defined`，不创建真实数据库 schema 或 SQL migration。
@@ -95,13 +96,14 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 
 ## 下一批开发
 
-dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口已按 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) 落地；User Workspace 创建入口已按 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) 落地；saved dev draft list / restore 已按 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md) 落地；durable store 迁移前置设计已按 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) 固定；future repository contract preconditions 已按 [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md) 固定；future schema / migration preconditions 已按 [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md) 固定；auth context preconditions 已按 [Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) 固定；store selector enablement preconditions 已按 [Saved Workflow Draft Store Selector Enablement Preconditions v1](saved-workflow-draft-store-selector-enablement-preconditions-v1.md) 固定；schema artifact evidence 已按 [Saved Workflow Draft Schema Artifact Evidence v1](saved-workflow-draft-schema-artifact-evidence-v1.md) 固定；selector smoke readiness 已按 [Saved Workflow Draft Store Selector Smoke Readiness v1](saved-workflow-draft-store-selector-smoke-readiness-v1.md) 固定，状态为 `draft_store_selector_smoke_readiness_defined`。后续若转向 durable store，应在 repository contract smoke 或 repository adapter implementation plan 中选择一个独立专题。任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
+dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口已按 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) 落地；User Workspace 创建入口已按 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) 落地；saved dev draft list / restore 已按 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md) 落地；本地图结构编辑已按 [Workflow Draft Designer Editing Model v2](draft-designer-editing-model-v2.md) 落地；durable store 迁移前置设计已按 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md) 固定；future repository contract preconditions 已按 [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md) 固定；future schema / migration preconditions 已按 [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md) 固定；auth context preconditions 已按 [Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) 固定；store selector enablement preconditions 已按 [Saved Workflow Draft Store Selector Enablement Preconditions v1](saved-workflow-draft-store-selector-enablement-preconditions-v1.md) 固定；schema artifact evidence 已按 [Saved Workflow Draft Schema Artifact Evidence v1](saved-workflow-draft-schema-artifact-evidence-v1.md) 固定；selector smoke readiness 已按 [Saved Workflow Draft Store Selector Smoke Readiness v1](saved-workflow-draft-store-selector-smoke-readiness-v1.md) 固定，状态为 `draft_store_selector_smoke_readiness_defined`。后续若转向 durable store，应在 repository contract smoke 或 repository adapter implementation plan 中选择一个独立专题；若继续用户编辑体验，应先补节点属性编辑模型或恢复后的 Review Handoff 专题。任何 durable persistence、public production API、database、OIDC、repository adapter 或 executor 仍必须作为独立专题和 task card 推进。
 
 ## 验收方式
 
 - Go 单元测试覆盖 save / read / validate 成功和失败路径。
 - Consumer 能区分 sample / unsaved draft 与 saved draft record。
 - Workspace Home 能读取 saved dev draft sanitized summary，并通过 read route 恢复到 Draft Designer；empty / failure state 不回退 sample。
+- Draft Designer 本地结构编辑后的 active draft 能继续 validate / save / read，validation inspector、execution plan preview 和 runtime readiness inspector 能消费当前 active draft。
 - Consumer 能区分 `version_conflict`，并在冲突时保留本地草案、展示当前版本 metadata，不把失败回退成 sample。
 - route contract 和 consumer smoke checker 进入 fast baseline。
 - Web build 和 workflow 相关聚合检查通过。

@@ -1,12 +1,12 @@
 # Workflow Draft Designer Surface 专题
 
-更新时间：2026-06-15
+更新时间：2026-06-16
 
 ## 专题定位
 
 `Workflow Draft Designer Surface` 是 `apps/radishmind-web/` 中承载 workflow 草案查看、模板切换、节点 / 边审查、风险摘要和 blocked capability 展示的页面专题。
 
-它不是 workflow builder 完整实现，也不是 workflow executor。当前页面的核心职责是把草案设计状态组织成可审查信息，并通过 `Workflow Draft Editing Entry v1` 提供受控本地编辑入口。
+它不是 workflow builder 完整实现，也不是 workflow executor。当前页面的核心职责是把草案设计状态组织成可审查信息，并通过 `Workflow Draft Editing Entry v1` 和 `Workflow Draft Designer Editing Model v2` 提供受控本地编辑入口与本地图结构编辑能力。
 
 ## 当前状态
 
@@ -15,6 +15,7 @@
 - 当前已可在显式 dev-only consumer 配置下保存、读取和校验 saved draft，并在页面上区分 sample / unsaved / saved / failed 状态。
 - 当前已提供受控本地编辑入口，可编辑草案名称、说明、节点名称和边条件摘要；validate / save / read 使用当前本地草案。
 - 当前已接入 `User Workspace Draft Creation v1`，可从 Workspace Home 或 workflow definitions 派生本地草案并进入 Draft Designer。
+- 当前已接入 `Workflow Draft Designer Editing Model v2`，可在本地新增节点、移动节点、删除非受保护节点，并让 validation inspector、execution plan preview 和 runtime readiness inspector 消费 active draft。
 - 当前不做 durable persistence，不持久化 validation result / execution plan / runtime readiness，也不发布或执行 workflow。
 
 ## 页面状态模型
@@ -38,6 +39,7 @@
 
 - draft identity：`draft_id`、workspace、application、schema version、draft version 和 saved state。
 - editable graph：节点、边、输入契约、输出契约和引用 summary。
+- structure editing：本地节点新增、删除保护、节点重排、边重建和 audit edge 保留。
 - validation：结构校验、契约校验、capability 校验和 risk finding。
 - blocked capabilities：executor、confirmation decision、writeback、replay、code、sandbox、agent loop 等禁止项。
 - audit metadata：request id、audit ref、actor ref 和 source mode。
@@ -58,6 +60,6 @@
 
 ## 停止线
 
-- 不实现完整拖拽 builder、publish、run、executor、confirmation decision、writeback、replay 或 resume。
+- 不实现完整拖拽 builder、分支 DSL 编辑器、publish、run、executor、confirmation decision、writeback、replay 或 resume。
 - 不持久化 execution plan、runtime readiness、scenario、review handoff 或 run result。
 - 不接真实数据库、Radish OIDC、repository adapter、schema migration、store selector 或 public production API。

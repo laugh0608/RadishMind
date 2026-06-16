@@ -31,7 +31,8 @@
     "required_app_literals": [
       "editableWorkflowDraft",
       "workflowDraftEditDirty",
-      "const activeWorkflowDraft = editableWorkflowDraft ?? selectedWorkflowDraft;",
+      "activeWorkflowDraftOverride: editableWorkflowDraft",
+      "activeWorkflowDraft,",
       "cloneWorkflowDraftForEditing(selectedWorkflowDraft)",
       "handleWorkflowDraftLabelChange",
       "handleWorkflowDraftSummaryChange",
@@ -70,7 +71,7 @@
     ],
     "docs/features/workflow/README.md": [
       "Workflow Draft Editing Entry v1",
-      "local_editing_entry_implemented"
+      "`implemented`"
     ],
     "docs/features/workflow/draft-designer-surface.md": [
       "Workflow Draft Editing Entry v1",

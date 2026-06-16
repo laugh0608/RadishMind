@@ -389,6 +389,8 @@ h4 {
 .workflow-draft-template-grid,
 .workflow-draft-summary-grid,
 .workflow-draft-consumer-grid,
+.workflow-draft-structure-controls,
+.workflow-draft-add-node-grid,
 .workflow-draft-node-grid,
 .workflow-draft-edge-grid,
 .workflow-draft-readiness-grid,
@@ -1245,6 +1247,14 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.workflow-draft-structure-controls {
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 2fr);
+}
+
+.workflow-draft-add-node-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .workflow-draft-validation-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -1559,6 +1569,43 @@ h4 {
   font-size: 12px;
 }
 
+.workflow-draft-node-type-button {
+  min-height: 128px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: inherit;
+  text-align: left;
+  padding: 12px;
+}
+
+.workflow-draft-node-type-button span,
+.workflow-draft-node-type-button small {
+  display: block;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-draft-node-type-button strong {
+  display: block;
+  margin-top: 8px;
+  color: #17202a;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.workflow-draft-node-type-button small {
+  margin-top: 8px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.workflow-draft-node-type-button:disabled {
+  background: #f4f6f8;
+  color: #8793a4;
+}
+
 .workflow-draft-edit-field {
   display: grid;
   gap: 8px;
@@ -1632,6 +1679,29 @@ h4 {
 .workflow-draft-node-label-input {
   margin-top: 4px;
   font-weight: 700;
+}
+
+.workflow-draft-node-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.workflow-draft-node-actions button {
+  min-height: 34px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-draft-node-actions button:disabled {
+  color: #8793a4;
+  background: #f4f6f8;
 }
 
 .workflow-draft-edge-condition-input {
@@ -2052,6 +2122,8 @@ dd {
   .workflow-draft-summary-grid,
   .workflow-draft-edit-grid,
   .workflow-draft-consumer-grid,
+  .workflow-draft-structure-controls,
+  .workflow-draft-add-node-grid,
   .workflow-draft-node-grid,
   .workflow-draft-edge-grid,
   .workflow-draft-readiness-grid,

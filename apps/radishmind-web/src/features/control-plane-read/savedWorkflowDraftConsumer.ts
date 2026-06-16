@@ -707,9 +707,10 @@ function workflowDraftLaneForNodeType(nodeType: WorkflowDraftDesignerNode["nodeT
   switch (nodeType) {
     case "llm":
       return "model";
-    case "http_tool":
     case "condition":
       return "policy";
+    case "http_tool":
+      return "preview";
     case "output":
       return "output";
     default:
