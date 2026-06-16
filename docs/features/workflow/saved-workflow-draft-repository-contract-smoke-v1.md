@@ -17,7 +17,8 @@
 - `Saved Workflow Draft Schema Artifact Evidence v1` 已固定 future schema artifact manifest、DDL review、rollback evidence、migration smoke、schema failure mapping 和 artifact guard。
 - `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 future selector smoke 的 `memory_dev` / `repository_disabled` / `repository` / unknown mode、operation matrix、schema artifact failure、no fallback 和 no side effects。
 - `Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 已固定 `draft_repository_contract_smoke_runner_readiness_defined`，覆盖 future `SavedWorkflowDraftRepositoryContractSmokeRunner` 的 runner I/O、operation runner matrix、failure mapping、no fallback、no side effects 和 artifact guard。
-- 当前仍没有 repository contract smoke runner、repository interface、repository adapter、store selector implementation、SQL migration、真实数据库、Radish OIDC middleware、token validation 或 production API consumer。
+- `Saved Workflow Draft Repository Contract Smoke Runner Implementation v1` 已固定 `draft_repository_contract_smoke_runner_implemented`，实现 static `SavedWorkflowDraftRepositoryContractSmokeRunner` 和 Go tests。
+- 当前仍没有 repository interface、repository adapter、store selector implementation、SQL migration、真实数据库、Radish OIDC middleware、token validation 或 production API consumer。
 
 ## Smoke Boundary
 
@@ -27,7 +28,7 @@ future smoke harness 名称固定为 `SavedWorkflowDraftRepositoryContractSmoke`
 
 - 当前 store source 仍是 `platform memory dev store`。
 - future store source 仍是 `future SavedWorkflowDraftRepository adapter`。
-- repository contract smoke runner、repository interface、repository adapter、selector、SQL、OIDC 和 production API 均未创建。
+- repository interface、repository adapter、selector、SQL、OIDC 和 production API 均未创建。
 - future smoke 失败时不得 fallback 到 memory dev store、sample 或 fixture。
 
 ## Smoke I/O Contract
@@ -88,11 +89,10 @@ repository contract smoke 必须保留以下 failure code：
 
 ## 后续准入
 
-本专题完成后仍不能直接创建 repository adapter。`Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 已固定 `draft_repository_contract_smoke_runner_readiness_defined`；后续若继续 durable store 方向，应选择一个独立批次：
+本专题完成后仍不能直接创建 repository adapter。`Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 已固定 `draft_repository_contract_smoke_runner_readiness_defined`，`Saved Workflow Draft Repository Contract Smoke Runner Implementation v1` 已固定 `draft_repository_contract_smoke_runner_implemented`；后续若继续 durable store 方向，应选择一个独立批次：
 
-1. repository contract smoke runner implementation，消费本专题定义的 harness、operation matrix、failure mapping 和 no side effects 约束，但仍不连接真实数据库。
-2. repository adapter implementation plan，必须消费 schema artifact evidence、auth context、store selector smoke readiness 和 repository contract smoke；进入前仍需明确 adapter smoke、migration artifact、auth middleware 和 production API 的停止线。
-3. selector implementation entry review，另行决定是否创建 formal config、selector 函数、selector tests 和 selector smoke fixture；进入该批前仍不得连接真实数据库。
+1. repository adapter implementation plan，必须消费 schema artifact evidence、auth context、store selector smoke readiness、repository contract smoke 和 static runner implementation；进入前仍需明确 adapter smoke、migration artifact、auth middleware 和 production API 的停止线。
+2. selector implementation entry review，另行决定是否创建 formal config、selector 函数、selector tests 和 selector smoke fixture；进入该批前仍不得连接真实数据库。
 
 ## 验收方式
 
@@ -103,6 +103,6 @@ repository contract smoke 必须保留以下 failure code：
 
 ## 停止线
 
-- 不创建 repository contract smoke runner、`SavedWorkflowDraftRepository` interface、repository adapter、store selector、SQL migration、真实数据库、Radish OIDC middleware、token validation、production API consumer 或新的 saved draft list 实现。
+- 不创建 `SavedWorkflowDraftRepository` interface、repository adapter、store selector、SQL migration、真实数据库、Radish OIDC middleware、token validation、production API consumer 或新的 saved draft list 实现。
 - 不实现 durable persistence、publish、run、executor、confirmation decision、writeback、replay、resume 或 materialized result reader。
 - 不把 repository contract smoke 定义解释为 smoke runner ready、repository adapter ready、database ready、selector ready、OIDC ready 或 production ready。

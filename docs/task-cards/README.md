@@ -126,6 +126,7 @@
 75. [`Workflow Saved Draft Store Selector Smoke Readiness` v1 任务卡](workflow-saved-draft-store-selector-smoke-readiness-v1-plan.md)（`workflow-saved-draft-store-selector-smoke-readiness-v1`）
 76. [`Workflow Saved Draft Repository Contract Smoke` v1 任务卡](workflow-saved-draft-repository-contract-smoke-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-v1`）
 77. [`Workflow Saved Draft Repository Contract Smoke Runner Readiness` v1 任务卡](workflow-saved-draft-repository-contract-smoke-runner-readiness-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-runner-readiness-v1`）
+78. [`Workflow Saved Draft Repository Contract Smoke Runner Implementation` v1 任务卡](workflow-saved-draft-repository-contract-smoke-runner-implementation-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-runner-implementation-v1`）
 
 ## UI 设计专题
 

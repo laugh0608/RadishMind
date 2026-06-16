@@ -21,6 +21,13 @@ SELECTOR_SMOKE_READINESS_FIXTURE_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/workflow-saved-draft-store-selector-smoke-readiness-v1.json"
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+IMPLEMENTATION_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/workflow-saved-draft-repository-contract-smoke-runner-implementation-v1.json"
+)
+RUNNER_IMPLEMENTATION_PATHS = {
+    "services/platform/internal/httpapi/workflow_saved_draft_repository_contract_smoke_runner.go",
+}
 
 EXPECTED_DEPENDENCIES = {
     "workflow-saved-draft-repository-contract-preconditions-v1": (
@@ -134,6 +141,22 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def read(relative_path: str) -> str:
     return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+
+def implementation_gate_covers_runner() -> bool:
+    if not IMPLEMENTATION_FIXTURE_PATH.exists():
+        return False
+    fixture = load_json(IMPLEMENTATION_FIXTURE_PATH)
+    slice_info = fixture.get("slice") or {}
+    boundary = fixture.get("implementation_boundary") or {}
+    return (
+        slice_info.get("id") == "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1"
+        and slice_info.get("status") == "draft_repository_contract_smoke_runner_implemented"
+        and boundary.get("runner_file")
+        == "services/platform/internal/httpapi/workflow_saved_draft_repository_contract_smoke_runner.go"
+        and boundary.get("test_file")
+        == "services/platform/internal/httpapi/workflow_saved_draft_repository_contract_smoke_runner_test.go"
+    )
 
 
 def repository_operation_rows() -> dict[str, dict[str, Any]]:
@@ -251,7 +274,11 @@ def assert_planned_future_artifacts(fixture: dict[str, Any]) -> None:
     require(set(artifacts) == EXPECTED_PLANNED_FUTURE_ARTIFACTS, "planned future artifacts drifted")
     for path, artifact in artifacts.items():
         require(artifact.get("created_in_this_slice") is False, f"{path} must not be created")
-        require(not (REPO_ROOT / path).exists(), f"{path} exists before future implementation")
+        if (REPO_ROOT / path).exists():
+            require(
+                path in RUNNER_IMPLEMENTATION_PATHS and implementation_gate_covers_runner(),
+                f"{path} exists before allowed runner implementation gate",
+            )
 
 
 def assert_io_contract(fixture: dict[str, Any]) -> None:
@@ -394,7 +421,12 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     guard = fixture.get("implementation_artifact_guard") or {}
     require(guard.get("status") == "forbid_implementation_artifacts", "artifact guard status drifted")
     for relative_path in guard.get("future_files_must_not_exist") or []:
-        require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
+        path = str(relative_path)
+        if (REPO_ROOT / path).exists():
+            require(
+                path in RUNNER_IMPLEMENTATION_PATHS and implementation_gate_covers_runner(),
+                f"future artifact exists early: {relative_path}",
+            )
     source_paths = guard.get("source_files_to_scan") or []
     literals = guard.get("future_literals_must_not_appear_in_source") or []
     require(source_paths, "source files to scan must be declared")
