@@ -13,7 +13,7 @@
 ## 当前输入事实
 
 - `Saved Workflow Draft Repository Adapter Implementation Plan v1` 已固定 future `SavedWorkflowDraftRepository` adapter file layout、save / read / list operation adapter matrix、failure mapping、no fallback 和 no side effects。
-- `Saved Workflow Draft Schema Artifact Manifest v1` 已固定 future manifest shape、section matrix、operation predicate coverage、failure mapping、no fallback 和 no side effects，但未创建 migration root 或 manifest 文件。
+- `Saved Workflow Draft Schema Artifact Manifest v1` 已固定 future manifest shape、section matrix、operation predicate coverage、failure mapping、no fallback 和 no side effects；后续 `Saved Workflow Draft Schema Artifact Materialization v1` 已物化静态 migration root、manifest、DDL review、rollback evidence 和 migration smoke。
 - `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 future selector smoke mode matrix、operation matrix、schema artifact failure、no fallback 和 no side effects；后续 `Saved Workflow Draft Store Selector Implementation v1` 已创建正式 config entry、selector 和 selector smoke fixture，状态为 `draft_store_selector_smoke_implemented`。
 - `Saved Workflow Draft Auth Context Preconditions v1` 已固定 future repository actor context、workspace membership、owner policy、scope grants、failure policy 和 audit / sanitization 边界，但未创建 Radish OIDC middleware 或 token validation。
 - `Saved Workflow Draft Repository Contract Smoke Runner Implementation v1` 已实现 static runner 和 Go tests，可作为 future adapter smoke 的 case 来源。
@@ -33,20 +33,20 @@ future adapter smoke 必须消费：
 - selector smoke readiness 和后续 selector smoke fixture。
 - auth context preconditions 和后续 production auth evidence。
 
-当前只允许声明 `draft_adapter_smoke_readiness_defined`。进入 adapter smoke execution 前，schema artifact materialization、production auth、repository adapter implementation 和 adapter smoke fixture 仍必须分别通过后续独立准入；selector implementation 已完成，但不代表 repository mode 可用。
+当前只允许声明 `draft_adapter_smoke_readiness_defined`。后续 `Saved Workflow Draft Schema Artifact Materialization v1` 已物化静态 schema artifact，状态为 `draft_schema_artifact_materialized_static`。进入 adapter smoke execution 前，production auth、repository adapter implementation 和 adapter smoke fixture 仍必须分别通过后续独立准入；selector implementation 和 schema artifact materialization 已完成，但不代表 repository mode 可用。
 
 ## Adapter Smoke Gate Matrix
 
 | gate | 当前状态 | 说明 |
 | --- | --- | --- |
 | repository adapter implementation plan consumed | `satisfied` | 已消费 adapter plan、future file layout 和 operation adapter matrix |
-| schema artifact manifest consumed | `satisfied` | 已消费 manifest shape 和 operation predicate coverage，但未创建 manifest 文件 |
+| schema artifact manifest consumed | `satisfied` | 已消费 manifest shape 和 operation predicate coverage；后续静态 manifest 文件已由 materialization v1 物化 |
 | selector smoke readiness consumed | `satisfied` | 已消费 selector smoke mode / operation matrix，但未创建 selector smoke fixture |
 | auth context preconditions consumed | `satisfied` | 已消费 actor context、membership、scope grant 和 audit 边界 |
 | static runner consumed | `satisfied` | 已有 static runner 和 Go tests |
 | adapter smoke contract defined | `satisfied` | 本专题定义 future adapter smoke 的依赖、operation、failure 和停止线 |
 | selector implementation gate | `satisfied` | 已由 `Saved Workflow Draft Store Selector Implementation v1` 打开 formal config、selector function、selector tests 和 selector smoke fixture |
-| schema artifact materialization gate | `not_satisfied` | migration root、manifest、DDL review、rollback evidence 和 migration smoke 仍未创建 |
+| schema artifact materialization gate | `satisfied` | 已由 `Saved Workflow Draft Schema Artifact Materialization v1` 物化 migration root、manifest、DDL review、rollback evidence 和 migration smoke 静态证据 |
 | production auth gate | `not_satisfied` | Radish OIDC、token validation、membership adapter 和 scope projection 仍未实现 |
 | repository adapter implementation gate | `not_satisfied` | repository interface、adapter、adapter tests 和 database query 仍未创建 |
 | adapter smoke execution gate | `not_satisfied` | adapter smoke fixture、checker、adapter contract smoke test 和真实执行仍未创建 |
@@ -61,7 +61,7 @@ future adapter smoke 必须消费：
 | `ReadWorkflowDraftRecord` | `workflow_drafts:read` | static runner case、adapter plan、schema artifact manifest、selector smoke、auth context | 不创建 adapter smoke fixture，不创建 adapter，不回退 sample |
 | `ListWorkflowDraftRecords` | `workflow_drafts:read` | static runner case、adapter plan、schema artifact manifest、selector smoke、auth context | 不创建 adapter smoke fixture，不创建 adapter，不把 empty list 写成 sample fallback |
 
-所有 operation 必须保持 `adapter_smoke_fixture_created_now=false`、`adapter_smoke_checker_created_now=false`、`repository_adapter_allowed_now=false`、`selector_implementation_allowed_now=false`、`schema_artifact_files_allowed_now=false`、`oidc_validation_allowed_now=false`，并且不得 fallback 到 memory dev store、sample、fixture、dev HTTP route 或 test auth。
+本 readiness 批次自身必须保持 `adapter_smoke_fixture_created_now=false`、`adapter_smoke_checker_created_now=false`、`repository_adapter_allowed_now=false`、`selector_implementation_allowed_now=false`、`schema_artifact_files_allowed_now=false`、`oidc_validation_allowed_now=false`，并且不得 fallback 到 memory dev store、sample、fixture、dev HTTP route 或 test auth。后续 selector implementation 和 schema artifact materialization 已分别由独立批次满足，不改变 adapter smoke execution、repository adapter、production auth 和 repository mode 仍未打开的事实。
 
 ## Failure Mapping
 
@@ -101,10 +101,10 @@ adapter smoke readiness 必须继续保留 fail-closed failure code：
 
 ## 后续准入
 
-本专题完成后，已继续补齐 [Saved Workflow Draft Store Selector Implementation Entry Review v1](saved-workflow-draft-store-selector-implementation-entry-review-v1.md) 和 [Saved Workflow Draft Schema Artifact Materialization Review v1](saved-workflow-draft-schema-artifact-materialization-review-v1.md)，状态分别为 `draft_store_selector_implementation_entry_review_defined` 和 `draft_schema_artifact_materialization_review_defined`。durable store 方向仍必须继续按独立专题推进。后续可选方向：
+本专题完成后，已继续补齐 [Saved Workflow Draft Store Selector Implementation Entry Review v1](saved-workflow-draft-store-selector-implementation-entry-review-v1.md)、[Saved Workflow Draft Schema Artifact Materialization Review v1](saved-workflow-draft-schema-artifact-materialization-review-v1.md) 和 [Saved Workflow Draft Schema Artifact Materialization v1](saved-workflow-draft-schema-artifact-materialization-v1.md)，状态分别为 `draft_store_selector_implementation_entry_review_defined`、`draft_schema_artifact_materialization_review_defined` 和 `draft_schema_artifact_materialized_static`。durable store 方向仍必须继续按独立专题推进。后续可选方向：
 
 1. `Saved Workflow Draft Store Selector Implementation v1`：只有独立 implementation task card 打开后，才可创建 formal config、selector 函数、selector tests 和 selector smoke fixture。
-2. `Saved Workflow Draft Schema Artifact Materialization v1`：只有独立 implementation task card 打开后，才可创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact。
+2. `Saved Workflow Draft Production Auth Readiness v1`：独立固定 Radish OIDC、token validation、membership adapter 和 scope projection 的实现准入，不在 readiness 批中直接验证 token。
 3. `Saved Workflow Draft Adapter Smoke Execution v1`：只能在 selector implementation、schema artifact materialization、production auth 和 repository adapter implementation 的前置证据满足后，再定义或执行真实 adapter smoke。
 
 ## 验收方式
@@ -117,4 +117,4 @@ adapter smoke readiness 必须继续保留 fail-closed failure code：
 
 - 不创建 adapter smoke fixture、adapter smoke checker、repository interface、repository adapter、adapter tests、selector、selector smoke fixture、migration root、manifest 文件、DDL review artifact、rollback evidence artifact、migration smoke artifact、SQL migration、schema version table、migration runner、数据库连接、Radish OIDC middleware、token validation 或 production API consumer。
 - 不实现 durable persistence、publish、run、executor、confirmation decision、writeback、replay、resume 或 materialized result reader。
-- 不把 `draft_adapter_smoke_readiness_defined` 解释为 adapter smoke ready、repository adapter ready、database ready、schema artifact file ready、repository mode ready、OIDC ready、production API ready 或 production ready。
+- 不把 `draft_adapter_smoke_readiness_defined` 解释为 adapter smoke ready、repository adapter ready、database ready、SQL migration ready、repository mode ready、OIDC ready、production API ready 或 production ready；schema artifact 静态证据来自后续 materialization v1，并不由本 readiness 批次单独声明。

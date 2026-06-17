@@ -9,6 +9,11 @@ from workflow_saved_draft_selector_implementation_guard import (
     selector_implementation_file_allowed,
     selector_implementation_literal_allowed,
 )
+from workflow_saved_draft_schema_materialization_guard import (
+    schema_materialization_active,
+    schema_materialization_file_allowed,
+    schema_materialization_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -317,6 +322,13 @@ def assert_upstream_schema_artifact_gate_still_blocked() -> None:
         if isinstance(gate, dict)
     }
     gate = gates.get("schema_artifact_materialization_gate") or {}
+    if schema_materialization_active(REPO_ROOT):
+        require(gate.get("status") == "satisfied", "upstream schema artifact materialization gate must be satisfied")
+        require(
+            gate.get("evidence") == "workflow-saved-draft-schema-artifact-materialization-v1",
+            "upstream schema artifact materialization evidence drifted",
+        )
+        return
     require(gate.get("status") == "not_satisfied", "upstream schema artifact materialization gate must stay blocked")
     must_cover = set(gate.get("must_cover") or [])
     for expected in (
@@ -345,6 +357,8 @@ def assert_candidates(fixture: dict[str, Any]) -> None:
         future_artifacts = [str(path) for path in row.get("future_artifacts") or []]
         require(future_artifacts, f"{candidate_id} future artifacts must be listed")
         for relative_path in future_artifacts:
+            if schema_materialization_file_allowed(REPO_ROOT, relative_path):
+                continue
             require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist yet")
 
 
@@ -402,6 +416,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     )
     for relative_path, row in task_cards.items():
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
+        if schema_materialization_file_allowed(REPO_ROOT, relative_path):
+            continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     guard = fixture.get("implementation_artifact_guard") or {}
@@ -412,6 +428,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     require(EXPECTED_FUTURE_FILES.issubset(set(guard.get("future_files_must_not_exist") or [])), "future files drifted")
     for relative_path in guard.get("future_files_must_not_exist") or []:
         if selector_implementation_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
+        if schema_materialization_file_allowed(REPO_ROOT, str(relative_path)):
             continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
     sql_files = list((REPO_ROOT / "services/platform").rglob("*.sql"))
@@ -425,6 +443,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         source = read(str(source_path))
         for literal in literals:
             if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+                continue
+            if schema_materialization_literal_allowed(REPO_ROOT, str(literal)):
                 continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 

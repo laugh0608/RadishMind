@@ -8,7 +8,7 @@
 
 本专题只完成 entry review。当前结论是不打开 formal config entry、`SelectWorkflowSavedDraftStore`、selector unit tests 或 selector smoke fixture；后续如需实现 selector，必须另开独立 implementation task card。
 
-后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，状态为 `draft_store_selector_smoke_implemented`。本专题仍保留 entry review 当批未创建 selector artifact 的历史事实。
+后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，状态为 `draft_store_selector_smoke_implemented`；后续 `Saved Workflow Draft Schema Artifact Materialization v1` 也已独立完成，状态为 `draft_schema_artifact_materialized_static`。本专题仍保留 entry review 当批未创建 selector artifact 的历史事实。
 
 状态：`draft_store_selector_implementation_entry_review_defined`
 
@@ -17,7 +17,7 @@
 - `Saved Workflow Draft Store Selector Enablement Preconditions v1` 已固定 future store mode、selector gate、failure mapping、no fallback 和 dev flag boundary。
 - `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 future selector smoke mode matrix、operation matrix、schema artifact failure、no fallback 和 no side effects，但未创建 selector smoke fixture 或 checker。
 - `Saved Workflow Draft Repository Adapter Implementation Plan v1` 已固定 future selector 文件落点和 adapter 依赖关系，但未创建 repository interface、repository adapter 或 selector。
-- `Saved Workflow Draft Schema Artifact Manifest v1` 已固定 future manifest contract，但未创建 schema artifact 文件、migration root、DDL review 或 SQL migration。
+- `Saved Workflow Draft Schema Artifact Manifest v1` 已固定 future manifest contract；在本 entry review 当批未创建 schema artifact 文件、migration root、DDL review 或 SQL migration，后续已由 `Saved Workflow Draft Schema Artifact Materialization v1` 物化静态 manifest / DDL review / rollback evidence / migration smoke。
 - `Saved Workflow Draft Adapter Smoke Readiness v1` 已把 selector implementation gate 保持为 `not_satisfied`，要求 formal config、`SelectWorkflowSavedDraftStore`、selector tests 和 selector smoke fixture 后续单独准入。
 
 ## Entry Review Decision
@@ -44,7 +44,7 @@
 | selector tests candidate | `blocked` | 不创建 Go selector unit tests |
 | selector smoke fixture candidate | `blocked` | 不创建 selector smoke fixture 或 checker |
 | repository adapter gate | `not_satisfied` | repository interface、adapter 和 database query 仍未创建 |
-| schema artifact file gate | `not_satisfied` | schema artifact manifest file、DDL review、rollback 和 SQL migration 仍未创建 |
+| schema artifact file gate | `satisfied_static` | 后续已物化 manifest file、DDL review、rollback evidence 和 migration smoke 静态证据；SQL migration、schema version table 和 migration runner 仍未创建 |
 | production auth gate | `not_satisfied` | Radish OIDC、token validation、membership adapter 和 scope projection 仍未实现 |
 | production API gate | `not_satisfied` | public production API consumer、production auth policy 和 CORS policy 仍未打开 |
 | no selector implementation artifacts leaked | `required_now` | 当前必须确认 config、selector、tests、smoke fixture、repository、SQL 和 OIDC artifact 未提前出现 |

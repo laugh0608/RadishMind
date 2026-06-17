@@ -9,6 +9,10 @@ from workflow_saved_draft_selector_implementation_guard import (
     selector_implementation_file_allowed,
     selector_implementation_literal_allowed,
 )
+from workflow_saved_draft_schema_materialization_guard import (
+    schema_materialization_file_allowed,
+    schema_materialization_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -18,6 +22,9 @@ ADAPTER_PLAN_FIXTURE_PATH = (
 )
 SCHEMA_MANIFEST_FIXTURE_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/workflow-saved-draft-schema-artifact-manifest-v1.json"
+)
+SCHEMA_MATERIALIZATION_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/workflow-saved-draft-schema-artifact-materialization-v1.json"
 )
 SELECTOR_SMOKE_FIXTURE_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/workflow-saved-draft-store-selector-smoke-readiness-v1.json"
@@ -39,6 +46,10 @@ EXPECTED_DEPENDENCIES = {
     "workflow-saved-draft-schema-artifact-manifest-v1": (
         SCHEMA_MANIFEST_FIXTURE_PATH,
         "draft_schema_artifact_manifest_defined",
+    ),
+    "workflow-saved-draft-schema-artifact-materialization-v1": (
+        SCHEMA_MATERIALIZATION_FIXTURE_PATH,
+        "draft_schema_artifact_materialized_static",
     ),
     "workflow-saved-draft-store-selector-smoke-readiness-v1": (
         SELECTOR_SMOKE_FIXTURE_PATH,
@@ -66,11 +77,6 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "database_schema_ready",
     "database_connection_ready",
     "database_migration_ready",
-    "schema_artifact_files_created",
-    "schema_artifact_manifest_file_created",
-    "ddl_review_artifact_created",
-    "rollback_evidence_artifact_created",
-    "migration_smoke_artifact_created",
     "store_selector_implemented",
     "selector_smoke_fixture_created",
     "formal_store_config_ready",
@@ -119,9 +125,9 @@ SATISFIED_GATE_IDS = {
     "static_runner_consumed",
     "adapter_smoke_contract_defined",
     "selector_implementation_gate",
+    "schema_artifact_materialization_gate",
 }
 NOT_SATISFIED_GATE_IDS = {
-    "schema_artifact_materialization_gate",
     "production_auth_gate",
     "repository_adapter_implementation_gate",
     "adapter_smoke_execution_gate",
@@ -262,6 +268,8 @@ def assert_adapter_smoke_boundary(fixture: dict[str, Any]) -> None:
         require(relative_path, f"{path_field} missing")
         if selector_implementation_file_allowed(REPO_ROOT, relative_path):
             continue
+        if schema_materialization_file_allowed(REPO_ROOT, relative_path):
+            continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist in this readiness slice")
     for field in (
         "adapter_smoke_fixture_created_in_this_slice",
@@ -297,6 +305,8 @@ def assert_planned_adapter_smoke_artifacts(fixture: dict[str, Any]) -> None:
     for relative_path, artifact in artifacts.items():
         require(artifact.get("created_in_this_slice") is False, f"{relative_path} must not be created")
         if selector_implementation_file_allowed(REPO_ROOT, relative_path):
+            continue
+        if schema_materialization_file_allowed(REPO_ROOT, relative_path):
             continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist in this readiness slice")
 
@@ -336,7 +346,10 @@ def assert_dependency_contract(fixture: dict[str, Any]) -> None:
         require(row.get("source_status") == expected_status, f"{source} source status drifted")
         actual = load_json(path).get("slice", {}).get("status")
         require(actual == expected_status, f"{source} fixture status drifted")
-        expected_ready = source == "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1"
+        expected_ready = source in {
+            "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1",
+            "workflow-saved-draft-schema-artifact-materialization-v1",
+        }
         require(row.get("ready_for_adapter_smoke_now") is expected_ready, f"{source} readiness drifted")
 
 
@@ -450,6 +463,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for relative_path in guard.get("future_files_must_not_exist") or []:
         if selector_implementation_file_allowed(REPO_ROOT, str(relative_path)):
             continue
+        if schema_materialization_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
     source_paths = guard.get("source_files_to_scan") or []
     literals = guard.get("future_literals_must_not_appear_in_source") or []
@@ -459,6 +474,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         source = read(str(source_path))
         for literal in literals:
             if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+                continue
+            if schema_materialization_literal_allowed(REPO_ROOT, str(literal)):
                 continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 

@@ -9,6 +9,10 @@ from workflow_saved_draft_selector_implementation_guard import (
     selector_implementation_file_allowed,
     selector_implementation_literal_allowed,
 )
+from workflow_saved_draft_schema_materialization_guard import (
+    schema_materialization_file_allowed,
+    schema_materialization_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -427,6 +431,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         path = str(relative_path)
         if selector_implementation_file_allowed(REPO_ROOT, path):
             continue
+        if schema_materialization_file_allowed(REPO_ROOT, path):
+            continue
         if (REPO_ROOT / path).exists():
             require(
                 path in IMPLEMENTATION_ARTIFACTS_ALLOWED_BY_GATE and implementation_gate_covers_runner(),
@@ -439,9 +445,12 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for source_path in source_paths:
         source = read(str(source_path))
         for literal in literals:
-            if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+            literal_text = str(literal)
+            if selector_implementation_literal_allowed(REPO_ROOT, literal_text):
                 continue
-            require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
+            if schema_materialization_literal_allowed(REPO_ROOT, literal_text):
+                continue
+            require(literal_text not in source, f"{source_path} contains future literal: {literal}")
 
 
 def assert_required_doc_references(fixture: dict[str, Any]) -> None:

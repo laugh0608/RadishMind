@@ -18,11 +18,6 @@
       "database_schema_ready",
       "database_connection_ready",
       "database_migration_ready",
-      "schema_artifact_files_created",
-      "schema_artifact_manifest_file_created",
-      "ddl_review_artifact_created",
-      "rollback_evidence_artifact_created",
-      "migration_smoke_artifact_created",
       "store_selector_implemented",
       "selector_smoke_fixture_created",
       "formal_store_config_ready",
@@ -42,6 +37,7 @@
   "depends_on": [
     "workflow-saved-draft-repository-adapter-implementation-plan-v1",
     "workflow-saved-draft-schema-artifact-manifest-v1",
+    "workflow-saved-draft-schema-artifact-materialization-v1",
     "workflow-saved-draft-store-selector-smoke-readiness-v1",
     "workflow-saved-draft-auth-context-preconditions-v1",
     "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1"
@@ -178,7 +174,8 @@
     },
     {
       "id": "schema_artifact_materialization_gate",
-      "status": "not_satisfied",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-schema-artifact-materialization-v1",
       "must_cover": [
         "migration root",
         "manifest file",
@@ -263,6 +260,12 @@
         "source": "workflow-saved-draft-schema-artifact-manifest-v1",
         "source_status": "draft_schema_artifact_manifest_defined",
         "ready_for_adapter_smoke_now": false
+      },
+      {
+        "id": "schema_artifact_materialization_consumed",
+        "source": "workflow-saved-draft-schema-artifact-materialization-v1",
+        "source_status": "draft_schema_artifact_materialized_static",
+        "ready_for_adapter_smoke_now": true
       },
       {
         "id": "store_selector_smoke_readiness_consumed",

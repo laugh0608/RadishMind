@@ -9,6 +9,10 @@ from workflow_saved_draft_selector_implementation_guard import (
     selector_implementation_file_allowed,
     selector_implementation_literal_allowed,
 )
+from workflow_saved_draft_schema_materialization_guard import (
+    schema_materialization_file_allowed,
+    schema_materialization_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -309,9 +313,12 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     guard = fixture.get("implementation_artifact_guard") or {}
     require(guard.get("status") == "forbid_implementation_artifacts", "artifact guard status drifted")
     for relative_path in guard.get("future_files_must_not_exist") or []:
-        if selector_implementation_file_allowed(REPO_ROOT, str(relative_path)):
+        path = str(relative_path)
+        if selector_implementation_file_allowed(REPO_ROOT, path):
             continue
-        require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
+        if schema_materialization_file_allowed(REPO_ROOT, path):
+            continue
+        require(not (REPO_ROOT / path).exists(), f"future artifact exists early: {relative_path}")
     source_paths = guard.get("source_files_to_scan") or []
     literals = guard.get("future_literals_must_not_appear_in_source") or []
     require(source_paths, "source files to scan must be declared")
@@ -319,9 +326,12 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for source_path in source_paths:
         source = read(str(source_path))
         for literal in literals:
-            if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+            literal_text = str(literal)
+            if selector_implementation_literal_allowed(REPO_ROOT, literal_text):
                 continue
-            require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
+            if schema_materialization_literal_allowed(REPO_ROOT, literal_text):
+                continue
+            require(literal_text not in source, f"{source_path} contains future literal: {literal}")
 
 
 def assert_testing_strategy(fixture: dict[str, Any]) -> None:

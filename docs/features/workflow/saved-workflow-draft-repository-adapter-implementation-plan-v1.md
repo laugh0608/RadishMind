@@ -26,7 +26,7 @@ future adapter implementation 必须消费以下门禁：
 | repository contract + static runner | `satisfied` | 消费 save / read / list operation contract、contract smoke 和 static runner |
 | schema / auth / selector evidence | `satisfied` | 消费 schema migration preconditions、auth context、schema artifact evidence 和 selector smoke readiness |
 | selector implementation | `satisfied` | 已由 `Saved Workflow Draft Store Selector Implementation v1` 实现 formal config、selector 函数、selector tests 和 selector smoke fixture |
-| schema migration artifact | `not_satisfied` | 后续独立创建 manifest、DDL review、rollback evidence 和 migration smoke |
+| schema migration artifact | `satisfied` | 已由 `Saved Workflow Draft Schema Artifact Materialization v1` 物化 manifest、DDL review、rollback evidence 和 migration smoke 静态证据 |
 | production auth | `not_satisfied` | 后续独立接 Radish OIDC、claim mapping、workspace membership 和 scope projection |
 | durable adapter smoke | `not_satisfied` | readiness 已按 `Saved Workflow Draft Adapter Smoke Readiness v1` 定义，真实 adapter smoke 执行仍需等待 schema artifact、auth 和 adapter gate |
 | implementation leak guard | `required_now` | 当前不得出现 interface、adapter、SQL、migration 或 OIDC artifact |
@@ -76,8 +76,8 @@ future adapter plan 必须保留以下 fail-closed code：
 
 本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md) 和 [Saved Workflow Draft Adapter Smoke Readiness v1](saved-workflow-draft-adapter-smoke-readiness-v1.md)，状态分别为 `draft_schema_artifact_manifest_defined` 和 `draft_adapter_smoke_readiness_defined`。下一步仍不能直接创建 durable adapter。后续只能选择一个独立方向：
 
-1. `Saved Workflow Draft Schema Artifact Materialization Review v1`：另行评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
-2. `Saved Workflow Draft Repository Adapter Implementation v1`：在 schema artifact、auth、selector 和 adapter smoke 证据满足后打开 repository interface / adapter。
+1. `Saved Workflow Draft Production Auth Readiness v1`：在不实现 token validation 的前提下，固定 future Radish OIDC、workspace membership、scope projection 和 auth failure mapping 的实现准入。
+2. `Saved Workflow Draft Repository Adapter Implementation Entry Review v1`：在 schema artifact 和 selector 已满足后，评审是否打开 repository interface / adapter；若 production auth 仍未满足，则不得进入 adapter 实现。
 
 ## 验收方式
 

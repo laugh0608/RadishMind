@@ -12,7 +12,6 @@
       "durable_persistence_ready",
       "database_schema_ready",
       "database_migration_ready",
-      "migration_files_created",
       "migration_runner_implemented",
       "store_selector_implemented",
       "selector_smoke_ready",
@@ -197,7 +196,10 @@
     },
     {
       "id": "schema_migration_artifact_gate",
-      "status": "not_satisfied",
+      "status": "satisfied",
+      "evidence": [
+        "workflow-saved-draft-schema-artifact-materialization-v1"
+      ],
       "must_cover": [
         "schema artifact manifest",
         "DDL review evidence",

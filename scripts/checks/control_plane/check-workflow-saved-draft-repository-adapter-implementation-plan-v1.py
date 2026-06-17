@@ -9,6 +9,10 @@ from workflow_saved_draft_selector_implementation_guard import (
     selector_implementation_file_allowed,
     selector_implementation_literal_allowed,
 )
+from workflow_saved_draft_schema_materialization_guard import (
+    schema_materialization_file_allowed,
+    schema_materialization_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -96,7 +100,6 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "durable_persistence_ready",
     "database_schema_ready",
     "database_migration_ready",
-    "migration_files_created",
     "migration_runner_implemented",
     "store_selector_implemented",
     "selector_smoke_ready",
@@ -268,6 +271,8 @@ def assert_plan_boundary(fixture: dict[str, Any]) -> None:
         relative_path = str(boundary.get(field) or "")
         if field == "future_selector_file" and selector_implementation_file_allowed(REPO_ROOT, relative_path):
             continue
+        if field == "future_migration_root" and schema_materialization_file_allowed(REPO_ROOT, relative_path):
+            continue
         future_path = REPO_ROOT / relative_path
         require(not future_path.exists(), f"{field} must not be created in this plan slice")
     for field in ("current_domain_file", "current_http_file", "static_runner_file"):
@@ -316,6 +321,8 @@ def assert_future_file_layout(fixture: dict[str, Any]) -> None:
         require(row.get("allowed_before_gates") is False, f"{relative_path} must remain blocked before gates")
         if selector_implementation_file_allowed(REPO_ROOT, relative_path):
             continue
+        if schema_materialization_file_allowed(REPO_ROOT, relative_path):
+            continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist in this plan slice")
 
 
@@ -330,11 +337,11 @@ def assert_adapter_gate_matrix(fixture: dict[str, Any]) -> None:
         "repository_contract_static_runner_consumed",
         "schema_auth_selector_evidence_consumed",
         "selector_implementation_gate",
+        "schema_migration_artifact_gate",
     ):
         require(gates[gate_id].get("status") == "satisfied", f"{gate_id} must be satisfied")
         require(gates[gate_id].get("evidence"), f"{gate_id} must cite evidence")
     for gate_id in (
-        "schema_migration_artifact_gate",
         "production_auth_gate",
         "durable_adapter_smoke_gate",
     ):
@@ -476,6 +483,8 @@ def assert_no_implementation_leaked(fixture: dict[str, Any]) -> None:
             text = path.read_text(encoding="utf-8")
             for literal in configured_literals:
                 if selector_implementation_literal_allowed(REPO_ROOT, literal):
+                    continue
+                if schema_materialization_literal_allowed(REPO_ROOT, literal):
                     continue
                 require(
                     literal not in text,

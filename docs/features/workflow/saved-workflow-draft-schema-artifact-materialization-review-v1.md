@@ -20,7 +20,7 @@ Review conclusion: schema artifact materialization entry not opened.
 - `Saved Workflow Draft Repository Adapter Implementation Plan v1` 已固定 future adapter 对 schema artifact 的依赖，但未创建 repository interface、repository adapter 或数据库 query。
 - `Saved Workflow Draft Store Selector Implementation Entry Review v1` 已确认 selector implementation entry 当前不打开，schema artifact 物化不能借 selector 评审绕过。
 
-后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，状态为 `draft_store_selector_smoke_implemented`。本专题仍保留 materialization review 当批未创建 schema artifact materialization artifact 的历史事实。
+后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，状态为 `draft_store_selector_smoke_implemented`。后续 `Saved Workflow Draft Schema Artifact Materialization v1` 也已独立完成，状态为 `draft_schema_artifact_materialized_static`。本专题仍保留 materialization review 当批未创建 schema artifact materialization artifact 的历史事实。
 
 ## Materialization Review Decision
 
@@ -42,7 +42,7 @@ Review conclusion: schema artifact materialization entry not opened.
 | schema artifact manifest consumed | `satisfied` | 已消费 manifest shape、section matrix 和 operation predicate coverage |
 | repository adapter plan consumed | `satisfied` | 已确认 future adapter 仍依赖 schema artifact gate |
 | selector entry review consumed | `satisfied` | 已确认 selector implementation entry 未打开 |
-| adapter smoke readiness consumed | `satisfied` | 已确认 schema artifact materialization gate 仍未满足 |
+| adapter smoke readiness consumed | `satisfied` | 已确认 schema artifact materialization gate 后续由独立 implementation 满足 |
 | materialization review defined | `satisfied` | 本专题定义 materialization review 结论和后续准入 |
 | migration root candidate | `blocked` | 不创建 `services/platform/migrations/workflow_saved_drafts` |
 | manifest file candidate | `blocked` | 不创建 `manifest.json` |
@@ -54,7 +54,7 @@ Review conclusion: schema artifact materialization entry not opened.
 | production auth gate | `not_satisfied` | Radish OIDC、token validation、membership adapter 和 scope projection 仍未实现 |
 | database connection gate | `not_satisfied` | 不连接真实数据库，不运行 migration，不创建 schema version table |
 | production API gate | `not_satisfied` | public production API consumer、production auth policy 和 CORS policy 仍未打开 |
-| no schema artifact materialization artifacts leaked | `required_now` | 当前必须确认 migration root、schema artifact、SQL、repository、selector、OIDC artifact 未提前出现 |
+| no schema artifact materialization artifacts leaked | `required_now` | 当前必须确认除 `Saved Workflow Draft Schema Artifact Materialization v1` 允许的静态 artifact 外，SQL、repository、selector、OIDC artifact 未提前出现 |
 
 ## Failure Mapping
 
@@ -83,7 +83,7 @@ materialization review 必须继续保留以下 fail-closed failure code：
 后续可选方向：
 
 1. `Saved Workflow Draft Schema Artifact Materialization v1`：只有在本 review 重新确认单一 materialization track 后，才可创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact。
-2. `Saved Workflow Draft Store Selector Implementation v1`：独立打开 formal config、selector、selector tests 和 selector smoke fixture，不能和 schema artifact materialization 混在同一批。
+2. `Saved Workflow Draft Production Auth Readiness v1`：在 schema artifact 和 selector 均满足后，独立固定 production auth gate，不直接实现 token validation。
 3. `Saved Workflow Draft Adapter Smoke Execution v1`：只能在 selector implementation、schema artifact materialization、production auth 和 repository adapter implementation 均满足后进入。
 
 ## 验收方式

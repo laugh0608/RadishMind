@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_schema_materialization_guard import (
+    schema_materialization_file_allowed,
+    schema_materialization_literal_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/workflow-saved-draft-store-selector-smoke-v1.json"
@@ -218,6 +223,8 @@ def assert_tests_cover_selector_smoke() -> None:
 def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     guard = fixture.get("artifact_guard") or {}
     for relative_path in guard.get("forbidden_paths_must_not_exist") or []:
+        if schema_materialization_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"forbidden artifact exists: {relative_path}")
     sql_files = list((REPO_ROOT / "services/platform").rglob("*.sql"))
     require(not sql_files, f"SQL files must not be introduced: {sql_files}")
@@ -229,6 +236,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for source_path in source_paths:
         source = read(str(source_path))
         for literal in literals:
+            if schema_materialization_literal_allowed(REPO_ROOT, str(literal)):
+                continue
             require(str(literal) not in source, f"{source_path} contains forbidden literal: {literal}")
 
 
