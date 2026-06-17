@@ -28,7 +28,7 @@ future adapter implementation 必须消费以下门禁：
 | selector implementation | `not_satisfied` | 后续独立实现 formal config、selector 函数、selector tests 和 selector smoke fixture |
 | schema migration artifact | `not_satisfied` | 后续独立创建 manifest、DDL review、rollback evidence 和 migration smoke |
 | production auth | `not_satisfied` | 后续独立接 Radish OIDC、claim mapping、workspace membership 和 scope projection |
-| durable adapter smoke | `not_satisfied` | 后续 adapter smoke 必须消费 static runner、schema artifact、selector smoke 和 auth evidence |
+| durable adapter smoke | `not_satisfied` | readiness 已按 `Saved Workflow Draft Adapter Smoke Readiness v1` 定义，真实 adapter smoke 执行仍需等待 selector、schema artifact、auth 和 adapter gate |
 | implementation leak guard | `required_now` | 当前不得出现 interface、adapter、selector、SQL、migration 或 OIDC artifact |
 
 ## Operation Adapter Matrix
@@ -74,11 +74,10 @@ future adapter plan 必须保留以下 fail-closed code：
 
 ## 后续准入
 
-本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md)，状态为 `draft_schema_artifact_manifest_defined`。下一步仍不能直接创建 durable adapter。后续只能选择一个独立方向：
+本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md) 和 [Saved Workflow Draft Adapter Smoke Readiness v1](saved-workflow-draft-adapter-smoke-readiness-v1.md)，状态分别为 `draft_schema_artifact_manifest_defined` 和 `draft_adapter_smoke_readiness_defined`。下一步仍不能直接创建 durable adapter。后续只能选择一个独立方向：
 
 1. `Saved Workflow Draft Store Selector Implementation Entry Review v1`：评审 formal config、selector 函数、selector tests 和 selector smoke fixture 是否进入实现。
-2. `Saved Workflow Draft Adapter Smoke Readiness v1`：定义 future adapter smoke 如何消费 static runner、schema artifact manifest、selector smoke 和 auth context。
-3. `Saved Workflow Draft Schema Artifact Materialization Review v1`：另行评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
+2. `Saved Workflow Draft Schema Artifact Materialization Review v1`：另行评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
 
 ## 验收方式
 
