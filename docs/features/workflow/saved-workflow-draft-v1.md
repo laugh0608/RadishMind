@@ -40,7 +40,7 @@
 - 当前已新增 [Saved Workflow Draft Production Auth Readiness v1](saved-workflow-draft-production-auth-readiness-v1.md)：固定 Radish OIDC issuer discovery evidence、token validation contract preconditions、claim mapping、tenant / workspace / application binding、scope projection、failure mapping、no fake fallback 和 no side effects；状态为 `draft_production_auth_readiness_defined`。本批不创建 OIDC middleware、token validation、membership adapter、repository adapter、production API 或 adapter smoke fixture。
 - 当前已新增 [Saved Workflow Draft Repository Adapter Implementation Entry Review v1](saved-workflow-draft-repository-adapter-implementation-entry-review-v1.md)：评审 repository adapter implementation task 准入、operation matrix、failure mapping、no fallback 和 no side effects；状态为 `draft_repository_adapter_implementation_entry_review_defined`。本批不创建 repository interface、repository adapter、adapter smoke fixture、database query、OIDC middleware、token validation、membership adapter 或 production API。
 - 当前仍没有 durable persistence、repository adapter、真实 SQL migration、schema version table、migration runner、adapter smoke fixture、adapter smoke checker、Radish OIDC middleware、token validation 或 production API。
-- 当前任务卡为 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md)，状态是 `saved_workflow_draft_domain_service_implemented`。
+- 当前功能主状态为 `draft_repository_adapter_implementation_entry_review_defined`；早期 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md) 任务卡仍记录 domain service 实现批次，后续 durable store 代码实现应转入 repository adapter implementation task card。
 
 ## 目标用户
 

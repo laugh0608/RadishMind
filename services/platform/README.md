@@ -103,7 +103,7 @@
 
 `control-plane-durable-read-foundation-v1` 当前固定为 `durable_read_foundation_implemented`：`ControlPlaneReadRepository` interface 边界已在 `services/platform/internal/httpapi/control_plane_read_repository.go` 落地，现有七条 fake-store-backed read handlers 已通过 repository interface 消费数据。当前 repository 只包裹 fixture-backed fake store，保持 response envelope、dev-only fake auth、product sample fixture 和 no-side-effects 行为稳定；它不实现 repository adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
-`workflow-saved-draft-v1-implementation` 当前已落地 platform 内部 domain service：`services/platform/internal/httpapi/workflow_saved_draft.go` 定义 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft` / `ListDrafts`、版本冲突、失败语义、sanitized response、no sample fallback 和 no-side-effects 边界。`workflow-saved-draft-consumer-integration-v1` 进一步新增 dev-only route：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}`、`GET /v1/user-workspace/workflow-drafts` 和 `POST /v1/user-workspace/workflow-drafts/validate`，由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 显式启用，并由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1` 单独允许保存。`user-workspace-saved-draft-list-v1` 的 list route 只返回当前 workspace + application scope 下的 sanitized `draft_summaries`，用于 Workspace Home 恢复入口。`workflow-draft-node-attribute-editing-model-v1` 已把节点级 summary、contract fields、output mapping 和 provider / tool / RAG refs 纳入 dev-only saved draft document 与 Go save / read / validate / list tests。`workflow-saved-draft-repository-contract-smoke-runner-implementation-v1` 新增 static `SavedWorkflowDraftRepositoryContractSmokeRunner`，只消费 committed contract smoke / operation matrix / failure mapping / no-side-effects 证据，不声明 repository interface，不连接 store。当前没有 durable persistence、没有 repository adapter、没有真实数据库 / OIDC / store selector，也不进入 publish、run、executor、confirmation decision、writeback 或 replay。
+`workflow-saved-draft-v1-implementation` 当前已落地 platform 内部 domain service：`services/platform/internal/httpapi/workflow_saved_draft.go` 定义 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft` / `ListDrafts`、版本冲突、失败语义、sanitized response、no sample fallback 和 no-side-effects 边界。`workflow-saved-draft-consumer-integration-v1` 进一步新增 dev-only route：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}`、`GET /v1/user-workspace/workflow-drafts` 和 `POST /v1/user-workspace/workflow-drafts/validate`，由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 显式启用，并由 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1` 单独允许保存。`user-workspace-saved-draft-list-v1` 的 list route 只返回当前 workspace + application scope 下的 sanitized `draft_summaries`，用于 Workspace Home 恢复入口。`workflow-draft-node-attribute-editing-model-v1` 已把节点级 summary、contract fields、output mapping 和 provider / tool / RAG refs 纳入 dev-only saved draft document 与 Go save / read / validate / list tests。`workflow-saved-draft-store-selector-implementation-v1` 新增 `workflow_saved_draft_store` / `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` 配置入口和 `SelectWorkflowSavedDraftStore`：默认 `memory_dev` 继续使用内存 dev store，`repository_disabled` / `repository` 返回 `repository_store_disabled`，未知 mode 返回 `invalid_draft_store_mode`，且 save / read / list 都不得回退到 memory dev、sample 或 fixture。`workflow-saved-draft-schema-artifact-materialization-v1` 只物化 `services/platform/migrations/workflow_saved_drafts/manifest.json`、`ddl-review.md`、`rollback-evidence.json` 和 `migration-smoke.json` 四个静态证据文件，不包含可执行 SQL。`workflow-saved-draft-repository-contract-smoke-runner-implementation-v1` 新增 static `SavedWorkflowDraftRepositoryContractSmokeRunner`，只消费 committed contract smoke / operation matrix / failure mapping / no-side-effects 证据，不声明 repository interface，不连接 store。当前没有 durable persistence、没有 repository adapter、没有真实数据库 / OIDC token validation，也不进入 publish、run、executor、confirmation decision、writeback 或 replay。
 
 ## Control Plane Read-Side readiness 运行层说明
 
@@ -288,6 +288,7 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH` | `false` | 显式启用 read-side / saved draft dev-only 测试身份 header |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP` | `false` | 显式启用 saved workflow draft dev-only HTTP route |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE` | `false` | 显式允许 saved workflow draft dev-only save 操作；read / validate 不用该开关 |
+| `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` | `memory_dev` | saved workflow draft store selector mode；仅 `memory_dev` 可读写 dev store，`repository_disabled` / `repository` / unknown mode 均 fail closed |
 
 配置优先级固定为 `default < config file < env`。配置文件当前使用 JSON，字段名与脱敏 summary 保持一致，例如：
 
@@ -296,7 +297,8 @@ go run ./cmd/radishmind-platform
   "listen_addr": "127.0.0.1:7000",
   "provider": "mock",
   "model": "radishmind-local-dev",
-  "bridge_timeout": "30s"
+  "bridge_timeout": "30s",
+  "workflow_saved_draft_store": "memory_dev"
 }
 ```
 
@@ -431,7 +433,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - `/v1/session/recovery/checkpoints/session-checkpoint-0001` 返回 `session_recovery_checkpoint_read_result`，且 `access_policy.metadata_only=true`、`materialized_results_included=false`、`auto_replay_enabled=false`，`result.tool_audit_summary.execution_enabled=false`。
 - `/v1/tools/metadata` 返回 `tooling_metadata`，其中 `registry_policy.execution_enabled=false`，每个工具的 execution mode 为 `contract_only`。
 - 七条 control-plane read route 目前只在 Go test 中通过 test-only fake auth context 验证；直接 curl 未带未来 auth context 时应 fail closed，而不是匿名返回跨租户数据。
-- workflow saved draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 才能 list / read / validate，保存还必须设置 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`，并带上 `X-RadishMind-Dev-Workflow-Workspace` / `X-RadishMind-Dev-Workflow-Application` 与匹配 scope。
+- workflow saved draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 才能 list / read / validate，保存还必须设置 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`，并带上 `X-RadishMind-Dev-Workflow-Workspace` / `X-RadishMind-Dev-Workflow-Application` 与匹配 scope。`RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` 默认 `memory_dev`；设置为 `repository_disabled` / `repository` 会返回 `repository_store_disabled`，设置未知值会返回 `invalid_draft_store_mode`，不会把失败请求回退成 sample 或 memory dev 成功。
 - `/v1/tools/actions` 返回 `tool_action_blocked_response`，且不会运行工具、返回 materialized result、写 durable memory 或写业务真相源。
 - `/v1/chat/completions` 在 `mock` provider 下返回 advisory 文本，不访问外部 provider，不写回任何上层项目。
 
@@ -445,4 +447,5 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - 若 northbound 路由返回 `PLATFORM_BRIDGE_FAILED`，先用 `./scripts/run-python.sh scripts/run-platform-bridge.py providers` 与 `./scripts/run-python.sh scripts/run-platform-bridge.py inventory` 验证 Python 侧 provider registry / inventory 是否可用。
 - 若返回 `MODEL_NOT_FOUND`，优先用 `/v1/models` 或 `diagnostics.providers.selectable_model_ids` 确认可选择 ID，避免把 provider id、profile id 与真实 upstream model 混用。
 - 若返回 `PLATFORM_RESPONSE_INVALID`，说明 Python bridge 已返回 envelope，但 `Go` northbound 兼容层无法翻译为目标协议响应，应优先检查 envelope 的 `response` 结构。
+- 若 saved workflow draft route 返回 `repository_store_disabled` 或 `invalid_draft_store_mode`，优先检查 `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` / `workflow_saved_draft_store`；当前只有 `memory_dev` 能启用 dev store，reserved repository mode 仍未连接 adapter 或数据库。
 - 若要接真实 provider，必须通过环境变量或本机 secret 注入 `RADISHMIND_PLATFORM_BASE_URL` / `RADISHMIND_PLATFORM_API_KEY` 或 provider profile 配置；不要把 key、token、cookie 或真实 provider raw dump 写入 committed 文档。

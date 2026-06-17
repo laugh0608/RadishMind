@@ -12,7 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `dev_consumer_stabilized` | 固定草案保存、读取、校验、版本冲突、失败语义和 saved / sample 区分 |
+| [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `draft_repository_adapter_implementation_entry_review_defined` | 固定草案保存、读取、校验、版本冲突、store selector fail-closed、schema artifact 和 saved / sample 区分 |
 | [Workflow Draft Designer Surface](draft-designer-surface.md) | 页面 / Surface 专题 | `structure_editing_model_v2_implemented` | 固定 draft designer 的页面状态、数据来源、本地结构编辑和后续 saved draft 接线边界 |
 | [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) | 功能 / 页面专题 | `implemented` | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | `implemented` | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
