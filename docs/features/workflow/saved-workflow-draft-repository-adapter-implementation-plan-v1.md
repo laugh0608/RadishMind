@@ -74,10 +74,10 @@ future adapter plan 必须保留以下 fail-closed code：
 
 ## 后续准入
 
-本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md) 和 [Saved Workflow Draft Adapter Smoke Readiness v1](saved-workflow-draft-adapter-smoke-readiness-v1.md)，状态分别为 `draft_schema_artifact_manifest_defined` 和 `draft_adapter_smoke_readiness_defined`。下一步仍不能直接创建 durable adapter。后续只能选择一个独立方向：
+本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md)、[Saved Workflow Draft Adapter Smoke Readiness v1](saved-workflow-draft-adapter-smoke-readiness-v1.md)、[Saved Workflow Draft Store Selector Implementation v1](saved-workflow-draft-store-selector-implementation-v1.md)、[Saved Workflow Draft Schema Artifact Materialization v1](saved-workflow-draft-schema-artifact-materialization-v1.md)、[Saved Workflow Draft Production Auth Readiness v1](saved-workflow-draft-production-auth-readiness-v1.md) 和 [Saved Workflow Draft Repository Adapter Implementation Entry Review v1](saved-workflow-draft-repository-adapter-implementation-entry-review-v1.md)，状态分别为 `draft_schema_artifact_manifest_defined`、`draft_adapter_smoke_readiness_defined`、`draft_store_selector_smoke_implemented`、`draft_schema_artifact_materialized_static`、`draft_production_auth_readiness_defined` 和 `draft_repository_adapter_implementation_entry_review_defined`。下一步仍不能直接创建 durable adapter，必须先创建独立 implementation task card。后续只能选择一个独立方向：
 
-1. `Saved Workflow Draft Production Auth Readiness v1`：在不实现 token validation 的前提下，固定 future Radish OIDC、workspace membership、scope projection 和 auth failure mapping 的实现准入。
-2. `Saved Workflow Draft Repository Adapter Implementation Entry Review v1`：在 schema artifact 和 selector 已满足后，评审是否打开 repository interface / adapter；若 production auth 仍未满足，则不得进入 adapter 实现。
+1. `Saved Workflow Draft Repository Adapter Implementation v1`：先写 implementation task card，再定义 repository interface、adapter boundary、adapter tests、database query policy、schema preflight、auth context 输入、failure mapping 和验证链路。
+2. `Saved Workflow Draft Adapter Smoke Execution v1`：只能在 repository adapter implementation 完成后独立打开，且不得借 adapter smoke 绕过 production auth runtime、repository mode enablement 或 production API 停止线。
 
 ## 验收方式
 

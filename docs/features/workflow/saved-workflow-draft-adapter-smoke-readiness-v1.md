@@ -101,11 +101,11 @@ adapter smoke readiness 必须继续保留 fail-closed failure code：
 
 ## 后续准入
 
-本专题完成后，已继续补齐 [Saved Workflow Draft Store Selector Implementation Entry Review v1](saved-workflow-draft-store-selector-implementation-entry-review-v1.md)、[Saved Workflow Draft Schema Artifact Materialization Review v1](saved-workflow-draft-schema-artifact-materialization-review-v1.md) 和 [Saved Workflow Draft Schema Artifact Materialization v1](saved-workflow-draft-schema-artifact-materialization-v1.md)，状态分别为 `draft_store_selector_implementation_entry_review_defined`、`draft_schema_artifact_materialization_review_defined` 和 `draft_schema_artifact_materialized_static`。durable store 方向仍必须继续按独立专题推进。后续可选方向：
+本专题完成后，已继续补齐 [Saved Workflow Draft Store Selector Implementation Entry Review v1](saved-workflow-draft-store-selector-implementation-entry-review-v1.md)、[Saved Workflow Draft Schema Artifact Materialization Review v1](saved-workflow-draft-schema-artifact-materialization-review-v1.md)、[Saved Workflow Draft Store Selector Implementation v1](saved-workflow-draft-store-selector-implementation-v1.md)、[Saved Workflow Draft Schema Artifact Materialization v1](saved-workflow-draft-schema-artifact-materialization-v1.md)、[Saved Workflow Draft Production Auth Readiness v1](saved-workflow-draft-production-auth-readiness-v1.md) 和 [Saved Workflow Draft Repository Adapter Implementation Entry Review v1](saved-workflow-draft-repository-adapter-implementation-entry-review-v1.md)，状态分别为 `draft_store_selector_implementation_entry_review_defined`、`draft_schema_artifact_materialization_review_defined`、`draft_store_selector_smoke_implemented`、`draft_schema_artifact_materialized_static`、`draft_production_auth_readiness_defined` 和 `draft_repository_adapter_implementation_entry_review_defined`。durable store 方向仍必须继续按独立专题推进。后续可选方向：
 
-1. `Saved Workflow Draft Store Selector Implementation v1`：只有独立 implementation task card 打开后，才可创建 formal config、selector 函数、selector tests 和 selector smoke fixture。
-2. `Saved Workflow Draft Production Auth Readiness v1`：独立固定 Radish OIDC、token validation、membership adapter 和 scope projection 的实现准入，不在 readiness 批中直接验证 token。
-3. `Saved Workflow Draft Adapter Smoke Execution v1`：只能在 selector implementation、schema artifact materialization、production auth 和 repository adapter implementation 的前置证据满足后，再定义或执行真实 adapter smoke。
+1. `Saved Workflow Draft Repository Adapter Implementation v1`：先创建独立 implementation task card，再实现 repository interface、adapter boundary 和 adapter tests。
+2. `Saved Workflow Draft Adapter Smoke Execution v1`：只能在 repository adapter implementation 完成后，再定义或执行真实 adapter smoke。
+3. `Saved Workflow Draft Production Auth Runtime v1`：仍需独立实现 OIDC middleware、token validation 和 membership adapter，不由 adapter smoke readiness 或 repository adapter entry review 代替。
 
 ## 验收方式
 

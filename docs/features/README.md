@@ -74,6 +74,7 @@
 | [Saved Workflow Draft Schema Artifact Materialization Review v1](workflow/saved-workflow-draft-schema-artifact-materialization-review-v1.md) | 实现准入专题 | 评审 schema artifact materialization 的 migration root、manifest、DDL review、rollback evidence 和 migration smoke 当前是否打开 |
 | [Saved Workflow Draft Schema Artifact Materialization v1](workflow/saved-workflow-draft-schema-artifact-materialization-v1.md) | 实现专题 | 物化 saved draft schema artifact 的 manifest、DDL review、rollback evidence 和 migration smoke 静态证据 |
 | [Saved Workflow Draft Production Auth Readiness v1](workflow/saved-workflow-draft-production-auth-readiness-v1.md) | 前置证据专题 | 固定 saved draft production auth readiness，状态为 `draft_production_auth_readiness_defined` |
+| [Saved Workflow Draft Repository Adapter Implementation Entry Review v1](workflow/saved-workflow-draft-repository-adapter-implementation-entry-review-v1.md) | 实现准入专题 | 评审 repository adapter implementation task 准入，状态为 `draft_repository_adapter_implementation_entry_review_defined` |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 
