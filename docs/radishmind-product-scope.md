@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-16
+更新时间：2026-06-17
 
 ## 核心定义
 
@@ -43,7 +43,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 支持创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG 或知识问答应用。
 - 用户可以管理自己的应用、API key、调用量、运行记录和成本摘要。
 - 当前 `apps/radishmind-web/` 只提供 read-side 页面切片：applications、API keys、usage quota、workflow definitions 和 run history 默认都是离线只读展示；dev-only live read path 也只能读取 fake-store-backed handler，不提供创建、编辑、执行、replay 或写回控件。
-- `Saved Workflow Draft v1` 已具备 platform Go domain service、内存 dev store、dev-only HTTP route、web consumer、save / read / validate / list 契约、版本冲突、失败语义、sanitized response、no sample fallback 测试、Draft Designer 受控本地编辑、本地结构编辑、节点属性编辑、User Workspace 本地草案创建入口、saved dev draft list / restore 和 active draft review handoff；repository contract smoke、runner readiness 和 static runner implementation 已作为 durable store 前置证据落地。它还没有 durable persistence、repository adapter、真实数据库、OIDC、production API、publish、run 或 executor。
+- `Saved Workflow Draft v1` 已具备 platform Go domain service、内存 dev store、dev-only HTTP route、web consumer、save / read / validate / list 契约、版本冲突、失败语义、sanitized response、no sample fallback 测试、Draft Designer 受控本地编辑、本地结构编辑、节点属性编辑、User Workspace 本地草案创建入口、saved dev draft list / restore 和 active draft review handoff；repository contract smoke、runner readiness、static runner implementation 和 repository adapter implementation plan 已作为 durable store 前置证据落地。它还没有 durable persistence、repository adapter、真实数据库、OIDC、production API、publish、run 或 executor。
 - 工作流方向参考 `Dify` 的应用构建与 workflow 编排，但首版只实现 Radish 体系当前需要的可治理切片，不追求一次性复刻全量能力。
 
 2. `Admin Control Plane`

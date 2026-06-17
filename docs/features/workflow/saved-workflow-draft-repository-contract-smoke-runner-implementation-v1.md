@@ -1,6 +1,6 @@
 # Saved Workflow Draft Repository Contract Smoke Runner Implementation v1 专题
 
-更新时间：2026-06-16
+更新时间：2026-06-17
 
 ## 专题定位
 
@@ -54,10 +54,11 @@ runner 覆盖 `SaveWorkflowDraftRecord`、`ReadWorkflowDraftRecord` 和 `ListWor
 
 ## 后续准入
 
-本专题完成后仍不能直接连接真实数据库。后续若继续 durable store 方向，应选择一个独立专题：
+本专题完成后仍不能直接连接真实数据库。`Saved Workflow Draft Repository Adapter Implementation Plan v1` 已在后续批次固定为 `draft_repository_adapter_implementation_plan_defined`，它只定义 future adapter implementation plan，不创建 repository interface、adapter、selector、SQL、OIDC 或 production API。后续若继续 durable store 方向，应选择一个独立专题：
 
-1. repository adapter implementation plan：消费本 runner、schema artifact evidence、auth context、selector readiness 和 repository contract smoke，先固定 adapter 的实现计划、迁移门禁和 rollback 证据。
-2. selector implementation entry review：决定 formal config、selector 函数、selector tests 和 selector smoke fixture 的准入条件。
+1. selector implementation entry review：决定 formal config、selector 函数、selector tests 和 selector smoke fixture 的准入条件。
+2. schema artifact manifest：决定 manifest、DDL review、rollback evidence 和 migration smoke 的创建边界。
+3. adapter smoke readiness：定义 future adapter smoke 如何消费 static runner、schema artifact、selector smoke 和 auth context。
 
 ## 停止线
 
