@@ -176,6 +176,8 @@
 
 当前 Saved Workflow Draft store selector implementation entry review 还提供 `check-workflow-saved-draft-store-selector-implementation-entry-review-v1.py`，用于校验 `draft_store_selector_implementation_entry_review_defined`、formal config / `SelectWorkflowSavedDraftStore` / selector tests / selector smoke fixture 四个候选项、entry decision、failure mapping、no fallback、no side effects 和 forbidden selector implementation artifact；该检查不启动服务、不创建 formal config entry、不创建 selector、不创建 selector tests、不创建 selector smoke fixture、不创建 repository adapter、不创建 schema artifact 文件、不写 SQL、不调用 OIDC、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft schema artifact materialization review 还提供 `check-workflow-saved-draft-schema-artifact-materialization-review-v1.py`，用于校验 `draft_schema_artifact_materialization_review_defined`、migration root / manifest / DDL review / rollback evidence / migration smoke 五个候选项、entry decision、failure mapping、no fallback、no side effects 和 forbidden schema artifact materialization artifact；该检查不启动服务、不创建 materialization implementation task card、不创建 migration root、不创建 manifest 文件、不写 DDL、不创建 rollback / migration smoke artifact、不写 SQL、不连接数据库、不创建 repository adapter、不创建 store selector、不调用 OIDC、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
+
 尾部 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
@@ -191,6 +193,7 @@
 - `check-workflow-saved-draft-schema-artifact-manifest-v1.py` 失败通常表示 saved workflow draft schema artifact manifest contract、section matrix、operation predicate coverage、failure mapping、no fallback / no side effects 或 forbidden migration / SQL / repository / selector / OIDC artifact 边界漂移。
 - `check-workflow-saved-draft-adapter-smoke-readiness-v1.py` 失败通常表示 saved workflow draft adapter smoke readiness、依赖 gate、operation adapter smoke matrix、failure mapping、no fallback / no side effects 或 forbidden adapter smoke / repository / selector / schema artifact / SQL / OIDC artifact 边界漂移。
 - `check-workflow-saved-draft-store-selector-implementation-entry-review-v1.py` 失败通常表示 saved workflow draft selector implementation entry review 被误写成已打开，或 formal config、selector、selector tests、selector smoke fixture、repository adapter、schema artifact、SQL、OIDC artifact 提前出现。
+- `check-workflow-saved-draft-schema-artifact-materialization-review-v1.py` 失败通常表示 saved workflow draft schema artifact materialization review 被误写成已打开，或 migration root、manifest、DDL review、rollback evidence、migration smoke、SQL、migration runner、repository adapter、selector、OIDC artifact 提前出现。
 - `check-user-workspace-saved-draft-list-v1.py` 失败通常表示 dev-only list route、sanitized summary projection、Workspace Home saved draft list / restore、empty / failure state 或 no sample fallback 边界漂移。
 - `check-workflow-draft-designer-editing-model-v2.py` 失败通常表示 Draft Designer 本地结构编辑、边重建、active draft 下游预览或 saved restore lane mapping 边界漂移。
 - `check-workflow-draft-node-attribute-editing-model-v1.py` 失败通常表示 Draft Designer 节点属性编辑、保存 / 恢复映射、platform schema 或下游 validation / plan 消费边界漂移。

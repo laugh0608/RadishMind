@@ -131,6 +131,7 @@
 80. [`Workflow Saved Draft Schema Artifact Manifest` v1 任务卡](workflow-saved-draft-schema-artifact-manifest-v1-plan.md)（`workflow-saved-draft-schema-artifact-manifest-v1`）
 81. [`Workflow Saved Draft Adapter Smoke Readiness` v1 任务卡](workflow-saved-draft-adapter-smoke-readiness-v1-plan.md)（`workflow-saved-draft-adapter-smoke-readiness-v1`）
 82. [`Workflow Saved Draft Store Selector Implementation Entry Review` v1 任务卡](workflow-saved-draft-store-selector-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-store-selector-implementation-entry-review-v1`）
+83. [`Workflow Saved Draft Schema Artifact Materialization Review` v1 任务卡](workflow-saved-draft-schema-artifact-materialization-review-v1-plan.md)（`workflow-saved-draft-schema-artifact-materialization-review-v1`）
 
 ## UI 设计专题
 

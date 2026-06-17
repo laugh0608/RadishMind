@@ -73,10 +73,10 @@ entry review 必须继续保留以下 failure code：
 
 ## 后续准入
 
-后续可选方向：
+本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Materialization Review v1](saved-workflow-draft-schema-artifact-materialization-review-v1.md)，状态为 `draft_schema_artifact_materialization_review_defined`。后续可选方向：
 
 1. `Saved Workflow Draft Store Selector Implementation v1`：只有在本 review 重新确认单一 selector track 后，才可创建正式 config entry、selector function、unit tests 和 selector smoke fixture。
-2. `Saved Workflow Draft Schema Artifact Materialization Review v1`：独立评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact。
+2. `Saved Workflow Draft Schema Artifact Materialization v1`：只有在 materialization review 重新确认单一 schema artifact track 后，才可创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact。
 3. `Saved Workflow Draft Adapter Smoke Execution v1`：只能在 selector implementation、schema artifact materialization、production auth 和 repository adapter implementation 均满足后进入。
 
 ## 验收方式

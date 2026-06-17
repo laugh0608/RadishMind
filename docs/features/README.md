@@ -70,6 +70,7 @@
 | [Saved Workflow Draft Schema Artifact Manifest v1](workflow/saved-workflow-draft-schema-artifact-manifest-v1.md) | 前置证据专题 | 固定 future saved draft schema artifact manifest shape、operation predicate coverage、failure mapping 和 no side effects |
 | [Saved Workflow Draft Adapter Smoke Readiness v1](workflow/saved-workflow-draft-adapter-smoke-readiness-v1.md) | 前置证据专题 | 固定 future saved draft adapter smoke readiness、依赖 gate、operation matrix、failure mapping 和 no side effects |
 | [Saved Workflow Draft Store Selector Implementation Entry Review v1](workflow/saved-workflow-draft-store-selector-implementation-entry-review-v1.md) | 实现准入专题 | 评审 formal config、selector、selector tests 和 selector smoke fixture 当前是否打开 |
+| [Saved Workflow Draft Schema Artifact Materialization Review v1](workflow/saved-workflow-draft-schema-artifact-materialization-review-v1.md) | 实现准入专题 | 评审 schema artifact materialization 的 migration root、manifest、DDL review、rollback evidence 和 migration smoke 当前是否打开 |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

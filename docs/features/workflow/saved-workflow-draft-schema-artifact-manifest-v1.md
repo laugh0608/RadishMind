@@ -76,10 +76,10 @@ manifest 准入必须继续保持 fail-closed failure code：
 
 ## 后续准入
 
-本专题完成后，已继续补齐 [Saved Workflow Draft Adapter Smoke Readiness v1](saved-workflow-draft-adapter-smoke-readiness-v1.md)，状态为 `draft_adapter_smoke_readiness_defined`。durable store 方向仍必须继续按独立专题推进。后续可选方向：
+本专题完成后，已继续补齐 [Saved Workflow Draft Adapter Smoke Readiness v1](saved-workflow-draft-adapter-smoke-readiness-v1.md) 和 [Saved Workflow Draft Schema Artifact Materialization Review v1](saved-workflow-draft-schema-artifact-materialization-review-v1.md)，状态分别为 `draft_adapter_smoke_readiness_defined` 和 `draft_schema_artifact_materialization_review_defined`。durable store 方向仍必须继续按独立专题推进。后续可选方向：
 
-1. `Saved Workflow Draft Store Selector Implementation Entry Review v1`：评审是否打开 formal config、selector 函数、selector tests 和 selector smoke fixture。
-2. `Saved Workflow Draft Schema Artifact Materialization Review v1`：另行评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
+1. `Saved Workflow Draft Store Selector Implementation v1`：只有独立 implementation task card 打开后，才可创建 formal config、selector 函数、selector tests 和 selector smoke fixture。
+2. `Saved Workflow Draft Schema Artifact Materialization v1`：只有独立 implementation task card 打开后，才可创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
 
 ## 验收方式
 
