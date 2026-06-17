@@ -30,6 +30,8 @@ const (
 	SavedWorkflowDraftFailurePayloadTooLarge          SavedWorkflowDraftFailureCode = "draft_payload_too_large"
 	SavedWorkflowDraftFailureStoreUnavailable         SavedWorkflowDraftFailureCode = "draft_store_unavailable"
 	SavedWorkflowDraftFailureWriteDisabled            SavedWorkflowDraftFailureCode = "draft_write_disabled"
+	SavedWorkflowDraftFailureRepositoryStoreDisabled  SavedWorkflowDraftFailureCode = "repository_store_disabled"
+	SavedWorkflowDraftFailureInvalidStoreMode         SavedWorkflowDraftFailureCode = "invalid_draft_store_mode"
 )
 
 type SavedWorkflowDraftStatus string
@@ -275,7 +277,7 @@ func (service savedWorkflowDraftService) SaveDraft(
 
 	existing, found, err := service.store.ReadDraftByID(normalized.DraftID)
 	if err != nil {
-		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureStoreUnavailable, auditMetadata)
+		return savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
 	}
 	if found && !savedWorkflowDraftMatchesScope(existing, context.WorkspaceID, context.ApplicationID) {
 		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
@@ -328,7 +330,7 @@ func (service savedWorkflowDraftService) SaveDraft(
 		SampleOrUnsavedDraftStatus: "saved_draft_record",
 	}
 	if err := service.store.WriteDraft(draft); err != nil {
-		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureStoreUnavailable, auditMetadata)
+		return savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
 	}
 
 	return SavedWorkflowDraftResult{
@@ -355,7 +357,7 @@ func (service savedWorkflowDraftService) ReadDraft(
 
 	draft, found, err := service.store.ReadDraftByID(draftID)
 	if err != nil {
-		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureStoreUnavailable, auditMetadata)
+		return savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
 	}
 	if !found {
 		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureNotFound, auditMetadata)
@@ -413,7 +415,7 @@ func (service savedWorkflowDraftService) ListDrafts(
 
 	drafts, err := service.store.ListDraftsByScope(context.WorkspaceID, context.ApplicationID)
 	if err != nil {
-		return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureStoreUnavailable, auditMetadata)
+		return savedWorkflowDraftListFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
 	}
 
 	summaries := make([]SavedWorkflowDraftSummary, 0, len(drafts))

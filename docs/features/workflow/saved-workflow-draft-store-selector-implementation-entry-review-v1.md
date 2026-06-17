@@ -8,6 +8,8 @@
 
 本专题只完成 entry review。当前结论是不打开 formal config entry、`SelectWorkflowSavedDraftStore`、selector unit tests 或 selector smoke fixture；后续如需实现 selector，必须另开独立 implementation task card。
 
+后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，状态为 `draft_store_selector_smoke_implemented`。本专题仍保留 entry review 当批未创建 selector artifact 的历史事实。
+
 状态：`draft_store_selector_implementation_entry_review_defined`
 
 ## 当前输入事实

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+
+	"radishmind.local/services/platform/internal/config"
 )
 
 const (
@@ -283,9 +285,13 @@ func (s *Server) allowSavedWorkflowDraftDevHTTP(writer http.ResponseWriter, requ
 
 func (s *Server) savedWorkflowDraftService() savedWorkflowDraftService {
 	if s.savedWorkflowDraftStore == nil {
-		s.savedWorkflowDraftStore = newMemorySavedWorkflowDraftStore()
+		s.savedWorkflowDraftStore = newSavedWorkflowDraftStoreFromConfig(s.config)
 	}
 	return newSavedWorkflowDraftService(s.savedWorkflowDraftStore)
+}
+
+func newSavedWorkflowDraftStoreFromConfig(cfg config.Config) savedWorkflowDraftStore {
+	return SelectWorkflowSavedDraftStore(cfg.WorkflowSavedDraftStoreMode, WorkflowSavedDraftStoreSelector{}).Store
 }
 
 func savedWorkflowDraftContextFromRequest(

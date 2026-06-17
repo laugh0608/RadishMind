@@ -17,6 +17,7 @@ const (
 	defaultPythonBinary      = "python3"
 	defaultBridgeScript      = "scripts/run-platform-bridge.py"
 	defaultProvider          = "mock"
+	defaultDraftStoreMode    = "memory_dev"
 )
 
 const (
@@ -33,6 +34,7 @@ type Config struct {
 	ControlPlaneReadDevAuthEnabled    bool
 	WorkflowSavedDraftDevHTTPEnabled  bool
 	WorkflowSavedDraftDevWriteEnabled bool
+	WorkflowSavedDraftStoreMode       string
 	PythonBinary                      string
 	BridgeScript                      string
 	Provider                          string
@@ -50,6 +52,7 @@ type ConfigSummary struct {
 	ControlPlaneReadDevAuthEnabled    bool              `json:"control_plane_read_dev_auth_enabled"`
 	WorkflowSavedDraftDevHTTPEnabled  bool              `json:"workflow_saved_draft_dev_http_enabled"`
 	WorkflowSavedDraftDevWriteEnabled bool              `json:"workflow_saved_draft_dev_write_enabled"`
+	WorkflowSavedDraftStoreMode       string            `json:"workflow_saved_draft_store_mode"`
 	Provider                          string            `json:"provider"`
 	Profile                           string            `json:"profile"`
 	Model                             string            `json:"model"`
@@ -80,18 +83,19 @@ type ConfigFileSummary struct {
 }
 
 type fileConfig struct {
-	ListenAddr        *string          `json:"listen_addr"`
-	ReadHeaderTimeout *string          `json:"read_header_timeout"`
-	WriteTimeout      *string          `json:"write_timeout"`
-	BridgeTimeout     *string          `json:"bridge_timeout"`
-	PythonBinary      *string          `json:"python_binary"`
-	BridgeScript      *string          `json:"bridge_script"`
-	Provider          *string          `json:"provider"`
-	ProviderProfile   *string          `json:"provider_profile"`
-	Model             *string          `json:"model"`
-	BaseURL           *string          `json:"base_url"`
-	APIKey            *string          `json:"api_key"`
-	Temperature       *json.RawMessage `json:"temperature"`
+	ListenAddr         *string          `json:"listen_addr"`
+	ReadHeaderTimeout  *string          `json:"read_header_timeout"`
+	WriteTimeout       *string          `json:"write_timeout"`
+	BridgeTimeout      *string          `json:"bridge_timeout"`
+	PythonBinary       *string          `json:"python_binary"`
+	BridgeScript       *string          `json:"bridge_script"`
+	Provider           *string          `json:"provider"`
+	ProviderProfile    *string          `json:"provider_profile"`
+	Model              *string          `json:"model"`
+	BaseURL            *string          `json:"base_url"`
+	APIKey             *string          `json:"api_key"`
+	Temperature        *json.RawMessage `json:"temperature"`
+	WorkflowDraftStore *string          `json:"workflow_saved_draft_store"`
 }
 
 func LoadFromEnv() (Config, error) {
@@ -115,18 +119,19 @@ func LoadFromEnv() (Config, error) {
 
 func defaultConfig() Config {
 	return Config{
-		ListenAddr:        defaultListenAddr,
-		ReadHeaderTimeout: defaultReadHeaderTimeout,
-		WriteTimeout:      defaultWriteTimeout,
-		BridgeTimeout:     defaultBridgeTimeout,
-		PythonBinary:      defaultPythonBinary,
-		BridgeScript:      defaultBridgeScript,
-		Provider:          defaultProvider,
-		ProviderProfile:   "",
-		Model:             "",
-		BaseURL:           "",
-		APIKey:            "",
-		Temperature:       0,
+		ListenAddr:                  defaultListenAddr,
+		ReadHeaderTimeout:           defaultReadHeaderTimeout,
+		WriteTimeout:                defaultWriteTimeout,
+		BridgeTimeout:               defaultBridgeTimeout,
+		PythonBinary:                defaultPythonBinary,
+		BridgeScript:                defaultBridgeScript,
+		Provider:                    defaultProvider,
+		ProviderProfile:             "",
+		Model:                       "",
+		BaseURL:                     "",
+		APIKey:                      "",
+		Temperature:                 0,
+		WorkflowSavedDraftStoreMode: defaultDraftStoreMode,
 		FieldSources: map[string]string{
 			"listen_addr":                    configSourceDefault,
 			"read_header_timeout":            configSourceDefault,
@@ -135,6 +140,7 @@ func defaultConfig() Config {
 			"control_plane_read_dev_auth":    configSourceDefault,
 			"workflow_saved_draft_dev_http":  configSourceDefault,
 			"workflow_saved_draft_dev_write": configSourceDefault,
+			"workflow_saved_draft_store":     configSourceDefault,
 			"python_binary":                  configSourceDefault,
 			"bridge_script":                  configSourceDefault,
 			"provider":                       configSourceDefault,
@@ -209,6 +215,15 @@ func applyConfigFile(cfg *Config, pathText string) error {
 		}
 		cfg.Temperature = parsed
 		cfg.FieldSources["temperature"] = configSourceFile
+	}
+	if document.WorkflowDraftStore != nil {
+		applyStringValue(
+			&cfg.WorkflowSavedDraftStoreMode,
+			*document.WorkflowDraftStore,
+			cfg.FieldSources,
+			"workflow_saved_draft_store",
+			configSourceFile,
+		)
 	}
 	return nil
 }
@@ -291,6 +306,15 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowSavedDraftDevWriteEnabled = parsed
 		cfg.FieldSources["workflow_saved_draft_dev_write"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE"); ok {
+		applyStringValue(
+			&cfg.WorkflowSavedDraftStoreMode,
+			value,
+			cfg.FieldSources,
+			"workflow_saved_draft_store",
+			configSourceEnv,
+		)
+	}
 	return nil
 }
 
@@ -302,6 +326,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	profile := strings.TrimSpace(cfg.ProviderProfile)
 	model := strings.TrimSpace(cfg.Model)
 	baseURLConfigured := strings.TrimSpace(cfg.BaseURL) != ""
+	workflowSavedDraftStoreMode := strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode)
+	if workflowSavedDraftStoreMode == "" {
+		workflowSavedDraftStoreMode = defaultDraftStoreMode
+	}
 	credentialState := credentialState(provider, strings.TrimSpace(cfg.APIKey) != "")
 	requiredFields := requiredConfigFields(provider)
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
@@ -311,6 +339,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ControlPlaneReadDevAuthEnabled:    cfg.ControlPlaneReadDevAuthEnabled,
 		WorkflowSavedDraftDevHTTPEnabled:  cfg.WorkflowSavedDraftDevHTTPEnabled,
 		WorkflowSavedDraftDevWriteEnabled: cfg.WorkflowSavedDraftDevWriteEnabled,
+		WorkflowSavedDraftStoreMode:       workflowSavedDraftStoreMode,
 		Provider:                          provider,
 		Profile:                           profile,
 		Model:                             model,

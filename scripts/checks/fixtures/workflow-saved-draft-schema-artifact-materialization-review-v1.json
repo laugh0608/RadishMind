@@ -139,7 +139,8 @@
     },
     {
       "id": "store_selector_gate",
-      "status": "not_satisfied",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-store-selector-smoke-v1",
       "must_cover": [
         "formal store config entry",
         "SelectWorkflowSavedDraftStore",
@@ -198,7 +199,7 @@
         "no SQL files",
         "no migration runner",
         "no repository adapter",
-        "no selector implementation",
+        "no repository mode enablement",
         "no OIDC token validation"
       ]
     }
@@ -217,8 +218,7 @@
       "current_blockers": [
         "implementation_task_card_not_created",
         "manual_apply_gate_not_materialized",
-        "database_connection_policy_not_opened",
-        "store_selector_gate_not_satisfied"
+        "database_connection_policy_not_opened"
       ]
     },
     {

@@ -6,7 +6,7 @@
 
 `Saved Workflow Draft Repository Adapter Implementation Plan v1` 承接 [Saved Workflow Draft Repository Contract Smoke Runner Implementation v1](saved-workflow-draft-repository-contract-smoke-runner-implementation-v1.md)，用于在进入 durable persistence 前固定 future repository adapter 的实现计划、依赖证据、门禁矩阵和失败语义。
 
-本专题只定义 implementation plan，不创建 repository interface、repository adapter、store selector、SQL migration、真实数据库、Radish OIDC middleware、token validation、production API、publish、run、executor、confirmation、writeback 或 replay。
+本专题只定义 implementation plan，不创建 repository interface、repository adapter、SQL migration、真实数据库、Radish OIDC middleware、token validation、production API、publish、run、executor、confirmation、writeback 或 replay。后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，但不代表 repository adapter 或 repository mode 可用。
 
 状态：`draft_repository_adapter_implementation_plan_defined`
 
@@ -25,11 +25,11 @@ future adapter implementation 必须消费以下门禁：
 | --- | --- | --- |
 | repository contract + static runner | `satisfied` | 消费 save / read / list operation contract、contract smoke 和 static runner |
 | schema / auth / selector evidence | `satisfied` | 消费 schema migration preconditions、auth context、schema artifact evidence 和 selector smoke readiness |
-| selector implementation | `not_satisfied` | 后续独立实现 formal config、selector 函数、selector tests 和 selector smoke fixture |
+| selector implementation | `satisfied` | 已由 `Saved Workflow Draft Store Selector Implementation v1` 实现 formal config、selector 函数、selector tests 和 selector smoke fixture |
 | schema migration artifact | `not_satisfied` | 后续独立创建 manifest、DDL review、rollback evidence 和 migration smoke |
 | production auth | `not_satisfied` | 后续独立接 Radish OIDC、claim mapping、workspace membership 和 scope projection |
-| durable adapter smoke | `not_satisfied` | readiness 已按 `Saved Workflow Draft Adapter Smoke Readiness v1` 定义，真实 adapter smoke 执行仍需等待 selector、schema artifact、auth 和 adapter gate |
-| implementation leak guard | `required_now` | 当前不得出现 interface、adapter、selector、SQL、migration 或 OIDC artifact |
+| durable adapter smoke | `not_satisfied` | readiness 已按 `Saved Workflow Draft Adapter Smoke Readiness v1` 定义，真实 adapter smoke 执行仍需等待 schema artifact、auth 和 adapter gate |
+| implementation leak guard | `required_now` | 当前不得出现 interface、adapter、SQL、migration 或 OIDC artifact |
 
 ## Operation Adapter Matrix
 
@@ -76,8 +76,8 @@ future adapter plan 必须保留以下 fail-closed code：
 
 本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md) 和 [Saved Workflow Draft Adapter Smoke Readiness v1](saved-workflow-draft-adapter-smoke-readiness-v1.md)，状态分别为 `draft_schema_artifact_manifest_defined` 和 `draft_adapter_smoke_readiness_defined`。下一步仍不能直接创建 durable adapter。后续只能选择一个独立方向：
 
-1. `Saved Workflow Draft Store Selector Implementation Entry Review v1`：评审 formal config、selector 函数、selector tests 和 selector smoke fixture 是否进入实现。
-2. `Saved Workflow Draft Schema Artifact Materialization Review v1`：另行评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
+1. `Saved Workflow Draft Schema Artifact Materialization Review v1`：另行评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
+2. `Saved Workflow Draft Repository Adapter Implementation v1`：在 schema artifact、auth、selector 和 adapter smoke 证据满足后打开 repository interface / adapter。
 
 ## 验收方式
 

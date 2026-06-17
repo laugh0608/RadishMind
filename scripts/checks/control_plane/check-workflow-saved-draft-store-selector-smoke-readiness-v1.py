@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_selector_implementation_guard import (
+    selector_implementation_file_allowed,
+    selector_implementation_literal_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -243,6 +248,8 @@ def assert_selector_smoke_boundary(fixture: dict[str, Any]) -> None:
     ):
         relative_path = str(boundary.get(path_field) or "")
         require(relative_path, f"{path_field} missing")
+        if selector_implementation_file_allowed(REPO_ROOT, relative_path):
+            continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist in this readiness slice")
     for field in (
         "formal_config_entry_created",
@@ -274,6 +281,8 @@ def assert_planned_artifacts(fixture: dict[str, Any]) -> None:
     require(set(artifacts) == EXPECTED_PLANNED_ARTIFACTS, "planned selector smoke artifacts drifted")
     for path, artifact in artifacts.items():
         require(artifact.get("created_in_this_slice") is False, f"{path} must not be created")
+        if selector_implementation_file_allowed(REPO_ROOT, path):
+            continue
         require(not (REPO_ROOT / path).exists(), f"{path} exists before selector smoke implementation")
 
 
@@ -426,6 +435,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     guard = fixture.get("implementation_artifact_guard") or {}
     require(guard.get("status") == "forbid_implementation_artifacts", "artifact guard status drifted")
     for relative_path in guard.get("future_files_must_not_exist") or []:
+        if selector_implementation_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
     source_paths = guard.get("source_files_to_scan") or []
     literals = guard.get("future_literals_must_not_appear_in_source") or []
@@ -434,6 +445,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for source_path in source_paths:
         source = read(str(source_path))
         for literal in literals:
+            if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+                continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 
 

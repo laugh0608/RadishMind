@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_selector_implementation_guard import selector_implementation_literal_allowed
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -364,6 +366,8 @@ def assert_no_forbidden_source(fixture: dict[str, Any]) -> None:
                 continue
             text = path.read_text(encoding="utf-8")
             for literal in configured:
+                if selector_implementation_literal_allowed(REPO_ROOT, literal):
+                    continue
                 require(
                     literal not in text,
                     f"{path.relative_to(REPO_ROOT)} must not introduce {literal!r} in this implementation slice",

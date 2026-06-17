@@ -5,6 +5,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_selector_implementation_guard import (
+    selector_implementation_active,
+    selector_implementation_file_allowed,
+    selector_implementation_literal_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -286,7 +292,14 @@ def assert_upstream_selector_gate_still_blocked() -> None:
         if isinstance(gate, dict)
     }
     selector_gate = gates.get("selector_implementation_gate") or {}
-    require(selector_gate.get("status") == "not_satisfied", "upstream selector implementation gate must stay blocked")
+    if selector_implementation_active(REPO_ROOT):
+        require(selector_gate.get("status") == "satisfied", "upstream selector implementation gate must be satisfied")
+        require(
+            selector_gate.get("evidence") == "workflow-saved-draft-store-selector-smoke-v1",
+            "upstream selector implementation gate evidence drifted",
+        )
+    else:
+        require(selector_gate.get("status") == "not_satisfied", "upstream selector implementation gate must stay blocked")
     must_cover = set(selector_gate.get("must_cover") or [])
     for expected in (
         "formal store config entry",
@@ -315,6 +328,8 @@ def assert_candidates(fixture: dict[str, Any]) -> None:
         for relative_path in future_artifacts:
             if relative_path in {"services/platform/internal/config/config.go", "services/platform/internal/config/config_test.go"}:
                 require((REPO_ROOT / relative_path).exists(), f"{relative_path} should exist as current config source")
+            elif selector_implementation_file_allowed(REPO_ROOT, relative_path):
+                continue
             else:
                 require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist yet")
 
@@ -368,12 +383,16 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     )
     for relative_path, row in task_cards.items():
         require(row.get("created_in_this_slice") is False, f"{relative_path} must not be created")
+        if selector_implementation_file_allowed(REPO_ROOT, relative_path):
+            continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist")
 
     guard = fixture.get("implementation_artifact_guard") or {}
     require(guard.get("status") == "forbid_selector_implementation_artifacts", "artifact guard status drifted")
     require(EXPECTED_FUTURE_FILES.issubset(set(guard.get("future_files_must_not_exist") or [])), "future files drifted")
     for relative_path in guard.get("future_files_must_not_exist") or []:
+        if selector_implementation_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
     sql_files = list((REPO_ROOT / "services/platform").rglob("*.sql"))
     require(not sql_files, f"SQL files must not be introduced: {sql_files}")
@@ -385,6 +404,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for source_path in source_paths:
         source = read(str(source_path))
         for literal in literals:
+            if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+                continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 
 

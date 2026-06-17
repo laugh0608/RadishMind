@@ -20,6 +20,8 @@ Review conclusion: schema artifact materialization entry not opened.
 - `Saved Workflow Draft Repository Adapter Implementation Plan v1` 已固定 future adapter 对 schema artifact 的依赖，但未创建 repository interface、repository adapter 或数据库 query。
 - `Saved Workflow Draft Store Selector Implementation Entry Review v1` 已确认 selector implementation entry 当前不打开，schema artifact 物化不能借 selector 评审绕过。
 
+后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，状态为 `draft_store_selector_smoke_implemented`。本专题仍保留 materialization review 当批未创建 schema artifact materialization artifact 的历史事实。
+
 ## Materialization Review Decision
 
 | candidate | 本次结论 | 后续条件 |
@@ -47,7 +49,7 @@ Review conclusion: schema artifact materialization entry not opened.
 | DDL review candidate | `blocked` | 不创建 `ddl-review.md` |
 | rollback evidence candidate | `blocked` | 不创建 `rollback-evidence.json` |
 | migration smoke candidate | `blocked` | 不创建 `migration-smoke.json` |
-| store selector gate | `not_satisfied` | formal config、selector、selector tests 和 selector smoke fixture 仍未创建 |
+| store selector gate | `satisfied` | 已由 `Saved Workflow Draft Store Selector Implementation v1` 创建 formal config、selector、selector tests 和 selector smoke fixture |
 | repository adapter gate | `not_satisfied` | repository interface、adapter 和 database query 仍未创建 |
 | production auth gate | `not_satisfied` | Radish OIDC、token validation、membership adapter 和 scope projection 仍未实现 |
 | database connection gate | `not_satisfied` | 不连接真实数据库，不运行 migration，不创建 schema version table |
@@ -94,4 +96,4 @@ materialization review 必须继续保留以下 fail-closed failure code：
 
 - 不创建 migration root、manifest 文件、DDL review artifact、rollback evidence artifact、migration smoke artifact、SQL migration、schema version table、migration runner、数据库连接、repository interface、repository adapter、store selector、selector smoke fixture、adapter smoke fixture、Radish OIDC middleware、token validation 或 production API consumer。
 - 不实现 durable persistence、publish、run、executor、confirmation decision、writeback、replay、resume 或 materialized result reader。
-- 不把 `draft_schema_artifact_materialization_review_defined` 解释为 schema artifact file ready、DDL ready、migration ready、database ready、repository adapter ready、store selector ready、adapter smoke ready、OIDC ready 或 production ready。
+- 不把 `draft_schema_artifact_materialization_review_defined` 解释为 schema artifact file ready、DDL ready、migration ready、database ready、repository adapter ready、repository mode ready、adapter smoke ready、OIDC ready 或 production ready。

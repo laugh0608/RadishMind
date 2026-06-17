@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_store_selector_smoke_v1",
+  "slice": {
+    "id": "workflow-saved-draft-store-selector-smoke-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_store_selector_smoke_implemented",
+    "does_not_claim": [
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "durable_store_implemented",
+      "database_schema_ready",
+      "database_migration_ready",
+      "schema_artifact_materialized",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-store-selector-enablement-preconditions-v1",
+    "workflow-saved-draft-store-selector-smoke-readiness-v1",
+    "workflow-saved-draft-store-selector-implementation-entry-review-v1",
+    "workflow-saved-draft-schema-artifact-materialization-review-v1"
+  ],
+  "formal_config": {
+    "config_file_key": "workflow_saved_draft_store",
+    "env_key": "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+    "summary_field": "workflow_saved_draft_store_mode",
+    "field_source_key": "workflow_saved_draft_store",
+    "default_mode": "memory_dev"
+  },
+  "selector_contract": {
+    "selector_file": "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+    "selector_test_file": "services/platform/internal/httpapi/workflow_saved_draft_store_selector_test.go",
+    "selector_name": "SelectWorkflowSavedDraftStore",
+    "selector_type": "WorkflowSavedDraftStoreSelector",
+    "server_entry": "newSavedWorkflowDraftStoreFromConfig",
+    "success_mode": "memory_dev",
+    "reserved_modes": [
+      "repository_disabled",
+      "repository"
+    ],
+    "unknown_mode_failure_code": "invalid_draft_store_mode",
+    "reserved_mode_failure_code": "repository_store_disabled"
+  },
+  "mode_matrix": [
+    {
+      "mode": "memory_dev",
+      "expected_result": "memory_dev_store",
+      "success_allowed": true,
+      "failure_code": null,
+      "fallback_to_sample_allowed": false
+    },
+    {
+      "mode": "repository_disabled",
+      "expected_result": "disabled_store",
+      "success_allowed": false,
+      "failure_code": "repository_store_disabled",
+      "fallback_to_memory_dev_allowed": false
+    },
+    {
+      "mode": "repository",
+      "expected_result": "disabled_store",
+      "success_allowed": false,
+      "failure_code": "repository_store_disabled",
+      "fallback_to_memory_dev_allowed": false
+    },
+    {
+      "mode": "unknown",
+      "expected_result": "disabled_store",
+      "success_allowed": false,
+      "failure_code": "invalid_draft_store_mode",
+      "fallback_to_memory_dev_allowed": false
+    }
+  ],
+  "operation_selector_smoke_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "request_type": "SaveWorkflowDraftRequest",
+      "result_type": "SavedWorkflowDraftResult",
+      "memory_dev_success_allowed": true,
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "side_effect_counters_must_remain_for_disabled_modes": [
+        "repository_write_count=0",
+        "executor_call_count=0",
+        "confirmation_call_count=0",
+        "business_writeback_count=0",
+        "replay_call_count=0"
+      ]
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "request_type": "ReadWorkflowDraftRequest",
+      "result_type": "SavedWorkflowDraftResult",
+      "memory_dev_success_allowed": true,
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "side_effect_counters_must_remain_for_disabled_modes": [
+        "repository_write_count=0",
+        "executor_call_count=0",
+        "confirmation_call_count=0",
+        "business_writeback_count=0",
+        "replay_call_count=0"
+      ]
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "request_type": "ListWorkflowDraftsRequest",
+      "result_type": "SavedWorkflowDraftListResult",
+      "memory_dev_success_allowed": true,
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "side_effect_counters_must_remain_for_disabled_modes": [
+        "repository_write_count=0",
+        "executor_call_count=0",
+        "confirmation_call_count=0",
+        "business_writeback_count=0",
+        "replay_call_count=0"
+      ]
+    }
+  ],
+  "artifact_guard": {
+    "forbidden_paths_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_adapter_smoke_test.go",
+      "services/platform/migrations/workflow_saved_drafts",
+      "services/platform/internal/auth/radish_oidc.go",
+      "services/platform/internal/auth/workflow_saved_draft_token.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_api.go"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/httpapi/server.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go"
+    ],
+    "forbidden_source_literals": [
+      "type SavedWorkflowDraftRepository interface",
+      "func NewSavedWorkflowDraftRepositoryAdapter",
+      "workflow_saved_draft_repository_adapter",
+      "database/sql",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "CREATE INDEX",
+      "DROP TABLE",
+      "INSERT INTO saved_workflow_draft",
+      "UPDATE saved_workflow_draft",
+      "DELETE FROM saved_workflow_draft",
+      "services/platform/migrations/workflow_saved_drafts",
+      "oidc.Provider",
+      "ValidateWorkflowDraftToken"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-store-selector-implementation-v1.md",
+      "must_contain": [
+        "draft_store_selector_smoke_implemented",
+        "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-store-selector-implementation-v1-plan.md",
+      "must_contain": [
+        "workflow-saved-draft-store-selector-smoke-v1",
+        "draft_store_selector_smoke_implemented"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-store-selector-smoke-v1",
+        "draft_store_selector_smoke_implemented"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-store-selector-smoke-v1.py",
+        "draft_store_selector_smoke_implemented"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W25.md",
+      "must_contain": [
+        "workflow-saved-draft-store-selector-smoke-v1",
+        "draft_store_selector_smoke_implemented"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_and_go_tests",
+    "required_checks": [
+      "go test ./internal/config ./internal/httpapi",
+      "workflow_saved_draft_store_selector_smoke_checker",
+      "workflow_saved_draft_store_selector_smoke_readiness_checker",
+      "workflow_saved_draft_store_selector_implementation_entry_review_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_create_repository_adapter": true,
+    "does_not_create_schema_artifact_file": true,
+    "does_not_create_sql_or_migration": true,
+    "does_not_connect_database": true,
+    "does_not_call_oidc": true,
+    "does_not_create_production_api": true,
+    "does_not_publish_or_run_workflow": true
+  }
+}

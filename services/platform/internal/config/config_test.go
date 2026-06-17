@@ -44,6 +44,9 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 	if summary.Timeouts["bridge"] != "45s" {
 		t.Fatalf("unexpected bridge timeout: %#v", summary.Timeouts)
 	}
+	if summary.WorkflowSavedDraftStoreMode != "memory_dev" {
+		t.Fatalf("unexpected workflow saved draft store mode: %s", summary.WorkflowSavedDraftStoreMode)
+	}
 	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{}) {
 		t.Fatalf("unexpected missing required fields: %#v", summary.MissingRequiredFields)
 	}
@@ -67,7 +70,8 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
   "model": "file-model",
   "base_url": "https://file.example.invalid/v1",
   "api_key": "file-secret",
-  "temperature": 0.4
+  "temperature": 0.4,
+  "workflow_saved_draft_store": "memory_dev"
 }`)
 	if err := os.WriteFile(configPath, configDocument, 0o600); err != nil {
 		t.Fatalf("write config file: %v", err)
@@ -79,6 +83,7 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE", "repository_disabled")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -106,6 +111,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	if !cfg.WorkflowSavedDraftDevWriteEnabled {
 		t.Fatalf("expected workflow saved draft dev write env override")
 	}
+	if cfg.WorkflowSavedDraftStoreMode != "repository_disabled" {
+		t.Fatalf("expected workflow saved draft store env override, got %s", cfg.WorkflowSavedDraftStoreMode)
+	}
 
 	summary := cfg.SanitizedSummary()
 	if summary.FieldSources["listen_addr"] != "file" {
@@ -128,6 +136,12 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["workflow_saved_draft_dev_write"] != "env" {
 		t.Fatalf("expected workflow_saved_draft_dev_write source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["workflow_saved_draft_store"] != "env" {
+		t.Fatalf("expected workflow_saved_draft_store source=env, got %#v", summary.FieldSources)
+	}
+	if summary.WorkflowSavedDraftStoreMode != "repository_disabled" {
+		t.Fatalf("unexpected workflow saved draft store summary: %#v", summary)
 	}
 	if summary.ConfigFile.Path != configPath || !summary.ConfigFile.Configured || !summary.ConfigFile.Loaded {
 		t.Fatalf("unexpected config file summary: %#v", summary.ConfigFile)
@@ -215,6 +229,9 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_PLATFORM_API_KEY",
 		"RADISHMIND_PLATFORM_TEMPERATURE",
 		"RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 	} {
 		t.Setenv(key, "")
 	}

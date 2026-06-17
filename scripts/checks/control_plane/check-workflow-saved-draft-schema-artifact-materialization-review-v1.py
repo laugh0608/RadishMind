@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_selector_implementation_guard import (
+    selector_implementation_file_allowed,
+    selector_implementation_literal_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -277,6 +282,7 @@ def assert_gate_matrix(fixture: dict[str, Any]) -> None:
         "selector_entry_review_consumed",
         "adapter_smoke_readiness_consumed",
         "materialization_review_defined",
+        "store_selector_gate",
     ):
         require(gates[gate_id].get("status") == "satisfied", f"{gate_id} must remain satisfied")
     blocked_gate_to_candidate = {
@@ -290,7 +296,6 @@ def assert_gate_matrix(fixture: dict[str, Any]) -> None:
         require(gates[gate_id].get("status") == "blocked", f"{gate_id} must remain blocked")
         require(gates[gate_id].get("candidate_id") == candidate_id, f"{gate_id} candidate drifted")
     for gate_id in (
-        "store_selector_gate",
         "repository_adapter_gate",
         "production_auth_gate",
         "database_connection_gate",
@@ -406,6 +411,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     )
     require(EXPECTED_FUTURE_FILES.issubset(set(guard.get("future_files_must_not_exist") or [])), "future files drifted")
     for relative_path in guard.get("future_files_must_not_exist") or []:
+        if selector_implementation_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
     sql_files = list((REPO_ROOT / "services/platform").rglob("*.sql"))
     require(not sql_files, f"SQL files must not be introduced: {sql_files}")
@@ -417,6 +424,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for source_path in source_paths:
         source = read(str(source_path))
         for literal in literals:
+            if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+                continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 
 

@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_selector_implementation_guard import (
+    selector_implementation_file_allowed,
+    selector_implementation_literal_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -286,11 +291,17 @@ def assert_store_switch_stopline(fixture: dict[str, Any]) -> None:
 def assert_implementation_artifact_guard(fixture: dict[str, Any]) -> None:
     guard = fixture.get("implementation_artifact_guard") or {}
     for relative_path in guard.get("future_files_must_not_exist") or []:
+        if selector_implementation_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact already exists: {relative_path}")
     absent_literals = [str(literal) for literal in guard.get("absent_literals") or []]
     for relative_path in guard.get("source_files_without_future_literals") or []:
         source = read(str(relative_path))
-        leaked = [literal for literal in absent_literals if literal in source]
+        leaked = [
+            literal
+            for literal in absent_literals
+            if literal in source and not selector_implementation_literal_allowed(REPO_ROOT, literal)
+        ]
         require(not leaked, f"{relative_path} leaked future literals: {leaked}")
 
 

@@ -159,6 +159,90 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("store selector reserved and unknown modes fail closed", func(t *testing.T) {
+		cases := []struct {
+			name                string
+			storeMode           string
+			expectedFailureCode SavedWorkflowDraftFailureCode
+		}{
+			{
+				name:                "repository disabled",
+				storeMode:           "repository_disabled",
+				expectedFailureCode: SavedWorkflowDraftFailureRepositoryStoreDisabled,
+			},
+			{
+				name:                "repository reserved",
+				storeMode:           "repository",
+				expectedFailureCode: SavedWorkflowDraftFailureRepositoryStoreDisabled,
+			},
+			{
+				name:                "unknown mode",
+				storeMode:           "future_backend",
+				expectedFailureCode: SavedWorkflowDraftFailureInvalidStoreMode,
+			},
+		}
+
+		for _, testCase := range cases {
+			t.Run(testCase.name, func(t *testing.T) {
+				server := newSavedWorkflowDraftHTTPTestServerWithStoreMode(true, testCase.storeMode)
+				payload := validSavedWorkflowDraftPayload()
+				saveBody := mustSavedWorkflowDraftJSON(t, savedWorkflowDraftSaveHTTPBody{
+					Draft: savedWorkflowDraftPayloadDocumentFromDraftPayload(payload),
+				})
+				saveReq := httptest.NewRequest(
+					http.MethodPost,
+					"/v1/user-workspace/workflow-drafts",
+					bytes.NewReader(saveBody),
+				)
+				setSavedWorkflowDraftDevHeaders(saveReq, "workflow_drafts:read,workflow_drafts:write")
+				saveRec := httptest.NewRecorder()
+
+				server.httpServer.Handler.ServeHTTP(saveRec, saveReq)
+
+				saveEnvelope := decodeSavedWorkflowDraftEnvelope(t, saveRec, http.StatusOK)
+				if saveEnvelope.FailureCode == nil ||
+					*saveEnvelope.FailureCode != string(testCase.expectedFailureCode) ||
+					saveEnvelope.Draft != nil {
+					t.Fatalf("save should fail closed for mode %s: %#v", testCase.storeMode, saveEnvelope)
+				}
+
+				readReq := httptest.NewRequest(
+					http.MethodGet,
+					"/v1/user-workspace/workflow-drafts/"+payload.DraftID+"?workspace_id="+payload.WorkspaceID+"&application_id="+payload.ApplicationID,
+					nil,
+				)
+				setSavedWorkflowDraftDevHeaders(readReq, "workflow_drafts:read,workflow_drafts:write")
+				readRec := httptest.NewRecorder()
+
+				server.httpServer.Handler.ServeHTTP(readRec, readReq)
+
+				readEnvelope := decodeSavedWorkflowDraftEnvelope(t, readRec, http.StatusOK)
+				if readEnvelope.FailureCode == nil ||
+					*readEnvelope.FailureCode != string(testCase.expectedFailureCode) ||
+					readEnvelope.Draft != nil {
+					t.Fatalf("read should fail closed for mode %s: %#v", testCase.storeMode, readEnvelope)
+				}
+
+				listReq := httptest.NewRequest(
+					http.MethodGet,
+					"/v1/user-workspace/workflow-drafts?workspace_id="+payload.WorkspaceID+"&application_id="+payload.ApplicationID,
+					nil,
+				)
+				setSavedWorkflowDraftDevHeaders(listReq, "workflow_drafts:read,workflow_drafts:write")
+				listRec := httptest.NewRecorder()
+
+				server.httpServer.Handler.ServeHTTP(listRec, listReq)
+
+				listEnvelope := decodeSavedWorkflowDraftListEnvelope(t, listRec, http.StatusOK)
+				if listEnvelope.FailureCode == nil ||
+					*listEnvelope.FailureCode != string(testCase.expectedFailureCode) ||
+					len(listEnvelope.DraftSummaries) != 0 {
+					t.Fatalf("list should fail closed for mode %s: %#v", testCase.storeMode, listEnvelope)
+				}
+			})
+		}
+	})
+
 	t.Run("stale version and scope mismatch fail closed", func(t *testing.T) {
 		server := newSavedWorkflowDraftHTTPTestServer(true)
 		payload := validSavedWorkflowDraftPayload()
@@ -303,10 +387,15 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 }
 
 func newSavedWorkflowDraftHTTPTestServer(writeEnabled bool) *Server {
+	return newSavedWorkflowDraftHTTPTestServerWithStoreMode(writeEnabled, "")
+}
+
+func newSavedWorkflowDraftHTTPTestServerWithStoreMode(writeEnabled bool, storeMode string) *Server {
 	return NewServer(config.Config{
 		ControlPlaneReadDevAuthEnabled:    true,
 		WorkflowSavedDraftDevHTTPEnabled:  true,
 		WorkflowSavedDraftDevWriteEnabled: writeEnabled,
+		WorkflowSavedDraftStoreMode:       storeMode,
 	}, Options{BuildVersion: "test"})
 }
 

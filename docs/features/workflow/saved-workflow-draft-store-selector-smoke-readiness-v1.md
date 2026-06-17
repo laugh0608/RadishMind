@@ -10,13 +10,15 @@
 
 状态：`draft_store_selector_smoke_readiness_defined`
 
+后续 `Saved Workflow Draft Store Selector Implementation v1` 已在独立任务卡中完成，状态为 `draft_store_selector_smoke_implemented`。本专题仍保留 smoke readiness 当批未创建 selector smoke artifact 的历史事实。
+
 ## 当前输入事实
 
 - `Saved Workflow Draft v1` 已有 memory dev store、dev-only route + web consumer、save / read / validate、版本冲突、no sample fallback 和 no side effects tests。
 - `Saved Workflow Draft Repository Contract Preconditions v1` 已固定 future repository operation matrix：`SaveWorkflowDraftRecord`、`ReadWorkflowDraftRecord` 和 `ListWorkflowDraftRecords`。
 - `Saved Workflow Draft Store Selector Enablement Preconditions v1` 已固定 `memory_dev` / `repository_disabled` / `repository` / unknown mode、selector gate、failure mapping、no fallback 和 dev flag boundary。
 - `Saved Workflow Draft Schema Artifact Evidence v1` 已固定 schema artifact manifest、DDL review、rollback evidence、migration smoke、schema failure mapping 和 no side effects evidence。
-- 当前仍没有正式 store config、store selector、selector smoke fixture、repository interface、repository adapter、schema artifact manifest、SQL migration、Radish OIDC middleware、token validation 或 production API consumer。
+- 当前已有正式 store config、store selector 和 selector smoke fixture；仍没有 repository interface、repository adapter、schema artifact manifest、SQL migration、Radish OIDC middleware、token validation 或 production API consumer。
 
 ## Selector Smoke Contract
 

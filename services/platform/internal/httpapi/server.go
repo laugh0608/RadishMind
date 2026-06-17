@@ -54,7 +54,7 @@ func NewServer(cfg config.Config, options Options) *Server {
 		options:                 options,
 		bridge:                  bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
 		config:                  cfg,
-		savedWorkflowDraftStore: newMemorySavedWorkflowDraftStore(),
+		savedWorkflowDraftStore: newSavedWorkflowDraftStoreFromConfig(cfg),
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)

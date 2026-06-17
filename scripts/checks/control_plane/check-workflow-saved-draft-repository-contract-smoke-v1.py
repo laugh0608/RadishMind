@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_selector_implementation_guard import (
+    selector_implementation_file_allowed,
+    selector_implementation_literal_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/workflow-saved-draft-repository-contract-smoke-v1.json"
@@ -422,6 +427,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     require(guard.get("status") == "forbid_implementation_artifacts", "artifact guard status drifted")
     for relative_path in guard.get("future_files_must_not_exist") or []:
         path = str(relative_path)
+        if selector_implementation_file_allowed(REPO_ROOT, path):
+            continue
         if (REPO_ROOT / path).exists():
             require(
                 path in RUNNER_IMPLEMENTATION_PATHS and implementation_gate_covers_runner(),
@@ -434,6 +441,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for source_path in source_paths:
         source = read(str(source_path))
         for literal in literals:
+            if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
+                continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 
 

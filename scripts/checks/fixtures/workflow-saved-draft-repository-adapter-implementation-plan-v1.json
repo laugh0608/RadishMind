@@ -184,7 +184,10 @@
     },
     {
       "id": "selector_implementation_gate",
-      "status": "not_satisfied",
+      "status": "satisfied",
+      "evidence": [
+        "workflow-saved-draft-store-selector-smoke-v1"
+      ],
       "must_cover": [
         "formal store config entry",
         "SelectWorkflowSavedDraftStore",

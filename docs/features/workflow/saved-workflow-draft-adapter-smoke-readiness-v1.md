@@ -4,7 +4,7 @@
 
 ## 专题定位
 
-`Saved Workflow Draft Adapter Smoke Readiness v1` 承接 [Saved Workflow Draft Repository Adapter Implementation Plan v1](saved-workflow-draft-repository-adapter-implementation-plan-v1.md)、[Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md)、[Saved Workflow Draft Store Selector Smoke Readiness v1](saved-workflow-draft-store-selector-smoke-readiness-v1.md)、[Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) 和 [Saved Workflow Draft Repository Contract Smoke Runner Implementation v1](saved-workflow-draft-repository-contract-smoke-runner-implementation-v1.md)，用于在创建 durable repository adapter、adapter smoke fixture、selector implementation、schema artifact 文件、SQL migration、Radish OIDC middleware 或 production API 前，固定 future adapter smoke 的依赖、operation matrix、failure mapping、no fallback、no side effects 和 artifact guard。
+`Saved Workflow Draft Adapter Smoke Readiness v1` 承接 [Saved Workflow Draft Repository Adapter Implementation Plan v1](saved-workflow-draft-repository-adapter-implementation-plan-v1.md)、[Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md)、[Saved Workflow Draft Store Selector Smoke Readiness v1](saved-workflow-draft-store-selector-smoke-readiness-v1.md)、[Saved Workflow Draft Auth Context Preconditions v1](saved-workflow-draft-auth-context-preconditions-v1.md) 和 [Saved Workflow Draft Repository Contract Smoke Runner Implementation v1](saved-workflow-draft-repository-contract-smoke-runner-implementation-v1.md)，用于在创建 durable repository adapter、adapter smoke fixture、schema artifact 文件、SQL migration、Radish OIDC middleware 或 production API 前，固定 future adapter smoke 的依赖、operation matrix、failure mapping、no fallback、no side effects 和 artifact guard。
 
 本专题只定义 adapter smoke readiness，不创建 adapter smoke fixture、adapter smoke checker、repository interface、repository adapter、selector、migration root、manifest 文件、DDL review、SQL migration、数据库连接、OIDC token validation、production API consumer、publish、run、executor、confirmation、writeback 或 replay。
 
@@ -14,7 +14,7 @@
 
 - `Saved Workflow Draft Repository Adapter Implementation Plan v1` 已固定 future `SavedWorkflowDraftRepository` adapter file layout、save / read / list operation adapter matrix、failure mapping、no fallback 和 no side effects。
 - `Saved Workflow Draft Schema Artifact Manifest v1` 已固定 future manifest shape、section matrix、operation predicate coverage、failure mapping、no fallback 和 no side effects，但未创建 migration root 或 manifest 文件。
-- `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 future selector smoke mode matrix、operation matrix、schema artifact failure、no fallback 和 no side effects，但未创建正式 config entry、selector 或 selector smoke fixture。
+- `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 future selector smoke mode matrix、operation matrix、schema artifact failure、no fallback 和 no side effects；后续 `Saved Workflow Draft Store Selector Implementation v1` 已创建正式 config entry、selector 和 selector smoke fixture，状态为 `draft_store_selector_smoke_implemented`。
 - `Saved Workflow Draft Auth Context Preconditions v1` 已固定 future repository actor context、workspace membership、owner policy、scope grants、failure policy 和 audit / sanitization 边界，但未创建 Radish OIDC middleware 或 token validation。
 - `Saved Workflow Draft Repository Contract Smoke Runner Implementation v1` 已实现 static runner 和 Go tests，可作为 future adapter smoke 的 case 来源。
 
@@ -33,7 +33,7 @@ future adapter smoke 必须消费：
 - selector smoke readiness 和后续 selector smoke fixture。
 - auth context preconditions 和后续 production auth evidence。
 
-当前只允许声明 `draft_adapter_smoke_readiness_defined`。进入 adapter smoke execution 前，selector implementation、schema artifact materialization、production auth、repository adapter implementation 和 adapter smoke fixture 仍必须分别通过后续独立准入。
+当前只允许声明 `draft_adapter_smoke_readiness_defined`。进入 adapter smoke execution 前，schema artifact materialization、production auth、repository adapter implementation 和 adapter smoke fixture 仍必须分别通过后续独立准入；selector implementation 已完成，但不代表 repository mode 可用。
 
 ## Adapter Smoke Gate Matrix
 
@@ -45,7 +45,7 @@ future adapter smoke 必须消费：
 | auth context preconditions consumed | `satisfied` | 已消费 actor context、membership、scope grant 和 audit 边界 |
 | static runner consumed | `satisfied` | 已有 static runner 和 Go tests |
 | adapter smoke contract defined | `satisfied` | 本专题定义 future adapter smoke 的依赖、operation、failure 和停止线 |
-| selector implementation gate | `not_satisfied` | formal config、selector function、selector tests 和 selector smoke fixture 仍未打开 |
+| selector implementation gate | `satisfied` | 已由 `Saved Workflow Draft Store Selector Implementation v1` 打开 formal config、selector function、selector tests 和 selector smoke fixture |
 | schema artifact materialization gate | `not_satisfied` | migration root、manifest、DDL review、rollback evidence 和 migration smoke 仍未创建 |
 | production auth gate | `not_satisfied` | Radish OIDC、token validation、membership adapter 和 scope projection 仍未实现 |
 | repository adapter implementation gate | `not_satisfied` | repository interface、adapter、adapter tests 和 database query 仍未创建 |
@@ -117,4 +117,4 @@ adapter smoke readiness 必须继续保留 fail-closed failure code：
 
 - 不创建 adapter smoke fixture、adapter smoke checker、repository interface、repository adapter、adapter tests、selector、selector smoke fixture、migration root、manifest 文件、DDL review artifact、rollback evidence artifact、migration smoke artifact、SQL migration、schema version table、migration runner、数据库连接、Radish OIDC middleware、token validation 或 production API consumer。
 - 不实现 durable persistence、publish、run、executor、confirmation decision、writeback、replay、resume 或 materialized result reader。
-- 不把 `draft_adapter_smoke_readiness_defined` 解释为 adapter smoke ready、repository adapter ready、database ready、schema artifact file ready、store selector ready、OIDC ready、production API ready 或 production ready。
+- 不把 `draft_adapter_smoke_readiness_defined` 解释为 adapter smoke ready、repository adapter ready、database ready、schema artifact file ready、repository mode ready、OIDC ready、production API ready 或 production ready。
