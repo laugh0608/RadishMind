@@ -74,11 +74,11 @@ future adapter plan 必须保留以下 fail-closed code：
 
 ## 后续准入
 
-本专题完成后，下一步仍不能直接创建 durable adapter。后续只能选择一个独立方向：
+本专题完成后，已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md)，状态为 `draft_schema_artifact_manifest_defined`。下一步仍不能直接创建 durable adapter。后续只能选择一个独立方向：
 
 1. `Saved Workflow Draft Store Selector Implementation Entry Review v1`：评审 formal config、selector 函数、selector tests 和 selector smoke fixture 是否进入实现。
-2. `Saved Workflow Draft Schema Artifact Manifest v1`：创建 schema artifact manifest / DDL review / rollback evidence / migration smoke 的准入记录。
-3. `Saved Workflow Draft Adapter Smoke Readiness v1`：定义 future adapter smoke 如何消费 static runner、schema artifact、selector smoke 和 auth context。
+2. `Saved Workflow Draft Adapter Smoke Readiness v1`：定义 future adapter smoke 如何消费 static runner、schema artifact manifest、selector smoke 和 auth context。
+3. `Saved Workflow Draft Schema Artifact Materialization Review v1`：另行评审是否创建 migration root、manifest、DDL review、rollback evidence 和 migration smoke artifact；进入该批前仍不得连接真实数据库。
 
 ## 验收方式
 

@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-16
+更新时间：2026-06-17
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -128,6 +128,7 @@
 77. [`Workflow Saved Draft Repository Contract Smoke Runner Readiness` v1 任务卡](workflow-saved-draft-repository-contract-smoke-runner-readiness-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-runner-readiness-v1`）
 78. [`Workflow Saved Draft Repository Contract Smoke Runner Implementation` v1 任务卡](workflow-saved-draft-repository-contract-smoke-runner-implementation-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-runner-implementation-v1`）
 79. [`Workflow Saved Draft Repository Adapter Implementation Plan` v1 任务卡](workflow-saved-draft-repository-adapter-implementation-plan-v1-plan.md)（`workflow-saved-draft-repository-adapter-implementation-plan-v1`）
+80. [`Workflow Saved Draft Schema Artifact Manifest` v1 任务卡](workflow-saved-draft-schema-artifact-manifest-v1-plan.md)（`workflow-saved-draft-schema-artifact-manifest-v1`）
 
 ## UI 设计专题
 

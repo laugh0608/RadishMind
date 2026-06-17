@@ -1,6 +1,6 @@
 # Saved Workflow Draft Schema Artifact Evidence v1 专题
 
-更新时间：2026-06-15
+更新时间：2026-06-17
 
 ## 专题定位
 
@@ -70,11 +70,11 @@ schema artifact evidence 相关 failure 必须继续使用既有 fail-closed cod
 
 ## 后续准入
 
-本专题之后仍不能直接创建 repository adapter。后续若继续 durable store 方向，应选择一个独立批次：
+本专题之后已继续补齐 [Saved Workflow Draft Schema Artifact Manifest v1](saved-workflow-draft-schema-artifact-manifest-v1.md)，状态为 `draft_schema_artifact_manifest_defined`。后续仍不能直接创建 repository adapter。若继续 durable store 方向，应选择一个独立批次：
 
 1. repository contract smoke，消费本专题的 schema failure、selector smoke readiness 和 no fallback 证据。
 2. repository adapter implementation plan，必须消费 schema preconditions、auth context、store selector gate、selector smoke readiness 和 schema artifact evidence。
-3. schema artifact materialization review，另行决定是否创建 manifest / DDL review / migration smoke artifact；进入该批前仍不得连接真实数据库。
+3. schema artifact materialization review，消费 schema artifact manifest contract，另行决定是否创建 manifest / DDL review / migration smoke artifact；进入该批前仍不得连接真实数据库。
 
 ## 验收方式
 
