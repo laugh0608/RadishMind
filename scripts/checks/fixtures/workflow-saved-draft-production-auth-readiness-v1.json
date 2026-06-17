@@ -1,0 +1,681 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_production_auth_readiness_v1",
+  "slice": {
+    "id": "workflow-saved-draft-production-auth-readiness-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_production_auth_readiness_defined",
+    "does_not_claim": [
+      "production_auth_ready",
+      "radish_oidc_ready",
+      "oidc_client_implemented",
+      "issuer_discovery_runtime_ready",
+      "token_validation_ready",
+      "auth_middleware_ready",
+      "workspace_membership_adapter_ready",
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "database_schema_ready",
+      "database_connection_ready",
+      "database_migration_ready",
+      "migration_runner_implemented",
+      "adapter_smoke_ready",
+      "adapter_smoke_executed",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "radish-oidc-client-preconditions",
+    "workflow-saved-draft-auth-context-preconditions-v1",
+    "workflow-saved-draft-store-selector-smoke-v1",
+    "workflow-saved-draft-schema-artifact-materialization-v1",
+    "workflow-saved-draft-repository-adapter-implementation-plan-v1",
+    "workflow-saved-draft-adapter-smoke-readiness-v1"
+  ],
+  "production_auth_boundary": {
+    "status": "production_auth_readiness_defined_not_implemented",
+    "current_auth_source": "dev fake auth header or test-only fake auth context",
+    "future_auth_source": "future Radish OIDC / workspace auth context",
+    "future_issuer_discovery_evidence": "future reviewed Radish issuer discovery evidence",
+    "future_token_validation_contract": "future saved workflow draft token validation contract",
+    "future_membership_adapter": "future tenant/workspace/application membership adapter",
+    "future_scope_projection": "future Radish permissions claim projected into SavedWorkflowDraftRepositoryActorContext",
+    "dev_http_must_remain_opt_in": "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1",
+    "dev_write_must_remain_opt_in": "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1",
+    "issuer_network_call_allowed_in_this_slice": false,
+    "oidc_client_created_in_this_slice": false,
+    "token_validation_allowed_in_this_slice": false,
+    "auth_middleware_allowed_in_this_slice": false,
+    "membership_adapter_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "repository_interface_allowed_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false
+  },
+  "planned_production_auth_artifacts": [
+    {
+      "path": "contracts/radish-oidc-token-validation.schema.json",
+      "purpose": "Future shared Radish OIDC token validation contract schema; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
+      "purpose": "Future saved draft production auth middleware; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
+      "purpose": "Future saved draft token validation adapter; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_membership_adapter.go",
+      "purpose": "Future tenant/workspace/application membership adapter; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware_test.go",
+      "purpose": "Future auth middleware negative tests; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/fixtures/workflow-saved-draft-production-auth-v1.json",
+      "purpose": "Future production auth smoke fixture; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-workflow-saved-draft-production-auth-v1.py",
+      "purpose": "Future production auth smoke checker; not created by this readiness slice.",
+      "created_in_this_slice": false
+    }
+  ],
+  "readiness_gate_matrix": [
+    {
+      "id": "radish_oidc_preconditions_consumed",
+      "status": "satisfied",
+      "evidence": "radish-oidc-client-preconditions"
+    },
+    {
+      "id": "saved_draft_auth_context_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-auth-context-preconditions-v1"
+    },
+    {
+      "id": "selector_implementation_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-store-selector-smoke-v1"
+    },
+    {
+      "id": "schema_artifact_materialization_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-schema-artifact-materialization-v1"
+    },
+    {
+      "id": "repository_adapter_plan_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-repository-adapter-implementation-plan-v1"
+    },
+    {
+      "id": "adapter_smoke_readiness_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-adapter-smoke-readiness-v1"
+    },
+    {
+      "id": "issuer_discovery_evidence_contract_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "issuer url",
+        "discovery document ref",
+        "jwks uri",
+        "supported signing algorithms",
+        "operator review ref"
+      ]
+    },
+    {
+      "id": "token_validation_contract_preconditions_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "issuer and audience checks",
+        "jwks refresh policy",
+        "algorithm allowlist",
+        "expiration and not-before checks",
+        "claim and scope failure mapping"
+      ]
+    },
+    {
+      "id": "claim_mapping_contract_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "subject ref",
+        "tenant ref",
+        "roles",
+        "permissions",
+        "sanitized audit actor"
+      ]
+    },
+    {
+      "id": "tenant_workspace_binding_policy_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "tenant ref from trusted auth context",
+        "workspace membership required",
+        "application membership required",
+        "owner policy required",
+        "missing binding fail-closed"
+      ]
+    },
+    {
+      "id": "scope_projection_matrix_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "SaveWorkflowDraftRecord",
+        "ReadWorkflowDraftRecord",
+        "ListWorkflowDraftRecords",
+        "operation required scope",
+        "no production fake auth"
+      ]
+    },
+    {
+      "id": "production_auth_failure_mapping_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "OIDC issuer failure",
+        "token validation failure",
+        "tenant/workspace/application binding failure",
+        "scope projection failure",
+        "sanitized envelope"
+      ]
+    },
+    {
+      "id": "downstream_adapter_smoke_readiness_assessed",
+      "status": "satisfied",
+      "must_cover": [
+        "adapter smoke can consume this readiness evidence later",
+        "adapter smoke execution remains blocked",
+        "repository adapter remains blocked",
+        "no fake auth fallback"
+      ]
+    },
+    {
+      "id": "downstream_repository_adapter_entry_prerequisite_assessed",
+      "status": "satisfied",
+      "must_cover": [
+        "repository adapter implementation plan reviewed",
+        "production auth readiness evidence available",
+        "auth middleware still not implemented",
+        "membership adapter still not implemented"
+      ]
+    },
+    {
+      "id": "production_auth_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "missing bearer token",
+        "invalid signature",
+        "expired token",
+        "missing tenant claim",
+        "scope denied",
+        "sanitized audit ref"
+      ]
+    },
+    {
+      "id": "auth_middleware_implementation_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "middleware file",
+        "token validation contract",
+        "issuer discovery evidence",
+        "route smoke"
+      ]
+    },
+    {
+      "id": "membership_adapter_implementation_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "tenant membership lookup",
+        "workspace membership lookup",
+        "application membership lookup",
+        "owner policy resolver"
+      ]
+    },
+    {
+      "id": "production_api_consumer_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "production API consumer opt-in",
+        "production auth policy",
+        "production CORS policy",
+        "no dev fake auth headers"
+      ]
+    },
+    {
+      "id": "no_production_auth_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no token validation schema",
+        "no auth middleware",
+        "no OIDC client",
+        "no membership adapter",
+        "no production auth smoke fixture",
+        "no production API consumer",
+        "no repository adapter or SQL"
+      ]
+    }
+  ],
+  "issuer_discovery_evidence_contract": {
+    "status": "required_before_production_auth",
+    "network_call_allowed_now": false,
+    "committed_raw_discovery_document_allowed": false,
+    "committed_raw_jwks_allowed": false,
+    "required_fields": [
+      "issuer_url",
+      "discovery_document_url",
+      "jwks_uri",
+      "supported_signing_algorithms",
+      "supported_scopes",
+      "fetched_at",
+      "expires_at",
+      "environment",
+      "operator_review_ref",
+      "sanitized_evidence_ref"
+    ]
+  },
+  "token_validation_contract_preconditions": [
+    {
+      "id": "issuer-metadata-pinned",
+      "status": "required_before_token_validation",
+      "rule": "Token validation must consume reviewed issuer discovery evidence, not ad hoc runtime defaults."
+    },
+    {
+      "id": "jwks-refresh-policy",
+      "status": "required_before_token_validation",
+      "rule": "JWKS refresh, cache expiry and key rotation failure mapping must be defined before middleware validates tokens."
+    },
+    {
+      "id": "algorithm-allowlist",
+      "status": "required_before_token_validation",
+      "rule": "Accepted signing algorithms must come from issuer evidence and fail closed for unsupported alg values."
+    },
+    {
+      "id": "issuer-audience-checks",
+      "status": "required_before_token_validation",
+      "rule": "Issuer, audience and client id checks must be explicit and tenant independent."
+    },
+    {
+      "id": "time-window-checks",
+      "status": "required_before_token_validation",
+      "rule": "exp, nbf, iat and clock skew rules must map expired or not-yet-valid tokens to sanitized failures."
+    },
+    {
+      "id": "required-claim-checks",
+      "status": "required_before_token_validation",
+      "rule": "sub, tenant_id and permission-bearing claims must be present before creating saved draft actor context."
+    },
+    {
+      "id": "sanitized-failure-envelope",
+      "status": "required_before_token_validation",
+      "rule": "Token validation failures must map to saved draft failure codes without exposing token, header or JWKS material."
+    }
+  ],
+  "claim_mapping_matrix": [
+    {
+      "claim": "sub",
+      "auth_context_field": "actor_subject_ref",
+      "required": true,
+      "failure_code_when_missing": "required_claim_missing",
+      "allowed_in_response": false
+    },
+    {
+      "claim": "email",
+      "auth_context_field": "actor_email_ref",
+      "required": false,
+      "failure_code_when_missing": null,
+      "allowed_in_response": false
+    },
+    {
+      "claim": "preferred_username",
+      "auth_context_field": "actor_display_ref",
+      "required": false,
+      "failure_code_when_missing": null,
+      "allowed_in_response": false
+    },
+    {
+      "claim": "tenant_id",
+      "auth_context_field": "tenant_ref",
+      "required": true,
+      "failure_code_when_missing": "draft_tenant_binding_missing",
+      "allowed_in_response": true
+    },
+    {
+      "claim": "roles",
+      "auth_context_field": "role_refs",
+      "required": true,
+      "failure_code_when_missing": "permission_claim_denied",
+      "allowed_in_response": false
+    },
+    {
+      "claim": "permissions",
+      "auth_context_field": "scope_grants",
+      "required": true,
+      "failure_code_when_missing": "draft_scope_grant_missing",
+      "allowed_in_response": false
+    }
+  ],
+  "tenant_workspace_binding_policy": {
+    "status": "required_before_repository_adapter_or_adapter_smoke",
+    "tenant_source": "trusted auth context claim",
+    "workspace_source": "verified workspace context plus future membership adapter",
+    "application_source": "verified application context plus future membership adapter",
+    "owner_source": "future owner policy resolver",
+    "query_string_tenant_override_allowed": false,
+    "query_string_workspace_override_allowed": false,
+    "query_string_application_override_allowed": false,
+    "draft_payload_scope_override_allowed": false,
+    "fallback_to_default_tenant_allowed": false,
+    "fallback_to_local_admin_allowed": false,
+    "missing_tenant_failure_code": "draft_tenant_binding_missing",
+    "workspace_membership_failure_code": "draft_workspace_membership_denied",
+    "application_scope_failure_code": "draft_application_scope_denied",
+    "owner_scope_failure_code": "draft_owner_scope_denied"
+  },
+  "operation_scope_projection_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "scope_source": "permissions claim projected into saved draft actor context",
+      "binding_fields_required": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants"
+      ],
+      "missing_identity_failure_code": "draft_identity_context_missing",
+      "tenant_binding_failure_code": "draft_tenant_binding_missing",
+      "workspace_membership_failure_code": "draft_workspace_membership_denied",
+      "scope_denied_failure_code": "draft_scope_grant_missing",
+      "ready_for_downstream_adapter_smoke": true,
+      "adapter_smoke_execution_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_auth_header_allowed_in_production": false,
+      "fallback_to_test_auth_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "scope_source": "permissions claim projected into saved draft actor context",
+      "binding_fields_required": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants"
+      ],
+      "missing_identity_failure_code": "draft_identity_context_missing",
+      "tenant_binding_failure_code": "draft_tenant_binding_missing",
+      "workspace_membership_failure_code": "draft_workspace_membership_denied",
+      "scope_denied_failure_code": "draft_scope_grant_missing",
+      "ready_for_downstream_adapter_smoke": true,
+      "adapter_smoke_execution_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_auth_header_allowed_in_production": false,
+      "fallback_to_test_auth_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "scope_source": "permissions claim projected into saved draft actor context",
+      "binding_fields_required": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants"
+      ],
+      "missing_identity_failure_code": "draft_identity_context_missing",
+      "tenant_binding_failure_code": "draft_tenant_binding_missing",
+      "workspace_membership_failure_code": "draft_workspace_membership_denied",
+      "scope_denied_failure_code": "draft_scope_grant_missing",
+      "ready_for_downstream_adapter_smoke": true,
+      "adapter_smoke_execution_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_auth_header_allowed_in_production": false,
+      "fallback_to_test_auth_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "downstream_readiness_review": [
+    {
+      "id": "adapter_smoke_readiness_review",
+      "source": "workflow-saved-draft-adapter-smoke-readiness-v1",
+      "source_status": "draft_adapter_smoke_readiness_defined",
+      "production_auth_readiness_defined_now": true,
+      "adapter_smoke_execution_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "reason": "Production auth readiness evidence can be consumed by future adapter smoke, but real token validation, membership adapter, repository adapter and adapter smoke execution remain blocked."
+    },
+    {
+      "id": "repository_adapter_plan_review",
+      "source": "workflow-saved-draft-repository-adapter-implementation-plan-v1",
+      "source_status": "draft_repository_adapter_implementation_plan_defined",
+      "production_auth_readiness_defined_now": true,
+      "repository_adapter_implementation_allowed_now": false,
+      "reason": "Production auth readiness is a required downstream input, but repository interface, adapter, token validation, membership adapter and database query remain blocked."
+    }
+  ],
+  "failure_mapping": [
+    "draft_identity_context_missing",
+    "draft_tenant_binding_missing",
+    "draft_workspace_membership_denied",
+    "draft_application_scope_denied",
+    "draft_owner_scope_denied",
+    "draft_scope_grant_missing",
+    "draft_auth_context_contract_mismatch",
+    "draft_audit_context_missing",
+    "draft_scope_denied",
+    "issuer_unavailable",
+    "issuer_metadata_invalid",
+    "jwks_unavailable",
+    "token_signature_invalid",
+    "token_expired",
+    "token_not_yet_valid",
+    "token_audience_invalid",
+    "token_issuer_invalid",
+    "unsupported_token_algorithm",
+    "required_claim_missing",
+    "tenant_binding_missing",
+    "tenant_binding_denied",
+    "permission_claim_denied",
+    "malformed_authorization_header",
+    "logout_failed"
+  ],
+  "no_fake_fallback_policy": {
+    "dev_fake_auth_header_allowed_in_production": false,
+    "missing_bearer_token_fallback_to_fake_auth_allowed": false,
+    "invalid_token_fallback_to_fake_auth_allowed": false,
+    "scope_denied_fallback_to_admin_allowed": false,
+    "tenant_binding_failure_fallback_allowed": false,
+    "workspace_membership_failure_fallback_allowed": false,
+    "repository_mode_fallback_to_memory_dev_store_allowed": false,
+    "repository_mode_fallback_to_sample_allowed": false,
+    "local_admin_bypass_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "issuer_network_call_count=0",
+      "token_validation_call_count=0",
+      "database_write_count=0",
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "issuer_network_call",
+      "token_validation_runtime_call",
+      "auth_session_mutation",
+      "database_write",
+      "repository_write",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "implementation_artifact_guard": {
+    "status": "forbid_production_auth_implementation_artifacts",
+    "future_files_must_not_exist": [
+      "contracts/radish-oidc-token-validation.schema.json",
+      "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_membership_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "scripts/checks/fixtures/workflow-saved-draft-production-auth-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-production-auth-v1.py"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/server.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http_test.go",
+      "apps/radishmind-web/src/app/App.tsx"
+    ],
+    "future_literals_must_not_appear_in_source": [
+      "contracts/radish-oidc-token-validation.schema.json",
+      "workflow_saved_draft_auth_middleware.go",
+      "workflow_saved_draft_token_validation.go",
+      "workflow_saved_draft_membership_adapter.go",
+      "workflow-saved-draft-production-auth-v1.json",
+      "check-workflow-saved-draft-production-auth-v1.py",
+      "oidc.Provider",
+      "github.com/coreos/go-oidc",
+      "ValidateWorkflowDraftToken",
+      "WorkflowSavedDraftAuthMiddleware",
+      "WorkflowSavedDraftTokenValidator",
+      "WorkflowSavedDraftMembershipAdapter",
+      "NewSavedWorkflowDraftRepositoryAdapter",
+      "type SavedWorkflowDraftRepository interface",
+      "database/sql",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_OIDC",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_PRODUCTION_AUTH"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-production-auth-readiness-v1.md",
+      "must_contain": [
+        "状态：`draft_production_auth_readiness_defined`",
+        "Issuer Discovery Evidence Contract",
+        "Scope Projection Matrix",
+        "Downstream Readiness Review",
+        "不创建 OIDC middleware"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Production Auth Readiness v1",
+        "draft_production_auth_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Production Auth Readiness v1",
+        "draft_production_auth_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "Saved Workflow Draft Production Auth Readiness v1",
+        "draft_production_auth_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Production Auth Readiness v1",
+        "draft_production_auth_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-production-auth-readiness-v1-plan.md",
+      "must_contain": [
+        "workflow-saved-draft-production-auth-readiness-v1",
+        "draft_production_auth_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/README.md",
+      "must_contain": [
+        "Workflow Saved Draft Production Auth Readiness",
+        "workflow-saved-draft-production-auth-readiness-v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-production-auth-readiness-v1",
+        "draft_production_auth_readiness_defined"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-production-auth-readiness-v1.py",
+        "draft_production_auth_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W25.md",
+      "must_contain": [
+        "workflow-saved-draft-production-auth-readiness-v1",
+        "draft_production_auth_readiness_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_only",
+    "required_checks": [
+      "workflow_saved_draft_production_auth_readiness_checker",
+      "workflow_saved_draft_auth_context_preconditions_checker",
+      "workflow_saved_draft_adapter_smoke_readiness_checker",
+      "workflow_saved_draft_repository_adapter_implementation_plan_checker",
+      "workflow_saved_draft_schema_artifact_materialization_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_call_oidc": true,
+    "does_not_validate_token": true,
+    "does_not_create_auth_middleware": true,
+    "does_not_create_membership_adapter": true,
+    "does_not_create_repository_interface": true,
+    "does_not_create_repository_adapter": true,
+    "does_not_create_sql_or_migration": true,
+    "does_not_connect_database": true
+  }
+}
