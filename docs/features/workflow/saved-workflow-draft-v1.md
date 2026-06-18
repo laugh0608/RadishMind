@@ -42,8 +42,9 @@
 - 当前已完成 [Workflow Saved Draft Repository Adapter Implementation v1 任务卡](../../task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md)：实现 `SavedWorkflowDraftRepository` interface、注入式 query executor adapter、schema preflight、auth context failure mapping 和 adapter unit tests；状态为 `draft_repository_adapter_implemented`。本批仍不创建 adapter smoke fixture、database connection、SQL migration、migration runner、OIDC middleware、token validation、membership adapter、production API 或执行链路。
 - 当前已完成 [Saved Workflow Draft Adapter Smoke Execution v1](saved-workflow-draft-adapter-smoke-execution-v1.md)：使用 static contract smoke cases、`SavedWorkflowDraftRepositoryAdapter` 和 injected fake query executor 执行 save / read / list adapter smoke；状态为 `draft_adapter_smoke_executed`。本批不启用 `repository` store mode，不连接数据库，不运行 SQL，不接 OIDC runtime，不创建 production API 或执行链路。
 - 当前已完成 [Saved Workflow Draft Production Auth Runtime v1](saved-workflow-draft-production-auth-runtime-v1.md)：实现 `SavedWorkflowDraftVerifiedAuthContext` + `SavedWorkflowDraftWorkspaceBinding` 到 `SavedWorkflowDraftRepositoryActorContext` 的 runtime bridge；状态为 `draft_production_auth_runtime_bridge_implemented`。本批不创建 OIDC middleware、token validation、membership adapter、repository mode enablement、production API 或数据库连接。
-- 当前仍没有 durable persistence、真实 SQL migration、schema version table、migration runner、Radish OIDC middleware、token validation、membership adapter、repository mode enablement 或 production API。
-- 当前功能推进状态为 `draft_production_auth_runtime_bridge_implemented`；早期 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md) 任务卡仍记录 domain service 实现批次，后续 durable store 需要按独立 repository mode enablement 准入评审继续推进。
+- 当前已完成 [Saved Workflow Draft Repository Mode Enablement v1](saved-workflow-draft-repository-mode-enablement-v1.md)：固定 repository mode runtime boundary、config gate、schema preflight、adapter smoke / production auth runtime dependency、failure mapping、rollback、no fallback 和 no side effects；状态为 `draft_repository_mode_enablement_review_defined`。本批结论是不启用 repository mode，`repository` / `repository_disabled` 仍返回 `repository_store_disabled`。
+- 当前仍没有 durable persistence、真实 SQL migration、schema version table、migration runner、Radish OIDC middleware、token validation、membership adapter、repository mode enablement runtime 或 production API。
+- 当前功能推进状态为 `draft_repository_mode_enablement_review_defined`；早期 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md) 任务卡仍记录 domain service 实现批次，后续 durable store 需要先补真实数据库 / migration runner / OIDC middleware / membership adapter / production API 的独立准入，而不是直接启用 repository mode。
 
 ## 目标用户
 
@@ -141,6 +142,7 @@ dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-sa
 - Repository adapter implementation 能覆盖 repository interface、adapter boundary、adapter unit tests、schema preflight、auth context 输入、failure mapping、no fallback 和验证链路，且不启用 repository mode、不运行 adapter smoke、不接 OIDC runtime、数据库连接或 production API。
 - Adapter smoke execution 能覆盖 static contract smoke cases、adapter save / read / list、fake query executor 调用边界、version conflict、not found、store unavailable、store contract mismatch、auth context mismatch、schema preflight failure、no fallback 和 no side effects，且不启用 repository mode、不连接数据库、不接 OIDC runtime 或 production API。
 - Production auth runtime bridge 能覆盖 verified auth context、workspace / application / owner binding、operation scope projection、failure mapping、no fake fallback 和 no side effects，且不创建 OIDC middleware、token validation、membership adapter、repository mode、数据库连接或 production API。
+- Repository mode enablement 准入评审能覆盖 runtime boundary、config gate、schema preflight、adapter smoke / production auth runtime dependency、failure mapping、rollback、no fallback 和 no side effects，且结论仍是不启用 repository mode、不连接数据库、不写 SQL / migration runner、不接 OIDC middleware、token validation、membership adapter 或 production API。
 - Consumer 能区分 `version_conflict`，并在冲突时保留本地草案、展示当前版本 metadata，不把失败回退成 sample。
 - route contract 和 consumer smoke checker 进入 fast baseline。
 - Web build 和 workflow 相关聚合检查通过。
@@ -150,5 +152,5 @@ dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-sa
 ## 停止线
 
 - 不实现 publish、run、executor、confirmation decision、writeback、replay、resume 或 materialized result reader。
-- 不接真实数据库、真实 schema migration、Radish OIDC middleware、token validation、membership adapter、API key lifecycle、quota enforcement、billing 或 public production API；当前 store selector 只提供 fail-closed mode selection，repository adapter 已实现并通过 adapter smoke execution，production auth runtime bridge 已实现，但不启用 repository mode。
+- 不接真实数据库、真实 schema migration、Radish OIDC middleware、token validation、membership adapter、API key lifecycle、quota enforcement、billing 或 public production API；当前 store selector 只提供 fail-closed mode selection，repository adapter 已实现并通过 adapter smoke execution，production auth runtime bridge 已实现，repository mode enablement 已完成准入评审但不启用 repository mode。
 - 不把 `valid_for_review`、validation summary、risk summary 或 readiness summary 当作执行解锁条件。
