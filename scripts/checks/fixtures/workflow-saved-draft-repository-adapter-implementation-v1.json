@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_repository_adapter_implementation_v1",
+  "slice": {
+    "id": "workflow-saved-draft-repository-adapter-implementation-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_repository_adapter_implemented",
+    "does_not_claim": [
+      "repository_store_mode_enabled",
+      "adapter_smoke_ready",
+      "adapter_smoke_executed",
+      "durable_persistence_ready",
+      "database_connection_ready",
+      "database_query_ready",
+      "sql_migration_created",
+      "migration_runner_implemented",
+      "schema_version_table_created",
+      "production_auth_runtime_ready",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "workspace_membership_adapter_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-repository-adapter-implementation-entry-review-v1",
+    "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1",
+    "workflow-saved-draft-store-selector-smoke-v1",
+    "workflow-saved-draft-schema-artifact-materialization-v1",
+    "workflow-saved-draft-production-auth-readiness-v1",
+    "workflow-saved-draft-adapter-smoke-readiness-v1"
+  ],
+  "implementation_boundary": {
+    "status": "repository_adapter_boundary_implemented_no_runtime_enablement",
+    "interface_file": "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+    "adapter_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+    "adapter_test_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+    "task_card": "docs/task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md",
+    "store_schema_manifest": "services/platform/migrations/workflow_saved_drafts/manifest.json",
+    "store_schema_version": "saved_workflow_drafts_store_v1",
+    "query_executor_injected": true,
+    "process_database_connection_created": false,
+    "repository_store_mode_enabled": false,
+    "adapter_smoke_created": false,
+    "production_auth_runtime_created": false,
+    "production_api_created": false
+  },
+  "operation_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "request_type": "SaveWorkflowDraftRecordRequest",
+      "result_type": "SaveWorkflowDraftRecordResult",
+      "must_validate_actor_context": true,
+      "must_validate_schema_preflight": true,
+      "must_preserve_version_conflict": true,
+      "must_not_fallback_to_sample": true
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ReadWorkflowDraftRecordRequest",
+      "result_type": "ReadWorkflowDraftRecordResult",
+      "must_validate_actor_context": true,
+      "must_validate_schema_preflight": true,
+      "must_return_sanitized_projection": true,
+      "must_not_fallback_to_sample": true
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ListWorkflowDraftRecordsRequest",
+      "result_type": "ListWorkflowDraftRecordsResult",
+      "must_validate_actor_context": true,
+      "must_validate_schema_preflight": true,
+      "must_return_sanitized_summary": true,
+      "must_not_fallback_to_sample": true
+    }
+  ],
+  "actor_context_fields": [
+    "tenant_ref",
+    "workspace_id",
+    "application_id",
+    "actor_subject_ref",
+    "owner_subject_ref",
+    "scope_grants",
+    "request_id",
+    "audit_ref"
+  ],
+  "failure_mapping": {
+    "required_failure_codes": [
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_schema_version_unsupported",
+      "draft_payload_invalid",
+      "draft_version_conflict",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_auth_context_contract_mismatch",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable",
+      "draft_identity_context_missing",
+      "draft_tenant_binding_missing",
+      "draft_workspace_membership_denied",
+      "draft_scope_grant_missing"
+    ],
+    "version_conflict_must_not_be_rewritten": true,
+    "not_found_must_not_fallback_to_sample": true,
+    "scope_denied_must_not_return_draft_payload": true,
+    "contract_mismatch_must_not_leak_database_detail": true
+  },
+  "forbidden_runtime_artifacts": {
+    "files_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_contract_smoke_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_migration_runner.go",
+      "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py"
+    ],
+    "source_literals_must_not_appear": [
+      "database/sql",
+      "github.com/jackc/pgx",
+      "pgxpool",
+      "sql.Open(",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_REPOSITORY_DSN",
+      "oidc.Provider",
+      "ValidateWorkflowDraftToken",
+      "CREATE TABLE saved_workflow_draft",
+      "INSERT INTO saved_workflow_draft",
+      "UPDATE saved_workflow_draft",
+      "DELETE FROM saved_workflow_draft"
+    ]
+  },
+  "required_tests": [
+    "TestSavedWorkflowDraftRepositoryAdapterSaveReadList",
+    "TestSavedWorkflowDraftRepositoryAdapterFailureSemantics",
+    "TestSavedWorkflowDraftRepositorySchemaPreflightMatchesManifest"
+  ],
+  "required_checks": [
+    "go test ./internal/httpapi",
+    "workflow_saved_draft_repository_adapter_implementation_checker",
+    "./scripts/check-repo.sh --fast"
+  ]
+}

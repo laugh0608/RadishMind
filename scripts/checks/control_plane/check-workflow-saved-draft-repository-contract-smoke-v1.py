@@ -13,6 +13,10 @@ from workflow_saved_draft_schema_materialization_guard import (
     schema_materialization_file_allowed,
     schema_materialization_literal_allowed,
 )
+from workflow_saved_draft_repository_adapter_implementation_guard import (
+    repository_adapter_implementation_file_allowed,
+    repository_adapter_implementation_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -283,6 +287,8 @@ def assert_planned_future_artifacts(fixture: dict[str, Any]) -> None:
     require(set(artifacts) == EXPECTED_PLANNED_FUTURE_ARTIFACTS, "planned future artifacts drifted")
     for path, artifact in artifacts.items():
         require(artifact.get("created_in_this_slice") is False, f"{path} must not be created")
+        if repository_adapter_implementation_file_allowed(REPO_ROOT, path):
+            continue
         if (REPO_ROOT / path).exists():
             require(
                 path in RUNNER_IMPLEMENTATION_PATHS and implementation_gate_covers_runner(),
@@ -435,6 +441,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
             continue
         if schema_materialization_file_allowed(REPO_ROOT, path):
             continue
+        if repository_adapter_implementation_file_allowed(REPO_ROOT, path):
+            continue
         if (REPO_ROOT / path).exists():
             require(
                 path in RUNNER_IMPLEMENTATION_PATHS and implementation_gate_covers_runner(),
@@ -450,6 +458,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
             if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
                 continue
             if schema_materialization_literal_allowed(REPO_ROOT, str(literal)):
+                continue
+            if repository_adapter_implementation_literal_allowed(REPO_ROOT, str(literal)):
                 continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 

@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_repository_adapter_implementation_guard import (
+    repository_adapter_implementation_file_allowed,
+    repository_adapter_implementation_literal_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -557,6 +562,8 @@ def assert_implementation_artifact_guard(fixture: dict[str, Any]) -> None:
         "artifact guard status drifted",
     )
     for relative_path in guard.get("future_files_must_not_exist") or []:
+        if repository_adapter_implementation_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future auth artifact exists early: {relative_path}")
     configured_literals = set(guard.get("future_literals_must_not_appear_in_source") or [])
     require(EXPECTED_SOURCE_ABSENT_LITERALS.issubset(configured_literals), "source absent literals drifted")
@@ -565,6 +572,8 @@ def assert_implementation_artifact_guard(fixture: dict[str, Any]) -> None:
         require(path.exists(), f"source file missing: {source_path}")
         text = path.read_text(encoding="utf-8")
         for literal in configured_literals:
+            if repository_adapter_implementation_literal_allowed(REPO_ROOT, literal):
+                continue
             require(literal not in text, f"{source_path} contains future auth literal: {literal}")
 
 

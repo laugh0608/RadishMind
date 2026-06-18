@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import Any
 
 from workflow_saved_draft_selector_implementation_guard import selector_implementation_literal_allowed
+from workflow_saved_draft_repository_adapter_implementation_guard import (
+    repository_adapter_implementation_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -367,6 +370,8 @@ def assert_no_forbidden_source(fixture: dict[str, Any]) -> None:
             text = path.read_text(encoding="utf-8")
             for literal in configured:
                 if selector_implementation_literal_allowed(REPO_ROOT, literal):
+                    continue
+                if repository_adapter_implementation_literal_allowed(REPO_ROOT, literal):
                     continue
                 require(
                     literal not in text,

@@ -13,6 +13,10 @@ from workflow_saved_draft_schema_materialization_guard import (
     schema_materialization_file_allowed,
     schema_materialization_literal_allowed,
 )
+from workflow_saved_draft_repository_adapter_implementation_guard import (
+    repository_adapter_implementation_file_allowed,
+    repository_adapter_implementation_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -347,6 +351,8 @@ def assert_implementation_artifact_guard(fixture: dict[str, Any]) -> None:
             continue
         if schema_materialization_file_allowed(REPO_ROOT, path):
             continue
+        if repository_adapter_implementation_file_allowed(REPO_ROOT, path):
+            continue
         require(not (REPO_ROOT / path).exists(), f"future artifact already exists: {relative_path}")
     absent_literals = [str(literal) for literal in guard.get("absent_literals") or []]
     for relative_path in guard.get("source_files_without_future_literals") or []:
@@ -357,6 +363,7 @@ def assert_implementation_artifact_guard(fixture: dict[str, Any]) -> None:
             if literal in source
             and not selector_implementation_literal_allowed(REPO_ROOT, literal)
             and not schema_materialization_literal_allowed(REPO_ROOT, literal)
+            and not repository_adapter_implementation_literal_allowed(REPO_ROOT, literal)
         ]
         require(not leaked, f"{relative_path} leaked future literals: {leaked}")
 

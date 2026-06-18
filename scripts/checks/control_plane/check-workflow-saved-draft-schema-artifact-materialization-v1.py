@@ -5,6 +5,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_repository_adapter_implementation_guard import (
+    repository_adapter_implementation_file_allowed,
+)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -443,6 +447,8 @@ def assert_no_forbidden_runtime_artifacts() -> None:
     sql_files = list((REPO_ROOT / "services/platform").rglob("*.sql"))
     require(not sql_files, f"SQL files must not be introduced: {sql_files}")
     for relative_path in FORBIDDEN_FILES:
+        if repository_adapter_implementation_file_allowed(REPO_ROOT, relative_path):
+            continue
         require(not (REPO_ROOT / relative_path).exists(), f"forbidden artifact exists: {relative_path}")
 
 

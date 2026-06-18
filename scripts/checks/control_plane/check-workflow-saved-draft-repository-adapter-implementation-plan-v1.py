@@ -13,6 +13,10 @@ from workflow_saved_draft_schema_materialization_guard import (
     schema_materialization_file_allowed,
     schema_materialization_literal_allowed,
 )
+from workflow_saved_draft_repository_adapter_implementation_guard import (
+    repository_adapter_implementation_file_allowed,
+    repository_adapter_implementation_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -273,6 +277,8 @@ def assert_plan_boundary(fixture: dict[str, Any]) -> None:
             continue
         if field == "future_migration_root" and schema_materialization_file_allowed(REPO_ROOT, relative_path):
             continue
+        if repository_adapter_implementation_file_allowed(REPO_ROOT, relative_path):
+            continue
         future_path = REPO_ROOT / relative_path
         require(not future_path.exists(), f"{field} must not be created in this plan slice")
     for field in ("current_domain_file", "current_http_file", "static_runner_file"):
@@ -322,6 +328,8 @@ def assert_future_file_layout(fixture: dict[str, Any]) -> None:
         if selector_implementation_file_allowed(REPO_ROOT, relative_path):
             continue
         if schema_materialization_file_allowed(REPO_ROOT, relative_path):
+            continue
+        if repository_adapter_implementation_file_allowed(REPO_ROOT, relative_path):
             continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist in this plan slice")
 
@@ -485,6 +493,8 @@ def assert_no_implementation_leaked(fixture: dict[str, Any]) -> None:
                 if selector_implementation_literal_allowed(REPO_ROOT, literal):
                     continue
                 if schema_materialization_literal_allowed(REPO_ROOT, literal):
+                    continue
+                if repository_adapter_implementation_literal_allowed(REPO_ROOT, literal):
                     continue
                 require(
                     literal not in text,

@@ -5,13 +5,13 @@
 ## 任务标识
 
 - 任务 ID：`workflow-saved-draft-repository-adapter-implementation-v1`
-- 状态：`draft_repository_adapter_implementation_task_card_defined`
+- 状态：`draft_repository_adapter_implemented`
 
 ## 任务定位
 
-本任务卡承接 `Saved Workflow Draft Repository Adapter Implementation Entry Review v1`，用于固定下一批 repository adapter implementation 的实现边界、验证链路和停止线。
+本任务卡承接 `Saved Workflow Draft Repository Adapter Implementation Entry Review v1`，用于固定并记录 repository adapter implementation 的实现边界、验证链路和停止线。
 
-当前只定义实现任务卡，不创建 repository interface、repository adapter、database query、adapter unit tests、adapter smoke fixture、SQL migration、migration runner、OIDC middleware、token validation、membership adapter、production API、publish、run、executor、confirmation、writeback 或 replay。
+当前已实现 repository interface、注入式 query executor adapter、schema preflight 和 adapter unit tests；仍不创建 adapter smoke fixture、SQL migration、migration runner、schema version table、进程级数据库连接、OIDC middleware、token validation、membership adapter、production API、publish、run、executor、confirmation、writeback 或 replay。
 
 ## 输入
 
@@ -30,16 +30,16 @@
 - `services/platform/internal/httpapi/workflow_saved_draft_repository_contract_smoke_runner.go`
 - `services/platform/migrations/workflow_saved_drafts/manifest.json`
 
-## 后续实现范围
+## 已实现范围
 
-后续代码实现批次只允许打开以下内容：
+本代码批次只打开以下内容：
 
 - `SavedWorkflowDraftRepository` interface，覆盖 `SaveWorkflowDraftRecord`、`ReadWorkflowDraftRecord` 和 `ListWorkflowDraftRecords`。
-- repository actor context 输入校验，必须消费 `tenant_ref`、`workspace_id`、`application_id`、`actor_subject_ref`、`owner_subject_ref` 和 `scope_grants`。
+- repository actor context 输入校验，消费 `tenant_ref`、`workspace_id`、`application_id`、`actor_subject_ref`、`owner_subject_ref`、`scope_grants`、`request_id` 和 `audit_ref`。
 - adapter 边界和可测试 query policy，使用注入式 query executor / transaction boundary，不创建进程级数据库连接，不启动真实数据库。
-- schema preflight，消费静态 schema artifact manifest，不运行 SQL migration，不写 schema version table。
+- schema preflight，消费静态 schema artifact manifest 的 `saved_workflow_drafts_store_v1` 版本口径，不运行 SQL migration，不写 schema version table。
 - sanitized projection，确保 read / list 不返回 secret、token、完整 claim、内部数据库 detail 或 sample payload。
-- adapter unit tests，使用 fake query executor 覆盖 save / read / list、version conflict、scope denied、not found、schema mismatch、store unavailable、contract mismatch、no fallback 和 no side effects。
+- adapter unit tests，使用 fake query executor 覆盖 save / read / list、version conflict、not found、schema mismatch、store unavailable、contract mismatch、auth failure、no fallback 和 no side effects。
 
 建议文件落点：
 
@@ -81,7 +81,7 @@
 
 ## 验收方式
 
-后续代码实现完成时至少运行：
+代码实现完成时至少运行：
 
 ```bash
 cd services/platform
@@ -92,6 +92,7 @@ cd ../..
 ./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-schema-artifact-materialization-v1.py
 ./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-production-auth-readiness-v1.py
 ./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-readiness-v1.py
+./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-repository-adapter-implementation-v1.py
 ./scripts/check-repo.sh --fast
 ```
 
@@ -109,4 +110,4 @@ cd ../..
 - 不创建 Radish OIDC middleware、token validation、session cookie、workspace membership adapter 或 production auth runtime。
 - 不创建 public production API consumer、production CORS policy、API key lifecycle、quota enforcement、billing 或 cost ledger。
 - 不实现 durable publish、run、workflow executor、node executor、tool executor、agent loop、confirmation decision、business writeback、replay、resume 或 materialized result reader。
-- 不把 `draft_repository_adapter_implementation_task_card_defined` 解释为 repository adapter ready、database ready、repository mode ready、adapter smoke ready、OIDC ready、production API ready 或 production ready。
+- 不把 `draft_repository_adapter_implemented` 解释为 database ready、repository mode ready、adapter smoke ready、OIDC ready、production API ready 或 production ready。
