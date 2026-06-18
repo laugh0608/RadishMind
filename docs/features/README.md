@@ -47,7 +47,7 @@
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / surface 和实现专题 |
-| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode fail-closed、schema artifact、repository adapter、adapter smoke execution、production auth runtime bridge 和 repository mode enablement 准入边界 |
+| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode fail-closed、schema artifact、repository adapter、adapter smoke execution、production auth runtime bridge、repository mode enablement 和 schema migration runner readiness 边界 |
 | [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
@@ -82,6 +82,8 @@
 | [Workflow Saved Draft Production Auth Runtime v1 任务卡](../task-cards/workflow-saved-draft-production-auth-runtime-v1-plan.md) | 实现批次 | 实现 verified auth context + workspace binding 到 repository actor context 的投影 |
 | [Saved Workflow Draft Repository Mode Enablement v1](workflow/saved-workflow-draft-repository-mode-enablement-v1.md) | 实现准入专题 | 固定 repository mode enablement 准入评审，状态为 `draft_repository_mode_enablement_review_defined` |
 | [Workflow Saved Draft Repository Mode Enablement v1 任务卡](../task-cards/workflow-saved-draft-repository-mode-enablement-v1-plan.md) | 实现批次 | 评审 runtime boundary、config gate、schema preflight、dependency、failure mapping、rollback 和 no fallback |
+| [Saved Workflow Draft Schema Migration Runner Readiness v1](workflow/saved-workflow-draft-schema-migration-runner-readiness-v1.md) | 实现准入专题 | 固定 schema migration runner readiness，状态为 `draft_schema_migration_runner_readiness_defined` |
+| [Workflow Saved Draft Schema Migration Runner Readiness v1 任务卡](../task-cards/workflow-saved-draft-schema-migration-runner-readiness-v1-plan.md) | 实现批次 | 定义 future runner manual boundary、config gate、schema preflight、failure mapping、rollback 和 no side effects |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

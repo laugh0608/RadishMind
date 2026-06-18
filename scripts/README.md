@@ -194,6 +194,8 @@
 
 当前 Saved Workflow Draft repository mode enablement 还提供 `check-workflow-saved-draft-repository-mode-enablement-v1.py`，用于校验 `workflow-saved-draft-repository-mode-enablement-v1.json` 中的 `draft_repository_mode_enablement_review_defined`、runtime boundary、config gate、schema preflight、adapter smoke / production auth runtime dependency、failure mapping、rollback、no fallback、no side effects 和 forbidden repository mode / DB / SQL / OIDC / production API artifact；该检查不启用 repository store mode、不连接数据库、不运行 SQL、不接 OIDC runtime、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft schema migration runner readiness 还提供 `check-workflow-saved-draft-schema-migration-runner-readiness-v1.py`，用于校验 `workflow-saved-draft-schema-migration-runner-readiness-v1.json` 中的 `draft_schema_migration_runner_readiness_defined`、manual runner boundary、config gate、schema preflight、applied marker 缺口、failure mapping、rollback、no fallback、no side effects 和 forbidden SQL / migration runner / DB artifact；该检查不创建 SQL migration、schema version table、migration runner、database query executor，不启用 repository store mode、不接 OIDC runtime、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
+
 尾部 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
@@ -218,6 +220,7 @@
 - `check-workflow-saved-draft-adapter-smoke-v1.py` 失败通常表示 saved workflow draft adapter smoke execution 的 fixture、Go smoke test、static contract case consumption、adapter save / read / list、failure mapping、no fallback / no side effects、forbidden runtime artifact 或 check-repo 注册顺序漂移。
 - `check-workflow-saved-draft-production-auth-runtime-v1.py` 失败通常表示 saved workflow draft production auth runtime bridge 的 fixture、Go bridge source、operation scope projection、failure mapping、no fake fallback / no side effects、forbidden OIDC / DB / production API artifact 或 check-repo 注册顺序漂移。
 - `check-workflow-saved-draft-repository-mode-enablement-v1.py` 失败通常表示 saved workflow draft repository mode enablement 准入结论、config gate、schema preflight、dependency gate、failure mapping、rollback、no fallback / no side effects、forbidden runtime artifact 或 check-repo 注册顺序漂移。
+- `check-workflow-saved-draft-schema-migration-runner-readiness-v1.py` 失败通常表示 saved workflow draft schema migration runner readiness 的 manual boundary、config gate、schema preflight、failure mapping、rollback、no fallback / no side effects、forbidden SQL / runner / DB artifact 或 check-repo 注册顺序漂移。
 - `check-user-workspace-saved-draft-list-v1.py` 失败通常表示 dev-only list route、sanitized summary projection、Workspace Home saved draft list / restore、empty / failure state 或 no sample fallback 边界漂移。
 - `check-workflow-draft-designer-editing-model-v2.py` 失败通常表示 Draft Designer 本地结构编辑、边重建、active draft 下游预览或 saved restore lane mapping 边界漂移。
 - `check-workflow-draft-node-attribute-editing-model-v1.py` 失败通常表示 Draft Designer 节点属性编辑、保存 / 恢复映射、platform schema 或下游 validation / plan 消费边界漂移。

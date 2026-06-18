@@ -140,6 +140,7 @@
 89. [`Workflow Saved Draft Adapter Smoke` v1 任务卡](workflow-saved-draft-adapter-smoke-v1-plan.md)（`workflow-saved-draft-adapter-smoke-v1`）
 90. [`Workflow Saved Draft Production Auth Runtime` v1 任务卡](workflow-saved-draft-production-auth-runtime-v1-plan.md)（`workflow-saved-draft-production-auth-runtime-v1`）
 91. [`Workflow Saved Draft Repository Mode Enablement` v1 任务卡](workflow-saved-draft-repository-mode-enablement-v1-plan.md)（`workflow-saved-draft-repository-mode-enablement-v1`）
+92. [`Workflow Saved Draft Schema Migration Runner Readiness` v1 任务卡](workflow-saved-draft-schema-migration-runner-readiness-v1-plan.md)（`workflow-saved-draft-schema-migration-runner-readiness-v1`）
 
 ## UI 设计专题
 
