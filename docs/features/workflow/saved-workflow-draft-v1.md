@@ -72,6 +72,21 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 - execution plan persistence、runtime readiness persistence、scenario / review / handoff persistence。
 - run input / output、business writeback payload、replay / resume state。
 
+## 平台实现说明
+
+当前平台实现分成四层，后续维护时应按职责修改，不把任一层解释为生产持久化已经启用：
+
+| 文件 | 职责 | 边界 |
+| --- | --- | --- |
+| `workflow_saved_draft.go` | `SavedWorkflowDraft` v1 domain service、memory dev store、dev-only save / read / validate / list route 消费的失败语义 | 只承载开发态草案记录，不连接数据库，不执行 workflow |
+| `workflow_saved_draft_repository.go` | `SavedWorkflowDraftRepository` interface、save / read / list request / result、stored record 和 `SavedWorkflowDraftRepositoryQueryExecutor` 注入边界 | 只定义 adapter 与未来 query executor 的窄契约，不实现 SQL、migration runner 或数据库连接 |
+| `workflow_saved_draft_repository_adapter.go` | `NewSavedWorkflowDraftRepositoryAdapter`、schema preflight、actor context 检查、stored record contract 检查和 sanitized projection | 只通过注入式 query executor 调用未来 store；没有 query executor 时返回 `draft_store_unavailable`，不得回退 memory dev、sample 或 fixture |
+| `workflow_saved_draft_production_auth_runtime.go` | 把已验证的 `SavedWorkflowDraftVerifiedAuthContext` 与 `SavedWorkflowDraftWorkspaceBinding` 投影为 repository actor context | 只接受已验证输入，不做 OIDC middleware、token validation 或 membership lookup |
+
+`SavedWorkflowDraftRepositorySchemaPreflight` 当前只检查 `saved_workflow_drafts_store_v1` 和 migration state。`not_applied` 必须返回 `draft_schema_migration_not_applied`，`unavailable` 必须返回 `draft_store_migration_unavailable`，store schema mismatch 必须返回 `draft_store_schema_version_mismatch`。这些 failure code 说明 schema gate 未满足，不代表 runner 已存在。
+
+production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_verified_context`。这是上游已验证上下文的来源标记，不是本仓库已经实现 Radish OIDC token validation。workspace / application / owner scope 也必须由输入 binding 明确标记为 verified，缺失时应 fail closed。
+
 ## 功能流程
 
 保存流程：
@@ -112,9 +127,21 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 | `draft_version_conflict` | 拒绝覆盖，返回当前版本 metadata |
 | `draft_payload_too_large` | 拒绝保存 |
 | `draft_store_unavailable` | fail closed，不回退 fixture |
+| `draft_store_contract_mismatch` | 拒绝读取 / 列出不符合 stored record contract 的记录，不回退 dev store |
 | `draft_write_disabled` | 拒绝保存，允许继续查看 sample |
 | `repository_store_disabled` | reserved repository store 未启用，fail closed，不回退 memory dev |
 | `invalid_draft_store_mode` | store mode 配置非法，fail closed，不回退 memory dev |
+| `draft_auth_context_contract_mismatch` | repository actor context 或 operation contract 不可信，拒绝读写 |
+| `draft_schema_migration_not_applied` | schema preflight 发现 migration 未应用，拒绝进入 repository adapter 成功路径 |
+| `draft_store_schema_version_mismatch` | stored record 或 preflight schema version 与 `saved_workflow_drafts_store_v1` 不一致 |
+| `draft_store_migration_unavailable` | schema migration 状态不可观测，拒绝进入 repository adapter 成功路径 |
+| `draft_identity_context_missing` | production / repository actor subject 缺失 |
+| `draft_tenant_binding_missing` | tenant 为空或 auth tenant 与 workspace binding 不一致 |
+| `draft_workspace_membership_denied` | workspace membership 未验证 |
+| `draft_application_scope_denied` | application scope 未验证 |
+| `draft_owner_scope_denied` | owner scope 未验证 |
+| `draft_scope_grant_missing` | 缺少 `workflow_drafts:read` 或 `workflow_drafts:write` scope |
+| `draft_audit_context_missing` | audit ref 缺失，拒绝进入 production auth runtime bridge 成功路径 |
 
 ## 下一批开发
 
