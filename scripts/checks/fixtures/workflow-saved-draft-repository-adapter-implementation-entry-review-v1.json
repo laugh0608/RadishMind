@@ -186,7 +186,7 @@
       "id": "no_repository_adapter_implementation_artifacts_leaked",
       "status": "required_now",
       "must_cover": [
-        "no implementation task card",
+        "no repository runtime implementation artifact",
         "no repository interface",
         "no repository adapter",
         "no adapter unit tests",
@@ -443,7 +443,6 @@
   "implementation_artifact_guard": {
     "status": "forbid_repository_adapter_implementation_artifacts",
     "future_files_must_not_exist": [
-      "docs/task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md",
       "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
       "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
       "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",

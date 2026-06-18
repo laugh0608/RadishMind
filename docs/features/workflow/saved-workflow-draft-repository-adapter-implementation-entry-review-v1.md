@@ -95,6 +95,8 @@ entry review 继续固定以下 failure code：
 
 即使进入 repository adapter implementation，production API、Radish OIDC token validation、workspace membership adapter、adapter smoke execution、repository mode enablement、SQL migration runner、publish、run、executor、confirmation、writeback 和 replay 仍必须作为后续独立专题推进。
 
+2026-06-18 后续推进已创建 `docs/task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md`，状态为 `draft_repository_adapter_implementation_task_card_defined`。该后续任务卡只定义下一批实现范围，不改变本 entry review 批次“不创建 repository runtime artifact”的历史结论。
+
 ## 验收方式
 
 - 新增 `workflow-saved-draft-repository-adapter-implementation-entry-review-v1` fixture / checker，固定 entry decision、gate matrix、candidate matrix、operation matrix、failure mapping、no fallback、no side effects 和 forbidden artifact guard。

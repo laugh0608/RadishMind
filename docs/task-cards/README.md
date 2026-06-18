@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-17
+更新时间：2026-06-18
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -136,6 +136,7 @@
 85. [`Workflow Saved Draft Schema Artifact Materialization` v1 任务卡](workflow-saved-draft-schema-artifact-materialization-v1-plan.md)（`workflow-saved-draft-schema-artifact-materialization-v1`）
 86. [`Workflow Saved Draft Production Auth Readiness` v1 任务卡](workflow-saved-draft-production-auth-readiness-v1-plan.md)（`workflow-saved-draft-production-auth-readiness-v1`）
 87. [`Workflow Saved Draft Repository Adapter Implementation Entry Review` v1 任务卡](workflow-saved-draft-repository-adapter-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-repository-adapter-implementation-entry-review-v1`）
+88. [`Workflow Saved Draft Repository Adapter Implementation` v1 任务卡](workflow-saved-draft-repository-adapter-implementation-v1-plan.md)（`workflow-saved-draft-repository-adapter-implementation-v1`）
 
 ## UI 设计专题
 

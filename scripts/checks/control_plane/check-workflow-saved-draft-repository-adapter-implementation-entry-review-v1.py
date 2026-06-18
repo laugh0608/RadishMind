@@ -34,6 +34,9 @@ ADAPTER_SMOKE_READINESS_FIXTURE_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-readiness-v1.json"
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+IMPLEMENTATION_TASK_CARD_PATH = (
+    "docs/task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md"
+)
 
 EXPECTED_DEPENDENCIES = {
     "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1": (
@@ -423,6 +426,17 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         guard.get("status") == "forbid_repository_adapter_implementation_artifacts",
         "artifact guard status drifted",
     )
+    task_card_path = REPO_ROOT / IMPLEMENTATION_TASK_CARD_PATH
+    if task_card_path.exists():
+        task_card = task_card_path.read_text(encoding="utf-8")
+        require(
+            "draft_repository_adapter_implementation_task_card_defined" in task_card,
+            "implementation task card must remain task-card-defined only",
+        )
+        require(
+            "不启用 `repository` store mode" in task_card,
+            "implementation task card must preserve repository mode stop line",
+        )
     for relative_path in guard.get("future_files_must_not_exist") or []:
         require(
             not (REPO_ROOT / relative_path).exists(),
