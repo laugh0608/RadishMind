@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_production_auth_runtime_v1",
+  "slice": {
+    "id": "workflow-saved-draft-production-auth-runtime-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_production_auth_runtime_bridge_implemented",
+    "does_not_claim": [
+      "radish_oidc_ready",
+      "oidc_client_implemented",
+      "issuer_discovery_runtime_ready",
+      "token_validation_ready",
+      "auth_middleware_ready",
+      "workspace_membership_adapter_ready",
+      "repository_store_mode_enabled",
+      "durable_persistence_ready",
+      "database_schema_ready",
+      "database_connection_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_runner_implemented",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-production-auth-readiness-v1",
+    "workflow-saved-draft-auth-context-preconditions-v1",
+    "workflow-saved-draft-repository-adapter-implementation-v1",
+    "workflow-saved-draft-adapter-smoke-v1"
+  ],
+  "runtime_boundary": {
+    "status": "production_auth_runtime_bridge_implemented",
+    "runtime_bridge_file": "services/platform/internal/httpapi/workflow_saved_draft_production_auth_runtime.go",
+    "runtime_bridge_test_file": "services/platform/internal/httpapi/workflow_saved_draft_production_auth_runtime_test.go",
+    "repository_actor_context_type": "SavedWorkflowDraftRepositoryActorContext",
+    "verified_auth_context_type": "SavedWorkflowDraftVerifiedAuthContext",
+    "workspace_binding_type": "SavedWorkflowDraftWorkspaceBinding",
+    "runtime_result_type": "SavedWorkflowDraftProductionAuthRuntimeResult",
+    "operation_builder": "BuildSavedWorkflowDraftRepositoryActorContextForOperation",
+    "required_scope_builder": "BuildSavedWorkflowDraftRepositoryActorContextFromProductionAuth",
+    "accepted_auth_source": "radish_oidc_verified_context",
+    "uses_verified_auth_context": true,
+    "uses_verified_workspace_binding": true,
+    "projects_scope_grants": true,
+    "normalizes_scope_grants": true,
+    "creates_oidc_client": false,
+    "fetches_issuer_metadata": false,
+    "validates_token": false,
+    "creates_auth_middleware": false,
+    "creates_membership_adapter": false,
+    "creates_repository_adapter": false,
+    "enables_repository_store_mode": false,
+    "connects_database": false,
+    "creates_production_api": false,
+    "starts_service": false
+  },
+  "operation_scope_projection_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "builder": "BuildSavedWorkflowDraftRepositoryActorContextForOperation",
+      "projected_actor_context_fields": [
+        "request_id",
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants",
+        "audit_ref"
+      ],
+      "fallback_to_dev_auth_allowed": false,
+      "fallback_to_test_auth_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "builder": "BuildSavedWorkflowDraftRepositoryActorContextForOperation",
+      "projected_actor_context_fields": [
+        "request_id",
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants",
+        "audit_ref"
+      ],
+      "fallback_to_dev_auth_allowed": false,
+      "fallback_to_test_auth_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "builder": "BuildSavedWorkflowDraftRepositoryActorContextForOperation",
+      "projected_actor_context_fields": [
+        "request_id",
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants",
+        "audit_ref"
+      ],
+      "fallback_to_dev_auth_allowed": false,
+      "fallback_to_test_auth_allowed": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_mapping": {
+    "status": "runtime_bridge_fail_closed_implemented",
+    "required_failure_codes": [
+      "draft_identity_context_missing",
+      "draft_tenant_binding_missing",
+      "draft_workspace_membership_denied",
+      "draft_application_scope_denied",
+      "draft_owner_scope_denied",
+      "draft_scope_grant_missing",
+      "draft_auth_context_contract_mismatch",
+      "draft_audit_context_missing"
+    ],
+    "dev_fake_auth_source_failure_code": "draft_auth_context_contract_mismatch",
+    "unknown_operation_failure_code": "draft_auth_context_contract_mismatch",
+    "missing_scope_failure_code": "draft_scope_grant_missing",
+    "tenant_mismatch_failure_code": "draft_tenant_binding_missing",
+    "missing_workspace_failure_code": "draft_workspace_membership_denied",
+    "missing_application_failure_code": "draft_application_scope_denied",
+    "missing_owner_failure_code": "draft_owner_scope_denied",
+    "missing_audit_failure_code": "draft_audit_context_missing"
+  },
+  "no_fake_fallback_policy": {
+    "dev_fake_auth_header_allowed_in_runtime_bridge": false,
+    "test_auth_context_allowed_in_runtime_bridge": false,
+    "missing_verified_auth_fallback_allowed": false,
+    "missing_workspace_binding_fallback_allowed": false,
+    "scope_denied_fallback_to_admin_allowed": false,
+    "tenant_binding_failure_fallback_allowed": false,
+    "repository_mode_fallback_to_memory_dev_store_allowed": false,
+    "repository_mode_fallback_to_sample_allowed": false
+  },
+  "no_side_effect_policy": {
+    "status": "pure_runtime_bridge",
+    "side_effect_counters_must_remain": [
+      "issuer_network_call_count=0",
+      "token_validation_call_count=0",
+      "database_write_count=0",
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "issuer_network_call",
+      "token_validation_runtime_call",
+      "auth_session_mutation",
+      "database_write",
+      "repository_write",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "artifact_guard": {
+    "files_must_not_exist": [
+      "contracts/radish-oidc-token-validation.schema.json",
+      "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_membership_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_api.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_migration_runner.go"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/httpapi/workflow_saved_draft_production_auth_runtime.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_auth_runtime_test.go"
+    ],
+    "forbidden_source_literals": [
+      "controlPlaneReadDevAuthFromHeaders",
+      "withControlPlaneReadFakeAuthContext",
+      "X-RadishMind-Dev-Read",
+      "Authorization",
+      "Cookie",
+      "oidc.Provider",
+      "github.com/coreos/go-oidc",
+      "database/sql",
+      "sql.Open(",
+      "pgxpool",
+      "NewSavedWorkflowDraftRepositoryAdapter",
+      "SelectWorkflowSavedDraftStore",
+      "SaveWorkflowDraftRecord(",
+      "ReadWorkflowDraftRecord(",
+      "ListWorkflowDraftRecords(",
+      "http.Handler"
+    ]
+  },
+  "required_tests": [
+    "TestSavedWorkflowDraftProductionAuthRuntimeBuildsRepositoryActorContext",
+    "TestSavedWorkflowDraftProductionAuthRuntimeOperationScopes",
+    "TestSavedWorkflowDraftProductionAuthRuntimeFailureMapping"
+  ],
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-production-auth-runtime-v1.md",
+      "must_contain": [
+        "draft_production_auth_runtime_bridge_implemented",
+        "workflow-saved-draft-production-auth-runtime-v1",
+        "BuildSavedWorkflowDraftRepositoryActorContextForOperation"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "draft_production_auth_runtime_bridge_implemented",
+        "Saved Workflow Draft Production Auth Runtime v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-production-auth-runtime-v1",
+        "draft_production_auth_runtime_bridge_implemented"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "runtime_bridge_checker_and_go_tests",
+    "required_checks": [
+      "go test ./internal/httpapi",
+      "workflow_saved_draft_production_auth_runtime_checker",
+      "workflow_saved_draft_production_auth_readiness_checker",
+      "workflow_saved_draft_adapter_smoke_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_call_oidc": true,
+    "does_not_validate_token": true,
+    "does_not_create_auth_middleware": true,
+    "does_not_create_membership_adapter": true,
+    "does_not_enable_repository_store_mode": true,
+    "does_not_create_sql_or_migration": true,
+    "does_not_connect_database": true,
+    "does_not_create_production_api": true
+  }
+}

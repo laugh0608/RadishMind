@@ -76,14 +76,14 @@ adapter smoke 执行验证以下关键失败语义：
 
 本专题完成后，durable store 方向仍不能直接进入生产能力声明。下一步只能在以下方向中选一个独立推进：
 
-1. `Saved Workflow Draft Repository Mode Enablement v1`：把 selector 的 `repository` mode 从 fail-closed 转为受控启用前，必须先定义 repository mode runtime boundary、配置门禁、schema preflight、adapter smoke 依赖和回滚策略。
-2. `Saved Workflow Draft Production Auth Runtime v1`：实现 Radish OIDC middleware、token validation 和 workspace membership adapter 前，必须独立定义 runtime evidence、failure envelope 和 sanitized audit。
+1. `Saved Workflow Draft Production Auth Runtime v1`：后续已实现 verified auth context + workspace binding 到 repository actor context 的 runtime bridge，仍不创建 OIDC middleware、token validation 或 membership adapter。
+2. `Saved Workflow Draft Repository Mode Enablement v1`：把 selector 的 `repository` mode 从 fail-closed 转为受控启用前，必须先定义 repository mode runtime boundary、配置门禁、schema preflight、adapter smoke 依赖和回滚策略。
 
 ## 停止线
 
 - 不启用 `repository` store mode。
 - 不连接真实数据库，不运行 SQL，不创建 SQL migration、schema version table 或 migration runner。
-- 不创建 OIDC middleware、token validation、workspace membership adapter 或 production auth runtime。
+- 不创建 OIDC middleware、token validation、workspace membership adapter 或 repository mode enablement；后续 production auth runtime bridge 已独立完成，但不改变本批停止线。
 - 不创建 public production API consumer、production CORS policy、API key lifecycle、quota enforcement、billing 或 cost ledger。
 - 不实现 publish、run、workflow executor、tool executor、agent loop、confirmation decision、business writeback、replay、resume 或 materialized result reader。
 - 不把 `draft_adapter_smoke_executed` 解释为 durable persistence ready、database ready、repository mode ready、OIDC ready、production API ready 或 production ready。

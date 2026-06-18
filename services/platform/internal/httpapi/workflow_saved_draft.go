@@ -40,7 +40,10 @@ const (
 	SavedWorkflowDraftFailureIdentityContextMissing     SavedWorkflowDraftFailureCode = "draft_identity_context_missing"
 	SavedWorkflowDraftFailureTenantBindingMissing       SavedWorkflowDraftFailureCode = "draft_tenant_binding_missing"
 	SavedWorkflowDraftFailureWorkspaceMembershipDenied  SavedWorkflowDraftFailureCode = "draft_workspace_membership_denied"
+	SavedWorkflowDraftFailureApplicationScopeDenied     SavedWorkflowDraftFailureCode = "draft_application_scope_denied"
+	SavedWorkflowDraftFailureOwnerScopeDenied           SavedWorkflowDraftFailureCode = "draft_owner_scope_denied"
 	SavedWorkflowDraftFailureScopeGrantMissing          SavedWorkflowDraftFailureCode = "draft_scope_grant_missing"
+	SavedWorkflowDraftFailureAuditContextMissing        SavedWorkflowDraftFailureCode = "draft_audit_context_missing"
 )
 
 type SavedWorkflowDraftStatus string

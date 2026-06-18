@@ -27,9 +27,9 @@
 | repository adapter | `ready_for_next_task` | 需在独立实现批次中声明 adapter 边界、database query policy、schema preflight、version compare-and-set 和 sanitized projection |
 | adapter unit tests | `ready_for_next_task` | 需随 adapter 实现覆盖 save / read / list、version conflict、scope denied、not found、schema mismatch 和 no fallback |
 | adapter smoke fixture / checker | `completed_later` | 后续已由 `workflow-saved-draft-adapter-smoke-v1` 独立打开并验证 |
-| repository store mode enablement | `blocked` | 需等 adapter smoke execution、production auth runtime 和 production API 边界完成后，再评审 repository mode 是否可启用 |
+| repository store mode enablement | `blocked` | adapter smoke execution 和 production auth runtime bridge 后续已完成；仍需独立评审 repository mode runtime boundary、配置门禁、schema preflight、回滚策略和 production API 停止线 |
 
-本批不创建 `workflow-saved-draft-repository-adapter-implementation-v1` task card，也不创建 repository runtime artifact。后续 implementation task card、repository adapter implementation 和 adapter smoke execution 已分别独立完成；production API、token validation、membership adapter 和 repository mode enablement 仍保持停止线。
+本批不创建 `workflow-saved-draft-repository-adapter-implementation-v1` task card，也不创建 repository runtime artifact。后续 implementation task card、repository adapter implementation、adapter smoke execution 和 production auth runtime bridge 已分别独立完成；production API、token validation、membership adapter 和 repository mode enablement 仍保持停止线。
 
 ## Gate Matrix
 
@@ -42,7 +42,7 @@
 | production auth readiness | `satisfied_for_entry_review` | issuer / claim / scope / failure evidence 已固定；runtime token validation 和 membership adapter 未实现 |
 | adapter smoke readiness | `satisfied_for_entry_review` | smoke dependency gate 已固定；后续 adapter smoke execution 已独立打开 |
 | repository adapter implementation task | `not_opened_in_this_slice` | 本批只做 entry review，不创建实现任务卡或 runtime artifact |
-| production auth runtime | `not_satisfied` | 不创建 OIDC middleware、token validation 或 membership adapter |
+| production auth runtime bridge | `completed_later` | 后续已实现 verified auth context + workspace binding 到 repository actor context 的投影；OIDC middleware、token validation 和 membership adapter 仍未实现 |
 | production API | `not_satisfied` | 不创建 public production API consumer、production auth policy 或 CORS policy |
 | database execution | `not_satisfied` | 不连接数据库，不创建 database query，不运行 migration |
 
