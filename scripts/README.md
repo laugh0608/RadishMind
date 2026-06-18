@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-06-17
+更新时间：2026-06-18
 
 ## 目录目标
 
@@ -188,6 +188,8 @@
 
 当前 Saved Workflow Draft repository adapter implementation 还提供 `check-workflow-saved-draft-repository-adapter-implementation-v1.py`，用于校验 `draft_repository_adapter_implemented`、`SavedWorkflowDraftRepository` interface、注入式 query executor adapter、schema preflight、auth context failure mapping、adapter unit tests、manifest schema version 对齐、no fallback 和 no side effects；该检查不启用 repository store mode、不创建 adapter smoke fixture、不连接数据库、不创建 SQL migration / migration runner、不接 OIDC runtime、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft adapter smoke execution 还提供 `check-workflow-saved-draft-adapter-smoke-v1.py`，用于校验 `draft_adapter_smoke_executed`、static contract smoke cases、repository adapter save / read / list、injected fake query executor 调用边界、failure mapping、no fallback、no side effects 和 forbidden DB / SQL / OIDC / production API artifact；该检查不启用 repository store mode、不连接数据库、不运行 SQL、不接 OIDC runtime、不实现 durable persistence、production API、executor、confirmation、writeback 或 replay。
+
 尾部 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
@@ -209,6 +211,7 @@
 - `check-workflow-saved-draft-production-auth-readiness-v1.py` 失败通常表示 saved workflow draft production auth readiness 的 issuer / token / claim / tenant-workspace binding / scope projection / failure mapping 边界漂移，或 OIDC middleware、token validation、membership adapter、repository adapter、production API、SQL artifact 被提前打开。
 - `check-workflow-saved-draft-repository-adapter-implementation-entry-review-v1.py` 失败通常表示 saved workflow draft repository adapter implementation entry review 的准入结论、operation matrix、failure mapping、no fallback / no side effects 边界漂移，或后续 implementation task card / implementation guard 与 entry review 的停止线不一致。
 - `check-workflow-saved-draft-repository-adapter-implementation-v1.py` 失败通常表示 saved workflow draft repository adapter implementation 的 interface、adapter boundary、schema preflight、auth context failure mapping、unit tests、manifest schema version、forbidden runtime artifact 或 check-repo 注册顺序漂移。
+- `check-workflow-saved-draft-adapter-smoke-v1.py` 失败通常表示 saved workflow draft adapter smoke execution 的 fixture、Go smoke test、static contract case consumption、adapter save / read / list、failure mapping、no fallback / no side effects、forbidden runtime artifact 或 check-repo 注册顺序漂移。
 - `check-user-workspace-saved-draft-list-v1.py` 失败通常表示 dev-only list route、sanitized summary projection、Workspace Home saved draft list / restore、empty / failure state 或 no sample fallback 边界漂移。
 - `check-workflow-draft-designer-editing-model-v2.py` 失败通常表示 Draft Designer 本地结构编辑、边重建、active draft 下游预览或 saved restore lane mapping 边界漂移。
 - `check-workflow-draft-node-attribute-editing-model-v1.py` 失败通常表示 Draft Designer 节点属性编辑、保存 / 恢复映射、platform schema 或下游 validation / plan 消费边界漂移。

@@ -17,7 +17,7 @@
 - `Saved Workflow Draft Store Selector Implementation v1` 已实现 formal config、`SelectWorkflowSavedDraftStore`、selector tests 和 selector smoke checker；`repository` / `repository_disabled` 仍 fail closed。
 - `Saved Workflow Draft Schema Artifact Materialization v1` 已物化 manifest、DDL review、rollback evidence 和 migration smoke 静态证据；仍没有 SQL migration、schema version table 或 migration runner。
 - `Saved Workflow Draft Production Auth Readiness v1` 已固定 Radish OIDC issuer evidence、claim mapping、tenant / workspace binding、scope projection 和 auth failure mapping；仍没有 OIDC middleware、token validation 或 membership adapter。
-- `Saved Workflow Draft Adapter Smoke Readiness v1` 已固定 future adapter smoke dependency gate；adapter smoke execution 仍等待 repository adapter implementation 和独立 smoke fixture。
+- `Saved Workflow Draft Adapter Smoke Readiness v1` 已固定 future adapter smoke dependency gate；后续 `Saved Workflow Draft Repository Adapter Implementation v1` 和 `Saved Workflow Draft Adapter Smoke Execution v1` 已分别独立完成。
 
 ## Entry Review Decision
 
@@ -26,10 +26,10 @@
 | `SavedWorkflowDraftRepository` interface | `ready_for_next_task` | 需先创建独立 implementation task card，明确 interface 文件、operation contract、auth context 输入和 no fallback tests |
 | repository adapter | `ready_for_next_task` | 需在独立实现批次中声明 adapter 边界、database query policy、schema preflight、version compare-and-set 和 sanitized projection |
 | adapter unit tests | `ready_for_next_task` | 需随 adapter 实现覆盖 save / read / list、version conflict、scope denied、not found、schema mismatch 和 no fallback |
-| adapter smoke fixture / checker | `blocked` | 需等 repository adapter implementation 完成后，再独立打开 adapter smoke execution |
+| adapter smoke fixture / checker | `completed_later` | 后续已由 `workflow-saved-draft-adapter-smoke-v1` 独立打开并验证 |
 | repository store mode enablement | `blocked` | 需等 adapter smoke execution、production auth runtime 和 production API 边界完成后，再评审 repository mode 是否可启用 |
 
-本批不创建 `workflow-saved-draft-repository-adapter-implementation-v1` task card，也不创建 repository runtime artifact。若下一批进入实现，应先把 implementation task card 写清楚，并继续保留 production API、token validation、membership adapter、adapter smoke execution 和 repository mode enablement 的停止线。
+本批不创建 `workflow-saved-draft-repository-adapter-implementation-v1` task card，也不创建 repository runtime artifact。后续 implementation task card、repository adapter implementation 和 adapter smoke execution 已分别独立完成；production API、token validation、membership adapter 和 repository mode enablement 仍保持停止线。
 
 ## Gate Matrix
 
@@ -40,7 +40,7 @@
 | store selector implementation | `satisfied` | formal config 和 selector 已存在，但 repository mode 仍 fail closed |
 | schema artifact materialization | `satisfied_static` | manifest、DDL review、rollback evidence 和 migration smoke 已物化为静态证据 |
 | production auth readiness | `satisfied_for_entry_review` | issuer / claim / scope / failure evidence 已固定；runtime token validation 和 membership adapter 未实现 |
-| adapter smoke readiness | `satisfied_for_entry_review` | smoke dependency gate 已固定；adapter smoke execution 未打开 |
+| adapter smoke readiness | `satisfied_for_entry_review` | smoke dependency gate 已固定；后续 adapter smoke execution 已独立打开 |
 | repository adapter implementation task | `not_opened_in_this_slice` | 本批只做 entry review，不创建实现任务卡或 runtime artifact |
 | production auth runtime | `not_satisfied` | 不创建 OIDC middleware、token validation 或 membership adapter |
 | production API | `not_satisfied` | 不创建 public production API consumer、production auth policy 或 CORS policy |
@@ -93,7 +93,7 @@ entry review 继续固定以下 failure code：
 
 后续若继续 durable store，应先创建 `Saved Workflow Draft Repository Adapter Implementation v1` implementation task card，明确 repository interface、adapter file layout、adapter tests、database query boundary、schema preflight、auth context 输入、failure mapping、no fallback 和验证链路。
 
-即使进入 repository adapter implementation，production API、Radish OIDC token validation、workspace membership adapter、adapter smoke execution、repository mode enablement、SQL migration runner、publish、run、executor、confirmation、writeback 和 replay 仍必须作为后续独立专题推进。
+即使进入 repository adapter implementation，production API、Radish OIDC token validation、workspace membership adapter、repository mode enablement、SQL migration runner、publish、run、executor、confirmation、writeback 和 replay 仍必须作为后续独立专题推进；adapter smoke execution 已在后续独立批次完成，但不替代 repository mode 或 production auth runtime。
 
 2026-06-18 后续推进先创建 `docs/task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md`，随后完成 repository adapter implementation，状态为 `draft_repository_adapter_implemented`。该后续实现不改变本 entry review 批次“不创建 repository runtime artifact”的历史结论。
 

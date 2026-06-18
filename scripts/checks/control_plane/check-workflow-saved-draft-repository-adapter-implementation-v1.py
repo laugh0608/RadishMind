@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from workflow_saved_draft_adapter_smoke_execution_guard import adapter_smoke_execution_file_allowed
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = (
@@ -220,6 +222,8 @@ def assert_source_files(interface_file: str, adapter_file: str, test_file: str) 
 def assert_forbidden_runtime_artifacts(fixture: dict[str, Any], interface_file: str, adapter_file: str) -> None:
     guard = fixture.get("forbidden_runtime_artifacts") or {}
     for relative_path in guard.get("files_must_not_exist") or []:
+        if adapter_smoke_execution_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"forbidden runtime artifact exists: {relative_path}")
     scanned = read(interface_file) + read(adapter_file)
     for literal in guard.get("source_literals_must_not_appear") or []:

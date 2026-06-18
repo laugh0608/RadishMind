@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-06-17
+更新时间：2026-06-18
 
 ## 文档目的
 
@@ -47,7 +47,7 @@
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / surface 和实现专题 |
-| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode fail-closed、schema artifact 和 repository adapter 边界 |
+| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode fail-closed、schema artifact、repository adapter 和 adapter smoke execution 边界 |
 | [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
@@ -76,6 +76,8 @@
 | [Saved Workflow Draft Production Auth Readiness v1](workflow/saved-workflow-draft-production-auth-readiness-v1.md) | 前置证据专题 | 固定 saved draft production auth readiness，状态为 `draft_production_auth_readiness_defined` |
 | [Saved Workflow Draft Repository Adapter Implementation Entry Review v1](workflow/saved-workflow-draft-repository-adapter-implementation-entry-review-v1.md) | 实现准入专题 | 评审 repository adapter implementation task 准入，状态为 `draft_repository_adapter_implementation_entry_review_defined` |
 | [Workflow Saved Draft Repository Adapter Implementation v1 任务卡](../task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md) | 实现批次 | 固定 repository adapter implementation，状态为 `draft_repository_adapter_implemented` |
+| [Saved Workflow Draft Adapter Smoke Execution v1](workflow/saved-workflow-draft-adapter-smoke-execution-v1.md) | 实现专题 | 固定 repository adapter smoke execution，状态为 `draft_adapter_smoke_executed` |
+| [Workflow Saved Draft Adapter Smoke v1 任务卡](../task-cards/workflow-saved-draft-adapter-smoke-v1-plan.md) | 实现批次 | 用 static contract smoke cases 和 injected fake query executor 验证 repository adapter save / read / list |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

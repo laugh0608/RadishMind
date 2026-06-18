@@ -52,7 +52,7 @@
 | repository adapter gate | `not_satisfied` | 不创建 interface、adapter 或 database query |
 | production auth gate | `not_satisfied` | 不创建 OIDC 或 token validation |
 | database execution gate | `not_satisfied` | 不创建 SQL，不运行 migration，不创建 schema version table |
-| adapter smoke execution gate | `not_satisfied` | 不创建 adapter smoke fixture 或 checker |
+| adapter smoke execution gate | `not_satisfied_in_this_slice` | 本批不创建 adapter smoke fixture 或 checker；后续 `workflow-saved-draft-adapter-smoke-v1` 已独立完成 |
 
 ## 失败语义
 

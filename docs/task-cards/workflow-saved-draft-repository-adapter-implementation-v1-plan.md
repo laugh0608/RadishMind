@@ -11,7 +11,7 @@
 
 本任务卡承接 `Saved Workflow Draft Repository Adapter Implementation Entry Review v1`，用于固定并记录 repository adapter implementation 的实现边界、验证链路和停止线。
 
-当前已实现 repository interface、注入式 query executor adapter、schema preflight 和 adapter unit tests；仍不创建 adapter smoke fixture、SQL migration、migration runner、schema version table、进程级数据库连接、OIDC middleware、token validation、membership adapter、production API、publish、run、executor、confirmation、writeback 或 replay。
+当前已实现 repository interface、注入式 query executor adapter、schema preflight 和 adapter unit tests；本 implementation 批次本身不创建 adapter smoke fixture、SQL migration、migration runner、schema version table、进程级数据库连接、OIDC middleware、token validation、membership adapter、production API、publish、run、executor、confirmation、writeback 或 replay。后续 `Saved Workflow Draft Adapter Smoke Execution v1` 已作为独立批次验证 adapter smoke，不改变本批停止线。
 
 ## 输入
 
@@ -106,7 +106,7 @@ cd ../..
 
 - 不启用 `repository` store mode；当前 selector 仍只允许 `memory_dev` 成功，`repository_disabled` / `repository` / unknown mode 必须 fail closed。
 - 不创建 SQL migration、schema version table、migration runner、真实数据库连接或外部数据库 fixture。
-- 不创建 adapter smoke fixture、adapter smoke checker 或 adapter smoke execution 入口。
+- 本 implementation 批次不创建 adapter smoke fixture、adapter smoke checker 或 adapter smoke execution 入口；后续 smoke execution 必须作为独立 task card 和 checker 进入。
 - 不创建 Radish OIDC middleware、token validation、session cookie、workspace membership adapter 或 production auth runtime。
 - 不创建 public production API consumer、production CORS policy、API key lifecycle、quota enforcement、billing 或 cost ledger。
 - 不实现 durable publish、run、workflow executor、node executor、tool executor、agent loop、confirmation decision、business writeback、replay、resume 或 materialized result reader。

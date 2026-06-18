@@ -14,6 +14,10 @@ from workflow_saved_draft_schema_materialization_guard import (
     schema_materialization_file_allowed,
     schema_materialization_literal_allowed,
 )
+from workflow_saved_draft_adapter_smoke_execution_guard import (
+    adapter_smoke_execution_file_allowed,
+    adapter_smoke_execution_literal_allowed,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -399,6 +403,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
             continue
         if schema_materialization_file_allowed(REPO_ROOT, str(relative_path)):
             continue
+        if adapter_smoke_execution_file_allowed(REPO_ROOT, str(relative_path)):
+            continue
         require(not (REPO_ROOT / str(relative_path)).exists(), f"future artifact exists early: {relative_path}")
     sql_files = list((REPO_ROOT / "services/platform").rglob("*.sql"))
     require(not sql_files, f"SQL files must not be introduced: {sql_files}")
@@ -413,6 +419,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
             if selector_implementation_literal_allowed(REPO_ROOT, str(literal)):
                 continue
             if schema_materialization_literal_allowed(REPO_ROOT, str(literal)):
+                continue
+            if adapter_smoke_execution_literal_allowed(REPO_ROOT, str(literal)):
                 continue
             require(str(literal) not in source, f"{source_path} contains future literal: {literal}")
 
