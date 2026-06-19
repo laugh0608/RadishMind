@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-06-16
+更新时间：2026-06-19
 
 ## 文档目的
 
@@ -41,6 +41,8 @@
 - `P3 Local Product Shell / Ops Surface` 已暴露只读 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并已有 overview / local-smoke console consumer smoke、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist；本地只读产品壳已达到 `local usable / read-only close`。它只聚合和消费服务状态、本地 readiness、model/profile inventory、session/tooling metadata、blocked action route 和停止线，不引入真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍是后续 hardening 缺口。
 - `Provider Runtime & Health v1` 已把 provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 docs refresh 五个切片接入 fast baseline。它固定 `/v1/models`、provider/profile selection、diagnostics selectable model ids、credential state、deployment mode、offline health smoke、no implicit fallback、`retry_policy=caller-managed` 与 `fallback_policy=disabled` 的说明口径；它不代表 optional live health、retry/fallback execution、production secret backend、tool executor、confirmation/writeback/replay 或 production readiness 已完成。
 - `Production Secret Reference` 已用 `contracts/production-secret-reference.schema.json` 固定 reference-only manifest：只允许 `ref:` 形式的 secret 引用和脱敏 readiness 字段，不保存 secret value，不启用 resolver，不调用云 API，也不声明 production secret backend ready。
+- `Production Secret Backend` 当前只固定 config secret ref readiness、provider profile binding、disabled resolver interface、operator runbook / negative gates、rotation / audit policy、test fixture strategy entry review、fake resolver static contract / no leakage strategy、fake resolver task card entry review 和 fake resolver implementation task card。上层项目只能把这些视为 future resolver / fake resolver 的契约前置，不得把它们解释为 credential resolved、provider credential ready、cloud secret backend ready、repository mode ready 或 production ready。
+- `Workflow Saved Draft Database Secret Resolver` 当前只固定 database secret resolver readiness 与 implementation entry review：secret resolver implementation 仍 blocked，原因包括 production secret backend resolver 未实现、reference-only secret manifest、fake resolver runtime 未创建、sanitized diagnostics runtime 未创建、connection provider 和 repository mode 仍未打开。它不新增跨项目私有协议，不允许上层项目传入 raw secret、DSN、provider raw URL 或 cloud credential。
 - `RadishMind-Image Adapter` 已用 `image-adapter-handshake-safety-gate-v1` 固定 `image_adapter_handshake_safety_gate_defined`：`RadishMind-Core` 只输出结构化 image intent，Adapter safety gate 决定是否可映射到 backend request；`requires_confirmation=true`、高风险、policy unknown 或 backend unavailable 场景必须停在真实 backend 之前。当前只返回 artifact metadata-only 证据，不调用真实生图 backend、不生成图片、不下载模型、不上传 artifact、不创建 production storage，也不把图片像素生成并入主模型。
 - `image-artifact-return-runbook-evidence-v1` 已固定为 `image_artifact_return_runbook_evidence_defined`：只定义 `image_generation_artifact` 到未来上层 metadata-only artifact reference 的字段映射、failure taxonomy 和停止线，不改 `CopilotResponse` schema，不实现 runtime response mapping、artifact store、public URL resolver、binary reader、artifact upload 或 production storage。
 - `image-safety-runbook-evidence-v1` 已固定为 `image_safety_runbook_evidence_defined`：只定义图片路径安全审查 runbook、intent precheck、adapter gate、artifact safety review 和失败分类，不接 moderation provider，不实现 runtime policy engine、真实 backend client、artifact store、public URL resolver、artifact upload 或 production storage。
@@ -105,6 +107,7 @@
 - 不自建与 `Radish` 冲突的身份、授权、数据库和部署真相源。
 - 不把跨项目协议对齐解释成后端语言栈复制。
 - 不把 secret reference manifest 写成真实 secret backend、secret resolver、provider credential readiness 或 production ready。
+- 不把 fake resolver implementation task card 写成 fake resolver runtime、no secret leakage smoke runtime、credential handle creation、database connection 或 repository mode ready。
 - 不让模型输出直接写回上层项目。
 - 不把 checkpoint read route smoke 写成 durable checkpoint store、materialized result reader、executor ref reader、durable memory reader 或 replay executor。
 - 不把 P2 design gate 写成上层确认流接线、真实 executor、durable session/checkpoint/audit/result store、长期记忆、业务写回或完整负向回归已经完成。
