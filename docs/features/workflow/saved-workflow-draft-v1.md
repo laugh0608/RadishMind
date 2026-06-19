@@ -1,6 +1,6 @@
 # Saved Workflow Draft v1 功能专题
 
-更新时间：2026-06-18
+更新时间：2026-06-19
 
 ## 专题定位
 
@@ -44,8 +44,9 @@
 - 当前已完成 [Saved Workflow Draft Production Auth Runtime v1](saved-workflow-draft-production-auth-runtime-v1.md)：实现 `SavedWorkflowDraftVerifiedAuthContext` + `SavedWorkflowDraftWorkspaceBinding` 到 `SavedWorkflowDraftRepositoryActorContext` 的 runtime bridge；状态为 `draft_production_auth_runtime_bridge_implemented`。本批不创建 OIDC middleware、token validation、membership adapter、repository mode enablement、production API 或数据库连接。
 - 当前已完成 [Saved Workflow Draft Repository Mode Enablement v1](saved-workflow-draft-repository-mode-enablement-v1.md)：固定 repository mode runtime boundary、config gate、schema preflight、adapter smoke / production auth runtime dependency、failure mapping、rollback、no fallback 和 no side effects；状态为 `draft_repository_mode_enablement_review_defined`。本批结论是不启用 repository mode，`repository` / `repository_disabled` 仍返回 `repository_store_disabled`。
 - 当前已完成 [Saved Workflow Draft Schema Migration Runner Readiness v1](saved-workflow-draft-schema-migration-runner-readiness-v1.md)：定义 future schema migration runner 的 manual boundary、config gate、schema preflight、failure mapping、rollback、no fallback 和 no side effects；状态为 `draft_schema_migration_runner_readiness_defined`。本批不创建 SQL migration、schema version table、migration runner、runner command、database query executor 或数据库连接。
+- 当前已完成 [Saved Workflow Draft Schema Migration Runner Implementation Entry Review v1](saved-workflow-draft-schema-migration-runner-implementation-entry-review-v1.md)：评审 runner implementation 是否打开，状态为 `draft_schema_migration_runner_implementation_entry_review_defined`。本批固定 executable migration artifact、schema version marker contract、manual runner command、dry-run plan、migration apply smoke、rollback observability 和 repository mode runtime enablement 均为 blocked，不创建 runner implementation task card、SQL、schema version table、runner、database query executor 或数据库连接。
 - 当前仍没有 durable persistence、真实 SQL migration、schema version table、migration runner、Radish OIDC middleware、token validation、membership adapter、repository mode enablement runtime 或 production API。
-- 当前功能推进状态为 `draft_schema_migration_runner_readiness_defined`；早期 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md) 任务卡仍记录 domain service 实现批次，后续 durable store 需要先补真实数据库连接、SQL migration runner implementation entry、OIDC middleware / token validation、membership adapter 或 production API 的独立准入，而不是直接启用 repository mode。
+- 当前功能推进状态为 `draft_schema_migration_runner_implementation_entry_review_defined`；早期 [Workflow Saved Draft v1 Implementation](../../task-cards/workflow-saved-draft-v1-implementation-plan.md) 任务卡仍记录 domain service 实现批次。后续 durable store 若继续推进，必须先在 SQL migration runner implementation、真实数据库连接、OIDC middleware / token validation、membership adapter 或 production API 中选择单一前置方向重新开题，而不是直接启用 repository mode。
 
 ## 目标用户
 
@@ -145,7 +146,7 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 
 ## 下一批开发
 
-dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地；durable store 迁移前置设计、repository contract、schema / auth / selector evidence、static runner、schema artifact、production auth readiness、repository adapter implementation、adapter smoke execution、production auth runtime bridge、repository mode enablement 准入评审和 schema migration runner readiness 均已完成。后续若继续 durable store，应在 SQL migration runner implementation entry、真实数据库连接、OIDC middleware / token validation、membership adapter 或 production API consumer 中选择单一前置方向独立评审；任何 durable persistence、public production API、OIDC token validation、membership adapter、repository mode enablement runtime 或 executor 仍必须作为独立专题和 task card 推进。
+dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地；durable store 迁移前置设计、repository contract、schema / auth / selector evidence、static runner、schema artifact、production auth readiness、repository adapter implementation、adapter smoke execution、production auth runtime bridge、repository mode enablement 准入评审、schema migration runner readiness 和 schema migration runner implementation entry review 均已完成。后续若继续 durable store，应在真实 SQL migration runner implementation、真实数据库连接、OIDC middleware / token validation、membership adapter 或 production API consumer 中选择单一前置方向独立评审；任何 durable persistence、public production API、OIDC token validation、membership adapter、repository mode enablement runtime 或 executor 仍必须作为独立专题和 task card 推进。
 
 ## 验收方式
 
@@ -172,6 +173,7 @@ dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-sa
 - Production auth runtime bridge 能覆盖 verified auth context、workspace / application / owner binding、operation scope projection、failure mapping、no fake fallback 和 no side effects，且不创建 OIDC middleware、token validation、membership adapter、repository mode、数据库连接或 production API。
 - Repository mode enablement 准入评审能覆盖 runtime boundary、config gate、schema preflight、adapter smoke / production auth runtime dependency、failure mapping、rollback、no fallback 和 no side effects，且结论仍是不启用 repository mode、不连接数据库、不写 SQL / migration runner、不接 OIDC middleware、token validation、membership adapter 或 production API。
 - Schema migration runner readiness 能覆盖 future runner 的 manual boundary、config gate、schema preflight、applied marker 缺口、failure mapping、rollback、no fallback 和 no side effects，且不创建 SQL migration、schema version table、runner、database query executor、数据库连接或 repository mode runtime。
+- Schema migration runner implementation entry review 能覆盖 executable migration artifact、schema version marker contract、manual runner command、dry-run plan、migration apply smoke、rollback observability 和 repository mode runtime enablement 的 blocked 结论，且不创建 runner implementation task card、SQL migration、schema version table、runner command、database query executor、数据库连接或 repository mode runtime。
 - Consumer 能区分 `version_conflict`，并在冲突时保留本地草案、展示当前版本 metadata，不把失败回退成 sample。
 - route contract 和 consumer smoke checker 进入 fast baseline。
 - Web build 和 workflow 相关聚合检查通过。
@@ -181,5 +183,5 @@ dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-sa
 ## 停止线
 
 - 不实现 publish、run、executor、confirmation decision、writeback、replay、resume 或 materialized result reader。
-- 不接真实数据库、真实 schema migration、schema version table、migration runner、Radish OIDC middleware、token validation、membership adapter、API key lifecycle、quota enforcement、billing 或 public production API；当前 store selector 只提供 fail-closed mode selection，repository adapter 已实现并通过 adapter smoke execution，production auth runtime bridge 已实现，repository mode enablement 和 schema migration runner readiness 已完成准入评审但不启用 repository mode、不创建 runner。
+- 不接真实数据库、真实 schema migration、schema version table、migration runner、Radish OIDC middleware、token validation、membership adapter、API key lifecycle、quota enforcement、billing 或 public production API；当前 store selector 只提供 fail-closed mode selection，repository adapter 已实现并通过 adapter smoke execution，production auth runtime bridge 已实现，repository mode enablement、schema migration runner readiness 和 schema migration runner implementation entry review 已完成准入评审但不启用 repository mode、不创建 runner。
 - 不把 `valid_for_review`、validation summary、risk summary 或 readiness summary 当作执行解锁条件。

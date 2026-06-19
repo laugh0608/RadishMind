@@ -1,6 +1,6 @@
 # Workflow 细专题入口
 
-更新时间：2026-06-18
+更新时间：2026-06-19
 
 ## 文档目的
 
@@ -12,7 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `draft_schema_migration_runner_readiness_defined` | 固定草案保存、读取、校验、版本冲突、store selector fail-closed、schema artifact、repository adapter、adapter smoke execution、production auth runtime bridge、repository mode enablement 和 schema migration runner readiness 边界 |
+| [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `draft_schema_migration_runner_implementation_entry_review_defined` | 固定草案保存、读取、校验、版本冲突、store selector fail-closed、schema artifact、repository adapter、adapter smoke execution、production auth runtime bridge、repository mode enablement、schema migration runner readiness 和 implementation entry review 边界 |
 | [Workflow Draft Designer Surface](draft-designer-surface.md) | 页面 / Surface 专题 | `structure_editing_model_v2_implemented` | 固定 draft designer 的页面状态、数据来源、本地结构编辑和后续 saved draft 接线边界 |
 | [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) | 功能 / 页面专题 | `implemented` | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | `implemented` | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
@@ -43,6 +43,7 @@
 | [Saved Workflow Draft Production Auth Runtime v1](saved-workflow-draft-production-auth-runtime-v1.md) | 实现专题 | `draft_production_auth_runtime_bridge_implemented` | 实现 verified auth context + workspace binding 到 repository actor context 的 runtime bridge |
 | [Saved Workflow Draft Repository Mode Enablement v1](saved-workflow-draft-repository-mode-enablement-v1.md) | 实现准入专题 | `draft_repository_mode_enablement_review_defined` | 评审 repository mode runtime boundary、config gate、schema preflight、adapter smoke / production auth runtime dependency、failure mapping、rollback、no fallback 和 no side effects |
 | [Saved Workflow Draft Schema Migration Runner Readiness v1](saved-workflow-draft-schema-migration-runner-readiness-v1.md) | 实现准入专题 | `draft_schema_migration_runner_readiness_defined` | 定义 future schema migration runner 的 manual boundary、config gate、schema preflight、failure mapping、rollback、no fallback 和 no side effects |
+| [Saved Workflow Draft Schema Migration Runner Implementation Entry Review v1](saved-workflow-draft-schema-migration-runner-implementation-entry-review-v1.md) | 实现准入专题 | `draft_schema_migration_runner_implementation_entry_review_defined` | 评审 runner implementation 是否打开，固定 SQL artifact、schema marker、manual runner、dry-run、apply smoke、rollback observability 和 repository mode runtime 仍为 blocked |
 | [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) | 实现专题 | `implemented` | 固定 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 
 ## 选题规则
@@ -54,7 +55,7 @@
 
 ## 当前下一步
 
-`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现，并已补 route contract、consumer smoke 和 `version_conflict` 状态；正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地；durable store 迁移证据链已完成 static runner、formal store selector、静态 schema artifact、production auth readiness、repository adapter implementation、adapter smoke execution、production auth runtime bridge、repository mode enablement 准入评审和 `Saved Workflow Draft Schema Migration Runner Readiness v1`。当前状态为 `draft_schema_migration_runner_readiness_defined`；结论仍是不启用 repository mode，不能绕过真实数据库 / SQL migration runner、OIDC middleware、token validation、membership adapter、production API 和 executor / confirmation / writeback / replay 停止线。
+`Saved Workflow Draft v1` 的 dev-only consumer integration 已实现，并已补 route contract、consumer smoke 和 `version_conflict` 状态；正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地；durable store 迁移证据链已完成 static runner、formal store selector、静态 schema artifact、production auth readiness、repository adapter implementation、adapter smoke execution、production auth runtime bridge、repository mode enablement 准入评审、`Saved Workflow Draft Schema Migration Runner Readiness v1` 和 `Saved Workflow Draft Schema Migration Runner Implementation Entry Review v1`。当前状态为 `draft_schema_migration_runner_implementation_entry_review_defined`；结论仍是不启用 repository mode，不打开 runner implementation，不能绕过真实数据库 / SQL migration runner、OIDC middleware、token validation、membership adapter、production API 和 executor / confirmation / writeback / replay 停止线。
 
 ## 停止线
 
