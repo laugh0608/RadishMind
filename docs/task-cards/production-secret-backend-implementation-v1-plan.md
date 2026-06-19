@@ -62,6 +62,7 @@
    - fast baseline 不联网、不要求真实 credential、不调用云 SDK。
    - 当前已落地评审证据：`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1` / `test_fixture_strategy_fake_resolver_entry_review_defined` 用 [Production Secret Backend Test Fixture Strategy / Fake Resolver Implementation Entry Review v1](../platform/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.md)、`scripts/checks/fixtures/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.json` 与 `scripts/check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py` 固定 `test-fixture-strategy` 与 fake resolver implementation entry review；结论仍是 `test-fixture-strategy` 保持 `required_before_implementation`，fake resolver implementation entry 不打开。这不实现 resolver runtime、不实现 fake resolver runtime、不解析 secret、不调用云 secret 服务、不接数据库、不启用 repository mode。
    - 当前已落地策略证据：`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1` / `fake_resolver_contract_no_secret_leakage_smoke_strategy_defined` 用 [Production Secret Backend Fake Resolver Contract / No Secret Leakage Smoke Strategy v1](../platform/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.md)、`scripts/checks/fixtures/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.json` 与 `scripts/check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py` 固定 fake resolver static contract、no secret leakage smoke strategy、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard；结论仍是 `test-fixture-strategy` 未 satisfied，fake resolver implementation entry 不打开。这不实现 resolver runtime、不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不调用云 secret 服务、不接数据库、不启用 repository mode。
+   - 当前已落地 task card entry readiness：`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` / `fake_resolver_implementation_task_card_entry_readiness_review_defined` 用 [Production Secret Backend Fake Resolver Implementation Task Card Entry Readiness Review v1](../platform/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md)、`scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json` 与 `scripts/check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py` 固定下一张 fake resolver implementation task card 的准入；结论只是下一步可以创建任务卡，当前仍不创建 task card，不实现 resolver runtime、不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不调用云 secret 服务、不接数据库、不启用 repository mode。
 7. `operator-runbook`
    - 明确测试环境和生产环境如何提供 secret source、如何验证脱敏状态、如何记录 smoke 结果。
    - 不把 `.env.example`、local env override 或 docker compose config 写成 secret backend。
@@ -99,12 +100,15 @@
 8. `fake-resolver-contract / no-secret-leakage-smoke-strategy`
    - 固定 fake resolver implementation 前必须具备的静态输入 / 输出 allowlist、禁止 secret-bearing 字段、泄漏扫描策略、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard。
    - 当前已落地策略定义：`docs/platform/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.md`、`docs/task-cards/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.json` 与 `scripts/check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py` 固定 `fake_resolver_contract_no_secret_leakage_smoke_strategy_defined`；当前 `test-fixture-strategy` 仍未 satisfied，不添加 fake resolver implementation task card、不创建 fake resolver runtime、不创建 no secret leakage smoke runtime、不接云、不读 secret、不接数据库。
+9. `fake-resolver-implementation-task-card-entry-readiness-review`
+   - 评审 fake resolver implementation task card 是否可以作为下一步单独创建。
+   - 当前已落地 entry readiness：`docs/platform/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md`、`docs/task-cards/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json` 与 `scripts/check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py` 固定 `fake_resolver_implementation_task_card_entry_readiness_review_defined`；当前只允许下一步创建任务卡，不创建 fake resolver implementation task card、不实现 resolver runtime、不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不接云、不读 secret、不接数据库。
 
 ## 验收口径
 
 - 有任务卡、readiness fixture 和 checker 固定前置条件。
 - `production_secret_backend` 仍为 `not_satisfied`，直到真实 resolver、test fixture strategy、测试环境 smoke 和生产前复核记录都完成。
-- `test-fixture-strategy` 当前只有 blocked entry review 与 fake resolver contract / no secret leakage smoke strategy 静态证据，不能解释为 fake resolver implementation ready。
+- `test-fixture-strategy` 当前有 blocked entry review、fake resolver contract / no secret leakage smoke strategy 静态证据和 fake resolver implementation task card entry readiness；这只能解释为下一步可以创建 fake resolver implementation task card，不能解释为 fake resolver runtime ready。
 - fast baseline 不联网、不要求真实 credential、不写入真实 secret。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
@@ -114,6 +118,6 @@
 - 不写入真实 secret。
 - 不提交任何 API key、token、cookie、authorization header、证书或 provider raw dump。
 - 不把 `.env.example`、developer env override、fake resolver 或 disabled resolver 写成 production secret backend。
-- 不把 fake resolver static contract 或 no secret leakage smoke strategy 写成 fake resolver runtime ready。
+- 不把 fake resolver static contract、no secret leakage smoke strategy 或 fake resolver implementation task card entry readiness 写成 fake resolver runtime ready。
 - 不声明 production ready。
 - 不接 executor、confirmation、writeback、replay 或 materialized result reader。
