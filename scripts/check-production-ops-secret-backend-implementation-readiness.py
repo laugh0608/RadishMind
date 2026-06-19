@@ -34,7 +34,7 @@ REQUIRED_PRECONDITIONS = {
 
 REQUIRED_PLANNED_SLICES = {
     "secret-ref-schema-and-fixtures": "satisfied",
-    "config-secret-ref-readiness": "planned_not_started",
+    "config-secret-ref-readiness": "satisfied",
     "provider-profile-secret-binding": "planned_not_started",
     "secret-resolver-interface-disabled": "planned_not_started",
     "operator-runbook-and-negative-gates": "planned_not_started",
@@ -52,6 +52,9 @@ REQUIRED_DOC_REFERENCES = {
         "production-secret-backend-contract",
         "secret-ref-schema",
         "secret-ref-schema-and-fixtures",
+        "config-secret-ref-readiness",
+        "production-secret-backend-config-secret-ref-readiness-v1",
+        "config_secret_ref_readiness_defined",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
         "check-production-secret-reference-contract.py",
@@ -92,6 +95,7 @@ REQUIRED_DOC_REFERENCES = {
     "scripts/README.md": [
         "check-production-ops-secret-backend-implementation-readiness.py",
         "production-ops-secret-backend-implementation-readiness.json",
+        "check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -164,6 +168,17 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"secret-ref-schema missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"secret-ref-schema evidence missing on disk: {path}")
+        if precondition_id == "config-injection-point":
+            require(status == "satisfied", "config-injection-point precondition must be satisfied")
+            evidence = set(item.get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-config-secret-ref-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-config-secret-ref-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-config-secret-ref-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
+            }:
+                require(path in evidence, f"config-injection-point missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"config-injection-point evidence missing on disk: {path}")
 
     sanitized_fields = set(preconditions["sanitized-audit-fields"].get("must_define") or [])
     for field in {
@@ -182,12 +197,22 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
     require(not missing_planned, f"missing planned slices: {missing_planned}")
     for slice_id, expected_status in REQUIRED_PLANNED_SLICES.items():
         require(planned[slice_id].get("status") == expected_status, f"{slice_id} has unexpected status")
-        if expected_status == "satisfied":
+        if slice_id == "secret-ref-schema-and-fixtures":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
                 "contracts/production-secret-reference.schema.json",
                 "scripts/checks/fixtures/production-secret-reference-basic.json",
                 "scripts/check-production-secret-reference-contract.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "config-secret-ref-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-config-secret-ref-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-config-secret-ref-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-config-secret-ref-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
@@ -214,6 +239,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
 
     expected_consumers = {
         "scripts/check-production-ops-secret-backend-implementation-readiness.py",
+        "scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",

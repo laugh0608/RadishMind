@@ -154,7 +154,9 @@
 ## Production Ops
 
 1. [`Production Ops Hardening` v1 计划](production-ops-hardening-v1-plan.md)
-2. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+2. [`Production Secret Backend Implementation` v1 计划](production-secret-backend-implementation-v1-plan.md)
+3. [`Production Secret Backend Config / Secret Ref Readiness` v1 计划](production-secret-backend-config-secret-ref-readiness-v1-plan.md)（`production-secret-backend-config-secret-ref-readiness-v1`）
+4. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 

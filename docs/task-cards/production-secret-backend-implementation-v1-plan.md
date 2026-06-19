@@ -1,6 +1,6 @@
 # `Production Secret Backend Implementation` v1 计划
 
-更新时间：2026-05-26
+更新时间：2026-06-19
 
 ## 任务目标
 
@@ -44,6 +44,7 @@
 2. `config-injection-point`
    - 明确 `config.LoadFromEnv`、provider inventory 和 request-side selection 哪一层只接收 `secret_ref`，哪一层未来可调用 resolver。
    - 默认行为必须保持 env override dev-only，不自动启用 production secret backend。
+   - 当前已落地：`production-secret-backend-config-secret-ref-readiness-v1` / `config_secret_ref_readiness_defined` 用 [Production Secret Backend Config / Secret Ref Readiness v1](../platform/production-secret-backend-config-secret-ref-readiness-v1.md)、`scripts/checks/fixtures/production-secret-backend-config-secret-ref-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py` 固定配置注入点、脱敏字段、failure mapping、no fallback 和 no side effects；这不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不启用 production secret backend。
 3. `provider-profile-binding`
    - 明确 provider profile 如何声明需要 credential，以及缺失 secret ref 时的错误分类。
    - 不把 `mock`、`local-smoke` 或 demo profile 写成生产 provider。
@@ -72,6 +73,7 @@
 2. `config-secret-ref-readiness`
    - 扩展 config summary / check 的脱敏字段，让缺失 secret ref 可被检查。
    - 不启用 resolver。
+   - 当前已落地 readiness 定义：`docs/platform/production-secret-backend-config-secret-ref-readiness-v1.md`、`docs/task-cards/production-secret-backend-config-secret-ref-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-config-secret-ref-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py` 固定 `secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 的未来脱敏语义；当前不添加 runtime 字段、不调用 resolver、不声明 credential resolved。
 3. `provider-profile-secret-binding`
    - 让 provider/profile inventory 能声明 credential requirement 与 secret ref 状态。
    - 不访问 provider。

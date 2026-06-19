@@ -93,6 +93,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 这层 schema 只说明未来部署配置应该如何引用 secret，不说明 secret backend 已经存在。部署或 readiness 文档不得把 `RADISHMIND_SECRET_SOURCE`、`.env.example`、secret reference fixture 写成 provider credential readiness。
 
+`production-secret-backend-config-secret-ref-readiness-v1` 已把 `config-secret-ref-readiness` 固定为可检查证据：后续配置层只能报告 `secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态，不能读取 secret value、调用 resolver 或调用云 secret 服务。该 readiness 不改变 `.env.example` 的职责；`RADISHMIND_SECRET_SOURCE` 仍只是外部 secret 来源要求，不是 secret backend。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`

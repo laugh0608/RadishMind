@@ -94,6 +94,7 @@
 | [Workflow Saved Draft Database Secret Resolver Readiness v1 任务卡](../task-cards/workflow-saved-draft-database-secret-resolver-readiness-v1-plan.md) | 实现批次 | 定义 secret ref key、resolver input / result shape、sanitized diagnostics、failure taxonomy 和 offline fake resolver strategy |
 | [Saved Workflow Draft Database Secret Resolver Implementation Entry Review v1](workflow/saved-workflow-draft-database-secret-resolver-implementation-entry-review-v1.md) | 实现准入专题 | 固定 saved draft database secret resolver implementation entry review，状态为 `draft_database_secret_resolver_implementation_entry_review_defined` |
 | [Workflow Saved Draft Database Secret Resolver Implementation Entry Review v1 任务卡](../task-cards/workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1-plan.md) | 实现批次 | 评审 secret resolver implementation 是否打开，固定 blocked reason、failure mapping、sanitized diagnostics、no fallback 和 no side effects |
+| [Production Secret Backend Config / Secret Ref Readiness v1](../platform/production-secret-backend-config-secret-ref-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `config-secret-ref-readiness`，状态为 `config_secret_ref_readiness_defined` |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

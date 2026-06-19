@@ -213,6 +213,12 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 该 schema / fixture 只证明 secret reference 格式可检查，不实现 resolver，不接云，不包含 secret value、provider raw URL、API key、token、cookie、authorization header 或 credential 原文。下一步如继续推进，应进入 `config-secret-ref-readiness`，让 config summary / diagnostics 能报告 `secret_ref_present` 和 `missing_secret_refs` 等脱敏状态。
 
+## Production secret backend config / secret ref readiness
+
+`config-secret-ref-readiness` 已由 `docs/platform/production-secret-backend-config-secret-ref-readiness-v1.md`、`docs/task-cards/production-secret-backend-config-secret-ref-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-config-secret-ref-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py` 固定为 `config_secret_ref_readiness_defined`。它只定义 future config / diagnostics 层如何报告 `secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态，并把 `secret_reference_manifest_missing`、`secret_reference_manifest_invalid`、`secret_ref_missing`、`secret_backend_disabled` 和 `resolver_invocation_forbidden` 映射到 `configuration` failure boundary。
+
+该 readiness 不修改 `config.LoadFromEnv` runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不接 database connection provider，也不启用 workflow saved draft repository mode。`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。下一批若继续 production secret backend，应在 provider profile binding、disabled resolver interface 或 operator runbook / negative gates 中选择单一方向。
+
 ## Startup / supervisor boundary
 
 `startup-supervisor-boundary` 已由 `scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定为 governance boundary。当前支持的启动入口只有两类：`scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 的人工 platform wrapper，以及 `scripts/run-radishmind-console-dev.ps1` / `scripts/run-radishmind-console-dev.sh` 的本地 console dev launcher。
