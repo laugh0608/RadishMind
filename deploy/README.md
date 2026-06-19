@@ -99,6 +99,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-secret-resolver-interface-disabled-readiness-v1` 已把 `secret-resolver-interface-disabled` 固定为可检查证据：后续 resolver interface 在未启用前只能返回 disabled / fail-closed 脱敏状态，不能创建 credential handle，不能 fallback 到 `RADISHMIND_PLATFORM_API_KEY`、mock provider、local-smoke profile、fixture credential、跨环境 `secret_ref`、fake resolver 或 fake query executor。该 readiness 不改变 compose 或 `.env.example` 的职责，仍不声明 production secret backend ready。
 
+`production-secret-backend-operator-runbook-negative-gates-readiness-v1` 已把 `operator-runbook-and-negative-gates` 固定为可检查证据：后续 operator runbook 只能记录人工 approval、test / production secret source、脱敏验证、smoke record reference 和 negative gate results，不能保存 secret value、provider raw URL、DSN、cloud credential 或 credential handle。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`

@@ -203,7 +203,7 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 ## Production secret backend implementation readiness
 
-`production-secret-backend-implementation-readiness` 已由 `docs/task-cards/production-secret-backend-implementation-v1-plan.md`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json` 与 `scripts/check-production-ops-secret-backend-implementation-readiness.py` 固定为下一步实现前置条件清单。它要求先定义 secret ref schema、config 注入点、provider profile binding、脱敏审计字段、failure taxonomy、fake resolver 测试策略、operator runbook 和 rotation / audit policy。
+`production-secret-backend-implementation-readiness` 已由 `docs/task-cards/production-secret-backend-implementation-v1-plan.md`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json` 与 `scripts/check-production-ops-secret-backend-implementation-readiness.py` 固定为下一步实现前置条件清单。当前 secret ref schema、config 注入点、provider profile binding、脱敏审计字段、failure taxonomy 和 operator runbook / negative gates 已有可检查证据；fake resolver 测试策略与 rotation / audit policy 仍未满足。
 
 该 readiness 不实现 resolver、不接云、不读取或写入真实 secret、不要求真实 credential，也不改变当前运行时默认状态。后续只有在单独实现切片中完成 schema、disabled resolver、负向门禁和运行手册后，才能继续讨论真实 production secret backend。
 
@@ -229,7 +229,13 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 `secret-resolver-interface-disabled` 已由 `docs/platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md`、`docs/task-cards/production-secret-backend-secret-resolver-interface-disabled-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py` 固定为 `secret_resolver_interface_disabled_readiness_defined`。它只定义 future resolver interface 的 reference-only input、disabled result、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard。
 
-该 readiness 不修改 platform runtime，不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。`resolver_state=disabled` 不等于 credential resolved，`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。下一批若继续 production secret backend，应推进 operator runbook / negative gates。
+该 readiness 不修改 platform runtime，不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。`resolver_state=disabled` 不等于 credential resolved，`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。operator runbook / negative gates 已由下一节固定为独立 readiness。
+
+## Production secret backend operator runbook / negative gates readiness
+
+`operator-runbook-and-negative-gates` 已由 `docs/platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md`、`docs/task-cards/production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py` 固定为 `operator_runbook_negative_gates_readiness_defined`。它只定义 operator runbook、test / production secret source、operator approval evidence、sanitized verification、smoke record reference、negative gates、failure mapping、no fallback、no side effects 和 artifact guard。
+
+该 readiness 不修改 platform runtime，不实现 operator runbook executor、不实现 negative gate runtime、不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。它只满足 `operator-runbook-and-negative-gates` 前置；rotation / audit policy、test fixture strategy / fake resolver implementation 和真实 production secret backend 仍为后续独立目标。
 
 ## Startup / supervisor boundary
 

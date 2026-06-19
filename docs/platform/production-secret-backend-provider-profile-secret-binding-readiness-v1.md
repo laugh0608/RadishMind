@@ -141,12 +141,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `provider-profile-binding` 阻塞，不解除 disabled resolver interface、operator runbook、rotation / audit policy 或 production ready 阻塞。
+当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `provider-profile-binding` 阻塞。disabled resolver interface 和 operator runbook / negative gates 已分别由后续 readiness 单独固定；本文档仍不解除 rotation / audit policy、test fixture strategy / fake resolver implementation 或 production ready 阻塞。
 
-下一批如继续 production secret backend，应在以下方向中选择一个独立任务：
-
-1. `secret-resolver-interface-disabled`
-2. `operator-runbook-and-negative-gates`
+下一批如继续 production secret backend，应推进 rotation / audit policy，或重新评审 test fixture strategy / fake resolver implementation 是否打开。
 
 每个方向都必须继续保持 no raw secret、no cloud call、no fallback 和 no production ready 声明。
 
