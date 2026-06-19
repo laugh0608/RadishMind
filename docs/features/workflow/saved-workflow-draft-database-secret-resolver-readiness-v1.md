@@ -15,6 +15,7 @@
 - `production-secret-backend-implementation-readiness` 已固定 production secret backend resolver 仍为 `not_started`。
 - `production-secret-reference-basic` 只证明 reference-only manifest，不保存 secret value，不启用 resolver，不允许云调用。
 - `workflow-saved-draft-repository-mode-enablement-v1` 已确认 `repository` store mode 仍不启用。
+- `workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1` 已在后续批次确认 implementation entry 当前仍不打开。
 
 ## Secret Resolver Readiness
 
@@ -53,7 +54,7 @@
 
 ## 后续准入
 
-后续若打开 secret resolver implementation，必须先创建独立任务卡，并满足：
+后续若打开 secret resolver implementation，必须先在 [Saved Workflow Draft Database Secret Resolver Implementation Entry Review v1](saved-workflow-draft-database-secret-resolver-implementation-entry-review-v1.md) 之后创建独立 implementation task card，并满足：
 
 - 只消费 secret ref，不保存、不打印、不返回 secret value。
 - 明确 resolver interface、opaque credential handle、sanitized diagnostics、environment binding 和 failure taxonomy。

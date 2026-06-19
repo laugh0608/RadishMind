@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-18
+更新时间：2026-06-19
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -145,6 +145,7 @@
 94. [`Workflow Saved Draft Database Connection / Schema Marker Preconditions` v1 任务卡](workflow-saved-draft-database-connection-schema-marker-preconditions-v1-plan.md)（`workflow-saved-draft-database-connection-schema-marker-preconditions-v1`）
 95. [`Workflow Saved Draft Database Connection Provider Implementation Entry Review` v1 任务卡](workflow-saved-draft-database-connection-provider-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-database-connection-provider-implementation-entry-review-v1`）
 96. [`Workflow Saved Draft Database Secret Resolver Readiness` v1 任务卡](workflow-saved-draft-database-secret-resolver-readiness-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-readiness-v1`）
+97. [`Workflow Saved Draft Database Secret Resolver Implementation Entry Review` v1 任务卡](workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1`）
 
 ## UI 设计专题
 
