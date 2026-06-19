@@ -87,7 +87,7 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-contract` 已由 `scripts/checks/fixtures/production-ops-secret-backend-contract.json` 与 `scripts/check-production-ops-secret-backend-contract.py` 固定为治理切片。当前只定义未来 external secret backend adapter contract、`RADISHMIND_SECRET_SOURCE` 这类 secret reference、脱敏输出和禁止项；`deploy/.env.example` 不是 secret backend，也不保存真实 credential。
 
-该切片不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。真实 production secret backend、secret rotation policy、production secret audit store 和 provider health policy 仍必须在后续任务中另行实现和验证。
+该切片不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。真实 production secret backend、secret rotation runtime、production secret audit store 和 provider health policy 仍必须在后续任务中另行实现和验证。
 
 `contracts/production-secret-reference.schema.json` 进一步固定 provider profile 到 `secret_ref` 的 reference-only manifest。它只允许 `ref:` 引用、`credential_state`、`secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 这类脱敏字段；`scripts/checks/fixtures/production-secret-reference-basic.json` 只作为 test / production 两类环境的结构样例，不包含真实 key、token、cookie、authorization、provider raw URL 或 secret value。
 
@@ -100,6 +100,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 `production-secret-backend-secret-resolver-interface-disabled-readiness-v1` 已把 `secret-resolver-interface-disabled` 固定为可检查证据：后续 resolver interface 在未启用前只能返回 disabled / fail-closed 脱敏状态，不能创建 credential handle，不能 fallback 到 `RADISHMIND_PLATFORM_API_KEY`、mock provider、local-smoke profile、fixture credential、跨环境 `secret_ref`、fake resolver 或 fake query executor。该 readiness 不改变 compose 或 `.env.example` 的职责，仍不声明 production secret backend ready。
 
 `production-secret-backend-operator-runbook-negative-gates-readiness-v1` 已把 `operator-runbook-and-negative-gates` 固定为可检查证据：后续 operator runbook 只能记录人工 approval、test / production secret source、脱敏验证、smoke record reference 和 negative gate results，不能保存 secret value、provider raw URL、DSN、cloud credential 或 credential handle。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-rotation-audit-policy-readiness-v1` 已把 `rotation-and-audit-policy` 固定为可检查证据：后续 rotation / audit policy 只能记录 rotation trigger、approval / change window、secret ref version reference、rollback policy、sanitized verification、audit event fields 和 failure code，不能保存 secret value、provider raw URL、DSN、cloud credential 或 credential handle。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 rotation runtime、production secret audit store、audit writer、resolver runtime、fake resolver、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
 
 部署态 compose 通过这些变量区分测试和生产：
 

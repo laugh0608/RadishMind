@@ -66,7 +66,7 @@
    - 当前已落地：`production-secret-backend-operator-runbook-negative-gates-readiness-v1` / `operator_runbook_negative_gates_readiness_defined` 用 [Production Secret Backend Operator Runbook / Negative Gates Readiness v1](../platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md)、`scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py` 固定 operator runbook、negative gates、sanitized diagnostics、no fallback 和 no side effects；这不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不启用 production secret backend。
 8. `rotation-and-audit-policy`
    - 先定义 rotation / audit 的最小记录要求，再允许声明 production secret backend ready。
-   - 当前不实现 rotation、不写 audit store。
+   - 当前已落地：`production-secret-backend-rotation-audit-policy-readiness-v1` / `rotation_audit_policy_readiness_defined` 用 [Production Secret Backend Rotation / Audit Policy Readiness v1](../platform/production-secret-backend-rotation-audit-policy-readiness-v1.md)、`scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py` 固定 rotation trigger、audit event fields、secret ref version reference、rollback policy、failure mapping、no fallback 和 no side effects；这不实现 rotation runtime、不写 audit store、不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不启用 production secret backend。
 
 ## 建议切片
 
@@ -88,11 +88,14 @@
 5. `operator-runbook-and-negative-gates`
    - 固定运行手册、负向门禁和 production ready 停止线。
    - 当前已落地 readiness 定义：`docs/platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md`、`docs/task-cards/production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py` 固定 `operator-runbook-and-negative-gates`；当前不添加 resolver runtime、不创建 fake resolver、不解析 secret、不接云、不读本机真实 secret。
+6. `rotation-and-audit-policy`
+   - 固定 rotation / audit policy、failure mapping 和 production ready 停止线。
+   - 当前已落地 readiness 定义：`docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md`、`docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py` 固定 `rotation-and-audit-policy`；当前不添加 rotation runtime、不写 audit store、不添加 resolver runtime、不创建 fake resolver、不解析 secret、不接云、不读本机真实 secret。
 
 ## 验收口径
 
 - 有任务卡、readiness fixture 和 checker 固定前置条件。
-- `production_secret_backend` 仍为 `not_satisfied`，直到真实 resolver、rotation / audit policy、测试环境 smoke 和生产前复核记录都完成。
+- `production_secret_backend` 仍为 `not_satisfied`，直到真实 resolver、test fixture strategy、测试环境 smoke 和生产前复核记录都完成。
 - fast baseline 不联网、不要求真实 credential、不写入真实 secret。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 

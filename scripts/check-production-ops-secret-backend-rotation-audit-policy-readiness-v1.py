@@ -10,7 +10,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
-    / "scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json"
+    / "scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json"
 )
 IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
@@ -29,7 +29,7 @@ REQUIRED_FORBIDDEN_CLAIMS = {
     "secret_resolver_ready",
     "credential_handle_created",
     "repository_mode_ready",
-    "rotation_ready",
+    "rotation_runtime_ready",
     "production_secret_audit_store_ready",
 }
 
@@ -41,64 +41,82 @@ REQUIRED_DEPENDENCIES = {
     "config-secret-ref-readiness": "satisfied",
     "provider-profile-secret-binding": "satisfied",
     "secret-resolver-interface-disabled": "satisfied",
+    "operator-runbook-and-negative-gates": "satisfied",
 }
 
-REQUIRED_RUNBOOK_SECTIONS = {
-    "purpose_and_scope",
-    "environment_selection",
-    "secret_source_inventory",
-    "operator_approval_evidence",
-    "sanitized_verification_steps",
-    "negative_gate_review",
-    "smoke_record_template",
-    "rollback_or_disable_procedure",
+REQUIRED_ROTATION_POLICY_SECTIONS = {
+    "rotation_scope",
+    "rotation_trigger_matrix",
+    "approval_and_change_window",
+    "secret_ref_versioning_policy",
+    "rollback_or_disable_policy",
+    "sanitized_rotation_verification",
+    "post_rotation_smoke_record",
+    "rotation_failure_mapping",
     "production_ready_stop_line",
 }
 
-REQUIRED_EVIDENCE_FIELDS = {
+REQUIRED_ROTATION_TRIGGERS = {
+    "operator-requested rotation",
+    "provider credential compromise suspicion",
+    "scheduled rotation window",
+    "provider profile binding changed",
+    "secret ref version changed",
+    "resolver backend policy changed",
+    "failed sanitized smoke after rotation",
+}
+
+REQUIRED_AUDIT_EVENT_FIELDS = {
+    "event_id",
+    "event_kind",
     "environment",
     "provider",
     "provider_profile",
     "secret_ref_status",
-    "secret_backend_configured",
-    "resolver_state",
+    "secret_ref_version_ref",
     "operator_id_ref",
     "approval_ticket_ref",
     "request_id",
     "audit_ref",
     "runbook_version",
+    "policy_version",
+    "rotation_window_ref",
     "verification_status",
-    "smoke_record_ref",
-    "negative_gate_results",
+    "failure_code",
     "timestamp",
 }
 
 REQUIRED_DIAGNOSTIC_FIELDS = {
-    "credential_state",
+    "rotation_policy_status",
+    "audit_policy_status",
     "secret_backend_configured",
     "secret_ref_present",
     "secret_ref_status",
+    "secret_ref_version_status",
     "resolver_state",
     "operator_gate_status",
-    "negative_gate_results",
+    "rotation_gate_status",
     "failure_code",
     "sanitized_diagnostic",
-    "field_sources",
-    "smoke_record_ref",
     "audit_ref",
+    "policy_version",
+    "rotation_window_ref",
+    "smoke_record_ref",
+    "timestamp",
 }
 
-REQUIRED_NEGATIVE_GATE_CODES = {
-    "operator_runbook_missing",
-    "operator_approval_missing",
-    "operator_environment_mismatch",
-    "operator_secret_source_missing",
-    "operator_sanitized_verification_missing",
-    "operator_smoke_record_missing",
-    "operator_resolver_invocation_disabled",
-    "operator_secret_value_exposure_detected",
-    "operator_fallback_forbidden",
-    "operator_production_ready_claim_forbidden",
+REQUIRED_FAILURE_CODES = {
+    "rotation_policy_missing",
+    "rotation_trigger_missing",
+    "rotation_approval_missing",
+    "rotation_window_missing",
+    "rotation_secret_ref_version_missing",
+    "rotation_sanitized_verification_missing",
+    "rotation_smoke_record_missing",
+    "rotation_audit_event_missing",
+    "rotation_audit_secret_exposure_detected",
+    "rotation_fallback_forbidden",
+    "rotation_production_ready_claim_forbidden",
 }
 
 REQUIRED_NO_FALLBACK = {
@@ -110,8 +128,9 @@ REQUIRED_NO_FALLBACK = {
     "no cross-environment secret_ref fallback",
     "no fallback to fake resolver",
     "no fallback to fake query executor",
-    "operator runbook does not mean credential resolved",
-    "negative gate evidence does not mean production secret backend ready",
+    "rotation policy does not mean credential resolved",
+    "audit policy evidence does not mean audit store ready",
+    "rotation evidence does not mean production secret backend ready",
 }
 
 REQUIRED_NO_SIDE_EFFECTS = {
@@ -121,99 +140,99 @@ REQUIRED_NO_SIDE_EFFECTS = {
     "no provider call",
     "no database connection",
     "no credential handle creation",
-    "no runbook execution",
-    "no negative gate runtime call",
+    "no rotation execution",
+    "no audit store write",
     "no file write",
     "no repository mode enablement",
 }
 
 REQUIRED_DOC_REFERENCES = {
-    "docs/platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md": [
-        "operator_runbook_negative_gates_readiness_defined",
-        "operator-runbook-and-negative-gates",
-        "Operator Runbook Contract",
-        "Negative Gates",
-        "operator_runbook_missing",
-        "operator_production_ready_claim_forbidden",
+    "docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md": [
+        "rotation_audit_policy_readiness_defined",
+        "rotation-and-audit-policy",
+        "Rotation Policy Contract",
+        "Audit Policy Contract",
+        "rotation_policy_missing",
+        "rotation_production_ready_claim_forbidden",
         "No Fallback",
         "No Side Effects",
         "Artifact Guard",
     ],
-    "docs/task-cards/production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md": [
-        "Production Secret Backend Operator Runbook / Negative Gates Readiness",
-        "operator-runbook-and-negative-gates",
-        "operator_runbook_missing",
+    "docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md": [
+        "Production Secret Backend Rotation / Audit Policy Readiness",
+        "rotation-and-audit-policy",
+        "rotation_policy_missing",
         "不实现 resolver runtime",
         "不调用云 secret 服务",
         "不接数据库",
     ],
     "docs/platform/README.md": [
-        "Production Secret Backend Operator Runbook / Negative Gates Readiness v1",
-        "operator_runbook_negative_gates_readiness_defined",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
+        "Production Secret Backend Rotation / Audit Policy Readiness v1",
+        "rotation_audit_policy_readiness_defined",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
     ],
     "docs/features/README.md": [
-        "Production Secret Backend Operator Runbook / Negative Gates Readiness v1",
+        "Production Secret Backend Rotation / Audit Policy Readiness v1",
         "docs/platform/",
     ],
     "docs/features/workflow/README.md": [
-        "Production Secret Backend Operator Runbook / Negative Gates Readiness v1",
-        "operator_runbook_negative_gates_readiness_defined",
+        "Production Secret Backend Rotation / Audit Policy Readiness v1",
+        "rotation_audit_policy_readiness_defined",
     ],
     "docs/features/workflow/saved-workflow-draft-v1.md": [
-        "Production Secret Backend Operator Runbook / Negative Gates Readiness v1",
-        "operator_runbook_negative_gates_readiness_defined",
+        "Production Secret Backend Rotation / Audit Policy Readiness v1",
+        "rotation_audit_policy_readiness_defined",
     ],
     "docs/features/workflow-agent-runtime.md": [
-        "Production Secret Backend Operator Runbook / Negative Gates Readiness v1",
-        "operator_runbook_negative_gates_readiness_defined",
+        "Production Secret Backend Rotation / Audit Policy Readiness v1",
+        "rotation_audit_policy_readiness_defined",
     ],
     "docs/radishmind-current-focus.md": [
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
-        "operator_runbook_negative_gates_readiness_defined",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
+        "rotation_audit_policy_readiness_defined",
+        "production-secret-backend-rotation-audit-policy-readiness-v1.json",
     ],
     "docs/radishmind-product-scope.md": [
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
-        "operator_runbook_negative_gates_readiness_defined",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
+        "rotation_audit_policy_readiness_defined",
         "不接生产后端",
     ],
     "docs/radishmind-roadmap.md": [
-        "operator-runbook-and-negative-gates",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
+        "rotation-and-audit-policy",
+        "production-secret-backend-rotation-audit-policy-readiness-v1.json",
     ],
     "docs/radishmind-capability-matrix.md": [
-        "operator-runbook-and-negative-gates",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
+        "rotation-and-audit-policy",
+        "production-secret-backend-rotation-audit-policy-readiness-v1.json",
     ],
     "docs/task-cards/README.md": [
-        "Production Secret Backend Operator Runbook / Negative Gates Readiness",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
+        "Production Secret Backend Rotation / Audit Policy Readiness",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
     ],
     "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [
-        "operator-runbook-and-negative-gates",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
-        "operator_runbook_negative_gates_readiness_defined",
+        "rotation-and-audit-policy",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
+        "rotation_audit_policy_readiness_defined",
     ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
-        "operator-runbook-and-negative-gates",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
+        "rotation-and-audit-policy",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
     ],
     "scripts/README.md": [
-        "check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
+        "check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py",
+        "production-secret-backend-rotation-audit-policy-readiness-v1.json",
     ],
     "services/platform/README.md": [
-        "Production secret backend operator runbook / negative gates readiness",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
+        "Production secret backend rotation / audit policy readiness",
+        "production-secret-backend-rotation-audit-policy-readiness-v1.json",
     ],
     "deploy/README.md": [
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
-        "operator-runbook-and-negative-gates",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
+        "rotation-and-audit-policy",
     ],
     "docs/devlogs/2026-W25.md": [
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
-        "operator_runbook_negative_gates_readiness_defined",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
+        "rotation_audit_policy_readiness_defined",
     ],
 }
 
@@ -236,19 +255,19 @@ def load_json(path: Path) -> dict[str, Any]:
 def assert_slice(fixture: dict[str, Any]) -> None:
     slice_info = fixture.get("slice") or {}
     require(
-        slice_info.get("id") == "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
+        slice_info.get("id") == "production-secret-backend-rotation-audit-policy-readiness-v1",
         "unexpected slice id",
     )
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
-    require(slice_info.get("status") == "operator_runbook_negative_gates_readiness_defined", "unexpected status")
+    require(slice_info.get("status") == "rotation_audit_policy_readiness_defined", "unexpected status")
     task_card = str(slice_info.get("task_card") or "")
     platform_topic = str(slice_info.get("platform_topic") or "")
     require(
-        task_card == "docs/task-cards/production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md",
+        task_card == "docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md",
         "unexpected task card",
     )
     require(
-        platform_topic == "docs/platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md",
+        platform_topic == "docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md",
         "unexpected platform topic",
     )
     require((REPO_ROOT / task_card).exists(), "task card must exist")
@@ -272,8 +291,9 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
 def assert_implementation_boundary(fixture: dict[str, Any]) -> None:
     boundary = fixture.get("implementation_boundary") or {}
     false_fields = {
-        "operator_runbook_runtime_added",
-        "negative_gate_runtime_added",
+        "rotation_runtime_added",
+        "audit_store_added",
+        "audit_runtime_added",
         "resolver_runtime_added",
         "fake_resolver_added",
         "cloud_secret_sdk_added",
@@ -291,30 +311,43 @@ def assert_implementation_boundary(fixture: dict[str, Any]) -> None:
     require(boundary.get("default_runtime_state") == "disabled", "default runtime state must stay disabled")
 
     scope = fixture.get("readiness_scope") or {}
-    require(scope.get("satisfies_precondition") == "operator-runbook", "unexpected satisfied precondition")
-    require(
-        scope.get("satisfies_planned_slice") == "operator-runbook-and-negative-gates",
-        "unexpected planned slice",
-    )
+    require(scope.get("satisfies_precondition") == "rotation-and-audit-policy", "unexpected satisfied precondition")
+    require(scope.get("satisfies_planned_slice") == "rotation-and-audit-policy", "unexpected planned slice")
     require(scope.get("planned_slice_status") == "satisfied", "planned slice must be satisfied")
     blocked = set(scope.get("does_not_satisfy") or [])
     for item in {
         "test-fixture-strategy",
-        "rotation-and-audit-policy",
         "production-secret-backend-ready",
         "credential-resolution-ready",
         "resolver-implementation-ready",
+        "runtime-rotation-ready",
+        "production-secret-audit-store-ready",
     }:
         require(item in blocked, f"readiness scope must not satisfy {item}")
 
 
-def assert_operator_runbook_contract(fixture: dict[str, Any]) -> None:
-    contract = fixture.get("operator_runbook_contract") or {}
-    missing_sections = sorted(REQUIRED_RUNBOOK_SECTIONS - set(contract.get("required_sections") or []))
-    require(not missing_sections, f"missing runbook sections: {missing_sections}")
-    missing_fields = sorted(REQUIRED_EVIDENCE_FIELDS - set(contract.get("allowed_evidence_fields") or []))
-    require(not missing_fields, f"missing allowed evidence fields: {missing_fields}")
-    forbidden = set(contract.get("forbidden_evidence_fields") or [])
+def assert_rotation_policy_contract(fixture: dict[str, Any]) -> None:
+    contract = fixture.get("rotation_policy_contract") or {}
+    missing_sections = sorted(REQUIRED_ROTATION_POLICY_SECTIONS - set(contract.get("required_sections") or []))
+    require(not missing_sections, f"missing rotation policy sections: {missing_sections}")
+    missing_triggers = sorted(REQUIRED_ROTATION_TRIGGERS - set(contract.get("required_triggers") or []))
+    require(not missing_triggers, f"missing rotation triggers: {missing_triggers}")
+    for flag in {
+        "approval_required",
+        "change_window_required",
+        "secret_ref_version_required",
+        "sanitized_verification_required",
+        "post_rotation_smoke_required",
+        "rollback_or_disable_required",
+    }:
+        require(contract.get(flag) is True, f"{flag} must be true")
+
+
+def assert_audit_policy_contract(fixture: dict[str, Any]) -> None:
+    contract = fixture.get("audit_policy_contract") or {}
+    missing_fields = sorted(REQUIRED_AUDIT_EVENT_FIELDS - set(contract.get("allowed_event_fields") or []))
+    require(not missing_fields, f"missing allowed audit fields: {missing_fields}")
+    forbidden = set(contract.get("forbidden_event_fields") or [])
     for field in {
         "raw_secret",
         "password",
@@ -323,18 +356,17 @@ def assert_operator_runbook_contract(fixture: dict[str, Any]) -> None:
         "provider_raw_url",
         "dsn",
         "cloud_credential",
+        "database_hostname",
+        "database_error_detail",
         "opaque_credential_handle",
         "resolver_backend_url",
+        "full_user_claim",
     }:
-        require(field in forbidden, f"missing forbidden evidence field: {field}")
-    for flag in {
-        "test_secret_source_required",
-        "production_secret_source_required",
-        "sanitized_verification_required",
-        "smoke_record_required",
-        "operator_approval_required",
-    }:
-        require(contract.get(flag) is True, f"{flag} must be true")
+        require(field in forbidden, f"missing forbidden audit event field: {field}")
+    require(contract.get("stores_secret_payload") is False, "audit policy must not store secret payload")
+    require(contract.get("stores_credential_handle") is False, "audit policy must not store credential handles")
+    require(contract.get("requires_policy_version") is True, "audit policy must require policy version")
+    require(contract.get("requires_audit_ref") is True, "audit policy must require audit ref")
 
 
 def assert_secret_reference_alignment() -> None:
@@ -359,8 +391,11 @@ def assert_sanitized_diagnostics(fixture: dict[str, Any]) -> None:
         "provider_raw_url",
         "dsn",
         "cloud_credential",
+        "database_hostname",
+        "database_error_detail",
         "opaque_credential_handle",
         "resolver_backend_url",
+        "full_user_claim",
     }:
         require(field in forbidden, f"missing forbidden diagnostic field: {field}")
     require(
@@ -369,12 +404,12 @@ def assert_sanitized_diagnostics(fixture: dict[str, Any]) -> None:
     )
 
 
-def assert_negative_gates_and_policies(fixture: dict[str, Any]) -> None:
-    gates = {str(item.get("code")): item for item in fixture.get("negative_gates") or [] if isinstance(item, dict)}
-    missing_codes = sorted(REQUIRED_NEGATIVE_GATE_CODES - set(gates))
-    require(not missing_codes, f"missing negative gate codes: {missing_codes}")
-    for code, item in gates.items():
-        require(item.get("failure_boundary") == "operator_gate", f"{code} must use operator_gate boundary")
+def assert_failure_mapping_and_policies(fixture: dict[str, Any]) -> None:
+    failures = {str(item.get("code")): item for item in fixture.get("failure_mapping") or [] if isinstance(item, dict)}
+    missing_codes = sorted(REQUIRED_FAILURE_CODES - set(failures))
+    require(not missing_codes, f"missing failure codes: {missing_codes}")
+    for code, item in failures.items():
+        require(item.get("failure_boundary") == "rotation_audit_policy", f"{code} must use rotation boundary")
         require(item.get("retryable") is False, f"{code} must not be retryable")
         diagnostic = str(item.get("sanitized_diagnostic") or "")
         require(diagnostic, f"{code} must define sanitized diagnostic")
@@ -395,16 +430,19 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     guard = fixture.get("artifact_guard") or {}
     forbidden = set(guard.get("forbidden_artifacts") or [])
     for item in {
+        "rotation runtime",
+        "production secret audit store",
+        "audit writer",
+        "cloud secret SDK",
         "secret resolver runtime",
         "fake resolver",
-        "operator runbook executor",
-        "negative gate runtime",
-        "cloud secret SDK",
         "opaque credential handle runtime",
         "database connection provider",
         "DB driver",
         "connection factory",
         "SQL migration runner",
+        "schema marker reader",
+        "schema marker writer",
         "workflow repository mode runtime",
         "public production API",
     }:
@@ -418,6 +456,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         "credential_handle_created",
         "repository_mode_ready",
         "production_ready",
+        "rotation_runtime_ready",
+        "production_secret_audit_store_ready",
     }:
         require(claim in forbidden_claims, f"artifact guard missing forbidden claim: {claim}")
 
@@ -429,39 +469,36 @@ def assert_implementation_readiness_alignment() -> None:
         for item in readiness.get("planned_slices") or []
         if isinstance(item, dict)
     }
-    operator_slice = planned.get("operator-runbook-and-negative-gates") or {}
-    require(operator_slice.get("status") == "satisfied", "operator-runbook-and-negative-gates must be satisfied")
-    evidence = set(operator_slice.get("evidence") or [])
+    rotation_slice = planned.get("rotation-and-audit-policy") or {}
+    require(rotation_slice.get("status") == "satisfied", "rotation-and-audit-policy must be satisfied")
+    evidence = set(rotation_slice.get("evidence") or [])
     for path in {
-        "docs/platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md",
-        "docs/task-cards/production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md",
-        "scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
-        "scripts/check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py",
+        "docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json",
+        "scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py",
     }:
-        require(path in evidence, f"operator slice missing evidence: {path}")
-        require((REPO_ROOT / path).exists(), f"operator slice evidence missing: {path}")
+        require(path in evidence, f"rotation slice missing evidence: {path}")
+        require((REPO_ROOT / path).exists(), f"rotation slice evidence missing: {path}")
+
+    operator_slice = planned.get("operator-runbook-and-negative-gates") or {}
+    require(operator_slice.get("status") == "satisfied", "operator-runbook-and-negative-gates must stay satisfied")
 
     preconditions = {
         str(item.get("id")): item
         for item in readiness.get("required_preconditions") or []
         if isinstance(item, dict)
     }
-    operator = preconditions.get("operator-runbook") or {}
-    require(operator.get("status") == "satisfied", "operator-runbook precondition must be satisfied")
-    operator_evidence = set(operator.get("evidence") or [])
-    require(
-        "scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json"
-        in operator_evidence,
-        "operator-runbook must cite operator negative gates fixture",
-    )
     rotation = preconditions.get("rotation-and-audit-policy") or {}
-    require(rotation.get("status") == "satisfied", "rotation-and-audit-policy must be satisfied")
+    require(rotation.get("status") == "satisfied", "rotation-and-audit-policy precondition must be satisfied")
     rotation_evidence = set(rotation.get("evidence") or [])
     require(
         "scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json"
         in rotation_evidence,
-        "rotation-and-audit-policy must cite rotation audit policy fixture",
+        "rotation-and-audit-policy must cite rotation policy fixture",
     )
+    operator = preconditions.get("operator-runbook") or {}
+    require(operator.get("status") == "satisfied", "operator-runbook precondition must stay satisfied")
     test_fixture = preconditions.get("test-fixture-strategy") or {}
     require(
         test_fixture.get("status") == "required_before_implementation",
@@ -487,20 +524,20 @@ def assert_docs_and_check_repo(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / str(relative_path)).exists(), f"required doc reference missing: {relative_path}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    disabled_call = (
-        'run_python_script("check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py", [])'
-    )
     operator_call = (
         'run_python_script("check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py", [])'
     )
+    rotation_call = (
+        'run_python_script("check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py", [])'
+    )
     for call, description in {
-        disabled_call: "secret resolver interface disabled readiness checker",
         operator_call: "operator runbook negative gates readiness checker",
+        rotation_call: "rotation audit policy readiness checker",
     }.items():
         require(call in check_repo, f"check-repo.py must run {description}")
     require(
-        check_repo.index(disabled_call) < check_repo.index(operator_call),
-        "operator runbook checker must run after disabled resolver checker",
+        check_repo.index(operator_call) < check_repo.index(rotation_call),
+        "rotation audit policy checker must run after operator runbook checker",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():
@@ -512,6 +549,7 @@ def assert_docs_and_check_repo(fixture: dict[str, Any]) -> None:
 def assert_validation_strategy(fixture: dict[str, Any]) -> None:
     strategy = set(fixture.get("validation_strategy") or [])
     for item in {
+        "run rotation audit policy readiness checker",
         "run operator runbook negative gates readiness checker",
         "run secret resolver interface disabled readiness checker",
         "run provider profile secret binding readiness checker",
@@ -530,16 +568,16 @@ def assert_no_secret_literals() -> None:
     text = "\n".join(
         [
             FIXTURE_PATH.read_text(encoding="utf-8"),
-            read("docs/platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md"),
-            read("docs/task-cards/production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md"),
+            read("docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md"),
+            read("docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md"),
         ]
     )
     forbidden_literals = ["Bearer ", "BEGIN PRIVATE KEY", "AKIA", "authorization:", "cookie:"]
     found = [literal for literal in forbidden_literals if literal in text]
-    require(not found, f"operator runbook readiness contains forbidden secret-looking literals: {found}")
+    require(not found, f"rotation audit policy readiness contains forbidden secret-looking literals: {found}")
     require(
         re.search(r"sk-[A-Za-z0-9]{8,}", text) is None,
-        "operator runbook readiness contains forbidden sk-like token",
+        "rotation audit policy readiness contains forbidden sk-like token",
     )
 
 
@@ -547,22 +585,23 @@ def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind") == "production_ops_secret_backend_operator_runbook_negative_gates_readiness_v1",
+        fixture.get("kind") == "production_ops_secret_backend_rotation_audit_policy_readiness_v1",
         "unexpected fixture kind",
     )
     assert_slice(fixture)
     assert_dependencies(fixture)
     assert_implementation_boundary(fixture)
-    assert_operator_runbook_contract(fixture)
+    assert_rotation_policy_contract(fixture)
+    assert_audit_policy_contract(fixture)
     assert_secret_reference_alignment()
     assert_sanitized_diagnostics(fixture)
-    assert_negative_gates_and_policies(fixture)
+    assert_failure_mapping_and_policies(fixture)
     assert_artifact_guard(fixture)
     assert_implementation_readiness_alignment()
     assert_docs_and_check_repo(fixture)
     assert_validation_strategy(fixture)
     assert_no_secret_literals()
-    print("production ops secret backend operator runbook negative gates readiness checks passed.")
+    print("production ops secret backend rotation audit policy readiness checks passed.")
 
 
 if __name__ == "__main__":

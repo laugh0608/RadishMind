@@ -141,9 +141,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `secret-resolver-interface-disabled` 阻塞。operator runbook / negative gates 已由 `production-secret-backend-operator-runbook-negative-gates-readiness-v1` 单独固定；本文档仍不解除 rotation / audit policy、test fixture strategy / fake resolver implementation 或 production ready 阻塞。
+当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `secret-resolver-interface-disabled` 阻塞。operator runbook / negative gates 已由 `production-secret-backend-operator-runbook-negative-gates-readiness-v1` 单独固定，rotation / audit policy 已由 `production-secret-backend-rotation-audit-policy-readiness-v1` 单独固定；本文档仍不解除 test fixture strategy / fake resolver implementation 或 production ready 阻塞。
 
-下一批如继续 production secret backend，应推进 rotation / audit policy，或重新评审 test fixture strategy / fake resolver implementation 是否打开。
+下一批如继续 production secret backend，应重新评审 test fixture strategy / fake resolver implementation 是否打开。
 
 ## 验证
 

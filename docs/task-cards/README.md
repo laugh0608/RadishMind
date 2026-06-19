@@ -159,7 +159,8 @@
 4. [`Production Secret Backend Provider Profile Secret Binding Readiness` v1 计划](production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md)（`production-secret-backend-provider-profile-secret-binding-readiness-v1`）
 5. [`Production Secret Backend Secret Resolver Interface Disabled Readiness` v1 计划](production-secret-backend-secret-resolver-interface-disabled-readiness-v1-plan.md)（`production-secret-backend-secret-resolver-interface-disabled-readiness-v1`）
 6. [`Production Secret Backend Operator Runbook / Negative Gates Readiness` v1 计划](production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md)（`production-secret-backend-operator-runbook-negative-gates-readiness-v1`）
-7. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+7. [`Production Secret Backend Rotation / Audit Policy Readiness` v1 计划](production-secret-backend-rotation-audit-policy-readiness-v1-plan.md)（`production-secret-backend-rotation-audit-policy-readiness-v1`）
+8. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 

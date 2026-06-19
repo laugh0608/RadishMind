@@ -199,11 +199,11 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 `production-secret-backend-contract` 已由 `scripts/checks/fixtures/production-ops-secret-backend-contract.json` 与 `scripts/check-production-ops-secret-backend-contract.py` 固定为 Production Ops Hardening v1 的最小治理切片。该切片只定义未来 external secret backend adapter contract：按 `environment`、`provider`、`provider_profile` 与 `secret_ref` 识别 secret reference，并要求后续运行面只暴露 `credential_state`、`secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏字段。
 
-当前明确不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。`RADISHMIND_PLATFORM_API_KEY` 仍只允许作为 developer env override；`RADISHMIND_SECRET_SOURCE` 只能表示部署态外部 secret 来源要求，不是 secret backend 本身。真实 production secret backend、secret rotation policy、production secret audit store、provider health policy、environment isolation 和 process supervisor 仍为 `not_satisfied`。
+当前明确不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。`RADISHMIND_PLATFORM_API_KEY` 仍只允许作为 developer env override；`RADISHMIND_SECRET_SOURCE` 只能表示部署态外部 secret 来源要求，不是 secret backend 本身。真实 production secret backend、secret rotation runtime、production secret audit store、provider health policy、environment isolation 和 process supervisor 仍为 `not_satisfied`。
 
 ## Production secret backend implementation readiness
 
-`production-secret-backend-implementation-readiness` 已由 `docs/task-cards/production-secret-backend-implementation-v1-plan.md`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json` 与 `scripts/check-production-ops-secret-backend-implementation-readiness.py` 固定为下一步实现前置条件清单。当前 secret ref schema、config 注入点、provider profile binding、脱敏审计字段、failure taxonomy 和 operator runbook / negative gates 已有可检查证据；fake resolver 测试策略与 rotation / audit policy 仍未满足。
+`production-secret-backend-implementation-readiness` 已由 `docs/task-cards/production-secret-backend-implementation-v1-plan.md`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json` 与 `scripts/check-production-ops-secret-backend-implementation-readiness.py` 固定为下一步实现前置条件清单。当前 secret ref schema、config 注入点、provider profile binding、脱敏审计字段、failure taxonomy、operator runbook / negative gates 和 rotation / audit policy 已有可检查证据；fake resolver 测试策略仍未满足。
 
 该 readiness 不实现 resolver、不接云、不读取或写入真实 secret、不要求真实 credential，也不改变当前运行时默认状态。后续只有在单独实现切片中完成 schema、disabled resolver、负向门禁和运行手册后，才能继续讨论真实 production secret backend。
 
@@ -235,7 +235,11 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 `operator-runbook-and-negative-gates` 已由 `docs/platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md`、`docs/task-cards/production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py` 固定为 `operator_runbook_negative_gates_readiness_defined`。它只定义 operator runbook、test / production secret source、operator approval evidence、sanitized verification、smoke record reference、negative gates、failure mapping、no fallback、no side effects 和 artifact guard。
 
-该 readiness 不修改 platform runtime，不实现 operator runbook executor、不实现 negative gate runtime、不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。它只满足 `operator-runbook-and-negative-gates` 前置；rotation / audit policy、test fixture strategy / fake resolver implementation 和真实 production secret backend 仍为后续独立目标。
+该 readiness 不修改 platform runtime，不实现 operator runbook executor、不实现 negative gate runtime、不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。它只满足 `operator-runbook-and-negative-gates` 前置；rotation / audit policy 已由下一节固定，test fixture strategy / fake resolver implementation 和真实 production secret backend 仍为后续独立目标。
+
+## Production secret backend rotation / audit policy readiness
+
+`rotation-and-audit-policy` 已由 `docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md`、`docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py` 固定为 `rotation_audit_policy_readiness_defined`。它只定义 rotation trigger、approval / change window、secret ref version reference、rollback / disable policy、sanitized verification、audit event fields、failure mapping、no fallback、no side effects 和 artifact guard。该 readiness 不修改 platform runtime，不实现 rotation runtime、不写 production secret audit store、不创建 audit writer、不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。它只满足 `rotation-and-audit-policy` 前置；test fixture strategy / fake resolver implementation、真实 resolver implementation、测试环境 smoke 和生产前复核仍为后续独立目标。
 
 ## Startup / supervisor boundary
 

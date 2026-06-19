@@ -81,7 +81,7 @@
 | `operator_resolver_invocation_disabled` | `operator_gate` | 当前阶段尝试调用 resolver |
 | `operator_secret_value_exposure_detected` | `operator_gate` | runbook、diagnostic 或 smoke record 暴露 secret-looking value |
 | `operator_fallback_forbidden` | `operator_gate` | 出现 env / mock / fixture / fake resolver fallback |
-| `operator_production_ready_claim_forbidden` | `operator_gate` | 在 rotation / audit policy 与真实 smoke 之前声明 production ready |
+| `operator_production_ready_claim_forbidden` | `operator_gate` | 在 test fixture strategy、真实 smoke 和生产前复核之前声明 production ready |
 
 ## Sanitized Diagnostics
 
@@ -151,9 +151,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `operator-runbook-and-negative-gates` 阻塞，不解除 `test-fixture-strategy`、rotation / audit policy、真实 resolver implementation、云 secret backend 或 production ready 阻塞。
+当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `operator-runbook-and-negative-gates` 阻塞。rotation / audit policy 已由 `production-secret-backend-rotation-audit-policy-readiness-v1` 单独固定；本文档不解除 `test-fixture-strategy`、真实 resolver implementation、云 secret backend 或 production ready 阻塞。
 
-下一批如继续 production secret backend，应推进 `rotation-and-audit-policy` 或重新评审 test fixture strategy / fake resolver implementation 是否打开。任何 resolver runtime、cloud secret SDK、credential handle、DB provider、connection factory、SQL、schema marker、migration runner、repository mode 或 public production API 都必须作为独立实现目标重新开题。
+下一批如继续 production secret backend，应重新评审 test fixture strategy / fake resolver implementation 是否打开。任何 resolver runtime、cloud secret SDK、credential handle、DB provider、connection factory、SQL、schema marker、migration runner、repository mode 或 public production API 都必须作为独立实现目标重新开题。
 
 ## 验证
 

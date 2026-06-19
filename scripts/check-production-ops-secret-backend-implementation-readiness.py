@@ -38,6 +38,7 @@ REQUIRED_PLANNED_SLICES = {
     "provider-profile-secret-binding": "satisfied",
     "secret-resolver-interface-disabled": "satisfied",
     "operator-runbook-and-negative-gates": "satisfied",
+    "rotation-and-audit-policy": "satisfied",
 }
 
 REQUIRED_BLOCKED = {
@@ -61,6 +62,8 @@ REQUIRED_DOC_REFERENCES = {
         "secret_resolver_interface_disabled_readiness_defined",
         "production-secret-backend-operator-runbook-negative-gates-readiness-v1",
         "operator_runbook_negative_gates_readiness_defined",
+        "production-secret-backend-rotation-audit-policy-readiness-v1",
+        "rotation_audit_policy_readiness_defined",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
         "check-production-secret-reference-contract.py",
@@ -105,6 +108,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
         "check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py",
         "check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py",
+        "check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -220,6 +224,17 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"operator-runbook missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"operator-runbook evidence missing on disk: {path}")
+        if precondition_id == "rotation-and-audit-policy":
+            require(status == "satisfied", "rotation-and-audit-policy precondition must be satisfied")
+            evidence = set(item.get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py",
+            }:
+                require(path in evidence, f"rotation-and-audit-policy missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"rotation-and-audit-policy evidence missing on disk: {path}")
 
     sanitized_fields = set(preconditions["sanitized-audit-fields"].get("must_define") or [])
     for field in {
@@ -287,6 +302,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "rotation-and-audit-policy":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -314,6 +339,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
@@ -347,6 +373,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py", [])'
         in check_repo,
         "check-repo.py must run operator runbook negative gates readiness check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run rotation audit policy readiness check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():
