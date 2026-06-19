@@ -43,6 +43,7 @@ REQUIRED_PLANNED_SLICES = {
     "test-fixture-strategy": "blocked_entry_review_defined",
     "fake-resolver-contract-no-secret-leakage-smoke-strategy": "strategy_defined_static_only",
     "fake-resolver-implementation-task-card-entry-readiness-review": "ready_for_next_task",
+    "fake-resolver-implementation": "task_card_defined_runtime_not_started",
 }
 
 REQUIRED_BLOCKED = {
@@ -76,6 +77,8 @@ REQUIRED_DOC_REFERENCES = {
         "fake_resolver_contract_no_secret_leakage_smoke_strategy_defined",
         "production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1",
         "fake_resolver_implementation_task_card_entry_readiness_review_defined",
+        "production-secret-backend-fake-resolver-implementation-v1",
+        "fake_resolver_implementation_task_card_defined",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
         "check-production-secret-reference-contract.py",
@@ -124,6 +127,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py",
         "check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py",
         "check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py",
+        "check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -190,8 +194,12 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "fake resolver implementation task card entry review status drifted",
     )
     require(
-        target.get("fake_resolver_implementation_task_card_status") == "not_created",
-        "fake resolver implementation task card must not be created",
+        target.get("fake_resolver_implementation_task_card_status") == "created_static_task_card",
+        "fake resolver implementation task card status drifted",
+    )
+    require(
+        target.get("fake_resolver_implementation_status") == "task_card_defined_runtime_not_started",
+        "fake resolver implementation status drifted",
     )
     require(
         target.get("default_runtime_state") == "disabled_until_explicit_secret_backend_task",
@@ -283,6 +291,10 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
                 "docs/task-cards/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md",
                 "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json",
                 "scripts/check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py",
+                "docs/platform/production-secret-backend-fake-resolver-implementation-v1.md",
+                "docs/task-cards/production-secret-backend-fake-resolver-implementation-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json",
+                "scripts/check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
             }:
                 require(path in evidence, f"test-fixture-strategy missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"test-fixture-strategy evidence missing on disk: {path}")
@@ -415,6 +427,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "fake-resolver-implementation":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-fake-resolver-implementation-v1.md",
+                "docs/task-cards/production-secret-backend-fake-resolver-implementation-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json",
+                "scripts/check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -446,6 +468,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py",
         "scripts/check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py",
+        "scripts/check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
@@ -457,6 +480,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md",
         "docs/task-cards/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json",
+        "docs/platform/production-secret-backend-fake-resolver-implementation-v1.md",
+        "docs/task-cards/production-secret-backend-fake-resolver-implementation-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json",
         "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
         "docs/devlogs/2026-W25.md",
@@ -502,6 +528,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py", [])'
         in check_repo,
         "check-repo.py must run fake resolver implementation task card entry readiness review check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run fake resolver implementation check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

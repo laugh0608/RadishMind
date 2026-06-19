@@ -151,5 +151,6 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 - 不把 `mock` provider 写成真实 provider readiness。
 - 不把 `docker compose down` cleanup 写成 process supervisor。
 - 不把 `.env.example` 写成 secret backend。
+- 不把 `fake_resolver_implementation_task_card_defined` 写成 fake resolver runtime ready；它不调用云 secret 服务、不解析 secret、不连接数据库。
 - 不把 deployment readiness 静态展开写成 container smoke。
 - 不把 runbook 或 record template 写成已经完成的运行记录。

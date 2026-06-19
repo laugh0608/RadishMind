@@ -163,7 +163,8 @@
 8. [`Production Secret Backend Test Fixture Strategy / Fake Resolver Implementation Entry Review` v1 计划](production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1-plan.md)（`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`）
 9. [`Production Secret Backend Fake Resolver Contract / No Secret Leakage Smoke Strategy` v1 计划](production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1-plan.md)（`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1`）
 10. [`Production Secret Backend Fake Resolver Implementation Task Card Entry Readiness Review` v1 计划](production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md)（`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` / `fake_resolver_implementation_task_card_entry_readiness_review_defined`）
-11. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+11. [`Production Secret Backend Fake Resolver Implementation` v1 计划](production-secret-backend-fake-resolver-implementation-v1-plan.md)（`production-secret-backend-fake-resolver-implementation-v1` / `fake_resolver_implementation_task_card_defined`）
+12. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 

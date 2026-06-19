@@ -8,12 +8,13 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-FIXTURE_PATH = (
-    REPO_ROOT
-    / "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json"
-)
+FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json"
 IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
+)
+ENTRY_READINESS_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json"
 )
 STRATEGY_PATH = (
     REPO_ROOT
@@ -34,7 +35,6 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "resolver_runtime_ready",
     "fake_resolver_implemented",
     "fake_resolver_runtime_ready",
-    "fake_resolver_implementation_task_card_created",
     "no_secret_leakage_smoke_runtime_ready",
     "test_fixture_strategy_satisfied",
     "real_secret_written",
@@ -53,6 +53,9 @@ EXPECTED_FORBIDDEN_CLAIMS = {
 }
 
 EXPECTED_DEPENDENCIES = {
+    "production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1": (
+        "fake_resolver_implementation_task_card_entry_readiness_review_defined"
+    ),
     "production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1": (
         "fake_resolver_contract_no_secret_leakage_smoke_strategy_defined"
     ),
@@ -61,19 +64,25 @@ EXPECTED_DEPENDENCIES = {
     ),
     "production-secret-backend-implementation-readiness": "implementation_readiness_defined",
     "secret-ref-schema-and-fixtures": "satisfied_reference_only_resolver_disabled",
+    "workflow-saved-draft-database-secret-resolver-readiness-v1": (
+        "draft_database_secret_resolver_readiness_defined"
+    ),
     "workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1": (
         "draft_database_secret_resolver_implementation_entry_review_defined"
     ),
 }
 
 EXPECTED_GATE_STATUS = {
+    "prior_task_card_entry_review_consumed": "satisfied_ready_for_task_card",
     "fake_resolver_contract_strategy_consumed": "satisfied_static_contract",
     "no_secret_leakage_smoke_strategy_consumed": "satisfied_static_strategy",
     "reference_only_secret_fixture_consumed": "satisfied_reference_only",
-    "disabled_resolver_interface_consumed": "satisfied_disabled_only",
-    "offline_fast_baseline_gate": "satisfied_for_task_card",
-    "artifact_guard_gate": "required_now",
-    "implementation_task_card_gate": "ready_for_next_task",
+    "disabled_by_default_runtime_gate": "defined_for_future_runtime",
+    "placeholder_secret_ref_fixture_plan": "defined_for_future_runtime",
+    "sanitized_diagnostics_emission_plan": "defined_for_future_runtime",
+    "no_secret_leakage_runtime_smoke_plan": "defined_for_future_runtime",
+    "offline_fast_baseline_plan": "defined_for_future_runtime",
+    "artifact_guard_gate": "satisfied_for_task_card",
     "fake_resolver_runtime_gate": "not_opened",
     "no_secret_leakage_smoke_runtime_gate": "not_opened",
     "resolver_runtime_gate": "forbidden",
@@ -83,30 +92,34 @@ EXPECTED_GATE_STATUS = {
     "production_api_gate": "blocked",
 }
 
-EXPECTED_REQUIRED_SCOPE = {
-    "fake resolver implementation scope",
-    "disabled-by-default runtime gate",
-    "placeholder secret ref fixture shape",
+EXPECTED_RUNTIME_SCOPE = {
+    "test-only fake resolver runtime gate",
+    "disabled-by-default runtime state",
+    "placeholder secret ref fixture",
     "environment binding",
-    "sanitized diagnostics emission boundary",
-    "no secret leakage runtime smoke plan",
-    "artifact guard",
+    "opaque test credential handle metadata",
+    "sanitized diagnostics runtime emission",
+    "no secret leakage runtime smoke",
     "offline fast baseline",
+    "artifact guard",
 }
 
 EXPECTED_REQUIRED_VALIDATION = {
     "fake resolver implementation checker",
-    "no secret leakage runtime smoke checker",
+    "fake resolver implementation task card entry readiness review checker",
+    "fake resolver contract no secret leakage smoke strategy checker",
+    "test fixture strategy fake resolver entry review checker",
     "production secret backend implementation readiness checker",
     "production secret backend contract checker",
     "production secret reference contract checker",
     "workflow saved draft database secret resolver readiness checker",
     "workflow saved draft database secret resolver implementation entry review checker",
     "fast repository check",
+    "full repository check",
 }
 
 EXPECTED_MUST_NOT_INCLUDE = {
-    "resolver runtime",
+    "production resolver runtime",
     "cloud secret service",
     "real credential",
     "database connection provider",
@@ -121,22 +134,24 @@ EXPECTED_MUST_NOT_INCLUDE = {
 }
 
 EXPECTED_FAILURE_CODES = {
-    "fake_resolver_task_card_contract_missing",
-    "fake_resolver_task_card_no_leakage_strategy_missing",
-    "fake_resolver_task_card_runtime_created_in_entry_review",
-    "fake_resolver_task_card_secret_value_detected",
-    "fake_resolver_task_card_cloud_call_forbidden",
-    "fake_resolver_task_card_repository_mode_forbidden",
-    "fake_resolver_task_card_scope_overreach",
+    "fake_resolver_implementation_task_card_missing",
+    "fake_resolver_implementation_disabled_gate_missing",
+    "fake_resolver_implementation_no_leakage_smoke_missing",
+    "fake_resolver_implementation_secret_value_detected",
+    "fake_resolver_implementation_runtime_created_in_task_card",
+    "fake_resolver_implementation_cloud_call_forbidden",
+    "fake_resolver_implementation_repository_mode_forbidden",
+    "fake_resolver_implementation_scope_overreach",
 }
 
 EXPECTED_DIAGNOSTIC_FIELDS = {
-    "fake_resolver_task_card_entry_status",
+    "fake_resolver_implementation_task_card_status",
     "fake_resolver_contract_status",
     "no_secret_leakage_smoke_strategy_status",
     "test_fixture_strategy_status",
     "resolver_state",
     "fake_resolver_runtime_status",
+    "no_secret_leakage_smoke_runtime_status",
     "secret_ref_status",
     "environment_binding_status",
     "failure_code",
@@ -157,14 +172,14 @@ EXPECTED_FORBIDDEN_DIAGNOSTICS = {
     "cloud_credential",
     "database_hostname",
     "database_error_detail",
-    "opaque_credential_handle",
+    "opaque_credential_payload",
     "resolver_backend_url",
     "full_secret_ref_value",
     "full_user_claim",
 }
 
 EXPECTED_NO_FALLBACK = {
-    "no fallback from fake resolver task card to production resolver",
+    "no fallback from fake resolver to production resolver",
     "no fallback from production resolver to fake resolver",
     "no fallback from test secret_ref to production secret_ref",
     "no fallback to RADISHMIND_PLATFORM_API_KEY",
@@ -174,7 +189,7 @@ EXPECTED_NO_FALLBACK = {
     "no fallback to committed secret value",
     "no fallback to developer env plaintext",
     "no fallback to fake query executor",
-    "task card readiness does not mean credential resolved",
+    "task card definition does not mean credential resolved",
 }
 
 EXPECTED_NO_SIDE_EFFECTS = {
@@ -196,6 +211,7 @@ EXPECTED_NO_SIDE_EFFECTS = {
 }
 
 EXPECTED_VALIDATION = {
+    "run fake resolver implementation checker",
     "run fake resolver implementation task card entry readiness review checker",
     "run fake resolver contract no secret leakage smoke strategy checker",
     "run test fixture strategy fake resolver entry review checker",
@@ -239,30 +255,16 @@ def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, di
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind")
-        == "production_ops_secret_backend_fake_resolver_implementation_task_card_entry_readiness_review_v1",
+        fixture.get("kind") == "production_ops_secret_backend_fake_resolver_implementation_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
-    require(
-        slice_info.get("id")
-        == "production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1",
-        "unexpected slice id",
-    )
+    require(slice_info.get("id") == "production-secret-backend-fake-resolver-implementation-v1", "unexpected slice id")
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
-    require(
-        slice_info.get("status") == "fake_resolver_implementation_task_card_entry_readiness_review_defined",
-        "unexpected status",
-    )
+    require(slice_info.get("status") == "fake_resolver_implementation_task_card_defined", "unexpected status")
     for key, expected_path in {
-        "task_card": (
-            "docs/task-cards/"
-            "production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md"
-        ),
-        "platform_topic": (
-            "docs/platform/"
-            "production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md"
-        ),
+        "task_card": "docs/task-cards/production-secret-backend-fake-resolver-implementation-v1-plan.md",
+        "platform_topic": "docs/platform/production-secret-backend-fake-resolver-implementation-v1.md",
     }.items():
         value = str(slice_info.get(key) or "")
         require(value == expected_path, f"unexpected {key}")
@@ -289,12 +291,11 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
         require(policy.get(field) is False, f"secret reference policy {field} must remain false")
 
 
-def assert_entry_boundary(fixture: dict[str, Any]) -> None:
-    boundary = fixture.get("entry_boundary") or {}
+def assert_task_card_boundary(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("task_card_boundary") or {}
     for field, expected in {
-        "entry_review_status": "ready_for_next_task",
-        "task_card_decision": "fake_resolver_implementation_task_card_ready_for_next_task",
-        "fake_resolver_implementation_task_card_status": "not_created",
+        "task_card_status": "created_static_task_card",
+        "implementation_scope_status": "task_card_defined_runtime_not_started",
         "fake_resolver_runtime_status": "not_created",
         "no_secret_leakage_smoke_runtime_status": "not_created",
         "resolver_runtime_status": "not_created",
@@ -303,7 +304,6 @@ def assert_entry_boundary(fixture: dict[str, Any]) -> None:
     }.items():
         require(boundary.get(field) == expected, f"{field} drifted")
     for field in (
-        "implementation_task_card_created_in_this_slice",
         "repository_mode_enabled",
         "cloud_secret_service_enabled",
         "database_connection_provider_enabled",
@@ -312,19 +312,19 @@ def assert_entry_boundary(fixture: dict[str, Any]) -> None:
         require(boundary.get(field) is False, f"{field} must remain false")
 
 
-def assert_gates_and_future_task_card(fixture: dict[str, Any]) -> None:
-    gates = rows_by_id(fixture, "entry_gate_matrix", "gate_id")
-    require(set(gates) == set(EXPECTED_GATE_STATUS), "entry gate ids drifted")
+def assert_gates_and_runtime_requirements(fixture: dict[str, Any]) -> None:
+    gates = rows_by_id(fixture, "implementation_gate_matrix", "gate_id")
+    require(set(gates) == set(EXPECTED_GATE_STATUS), "implementation gate ids drifted")
     for gate_id, expected_status in EXPECTED_GATE_STATUS.items():
         require(gates[gate_id].get("status") == expected_status, f"{gate_id} status drifted")
 
-    future = fixture.get("future_task_card_requirements") or {}
-    missing_scope = sorted(EXPECTED_REQUIRED_SCOPE - set(future.get("required_scope") or []))
-    require(not missing_scope, f"missing future task card scope: {missing_scope}")
-    missing_validation = sorted(EXPECTED_REQUIRED_VALIDATION - set(future.get("required_validation") or []))
-    require(not missing_validation, f"missing future task card validation: {missing_validation}")
-    missing_forbidden = sorted(EXPECTED_MUST_NOT_INCLUDE - set(future.get("must_not_include") or []))
-    require(not missing_forbidden, f"missing future task card forbidden scope: {missing_forbidden}")
+    runtime = fixture.get("runtime_implementation_requirements") or {}
+    missing_scope = sorted(EXPECTED_RUNTIME_SCOPE - set(runtime.get("required_scope") or []))
+    require(not missing_scope, f"missing runtime implementation scope: {missing_scope}")
+    missing_validation = sorted(EXPECTED_REQUIRED_VALIDATION - set(runtime.get("required_validation") or []))
+    require(not missing_validation, f"missing runtime implementation validation: {missing_validation}")
+    missing_forbidden = sorted(EXPECTED_MUST_NOT_INCLUDE - set(runtime.get("must_not_include") or []))
+    require(not missing_forbidden, f"missing runtime implementation forbidden scope: {missing_forbidden}")
 
 
 def assert_failure_mapping_and_diagnostics(fixture: dict[str, Any]) -> None:
@@ -374,40 +374,37 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
             require(str(literal) not in source, f"{source_path} contains forbidden literal: {literal}")
 
 
-def assert_strategy_and_entry_alignment() -> None:
+def assert_prior_alignment() -> None:
+    entry_readiness = load_json(ENTRY_READINESS_PATH)
+    boundary = entry_readiness.get("entry_boundary") or {}
+    require(
+        boundary.get("task_card_decision") == "fake_resolver_implementation_task_card_ready_for_next_task",
+        "prior task card entry readiness decision drifted",
+    )
+    require(boundary.get("fake_resolver_runtime_status") == "not_created", "prior fake resolver runtime status drifted")
+
     strategy = load_json(STRATEGY_PATH)
     strategy_boundary = strategy.get("strategy_boundary") or {}
-    for field, expected in {
-        "fake_resolver_contract_status": "static_contract_defined",
-        "no_secret_leakage_smoke_strategy_status": "static_strategy_defined",
-        "fake_resolver_implementation_entry": "not_opened",
-        "fake_resolver_runtime_status": "not_created",
-        "no_secret_leakage_smoke_runtime_status": "not_created",
-        "resolver_runtime_status": "not_created",
-        "production_secret_backend_status": "not_satisfied",
-    }.items():
-        require(strategy_boundary.get(field) == expected, f"strategy {field} drifted")
+    require(
+        strategy_boundary.get("fake_resolver_contract_status") == "static_contract_defined",
+        "fake resolver contract strategy drifted",
+    )
+    require(
+        strategy_boundary.get("no_secret_leakage_smoke_strategy_status") == "static_strategy_defined",
+        "no leakage smoke strategy drifted",
+    )
     require(
         strategy.get("no_secret_leakage_smoke_strategy", {}).get("runtime_smoke_created") is False,
         "no leakage smoke runtime must not exist",
     )
 
-    entry = load_json(ENTRY_REVIEW_PATH)
-    entry_boundary = entry.get("implementation_boundary") or {}
+    entry_review = load_json(ENTRY_REVIEW_PATH)
+    entry_boundary = entry_review.get("implementation_boundary") or {}
     require(
         entry_boundary.get("entry_decision") == "fake_resolver_implementation_entry_not_opened",
         "prior fake resolver implementation entry review must remain blocked",
     )
     require(entry_boundary.get("fake_resolver_status") == "not_created", "fake resolver must remain not created")
-    gates = rows_by_id(entry, "entry_gate_matrix", "gate_id")
-    require(
-        gates.get("fake_resolver_contract_gate", {}).get("status") == "static_contract_strategy_defined",
-        "prior entry review must consume fake resolver contract strategy",
-    )
-    require(
-        gates.get("no_secret_leakage_smoke_gate", {}).get("status") == "static_smoke_strategy_defined",
-        "prior entry review must consume no leakage smoke strategy",
-    )
 
 
 def assert_implementation_readiness_alignment() -> None:
@@ -430,16 +427,16 @@ def assert_implementation_readiness_alignment() -> None:
         require(target.get(field) == expected, f"implementation target {field} drifted")
 
     planned = rows_by_id(readiness, "planned_slices", "id")
-    current = planned.get("fake-resolver-implementation-task-card-entry-readiness-review") or {}
-    require(current.get("status") == "ready_for_next_task", "planned fake resolver task card entry status drifted")
+    current = planned.get("fake-resolver-implementation") or {}
+    require(current.get("status") == "task_card_defined_runtime_not_started", "planned fake resolver status drifted")
     required_evidence = {
-        "docs/platform/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md",
-        "docs/task-cards/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md",
-        "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json",
-        "scripts/check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py",
+        "docs/platform/production-secret-backend-fake-resolver-implementation-v1.md",
+        "docs/task-cards/production-secret-backend-fake-resolver-implementation-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json",
+        "scripts/check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
     }
     missing_evidence = sorted(required_evidence - set(current.get("evidence") or []))
-    require(not missing_evidence, f"planned entry review missing evidence: {missing_evidence}")
+    require(not missing_evidence, f"planned fake resolver implementation missing evidence: {missing_evidence}")
 
     blocked = rows_by_id(readiness, "blocked_conditions", "id")
     for blocked_id, expected_status in {
@@ -453,10 +450,10 @@ def assert_implementation_readiness_alignment() -> None:
         require(blocked.get(blocked_id, {}).get("status") == expected_status, f"{blocked_id} status drifted")
 
     required_consumers = {
-        "scripts/check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py",
-        "docs/platform/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md",
-        "docs/task-cards/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md",
-        "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json",
+        "scripts/check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
+        "docs/platform/production-secret-backend-fake-resolver-implementation-v1.md",
+        "docs/task-cards/production-secret-backend-fake-resolver-implementation-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json",
     }
     missing_consumers = sorted(required_consumers - set(readiness.get("required_consumers") or []))
     require(not missing_consumers, f"implementation readiness missing required consumers: {missing_consumers}")
@@ -473,46 +470,44 @@ def assert_docs_validation_and_check_repo(fixture: dict[str, Any]) -> None:
     require(not missing_validation, f"missing validation strategy entries: {missing_validation}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    strategy_call = (
-        'run_python_script("check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py", [])'
-    )
-    current_call = (
+    prior_call = (
         'run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py", [])'
     )
+    current_call = 'run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-v1.py", [])'
     startup_call = 'run_python_script("check-production-ops-startup-supervisor-boundary.py", [])'
-    for call in (strategy_call, current_call, startup_call):
+    for call in (prior_call, current_call, startup_call):
         require(call in check_repo, f"check-repo.py missing call: {call}")
-    require(check_repo.index(strategy_call) < check_repo.index(current_call) < check_repo.index(startup_call), "check order drifted")
+    require(check_repo.index(prior_call) < check_repo.index(current_call) < check_repo.index(startup_call), "check order drifted")
 
 
 def assert_no_secret_literals() -> None:
     paths = [
-        "docs/platform/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md",
-        "docs/task-cards/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md",
-        "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json",
+        "docs/platform/production-secret-backend-fake-resolver-implementation-v1.md",
+        "docs/task-cards/production-secret-backend-fake-resolver-implementation-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json",
     ]
     text = "\n".join(read(path) for path in paths)
     forbidden_literals = ["Bearer ", "BEGIN PRIVATE KEY", "AKIA", "authorization:", "cookie:"]
     found = [literal for literal in forbidden_literals if literal in text]
-    require(not found, f"entry readiness artifacts contain forbidden secret-looking literals: {found}")
-    require(re.search(r"sk-[A-Za-z0-9]{8,}", text) is None, "entry readiness artifacts contain sk-like token")
-    require(re.search(r"://[^\s:/]+:[^\s@]+@", text) is None, "entry readiness artifacts contain dsn-like credential")
+    require(not found, f"fake resolver implementation artifacts contain forbidden secret-looking literals: {found}")
+    require(re.search(r"sk-[A-Za-z0-9]{8,}", text) is None, "fake resolver artifacts contain sk-like token")
+    require(re.search(r"://[^\s:/]+:[^\s@]+@", text) is None, "fake resolver artifacts contain dsn-like credential")
 
 
 def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_slice(fixture)
     assert_dependencies(fixture)
-    assert_entry_boundary(fixture)
-    assert_gates_and_future_task_card(fixture)
+    assert_task_card_boundary(fixture)
+    assert_gates_and_runtime_requirements(fixture)
     assert_failure_mapping_and_diagnostics(fixture)
     assert_policies(fixture)
     assert_artifact_guard(fixture)
-    assert_strategy_and_entry_alignment()
+    assert_prior_alignment()
     assert_implementation_readiness_alignment()
     assert_docs_validation_and_check_repo(fixture)
     assert_no_secret_literals()
-    print("production ops secret backend fake resolver implementation task card entry readiness review checks passed.")
+    print("production ops secret backend fake resolver implementation task card checks passed.")
 
 
 if __name__ == "__main__":

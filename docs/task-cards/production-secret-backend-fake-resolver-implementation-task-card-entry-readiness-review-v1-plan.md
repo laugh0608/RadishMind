@@ -11,7 +11,7 @@
 - 状态：`fake_resolver_implementation_task_card_entry_readiness_review_defined`
 - Entry decision：`fake_resolver_implementation_task_card_ready_for_next_task`
 - 本批新增：platform topic、task card、fixture、checker、check-repo 注册和文档入口同步
-- 本批不新增：fake resolver implementation task card、resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、DB driver、connection factory、SQL、schema marker、migration runner、repository mode、audit store 或 production API
+- 本批不新增：fake resolver implementation task card、resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、DB driver、connection factory、SQL、schema marker、migration runner、repository mode、audit store 或 production API。后续 `production-secret-backend-fake-resolver-implementation-v1` 已单独创建该任务卡。
 
 ## 输入
 
@@ -57,7 +57,7 @@
 
 ## 停止线
 
-- 不创建 fake resolver implementation task card
+- 本批不创建 fake resolver implementation task card；后续任务卡由独立切片创建
 - 不实现 fake resolver runtime
 - 不实现 resolver runtime
 - 不创建 no secret leakage smoke runtime / smoke runner

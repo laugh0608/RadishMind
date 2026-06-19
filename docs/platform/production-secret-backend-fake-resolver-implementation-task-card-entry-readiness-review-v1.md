@@ -6,7 +6,7 @@
 
 本文档评审 production secret backend 在已具备 fake resolver static contract 与 no secret leakage smoke strategy 后，是否可以进入下一张 fake resolver implementation task card 的创建。
 
-结论：状态为 `fake_resolver_implementation_task_card_entry_readiness_review_defined`，entry decision 为 `fake_resolver_implementation_task_card_ready_for_next_task`。这只表示下一步可以创建 fake resolver implementation task card；本批不创建 fake resolver runtime，不实现 resolver runtime，不解析 secret，不创建 credential handle，不连接数据库，不调用云 secret 服务，不启用 repository mode。
+结论：状态为 `fake_resolver_implementation_task_card_entry_readiness_review_defined`，entry decision 为 `fake_resolver_implementation_task_card_ready_for_next_task`。这只表示下一步可以创建 fake resolver implementation task card；本批不创建 fake resolver runtime，不实现 resolver runtime，不解析 secret，不创建 credential handle，不连接数据库，不调用云 secret 服务，不启用 repository mode。后续任务卡已由 `production-secret-backend-fake-resolver-implementation-v1` 单独创建。
 
 ## 输入证据
 
@@ -137,7 +137,7 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-下一步可以创建 `Production Secret Backend Fake Resolver Implementation v1` 任务卡，但必须先把本评审作为输入证据。该任务卡创建后仍需要独立评审 runtime 实现边界与 no secret leakage smoke runtime，不能把 resolver runtime、DB provider、cloud secret service 或 repository mode 合并进同一批次。
+`Production Secret Backend Fake Resolver Implementation v1` 任务卡已创建，并把本评审作为输入证据。后续仍需要独立评审 runtime 实现边界与 no secret leakage smoke runtime，不能把 resolver runtime、DB provider、cloud secret service 或 repository mode 合并进同一批次。
 
 `test-fixture-strategy` 在本批后仍为 `required_before_implementation`；只有 fake resolver implementation task card、runtime smoke、sanitized diagnostics runtime 和 artifact guard 都形成可复验实现后，才能重新评审是否从 blocked 变为 satisfied。
 
