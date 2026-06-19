@@ -1392,6 +1392,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py", [])
     run_python_script("check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py", [])
     run_python_script("check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py", [])
     run_python_script("check-production-ops-startup-supervisor-boundary.py", [])
     run_python_script("check-production-ops-environment-isolation-boundary.py", [])
     run_python_script("check-production-ops-console-package-smoke.py", [])

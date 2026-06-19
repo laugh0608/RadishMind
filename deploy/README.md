@@ -103,6 +103,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-rotation-audit-policy-readiness-v1` 已把 `rotation-and-audit-policy` 固定为可检查证据：后续 rotation / audit policy 只能记录 rotation trigger、approval / change window、secret ref version reference、rollback policy、sanitized verification、audit event fields 和 failure code，不能保存 secret value、provider raw URL、DSN、cloud credential 或 credential handle。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 rotation runtime、production secret audit store、audit writer、resolver runtime、fake resolver、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
 
+`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1` 已把 `test-fixture-strategy` 与 fake resolver implementation entry review 固定为可检查证据：当前结论是 `test-fixture-strategy` 仍为 `required_before_implementation`，fake resolver implementation entry 不打开。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`

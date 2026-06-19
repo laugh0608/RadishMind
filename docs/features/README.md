@@ -47,7 +47,7 @@
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / surface 和实现专题 |
-| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode fail-closed、schema artifact、repository adapter、adapter smoke execution、production auth runtime bridge、repository mode enablement、schema migration runner readiness、database secret resolver implementation entry review 和 platform secret backend readiness 边界 |
+| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode fail-closed、schema artifact、repository adapter、adapter smoke execution、production auth runtime bridge、repository mode enablement、schema migration runner readiness、database secret resolver implementation entry review 和 platform secret backend test fixture strategy / fake resolver entry review 边界 |
 | [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
@@ -99,6 +99,7 @@
 | [Production Secret Backend Secret Resolver Interface Disabled Readiness v1](../platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `secret-resolver-interface-disabled`，状态为 `secret_resolver_interface_disabled_readiness_defined` |
 | [Production Secret Backend Operator Runbook / Negative Gates Readiness v1](../platform/production-secret-backend-operator-runbook-negative-gates-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `operator-runbook-and-negative-gates`，状态为 `operator_runbook_negative_gates_readiness_defined`，仍由 `docs/platform/` 承接平台边界 |
 | [Production Secret Backend Rotation / Audit Policy Readiness v1](../platform/production-secret-backend-rotation-audit-policy-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `rotation-and-audit-policy`，状态为 `rotation_audit_policy_readiness_defined`，仍由 `docs/platform/` 承接平台边界 |
+| [Production Secret Backend Test Fixture Strategy / Fake Resolver Implementation Entry Review v1](../platform/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.md) | 平台专题 | 固定 production secret backend 的 `test-fixture-strategy` 与 fake resolver implementation entry review，状态为 `test_fixture_strategy_fake_resolver_entry_review_defined`，仍由 `docs/platform/` 承接平台边界 |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

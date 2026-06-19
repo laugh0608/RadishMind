@@ -177,9 +177,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `rotation-and-audit-policy` 阻塞，不解除 `test-fixture-strategy`、真实 resolver implementation、fake resolver implementation、云 secret backend 或 production ready 阻塞。
+当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `rotation-and-audit-policy` 阻塞，不解除 `test-fixture-strategy`、真实 resolver implementation、fake resolver implementation、云 secret backend 或 production ready 阻塞。后续已由 `production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1` 固定 `test_fixture_strategy_fake_resolver_entry_review_defined`，但该评审结论仍是 fake resolver implementation entry 不打开。
 
-下一批如继续 production secret backend，应重新评审 test fixture strategy / fake resolver implementation 是否打开。任何 resolver runtime、cloud secret SDK、credential handle、DB provider、connection factory、SQL、schema marker、migration runner、repository mode、production secret audit store、audit writer 或 public production API 都必须作为独立实现目标重新开题。
+下一批如继续 production secret backend，应在 fake resolver implementation task card、真实 resolver runtime preconditions 或其它单一前置方向中重新开题。任何 resolver runtime、cloud secret SDK、credential handle、DB provider、connection factory、SQL、schema marker、migration runner、repository mode、production secret audit store、audit writer 或 public production API 都必须作为独立实现目标重新开题。
 
 ## 验证
 

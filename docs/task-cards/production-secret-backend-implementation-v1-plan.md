@@ -60,6 +60,7 @@
 6. `test-fixture-strategy`
    - 用 fake resolver / placeholder secret ref 做单元测试。
    - fast baseline 不联网、不要求真实 credential、不调用云 SDK。
+   - 当前已落地评审证据：`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1` / `test_fixture_strategy_fake_resolver_entry_review_defined` 用 [Production Secret Backend Test Fixture Strategy / Fake Resolver Implementation Entry Review v1](../platform/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.md)、`scripts/checks/fixtures/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.json` 与 `scripts/check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py` 固定 `test-fixture-strategy` 与 fake resolver implementation entry review；结论仍是 `test-fixture-strategy` 保持 `required_before_implementation`，fake resolver implementation entry 不打开。这不实现 resolver runtime、不实现 fake resolver runtime、不解析 secret、不调用云 secret 服务、不接数据库、不启用 repository mode。
 7. `operator-runbook`
    - 明确测试环境和生产环境如何提供 secret source、如何验证脱敏状态、如何记录 smoke 结果。
    - 不把 `.env.example`、local env override 或 docker compose config 写成 secret backend。
@@ -91,11 +92,15 @@
 6. `rotation-and-audit-policy`
    - 固定 rotation / audit policy、failure mapping 和 production ready 停止线。
    - 当前已落地 readiness 定义：`docs/platform/production-secret-backend-rotation-audit-policy-readiness-v1.md`、`docs/task-cards/production-secret-backend-rotation-audit-policy-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py` 固定 `rotation-and-audit-policy`；当前不添加 rotation runtime、不写 audit store、不添加 resolver runtime、不创建 fake resolver、不解析 secret、不接云、不读本机真实 secret。
+7. `test-fixture-strategy / fake-resolver-entry-review`
+   - 固定 test fixture strategy 与 fake resolver implementation entry 是否打开的评审结论。
+   - 当前已落地 entry review：`docs/platform/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.md`、`docs/task-cards/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.json` 与 `scripts/check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py` 固定 `test_fixture_strategy_fake_resolver_entry_review_defined`；当前 `test-fixture-strategy` 仍未 satisfied，不添加 fake resolver implementation task card、不创建 fake resolver runtime、不添加 no secret leakage smoke runtime、不接云、不读 secret、不接数据库。
 
 ## 验收口径
 
 - 有任务卡、readiness fixture 和 checker 固定前置条件。
 - `production_secret_backend` 仍为 `not_satisfied`，直到真实 resolver、test fixture strategy、测试环境 smoke 和生产前复核记录都完成。
+- `test-fixture-strategy` 当前只有 blocked entry review 证据，不能解释为 fake resolver implementation ready。
 - fast baseline 不联网、不要求真实 credential、不写入真实 secret。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
