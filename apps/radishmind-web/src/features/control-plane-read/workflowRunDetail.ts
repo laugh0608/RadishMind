@@ -122,8 +122,8 @@ export function buildWorkflowRunDetailViewModel(
     },
     costSummary: {
       label: "Cost snapshot",
-      summary: "Estimated committed summary only; no billing ledger or quota enforcement is implemented by this surface.",
-      fields: [run.estimatedCost, "billing_not_ready", "quota_enforcement_not_ready"],
+      summary: "Estimated committed summary only; no cost record write or quota enforcement is implemented by this surface.",
+      fields: [run.estimatedCost, "cost_record_not_ready", "quota_enforcement_not_ready"],
     },
     tokenSummary: {
       label: "Token snapshot",

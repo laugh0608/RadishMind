@@ -17,6 +17,8 @@
 ```text
 ./scripts/bootstrap-dev.sh
 ./scripts/check-repo.sh --fast
+npm --prefix apps/radishmind-web run build
+(cd services/platform && go test ./...)
 pwsh ./scripts/bootstrap-dev.ps1
 pwsh ./scripts/check-repo.ps1 -Fast
 ```

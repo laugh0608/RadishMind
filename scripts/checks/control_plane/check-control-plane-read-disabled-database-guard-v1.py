@@ -19,6 +19,9 @@ ROUTE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane
 NEGATIVE_CONTRACT_FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-negative-contract-v1.json"
 RESPONSE_FIXTURES_PATH = REPO_ROOT / "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json"
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+DURABLE_READ_FOUNDATION_FIXTURE_PATH = (
+    REPO_ROOT / "scripts/checks/fixtures/control-plane-durable-read-foundation-v1.json"
+)
 
 EXPECTED_ROUTE_IDS = {
     "tenant-summary-route",
@@ -85,6 +88,15 @@ EXPECTED_RESERVED_INPUTS = {
     "RADISHMIND_CONTROL_PLANE_READ_STORE=postgres",
     "RADISHMIND_CONTROL_PLANE_READ_STORE=repository",
 }
+REPOSITORY_INTERFACE_IMPLEMENTATION_LITERALS = {
+    "ReadTenantSummary(",
+    "ListApplicationSummaries(",
+    "ListAPIKeySummaries(",
+    "ReadQuotaSummary(",
+    "ListWorkflowDefinitionSummaries(",
+    "ListRunRecordSummaries(",
+    "ListAuditSummaries(",
+}
 EXPECTED_SOURCE_ABSENT_LITERALS = {
     "database/sql",
     "CREATE TABLE",
@@ -95,16 +107,9 @@ EXPECTED_SOURCE_ABSENT_LITERALS = {
     "UPDATE ",
     "DELETE FROM",
     "RADISHMIND_CONTROL_PLANE_READ_STORE",
-    "ReadTenantSummary(",
-    "ListApplicationSummaries(",
-    "ListAPIKeySummaries(",
-    "ReadQuotaSummary(",
-    "ListWorkflowDefinitionSummaries(",
-    "ListRunRecordSummaries(",
-    "ListAuditSummaries(",
     "oidc.Provider",
     "ValidateToken",
-}
+} | REPOSITORY_INTERFACE_IMPLEMENTATION_LITERALS
 
 
 def require(condition: bool, message: str) -> None:
@@ -120,6 +125,17 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def read(relative_path: str) -> str:
     return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+
+def durable_read_foundation_implemented() -> bool:
+    if not DURABLE_READ_FOUNDATION_FIXTURE_PATH.exists():
+        return False
+    fixture = load_json(DURABLE_READ_FOUNDATION_FIXTURE_PATH)
+    slice_info = fixture.get("slice") or {}
+    return (
+        slice_info.get("id") == "control-plane-durable-read-foundation-v1"
+        and slice_info.get("status") == "durable_read_foundation_implemented"
+    )
 
 
 def route_contracts_by_id() -> dict[str, dict[str, Any]]:
@@ -294,6 +310,9 @@ def assert_policy_docs_and_check_repo(fixture: dict[str, Any]) -> None:
 def assert_no_implementation_leaked(fixture: dict[str, Any]) -> None:
     configured_literals = set(fixture.get("source_absent_literals") or [])
     require(EXPECTED_SOURCE_ABSENT_LITERALS.issubset(configured_literals), "source absent literals drifted")
+    source_absent_literals = set(configured_literals)
+    if durable_read_foundation_implemented():
+        source_absent_literals -= REPOSITORY_INTERFACE_IMPLEMENTATION_LITERALS
     source_roots = [
         REPO_ROOT / "services/platform/internal",
         REPO_ROOT / "apps/radishmind-web/src",
@@ -303,7 +322,7 @@ def assert_no_implementation_leaked(fixture: dict[str, Any]) -> None:
             if path.suffix not in {".go", ".ts", ".tsx"}:
                 continue
             text = path.read_text(encoding="utf-8")
-            for literal in configured_literals:
+            for literal in source_absent_literals:
                 require(
                     literal not in text,
                     f"{path.relative_to(REPO_ROOT)} must not introduce {literal!r} in this guard slice",

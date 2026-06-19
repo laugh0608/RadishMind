@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "workflow_saved_draft_schema_migration_smoke",
+  "schema_artifact_id": "workflow_saved_draft_schema_artifact_v1",
+  "store_schema_version": "saved_workflow_drafts_store_v1",
+  "status": "static_migration_smoke_recorded_no_database",
+  "execution_mode": "static_artifact_smoke_only",
+  "database_connection_allowed": false,
+  "sql_migration_created": false,
+  "migration_runner_created": false,
+  "smoke_cases": [
+    {
+      "id": "store_schema_version_recorded",
+      "status": "covered_by_manifest",
+      "must_cover": [
+        "workflow_saved_draft_schema_versions",
+        "saved_workflow_drafts_store_v1",
+        "schema_version"
+      ]
+    },
+    {
+      "id": "tenant_workspace_application_predicate",
+      "status": "covered_by_manifest",
+      "must_cover": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "draft_id"
+      ]
+    },
+    {
+      "id": "owner_list_projection",
+      "status": "covered_by_manifest",
+      "must_cover": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "owner_subject_ref",
+        "updated_at"
+      ]
+    },
+    {
+      "id": "version_conflict_predicate",
+      "status": "covered_by_manifest",
+      "must_cover": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "draft_id",
+        "draft_version"
+      ]
+    },
+    {
+      "id": "migration_not_applied_failure",
+      "status": "covered_by_failure_mapping",
+      "must_cover": [
+        "draft_schema_migration_not_applied",
+        "no memory dev fallback",
+        "no sample fallback"
+      ]
+    },
+    {
+      "id": "schema_version_mismatch_failure",
+      "status": "covered_by_failure_mapping",
+      "must_cover": [
+        "draft_store_schema_version_mismatch",
+        "draft_store_contract_mismatch",
+        "database detail redacted"
+      ]
+    },
+    {
+      "id": "no_side_effects",
+      "status": "covered_by_static_counters",
+      "must_cover": [
+        "repository_write_count=0",
+        "database_write_count=0",
+        "migration_apply_count=0",
+        "executor_call_count=0",
+        "confirmation_call_count=0",
+        "business_writeback_count=0",
+        "replay_call_count=0"
+      ]
+    }
+  ],
+  "operation_smoke_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "required_failure_codes": [
+        "draft_schema_migration_not_applied",
+        "draft_store_schema_version_mismatch",
+        "draft_store_migration_unavailable",
+        "draft_store_contract_mismatch"
+      ],
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "required_failure_codes": [
+        "draft_schema_migration_not_applied",
+        "draft_store_schema_version_mismatch",
+        "draft_store_migration_unavailable",
+        "draft_store_contract_mismatch"
+      ],
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "required_failure_codes": [
+        "draft_schema_migration_not_applied",
+        "draft_store_schema_version_mismatch",
+        "draft_store_migration_unavailable",
+        "draft_store_contract_mismatch"
+      ],
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": false
+    }
+  ]
+}

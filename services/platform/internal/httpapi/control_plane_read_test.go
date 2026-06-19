@@ -41,7 +41,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		if envelope.FailureCode != nil || len(envelope.Items) != 1 {
 			t.Fatalf("unexpected tenant summary response: %#v", envelope)
 		}
-		if got := envelope.Items[0]["tenant_display_name"]; got != "Demo Tenant" {
+		if got := envelope.Items[0]["tenant_display_name"]; got != "Demo tenant" {
 			t.Fatalf("unexpected tenant display name: %#v", got)
 		}
 		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
@@ -83,20 +83,20 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		}{
 			{
 				name:           "application summaries",
-				path:           "/v1/user-workspace/applications?application_kind=workflow",
+				path:           "/v1/user-workspace/applications?application_kind=workflow_copilot",
 				scope:          "applications:read",
 				requestID:      "req-applications",
 				itemField:      "application_ref",
-				itemValue:      "app_demo_workflow",
-				expectedCursor: stringPointerForTest("cursor_apps_next"),
+				itemValue:      "app_flow_copilot",
+				expectedCursor: stringPointerForTest("cursor_workspace_applications_next"),
 			},
 			{
 				name:      "api key summaries",
-				path:      "/v1/user-workspace/api-keys?scope=chat:invoke",
+				path:      "/v1/user-workspace/api-keys?scope=runs:read",
 				scope:     "api_keys:read",
 				requestID: "req-api-keys",
 				itemField: "api_key_id",
-				itemValue: "ak_demo_001",
+				itemValue: "key_ops_readonly",
 			},
 			{
 				name:           "workflow definition summaries",
@@ -104,8 +104,8 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 				scope:          "applications:read",
 				requestID:      "req-workflow-definitions",
 				itemField:      "workflow_definition_id",
-				itemValue:      "wf_demo_v1",
-				expectedCursor: stringPointerForTest("cursor_workflows_next"),
+				itemValue:      "wf_radishflow_copilot_latest",
+				expectedCursor: stringPointerForTest("cursor_workspace_workflow_definitions_next"),
 			},
 			{
 				name:           "run record summaries",
@@ -113,17 +113,17 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 				scope:          "runs:read",
 				requestID:      "req-runs",
 				itemField:      "run_id",
-				itemValue:      "run_demo_001",
-				expectedCursor: stringPointerForTest("cursor_runs_next"),
+				itemValue:      "run_radishflow_copilot_20260531_001",
+				expectedCursor: stringPointerForTest("cursor_workspace_run_history_next"),
 			},
 			{
 				name:           "audit summaries",
-				path:           "/v1/control-plane/audit?event_kind=read_model_accessed",
+				path:           "/v1/control-plane/audit?event_kind=control_plane.read",
 				scope:          "audit:read",
 				requestID:      "req-audit",
 				itemField:      "audit_ref",
-				itemValue:      "audit_read_runs_001",
-				expectedCursor: stringPointerForTest("cursor_audit_next"),
+				itemValue:      "audit_admin_policy_read_20260601_001",
+				expectedCursor: stringPointerForTest("cursor_admin_audit_log_next"),
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
@@ -311,6 +311,34 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 	}
 }
 
+func TestControlPlaneReadHandlersUseRepositoryInterface(t *testing.T) {
+	server := NewServer(config.Config{}, Options{BuildVersion: "test"})
+	repository := &recordingControlPlaneReadRepository{}
+	server.controlPlaneReadRepo = repository
+
+	req := newControlPlaneReadRequest(
+		http.MethodGet,
+		"/v1/user-workspace/applications?application_kind=workflow_copilot",
+		controlPlaneReadTestAuth("tenant_demo", "applications:read"),
+	)
+	req.Header.Set("X-Request-Id", "req-repository-interface")
+	rec := httptest.NewRecorder()
+
+	server.httpServer.Handler.ServeHTTP(rec, req)
+
+	envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+	if repository.applicationCalls != 1 {
+		t.Fatalf("expected application handler to read through repository, got %d calls", repository.applicationCalls)
+	}
+	if envelope.FailureCode != nil || len(envelope.Items) != 1 {
+		t.Fatalf("unexpected repository response: %#v", envelope)
+	}
+	if got := envelope.Items[0]["application_ref"]; got != "app_repository_interface_spy" {
+		t.Fatalf("handler did not use repository response: %#v", envelope.Items[0])
+	}
+	assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
+}
+
 func newControlPlaneReadRequest(method string, target string, auth controlPlaneReadAuthContext) *http.Request {
 	req := httptest.NewRequest(method, target, nil)
 	return req.WithContext(withControlPlaneReadFakeAuthContext(req.Context(), auth))
@@ -409,4 +437,77 @@ func assertControlPlaneReadNoForbiddenPayload(t *testing.T, body string) {
 			t.Fatalf("control plane read response leaked forbidden payload key %q: %s", forbidden, body)
 		}
 	}
+}
+
+type recordingControlPlaneReadRepository struct {
+	applicationCalls int
+}
+
+func (repository *recordingControlPlaneReadRepository) ReadTenantSummary(
+	context ReadRepositoryContext,
+	request ReadTenantSummaryRequest,
+) ReadTenantSummaryResult {
+	return ReadTenantSummaryResult{TenantRef: context.TenantRef, Items: []TenantSummary{}, AuditRef: context.AuditRef}
+}
+
+func (repository *recordingControlPlaneReadRepository) ListApplicationSummaries(
+	context ReadRepositoryContext,
+	request ListApplicationSummariesRequest,
+) ListApplicationSummariesResult {
+	repository.applicationCalls++
+	return ListApplicationSummariesResult{
+		TenantRef: context.TenantRef,
+		Items: []ApplicationSummary{
+			{
+				ApplicationRef:              "app_repository_interface_spy",
+				TenantRef:                   context.TenantRef,
+				ApplicationKind:             "workflow_copilot",
+				DisplayName:                 "Repository Interface Spy",
+				OwnerSubjectRef:             context.SubjectRef,
+				LatestWorkflowDefinitionRef: "wf_repository_interface_spy",
+				LastRunStatus:               "succeeded",
+				UpdatedAt:                   "2026-06-14T10:00:00Z",
+			},
+		},
+		AuditRef: context.AuditRef,
+	}
+}
+
+func (repository *recordingControlPlaneReadRepository) ListAPIKeySummaries(
+	context ReadRepositoryContext,
+	request ListAPIKeySummariesRequest,
+) ListAPIKeySummariesResult {
+	return ListAPIKeySummariesResult{TenantRef: context.TenantRef, Items: []APIKeySummary{}, AuditRef: context.AuditRef}
+}
+
+func (repository *recordingControlPlaneReadRepository) ReadQuotaSummary(
+	context ReadRepositoryContext,
+	request ReadQuotaSummaryRequest,
+) ReadQuotaSummaryResult {
+	return ReadQuotaSummaryResult{TenantRef: context.TenantRef, Items: []QuotaSummary{}, AuditRef: context.AuditRef}
+}
+
+func (repository *recordingControlPlaneReadRepository) ListWorkflowDefinitionSummaries(
+	context ReadRepositoryContext,
+	request ListWorkflowDefinitionSummariesRequest,
+) ListWorkflowDefinitionSummariesResult {
+	return ListWorkflowDefinitionSummariesResult{TenantRef: context.TenantRef, Items: []WorkflowDefinitionSummary{}, AuditRef: context.AuditRef}
+}
+
+func (repository *recordingControlPlaneReadRepository) ListRunRecordSummaries(
+	context ReadRepositoryContext,
+	request ListRunRecordSummariesRequest,
+) ListRunRecordSummariesResult {
+	return ListRunRecordSummariesResult{TenantRef: context.TenantRef, Items: []RunRecordSummary{}, AuditRef: context.AuditRef}
+}
+
+func (repository *recordingControlPlaneReadRepository) ListAuditSummaries(
+	context ReadRepositoryContext,
+	request ListAuditSummariesRequest,
+) ListAuditSummariesResult {
+	return ListAuditSummariesResult{TenantRef: context.TenantRef, Items: []AuditSummary{}, AuditRef: context.AuditRef}
+}
+
+func (repository *recordingControlPlaneReadRepository) SideEffects() controlPlaneReadSideEffects {
+	return controlPlaneReadSideEffects{}
 }

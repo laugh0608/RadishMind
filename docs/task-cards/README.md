@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-08
+更新时间：2026-06-18
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -8,6 +8,7 @@
 
 - 当前仓库主线已经切回平台本体建设；因此这里的文档更多承担“应用面任务边界”和“真实接入前置条件”职责。
 - 如果你现在要判断应该优先做什么，先读 `docs/radishmind-current-focus.md`、`docs/radishmind-capability-matrix.md` 和 `docs/radishmind-roadmap.md`，不要把这些任务卡误解成当前唯一主线。
+- 2026-06-14 起，长期功能设计默认写入 `docs/features/`；任务卡只用于具体实现批次、前置条件或高风险边界。普通只读展示、文案、布局和 evidence 组织不再默认逐项新增任务卡。
 
 当前已冻结的应用面任务：
 
@@ -103,6 +104,43 @@
 53. [`Workflow Execution Plan Preview Offline` v1 计划](workflow-execution-plan-preview-offline-v1-plan.md)（`workflow-execution-plan-preview-offline-v1`）
 54. [`Workflow Runtime Readiness Inspector Offline` v1 计划](workflow-runtime-readiness-inspector-offline-v1-plan.md)（`workflow-runtime-readiness-inspector-offline-v1`）
 55. [`Workflow Function Surface Readiness Close` v1 计划](workflow-function-surface-readiness-close-v1-plan.md)（`workflow-function-surface-readiness-close-v1`）
+56. [`Product Surface Readiness / Implementation Trigger Recheck` v1 计划](product-surface-readiness-implementation-trigger-recheck-v1-plan.md)（`product-surface-readiness-implementation-trigger-recheck-v1`）
+57. [`Control Plane Read Schema Artifact Evidence` v1 计划](control-plane-read-schema-artifact-evidence-v1-plan.md)（`control-plane-read-schema-artifact-evidence-v1`）
+58. [`Control Plane Read Implementation Entry Review` v1 计划](control-plane-read-implementation-entry-review-v1-plan.md)（`control-plane-read-implementation-entry-review-v1`）
+59. [`Product Surface Usage Gap Triage` v1 计划](product-surface-usage-gap-triage-v1-plan.md)（`product-surface-usage-gap-triage-v1`）
+60. [`Control Plane Durable Read Foundation` v1 任务卡](control-plane-durable-read-foundation-v1-plan.md)（`control-plane-durable-read-foundation-v1`）
+61. [`Workflow Saved Draft` v1 implementation 任务卡](workflow-saved-draft-v1-implementation-plan.md)（`workflow-saved-draft-v1-implementation`）
+62. [`Workflow Saved Draft Consumer Integration` v1 任务卡](workflow-saved-draft-consumer-integration-v1-plan.md)（`workflow-saved-draft-consumer-integration-v1`）
+63. [`Workflow Draft Editing Entry` v1 任务卡](workflow-draft-editing-entry-v1-plan.md)（`workflow-draft-editing-entry-v1`）
+64. [`User Workspace Draft Creation` v1 任务卡](user-workspace-draft-creation-v1-plan.md)（`user-workspace-draft-creation-v1`）
+65. [`User Workspace Saved Draft List` v1 任务卡](user-workspace-saved-draft-list-v1-plan.md)（`user-workspace-saved-draft-list-v1`）
+66. [`Workflow Draft Designer Editing Model` v2 任务卡](workflow-draft-designer-editing-model-v2-plan.md)（`workflow-draft-designer-editing-model-v2`）
+67. [`Workflow Draft Node Attribute Editing Model` v1 任务卡](workflow-draft-node-attribute-editing-model-v1-plan.md)（`workflow-draft-node-attribute-editing-model-v1`）
+68. [`Workflow Review Handoff Active Draft` v1 任务卡](workflow-review-handoff-active-draft-v1-plan.md)（`workflow-review-handoff-active-draft-v1`）
+69. [`Workflow Saved Draft Durable Store Preconditions` v1 任务卡](workflow-saved-draft-durable-store-preconditions-v1-plan.md)（`workflow-saved-draft-durable-store-preconditions-v1`）
+70. [`Workflow Saved Draft Repository Contract Preconditions` v1 任务卡](workflow-saved-draft-repository-contract-preconditions-v1-plan.md)（`workflow-saved-draft-repository-contract-preconditions-v1`）
+71. [`Workflow Saved Draft Schema / Migration Preconditions` v1 任务卡](workflow-saved-draft-schema-migration-preconditions-v1-plan.md)（`workflow-saved-draft-schema-migration-preconditions-v1`）
+72. [`Workflow Saved Draft Auth Context Preconditions` v1 任务卡](workflow-saved-draft-auth-context-preconditions-v1-plan.md)（`workflow-saved-draft-auth-context-preconditions-v1`）
+73. [`Workflow Saved Draft Store Selector Enablement Preconditions` v1 任务卡](workflow-saved-draft-store-selector-enablement-preconditions-v1-plan.md)（`workflow-saved-draft-store-selector-enablement-preconditions-v1`）
+74. [`Workflow Saved Draft Schema Artifact Evidence` v1 任务卡](workflow-saved-draft-schema-artifact-evidence-v1-plan.md)（`workflow-saved-draft-schema-artifact-evidence-v1`）
+75. [`Workflow Saved Draft Store Selector Smoke Readiness` v1 任务卡](workflow-saved-draft-store-selector-smoke-readiness-v1-plan.md)（`workflow-saved-draft-store-selector-smoke-readiness-v1`）
+76. [`Workflow Saved Draft Repository Contract Smoke` v1 任务卡](workflow-saved-draft-repository-contract-smoke-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-v1`）
+77. [`Workflow Saved Draft Repository Contract Smoke Runner Readiness` v1 任务卡](workflow-saved-draft-repository-contract-smoke-runner-readiness-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-runner-readiness-v1`）
+78. [`Workflow Saved Draft Repository Contract Smoke Runner Implementation` v1 任务卡](workflow-saved-draft-repository-contract-smoke-runner-implementation-v1-plan.md)（`workflow-saved-draft-repository-contract-smoke-runner-implementation-v1`）
+79. [`Workflow Saved Draft Repository Adapter Implementation Plan` v1 任务卡](workflow-saved-draft-repository-adapter-implementation-plan-v1-plan.md)（`workflow-saved-draft-repository-adapter-implementation-plan-v1`）
+80. [`Workflow Saved Draft Schema Artifact Manifest` v1 任务卡](workflow-saved-draft-schema-artifact-manifest-v1-plan.md)（`workflow-saved-draft-schema-artifact-manifest-v1`）
+81. [`Workflow Saved Draft Adapter Smoke Readiness` v1 任务卡](workflow-saved-draft-adapter-smoke-readiness-v1-plan.md)（`workflow-saved-draft-adapter-smoke-readiness-v1`）
+82. [`Workflow Saved Draft Store Selector Implementation Entry Review` v1 任务卡](workflow-saved-draft-store-selector-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-store-selector-implementation-entry-review-v1`）
+83. [`Workflow Saved Draft Schema Artifact Materialization Review` v1 任务卡](workflow-saved-draft-schema-artifact-materialization-review-v1-plan.md)（`workflow-saved-draft-schema-artifact-materialization-review-v1`）
+84. [`Workflow Saved Draft Store Selector Implementation` v1 任务卡](workflow-saved-draft-store-selector-implementation-v1-plan.md)（`workflow-saved-draft-store-selector-smoke-v1`）
+85. [`Workflow Saved Draft Schema Artifact Materialization` v1 任务卡](workflow-saved-draft-schema-artifact-materialization-v1-plan.md)（`workflow-saved-draft-schema-artifact-materialization-v1`）
+86. [`Workflow Saved Draft Production Auth Readiness` v1 任务卡](workflow-saved-draft-production-auth-readiness-v1-plan.md)（`workflow-saved-draft-production-auth-readiness-v1`）
+87. [`Workflow Saved Draft Repository Adapter Implementation Entry Review` v1 任务卡](workflow-saved-draft-repository-adapter-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-repository-adapter-implementation-entry-review-v1`）
+88. [`Workflow Saved Draft Repository Adapter Implementation` v1 任务卡](workflow-saved-draft-repository-adapter-implementation-v1-plan.md)（`workflow-saved-draft-repository-adapter-implementation-v1`）
+89. [`Workflow Saved Draft Adapter Smoke` v1 任务卡](workflow-saved-draft-adapter-smoke-v1-plan.md)（`workflow-saved-draft-adapter-smoke-v1`）
+90. [`Workflow Saved Draft Production Auth Runtime` v1 任务卡](workflow-saved-draft-production-auth-runtime-v1-plan.md)（`workflow-saved-draft-production-auth-runtime-v1`）
+91. [`Workflow Saved Draft Repository Mode Enablement` v1 任务卡](workflow-saved-draft-repository-mode-enablement-v1-plan.md)（`workflow-saved-draft-repository-mode-enablement-v1`）
+92. [`Workflow Saved Draft Schema Migration Runner Readiness` v1 任务卡](workflow-saved-draft-schema-migration-runner-readiness-v1-plan.md)（`workflow-saved-draft-schema-migration-runner-readiness-v1`）
 
 ## UI 设计专题
 
@@ -118,6 +156,28 @@
 1. [`P4 Model Adaptation` v1 前置计划](model-adaptation-v1-preflight-plan.md)
 
 配套 runbook：`training/experiments/radishmind-core-model-adaptation-v1-preflight-runbook-v0.json`
+
+## Image Path
+
+1. [`Image Adapter Handshake / Safety Gate` v1 计划](image-adapter-handshake-safety-gate-v1-plan.md)（`image-adapter-handshake-safety-gate-v1`）
+2. [`Image Artifact Return Runbook / Metadata Evidence` v1 计划](image-artifact-return-runbook-evidence-v1-plan.md)（`image-artifact-return-runbook-evidence-v1`）
+3. [`Image Safety Runbook Evidence` v1 计划](image-safety-runbook-evidence-v1-plan.md)（`image-safety-runbook-evidence-v1`）
+4. [`Image Backend Adapter Readiness Evidence` v1 计划](image-backend-adapter-readiness-evidence-v1-plan.md)（`image-backend-adapter-readiness-evidence-v1`）
+5. [`Image Artifact Runtime Mapping Readiness` v1 计划](image-artifact-runtime-mapping-readiness-v1-plan.md)（`image-artifact-runtime-mapping-readiness-v1`）
+6. [`Image Artifact Runtime Mapping Implementation Entry Review` v1 计划](image-artifact-runtime-mapping-implementation-entry-review-v1-plan.md)（`image-artifact-runtime-mapping-implementation-entry-review-v1`）
+7. [`Image Artifact Store / Binary Reader Boundary Readiness` v1 计划](image-artifact-store-binary-reader-boundary-readiness-v1-plan.md)（`image-artifact-store-binary-reader-boundary-readiness-v1`）
+8. [`Image Artifact Runtime Mapper Implementation Plan` v1 计划](image-artifact-runtime-mapper-implementation-plan-v1-plan.md)（`image-artifact-runtime-mapper-implementation-plan-v1`）
+9. [`Image Artifact Runtime Mapper Implementation Entry` v1 计划](image-artifact-runtime-mapper-implementation-entry-v1-plan.md)（`image-artifact-runtime-mapper-implementation-entry-v1`）
+10. [`Image Artifact Runtime Mapper Implementation` v1 计划](image-artifact-runtime-mapper-implementation-v1-plan.md)（`image-artifact-runtime-mapper-implementation-v1`）
+11. [`Image Artifact Runtime Mapper Runtime Implementation` v1 计划](image-artifact-runtime-mapper-runtime-implementation-v1-plan.md)（`image-artifact-runtime-mapper-runtime-implementation-v1`）
+12. [`Image Artifact Runtime Mapper Response Consumer Integration Review` v1 计划](image-artifact-runtime-mapper-response-consumer-integration-review-v1-plan.md)（`image-artifact-runtime-mapper-response-consumer-integration-review-v1`）
+13. [`Image Artifact Response Consumer Implementation Readiness` v1 计划](image-artifact-response-consumer-implementation-readiness-v1-plan.md)（`image-artifact-response-consumer-implementation-readiness-v1`）
+14. [`Image Artifact Response Consumer Implementation` v1 计划](image-artifact-response-consumer-implementation-v1-plan.md)（`image-artifact-response-consumer-implementation-v1`）
+15. [`Image Artifact Response Consumer Runtime Implementation` v1 计划](image-artifact-response-consumer-runtime-implementation-v1-plan.md)（`image-artifact-response-consumer-runtime-implementation-v1`）
+16. [`Image Artifact Response Builder Integration Entry Review` v1 计划](image-artifact-response-builder-integration-entry-review-v1-plan.md)（`image-artifact-response-builder-integration-entry-review-v1`）
+17. [`Image Artifact Response Builder Integration` v1 计划](image-artifact-response-builder-integration-v1-plan.md)（`image-artifact-response-builder-integration-v1`）
+18. [`Image Artifact Response Builder Runtime Integration Entry Review` v1 计划](image-artifact-response-builder-runtime-integration-entry-review-v1-plan.md)（`image-artifact-response-builder-runtime-integration-entry-review-v1`）
+19. [`Image Artifact Response Builder Runtime Integration Implementation` v1 任务卡](image-artifact-response-builder-runtime-integration-implementation-v1-plan.md)（`image-artifact-response-builder-runtime-integration-implementation-v1`）
 
 使用原则：
 

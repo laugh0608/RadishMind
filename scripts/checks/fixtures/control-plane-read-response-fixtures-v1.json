@@ -39,12 +39,12 @@
         "items": [
           {
             "tenant_ref": "tenant_demo",
-            "tenant_display_name": "Demo Tenant",
+            "tenant_display_name": "Demo tenant",
             "tenant_state": "active",
-            "plan_ref": "plan_dev",
+            "plan_ref": "plan_internal",
             "quota_summary_ref": "quota_demo_current",
-            "deployment_status_ref": "deployment_local_boundary",
-            "audit_summary_ref": "audit_tenant_demo_latest"
+            "deployment_status_ref": "deployment_local_read_only",
+            "audit_summary_ref": "audit_demo_latest"
           }
         ],
         "next_cursor": null,
@@ -68,17 +68,27 @@
         "tenant_ref": "tenant_demo",
         "items": [
           {
-            "application_ref": "app_demo_workflow",
+            "application_ref": "app_flow_copilot",
             "tenant_ref": "tenant_demo",
-            "application_kind": "workflow",
-            "display_name": "Demo workflow",
-            "owner_subject_ref": "subject_demo_user",
-            "latest_workflow_definition_ref": "wf_demo_v1",
+            "application_kind": "workflow_copilot",
+            "display_name": "RadishFlow Copilot",
+            "owner_subject_ref": "subject_platform_ops",
+            "latest_workflow_definition_ref": "wf_radishflow_copilot_latest",
             "last_run_status": "succeeded",
-            "updated_at": "2026-05-27T00:00:00Z"
+            "updated_at": "2026-05-31T10:20:00Z"
+          },
+          {
+            "application_ref": "app_docs_assistant",
+            "tenant_ref": "tenant_demo",
+            "application_kind": "docs_qa",
+            "display_name": "Radish Docs Assistant",
+            "owner_subject_ref": "subject_docs_team",
+            "latest_workflow_definition_ref": "wf_radish_docs_qa_draft",
+            "last_run_status": "blocked",
+            "updated_at": "2026-05-31T09:40:00Z"
           }
         ],
-        "next_cursor": "cursor_apps_next",
+        "next_cursor": "cursor_workspace_applications_next",
         "failure_code": null,
         "audit_ref": "audit_read_applications_001"
       },
@@ -99,17 +109,28 @@
         "tenant_ref": "tenant_demo",
         "items": [
           {
-            "api_key_id": "ak_demo_001",
+            "api_key_id": "key_ops_readonly",
             "tenant_ref": "tenant_demo",
-            "owner_subject_ref": "subject_demo_user",
+            "owner_subject_ref": "subject_platform_ops",
             "scopes": [
               "models:read",
-              "chat:invoke",
-              "usage:read"
+              "runs:read"
             ],
             "state": "active",
-            "created_at": "2026-05-27T00:00:00Z",
-            "expires_at": "2026-06-27T00:00:00Z",
+            "created_at": "2026-05-20T08:00:00Z",
+            "expires_at": "2026-08-20T08:00:00Z",
+            "last_used_at": "2026-05-31T08:45:00Z"
+          },
+          {
+            "api_key_id": "key_docs_pending_rotation",
+            "tenant_ref": "tenant_demo",
+            "owner_subject_ref": "subject_docs_team",
+            "scopes": [
+              "applications:read"
+            ],
+            "state": "rotation_required",
+            "created_at": "2026-04-12T11:10:00Z",
+            "expires_at": null,
             "last_used_at": null
           }
         ],
@@ -169,18 +190,29 @@
         "tenant_ref": "tenant_demo",
         "items": [
           {
-            "workflow_definition_id": "wf_demo_v1",
+            "workflow_definition_id": "wf_radishflow_copilot_latest",
             "tenant_ref": "tenant_demo",
-            "application_ref": "app_demo_workflow",
+            "application_ref": "app_flow_copilot",
+            "version": 3,
+            "definition_status": "published",
+            "node_count": 8,
+            "risk_level": "medium",
+            "requires_confirmation_capable": true,
+            "updated_at": "2026-05-31T10:25:00Z"
+          },
+          {
+            "workflow_definition_id": "wf_radish_docs_qa_draft",
+            "tenant_ref": "tenant_demo",
+            "application_ref": "app_docs_assistant",
             "version": 1,
             "definition_status": "draft",
             "node_count": 4,
-            "risk_level": "medium",
-            "requires_confirmation_capable": true,
-            "updated_at": "2026-05-27T00:00:00Z"
+            "risk_level": "low",
+            "requires_confirmation_capable": false,
+            "updated_at": "2026-05-31T09:05:00Z"
           }
         ],
-        "next_cursor": "cursor_workflows_next",
+        "next_cursor": "cursor_workspace_workflow_definitions_next",
         "failure_code": null,
         "audit_ref": "audit_read_workflows_001"
       },
@@ -201,22 +233,37 @@
         "tenant_ref": "tenant_demo",
         "items": [
           {
-            "run_id": "run_demo_001",
+            "run_id": "run_radishflow_copilot_20260531_001",
             "tenant_ref": "tenant_demo",
-            "workflow_definition_id": "wf_demo_v1",
-            "application_ref": "app_demo_workflow",
+            "workflow_definition_id": "wf_radishflow_copilot_latest",
+            "application_ref": "app_flow_copilot",
             "status": "succeeded",
             "failure_code": null,
             "cost_summary": {
               "estimated_cost": 0.08,
               "currency": "USD"
             },
-            "trace_id": "trace_demo_run_001",
-            "started_at": "2026-05-27T00:00:00Z",
-            "completed_at": "2026-05-27T00:00:02Z"
+            "trace_id": "trace_run_radishflow_copilot_001",
+            "started_at": "2026-05-31T10:31:00Z",
+            "completed_at": "2026-05-31T10:31:03Z"
+          },
+          {
+            "run_id": "run_radish_docs_qa_20260531_002",
+            "tenant_ref": "tenant_demo",
+            "workflow_definition_id": "wf_radish_docs_qa_draft",
+            "application_ref": "app_docs_assistant",
+            "status": "failed",
+            "failure_code": "read_store_unavailable",
+            "cost_summary": {
+              "estimated_cost": 0.02,
+              "currency": "USD"
+            },
+            "trace_id": "trace_run_radish_docs_qa_002",
+            "started_at": "2026-05-31T10:12:00Z",
+            "completed_at": "2026-05-31T10:12:01Z"
           }
         ],
-        "next_cursor": "cursor_runs_next",
+        "next_cursor": "cursor_workspace_run_history_next",
         "failure_code": null,
         "audit_ref": "audit_read_runs_001"
       },
@@ -237,18 +284,29 @@
         "tenant_ref": "tenant_demo",
         "items": [
           {
-            "audit_ref": "audit_read_runs_001",
+            "audit_ref": "audit_admin_policy_read_20260601_001",
             "tenant_ref": "tenant_demo",
-            "actor_subject_ref": "subject_demo_admin",
-            "event_kind": "read_model_accessed",
-            "resource_ref": "run_demo_001",
+            "actor_subject_ref": "subject_admin_ops",
+            "event_kind": "control_plane.read",
+            "resource_ref": "tenant_demo",
             "decision": "allowed",
             "failure_code": null,
-            "trace_id": "trace_demo_run_001",
-            "recorded_at": "2026-05-27T00:00:03Z"
+            "trace_id": "trace_audit_admin_policy_read_001",
+            "recorded_at": "2026-06-01T09:14:00Z"
+          },
+          {
+            "audit_ref": "audit_cross_tenant_denied_20260601_002",
+            "tenant_ref": "tenant_demo",
+            "actor_subject_ref": "subject_workspace_reader",
+            "event_kind": "control_plane.denied",
+            "resource_ref": "tenant_other",
+            "decision": "denied",
+            "failure_code": "scope_denied",
+            "trace_id": "trace_audit_cross_tenant_denied_002",
+            "recorded_at": "2026-06-01T09:10:00Z"
           }
         ],
-        "next_cursor": "cursor_audit_next",
+        "next_cursor": "cursor_admin_audit_log_next",
         "failure_code": null,
         "audit_ref": "audit_read_audit_001"
       },

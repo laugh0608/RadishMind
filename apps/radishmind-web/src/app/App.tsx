@@ -11,12 +11,38 @@ import {
   type AdminAuditLogMetric,
   type AdminAuditLogStatePreview,
 } from "../features/control-plane-read/adminAuditLog";
+import { buildAdminOperationsReviewViewModel } from "../features/control-plane-read/adminOperationsReview";
+import { AdminOperationsReviewPanel } from "../features/control-plane-read/adminOperationsReviewPanel";
+import { buildAdminProviderDeploymentReviewViewModel } from "../features/control-plane-read/adminProviderDeploymentReview";
+import { AdminProviderDeploymentReviewPanel } from "../features/control-plane-read/adminProviderDeploymentReviewPanel";
 import {
   initialControlPlaneReadDevLiveLoadState,
   loadControlPlaneReadDevLiveCollections,
   readControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
+import {
+  initialWorkflowSavedDraftConsumerState,
+  initialWorkflowSavedDraftListState,
+  listWorkflowDraftDevRecords,
+  nextWorkflowSavedDraftExpectedVersion,
+  readWorkflowDraftDevRecord,
+  readWorkflowSavedDraftConsumerConfig,
+  restoreWorkflowDraftDevRecord,
+  saveWorkflowDraftDevRecord,
+  validateWorkflowDraftDevRecord,
+  type WorkflowSavedDraftListState,
+  type WorkflowSavedDraftSummary,
+  type WorkflowSavedDraftConsumerState,
+} from "../features/control-plane-read/savedWorkflowDraftConsumer";
+import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
+import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
+import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
+import { ModelGatewayRouteEvidencePanel } from "../features/control-plane-read/modelGatewayRouteEvidencePanel";
+import { buildModelGatewayUsageAuditEvidenceViewModel } from "../features/control-plane-read/modelGatewayUsageAuditEvidence";
+import { ModelGatewayUsageAuditEvidencePanel } from "../features/control-plane-read/modelGatewayUsageAuditEvidencePanel";
+import { buildModelGatewayEvidenceReviewViewModel } from "../features/control-plane-read/modelGatewayEvidenceReview";
+import { ModelGatewayEvidenceReviewPanel } from "../features/control-plane-read/modelGatewayEvidenceReviewPanel";
 import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
@@ -29,7 +55,6 @@ import {
   type WorkspaceApplicationsStatePreview,
 } from "../features/control-plane-read/workspaceApplications";
 import {
-  buildWorkflowApplicationDetailViewModel,
   type WorkflowApplicationBlockedCapabilityPreview,
   type WorkflowApplicationDetailViewModel,
   type WorkflowApplicationRiskSummary,
@@ -54,7 +79,6 @@ import {
   type WorkspaceWorkflowDefinitionsStatePreview,
 } from "../features/control-plane-read/workspaceWorkflowDefinitions";
 import {
-  buildWorkflowDefinitionDetailViewModel,
   type WorkflowDefinitionBlockedActionPreview,
   type WorkflowDefinitionDetailEdge,
   type WorkflowDefinitionDetailNode,
@@ -62,7 +86,6 @@ import {
   type WorkflowDefinitionDetailViewModel,
 } from "../features/control-plane-read/workflowDefinitionDetail";
 import {
-  buildWorkflowDraftDesignerViewModel,
   type WorkflowDraftDesignerBlockedCapability,
   type WorkflowDraftDesignerDraft,
   type WorkflowDraftDesignerEdge,
@@ -73,7 +96,6 @@ import {
   type WorkflowDraftDesignerViewModel,
 } from "../features/control-plane-read/workflowDraftDesigner";
 import {
-  buildWorkflowDraftValidationInspectorViewModel,
   type WorkflowDraftBlockedCapabilityCheck,
   type WorkflowDraftContractCheck,
   type WorkflowDraftStructuralCheck,
@@ -81,7 +103,6 @@ import {
   type WorkflowDraftValidationSummary,
 } from "../features/control-plane-read/workflowDraftValidationInspector";
 import {
-  buildWorkflowExecutionPlanPreviewViewModel,
   type WorkflowExecutionPlanBlockedReason,
   type WorkflowExecutionPlanGate,
   type WorkflowExecutionPlanNodeMapping,
@@ -91,7 +112,6 @@ import {
   type WorkflowExecutionPlanSummary,
 } from "../features/control-plane-read/workflowExecutionPlanPreview";
 import {
-  buildWorkflowRuntimeReadinessInspectorViewModel,
   type WorkflowRuntimeReadinessBlocker,
   type WorkflowRuntimeReadinessGate,
   type WorkflowRuntimeReadinessInspectorViewModel,
@@ -99,8 +119,8 @@ import {
   type WorkflowRuntimeReadinessStatus,
   type WorkflowRuntimeReadinessSummary,
 } from "../features/control-plane-read/workflowRuntimeReadinessInspector";
+import { WorkflowReviewHandoffPanel } from "../features/control-plane-read/workflowReviewHandoffPanel";
 import {
-  buildWorkflowSurfaceOverviewViewModel,
   type WorkflowSurfaceOverviewBlockedCapability,
   type WorkflowSurfaceOverviewMetric,
   type WorkflowSurfaceOverviewRelation,
@@ -108,12 +128,16 @@ import {
   type WorkflowSurfaceOverviewStopLine,
   type WorkflowSurfaceOverviewViewModel,
 } from "../features/control-plane-read/workflowSurfaceOverview";
-import {
-  buildWorkflowWorkspaceReviewViewModel,
-} from "../features/control-plane-read/workflowWorkspaceReview";
 import { WorkflowWorkspaceReviewPanel } from "../features/control-plane-read/workflowWorkspaceReviewPanel";
+import { WorkflowUserWorkspaceHomePanel } from "../features/control-plane-read/workflowUserWorkspaceHomePanel";
 import {
-  buildWorkflowScenarioInspectorViewModel,
+  buildWorkflowWorkspaceContextViewModel,
+  selectionForApplication,
+  selectionForDraft,
+  selectionForRun,
+  selectionForWorkflowDefinition,
+} from "../features/control-plane-read/workflowWorkspaceContext";
+import {
   type WorkflowScenario,
   type WorkflowScenarioBlockedReason,
   type WorkflowScenarioExpectedOutput,
@@ -131,21 +155,18 @@ import {
   type WorkspaceRunRecordRow,
 } from "../features/control-plane-read/workspaceRunHistory";
 import {
-  buildWorkflowRunDetailViewModel,
   type WorkflowRunDetailGuardPreview,
   type WorkflowRunDetailSummary,
   type WorkflowRunDetailTimelineEvent,
   type WorkflowRunDetailViewModel,
 } from "../features/control-plane-read/workflowRunDetail";
 import {
-  buildWorkflowBlockedActionPreviewViewModel,
   type WorkflowBlockedActionAuditStep,
   type WorkflowBlockedActionPreviewViewModel,
   type WorkflowBlockedActionRequirement,
   type WorkflowConfirmationPlaceholderPreview,
 } from "../features/control-plane-read/workflowBlockedActionPreview";
 import {
-  buildWorkflowConfirmationPlaceholderViewModel,
   type WorkflowConfirmationDecisionField,
   type WorkflowConfirmationPlaceholderPrerequisite,
   type WorkflowConfirmationPlaceholderViewModel,
@@ -153,15 +174,57 @@ import {
 import type {
   ControlPlaneReadCollectionViewModel,
   ControlPlaneReadRouteId,
-  WorkflowDefinitionSummary,
 } from "../../../../contracts/typescript/control-plane-read-api";
 
 const shell = buildControlPlaneReadShellViewModel();
 const devLiveConfig = readControlPlaneReadDevLiveConfig();
+const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
 
 type ControlPlaneReadCollectionsByRoute = Partial<
   Record<ControlPlaneReadRouteId, ControlPlaneReadCollectionViewModel>
 >;
+
+type WorkflowDraftNodeMoveDirection = "up" | "down";
+
+type WorkflowDraftNodeTypeOption = {
+  nodeType: WorkflowDraftDesignerNode["nodeType"];
+  lane: WorkflowDraftDesignerNode["lane"];
+  label: string;
+  summary: string;
+};
+
+const WORKFLOW_DRAFT_NODE_TYPE_OPTIONS: WorkflowDraftNodeTypeOption[] = [
+  {
+    nodeType: "prompt",
+    lane: "context",
+    label: "Context",
+    summary: "Collects sanitized workspace, selection, and diagnostic context.",
+  },
+  {
+    nodeType: "llm",
+    lane: "model",
+    label: "Model",
+    summary: "Adds advisory reasoning without direct execution.",
+  },
+  {
+    nodeType: "condition",
+    lane: "policy",
+    label: "Policy",
+    summary: "Keeps risk and confirmation gates explicit.",
+  },
+  {
+    nodeType: "http_tool",
+    lane: "preview",
+    label: "Preview",
+    summary: "Models tool preview metadata while execution stays blocked.",
+  },
+  {
+    nodeType: "output",
+    lane: "output",
+    label: "Output",
+    summary: "Adds reviewable output or audit projection nodes.",
+  },
+];
 
 export function App() {
   const [devLiveState, setDevLiveState] = useState<ControlPlaneReadDevLiveLoadState>(() =>
@@ -172,6 +235,15 @@ export function App() {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
   const [selectedWorkflowScenarioId, setSelectedWorkflowScenarioId] = useState<string | null>(null);
+  const [savedDraftConsumerState, setSavedDraftConsumerState] = useState<WorkflowSavedDraftConsumerState>(() =>
+    initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig),
+  );
+  const [savedDraftListState, setSavedDraftListState] = useState<WorkflowSavedDraftListState>(() =>
+    initialWorkflowSavedDraftListState(savedDraftConsumerConfig),
+  );
+  const [workspaceCreatedDrafts, setWorkspaceCreatedDrafts] = useState<WorkflowDraftDesignerDraft[]>([]);
+  const [editableWorkflowDraft, setEditableWorkflowDraft] = useState<WorkflowDraftDesignerDraft | null>(null);
+  const [workflowDraftEditDirty, setWorkflowDraftEditDirty] = useState(false);
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -224,23 +296,6 @@ export function App() {
     () => buildWorkspaceApplicationsViewModel(liveCollections["application-summary-list-route"]),
     [liveCollections],
   );
-  const selectedApplication = useMemo<WorkspaceApplicationRow>(() => {
-    const targetApplicationRef = selectedApplicationRef ?? workspaceApplications.applications[0]?.applicationRef;
-    return (
-      workspaceApplications.applications.find(
-        (application) => application.applicationRef === targetApplicationRef,
-      ) ?? workspaceApplications.applications[0]!
-    );
-  }, [selectedApplicationRef, workspaceApplications]);
-  const workflowApplicationDetail = useMemo(
-    () =>
-      buildWorkflowApplicationDetailViewModel(selectedApplication, {
-        tenantRef: workspaceApplications.collection.tenantRef,
-        requestId: workspaceApplications.requestId,
-        auditRef: workspaceApplications.auditRef,
-      }),
-    [selectedApplication, workspaceApplications],
-  );
   const workspaceApiKeys = useMemo(
     () => buildWorkspaceApiKeysViewModel(liveCollections["api-key-summary-list-route"]),
     [liveCollections],
@@ -253,250 +308,556 @@ export function App() {
     () => buildWorkspaceWorkflowDefinitionsViewModel(liveCollections["workflow-definition-summary-list-route"]),
     [liveCollections],
   );
-  const workflowDefinitionsForSelectedApplication = useMemo(() => {
-    const filteredDefinitions = workspaceWorkflowDefinitions.workflowDefinitions.filter(
-      (workflowDefinition) => workflowDefinition.applicationRef === selectedApplication.applicationRef,
-    );
-    return filteredDefinitions.length > 0 ? filteredDefinitions : workspaceWorkflowDefinitions.workflowDefinitions;
-  }, [selectedApplication, workspaceWorkflowDefinitions]);
-  const selectedWorkflowDefinition = useMemo<WorkspaceWorkflowDefinitionRow>(() => {
-    const targetWorkflowDefinitionId =
-      selectedWorkflowDefinitionId ??
-      selectedApplication.latestWorkflowDefinitionRef ??
-      workflowDefinitionsForSelectedApplication[0]?.workflowDefinitionId;
-    return (
-      workflowDefinitionsForSelectedApplication.find(
-        (workflowDefinition) => workflowDefinition.workflowDefinitionId === targetWorkflowDefinitionId,
-      ) ??
-      workflowDefinitionsForSelectedApplication.find(
-        (workflowDefinition) =>
-          workflowDefinition.workflowDefinitionId === selectedApplication.latestWorkflowDefinitionRef,
-      ) ??
-      workflowDefinitionsForSelectedApplication[0]!
-    );
-  }, [selectedApplication, selectedWorkflowDefinitionId, workflowDefinitionsForSelectedApplication]);
-  const workflowDefinitionDetail = useMemo(
-    () =>
-      buildWorkflowDefinitionDetailViewModel(
-        toWorkflowDefinitionSummary(selectedWorkflowDefinition, workspaceWorkflowDefinitions.collection.tenantRef),
-      ),
-    [selectedWorkflowDefinition, workspaceWorkflowDefinitions],
-  );
   const workspaceRunHistory = useMemo(
     () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
     [liveCollections],
   );
-  const runsForSelectedContext = useMemo(() => {
-    const definitionRuns = workspaceRunHistory.runs.filter(
-      (run) =>
-        run.applicationRef === selectedApplication.applicationRef &&
-        run.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId,
-    );
-    if (definitionRuns.length > 0) {
-      return definitionRuns;
-    }
-    const applicationRuns = workspaceRunHistory.runs.filter(
-      (run) => run.applicationRef === selectedApplication.applicationRef,
-    );
-    return applicationRuns.length > 0 ? applicationRuns : workspaceRunHistory.runs;
-  }, [selectedApplication, selectedWorkflowDefinition, workspaceRunHistory]);
-  const selectedRun = useMemo<WorkspaceRunRecordRow>(() => {
-    const targetRunId = selectedRunId ?? runsForSelectedContext[0]?.runId;
-    return runsForSelectedContext.find((run) => run.runId === targetRunId) ?? runsForSelectedContext[0]!;
-  }, [runsForSelectedContext, selectedRunId]);
-  const workflowRunDetail = useMemo(
-    () => buildWorkflowRunDetailViewModel(selectedRun),
-    [selectedRun],
-  );
-  const workflowBlockedActionPreview = useMemo(
+  const modelGatewayOverview = useMemo(
     () =>
-      buildWorkflowBlockedActionPreviewViewModel(
-        workflowDefinitionDetail.blockedActionPreview,
-        workflowRunDetail.blockedReplayPreview,
-      ),
-    [workflowDefinitionDetail, workflowRunDetail],
-  );
-  const workflowConfirmationPlaceholder = useMemo(
-    () => buildWorkflowConfirmationPlaceholderViewModel(workflowBlockedActionPreview),
-    [workflowBlockedActionPreview],
-  );
-  const workflowDraftDesigner = useMemo(
-    () =>
-      buildWorkflowDraftDesignerViewModel({
-        workflowDefinitions: workspaceWorkflowDefinitions.workflowDefinitions,
-        detailNodes: workflowDefinitionDetail.nodes,
-        detailEdges: workflowDefinitionDetail.edges,
-        blockedActionPreview: workflowDefinitionDetail.blockedActionPreview,
-        confirmationPlaceholder: workflowConfirmationPlaceholder,
-        sourceRequestId: workspaceWorkflowDefinitions.requestId,
-        sourceAuditRef: workspaceWorkflowDefinitions.auditRef,
+      buildModelGatewayOverviewViewModel({
+        readShell: shell,
+        workspaceApiKeys,
+        workspaceUsageQuota,
+        workspaceRunHistory,
+        adminAuditLog,
       }),
-    [workspaceWorkflowDefinitions, workflowDefinitionDetail, workflowConfirmationPlaceholder],
+    [workspaceApiKeys, workspaceUsageQuota, workspaceRunHistory, adminAuditLog],
   );
-  const selectedWorkflowDraft = useMemo<WorkflowDraftDesignerDraft>(() => {
-    const definitionDraft = workflowDraftDesigner.drafts.find(
-      (draft) => draft.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId,
-    );
-    const targetDraftId = selectedWorkflowDraftId ?? definitionDraft?.draftId ?? workflowDraftDesigner.defaultDraftId;
-    return (
-      workflowDraftDesigner.drafts.find((draft) => draft.draftId === targetDraftId) ??
-      definitionDraft ??
-      workflowDraftDesigner.drafts[0]!
-    );
-  }, [selectedWorkflowDefinition, selectedWorkflowDraftId, workflowDraftDesigner]);
-  const workflowDraftValidationInspector = useMemo(
-    () => buildWorkflowDraftValidationInspectorViewModel(selectedWorkflowDraft),
-    [selectedWorkflowDraft],
+  const modelGatewayRouteEvidence = useMemo(
+    () => buildModelGatewayRouteEvidenceViewModel({ overview: modelGatewayOverview, readShell: shell }),
+    [modelGatewayOverview],
   );
-  const workflowExecutionPlanPreview = useMemo(
-    () => buildWorkflowExecutionPlanPreviewViewModel(selectedWorkflowDraft, workflowDraftValidationInspector),
-    [selectedWorkflowDraft, workflowDraftValidationInspector],
-  );
-  const workflowRuntimeReadinessInspector = useMemo(
-    () => buildWorkflowRuntimeReadinessInspectorViewModel(workflowExecutionPlanPreview),
-    [workflowExecutionPlanPreview],
-  );
-  const workflowSurfaceOverview = useMemo(
+  const modelGatewayUsageAuditEvidence = useMemo(
     () =>
-      buildWorkflowSurfaceOverviewViewModel({
-        applicationDetail: workflowApplicationDetail,
-        definitionDetail: workflowDefinitionDetail,
-        runDetail: workflowRunDetail,
-        selectedDraft: selectedWorkflowDraft,
-        validationInspector: workflowDraftValidationInspector,
-        executionPlanPreview: workflowExecutionPlanPreview,
-        runtimeReadinessInspector: workflowRuntimeReadinessInspector,
+      buildModelGatewayUsageAuditEvidenceViewModel({
+        overview: modelGatewayOverview,
+        routeEvidence: modelGatewayRouteEvidence,
+        workspaceApiKeys,
+        workspaceUsageQuota,
+        workspaceRunHistory,
+        adminAuditLog,
       }),
     [
-      workflowApplicationDetail,
-      workflowDefinitionDetail,
-      workflowRunDetail,
-      selectedWorkflowDraft,
-      workflowDraftValidationInspector,
-      workflowExecutionPlanPreview,
-      workflowRuntimeReadinessInspector,
+      modelGatewayOverview,
+      modelGatewayRouteEvidence,
+      workspaceApiKeys,
+      workspaceUsageQuota,
+      workspaceRunHistory,
+      adminAuditLog,
     ],
   );
-  const workflowScenarioInspector = useMemo(
+  const modelGatewayEvidenceReview = useMemo(
     () =>
-      buildWorkflowScenarioInspectorViewModel(
-        {
-          applicationDetail: workflowApplicationDetail,
-          definitionDetail: workflowDefinitionDetail,
-          runDetail: workflowRunDetail,
-          selectedDraft: selectedWorkflowDraft,
-          validationInspector: workflowDraftValidationInspector,
-          executionPlanPreview: workflowExecutionPlanPreview,
-          runtimeReadinessInspector: workflowRuntimeReadinessInspector,
+      buildModelGatewayEvidenceReviewViewModel({
+        overview: modelGatewayOverview,
+        routeEvidence: modelGatewayRouteEvidence,
+        usageAuditEvidence: modelGatewayUsageAuditEvidence,
+      }),
+    [modelGatewayOverview, modelGatewayRouteEvidence, modelGatewayUsageAuditEvidence],
+  );
+  const adminOperationsReview = useMemo(
+    () =>
+      buildAdminOperationsReviewViewModel({
+        readShell: shell,
+        tenantOverview,
+        adminAuditLog,
+        modelGatewayEvidenceReview,
+      }),
+    [tenantOverview, adminAuditLog, modelGatewayEvidenceReview],
+  );
+  const adminProviderDeploymentReview = useMemo(
+    () =>
+      buildAdminProviderDeploymentReviewViewModel({
+        tenantOverview,
+        adminAuditLog,
+        modelGatewayRouteEvidence,
+        modelGatewayEvidenceReview,
+        adminOperationsReview,
+      }),
+    [tenantOverview, adminAuditLog, modelGatewayRouteEvidence, modelGatewayEvidenceReview, adminOperationsReview],
+  );
+  const workflowWorkspaceContext = useMemo(
+    () =>
+      buildWorkflowWorkspaceContextViewModel({
+        workspaceApplications,
+        workspaceApiKeys,
+        workspaceUsageQuota,
+        workspaceWorkflowDefinitions,
+        workspaceRunHistory,
+        localWorkflowDrafts: workspaceCreatedDrafts,
+        activeWorkflowDraftOverride: editableWorkflowDraft,
+        selection: {
+          applicationRef: selectedApplicationRef,
+          workflowDefinitionId: selectedWorkflowDefinitionId,
+          runId: selectedRunId,
+          draftId: selectedWorkflowDraftId,
+          scenarioId: selectedWorkflowScenarioId,
         },
-        selectedWorkflowScenarioId,
-      ),
+      }),
     [
-      workflowApplicationDetail,
-      workflowDefinitionDetail,
-      workflowRunDetail,
-      selectedWorkflowDraft,
-      workflowDraftValidationInspector,
-      workflowExecutionPlanPreview,
-      workflowRuntimeReadinessInspector,
+      workspaceApplications,
+      workspaceApiKeys,
+      workspaceUsageQuota,
+      workspaceWorkflowDefinitions,
+      workspaceRunHistory,
+      workspaceCreatedDrafts,
+      editableWorkflowDraft,
+      selectedApplicationRef,
+      selectedWorkflowDefinitionId,
+      selectedRunId,
+      selectedWorkflowDraftId,
       selectedWorkflowScenarioId,
     ],
   );
-  const workflowWorkspaceReview = useMemo(
+  const {
+    selectedApplication,
+    selectedWorkflowDefinition,
+    selectedRun,
+    selectedWorkflowDraft,
+    activeWorkflowDraft,
+    workflowApplicationDetail,
+    workflowDefinitionDetail,
+    workflowRunDetail,
+    workflowBlockedActionPreview,
+    workflowConfirmationPlaceholder,
+    workflowDraftDesigner,
+    workflowDraftValidationInspector: activeWorkflowDraftValidationInspector,
+    workflowExecutionPlanPreview: activeWorkflowExecutionPlanPreview,
+    workflowRuntimeReadinessInspector: activeWorkflowRuntimeReadinessInspector,
+    workflowSurfaceOverview,
+    workflowScenarioInspector,
+    workflowWorkspaceReview,
+    workflowUserWorkspaceHome,
+    workflowReviewHandoff,
+  } = workflowWorkspaceContext;
+  const createdWorkspaceDraftCountsByDefinition = useMemo(
     () =>
-      buildWorkflowWorkspaceReviewViewModel({
-        applicationDetail: workflowApplicationDetail,
-        definitionDetail: workflowDefinitionDetail,
-        runDetail: workflowRunDetail,
-        selectedDraft: selectedWorkflowDraft,
-        validationInspector: workflowDraftValidationInspector,
-        executionPlanPreview: workflowExecutionPlanPreview,
-        runtimeReadinessInspector: workflowRuntimeReadinessInspector,
-        surfaceOverview: workflowSurfaceOverview,
-        scenarioInspector: workflowScenarioInspector,
-      }),
-    [
-      workflowApplicationDetail,
-      workflowDefinitionDetail,
-      workflowRunDetail,
-      selectedWorkflowDraft,
-      workflowDraftValidationInspector,
-      workflowExecutionPlanPreview,
-      workflowRuntimeReadinessInspector,
-      workflowSurfaceOverview,
-      workflowScenarioInspector,
-    ],
+      workspaceCreatedDrafts.reduce<Record<string, number>>((counts, draft) => {
+        counts[draft.workflowDefinitionId] = (counts[draft.workflowDefinitionId] ?? 0) + 1;
+        return counts;
+      }, {}),
+    [workspaceCreatedDrafts],
   );
-  const handleSelectApplication = (applicationRef: string) => {
-    const nextApplication = workspaceApplications.applications.find(
-      (application) => application.applicationRef === applicationRef,
-    );
-    const nextDefinition =
-      workspaceWorkflowDefinitions.workflowDefinitions.find(
-        (workflowDefinition) =>
-          workflowDefinition.applicationRef === applicationRef &&
-          workflowDefinition.workflowDefinitionId === nextApplication?.latestWorkflowDefinitionRef,
-      ) ??
-      workspaceWorkflowDefinitions.workflowDefinitions.find(
-        (workflowDefinition) => workflowDefinition.applicationRef === applicationRef,
-      );
-    const nextRun =
-      workspaceRunHistory.runs.find(
-        (run) =>
-          run.applicationRef === applicationRef &&
-          (!nextDefinition || run.workflowDefinitionId === nextDefinition.workflowDefinitionId),
-      ) ?? workspaceRunHistory.runs.find((run) => run.applicationRef === applicationRef);
 
+  useEffect(() => {
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
+    if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
+      setWorkflowDraftEditDirty(true);
+      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, selectedWorkflowDraft));
+      return;
+    }
+    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
+    setWorkflowDraftEditDirty(false);
+  }, [selectedWorkflowDraft.draftId]);
+
+  const markWorkflowDraftLocallyEdited = () => {
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "unsaved_local",
+      sourceLabel: "unsaved local",
+      summary:
+        state.mode === "dev_saved_draft_http"
+          ? "Local draft has unsaved edits; validate or save through the dev-only saved draft route."
+          : "Local draft has unsaved edits and remains in sample-only mode.",
+      failureCode: null,
+      conflictDraftVersion: null,
+    }));
+  };
+
+  const handleWorkflowDraftLabelChange = (label: string) => {
+    setEditableWorkflowDraft((draft) => ({
+      ...(draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft)),
+      label,
+      localOnlyInteraction: "local_edit",
+    }));
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftSummaryChange = (summary: string) => {
+    setEditableWorkflowDraft((draft) => ({
+      ...(draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft)),
+      summary,
+      localOnlyInteraction: "local_edit",
+    }));
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftNodeLabelChange = (nodeId: string, label: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { label });
+  };
+
+  const handleWorkflowDraftNodeInputSummaryChange = (nodeId: string, inputSummary: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { inputSummary });
+  };
+
+  const handleWorkflowDraftNodeOutputSummaryChange = (nodeId: string, outputSummary: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { outputSummary });
+  };
+
+  const handleWorkflowDraftNodeProviderRefChange = (nodeId: string, providerRef: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { providerRef });
+  };
+
+  const handleWorkflowDraftNodeToolRefChange = (nodeId: string, toolRef: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { toolRef });
+  };
+
+  const handleWorkflowDraftNodeRagRefChange = (nodeId: string, ragRef: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { ragRef });
+  };
+
+  const handleWorkflowDraftNodeInputFieldsChange = (nodeId: string, inputFieldsText: string) => {
+    handleWorkflowDraftNodePatch(nodeId, {
+      inputContractFields: parseWorkflowDraftContractFields(inputFieldsText),
+    });
+  };
+
+  const handleWorkflowDraftNodeOutputFieldsChange = (nodeId: string, outputFieldsText: string) => {
+    handleWorkflowDraftNodePatch(nodeId, {
+      outputContractFields: parseWorkflowDraftContractFields(outputFieldsText),
+    });
+  };
+
+  const handleWorkflowDraftNodeOutputMappingChange = (nodeId: string, outputMappingSummary: string) => {
+    handleWorkflowDraftNodePatch(nodeId, { outputMappingSummary });
+  };
+
+  const handleWorkflowDraftNodePatch = (
+    nodeId: string,
+    patch: Partial<WorkflowDraftDesignerNode>,
+  ) => {
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        nodes: currentDraft.nodes.map((node) => (node.nodeId === nodeId ? { ...node, ...patch } : node)),
+      };
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftEdgeConditionChange = (edgeId: string, conditionSummary: string) => {
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        edges: currentDraft.edges.map((edge) =>
+          edge.edgeId === edgeId ? { ...edge, conditionSummary } : edge,
+        ),
+      };
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftAddNode = (nodeType: WorkflowDraftDesignerNode["nodeType"]) => {
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      const nextNode = buildLocalWorkflowDraftNode(currentDraft, nodeType);
+      return workflowDraftWithStructureEdits(currentDraft, insertWorkflowDraftNode(currentDraft.nodes, nextNode));
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftMoveNode = (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => {
+    if (!canMoveWorkflowDraftNode(activeWorkflowDraft, nodeId, direction)) {
+      return;
+    }
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      return workflowDraftWithStructureEdits(
+        currentDraft,
+        moveWorkflowDraftNode(currentDraft.nodes, nodeId, direction),
+      );
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftRemoveNode = (nodeId: string) => {
+    if (!canRemoveWorkflowDraftNode(activeWorkflowDraft, nodeId)) {
+      return;
+    }
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      return workflowDraftWithStructureEdits(
+        currentDraft,
+        currentDraft.nodes.filter((node) => node.nodeId !== nodeId),
+      );
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftEditReset = () => {
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
+    if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
+      setWorkflowDraftEditDirty(true);
+      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, selectedWorkflowDraft));
+      return;
+    }
+    setWorkflowDraftEditDirty(false);
+    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
+  };
+
+  const applyWorkflowSelectionPatch = ({
+    applicationRef,
+    workflowDefinitionId,
+    runId,
+    draftId,
+    scenarioId,
+  }: {
+    applicationRef: string | null;
+    workflowDefinitionId: string | null;
+    runId: string | null;
+    draftId: string | null;
+    scenarioId: string | null;
+  }) => {
     setSelectedApplicationRef(applicationRef);
-    setSelectedWorkflowDefinitionId(nextDefinition?.workflowDefinitionId ?? null);
-    setSelectedRunId(nextRun?.runId ?? null);
-    setSelectedWorkflowDraftId(null);
-    setSelectedWorkflowScenarioId(null);
+    setSelectedWorkflowDefinitionId(workflowDefinitionId);
+    setSelectedRunId(runId);
+    setSelectedWorkflowDraftId(draftId);
+    setSelectedWorkflowScenarioId(scenarioId);
+  };
+  const handleSelectApplication = (applicationRef: string) => {
+    applyWorkflowSelectionPatch(
+      selectionForApplication(applicationRef, {
+        workspaceApplications,
+        workspaceWorkflowDefinitions,
+        workspaceRunHistory,
+      }),
+    );
   };
   const handleSelectWorkflowDefinition = (workflowDefinitionId: string) => {
-    const nextDefinition = workspaceWorkflowDefinitions.workflowDefinitions.find(
-      (workflowDefinition) => workflowDefinition.workflowDefinitionId === workflowDefinitionId,
+    applyWorkflowSelectionPatch(
+      selectionForWorkflowDefinition(workflowDefinitionId, {
+        workspaceWorkflowDefinitions,
+        workspaceRunHistory,
+      }),
     );
-    const nextRun = workspaceRunHistory.runs.find(
-      (run) =>
-        run.workflowDefinitionId === workflowDefinitionId &&
-        (!nextDefinition || run.applicationRef === nextDefinition.applicationRef),
-    );
-
-    setSelectedWorkflowDefinitionId(workflowDefinitionId);
-    if (nextDefinition) {
-      setSelectedApplicationRef(nextDefinition.applicationRef);
-    }
-    setSelectedRunId(nextRun?.runId ?? null);
-    setSelectedWorkflowDraftId(null);
-    setSelectedWorkflowScenarioId(null);
   };
   const handleSelectRun = (runId: string) => {
-    const nextRun = workspaceRunHistory.runs.find((run) => run.runId === runId);
-
-    setSelectedRunId(runId);
-    if (nextRun) {
-      setSelectedApplicationRef(nextRun.applicationRef);
-      setSelectedWorkflowDefinitionId(nextRun.workflowDefinitionId);
-      setSelectedWorkflowDraftId(null);
-      setSelectedWorkflowScenarioId(null);
-    }
+    applyWorkflowSelectionPatch(selectionForRun(runId, { workspaceRunHistory }));
   };
   const handleSelectWorkflowDraft = (draftId: string) => {
-    const nextDraft = workflowDraftDesigner.drafts.find((draft) => draft.draftId === draftId);
+    applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
+  };
+  const handleCreateWorkspaceDraftFromDefinition = (workflowDefinitionId: string) => {
+    const createdDraft = buildWorkspaceCreatedDraft(
+      workflowDefinitionId,
+      workflowDraftDesigner,
+      workspaceCreatedDrafts,
+    );
+    if (!createdDraft) {
+      return;
+    }
     const nextRun = workspaceRunHistory.runs.find(
       (run) =>
-        run.applicationRef === nextDraft?.applicationRef &&
-        run.workflowDefinitionId === nextDraft?.workflowDefinitionId,
+        run.applicationRef === createdDraft.applicationRef &&
+        run.workflowDefinitionId === createdDraft.workflowDefinitionId,
     );
-
-    setSelectedWorkflowDraftId(draftId);
-    if (nextDraft) {
-      setSelectedApplicationRef(nextDraft.applicationRef);
-      setSelectedWorkflowDefinitionId(nextDraft.workflowDefinitionId);
-      setSelectedRunId(nextRun?.runId ?? null);
-      setSelectedWorkflowScenarioId(null);
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({
+      applicationRef: createdDraft.applicationRef,
+      workflowDefinitionId: createdDraft.workflowDefinitionId,
+      runId: nextRun?.runId ?? null,
+      draftId: createdDraft.draftId,
+      scenarioId: null,
+    });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+  };
+  const refreshSavedWorkflowDraftList = (applicationRef: string) => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, applicationRef));
+      return;
     }
+    setSavedDraftListState((state) => ({
+      ...state,
+      status: "loading",
+      mode: "dev_saved_draft_http",
+      sourceLabel: "loading",
+      summary: "Loading saved dev draft summaries for the selected application.",
+      applicationRef,
+      failureCode: null,
+      summaries: [],
+    }));
+    listWorkflowDraftDevRecords(applicationRef, savedDraftConsumerConfig)
+      .then(setSavedDraftListState)
+      .catch((error: unknown) => {
+        setSavedDraftListState((state) => ({
+          ...state,
+          status: "list_failed",
+          sourceLabel: "list_failed",
+          summary: error instanceof Error ? error.message : "Saved draft list failed.",
+          applicationRef,
+          failureCode: "dev_saved_draft_list_failed",
+          summaries: [],
+        }));
+      });
+  };
+  useEffect(() => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, selectedApplication.applicationRef));
+      return;
+    }
+    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
+  }, [selectedApplication.applicationRef]);
+  const handleRefreshSavedWorkflowDraftList = () => {
+    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
+  };
+  const handleRestoreSavedWorkflowDraft = (summary: WorkflowSavedDraftSummary) => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "reading",
+      summary: `Restoring saved draft ${summary.draftId} through the dev-only read route.`,
+      failureCode: null,
+      conflictDraftVersion: null,
+    }));
+    restoreWorkflowDraftDevRecord(summary, savedDraftConsumerConfig)
+      .then((result) => {
+        setSavedDraftConsumerState(result.state);
+        if (!result.draft) {
+          setSavedDraftListState((state) => ({
+            ...state,
+            status: "restore_failed",
+            sourceLabel: "restore_failed",
+            summary: result.state.summary,
+            failureCode: result.state.failureCode ?? "dev_saved_draft_restore_failed",
+          }));
+          return;
+        }
+        const restoredDraft = result.draft;
+        const nextRun = workspaceRunHistory.runs.find(
+          (run) =>
+            run.applicationRef === restoredDraft.applicationRef &&
+            run.workflowDefinitionId === restoredDraft.workflowDefinitionId,
+        );
+        setWorkspaceCreatedDrafts((drafts) => [
+          ...drafts.filter((draft) => draft.draftId !== restoredDraft.draftId),
+          restoredDraft,
+        ]);
+        applyWorkflowSelectionPatch({
+          applicationRef: restoredDraft.applicationRef,
+          workflowDefinitionId: restoredDraft.workflowDefinitionId,
+          runId: nextRun?.runId ?? null,
+          draftId: restoredDraft.draftId,
+          scenarioId: null,
+        });
+        setEditableWorkflowDraft(cloneWorkflowDraftForEditing(restoredDraft));
+        setWorkflowDraftEditDirty(false);
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : "Saved draft restore failed.";
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "read_failed",
+          sourceLabel: "restore_failed",
+          summary: message,
+          failureCode: "dev_saved_draft_restore_failed",
+          conflictDraftVersion: null,
+        }));
+        setSavedDraftListState((state) => ({
+          ...state,
+          status: "restore_failed",
+          sourceLabel: "restore_failed",
+          summary: message,
+          failureCode: "dev_saved_draft_restore_failed",
+        }));
+      });
+  };
+  const handleValidateWorkflowDraft = () => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "validating",
+      summary: "Validating local draft through the dev-only saved draft route.",
+      failureCode: null,
+      conflictDraftVersion: null,
+    }));
+    validateWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig)
+      .then(setSavedDraftConsumerState)
+      .catch((error: unknown) => {
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "validation_failed",
+          sourceLabel: "validation_failed",
+          summary: error instanceof Error ? error.message : "Saved draft validation failed.",
+          failureCode: "dev_saved_draft_consumer_failed",
+          conflictDraftVersion: null,
+        }));
+      });
+  };
+  const handleSaveWorkflowDraft = () => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    const expectedDraftVersion = nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState);
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "saving",
+      summary: "Saving local draft through the dev-only saved draft route.",
+      failureCode: null,
+      conflictDraftVersion: null,
+    }));
+    saveWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
+      .then((nextState) => {
+        setSavedDraftConsumerState(nextState);
+        if (nextState.status === "saved_dev_record") {
+          setWorkspaceCreatedDrafts((drafts) =>
+            drafts.map((draft) =>
+              draft.draftId === activeWorkflowDraft.draftId
+                ? { ...activeWorkflowDraft, localOnlyInteraction: "inspect_only" }
+                : draft,
+            ),
+          );
+          setEditableWorkflowDraft((draft) =>
+            draft === null ? null : { ...draft, localOnlyInteraction: "inspect_only" },
+          );
+          setWorkflowDraftEditDirty(false);
+          refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef);
+        }
+      })
+      .catch((error: unknown) => {
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "save_failed",
+          sourceLabel: "save_failed",
+          summary: error instanceof Error ? error.message : "Saved draft save failed.",
+          failureCode: "dev_saved_draft_consumer_failed",
+          conflictDraftVersion: null,
+        }));
+      });
+  };
+  const handleReadWorkflowDraft = () => {
+    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    setSavedDraftConsumerState((state) => ({
+      ...state,
+      status: "reading",
+      summary: "Reading local draft through the dev-only saved draft route.",
+      failureCode: null,
+      conflictDraftVersion: null,
+    }));
+    readWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig)
+      .then(setSavedDraftConsumerState)
+      .catch((error: unknown) => {
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "read_failed",
+          sourceLabel: "read_failed",
+          summary: error instanceof Error ? error.message : "Saved draft read failed.",
+          failureCode: "dev_saved_draft_consumer_failed",
+          conflictDraftVersion: null,
+        }));
+      });
   };
 
   return (
@@ -508,26 +869,49 @@ export function App() {
           <p className="nav-summary">Read-only product surface for tenant, workspace, usage, workflow, and audit views.</p>
         </div>
         <nav className="nav-links" aria-label="Read shell sections">
-          <a href="#admin-tenant-overview">Tenant Overview</a>
-          <a href="#admin-audit-log">Audit Log</a>
-          <a href="#workspace-applications">Applications</a>
-          <a href="#workflow-application-detail">Application Detail</a>
-          <a href="#workflow-workspace-review">Workflow Review</a>
-          <a href="#workflow-surface-overview">Workflow Overview</a>
-          <a href="#workflow-scenario-inspector">Scenario Inspector</a>
-          <a href="#workspace-api-keys">API Keys</a>
-          <a href="#workspace-usage-quota">Usage Quota</a>
-          <a href="#workspace-workflow-definitions">Workflows</a>
-          <a href="#workflow-draft-designer">Draft Designer</a>
-          <a href="#workflow-draft-validation-inspector">Draft Validation</a>
-          <a href="#workflow-execution-plan-preview">Execution Plan</a>
-          <a href="#workflow-runtime-readiness-inspector">Runtime Readiness</a>
-          <a href="#workspace-run-history">Run History</a>
-          <a href="#workflow-blocked-action-preview">Blocked Action</a>
-          <a href="#workflow-confirmation-placeholder">Confirmation</a>
-          <a href="#routes">Route Catalog</a>
-          <a href="#states">Shared States</a>
-          <a href="#guard">Output Guard</a>
+          <div className="nav-link-group" aria-label="User workspace sections">
+            <p className="nav-link-group-label">Workspace</p>
+            <a href="#workflow-user-workspace-home">Workspace Home</a>
+            <a href="#workspace-applications">Applications</a>
+            <a href="#workspace-workflow-definitions">Workflows</a>
+            <a href="#workspace-run-history">Run History</a>
+            <a href="#workspace-api-keys">API Keys</a>
+            <a href="#workspace-usage-quota">Usage Quota</a>
+          </div>
+          <div className="nav-link-group" aria-label="Model gateway sections">
+            <p className="nav-link-group-label">Model Gateway</p>
+            <a href="#model-gateway-overview">Gateway Overview</a>
+            <a href="#model-gateway-route-evidence">Route Evidence</a>
+            <a href="#model-gateway-usage-audit-evidence">Usage Evidence</a>
+            <a href="#model-gateway-evidence-review">Evidence Review</a>
+          </div>
+          <div className="nav-link-group" aria-label="Workflow review sections">
+            <p className="nav-link-group-label">Workflow Review</p>
+            <a href="#workflow-application-detail">Application Detail</a>
+            <a href="#workflow-draft-designer">Draft Designer</a>
+            <a href="#workflow-draft-validation-inspector">Draft Validation</a>
+            <a href="#workflow-execution-plan-preview">Execution Plan</a>
+            <a href="#workflow-runtime-readiness-inspector">Runtime Readiness</a>
+            <a href="#workflow-scenario-inspector">Scenario Inspector</a>
+            <a href="#workflow-workspace-review">Review Workspace</a>
+            <a href="#workflow-review-handoff">Review Handoff</a>
+            <a href="#workflow-surface-overview">Workflow Overview</a>
+            <a href="#workflow-blocked-action-preview">Blocked Action</a>
+            <a href="#workflow-confirmation-placeholder">Confirmation</a>
+          </div>
+          <div className="nav-link-group" aria-label="Admin control plane sections">
+            <p className="nav-link-group-label">Admin</p>
+            <a href="#admin-operations-review">Operations Review</a>
+            <a href="#admin-provider-deployment-review">Provider Deployment</a>
+            <a href="#admin-tenant-overview">Tenant Overview</a>
+            <a href="#admin-audit-log">Audit Log</a>
+          </div>
+          <div className="nav-link-group" aria-label="Contract and guard sections">
+            <p className="nav-link-group-label">Contract</p>
+            <a href="#routes">Route Catalog</a>
+            <a href="#states">Shared States</a>
+            <a href="#guard">Output Guard</a>
+          </div>
         </nav>
         <div className="nav-locks" aria-label="Stop lines">
           {shell.lockedCapabilities.map((capability) => (
@@ -575,15 +959,15 @@ export function App() {
             />
             <Fact
               label="Validate"
-              value={workflowDraftValidationInspector.validationStatus}
+              value={activeWorkflowDraftValidationInspector.validationStatus}
             />
             <Fact
               label="Plan"
-              value={workflowExecutionPlanPreview.canRenderExecutionPlanPreview ? "preview" : "blocked"}
+              value={activeWorkflowExecutionPlanPreview.canRenderExecutionPlanPreview ? "preview" : "blocked"}
             />
             <Fact
               label="Runtime"
-              value={workflowRuntimeReadinessInspector.canRenderRuntimeReadinessInspector ? "blocked" : "missing"}
+              value={activeWorkflowRuntimeReadinessInspector.canRenderRuntimeReadinessInspector ? "blocked" : "missing"}
             />
             <Fact
               label="Overview"
@@ -597,11 +981,58 @@ export function App() {
               label="Review"
               value={workflowWorkspaceReview.canRenderWorkspaceReview ? "offline" : "blocked"}
             />
+            <Fact
+              label="Home"
+              value={workflowUserWorkspaceHome.canRenderUserWorkspaceHome ? "offline" : "blocked"}
+            />
+            <Fact
+              label="Handoff"
+              value={workflowReviewHandoff.canRenderReviewHandoff ? "offline" : "blocked"}
+            />
+            <Fact
+              label="Gateway"
+              value={modelGatewayOverview.canRenderModelGatewayOverview ? "offline" : "blocked"}
+            />
+            <Fact
+              label="Gateway route"
+              value={modelGatewayRouteEvidence.canRenderRouteEvidenceDetail ? "offline" : "blocked"}
+            />
+            <Fact
+              label="Gateway usage"
+              value={modelGatewayUsageAuditEvidence.canRenderUsageAuditEvidence ? "offline" : "blocked"}
+            />
+            <Fact
+              label="Gateway review"
+              value={modelGatewayEvidenceReview.canRenderEvidenceReview ? "offline" : "blocked"}
+            />
+            <Fact
+              label="Admin review"
+              value={adminOperationsReview.canRenderAdminOperationsReview ? "offline" : "blocked"}
+            />
+            <Fact
+              label="Admin provider"
+              value={adminProviderDeploymentReview.canRenderProviderDeploymentReview ? "offline" : "blocked"}
+            />
           </div>
         </header>
 
         <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
+        <WorkflowUserWorkspaceHomePanel
+          home={workflowUserWorkspaceHome}
+          createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
+          savedDraftListState={savedDraftListState}
+          onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
+          onRefreshSavedDrafts={handleRefreshSavedWorkflowDraftList}
+          onRestoreSavedDraft={handleRestoreSavedWorkflowDraft}
+        />
+        <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
+        <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
+        <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
+        <ModelGatewayEvidenceReviewPanel review={modelGatewayEvidenceReview} />
+        <AdminOperationsReviewPanel review={adminOperationsReview} />
+        <AdminProviderDeploymentReviewPanel review={adminProviderDeploymentReview} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
+        <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel
           inspector={workflowScenarioInspector}
@@ -923,7 +1354,7 @@ export function App() {
           <div className="usage-quota-failure">
             <span>Over quota failure code</span>
             <strong>{workspaceUsageQuota.overQuotaFailureCode}</strong>
-            <p>Displayed as read-side metadata only; enforcement, rate limit and billing ledger remain outside this page.</p>
+            <p>Displayed as read-side metadata only; enforcement, rate limit and cost record writes remain outside this page.</p>
           </div>
 
           <div className="usage-quota-states" aria-label="Workspace usage quota states">
@@ -991,7 +1422,11 @@ export function App() {
                 key={workflowDefinition.workflowDefinitionId}
                 workflowDefinition={workflowDefinition}
                 selected={workflowDefinition.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId}
+                createdDraftCount={
+                  createdWorkspaceDraftCountsByDefinition[workflowDefinition.workflowDefinitionId] ?? 0
+                }
                 onSelectWorkflowDefinition={handleSelectWorkflowDefinition}
+                onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
               />
             ))}
           </div>
@@ -999,13 +1434,34 @@ export function App() {
           <WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} />
           <WorkflowDraftDesignerPanel
             designer={workflowDraftDesigner}
-            selectedDraft={selectedWorkflowDraft}
+            selectedDraft={activeWorkflowDraft}
             selectedDraftId={selectedWorkflowDraft.draftId}
+            savedDraftConsumerState={savedDraftConsumerState}
+            draftEditDirty={workflowDraftEditDirty}
             onSelectDraft={handleSelectWorkflowDraft}
+            onUpdateDraftLabel={handleWorkflowDraftLabelChange}
+            onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
+            onUpdateNodeLabel={handleWorkflowDraftNodeLabelChange}
+            onUpdateNodeInputSummary={handleWorkflowDraftNodeInputSummaryChange}
+            onUpdateNodeOutputSummary={handleWorkflowDraftNodeOutputSummaryChange}
+            onUpdateNodeProviderRef={handleWorkflowDraftNodeProviderRefChange}
+            onUpdateNodeToolRef={handleWorkflowDraftNodeToolRefChange}
+            onUpdateNodeRagRef={handleWorkflowDraftNodeRagRefChange}
+            onUpdateNodeInputFields={handleWorkflowDraftNodeInputFieldsChange}
+            onUpdateNodeOutputFields={handleWorkflowDraftNodeOutputFieldsChange}
+            onUpdateNodeOutputMapping={handleWorkflowDraftNodeOutputMappingChange}
+            onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}
+            onAddNode={handleWorkflowDraftAddNode}
+            onMoveNode={handleWorkflowDraftMoveNode}
+            onRemoveNode={handleWorkflowDraftRemoveNode}
+            onResetDraftEdits={handleWorkflowDraftEditReset}
+            onValidateDraft={handleValidateWorkflowDraft}
+            onSaveDraft={handleSaveWorkflowDraft}
+            onReadDraft={handleReadWorkflowDraft}
           />
-          <WorkflowDraftValidationInspectorPanel inspector={workflowDraftValidationInspector} />
-          <WorkflowExecutionPlanPreviewPanel preview={workflowExecutionPlanPreview} />
-          <WorkflowRuntimeReadinessInspectorPanel readiness={workflowRuntimeReadinessInspector} />
+          <WorkflowDraftValidationInspectorPanel inspector={activeWorkflowDraftValidationInspector} />
+          <WorkflowExecutionPlanPreviewPanel preview={activeWorkflowExecutionPlanPreview} />
+          <WorkflowRuntimeReadinessInspectorPanel readiness={activeWorkflowRuntimeReadinessInspector} />
 
           <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
@@ -2188,11 +2644,15 @@ function WorkflowDefinitionMetric({ metric }: { metric: WorkspaceWorkflowDefinit
 function WorkflowDefinitionRow({
   workflowDefinition,
   selected,
+  createdDraftCount,
   onSelectWorkflowDefinition,
+  onCreateDraftForWorkflowDefinition,
 }: {
   workflowDefinition: WorkspaceWorkflowDefinitionRow;
   selected: boolean;
+  createdDraftCount: number;
   onSelectWorkflowDefinition: (workflowDefinitionId: string) => void;
+  onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
 }) {
   return (
     <article
@@ -2236,6 +2696,18 @@ function WorkflowDefinitionRow({
           <dd>{workflowDefinition.updatedAt}</dd>
         </div>
       </dl>
+      <div className="workflow-definition-row-actions">
+        <span>{createdDraftCount} local drafts</span>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onCreateDraftForWorkflowDefinition(workflowDefinition.workflowDefinitionId);
+          }}
+        >
+          Create draft
+        </button>
+      </div>
     </article>
   );
 }
@@ -2391,13 +2863,58 @@ function WorkflowDraftDesignerPanel({
   designer,
   selectedDraft,
   selectedDraftId,
+  savedDraftConsumerState,
+  draftEditDirty,
   onSelectDraft,
+  onUpdateDraftLabel,
+  onUpdateDraftSummary,
+  onUpdateNodeLabel,
+  onUpdateNodeInputSummary,
+  onUpdateNodeOutputSummary,
+  onUpdateNodeProviderRef,
+  onUpdateNodeToolRef,
+  onUpdateNodeRagRef,
+  onUpdateNodeInputFields,
+  onUpdateNodeOutputFields,
+  onUpdateNodeOutputMapping,
+  onUpdateEdgeCondition,
+  onAddNode,
+  onMoveNode,
+  onRemoveNode,
+  onResetDraftEdits,
+  onValidateDraft,
+  onSaveDraft,
+  onReadDraft,
 }: {
   designer: WorkflowDraftDesignerViewModel;
   selectedDraft: WorkflowDraftDesignerDraft;
   selectedDraftId: string;
+  savedDraftConsumerState: WorkflowSavedDraftConsumerState;
+  draftEditDirty: boolean;
   onSelectDraft: (draftId: string) => void;
+  onUpdateDraftLabel: (label: string) => void;
+  onUpdateDraftSummary: (summary: string) => void;
+  onUpdateNodeLabel: (nodeId: string, label: string) => void;
+  onUpdateNodeInputSummary: (nodeId: string, inputSummary: string) => void;
+  onUpdateNodeOutputSummary: (nodeId: string, outputSummary: string) => void;
+  onUpdateNodeProviderRef: (nodeId: string, providerRef: string) => void;
+  onUpdateNodeToolRef: (nodeId: string, toolRef: string) => void;
+  onUpdateNodeRagRef: (nodeId: string, ragRef: string) => void;
+  onUpdateNodeInputFields: (nodeId: string, inputFieldsText: string) => void;
+  onUpdateNodeOutputFields: (nodeId: string, outputFieldsText: string) => void;
+  onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
+  onUpdateEdgeCondition: (edgeId: string, conditionSummary: string) => void;
+  onAddNode: (nodeType: WorkflowDraftDesignerNode["nodeType"]) => void;
+  onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
+  onRemoveNode: (nodeId: string) => void;
+  onResetDraftEdits: () => void;
+  onValidateDraft: () => void;
+  onSaveDraft: () => void;
+  onReadDraft: () => void;
 }) {
+  const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
+  const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
+  const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
   return (
     <div
       className="workflow-draft-designer"
@@ -2448,15 +2965,131 @@ function WorkflowDraftDesignerPanel({
         </article>
       </div>
 
+      <div className="workflow-draft-edit-grid" aria-label="Workflow draft local editing">
+        <label className="workflow-draft-edit-field">
+          <span>Draft name</span>
+          <input
+            type="text"
+            value={selectedDraft.label}
+            maxLength={160}
+            disabled={operationPending}
+            onChange={(event) => onUpdateDraftLabel(event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-edit-field wide">
+          <span>Draft summary</span>
+          <textarea
+            value={selectedDraft.summary}
+            maxLength={4000}
+            rows={3}
+            disabled={operationPending}
+            onChange={(event) => onUpdateDraftSummary(event.currentTarget.value)}
+          />
+        </label>
+        <article className="workflow-draft-card workflow-draft-edit-state">
+          <span>Local edit</span>
+          <strong>{editStateLabel}</strong>
+          <p>{draftEditDirty ? "Local draft changes are ready for validation or save." : selectedDraft.templateRef}</p>
+          <button type="button" disabled={!draftEditDirty || operationPending} onClick={onResetDraftEdits}>
+            Reset
+          </button>
+        </article>
+      </div>
+
+      <div className="workflow-draft-consumer-grid" aria-label="Saved workflow draft dev consumer">
+        <article className="workflow-draft-card">
+          <span>Saved state</span>
+          <strong>{savedDraftConsumerState.sourceLabel}</strong>
+          <p>{savedDraftConsumerState.summary}</p>
+        </article>
+        <article className="workflow-draft-card">
+          <span>Version</span>
+          <strong>{String(savedDraftConsumerState.currentDraftVersion)}</strong>
+          <p>
+            {savedDraftConsumerState.conflictDraftVersion === null
+              ? savedDraftConsumerState.auditRef
+              : `Conflict current version ${savedDraftConsumerState.conflictDraftVersion}`}
+          </p>
+        </article>
+        <article className="workflow-draft-card">
+          <span>Failure</span>
+          <strong>{savedDraftConsumerState.failureCode ?? "none"}</strong>
+          <p>{savedDraftConsumerState.requestId}</p>
+        </article>
+        <article className="workflow-draft-card workflow-draft-consumer-actions">
+          <span>Dev consumer</span>
+          <StatusBadge tone={workflowSavedDraftConsumerTone(savedDraftConsumerState.status)}>
+            {savedDraftConsumerState.status}
+          </StatusBadge>
+          <div className="workflow-draft-action-row" aria-label="Saved draft dev consumer actions">
+            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onValidateDraft}>
+              Validate
+            </button>
+            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onSaveDraft}>
+              Save
+            </button>
+            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onReadDraft}>
+              Read
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div className="workflow-draft-structure-controls" aria-label="Workflow draft structure editing">
+        <article className="workflow-draft-card">
+          <span>Structure editing</span>
+          <strong>{selectedDraft.nodes.length} nodes / {selectedDraft.edges.length} edges</strong>
+          <p>Local graph edits rebuild preview edges and keep protected lanes visible for validation.</p>
+        </article>
+        <div className="workflow-draft-add-node-grid" aria-label="Add workflow draft node">
+          {WORKFLOW_DRAFT_NODE_TYPE_OPTIONS.map((option) => (
+            <button
+              key={option.nodeType}
+              type="button"
+              className="workflow-draft-node-type-button"
+              disabled={operationPending}
+              onClick={() => onAddNode(option.nodeType)}
+            >
+              <span>{option.lane}</span>
+              <strong>{option.label}</strong>
+              <small>{option.summary}</small>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
-        {selectedDraft.nodes.map((node) => (
-          <WorkflowDraftNodeCard key={node.nodeId} node={node} />
+        {selectedDraft.nodes.map((node, nodeIndex) => (
+          <WorkflowDraftNodeCard
+            key={node.nodeId}
+            node={node}
+            nodeIndex={nodeIndex}
+            nodeCount={selectedDraft.nodes.length}
+            canDelete={canRemoveWorkflowDraftNode(selectedDraft, node.nodeId)}
+            editingDisabled={operationPending}
+            onUpdateLabel={onUpdateNodeLabel}
+            onUpdateInputSummary={onUpdateNodeInputSummary}
+            onUpdateOutputSummary={onUpdateNodeOutputSummary}
+            onUpdateProviderRef={onUpdateNodeProviderRef}
+            onUpdateToolRef={onUpdateNodeToolRef}
+            onUpdateRagRef={onUpdateNodeRagRef}
+            onUpdateInputFields={onUpdateNodeInputFields}
+            onUpdateOutputFields={onUpdateNodeOutputFields}
+            onUpdateOutputMapping={onUpdateNodeOutputMapping}
+            onMoveNode={onMoveNode}
+            onRemoveNode={onRemoveNode}
+          />
         ))}
       </div>
 
       <div className="workflow-draft-edge-grid" aria-label="Workflow draft edges">
         {selectedDraft.edges.map((edge) => (
-          <WorkflowDraftEdgeCard key={edge.edgeId} edge={edge} />
+          <WorkflowDraftEdgeCard
+            key={edge.edgeId}
+            edge={edge}
+            editingDisabled={operationPending}
+            onUpdateCondition={onUpdateEdgeCondition}
+          />
         ))}
       </div>
 
@@ -2479,6 +3112,443 @@ function WorkflowDraftDesignerPanel({
       </div>
     </div>
   );
+}
+
+function workflowSavedDraftConsumerTone(status: WorkflowSavedDraftConsumerState["status"]): "good" | "bad" | "neutral" {
+  if (status === "saved_dev_record" || status === "validation_ready") {
+    return "good";
+  }
+  if (status === "version_conflict" || status === "save_failed" || status === "read_failed" || status === "validation_failed") {
+    return "bad";
+  }
+  return "neutral";
+}
+
+function cloneWorkflowDraftForEditing(draft: WorkflowDraftDesignerDraft): WorkflowDraftDesignerDraft {
+  return {
+    ...draft,
+    nodes: draft.nodes.map((node) => ({
+      ...node,
+      inputContractFields: [...node.inputContractFields],
+      outputContractFields: [...node.outputContractFields],
+    })),
+    edges: draft.edges.map((edge) => ({ ...edge })),
+    readiness: draft.readiness.map((readiness) => ({ ...readiness })),
+    risks: draft.risks.map((risk) => ({ ...risk })),
+    blockedCapabilities: draft.blockedCapabilities.map((capability) => ({ ...capability })),
+    routeMetadata: { ...draft.routeMetadata },
+  };
+}
+
+function workspaceDraftCreatedConsumerState(
+  config: ReturnType<typeof readWorkflowSavedDraftConsumerConfig>,
+  draft: WorkflowDraftDesignerDraft,
+): WorkflowSavedDraftConsumerState {
+  const initialState = initialWorkflowSavedDraftConsumerState(config);
+  return {
+    ...initialState,
+    status: "unsaved_local",
+    sourceLabel: "workspace draft",
+    summary:
+      config.mode === "dev_saved_draft_http"
+        ? `Workspace draft ${draft.draftId} is ready for validation or save through the dev-only saved draft route.`
+        : `Workspace draft ${draft.draftId} is local only until the dev-only saved draft route is enabled.`,
+    failureCode: null,
+    currentDraftVersion: 0,
+    conflictDraftVersion: null,
+    auditRef: draft.routeMetadata.auditRef,
+    requestId: draft.routeMetadata.requestId,
+  };
+}
+
+function buildWorkspaceCreatedDraft(
+  workflowDefinitionId: string,
+  designer: WorkflowDraftDesignerViewModel,
+  existingDrafts: WorkflowDraftDesignerDraft[],
+): WorkflowDraftDesignerDraft | null {
+  const template = designer.templates.find(
+    (draftTemplate) => draftTemplate.workflowDefinitionId === workflowDefinitionId,
+  );
+  const baseDraft = template
+    ? designer.drafts.find((draft) => draft.draftId === template.draftId)
+    : designer.drafts.find((draft) => draft.workflowDefinitionId === workflowDefinitionId);
+  if (!baseDraft) {
+    return null;
+  }
+  const nextDraftNumber =
+    existingDrafts.filter((draft) => draft.workflowDefinitionId === workflowDefinitionId).length + 1;
+  const draftNumberLabel = String(nextDraftNumber).padStart(2, "0");
+  const createdDraftId = `draft_${workflowDefinitionId}_workspace_${draftNumberLabel}`;
+  return {
+    ...cloneWorkflowDraftForEditing(baseDraft),
+    draftId: createdDraftId,
+    templateRef: baseDraft.draftId,
+    label: `${baseDraft.label} workspace ${draftNumberLabel}`,
+    summary: `Workspace-created draft derived from ${workflowDefinitionId}; edit locally, validate, and save through the dev-only saved draft route before review.`,
+    localOnlyInteraction: "local_edit",
+    routeMetadata: {
+      ...baseDraft.routeMetadata,
+      requestId: `${baseDraft.routeMetadata.requestId}_workspace_${draftNumberLabel}`,
+      auditRef: `${baseDraft.routeMetadata.auditRef}_workspace_${draftNumberLabel}`,
+    },
+  };
+}
+
+function buildLocalWorkflowDraftNode(
+  draft: WorkflowDraftDesignerDraft,
+  nodeType: WorkflowDraftDesignerNode["nodeType"],
+): WorkflowDraftDesignerNode {
+  const option = workflowDraftNodeTypeOption(nodeType);
+  const nodeNumber = nextWorkflowDraftNodeNumber(draft, nodeType);
+  const nodeNumberLabel = String(nodeNumber).padStart(2, "0");
+  const requiresConfirmation = nodeType === "condition" || nodeType === "http_tool";
+  return {
+    nodeId: uniqueWorkflowDraftNodeId(draft, nodeType, nodeNumber),
+    label: `${option.label} ${nodeNumberLabel}`,
+    nodeType,
+    lane: option.lane,
+    readiness: requiresConfirmation ? "review_required" : "ready",
+    inputSummary: workflowDraftNodeInputSummary(option),
+    outputSummary: workflowDraftNodeOutputSummary(option),
+    providerRef: workflowDraftNodeProviderRef(option.nodeType),
+    toolRef: option.nodeType === "http_tool" ? "tool:workflow-preview-readonly" : "",
+    ragRef: "",
+    inputContractFields: workflowDraftContractFieldsForNode(option.nodeType, "input"),
+    outputContractFields: workflowDraftContractFieldsForNode(option.nodeType, "output"),
+    outputMappingSummary: workflowDraftNodeOutputMappingSummary(option),
+    riskLevel: requiresConfirmation ? "medium" : "low",
+    requiresConfirmation,
+    previewOnlyReason: "Local structure edit only; workflow execution remains blocked.",
+  };
+}
+
+function parseWorkflowDraftContractFields(fieldsText: string): string[] {
+  const seen = new Set<string>();
+  return fieldsText
+    .split(/[\n,]+/)
+    .map((field) => workflowDraftSafeKey(field, 80))
+    .filter((field) => {
+      if (!field || seen.has(field)) {
+        return false;
+      }
+      seen.add(field);
+      return true;
+    });
+}
+
+function workflowDraftWithStructureEdits(
+  draft: WorkflowDraftDesignerDraft,
+  nodes: WorkflowDraftDesignerNode[],
+): WorkflowDraftDesignerDraft {
+  return {
+    ...draft,
+    nodes,
+    edges: rebuildWorkflowDraftEdges(nodes, draft.edges),
+    localOnlyInteraction: "local_edit",
+  };
+}
+
+function insertWorkflowDraftNode(
+  nodes: WorkflowDraftDesignerNode[],
+  nextNode: WorkflowDraftDesignerNode,
+): WorkflowDraftDesignerNode[] {
+  if (nextNode.lane === "output") {
+    return [...nodes, nextNode];
+  }
+  const firstOutputIndex = nodes.findIndex((node) => node.lane === "output");
+  if (firstOutputIndex === -1) {
+    return [...nodes, nextNode];
+  }
+  return [...nodes.slice(0, firstOutputIndex), nextNode, ...nodes.slice(firstOutputIndex)];
+}
+
+function canMoveWorkflowDraftNode(
+  draft: WorkflowDraftDesignerDraft,
+  nodeId: string,
+  direction: WorkflowDraftNodeMoveDirection,
+): boolean {
+  const nodeIndex = draft.nodes.findIndex((node) => node.nodeId === nodeId);
+  if (nodeIndex === -1) {
+    return false;
+  }
+  return direction === "up" ? nodeIndex > 0 : nodeIndex < draft.nodes.length - 1;
+}
+
+function moveWorkflowDraftNode(
+  nodes: WorkflowDraftDesignerNode[],
+  nodeId: string,
+  direction: WorkflowDraftNodeMoveDirection,
+): WorkflowDraftDesignerNode[] {
+  const nodeIndex = nodes.findIndex((node) => node.nodeId === nodeId);
+  const nextIndex = direction === "up" ? nodeIndex - 1 : nodeIndex + 1;
+  if (nodeIndex === -1 || nextIndex < 0 || nextIndex >= nodes.length) {
+    return nodes;
+  }
+  const reorderedNodes = [...nodes];
+  const movedNode = reorderedNodes[nodeIndex]!;
+  reorderedNodes[nodeIndex] = reorderedNodes[nextIndex]!;
+  reorderedNodes[nextIndex] = movedNode;
+  return reorderedNodes;
+}
+
+function canRemoveWorkflowDraftNode(draft: WorkflowDraftDesignerDraft, nodeId: string): boolean {
+  const node = draft.nodes.find((candidate) => candidate.nodeId === nodeId);
+  if (!node || draft.nodes.length <= 3) {
+    return false;
+  }
+  const remainingNodes = draft.nodes.filter((candidate) => candidate.nodeId !== nodeId);
+  if (!hasWorkflowDraftLane(remainingNodes, "context") || !hasWorkflowDraftLane(remainingNodes, "model")) {
+    return false;
+  }
+  if (countWorkflowDraftLane(remainingNodes, "output") < 2) {
+    return false;
+  }
+  if (
+    node.lane === "policy" &&
+    countWorkflowDraftLane(draft.nodes, "policy") === 1 &&
+    hasWorkflowDraftLane(draft.nodes, "preview")
+  ) {
+    return false;
+  }
+  if (
+    node.lane === "preview" &&
+    countWorkflowDraftLane(draft.nodes, "preview") === 1 &&
+    hasWorkflowDraftLane(draft.nodes, "policy")
+  ) {
+    return false;
+  }
+  return rebuildWorkflowDraftEdges(remainingNodes, draft.edges).length >= 3;
+}
+
+function rebuildWorkflowDraftEdges(
+  nodes: WorkflowDraftDesignerNode[],
+  previousEdges: WorkflowDraftDesignerEdge[],
+): WorkflowDraftDesignerEdge[] {
+  const rebuiltEdges = nodes.slice(1).map((node, index) =>
+    buildWorkflowDraftEdge(nodes[index]!, node, previousEdges),
+  );
+  if (rebuiltEdges.some((edge) => edge.edgeKind === "audit")) {
+    return rebuiltEdges;
+  }
+  const outputNodes = nodes.filter((node) => node.lane === "output");
+  if (outputNodes.length < 2) {
+    return rebuiltEdges;
+  }
+  return [
+    ...rebuiltEdges,
+    buildWorkflowDraftEdge(
+      outputNodes[outputNodes.length - 2]!,
+      outputNodes[outputNodes.length - 1]!,
+      previousEdges,
+      "audit",
+    ),
+  ];
+}
+
+function buildWorkflowDraftEdge(
+  fromNode: WorkflowDraftDesignerNode,
+  toNode: WorkflowDraftDesignerNode,
+  previousEdges: WorkflowDraftDesignerEdge[],
+  forcedEdgeKind?: WorkflowDraftDesignerEdge["edgeKind"],
+): WorkflowDraftDesignerEdge {
+  const previousEdge = previousEdges.find(
+    (edge) => edge.fromNodeId === fromNode.nodeId && edge.toNodeId === toNode.nodeId,
+  );
+  const edgeKind = forcedEdgeKind ?? workflowDraftEdgeKindForConnection(fromNode, toNode);
+  return {
+    edgeId: previousEdge?.edgeId ?? workflowDraftEdgeId(fromNode.nodeId, toNode.nodeId, edgeKind),
+    fromNodeId: fromNode.nodeId,
+    toNodeId: toNode.nodeId,
+    edgeKind,
+    conditionSummary:
+      previousEdge?.conditionSummary ?? workflowDraftEdgeConditionSummary(fromNode, toNode, edgeKind),
+  };
+}
+
+function workflowDraftEdgeKindForConnection(
+  fromNode: WorkflowDraftDesignerNode,
+  toNode: WorkflowDraftDesignerNode,
+): WorkflowDraftDesignerEdge["edgeKind"] {
+  if (toNode.lane === "output" && (fromNode.lane === "output" || workflowDraftNodeLooksLikeAudit(toNode))) {
+    return "audit";
+  }
+  if (toNode.lane === "preview" || fromNode.lane === "preview") {
+    return "preview";
+  }
+  if (toNode.lane === "policy" || fromNode.lane === "policy") {
+    return "policy";
+  }
+  return "context";
+}
+
+function workflowDraftEdgeConditionSummary(
+  fromNode: WorkflowDraftDesignerNode,
+  toNode: WorkflowDraftDesignerNode,
+  edgeKind: WorkflowDraftDesignerEdge["edgeKind"],
+): string {
+  if (edgeKind === "audit") {
+    return "Sanitized output metadata remains visible in the audit path after local graph editing.";
+  }
+  if (edgeKind === "preview") {
+    return "Preview-only metadata flows forward while execution stays blocked.";
+  }
+  if (edgeKind === "policy") {
+    return "Risk-bearing output remains behind policy and confirmation review markers.";
+  }
+  return `${fromNode.label} passes sanitized context to ${toNode.label}.`;
+}
+
+function uniqueWorkflowDraftNodeId(
+  draft: WorkflowDraftDesignerDraft,
+  nodeType: WorkflowDraftDesignerNode["nodeType"],
+  initialNumber: number,
+): string {
+  const draftKey = workflowDraftSafeKey(draft.draftId, 32);
+  let nodeNumber = initialNumber;
+  let candidate = "";
+  const existingNodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  do {
+    candidate = `node_${draftKey}_${nodeType}_${String(nodeNumber).padStart(2, "0")}`;
+    nodeNumber += 1;
+  } while (existingNodeIds.has(candidate));
+  return candidate;
+}
+
+function workflowDraftEdgeId(
+  fromNodeId: string,
+  toNodeId: string,
+  edgeKind: WorkflowDraftDesignerEdge["edgeKind"],
+): string {
+  return `edge_${workflowDraftSafeKey(fromNodeId, 36)}_to_${workflowDraftSafeKey(toNodeId, 36)}_${edgeKind}`;
+}
+
+function workflowDraftSafeKey(value: string, maxLength: number): string {
+  const normalized = value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return (normalized || "local").slice(0, maxLength);
+}
+
+function nextWorkflowDraftNodeNumber(
+  draft: WorkflowDraftDesignerDraft,
+  nodeType: WorkflowDraftDesignerNode["nodeType"],
+): number {
+  return draft.nodes.filter((node) => node.nodeType === nodeType).length + 1;
+}
+
+function workflowDraftNodeTypeOption(
+  nodeType: WorkflowDraftDesignerNode["nodeType"],
+): WorkflowDraftNodeTypeOption {
+  return WORKFLOW_DRAFT_NODE_TYPE_OPTIONS.find((option) => option.nodeType === nodeType) ??
+    WORKFLOW_DRAFT_NODE_TYPE_OPTIONS[0]!;
+}
+
+function workflowDraftNodeInputSummary(option: WorkflowDraftNodeTypeOption): string {
+  if (option.nodeType === "prompt") {
+    return "Tenant ref, application ref, selection summary, and diagnostic summary.";
+  }
+  if (option.nodeType === "llm") {
+    return "Sanitized prompt context, answer contract, and provider profile reference.";
+  }
+  if (option.nodeType === "condition") {
+    return "Candidate action shape, risk level, and confirmation policy marker.";
+  }
+  if (option.nodeType === "http_tool") {
+    return "Sanitized candidate action payload without raw tool request body.";
+  }
+  return "Answer summary, risk summary, audit refs, and review context.";
+}
+
+function workflowDraftNodeOutputSummary(option: WorkflowDraftNodeTypeOption): string {
+  if (option.nodeType === "prompt") {
+    return "Sanitized context packet for advisory reasoning.";
+  }
+  if (option.nodeType === "llm") {
+    return "Advisory answer, candidate actions, risk summary, and audit refs.";
+  }
+  if (option.nodeType === "condition") {
+    return "Review-required branch metadata without execution unlock.";
+  }
+  if (option.nodeType === "http_tool") {
+    return "Preview-only action metadata and audit reference.";
+  }
+  return "Read-only advisory output or sanitized audit projection.";
+}
+
+function workflowDraftNodeProviderRef(nodeType: WorkflowDraftDesignerNode["nodeType"]): string {
+  if (nodeType === "llm") {
+    return "profile:radishmind-default-workflow";
+  }
+  if (nodeType === "condition") {
+    return "policy:confirmation-gated";
+  }
+  return "";
+}
+
+function workflowDraftContractFieldsForNode(
+  nodeType: WorkflowDraftDesignerNode["nodeType"],
+  contractKind: "input" | "output",
+): string[] {
+  if (contractKind === "input") {
+    if (nodeType === "prompt") {
+      return ["tenant_ref", "application_ref", "selection_summary", "diagnostic_summary"];
+    }
+    if (nodeType === "llm") {
+      return ["prompt_context", "answer_contract", "provider_profile_ref"];
+    }
+    if (nodeType === "condition") {
+      return ["candidate_action", "risk_level", "confirmation_policy"];
+    }
+    if (nodeType === "http_tool") {
+      return ["candidate_action", "audit_refs"];
+    }
+    return ["answer_summary", "risk_summary", "audit_refs"];
+  }
+  if (nodeType === "prompt") {
+    return ["prompt_context"];
+  }
+  if (nodeType === "llm") {
+    return ["answer_summary", "candidate_actions", "risk_summary", "audit_refs"];
+  }
+  if (nodeType === "condition") {
+    return ["policy_result", "requires_confirmation"];
+  }
+  if (nodeType === "http_tool") {
+    return ["preview_action_metadata", "audit_refs"];
+  }
+  return ["answer_summary", "risk_summary", "audit_refs"];
+}
+
+function workflowDraftNodeOutputMappingSummary(option: WorkflowDraftNodeTypeOption): string {
+  if (option.nodeType === "llm") {
+    return "Map advisory answer, candidate actions, risk summary, and audit refs into reviewable output fields.";
+  }
+  if (option.nodeType === "condition") {
+    return "Map policy result into review-required branch metadata without unlocking execution.";
+  }
+  if (option.nodeType === "http_tool") {
+    return "Map preview-only action metadata into audit-visible candidate action fields.";
+  }
+  if (option.nodeType === "output") {
+    return "Map advisory fields into the read-only workspace review surface.";
+  }
+  return "Map sanitized context fields into the next draft node contract.";
+}
+
+function hasWorkflowDraftLane(
+  nodes: WorkflowDraftDesignerNode[],
+  lane: WorkflowDraftDesignerNode["lane"],
+): boolean {
+  return nodes.some((node) => node.lane === lane);
+}
+
+function countWorkflowDraftLane(
+  nodes: WorkflowDraftDesignerNode[],
+  lane: WorkflowDraftDesignerNode["lane"],
+): number {
+  return nodes.filter((node) => node.lane === lane).length;
+}
+
+function workflowDraftNodeLooksLikeAudit(node: WorkflowDraftDesignerNode): boolean {
+  return `${node.nodeId} ${node.label}`.toLowerCase().includes("audit");
 }
 
 function WorkflowDraftTemplateButton({
@@ -2507,7 +3577,41 @@ function WorkflowDraftTemplateButton({
   );
 }
 
-function WorkflowDraftNodeCard({ node }: { node: WorkflowDraftDesignerNode }) {
+function WorkflowDraftNodeCard({
+  node,
+  nodeIndex,
+  nodeCount,
+  canDelete,
+  editingDisabled,
+  onUpdateLabel,
+  onUpdateInputSummary,
+  onUpdateOutputSummary,
+  onUpdateProviderRef,
+  onUpdateToolRef,
+  onUpdateRagRef,
+  onUpdateInputFields,
+  onUpdateOutputFields,
+  onUpdateOutputMapping,
+  onMoveNode,
+  onRemoveNode,
+}: {
+  node: WorkflowDraftDesignerNode;
+  nodeIndex: number;
+  nodeCount: number;
+  canDelete: boolean;
+  editingDisabled: boolean;
+  onUpdateLabel: (nodeId: string, label: string) => void;
+  onUpdateInputSummary: (nodeId: string, inputSummary: string) => void;
+  onUpdateOutputSummary: (nodeId: string, outputSummary: string) => void;
+  onUpdateProviderRef: (nodeId: string, providerRef: string) => void;
+  onUpdateToolRef: (nodeId: string, toolRef: string) => void;
+  onUpdateRagRef: (nodeId: string, ragRef: string) => void;
+  onUpdateInputFields: (nodeId: string, inputFieldsText: string) => void;
+  onUpdateOutputFields: (nodeId: string, outputFieldsText: string) => void;
+  onUpdateOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
+  onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
+  onRemoveNode: (nodeId: string) => void;
+}) {
   return (
     <article className="workflow-draft-node">
       <div className="workflow-draft-row-main">
@@ -2515,11 +3619,42 @@ function WorkflowDraftNodeCard({ node }: { node: WorkflowDraftDesignerNode }) {
           <p className="eyebrow">
             {node.lane} / {node.nodeType}
           </p>
-          <h5>{node.label}</h5>
+          <input
+            className="workflow-draft-node-label-input"
+            type="text"
+            value={node.label}
+            maxLength={160}
+            disabled={editingDisabled}
+            aria-label={`Node label ${node.nodeId}`}
+            onChange={(event) => onUpdateLabel(node.nodeId, event.currentTarget.value)}
+          />
         </div>
         <StatusBadge tone={node.readiness === "blocked" ? "bad" : node.readiness === "ready" ? "good" : "neutral"}>
           {node.readiness}
         </StatusBadge>
+      </div>
+      <div className="workflow-draft-node-actions" aria-label={`Structure controls ${node.nodeId}`}>
+        <button
+          type="button"
+          disabled={editingDisabled || nodeIndex === 0}
+          onClick={() => onMoveNode(node.nodeId, "up")}
+        >
+          Up
+        </button>
+        <button
+          type="button"
+          disabled={editingDisabled || nodeIndex === nodeCount - 1}
+          onClick={() => onMoveNode(node.nodeId, "down")}
+        >
+          Down
+        </button>
+        <button
+          type="button"
+          disabled={editingDisabled || !canDelete}
+          onClick={() => onRemoveNode(node.nodeId)}
+        >
+          Remove
+        </button>
       </div>
       <dl className="workflow-detail-node-meta">
         <div>
@@ -2539,18 +3674,116 @@ function WorkflowDraftNodeCard({ node }: { node: WorkflowDraftDesignerNode }) {
           <dd>{node.previewOnlyReason}</dd>
         </div>
       </dl>
+      <div className="workflow-draft-node-attribute-grid" aria-label={`Node attributes ${node.nodeId}`}>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Provider ref</span>
+          <input
+            type="text"
+            value={node.providerRef}
+            maxLength={240}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateProviderRef(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Tool ref</span>
+          <input
+            type="text"
+            value={node.toolRef}
+            maxLength={240}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateToolRef(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>RAG ref</span>
+          <input
+            type="text"
+            value={node.ragRef}
+            maxLength={240}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateRagRef(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field wide">
+          <span>Input summary</span>
+          <textarea
+            value={node.inputSummary}
+            maxLength={4000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateInputSummary(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field wide">
+          <span>Output summary</span>
+          <textarea
+            value={node.outputSummary}
+            maxLength={4000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateOutputSummary(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Input fields</span>
+          <textarea
+            value={node.inputContractFields.join(", ")}
+            maxLength={1000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateInputFields(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field">
+          <span>Output fields</span>
+          <textarea
+            value={node.outputContractFields.join(", ")}
+            maxLength={1000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateOutputFields(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+        <label className="workflow-draft-node-attribute-field wide">
+          <span>Output mapping</span>
+          <textarea
+            value={node.outputMappingSummary}
+            maxLength={4000}
+            rows={3}
+            disabled={editingDisabled}
+            onChange={(event) => onUpdateOutputMapping(node.nodeId, event.currentTarget.value)}
+          />
+        </label>
+      </div>
     </article>
   );
 }
 
-function WorkflowDraftEdgeCard({ edge }: { edge: WorkflowDraftDesignerEdge }) {
+function WorkflowDraftEdgeCard({
+  edge,
+  editingDisabled,
+  onUpdateCondition,
+}: {
+  edge: WorkflowDraftDesignerEdge;
+  editingDisabled: boolean;
+  onUpdateCondition: (edgeId: string, conditionSummary: string) => void;
+}) {
   return (
     <article className="workflow-draft-edge">
       <span>{edge.edgeKind}</span>
       <strong>
         {edge.fromNodeId} to {edge.toNodeId}
       </strong>
-      <p>{edge.conditionSummary}</p>
+      <textarea
+        className="workflow-draft-edge-condition-input"
+        value={edge.conditionSummary}
+        maxLength={4000}
+        rows={3}
+        disabled={editingDisabled}
+        aria-label={`Edge condition ${edge.edgeId}`}
+        onChange={(event) => onUpdateCondition(edge.edgeId, event.currentTarget.value)}
+      />
     </article>
   );
 }
@@ -3610,23 +4843,6 @@ function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLi
       <StatusBadge tone={tone}>{state.status}</StatusBadge>
     </section>
   );
-}
-
-function toWorkflowDefinitionSummary(
-  workflowDefinition: WorkspaceWorkflowDefinitionRow,
-  tenantRef: string,
-): WorkflowDefinitionSummary {
-  return {
-    workflow_definition_id: workflowDefinition.workflowDefinitionId,
-    tenant_ref: tenantRef,
-    application_ref: workflowDefinition.applicationRef,
-    version: workflowDefinition.version,
-    definition_status: workflowDefinition.definitionStatus,
-    node_count: workflowDefinition.nodeCount,
-    risk_level: workflowDefinition.riskLevel,
-    requires_confirmation_capable: workflowDefinition.requiresConfirmationCapable,
-    updated_at: workflowDefinition.updatedAt,
-  };
 }
 
 function RouteCard({ route }: { route: ControlPlaneReadRouteCard }) {

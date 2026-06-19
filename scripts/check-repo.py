@@ -352,13 +352,31 @@ def check_content_baseline() -> None:
         item.get("context")
         for item in ((required_check_rule.get("parameters") or {}).get("required_status_checks") or [])
     ]
-    if "Repo Hygiene" not in contexts:
-        raise SystemExit("master-protection.json is missing Repo Hygiene required check")
-    if "Planning Baseline" not in contexts:
-        raise SystemExit("master-protection.json is missing Planning Baseline required check")
+    required_contexts = {
+        "Repo Hygiene",
+        "Repository Baseline",
+        "RadishMind Web Build",
+        "Platform Go Tests",
+    }
+    missing_contexts = sorted(required_contexts - set(contexts))
+    if missing_contexts:
+        raise SystemExit(f"master-protection.json is missing required checks: {missing_contexts}")
 
     pr_workflow = (REPO_ROOT / ".github/workflows/pr-check.yml").read_text(encoding="utf-8")
-    for pattern in ("name: PR Checks", "- master", "name: Repo Hygiene", "name: Planning Baseline"):
+    for pattern in (
+        "name: PR Checks",
+        "pull_request:",
+        "push:",
+        "- dev",
+        "- master",
+        "name: Repo Hygiene",
+        "name: Repository Baseline",
+        "name: RadishMind Web Build",
+        "name: Platform Go Tests",
+        "npm ci",
+        "npm run build",
+        "go test ./...",
+    ):
         if pattern not in pr_workflow:
             raise SystemExit(f".github/workflows/pr-check.yml is missing expected content: {pattern}")
 
@@ -369,7 +387,12 @@ def check_content_baseline() -> None:
         "v*-test",
         "v*-release",
         "name: Release Repo Hygiene",
-        "name: Release Planning Baseline",
+        "name: Release Repository Baseline",
+        "name: Release RadishMind Web Build",
+        "name: Release Platform Go Tests",
+        "npm ci",
+        "npm run build",
+        "go test ./...",
     ):
         if pattern not in release_workflow:
             raise SystemExit(f".github/workflows/release-check.yml is missing expected content: {pattern}")
@@ -1080,6 +1103,7 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-model-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-route-contract-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-response-fixtures-v1.py", [])
+    run_python_script("checks/control_plane/check-control-plane-read-product-sample-consistency-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-negative-contract-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-implementation-preconditions-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py", [])
@@ -1187,6 +1211,154 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-workflow-function-surface-readiness-close-v1.py",
         [],
     )
+    run_python_script(
+        "checks/control_plane/check-workflow-workspace-context-consistency-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-consumer-smoke-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-draft-editing-entry-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-user-workspace-draft-creation-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-user-workspace-saved-draft-list-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-draft-designer-editing-model-v2.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-draft-node-attribute-editing-model-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-review-handoff-active-draft-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-durable-store-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-contract-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-migration-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-auth-context-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-store-selector-enablement-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-artifact-evidence-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-store-selector-smoke-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-contract-smoke-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-contract-smoke-runner-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-contract-smoke-runner-implementation-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-adapter-implementation-plan-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-artifact-manifest-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-adapter-smoke-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-store-selector-implementation-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-artifact-materialization-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-store-selector-smoke-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-artifact-materialization-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-production-auth-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-adapter-implementation-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-adapter-implementation-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-production-auth-runtime-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-mode-enablement-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-migration-runner-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-product-surface-readiness-implementation-trigger-recheck-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-schema-artifact-evidence-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-read-implementation-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-product-surface-usage-gap-triage-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-control-plane-durable-read-foundation-v1.py",
+        [],
+    )
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])
@@ -1249,6 +1421,25 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-model-adaptation-v1-preflight-result.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
     run_python_script("check-image-generation-eval-manifest.py", [])
+    run_python_script("check-image-adapter-handshake-safety-gate-v1.py", [])
+    run_python_script("check-image-artifact-return-runbook-evidence-v1.py", [])
+    run_python_script("check-image-safety-runbook-evidence-v1.py", [])
+    run_python_script("check-image-backend-adapter-readiness-evidence-v1.py", [])
+    run_python_script("check-image-artifact-runtime-mapping-readiness-v1.py", [])
+    run_python_script("check-image-artifact-runtime-mapping-implementation-entry-review-v1.py", [])
+    run_python_script("check-image-artifact-store-binary-reader-boundary-readiness-v1.py", [])
+    run_python_script("check-image-artifact-runtime-mapper-implementation-plan-v1.py", [])
+    run_python_script("check-image-artifact-runtime-mapper-implementation-entry-v1.py", [])
+    run_python_script("check-image-artifact-runtime-mapper-implementation-v1.py", [])
+    run_python_script("check-image-artifact-runtime-mapper-runtime-implementation-v1.py", [])
+    run_python_script("check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py", [])
+    run_python_script("check-image-artifact-response-consumer-implementation-readiness-v1.py", [])
+    run_python_script("check-image-artifact-response-consumer-implementation-v1.py", [])
+    run_python_script("check-image-artifact-response-consumer-runtime-implementation-v1.py", [])
+    run_python_script("check-image-artifact-response-builder-integration-entry-review-v1.py", [])
+    run_python_script("check-image-artifact-response-builder-integration-v1.py", [])
+    run_python_script("check-image-artifact-response-builder-runtime-integration-entry-review-v1.py", [])
+    run_python_script("check-image-artifact-response-builder-runtime-integration-implementation-v1.py", [])
     check_path_budget()
     check_required_files()
     check_content_baseline()

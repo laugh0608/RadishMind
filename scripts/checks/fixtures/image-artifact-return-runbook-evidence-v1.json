@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "kind": "image_artifact_return_runbook_evidence_v1",
+  "slice": {
+    "id": "image-artifact-return-runbook-evidence-v1",
+    "track": "Image Path",
+    "status": "image_artifact_return_runbook_evidence_defined",
+    "does_not_claim": [
+      "copilot_response_schema_changed",
+      "copilot_response_artifact_runtime_ready",
+      "artifact_store_ready",
+      "artifact_upload_ready",
+      "artifact_binary_reader_ready",
+      "production_artifact_storage_ready",
+      "public_artifact_url_ready",
+      "image_backend_client_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_payload_ready",
+      "provider_raw_dump_ready",
+      "image_safety_runbook_complete",
+      "automatic_retry_ready",
+      "fallback_execution_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-adapter-handshake-safety-gate-v1",
+    "image-generation-eval-manifest-v0",
+    "contracts/image-generation-artifact.schema.json",
+    "contracts/copilot-response.schema.json"
+  ],
+  "artifact_return_boundary": {
+    "status": "artifact_return_runbook_defined_no_runtime_mapping",
+    "decision": "metadata_reference_contract_only",
+    "source_artifact_schema": "contracts/image-generation-artifact.schema.json",
+    "source_artifact_fixture": "scripts/checks/fixtures/image-generation-artifact-basic.json",
+    "upstream_handshake_fixture": "scripts/checks/fixtures/image-adapter-handshake-safety-gate-v1.json",
+    "future_response_surface": "future CopilotResponse artifact metadata reference",
+    "copilot_response_schema_changed_in_this_slice": false,
+    "copilot_response_runtime_mapping_created_in_this_slice": false,
+    "artifact_store_created_in_this_slice": false,
+    "artifact_upload_created_in_this_slice": false,
+    "artifact_binary_reader_created_in_this_slice": false,
+    "public_url_resolver_created_in_this_slice": false,
+    "production_storage_created_in_this_slice": false,
+    "image_backend_client_created_in_this_slice": false,
+    "image_generation_allowed_now": false,
+    "pixel_payload_allowed_now": false,
+    "provider_raw_dump_allowed_now": false,
+    "dev_server_started_in_this_slice": false
+  },
+  "metadata_reference_shape": {
+    "status": "defined_not_materialized",
+    "future_reference_kind": "image_artifact_metadata_reference",
+    "source_kind": "image_generation_artifact",
+    "uri_scheme": "artifact://",
+    "uri_is_public_url": false,
+    "required_fields": [
+      "artifact_id",
+      "intent_id",
+      "backend_request_id",
+      "status",
+      "artifact.uri",
+      "artifact.mime_type",
+      "artifact.width",
+      "artifact.height",
+      "artifact.format",
+      "artifact.sha256",
+      "artifact.title",
+      "artifact.purpose",
+      "generation.backend_id",
+      "generation.model",
+      "generation.seed",
+      "safety.risk_level",
+      "safety.requires_confirmation",
+      "safety.review_status",
+      "provenance.source_request_id",
+      "provenance.trace_ids",
+      "created_at"
+    ],
+    "forbidden_fields": [
+      "pixel_payload",
+      "base64_image",
+      "provider_raw_response",
+      "signed_public_url",
+      "storage_write_result",
+      "executor_ref",
+      "writeback_ref",
+      "replay_ref"
+    ],
+    "copilot_response_schema_change_required_now": false,
+    "runtime_mapping_required_now": false
+  },
+  "return_runbook_steps": [
+    {
+      "order": 1,
+      "step_id": "consume_safety_gated_artifact_metadata",
+      "input": "image_generation_artifact",
+      "required_evidence": [
+        "image-adapter-handshake-safety-gate-v1",
+        "image-generation-eval-manifest-v0"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 2,
+      "step_id": "validate_metadata_reference_fields",
+      "input": "image_generation_artifact",
+      "checks": [
+        "artifact:// uri",
+        "sha256 present",
+        "dimensions present",
+        "backend provenance present",
+        "safety review present"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 3,
+      "step_id": "redact_non_metadata_payload",
+      "input": "image_generation_artifact",
+      "forbidden_payloads": [
+        "pixel_payload",
+        "base64_image",
+        "provider_raw_response",
+        "public_url"
+      ],
+      "allowed_now": true,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 4,
+      "step_id": "map_to_future_response_reference",
+      "input": "metadata_reference_shape",
+      "output": "future CopilotResponse artifact metadata reference",
+      "allowed_now": false,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 5,
+      "step_id": "defer_binary_retrieval_to_future_artifact_store",
+      "input": "artifact:// uri",
+      "output": "blocked_binary_reader",
+      "allowed_now": false,
+      "runtime_implemented_now": false
+    }
+  ],
+  "failure_taxonomy": [
+    {
+      "failure_code": "image_backend_unavailable",
+      "source": "adapter_safety_gate_or_backend_dispatch",
+      "response_policy": "return blocked metadata status without retry loop",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_artifact_metadata_missing",
+      "source": "artifact metadata validation",
+      "response_policy": "return failed metadata status without pixel fallback",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_artifact_hash_mismatch",
+      "source": "artifact metadata validation",
+      "response_policy": "block artifact reference until reviewed",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    },
+    {
+      "failure_code": "image_artifact_safety_blocked",
+      "source": "artifact safety review",
+      "response_policy": "return safety blocked metadata status only",
+      "retry_or_fallback_allowed_now": false,
+      "artifact_reference_returned": false
+    }
+  ],
+  "artifact_visibility_policy": {
+    "metadata_visible_to_copilot_response": true,
+    "pixel_payload_visible_to_copilot_response": false,
+    "provider_raw_dump_visible_to_copilot_response": false,
+    "public_url_visible_to_copilot_response": false,
+    "artifact_binary_download_allowed_now": false,
+    "artifact_upload_allowed_now": false,
+    "production_storage_allowed_now": false
+  },
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/runtime/image_artifact_return_mapper.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_store.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_artifacts.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_artifact_store.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-artifact-return.schema.json",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageArtifactPanel.tsx",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/run-image-artifact-upload.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "deploy/image-artifact-store.yaml",
+      "created_in_this_slice": false
+    }
+  ],
+  "source_absent_literals": [
+    "ImageArtifactReturnMapper",
+    "ImageArtifactStore",
+    "NewImageArtifactStore",
+    "image_artifact_return_mapper",
+    "image_artifact_store",
+    "IMAGE_ARTIFACT_STORE_URL",
+    "IMAGE_ARTIFACT_PUBLIC_BASE_URL",
+    "ImageArtifactPanel",
+    "uploadImageArtifact",
+    "resolvePublicImageArtifactURL",
+    "ReadImageArtifactBinary"
+  ],
+  "execution_policy": {
+    "does_not_call_backend": true,
+    "does_not_generate_images": true,
+    "does_not_download_models": true,
+    "does_not_upload_artifacts": true,
+    "does_not_write_production_storage": true,
+    "does_not_start_dev_server": true,
+    "does_not_use_browser_plugin": true
+  },
+  "no_fake_fallback_policy": {
+    "missing_metadata_promoted_to_success_allowed": false,
+    "hash_mismatch_promoted_to_success_allowed": false,
+    "backend_unavailable_promoted_to_retry_loop_allowed": false,
+    "artifact_uri_promoted_to_public_url_allowed": false,
+    "metadata_reference_promoted_to_binary_payload_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "backend_call_count=0",
+      "image_generation_count=0",
+      "model_download_count=0",
+      "artifact_upload_count=0",
+      "artifact_binary_read_count=0",
+      "production_storage_write_count=0",
+      "dev_server_start_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "real_backend_call",
+      "image_pixel_generation",
+      "model_download",
+      "artifact_upload",
+      "artifact_binary_read",
+      "production_storage_write",
+      "public_url_resolution",
+      "dev_server_start",
+      "browser_plugin_open",
+      "executor_call",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/image-artifact-return-runbook-evidence-v1-plan.md",
+    "docs/contracts/image-generation.md",
+    "scripts/checks/fixtures/image-artifact-return-runbook-evidence-v1.json",
+    "scripts/check-image-artifact-return-runbook-evidence-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-image-artifact-return-runbook-evidence-v1.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-artifact-return-runbook-evidence-v1",
+      "image_artifact_return_runbook_evidence_defined",
+      "metadata reference"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image_artifact_return_runbook_evidence_defined",
+      "artifact return runbook"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-artifact-return-runbook-evidence-v1",
+      "metadata-only artifact reference"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Artifact Return Runbook / Metadata Evidence",
+      "image-artifact-return-runbook-evidence-v1"
+    ],
+    "scripts/README.md": [
+      "check-image-artifact-return-runbook-evidence-v1.py",
+      "不上传 artifact"
+    ],
+    "contracts/README.md": [
+      "image-artifact-return-runbook-evidence-v1",
+      "metadata reference"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image_artifact_return_runbook_evidence_defined",
+      "image safety runbook"
+    ],
+    "docs/radishmind-architecture.md": [
+      "image_artifact_return_runbook_evidence_defined",
+      "metadata reference"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-artifact-return-runbook-evidence-v1",
+      "image_artifact_return_runbook_evidence_defined"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "image-artifact-return-runbook-evidence-v1",
+      "image_artifact_return_runbook_evidence_defined"
+    ]
+  }
+}

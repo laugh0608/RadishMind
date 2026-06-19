@@ -302,9 +302,20 @@ function collectFields(
   nodes: WorkflowDraftDesignerNode[],
   key: "inputSummary" | "outputSummary",
 ): { presentFields: string[]; missingFields: string[] } {
-  const summaries = nodes.map((node) => node[key].toLowerCase()).join(" ");
+  const explicitFields = nodes.flatMap((node) =>
+    key === "inputSummary" ? node.inputContractFields : node.outputContractFields,
+  );
+  const explicitFieldSet = new Set(explicitFields.map((field) => field.toLowerCase()));
+  const summaries = nodes
+    .map((node) => {
+      const contractFields = key === "inputSummary" ? node.inputContractFields : node.outputContractFields;
+      return `${node[key]} ${contractFields.join(" ")} ${node.outputMappingSummary}`.toLowerCase();
+    })
+    .join(" ");
   const requiredFields = key === "inputSummary" ? REQUIRED_INPUT_FIELDS : REQUIRED_OUTPUT_FIELDS;
-  const presentFields = requiredFields.filter((field) => fieldIsPresent(summaries, field));
+  const presentFields = requiredFields.filter(
+    (field) => explicitFieldSet.has(field) || fieldIsPresent(summaries, field),
+  );
   return {
     presentFields,
     missingFields: requiredFields.filter((field) => !presentFields.includes(field)),

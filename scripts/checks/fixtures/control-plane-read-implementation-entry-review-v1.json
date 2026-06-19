@@ -1,0 +1,468 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_implementation_entry_review_v1",
+  "slice": {
+    "id": "control-plane-read-implementation-entry-review-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "implementation_entry_review_defined",
+    "does_not_claim": [
+      "implementation_trigger_satisfied",
+      "implementation_entry_opened",
+      "implementation_task_card_created",
+      "schema_artifact_manifest_ready",
+      "schema_artifact_files_created",
+      "schema_artifact_implementation_ready",
+      "store_selector_implementation_ready",
+      "store_selector_smoke_ready",
+      "production_auth_implementation_ready",
+      "production_auth_ready",
+      "adapter_smoke_ready",
+      "repository_interface_ready",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "migration_manifest_created",
+      "migration_runner_ready",
+      "store_selector_implemented",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-implementation-trigger-review-v1",
+    "control-plane-read-schema-artifact-evidence-v1",
+    "product-surface-readiness-implementation-trigger-recheck-v1",
+    "control-plane-read-schema-artifact-manifest-readiness-v1",
+    "control-plane-read-store-selector-smoke-readiness-v1",
+    "control-plane-read-production-auth-readiness-v1",
+    "control-plane-read-adapter-smoke-readiness-v1",
+    "control-plane-read-repository-adapter-implementation-plan-v1"
+  ],
+  "implementation_entry_boundary": {
+    "status": "implementation_entry_review_defined_no_runtime_change",
+    "decision": "implementation_entry_not_opened",
+    "current_development_mode": "targeted_correction_or_wait_for_trigger",
+    "implementation_task_card_created_in_this_slice": false,
+    "selected_implementation_track_now": "none",
+    "parallel_implementation_tracks_allowed_now": false,
+    "schema_artifact_files_allowed_now": false,
+    "selector_files_allowed_now": false,
+    "production_auth_files_allowed_now": false,
+    "adapter_smoke_files_allowed_now": false,
+    "repository_adapter_files_allowed_now": false,
+    "database_connection_allowed_now": false,
+    "dev_server_started_in_this_slice": false,
+    "write_allowed_now": false,
+    "if_trigger_remains_not_satisfied": "do_not_open_implementation_task_card",
+    "if_single_trigger_satisfied": "open_only_that_candidate_task_card_after_review",
+    "if_multiple_triggers_satisfied": "choose_first_review_order_candidate_and_document_deferral"
+  },
+  "entry_gate_matrix": [
+    {
+      "id": "implementation_trigger_review_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-implementation-trigger-review-v1"
+    },
+    {
+      "id": "schema_artifact_evidence_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-schema-artifact-evidence-v1"
+    },
+    {
+      "id": "product_surface_recheck_consumed",
+      "status": "satisfied",
+      "evidence": "product-surface-readiness-implementation-trigger-recheck-v1"
+    },
+    {
+      "id": "schema_artifact_manifest_candidate_blocked",
+      "status": "blocked",
+      "candidate_id": "schema_artifact_manifest_implementation"
+    },
+    {
+      "id": "store_selector_smoke_candidate_blocked",
+      "status": "blocked",
+      "candidate_id": "store_selector_smoke_implementation"
+    },
+    {
+      "id": "production_auth_candidate_blocked",
+      "status": "blocked",
+      "candidate_id": "production_auth_implementation"
+    },
+    {
+      "id": "adapter_smoke_candidate_blocked",
+      "status": "blocked",
+      "candidate_id": "adapter_smoke_execution"
+    },
+    {
+      "id": "single_track_selection_policy_defined",
+      "status": "satisfied",
+      "policy": "only_one_implementation_track_after_trigger"
+    },
+    {
+      "id": "no_runtime_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no schema artifact manifest",
+        "no SQL migration",
+        "no store selector",
+        "no auth middleware",
+        "no adapter smoke",
+        "no repository adapter"
+      ]
+    },
+    {
+      "id": "no_same_level_ui_panel_added",
+      "status": "required_now",
+      "must_cover": [
+        "no new read-only UI surface",
+        "no browser or dev server requirement"
+      ]
+    }
+  ],
+  "implementation_entry_candidates": [
+    {
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "source": "control-plane-read-schema-artifact-manifest-readiness-v1",
+      "source_status": "schema_artifact_manifest_readiness_defined",
+      "upstream_review_decision": "not_satisfied",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "control-plane-read-schema-artifact-manifest-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "schema_evidence_ref": "control-plane-read-schema-artifact-evidence-v1",
+      "current_blockers": [
+        "ddl_review_evidence_gate",
+        "rollback_fixture_evidence_gate",
+        "schema_version_smoke_evidence_gate",
+        "tenant_index_smoke_evidence_gate",
+        "read_only_role_smoke_evidence_gate",
+        "durable_adapter_smoke_dependency_gate"
+      ]
+    },
+    {
+      "candidate_id": "store_selector_smoke_implementation",
+      "source": "control-plane-read-store-selector-smoke-readiness-v1",
+      "source_status": "store_selector_smoke_readiness_defined",
+      "upstream_review_decision": "not_satisfied",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "control-plane-read-store-selector-smoke-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "schema_evidence_ref": "not_applicable",
+      "current_blockers": [
+        "selector_config_entry_gate",
+        "selector_code_gate",
+        "fixture_default_smoke_gate",
+        "reserved_mode_fail_closed_smoke_gate",
+        "unknown_mode_fail_closed_smoke_gate",
+        "durable_mode_enablement_gate"
+      ]
+    },
+    {
+      "candidate_id": "production_auth_implementation",
+      "source": "control-plane-read-production-auth-readiness-v1",
+      "source_status": "production_auth_readiness_defined",
+      "upstream_review_decision": "not_satisfied",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "control-plane-read-production-auth-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "schema_evidence_ref": "not_applicable",
+      "current_blockers": [
+        "production_auth_smoke_gate",
+        "auth_middleware_implementation_gate",
+        "production_api_consumer_gate"
+      ]
+    },
+    {
+      "candidate_id": "adapter_smoke_execution",
+      "source": "control-plane-read-adapter-smoke-readiness-v1",
+      "source_status": "adapter_smoke_readiness_defined",
+      "upstream_review_decision": "not_satisfied",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "control-plane-read-adapter-smoke-execution-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "schema_evidence_ref": "control-plane-read-schema-artifact-evidence-v1",
+      "current_blockers": [
+        "schema_artifact_manifest_gate",
+        "store_selector_smoke_gate",
+        "production_auth_gate",
+        "repository_adapter_implementation_gate",
+        "adapter_smoke_execution_gate",
+        "production_api_consumer_gate"
+      ]
+    }
+  ],
+  "schema_evidence_reconciliation": {
+    "status": "schema_evidence_defined_not_materialized",
+    "schema_evidence_slice": "control-plane-read-schema-artifact-evidence-v1",
+    "schema_evidence_status": "schema_artifact_evidence_defined",
+    "route_mapping_count": 7,
+    "evidence_kinds": [
+      "ddl_review_evidence",
+      "rollback_fixture_evidence",
+      "schema_version_evidence",
+      "tenant_index_evidence",
+      "read_only_role_evidence",
+      "route_schema_artifact_mapping"
+    ],
+    "evidence_materialized_now": false,
+    "schema_artifact_manifest_ready_now": false,
+    "schema_artifact_manifest_task_card_allowed_now": false,
+    "schema_artifact_implementation_trigger_satisfied_now": false
+  },
+  "next_development_policy": {
+    "status": "targeted_correction_or_wait_for_trigger",
+    "no_same_level_read_only_panel_by_default": true,
+    "no_new_governance_slice_without_new_boundary": true,
+    "ordinary_copy_or_layout_uses_existing_gates": true,
+    "real_reading_gap_allows_targeted_correction": true,
+    "schema_evidence_gap_allows_targeted_correction": true,
+    "implementation_requires_satisfied_trigger": true,
+    "implementation_entry_selects_one_track_only": true,
+    "trigger_recheck_required_before_task_card": true
+  },
+  "entry_review_order": [
+    {
+      "step": 1,
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "future_track": "schema artifact manifest implementation",
+      "reason": "Schema artifacts are the first durable-store implementation entry, but current schema evidence is defined and not materialized."
+    },
+    {
+      "step": 2,
+      "candidate_id": "store_selector_smoke_implementation",
+      "future_track": "store selector smoke implementation",
+      "reason": "Selector smoke depends on concrete selector code and durable mode enablement, neither of which is open now."
+    },
+    {
+      "step": 3,
+      "candidate_id": "production_auth_implementation",
+      "future_track": "production auth implementation",
+      "reason": "Production auth depends on issuer evidence, token validation contract and route smoke before implementation."
+    },
+    {
+      "step": 4,
+      "candidate_id": "adapter_smoke_execution",
+      "future_track": "adapter smoke execution",
+      "reason": "Adapter smoke is last because it requires schema, selector, production auth, static runner and adapter implementation evidence."
+    }
+  ],
+  "forbidden_task_card_matrix": [
+    {
+      "path": "docs/task-cards/control-plane-read-schema-artifact-manifest-implementation-v1-plan.md",
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/control-plane-read-store-selector-smoke-implementation-v1-plan.md",
+      "candidate_id": "store_selector_smoke_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/control-plane-read-production-auth-implementation-v1-plan.md",
+      "candidate_id": "production_auth_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/control-plane-read-adapter-smoke-execution-v1-plan.md",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    }
+  ],
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/platform/migrations/control_plane_read/manifest.json",
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/ddl-review.md",
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/rollback-fixture.json",
+      "candidate_id": "schema_artifact_manifest_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_store_selector.go",
+      "candidate_id": "store_selector_smoke_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/radish-oidc-token-validation.schema.json",
+      "candidate_id": "production_auth_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_auth_middleware.go",
+      "candidate_id": "production_auth_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/fixtures/control-plane-read-adapter-smoke-v1.json",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-control-plane-read-adapter-smoke-v1.py",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_repository_interface.go",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_repository_adapter.go",
+      "candidate_id": "adapter_smoke_execution",
+      "created_in_this_slice": false
+    }
+  ],
+  "no_fake_fallback_policy": {
+    "missing_trigger_success_allowed": false,
+    "schema_evidence_promoted_to_manifest_allowed": false,
+    "readiness_only_promoted_to_implementation_allowed": false,
+    "blocked_candidate_promoted_to_task_card_allowed": false,
+    "repository_mode_fallback_to_fixture_fake_store_allowed": false,
+    "database_mode_fallback_to_fixture_fake_store_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "dev_server_start_count=0",
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "dev_server_start",
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "source_absent_literals": [
+    "ControlPlaneReadSchemaMigrationRunner",
+    "control_plane_read_schema_migration_runner.go",
+    "control_plane_read_repository_interface.go",
+    "control_plane_read_repository_adapter.go",
+    "control_plane_read_store_selector.go",
+    "control_plane_read_auth_middleware.go",
+    "control-plane-read-adapter-smoke-v1.json",
+    "check-control-plane-read-adapter-smoke-v1.py",
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "RADISHMIND_CONTROL_PLANE_READ_STORE",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "oidc.Provider",
+    "github.com/coreos/go-oidc",
+    "ValidateToken",
+    "VerifyToken",
+    "NewRadishOIDCClient"
+  ],
+  "required_doc_references": {
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation entry review"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation_entry_review_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation_entry_review_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation_entry_review_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation entry review"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "Control Plane Read Implementation Entry Review"
+    ],
+    "docs/task-cards/control-plane-read-implementation-entry-review-v1-plan.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation_entry_review_defined"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-implementation-entry-review-v1.py",
+      "control-plane-read-implementation-entry-review-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation_entry_review_defined"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "control-plane-read-implementation-entry-review-v1",
+      "implementation_entry_review_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/control-plane-read-implementation-entry-review-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-implementation-entry-review-v1.json",
+    "scripts/checks/control_plane/check-control-plane-read-implementation-entry-review-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-roadmap.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/task-cards/README.md",
+    "docs/devlogs/2026-W24.md"
+  ]
+}

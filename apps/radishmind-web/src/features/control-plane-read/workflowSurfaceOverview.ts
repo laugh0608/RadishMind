@@ -80,7 +80,7 @@ export type WorkflowSurfaceOverviewViewModel = {
   canWriteBusinessTruth: false;
   canReplayRun: false;
   canAttachDatabase: false;
-  canEnableRadishOidc: false;
+  canEnableRadishAuth: false;
   canImplementRepositoryAdapter: false;
 };
 
@@ -135,7 +135,7 @@ export function buildWorkflowSurfaceOverviewViewModel(
     canWriteBusinessTruth: false,
     canReplayRun: false,
     canAttachDatabase: false,
-    canEnableRadishOidc: false,
+    canEnableRadishAuth: false,
     canImplementRepositoryAdapter: false,
   };
 }
@@ -369,7 +369,7 @@ function buildStopLines(): WorkflowSurfaceOverviewStopLine[] {
       stopLineId: "auth_database_repository",
       label: "Auth, database, repository",
       status: "locked",
-      summary: "Radish OIDC, database attach, store selector, and repository adapter work need separate implementation triggers.",
+      summary: "Radish auth, database attach, store selector, and repository adapter work need separate implementation triggers.",
     },
   ];
 }

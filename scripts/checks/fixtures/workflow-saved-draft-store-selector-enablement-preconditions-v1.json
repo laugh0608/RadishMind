@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_store_selector_enablement_preconditions_v1",
+  "slice": {
+    "id": "workflow-saved-draft-store-selector-enablement-preconditions-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_store_selector_enablement_preconditions_defined",
+    "does_not_claim": [
+      "store_selector_implemented",
+      "formal_store_config_ready",
+      "repository_mode_ready",
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "database_schema_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "saved_draft_list_implemented",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-consumer-smoke-v1",
+    "workflow-saved-draft-durable-store-preconditions-v1",
+    "workflow-saved-draft-repository-contract-preconditions-v1",
+    "workflow-saved-draft-schema-migration-preconditions-v1",
+    "workflow-saved-draft-auth-context-preconditions-v1"
+  ],
+  "selector_enablement_boundary": {
+    "status": "selector_enablement_preconditions_defined_not_implemented",
+    "current_default_mode": "memory_dev",
+    "current_store_source": "platform memory dev store",
+    "future_config_key": "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+    "future_selector_name": "SelectWorkflowSavedDraftStore",
+    "future_selector_type": "WorkflowSavedDraftStoreSelector",
+    "future_selector_file": "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+    "future_store_source": "future SavedWorkflowDraftRepository adapter",
+    "selector_preconditions_defined_in_this_slice": true,
+    "formal_config_entry_created": false,
+    "selector_file_created_in_this_slice": false,
+    "store_selector_implemented_in_this_slice": false,
+    "repository_interface_created_in_this_slice": false,
+    "repository_adapter_created_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "saved_draft_list_created_in_this_slice": false,
+    "publish_or_run_created_in_this_slice": false,
+    "executor_created_in_this_slice": false,
+    "writeback_or_replay_created_in_this_slice": false
+  },
+  "store_mode_enablement_matrix": [
+    {
+      "mode": "memory_dev",
+      "current_status": "current_default",
+      "enabled_now": true,
+      "selector_implementation_required": false,
+      "failure_code_when_selected": null,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false
+    },
+    {
+      "mode": "repository_disabled",
+      "current_status": "reserved_disabled",
+      "enabled_now": false,
+      "selector_implementation_required": true,
+      "failure_code_when_selected": "repository_store_disabled",
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false
+    },
+    {
+      "mode": "repository",
+      "current_status": "future_reserved_disabled",
+      "enabled_now": false,
+      "selector_implementation_required": true,
+      "failure_code_when_selected": "repository_store_disabled",
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false
+    },
+    {
+      "mode": "unknown",
+      "current_status": "fail_closed",
+      "enabled_now": false,
+      "selector_implementation_required": true,
+      "failure_code_when_selected": "invalid_draft_store_mode",
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false
+    }
+  ],
+  "operation_selector_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "default_mode": "memory_dev",
+      "reserved_modes": [
+        "repository_disabled",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "selector_enablement_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed_on_denied": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "default_mode": "memory_dev",
+      "reserved_modes": [
+        "repository_disabled",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "selector_enablement_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed_on_denied": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "default_mode": "memory_dev",
+      "reserved_modes": [
+        "repository_disabled",
+        "repository"
+      ],
+      "reserved_mode_failure_code": "repository_store_disabled",
+      "unknown_mode_failure_code": "invalid_draft_store_mode",
+      "selector_enablement_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed_on_denied": false
+    }
+  ],
+  "enablement_gates": [
+    {
+      "id": "selector_config_boundary_defined",
+      "status": "required_now",
+      "must_cover": [
+        "future config key name",
+        "mode allowlist",
+        "current default remains memory_dev",
+        "unknown mode fails closed"
+      ]
+    },
+    {
+      "id": "dev_http_write_boundary_preserved",
+      "status": "required_now",
+      "must_cover": [
+        "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
+        "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
+        "dev HTTP enablement separate from store mode"
+      ]
+    },
+    {
+      "id": "repository_disabled_gate",
+      "status": "required_now",
+      "must_cover": [
+        "repository_disabled mode returns repository_store_disabled",
+        "repository mode returns repository_store_disabled until enabled",
+        "reserved modes never fall back to memory_dev"
+      ]
+    },
+    {
+      "id": "repository_adapter_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "SavedWorkflowDraftRepository interface",
+        "repository adapter smoke",
+        "store contract mismatch mapping",
+        "internal error redaction"
+      ]
+    },
+    {
+      "id": "schema_migration_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "schema artifact manifest",
+        "DDL review evidence",
+        "migration smoke",
+        "store schema version"
+      ]
+    },
+    {
+      "id": "auth_context_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "tenant binding",
+        "workspace membership",
+        "owner policy",
+        "scope grants",
+        "audit context"
+      ]
+    },
+    {
+      "id": "selector_smoke_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "unset source selects memory_dev",
+        "memory_dev selects platform memory dev store",
+        "repository_disabled returns repository_store_disabled",
+        "repository returns repository_store_disabled before adapter enablement",
+        "unknown mode returns invalid_draft_store_mode"
+      ]
+    },
+    {
+      "id": "no_selector_code_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no formal config entry",
+        "no selector function",
+        "no selector type",
+        "no repository adapter",
+        "no SQL or migration files"
+      ]
+    }
+  ],
+  "failure_mapping": [
+    "repository_store_disabled",
+    "invalid_draft_store_mode",
+    "draft_store_unavailable",
+    "draft_store_contract_mismatch",
+    "draft_auth_context_contract_mismatch",
+    "draft_schema_migration_not_applied",
+    "draft_store_schema_version_mismatch"
+  ],
+  "dev_flag_boundary": {
+    "status": "dev_flags_remain_independent",
+    "saved_draft_dev_http_env": "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
+    "saved_draft_dev_write_env": "RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
+    "store_mode_config_must_not_enable_dev_http": true,
+    "store_mode_config_must_not_enable_writes": true
+  },
+  "no_fallback_policy": {
+    "reserved_mode_memory_dev_fallback_allowed": false,
+    "reserved_mode_sample_fallback_allowed": false,
+    "unknown_mode_success_allowed": false,
+    "missing_selector_success_allowed": false,
+    "repository_internal_error_exposure_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "implementation_artifact_guard": {
+    "status": "forbid_implementation_artifacts",
+    "future_files_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector_test.go",
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http_test.go"
+    ],
+    "future_literals_must_not_appear_in_source": [
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+      "SelectWorkflowSavedDraftStore",
+      "WorkflowSavedDraftStoreSelector",
+      "workflow_saved_draft_store_selector.go",
+      "NewSavedWorkflowDraftRepositoryAdapter",
+      "SavedWorkflowDraftRepository",
+      "database/sql",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "CREATE INDEX",
+      "DROP TABLE",
+      "INSERT INTO",
+      "UPDATE ",
+      "DELETE FROM",
+      "services/platform/migrations/workflow_saved_drafts",
+      "oidc.Provider",
+      "ValidateToken"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-store-selector-enablement-preconditions-v1.md",
+      "must_contain": [
+        "状态：`draft_store_selector_enablement_preconditions_defined`",
+        "Store Mode Contract",
+        "Selector Gate",
+        "Failure Mapping",
+        "不创建正式 config entry"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Store Selector Enablement Preconditions v1",
+        "draft_store_selector_enablement_preconditions_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Store Selector Enablement Preconditions v1",
+        "draft_store_selector_enablement_preconditions_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-auth-context-preconditions-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Store Selector Enablement Preconditions v1",
+        "draft_store_selector_enablement_preconditions_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-store-selector-enablement-preconditions-v1-plan.md",
+      "must_contain": [
+        "draft_store_selector_enablement_preconditions_defined",
+        "不创建正式 config entry",
+        "workflow-saved-draft-store-selector-enablement-preconditions-v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-store-selector-enablement-preconditions-v1",
+        "draft_store_selector_enablement_preconditions_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_only",
+    "required_checks": [
+      "workflow_saved_draft_store_selector_enablement_preconditions_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_create_config_entry": true,
+    "does_not_create_selector": true,
+    "does_not_create_repository_adapter": true,
+    "does_not_connect_database": true,
+    "does_not_call_oidc": true
+  }
+}

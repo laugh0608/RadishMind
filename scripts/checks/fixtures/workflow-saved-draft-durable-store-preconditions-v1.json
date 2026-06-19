@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_durable_store_preconditions_v1",
+  "slice": {
+    "id": "workflow-saved-draft-durable-store-preconditions-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_durable_store_preconditions_defined",
+    "does_not_claim": [
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "database_ready",
+      "database_schema_ready",
+      "database_migration_ready",
+      "repository_adapter_ready",
+      "store_selector_implemented",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-consumer-smoke-v1",
+    "user-workspace-draft-creation-v1"
+  ],
+  "precondition_boundary": {
+    "status": "preconditions_defined_not_implemented",
+    "current_store_source": "platform memory dev store",
+    "future_store_source": "future SavedWorkflowDraftRepository adapter",
+    "dev_http_route_remains_default_off": true,
+    "durable_store_allowed_in_this_slice": false,
+    "database_schema_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "store_selector_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "publish_or_run_allowed_in_this_slice": false,
+    "executor_allowed_in_this_slice": false,
+    "writeback_or_replay_allowed_in_this_slice": false
+  },
+  "draft_scope_contract": {
+    "status": "scope_contract_defined_not_implemented",
+    "scope_key": "tenant_ref + workspace_id + application_id + draft_id",
+    "required_identity_fields": [
+      "tenant_ref",
+      "workspace_id",
+      "application_id",
+      "draft_id",
+      "source_definition_id",
+      "base_definition_version",
+      "draft_version",
+      "schema_version"
+    ],
+    "required_request_scope_fields": [
+      "workspace_id",
+      "application_id"
+    ],
+    "scope_denial_failure_code": "draft_scope_denied",
+    "scope_denial_returns_draft_body": false,
+    "cross_workspace_read_allowed": false,
+    "cross_application_read_allowed": false,
+    "query_scope_override_allowed": false,
+    "sample_fallback_allowed": false
+  },
+  "owner_workspace_boundary": {
+    "status": "owner_workspace_contract_defined_not_implemented",
+    "current_actor_source": "dev auth subject binding",
+    "future_owner_source": "Radish OIDC subject or team ownership policy",
+    "required_owner_fields_before_repository_adapter": [
+      "owner_subject_ref",
+      "created_by_actor_ref",
+      "updated_by_actor_ref",
+      "tenant_ref",
+      "workspace_id",
+      "application_id"
+    ],
+    "workspace_membership_check_required_before_repository_adapter": true,
+    "tenant_predicate_required_before_repository_adapter": true,
+    "owner_grants_cross_workspace_access": false,
+    "team_sharing_defined_in_this_slice": false,
+    "radish_oidc_claim_mapping_satisfied": false
+  },
+  "version_conflict_policy": {
+    "status": "optimistic_concurrency_required",
+    "client_field": "expected_draft_version",
+    "server_field": "draft_version",
+    "failure_code": "draft_version_conflict",
+    "overwrite_on_conflict_allowed": false,
+    "local_draft_retained_on_conflict": true,
+    "sample_fallback_allowed": false,
+    "required_response_metadata": [
+      "current_draft_version",
+      "current_updated_at",
+      "current_updated_by_actor_ref",
+      "request_id",
+      "audit_ref"
+    ]
+  },
+  "no_sample_fallback_policy": {
+    "status": "fail_closed_required",
+    "sample_or_fixture_may_be_displayed_only_as": [
+      "sample",
+      "unsaved_local"
+    ],
+    "failure_codes": [
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_schema_version_unsupported",
+      "draft_version_conflict",
+      "draft_store_unavailable",
+      "draft_write_disabled",
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_store_contract_mismatch"
+    ],
+    "fallback_to_sample_as_saved_record_allowed": false,
+    "fallback_to_dev_store_from_repository_mode_allowed": false
+  },
+  "store_switch_stopline": {
+    "status": "repository_switch_reserved_not_implemented",
+    "future_config_key": "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+    "formal_config_entry_created": false,
+    "current_mode": {
+      "mode": "memory_dev_store",
+      "enabled_now": true,
+      "durable": false
+    },
+    "reserved_modes": [
+      {
+        "mode": "repository",
+        "enabled_now": false,
+        "fallback_to_dev_store_allowed": false,
+        "failure_code_until_enabled": "repository_store_disabled"
+      },
+      {
+        "mode": "database",
+        "enabled_now": false,
+        "fallback_to_dev_store_allowed": false,
+        "failure_code_until_enabled": "repository_store_disabled"
+      }
+    ],
+    "required_before_switch": [
+      "SavedWorkflowDraftRepository contract",
+      "owner_subject_ref and workspace membership contract",
+      "schema and migration design",
+      "store selector design",
+      "Radish OIDC auth context contract",
+      "repository contract smoke",
+      "adapter smoke",
+      "no sample fallback tests",
+      "version conflict tests",
+      "scope denied tests",
+      "store unavailable tests",
+      "no executor confirmation writeback replay side effects"
+    ],
+    "switch_allowed_now": false
+  },
+  "implementation_artifact_guard": {
+    "future_files_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_test.go",
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_without_future_literals": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go"
+    ],
+    "absent_literals": [
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+      "SavedWorkflowDraftRepository",
+      "workflow_saved_draft_repository",
+      "workflow_saved_draft_store_selector",
+      "database/sql",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "oidc.Provider",
+      "ValidateToken"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/saved-workflow-draft-durable-store-preconditions-v1.md": [
+      "Saved Workflow Draft Durable Store Preconditions v1",
+      "状态：`draft_durable_store_preconditions_defined`",
+      "owner_subject_ref",
+      "draft_version_conflict",
+      "no sample fallback",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE"
+    ],
+    "docs/features/workflow/saved-workflow-draft-v1.md": [
+      "Saved Workflow Draft Durable Store Preconditions v1",
+      "owner_subject_ref",
+      "dev store",
+      "repository adapter"
+    ],
+    "docs/features/workflow/README.md": [
+      "Saved Workflow Draft Durable Store Preconditions v1",
+      "draft_durable_store_preconditions_defined"
+    ],
+    "docs/features/user-workspace.md": [
+      "durable store 迁移前置设计",
+      "owner / workspace"
+    ],
+    "docs/task-cards/workflow-saved-draft-durable-store-preconditions-v1-plan.md": [
+      "workflow-saved-draft-durable-store-preconditions-v1",
+      "draft_durable_store_preconditions_defined",
+      "draft_scope_denied",
+      "no sample fallback"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "workflow-saved-draft-durable-store-preconditions-v1",
+      "draft_durable_store_preconditions_defined"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "Saved Draft Durable Store Preconditions",
+      "workflow-saved-draft-durable-store-preconditions-v1"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_saved_draft_durable_store_preconditions_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-durable-store-preconditions-v1.py"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

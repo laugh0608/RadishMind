@@ -123,7 +123,7 @@ export type WorkflowWorkspaceReviewViewModel = {
   canWriteBusinessTruth: false;
   canReplayRun: false;
   canAttachDatabase: false;
-  canEnableRadishOidc: false;
+  canEnableRadishAuth: false;
   canImplementRepositoryAdapter: false;
 };
 
@@ -190,7 +190,7 @@ export function buildWorkflowWorkspaceReviewViewModel(
     canWriteBusinessTruth: false,
     canReplayRun: false,
     canAttachDatabase: false,
-    canEnableRadishOidc: false,
+    canEnableRadishAuth: false,
     canImplementRepositoryAdapter: false,
   };
 }

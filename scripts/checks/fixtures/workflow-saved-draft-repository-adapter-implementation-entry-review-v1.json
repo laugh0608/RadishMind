@@ -1,0 +1,583 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_repository_adapter_implementation_entry_review_v1",
+  "slice": {
+    "id": "workflow-saved-draft-repository-adapter-implementation-entry-review-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_repository_adapter_implementation_entry_review_defined",
+    "does_not_claim": [
+      "repository_adapter_implementation_task_card_created",
+      "repository_interface_implemented",
+      "repository_adapter_implemented",
+      "repository_adapter_ready",
+      "repository_mode_enabled",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "database_query_ready",
+      "database_connection_ready",
+      "database_migration_ready",
+      "schema_version_table_created",
+      "sql_migration_created",
+      "migration_runner_implemented",
+      "production_auth_ready",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "auth_middleware_ready",
+      "workspace_membership_adapter_ready",
+      "adapter_smoke_ready",
+      "adapter_smoke_executed",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1",
+    "workflow-saved-draft-repository-adapter-implementation-plan-v1",
+    "workflow-saved-draft-schema-artifact-manifest-v1",
+    "workflow-saved-draft-store-selector-smoke-v1",
+    "workflow-saved-draft-schema-artifact-materialization-v1",
+    "workflow-saved-draft-production-auth-readiness-v1",
+    "workflow-saved-draft-adapter-smoke-readiness-v1"
+  ],
+  "repository_adapter_entry_boundary": {
+    "status": "repository_adapter_implementation_entry_review_defined_no_runtime_change",
+    "decision": "repository_adapter_implementation_entry_ready_for_next_task",
+    "current_development_mode": "entry_review_only_no_runtime_change",
+    "selected_implementation_track_now": "none",
+    "next_implementation_track": "repository_adapter_implementation_task_card",
+    "future_implementation_task_card": "docs/task-cards/workflow-saved-draft-repository-adapter-implementation-v1-plan.md",
+    "future_repository_interface_file": "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+    "future_repository_adapter_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+    "future_repository_adapter_test_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+    "future_adapter_smoke_fixture": "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+    "future_adapter_smoke_checker": "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
+    "implementation_task_card_created_in_this_slice": false,
+    "repository_interface_created_in_this_slice": false,
+    "repository_adapter_created_in_this_slice": false,
+    "repository_adapter_tests_created_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_connection_allowed_in_this_slice": false,
+    "sql_files_created_in_this_slice": false,
+    "schema_version_table_created_in_this_slice": false,
+    "migration_runner_created_in_this_slice": false,
+    "adapter_smoke_fixture_created_in_this_slice": false,
+    "adapter_smoke_checker_created_in_this_slice": false,
+    "repository_mode_enablement_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "auth_middleware_allowed_in_this_slice": false,
+    "membership_adapter_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "publish_or_run_allowed_in_this_slice": false,
+    "executor_allowed_in_this_slice": false,
+    "writeback_or_replay_allowed_in_this_slice": false
+  },
+  "entry_gate_matrix": [
+    {
+      "id": "repository_contract_smoke_runner_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1"
+    },
+    {
+      "id": "repository_adapter_plan_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-repository-adapter-implementation-plan-v1"
+    },
+    {
+      "id": "schema_artifact_manifest_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-schema-artifact-manifest-v1"
+    },
+    {
+      "id": "store_selector_implementation_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-store-selector-smoke-v1"
+    },
+    {
+      "id": "schema_artifact_materialization_consumed",
+      "status": "satisfied_static",
+      "evidence": "workflow-saved-draft-schema-artifact-materialization-v1"
+    },
+    {
+      "id": "production_auth_readiness_consumed",
+      "status": "satisfied_for_entry_review",
+      "evidence": "workflow-saved-draft-production-auth-readiness-v1"
+    },
+    {
+      "id": "adapter_smoke_readiness_consumed",
+      "status": "satisfied_for_entry_review",
+      "evidence": "workflow-saved-draft-adapter-smoke-readiness-v1"
+    },
+    {
+      "id": "repository_adapter_entry_review_defined",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-repository-adapter-implementation-entry-review-v1"
+    },
+    {
+      "id": "repository_interface_candidate_reviewed",
+      "status": "ready_for_next_task",
+      "candidate_id": "repository_interface"
+    },
+    {
+      "id": "repository_adapter_candidate_reviewed",
+      "status": "ready_for_next_task",
+      "candidate_id": "repository_adapter"
+    },
+    {
+      "id": "adapter_unit_tests_candidate_reviewed",
+      "status": "ready_for_next_task",
+      "candidate_id": "adapter_unit_tests"
+    },
+    {
+      "id": "adapter_smoke_execution_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "repository adapter implemented",
+        "adapter smoke fixture",
+        "adapter smoke checker",
+        "adapter contract smoke execution"
+      ]
+    },
+    {
+      "id": "production_auth_runtime_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "OIDC middleware",
+        "token validation",
+        "membership adapter",
+        "sanitized auth smoke"
+      ]
+    },
+    {
+      "id": "production_api_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "production API consumer",
+        "production auth policy",
+        "production CORS policy",
+        "no dev fake auth headers"
+      ]
+    },
+    {
+      "id": "database_execution_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "database connection policy",
+        "query role",
+        "schema version check",
+        "manual migration applied evidence"
+      ]
+    },
+    {
+      "id": "migration_runner_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "SQL migration",
+        "schema version table",
+        "migration runner",
+        "rollback command"
+      ]
+    },
+    {
+      "id": "no_repository_adapter_implementation_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no repository runtime implementation artifact",
+        "no repository interface",
+        "no repository adapter",
+        "no adapter unit tests",
+        "no database query",
+        "no adapter smoke fixture",
+        "no adapter smoke checker",
+        "no OIDC token validation",
+        "no production API"
+      ]
+    }
+  ],
+  "repository_adapter_entry_candidates": [
+    {
+      "candidate_id": "repository_interface",
+      "candidate_label": "SavedWorkflowDraftRepository interface",
+      "entry_decision": "ready_for_next_task",
+      "trigger_satisfied_now": true,
+      "task_card_allowed_next": true,
+      "implementation_artifacts_allowed_now": false,
+      "future_artifacts": [
+        "services/platform/internal/httpapi/workflow_saved_draft_repository.go"
+      ],
+      "remaining_preconditions": [
+        "implementation_task_card_not_created_in_this_slice",
+        "interface_operation_contract_must_reference_static_runner",
+        "auth_context_input_must_remain_required",
+        "no_fallback_tests_must_be_defined"
+      ]
+    },
+    {
+      "candidate_id": "repository_adapter",
+      "candidate_label": "repository adapter",
+      "entry_decision": "ready_for_next_task",
+      "trigger_satisfied_now": true,
+      "task_card_allowed_next": true,
+      "implementation_artifacts_allowed_now": false,
+      "future_artifacts": [
+        "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go"
+      ],
+      "remaining_preconditions": [
+        "implementation_task_card_not_created_in_this_slice",
+        "database_query_policy_must_be_declared",
+        "schema_preflight_must_consume_materialized_artifact",
+        "production_auth_runtime_still_not_implemented"
+      ]
+    },
+    {
+      "candidate_id": "adapter_unit_tests",
+      "candidate_label": "adapter unit tests",
+      "entry_decision": "ready_for_next_task",
+      "trigger_satisfied_now": true,
+      "task_card_allowed_next": true,
+      "implementation_artifacts_allowed_now": false,
+      "future_artifacts": [
+        "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go"
+      ],
+      "remaining_preconditions": [
+        "repository_interface_not_created",
+        "repository_adapter_not_created",
+        "database_query_not_created",
+        "adapter_failure_matrix_must_match_contract_smoke"
+      ]
+    },
+    {
+      "candidate_id": "adapter_smoke_fixture",
+      "candidate_label": "adapter smoke fixture and checker",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "task_card_allowed_next": false,
+      "implementation_artifacts_allowed_now": false,
+      "future_artifacts": [
+        "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+        "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py"
+      ],
+      "current_blockers": [
+        "repository_adapter_not_implemented",
+        "adapter_unit_tests_not_created",
+        "production_auth_runtime_not_implemented",
+        "adapter_smoke_execution_not_opened"
+      ]
+    },
+    {
+      "candidate_id": "repository_store_mode_enablement",
+      "candidate_label": "repository store mode enablement",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "task_card_allowed_next": false,
+      "implementation_artifacts_allowed_now": false,
+      "future_artifacts": [
+        "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go"
+      ],
+      "current_blockers": [
+        "repository_adapter_not_implemented",
+        "adapter_smoke_not_executed",
+        "production_api_not_opened",
+        "production_auth_runtime_not_implemented"
+      ]
+    },
+    {
+      "candidate_id": "production_route_consumer",
+      "candidate_label": "production API consumer",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "task_card_allowed_next": false,
+      "implementation_artifacts_allowed_now": false,
+      "future_artifacts": [
+        "services/platform/internal/httpapi/workflow_saved_draft_production_http.go"
+      ],
+      "current_blockers": [
+        "production_auth_runtime_not_implemented",
+        "repository_adapter_not_implemented",
+        "repository_mode_not_enabled",
+        "production_cors_policy_not_defined"
+      ]
+    }
+  ],
+  "operation_entry_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "entry_review_conclusion": "ready_for_next_repository_adapter_task",
+      "required_binding_fields": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants"
+      ],
+      "implementation_allowed_now": false,
+      "database_write_allowed_now": false,
+      "adapter_smoke_allowed_now": false,
+      "production_api_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_test_auth_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "entry_review_conclusion": "ready_for_next_repository_adapter_task",
+      "required_binding_fields": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants"
+      ],
+      "implementation_allowed_now": false,
+      "database_write_allowed_now": false,
+      "adapter_smoke_allowed_now": false,
+      "production_api_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_test_auth_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "entry_review_conclusion": "ready_for_next_repository_adapter_task",
+      "required_binding_fields": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "actor_subject_ref",
+        "owner_subject_ref",
+        "scope_grants"
+      ],
+      "implementation_allowed_now": false,
+      "database_write_allowed_now": false,
+      "adapter_smoke_allowed_now": false,
+      "production_api_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_test_auth_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_mapping": {
+    "status": "repository_adapter_entry_fail_closed_required",
+    "required_failure_codes": [
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_schema_version_unsupported",
+      "draft_payload_invalid",
+      "draft_version_conflict",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_auth_context_contract_mismatch",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable",
+      "draft_identity_context_missing",
+      "draft_tenant_binding_missing",
+      "draft_workspace_membership_denied",
+      "draft_scope_grant_missing"
+    ],
+    "preserve_existing_failure_codes": [
+      "draft_version_conflict",
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_store_unavailable"
+    ],
+    "forbidden_failure_rewrites": [
+      "draft_version_conflict_to_adapter_failure",
+      "draft_not_found_to_sample",
+      "draft_scope_denied_to_partial_record",
+      "schema_failure_to_database_detail",
+      "auth_failure_to_raw_claim_dump"
+    ]
+  },
+  "no_fallback_policy": {
+    "repository_mode_fallback_to_memory_dev_store_allowed": false,
+    "repository_mode_fallback_to_sample_allowed": false,
+    "repository_mode_fallback_to_fixture_allowed": false,
+    "repository_mode_fallback_to_dev_http_route_allowed": false,
+    "missing_auth_context_fallback_to_test_auth_allowed": false,
+    "scope_denied_fallback_to_local_admin_allowed": false,
+    "schema_missing_fallback_to_unversioned_store_allowed": false,
+    "adapter_error_fallback_to_empty_success_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "database_write_count=0",
+      "database_query_count=0",
+      "adapter_smoke_execution_count=0",
+      "issuer_network_call_count=0",
+      "token_validation_call_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "repository_write",
+      "database_write",
+      "database_query",
+      "schema_migration_apply",
+      "adapter_smoke_execution",
+      "issuer_network_call",
+      "token_validation_runtime_call",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "implementation_artifact_guard": {
+    "status": "forbid_repository_adapter_implementation_artifacts",
+    "future_files_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_http.go",
+      "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
+      "contracts/radish-oidc-token-validation.schema.json",
+      "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_membership_adapter.go"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/server.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector_test.go",
+      "apps/radishmind-web/src/app/App.tsx"
+    ],
+    "future_literals_must_not_appear_in_source": [
+      "workflow_saved_draft_repository.go",
+      "workflow_saved_draft_repository_adapter.go",
+      "workflow_saved_draft_production_http.go",
+      "workflow-saved-draft-adapter-smoke-v1.json",
+      "check-workflow-saved-draft-adapter-smoke-v1.py",
+      "NewSavedWorkflowDraftRepositoryAdapter",
+      "type SavedWorkflowDraftRepository interface",
+      "type WorkflowSavedDraftPostgresRepository",
+      "database/sql",
+      "github.com/jackc/pgx",
+      "pgxpool",
+      "sql.Open(",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_REPOSITORY_DSN",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE",
+      "WorkflowSavedDraftAuthMiddleware",
+      "WorkflowSavedDraftTokenValidator",
+      "WorkflowSavedDraftMembershipAdapter"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-repository-adapter-implementation-entry-review-v1.md",
+      "must_contain": [
+        "状态：`draft_repository_adapter_implementation_entry_review_defined`",
+        "Entry Review Decision",
+        "Operation Entry Matrix",
+        "No Fallback / No Side Effects",
+        "不创建 repository interface"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Repository Adapter Implementation Entry Review v1",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Repository Adapter Implementation Entry Review v1",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "Saved Workflow Draft Repository Adapter Implementation Entry Review v1",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/features/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Repository Adapter Implementation Entry Review v1",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-repository-adapter-implementation-entry-review-v1-plan.md",
+      "must_contain": [
+        "workflow-saved-draft-repository-adapter-implementation-entry-review-v1",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/README.md",
+      "must_contain": [
+        "Workflow Saved Draft Repository Adapter Implementation Entry Review",
+        "workflow-saved-draft-repository-adapter-implementation-entry-review-v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-repository-adapter-implementation-entry-review-v1",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-repository-adapter-implementation-entry-review-v1.py",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W25.md",
+      "must_contain": [
+        "workflow-saved-draft-repository-adapter-implementation-entry-review-v1",
+        "draft_repository_adapter_implementation_entry_review_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_only",
+    "required_checks": [
+      "workflow_saved_draft_repository_adapter_implementation_entry_review_checker",
+      "workflow_saved_draft_production_auth_readiness_checker",
+      "workflow_saved_draft_schema_artifact_materialization_checker",
+      "workflow_saved_draft_store_selector_smoke_checker",
+      "workflow_saved_draft_adapter_smoke_readiness_checker",
+      "workflow_saved_draft_repository_adapter_implementation_plan_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_connect_database": true,
+    "does_not_create_repository_interface": true,
+    "does_not_create_repository_adapter": true,
+    "does_not_create_adapter_smoke": true,
+    "does_not_validate_token": true,
+    "does_not_create_production_api": true,
+    "does_not_create_sql_or_migration": true
+  }
+}

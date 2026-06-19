@@ -411,6 +411,7 @@ def assert_required_files(fixture: dict[str, Any]) -> None:
 
 def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     app_source = read("apps/radishmind-web/src/app/App.tsx")
+    workflow_context_source = read("apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts")
     styles = read("apps/radishmind-web/src/styles.css")
     workflow_sources: list[str] = []
 
@@ -426,12 +427,16 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         for flag in expected["required_false_flags"]:
             require(f"{flag}: false" in page_source, f"{page_id} missing false flag: {flag}")
 
-        for literal in (expected["builder"], expected["render_component"], expected["render_anchor"]):
+        require(
+            str(expected["builder"]) in app_source or str(expected["builder"]) in workflow_context_source,
+            f"workflow composition missing builder binding for {page_id}: {expected['builder']}",
+        )
+        for literal in (expected["render_component"], expected["render_anchor"]):
             require(str(literal) in app_source, f"App.tsx missing rendered binding for {page_id}: {literal}")
         require(str(expected["render_class"]) in app_source, f"App.tsx missing class for {page_id}")
         require(f".{expected['render_class']}" in styles, f"styles missing selector for {page_id}")
 
-    checked_source = "\n".join([*workflow_sources, app_source])
+    checked_source = "\n".join([*workflow_sources, workflow_context_source, app_source])
     for forbidden in fixture.get("forbidden_source_literals") or []:
         require(str(forbidden) not in checked_source, f"workflow surface source contains forbidden literal: {forbidden}")
 

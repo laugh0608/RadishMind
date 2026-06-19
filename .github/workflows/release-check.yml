@@ -24,22 +24,77 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Bootstrap development environment
         run: bash ./scripts/bootstrap-dev.sh
 
       - name: Check repository hygiene
         run: bash ./scripts/check-text-files.sh
 
-  planning-baseline:
-    name: Release Planning Baseline
+  repository-baseline:
+    name: Release Repository Baseline
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services/platform/go.mod
+
       - name: Bootstrap development environment
         run: bash ./scripts/bootstrap-dev.sh
 
-      - name: Check planning baseline
+      - name: Check repository baseline
         run: bash ./scripts/check-repo.sh --skip-text-files
+
+  web-build:
+    name: Release RadishMind Web Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/radishmind-web/package-lock.json
+
+      - name: Install web dependencies
+        run: npm ci
+        working-directory: apps/radishmind-web
+
+      - name: Build web app
+        run: npm run build
+        working-directory: apps/radishmind-web
+
+  platform-go-tests:
+    name: Release Platform Go Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services/platform/go.mod
+
+      - name: Test platform service
+        run: go test ./...
+        working-directory: services/platform

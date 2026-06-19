@@ -1,0 +1,601 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_schema_artifact_evidence_v1",
+  "slice": {
+    "id": "workflow-saved-draft-schema-artifact-evidence-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_schema_artifact_evidence_defined",
+    "does_not_claim": [
+      "schema_artifact_manifest_ready",
+      "schema_artifact_files_created",
+      "ddl_review_ready",
+      "ddl_review_artifact_created",
+      "rollback_evidence_ready",
+      "migration_smoke_ready",
+      "schema_version_table_ready",
+      "database_schema_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "migration_runner_implemented",
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "store_selector_implemented",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "saved_draft_list_implemented",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-repository-contract-preconditions-v1",
+    "workflow-saved-draft-schema-migration-preconditions-v1",
+    "workflow-saved-draft-auth-context-preconditions-v1",
+    "workflow-saved-draft-store-selector-enablement-preconditions-v1"
+  ],
+  "schema_artifact_evidence_boundary": {
+    "status": "schema_artifact_evidence_defined_no_artifact",
+    "decision": "evidence_chain_defined_without_schema_artifact",
+    "current_store_source": "platform memory dev store",
+    "future_store_source": "future SavedWorkflowDraftRepository adapter",
+    "future_schema_artifact_id": "workflow_saved_draft_schema_artifact_v1",
+    "future_store_schema_version": "saved_workflow_drafts_store_v1",
+    "future_migration_root": "services/platform/migrations/workflow_saved_drafts",
+    "future_manifest_file": "services/platform/migrations/workflow_saved_drafts/manifest.json",
+    "future_ddl_review_file": "services/platform/migrations/workflow_saved_drafts/ddl-review.md",
+    "future_schema_version_table": "workflow_saved_draft_schema_versions",
+    "purpose": "Define the evidence chain required before creating saved workflow draft schema artifacts, DDL files, migration smoke or durable repository adapter.",
+    "schema_artifact_manifest_created_in_this_slice": false,
+    "schema_artifact_files_created_in_this_slice": false,
+    "ddl_review_artifact_created_in_this_slice": false,
+    "rollback_evidence_created_in_this_slice": false,
+    "migration_smoke_created_in_this_slice": false,
+    "schema_version_table_created_in_this_slice": false,
+    "migration_root_created_in_this_slice": false,
+    "sql_files_created_in_this_slice": false,
+    "migration_runner_created_in_this_slice": false,
+    "database_connection_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "repository_interface_created_in_this_slice": false,
+    "repository_adapter_created_in_this_slice": false,
+    "store_selector_created_in_this_slice": false,
+    "oidc_validation_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "saved_draft_list_created_in_this_slice": false,
+    "publish_or_run_created_in_this_slice": false,
+    "executor_created_in_this_slice": false,
+    "writeback_or_replay_created_in_this_slice": false
+  },
+  "schema_artifact_manifest_contract": {
+    "status": "contract_defined_not_created",
+    "required_before_schema_artifact_files": true,
+    "future_manifest_path": "services/platform/migrations/workflow_saved_drafts/manifest.json",
+    "manifest_must_include": [
+      "manifest id",
+      "schema artifact id",
+      "store schema version",
+      "logical entity",
+      "field mapping",
+      "index mapping",
+      "migration id",
+      "up migration path",
+      "down migration path or forward-only exception",
+      "DDL review evidence ref",
+      "rollback evidence ref",
+      "migration smoke evidence ref",
+      "schema version table",
+      "manual apply gate",
+      "migration lock",
+      "backup requirement",
+      "failure mapping smoke cases",
+      "no side effect counters"
+    ],
+    "planned_evidence_artifacts": [
+      {
+        "path": "services/platform/migrations/workflow_saved_drafts/manifest.json",
+        "artifact_kind": "schema_artifact_manifest",
+        "purpose": "Future schema artifact manifest consumed by migration, selector smoke and repository adapter gates.",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/workflow_saved_drafts/ddl-review.md",
+        "artifact_kind": "ddl_review_evidence",
+        "purpose": "Future human-reviewed DDL evidence and manual apply notes.",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/workflow_saved_drafts/rollback-evidence.json",
+        "artifact_kind": "rollback_evidence",
+        "purpose": "Future rollback or forward-only exception, backup requirement and failed migration recovery evidence.",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/workflow_saved_drafts/migration-smoke.json",
+        "artifact_kind": "migration_smoke_evidence",
+        "purpose": "Future migration smoke evidence for schema version, scope predicate, owner projection, version conflict, failure mapping and side effects.",
+        "created_in_this_slice": false
+      }
+    ]
+  },
+  "logical_entity_artifact_mapping": {
+    "status": "defined_not_materialized",
+    "logical_entity": "saved_workflow_draft_record",
+    "future_schema_artifact_id": "workflow_saved_draft_schema_artifact_v1",
+    "store_schema_version": "saved_workflow_drafts_store_v1",
+    "source_preconditions": "workflow-saved-draft-schema-migration-preconditions-v1",
+    "columns": [
+      {
+        "logical_field": "tenant_ref",
+        "column_name": "tenant_ref",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "workspace_id",
+        "column_name": "workspace_id",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "application_id",
+        "column_name": "application_id",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "draft_id",
+        "column_name": "draft_id",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "owner_subject_ref",
+        "column_name": "owner_subject_ref",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "created_by_actor_ref",
+        "column_name": "created_by_actor_ref",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "updated_by_actor_ref",
+        "column_name": "updated_by_actor_ref",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "source_definition_id",
+        "column_name": "source_definition_id",
+        "column_type": "text",
+        "nullable": true,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "base_definition_version",
+        "column_name": "base_definition_version",
+        "column_type": "integer",
+        "nullable": true,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "draft_version",
+        "column_name": "draft_version",
+        "column_type": "integer",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "schema_version",
+        "column_name": "schema_version",
+        "column_type": "integer",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "store_schema_version",
+        "column_name": "store_schema_version",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "draft_status",
+        "column_name": "draft_status",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "sanitized_draft_payload",
+        "column_name": "sanitized_draft_payload",
+        "column_type": "json",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "validation_summary",
+        "column_name": "validation_summary",
+        "column_type": "json",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "blocked_capability_summary",
+        "column_name": "blocked_capability_summary",
+        "column_type": "json",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "request_id",
+        "column_name": "request_id",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "audit_ref",
+        "column_name": "audit_ref",
+        "column_type": "text",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "created_at",
+        "column_name": "created_at",
+        "column_type": "timestamptz",
+        "nullable": false,
+        "secret_material_allowed": false
+      },
+      {
+        "logical_field": "updated_at",
+        "column_name": "updated_at",
+        "column_type": "timestamptz",
+        "nullable": false,
+        "secret_material_allowed": false
+      }
+    ],
+    "forbidden_column_names": [
+      "secret_value",
+      "api_key_value",
+      "oauth_token",
+      "authorization_header",
+      "cookie_value",
+      "raw_prompt_dump",
+      "raw_tool_payload",
+      "provider_response_body",
+      "execution_plan_persistence",
+      "runtime_readiness_persistence",
+      "confirmation_decision",
+      "business_writeback_payload",
+      "run_result",
+      "replay_state",
+      "resume_state"
+    ]
+  },
+  "index_artifact_mapping": {
+    "status": "defined_not_created",
+    "source_preconditions": "workflow-saved-draft-schema-migration-preconditions-v1",
+    "indexes": [
+      {
+        "id": "saved_drafts_scope_lookup",
+        "future_index_name": "saved_drafts_scope_lookup_idx",
+        "fields": [
+          "tenant_ref",
+          "workspace_id",
+          "application_id",
+          "draft_id"
+        ],
+        "unique": true,
+        "created_in_this_slice": false,
+        "ddl_created_in_this_slice": false
+      },
+      {
+        "id": "saved_drafts_owner_list",
+        "future_index_name": "saved_drafts_owner_list_idx",
+        "fields": [
+          "tenant_ref",
+          "workspace_id",
+          "application_id",
+          "owner_subject_ref",
+          "updated_at",
+          "draft_id"
+        ],
+        "unique": false,
+        "created_in_this_slice": false,
+        "ddl_created_in_this_slice": false
+      },
+      {
+        "id": "saved_drafts_version_conflict",
+        "future_index_name": "saved_drafts_version_conflict_idx",
+        "fields": [
+          "tenant_ref",
+          "workspace_id",
+          "application_id",
+          "draft_id",
+          "draft_version"
+        ],
+        "unique": false,
+        "created_in_this_slice": false,
+        "ddl_created_in_this_slice": false
+      },
+      {
+        "id": "saved_drafts_status_list",
+        "future_index_name": "saved_drafts_status_list_idx",
+        "fields": [
+          "tenant_ref",
+          "workspace_id",
+          "application_id",
+          "owner_subject_ref",
+          "draft_status",
+          "updated_at",
+          "draft_id"
+        ],
+        "unique": false,
+        "created_in_this_slice": false,
+        "ddl_created_in_this_slice": false
+      },
+      {
+        "id": "saved_drafts_schema_version",
+        "future_index_name": "saved_drafts_schema_version_idx",
+        "fields": [
+          "tenant_ref",
+          "store_schema_version",
+          "schema_version"
+        ],
+        "unique": false,
+        "created_in_this_slice": false,
+        "ddl_created_in_this_slice": false
+      }
+    ]
+  },
+  "ddl_review_evidence": {
+    "status": "defined_not_materialized",
+    "evidence_id": "saved-workflow-draft-ddl-review-evidence",
+    "future_artifact_ref": "services/platform/migrations/workflow_saved_drafts/ddl-review.md",
+    "reviewer_requirement": "human_review_required",
+    "manual_apply_required": true,
+    "startup_auto_migration_allowed": false,
+    "destructive_change_without_review_allowed": false,
+    "app_runtime_role_can_migrate": false,
+    "artifact_created_now": false,
+    "must_cover": [
+      "human-reviewed DDL",
+      "manual apply command",
+      "backup requirement",
+      "migration lock",
+      "schema version table",
+      "rollback command or forward-only exception",
+      "tenant workspace application predicates",
+      "version conflict predicate",
+      "owner list projection",
+      "failure mapping",
+      "no sample fallback",
+      "no side effects"
+    ]
+  },
+  "migration_smoke_evidence": {
+    "status": "defined_not_materialized",
+    "future_artifact_ref": "services/platform/migrations/workflow_saved_drafts/migration-smoke.json",
+    "artifact_created_now": false,
+    "smoke_cases": [
+      {
+        "id": "store_schema_version_recorded",
+        "must_cover": [
+          "workflow_saved_draft_schema_versions table",
+          "saved_workflow_drafts_store_v1 version"
+        ]
+      },
+      {
+        "id": "tenant_workspace_application_predicate",
+        "must_cover": [
+          "tenant_ref leading predicate",
+          "workspace_id predicate",
+          "application_id predicate"
+        ]
+      },
+      {
+        "id": "owner_list_projection",
+        "must_cover": [
+          "owner_subject_ref predicate",
+          "sanitized summary only"
+        ]
+      },
+      {
+        "id": "version_conflict_predicate",
+        "must_cover": [
+          "draft_version optimistic concurrency",
+          "draft_version_conflict preserved"
+        ]
+      },
+      {
+        "id": "migration_not_applied_failure",
+        "must_cover": [
+          "draft_schema_migration_not_applied",
+          "no sample fallback"
+        ]
+      },
+      {
+        "id": "schema_version_mismatch_failure",
+        "must_cover": [
+          "draft_store_schema_version_mismatch",
+          "no memory dev fallback"
+        ]
+      },
+      {
+        "id": "no_side_effects",
+        "must_cover": [
+          "repository_write_count=0",
+          "executor_call_count=0",
+          "confirmation_call_count=0",
+          "business_writeback_count=0",
+          "replay_call_count=0"
+        ]
+      }
+    ]
+  },
+  "failure_mapping": {
+    "status": "fail_closed_required",
+    "required_failure_codes": [
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable",
+      "draft_store_contract_mismatch",
+      "repository_store_disabled",
+      "invalid_draft_store_mode"
+    ],
+    "preserve_existing_failure_codes": [
+      "draft_version_conflict",
+      "draft_scope_denied",
+      "draft_store_unavailable"
+    ],
+    "missing_ddl_review_success_allowed": false,
+    "missing_schema_artifact_success_allowed": false,
+    "version_conflict_must_not_be_rewritten_as_migration_failure": true,
+    "fallback_to_sample_allowed": false,
+    "fallback_to_fixture_allowed": false,
+    "fallback_to_memory_dev_store_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "implementation_artifact_guard": {
+    "status": "forbid_implementation_artifacts",
+    "future_files_must_not_exist": [
+      "services/platform/migrations/workflow_saved_drafts",
+      "services/platform/internal/httpapi/workflow_saved_draft_migration.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_migration.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_migration_test.go"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go"
+    ],
+    "future_literals_must_not_appear_in_source": [
+      "workflow_saved_draft_schema_artifact_v1",
+      "workflow_saved_drafts_store_v1",
+      "workflow_saved_draft_schema_versions",
+      "database/sql",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "CREATE INDEX",
+      "DROP TABLE",
+      "INSERT INTO",
+      "UPDATE ",
+      "DELETE FROM",
+      "services/platform/migrations/workflow_saved_drafts",
+      "WorkflowSavedDraftMigrationRunner",
+      "SavedWorkflowDraftStoreSelector",
+      "SelectWorkflowSavedDraftStore",
+      "NewSavedWorkflowDraftRepositoryAdapter",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+      "oidc.Provider",
+      "ValidateToken"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-schema-artifact-evidence-v1.md",
+      "must_contain": [
+        "状态：`draft_schema_artifact_evidence_defined`",
+        "Schema Artifact Evidence Contract",
+        "Logical Entity Mapping",
+        "DDL Review Gate",
+        "不创建 migration root"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Artifact Evidence v1",
+        "draft_schema_artifact_evidence_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Artifact Evidence v1",
+        "draft_schema_artifact_evidence_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-schema-migration-preconditions-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Artifact Evidence v1",
+        "draft_schema_artifact_evidence_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-store-selector-enablement-preconditions-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Artifact Evidence v1",
+        "draft_schema_artifact_evidence_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-schema-artifact-evidence-v1-plan.md",
+      "must_contain": [
+        "draft_schema_artifact_evidence_defined",
+        "不创建 migration root",
+        "workflow-saved-draft-schema-artifact-evidence-v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-schema-artifact-evidence-v1",
+        "draft_schema_artifact_evidence_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_only",
+    "required_checks": [
+      "workflow_saved_draft_schema_artifact_evidence_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_create_migration_root": true,
+    "does_not_create_schema_artifact": true,
+    "does_not_connect_database": true,
+    "does_not_create_repository_adapter": true,
+    "does_not_create_store_selector": true,
+    "does_not_call_oidc": true
+  }
+}

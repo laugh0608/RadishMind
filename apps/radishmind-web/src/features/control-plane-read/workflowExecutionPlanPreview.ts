@@ -337,8 +337,11 @@ function buildNodeStageMappings(
 }
 
 function providerProfileForNode(providerProfileRef: string, node: WorkflowDraftDesignerNode): string {
+  if (node.providerRef.trim()) {
+    return node.providerRef.trim();
+  }
   if (node.nodeType === "http_tool") {
-    return "tool-adapter:radishflow.candidate-action";
+    return node.toolRef.trim() || "tool-adapter:radishflow.candidate-action";
   }
   if (node.nodeType === "condition") {
     return "policy:confirmation-gated";
@@ -363,7 +366,7 @@ function buildProviderProfileRequirements(
     {
       requirementId: "provider_profile_model_stage",
       label: "Model provider profile",
-      providerProfileRef: draft.providerProfileRef,
+      providerProfileRef: providerRequirementRef(nodeStageMappings, modelNodeIds, draft.providerProfileRef),
       nodeIds: modelNodeIds,
       status: "defined_not_connected",
       missingPrerequisite: "workflow runtime provider binding task card",
@@ -372,7 +375,11 @@ function buildProviderProfileRequirements(
     {
       requirementId: "tool_adapter_preview_stage",
       label: "Tool adapter",
-      providerProfileRef: "tool-adapter:radishflow.candidate-action",
+      providerProfileRef: providerRequirementRef(
+        nodeStageMappings,
+        toolNodeIds,
+        "tool-adapter:radishflow.candidate-action",
+      ),
       nodeIds: toolNodeIds,
       status: "blocked",
       missingPrerequisite: "tool executor adapter implementation gate",
@@ -388,6 +395,18 @@ function buildProviderProfileRequirements(
       summary: "Policy and confirmation nodes remain visible but disconnected from execution unlock.",
     },
   ];
+}
+
+function providerRequirementRef(
+  nodeStageMappings: WorkflowExecutionPlanNodeMapping[],
+  nodeIds: string[],
+  fallbackRef: string,
+): string {
+  const matchedRefs = nodeStageMappings
+    .filter((mapping) => nodeIds.includes(mapping.nodeId))
+    .map((mapping) => mapping.providerProfileRef)
+    .filter((ref) => ref.trim());
+  return matchedRefs[0] ?? fallbackRef;
 }
 
 function buildConfirmationAuditGates(

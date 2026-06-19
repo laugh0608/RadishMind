@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_product_sample_consistency_v1",
+  "slice": {
+    "id": "control-plane-read-product-sample-consistency-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "product_sample_consistency_guarded",
+    "does_not_claim": [
+      "production_api_consumer_ready",
+      "database_schema_ready",
+      "database_query_ready",
+      "repository_implementation_ready",
+      "store_selector_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "run_resume_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-response-fixtures-v1",
+    "control-plane-read-fake-store-handler-implementation-v1",
+    "control-plane-read-formal-ui-readiness-close-v1",
+    "control-plane-read-dev-live-consumer-v1"
+  ],
+  "canonical_source": {
+    "fixture": "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+    "matched_fields": [
+      "success.items",
+      "success.next_cursor"
+    ],
+    "consumer_specific_envelope_fields": [
+      "request_id",
+      "audit_ref"
+    ],
+    "required_product_refs": [
+      {
+        "product_id": "radishflow_copilot",
+        "application_ref": "app_flow_copilot",
+        "display_name": "RadishFlow Copilot",
+        "workflow_definition_id": "wf_radishflow_copilot_latest",
+        "run_id": "run_radishflow_copilot_20260531_001",
+        "owner_subject_ref": "subject_platform_ops"
+      },
+      {
+        "product_id": "radish_docs_assistant",
+        "application_ref": "app_docs_assistant",
+        "display_name": "Radish Docs Assistant",
+        "workflow_definition_id": "wf_radish_docs_qa_draft",
+        "run_id": "run_radish_docs_qa_20260531_002",
+        "owner_subject_ref": "subject_docs_team"
+      }
+    ]
+  },
+  "checked_consumers": [
+    {
+      "consumer_id": "go_fake_store",
+      "status": "checked_by_go_unit_test",
+      "file": "services/platform/internal/httpapi/control_plane_read_fake_store.go",
+      "test_file": "services/platform/internal/httpapi/control_plane_read_product_samples_test.go"
+    },
+    {
+      "consumer_id": "frontend_offline_view_models",
+      "status": "checked_by_python_static_extraction",
+      "files": [
+        "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workspaceUsageQuota.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workspaceWorkflowDefinitions.ts",
+        "apps/radishmind-web/src/features/control-plane-read/workspaceRunHistory.ts",
+        "apps/radishmind-web/src/features/control-plane-read/adminAuditLog.ts"
+      ]
+    },
+    {
+      "consumer_id": "consumer_smoke",
+      "status": "checked_by_product_sample_refs",
+      "file": "scripts/run-control-plane-read-consumer-smoke.py"
+    }
+  ],
+  "frontend_offline_samples": [
+    {
+      "route_id": "tenant-summary-route",
+      "file": "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
+      "function": "buildTenantSummaryEnvelope"
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "file": "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
+      "function": "buildApplicationsEnvelope"
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "file": "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+      "function": "buildApiKeysEnvelope"
+    },
+    {
+      "route_id": "quota-summary-route",
+      "file": "apps/radishmind-web/src/features/control-plane-read/workspaceUsageQuota.ts",
+      "function": "buildQuotaEnvelope"
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "file": "apps/radishmind-web/src/features/control-plane-read/workspaceWorkflowDefinitions.ts",
+      "function": "buildWorkflowDefinitionsEnvelope"
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "file": "apps/radishmind-web/src/features/control-plane-read/workspaceRunHistory.ts",
+      "function": "buildRunHistoryEnvelope"
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "file": "apps/radishmind-web/src/features/control-plane-read/adminAuditLog.ts",
+      "function": "buildAuditLogEnvelope"
+    }
+  ],
+  "testing_strategy": [
+    {
+      "id": "product_sample_consistency_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-control-plane-read-product-sample-consistency-v1.py"
+    },
+    {
+      "id": "go_fake_store_product_sample_test",
+      "status": "required_now",
+      "command": "go test ./...",
+      "working_directory": "services/platform/"
+    },
+    {
+      "id": "consumer_smoke",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/run-control-plane-read-consumer-smoke.py --check"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ],
+  "implementation_stop_lines": [
+    "do not implement production API consumer",
+    "do not connect real database read store",
+    "do not add Radish OIDC middleware token validation login or logout",
+    "do not add repository adapter store selector workflow executor confirmation decision writeback replay or resume",
+    "do not add API key lifecycle quota enforcement billing rate limiting or production ready claims"
+  ],
+  "required_doc_references": {
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-product-sample-consistency-v1",
+      "response fixture",
+      "Go fake store"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "control-plane-read-product-sample-consistency-v1",
+      "RadishFlow Copilot",
+      "Radish Docs Assistant"
+    ],
+    "apps/radishmind-web/README.md": [
+      "control-plane-read-product-sample-consistency-v1",
+      "control-plane-read-response-fixtures-v1"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-product-sample-consistency-v1.py",
+      "control-plane-read-product-sample-consistency-v1.json"
+    ]
+  }
+}

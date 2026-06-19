@@ -1,0 +1,586 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_adapter_smoke_readiness_v1",
+  "slice": {
+    "id": "workflow-saved-draft-adapter-smoke-readiness-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_adapter_smoke_readiness_defined",
+    "does_not_claim": [
+      "adapter_smoke_fixture_created",
+      "adapter_smoke_checker_created",
+      "adapter_smoke_ready",
+      "adapter_smoke_executed",
+      "repository_interface_implemented",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "durable_store_implemented",
+      "durable_persistence_ready",
+      "database_schema_ready",
+      "database_connection_ready",
+      "database_migration_ready",
+      "store_selector_implemented",
+      "selector_smoke_fixture_created",
+      "formal_store_config_ready",
+      "radish_oidc_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_auth_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-repository-adapter-implementation-plan-v1",
+    "workflow-saved-draft-schema-artifact-manifest-v1",
+    "workflow-saved-draft-schema-artifact-materialization-v1",
+    "workflow-saved-draft-store-selector-smoke-readiness-v1",
+    "workflow-saved-draft-auth-context-preconditions-v1",
+    "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1"
+  ],
+  "adapter_smoke_boundary": {
+    "status": "adapter_smoke_readiness_defined_not_implemented",
+    "future_adapter_smoke_fixture": "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+    "future_adapter_smoke_checker": "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
+    "future_interface_file": "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+    "future_adapter_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+    "future_adapter_test_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+    "future_adapter_contract_smoke_test_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_contract_smoke_test.go",
+    "future_selector_file": "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+    "future_migration_root": "services/platform/migrations/workflow_saved_drafts",
+    "current_static_runner_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_contract_smoke_runner.go",
+    "current_adapter_plan_fixture": "scripts/checks/fixtures/workflow-saved-draft-repository-adapter-implementation-plan-v1.json",
+    "current_schema_manifest_fixture": "scripts/checks/fixtures/workflow-saved-draft-schema-artifact-manifest-v1.json",
+    "current_selector_smoke_readiness_fixture": "scripts/checks/fixtures/workflow-saved-draft-store-selector-smoke-readiness-v1.json",
+    "current_auth_context_fixture": "scripts/checks/fixtures/workflow-saved-draft-auth-context-preconditions-v1.json",
+    "purpose": "Define the future saved workflow draft durable adapter smoke readiness gate that consumes static runner cases, adapter plan, schema artifact manifest, selector smoke readiness and auth context preconditions without creating runtime adapter artifacts.",
+    "adapter_smoke_fixture_created_in_this_slice": false,
+    "adapter_smoke_checker_created_in_this_slice": false,
+    "interface_file_created_in_this_slice": false,
+    "adapter_file_created_in_this_slice": false,
+    "adapter_test_created_in_this_slice": false,
+    "adapter_contract_smoke_test_created_in_this_slice": false,
+    "selector_file_created_in_this_slice": false,
+    "migration_root_created_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "repository_interface_allowed_in_this_slice": false,
+    "store_selector_allowed_in_this_slice": false,
+    "schema_artifact_file_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "publish_or_run_allowed_in_this_slice": false,
+    "executor_allowed_in_this_slice": false,
+    "writeback_or_replay_allowed_in_this_slice": false
+  },
+  "planned_adapter_smoke_artifacts": [
+    {
+      "path": "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+      "purpose": "Future durable adapter smoke fixture consuming static runner, schema artifact manifest, selector smoke, auth context and adapter plan evidence.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
+      "purpose": "Future checker for durable adapter smoke fixture and runtime adapter evidence.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "purpose": "Future narrow SavedWorkflowDraftRepository interface file; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "purpose": "Future durable saved workflow draft repository adapter file; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+      "purpose": "Future adapter unit tests for scope predicate, version conflict, sanitized projection and failure mapping; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_contract_smoke_test.go",
+      "purpose": "Future adapter contract smoke tests against static runner cases, selector smoke, schema artifact and auth gates; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "purpose": "Future saved workflow draft store selector implementation; not created by this readiness slice.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/workflow_saved_drafts",
+      "purpose": "Future schema artifact and migration root consumed by adapter smoke; not created by this readiness slice.",
+      "created_in_this_slice": false
+    }
+  ],
+  "adapter_smoke_gate_matrix": [
+    {
+      "id": "repository_adapter_implementation_plan_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-repository-adapter-implementation-plan-v1"
+    },
+    {
+      "id": "schema_artifact_manifest_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-schema-artifact-manifest-v1"
+    },
+    {
+      "id": "store_selector_smoke_readiness_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-store-selector-smoke-readiness-v1"
+    },
+    {
+      "id": "auth_context_preconditions_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-auth-context-preconditions-v1"
+    },
+    {
+      "id": "static_runner_consumed",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1"
+    },
+    {
+      "id": "adapter_smoke_contract_defined",
+      "status": "satisfied",
+      "must_cover": [
+        "SaveWorkflowDraftRecord",
+        "ReadWorkflowDraftRecord",
+        "ListWorkflowDraftRecords",
+        "same operation names as adapter plan and static runner",
+        "schema artifact manifest dependency",
+        "store selector smoke readiness dependency",
+        "auth context preconditions dependency",
+        "no memory dev, sample, fixture, dev route or test auth fallback",
+        "no repository, database, executor, confirmation, writeback or replay side effects"
+      ]
+    },
+    {
+      "id": "selector_implementation_gate",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-store-selector-smoke-v1",
+      "must_cover": [
+        "formal store config entry",
+        "SelectWorkflowSavedDraftStore",
+        "selector unit tests",
+        "selector smoke fixture"
+      ]
+    },
+    {
+      "id": "schema_artifact_materialization_gate",
+      "status": "satisfied",
+      "evidence": "workflow-saved-draft-schema-artifact-materialization-v1",
+      "must_cover": [
+        "migration root",
+        "manifest file",
+        "DDL review evidence",
+        "rollback evidence",
+        "migration smoke evidence"
+      ]
+    },
+    {
+      "id": "production_auth_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "Radish OIDC issuer discovery",
+        "token validation contract",
+        "workspace membership adapter",
+        "owner policy resolution",
+        "scope grant projection"
+      ]
+    },
+    {
+      "id": "repository_adapter_implementation_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "SavedWorkflowDraftRepository interface created in a future slice",
+        "repository adapter created in a future slice",
+        "database query implementation reviewed",
+        "adapter unit tests passed",
+        "database internal errors remain redacted"
+      ]
+    },
+    {
+      "id": "adapter_smoke_execution_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "adapter smoke fixture exists",
+        "adapter smoke checker exists",
+        "adapter smoke consumes static runner cases",
+        "adapter smoke consumes schema artifact manifest evidence",
+        "adapter smoke consumes selector smoke evidence",
+        "adapter smoke consumes auth context evidence",
+        "adapter smoke confirms no fallback and no side effects"
+      ]
+    },
+    {
+      "id": "production_api_consumer_gate",
+      "status": "not_satisfied",
+      "must_cover": [
+        "production API consumer opt-in",
+        "production auth policy",
+        "production CORS policy",
+        "no dev fake auth headers",
+        "no direct publish, run, business writeback or replay"
+      ]
+    },
+    {
+      "id": "no_adapter_smoke_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no adapter smoke fixture",
+        "no adapter smoke checker",
+        "no repository interface file",
+        "no repository adapter file",
+        "no adapter tests",
+        "no repository mode enablement",
+        "no schema artifact or migration root",
+        "no SQL files",
+        "no OIDC token validation"
+      ]
+    }
+  ],
+  "adapter_smoke_dependency_contract": {
+    "status": "adapter_smoke_dependencies_defined_not_ready",
+    "required_before_adapter_smoke": [
+      {
+        "id": "repository_adapter_implementation_plan_consumed",
+        "source": "workflow-saved-draft-repository-adapter-implementation-plan-v1",
+        "source_status": "draft_repository_adapter_implementation_plan_defined",
+        "ready_for_adapter_smoke_now": false
+      },
+      {
+        "id": "schema_artifact_manifest_consumed",
+        "source": "workflow-saved-draft-schema-artifact-manifest-v1",
+        "source_status": "draft_schema_artifact_manifest_defined",
+        "ready_for_adapter_smoke_now": false
+      },
+      {
+        "id": "schema_artifact_materialization_consumed",
+        "source": "workflow-saved-draft-schema-artifact-materialization-v1",
+        "source_status": "draft_schema_artifact_materialized_static",
+        "ready_for_adapter_smoke_now": true
+      },
+      {
+        "id": "store_selector_smoke_readiness_consumed",
+        "source": "workflow-saved-draft-store-selector-smoke-readiness-v1",
+        "source_status": "draft_store_selector_smoke_readiness_defined",
+        "ready_for_adapter_smoke_now": false
+      },
+      {
+        "id": "auth_context_preconditions_consumed",
+        "source": "workflow-saved-draft-auth-context-preconditions-v1",
+        "source_status": "draft_auth_context_preconditions_defined",
+        "ready_for_adapter_smoke_now": false
+      },
+      {
+        "id": "static_runner_consumed",
+        "source": "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1",
+        "source_status": "draft_repository_contract_smoke_runner_implemented",
+        "ready_for_adapter_smoke_now": true
+      }
+    ]
+  },
+  "operation_adapter_smoke_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "request_type": "SaveWorkflowDraftRecordRequest",
+      "result_type": "SaveWorkflowDraftRecordResult",
+      "expected_success_projection": "sanitized_saved_draft_record_with_current_version_metadata",
+      "required_inputs": [
+        "static runner case",
+        "repository adapter implementation plan",
+        "schema artifact manifest contract",
+        "selector smoke readiness",
+        "auth context preconditions"
+      ],
+      "schema_artifact_manifest_consumed": true,
+      "selector_smoke_readiness_consumed": true,
+      "auth_context_preconditions_consumed": true,
+      "static_runner_case_consumed": true,
+      "adapter_plan_consumed": true,
+      "adapter_smoke_required": true,
+      "adapter_smoke_fixture_created_now": false,
+      "adapter_smoke_checker_created_now": false,
+      "adapter_smoke_ready": false,
+      "repository_adapter_allowed_now": false,
+      "selector_implementation_allowed_now": false,
+      "schema_artifact_files_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_fixture_allowed": false,
+      "fallback_to_dev_http_route_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ReadWorkflowDraftRecordRequest",
+      "result_type": "ReadWorkflowDraftRecordResult",
+      "expected_success_projection": "sanitized_saved_draft_record",
+      "required_inputs": [
+        "static runner case",
+        "repository adapter implementation plan",
+        "schema artifact manifest contract",
+        "selector smoke readiness",
+        "auth context preconditions"
+      ],
+      "schema_artifact_manifest_consumed": true,
+      "selector_smoke_readiness_consumed": true,
+      "auth_context_preconditions_consumed": true,
+      "static_runner_case_consumed": true,
+      "adapter_plan_consumed": true,
+      "adapter_smoke_required": true,
+      "adapter_smoke_fixture_created_now": false,
+      "adapter_smoke_checker_created_now": false,
+      "adapter_smoke_ready": false,
+      "repository_adapter_allowed_now": false,
+      "selector_implementation_allowed_now": false,
+      "schema_artifact_files_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_fixture_allowed": false,
+      "fallback_to_dev_http_route_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ListWorkflowDraftRecordsRequest",
+      "result_type": "ListWorkflowDraftRecordsResult",
+      "expected_success_projection": "sanitized_saved_draft_summary_list",
+      "required_inputs": [
+        "static runner case",
+        "repository adapter implementation plan",
+        "schema artifact manifest contract",
+        "selector smoke readiness",
+        "auth context preconditions"
+      ],
+      "schema_artifact_manifest_consumed": true,
+      "selector_smoke_readiness_consumed": true,
+      "auth_context_preconditions_consumed": true,
+      "static_runner_case_consumed": true,
+      "adapter_plan_consumed": true,
+      "adapter_smoke_required": true,
+      "adapter_smoke_fixture_created_now": false,
+      "adapter_smoke_checker_created_now": false,
+      "adapter_smoke_ready": false,
+      "repository_adapter_allowed_now": false,
+      "selector_implementation_allowed_now": false,
+      "schema_artifact_files_allowed_now": false,
+      "oidc_validation_allowed_now": false,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_fixture_allowed": false,
+      "fallback_to_dev_http_route_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_mapping": {
+    "status": "adapter_smoke_fail_closed_required",
+    "required_failure_codes": [
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_schema_version_unsupported",
+      "draft_payload_invalid",
+      "draft_version_conflict",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_auth_context_contract_mismatch",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable"
+    ],
+    "preserve_existing_failure_codes": [
+      "draft_version_conflict",
+      "draft_scope_denied",
+      "draft_store_unavailable",
+      "draft_not_found"
+    ],
+    "version_conflict_must_not_be_rewritten_as_adapter_smoke_failure": true,
+    "version_conflict_must_not_be_rewritten_as_selector_failure": true,
+    "version_conflict_must_not_be_rewritten_as_migration_failure": true,
+    "scope_denied_must_not_return_draft_payload": true,
+    "not_found_must_not_fallback_to_sample": true,
+    "contract_mismatch_must_report_without_database_detail": true,
+    "selector_failure_must_not_fallback_to_memory_dev": true,
+    "auth_context_mismatch_must_not_fallback_to_test_auth": true,
+    "missing_schema_artifact_success_allowed": false,
+    "selector_failure_success_allowed": false,
+    "auth_context_mismatch_success_allowed": false,
+    "database_detail_leak_allowed": false,
+    "oidc_detail_leak_allowed": false
+  },
+  "no_fallback_policy": {
+    "fallback_to_memory_dev_store_allowed": false,
+    "fallback_to_sample_allowed": false,
+    "fallback_to_fixture_allowed": false,
+    "fallback_to_dev_http_route_allowed": false,
+    "fallback_to_test_auth_allowed": false,
+    "success_on_missing_schema_artifact_allowed": false,
+    "success_on_selector_failure_allowed": false,
+    "success_on_auth_context_mismatch_allowed": false,
+    "success_on_contract_mismatch_allowed": false,
+    "reserved_store_mode_success_allowed": false,
+    "unknown_store_mode_success_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_write",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "implementation_artifact_guard": {
+    "status": "forbid_implementation_artifacts",
+    "future_files_must_not_exist": [
+      "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_contract_smoke_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector_test.go",
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/config/config.go",
+      "services/platform/internal/config/config_test.go",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_http_test.go"
+    ],
+    "future_literals_must_not_appear_in_source": [
+      "workflow-saved-draft-adapter-smoke-v1.json",
+      "check-workflow-saved-draft-adapter-smoke-v1.py",
+      "WorkflowSavedDraftAdapterSmoke",
+      "workflow_saved_draft_adapter_smoke",
+      "workflow_saved_draft_repository_adapter",
+      "workflow_saved_draft_repository_adapter_contract_smoke_test",
+      "type SavedWorkflowDraftRepository interface",
+      "func NewSavedWorkflowDraftRepositoryAdapter",
+      "WorkflowSavedDraftStoreSelector",
+      "SelectWorkflowSavedDraftStore",
+      "workflow_saved_draft_store_selector.go",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+      "workflow_saved_draft_schema_manifest_v1",
+      "workflow_saved_draft_schema_artifact_v1",
+      "workflow_saved_drafts_store_v1",
+      "database/sql",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "CREATE INDEX",
+      "DROP TABLE",
+      "INSERT INTO",
+      "UPDATE ",
+      "DELETE FROM",
+      "services/platform/migrations/workflow_saved_drafts",
+      "oidc.Provider",
+      "ValidateToken",
+      "ValidateWorkflowDraftToken"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-adapter-smoke-readiness-v1.md",
+      "must_contain": [
+        "状态：`draft_adapter_smoke_readiness_defined`",
+        "Adapter Smoke Contract",
+        "Operation Adapter Smoke Matrix",
+        "Failure Mapping",
+        "不创建 adapter smoke fixture"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Adapter Smoke Readiness v1",
+        "draft_adapter_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Adapter Smoke Readiness v1",
+        "draft_adapter_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "Saved Workflow Draft Adapter Smoke Readiness v1",
+        "draft_adapter_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-adapter-smoke-readiness-v1-plan.md",
+      "must_contain": [
+        "draft_adapter_smoke_readiness_defined",
+        "workflow-saved-draft-adapter-smoke-readiness-v1",
+        "不创建 `workflow-saved-draft-adapter-smoke-v1.json`"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-adapter-smoke-readiness-v1",
+        "draft_adapter_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-adapter-smoke-readiness-v1.py",
+        "draft_adapter_smoke_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W25.md",
+      "must_contain": [
+        "workflow-saved-draft-adapter-smoke-readiness-v1",
+        "draft_adapter_smoke_readiness_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "static_checker_only",
+    "required_checks": [
+      "workflow_saved_draft_adapter_smoke_readiness_checker",
+      "workflow_saved_draft_schema_artifact_manifest_checker",
+      "workflow_saved_draft_repository_adapter_implementation_plan_checker",
+      "workflow_saved_draft_store_selector_smoke_readiness_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_create_adapter_smoke_fixture": true,
+    "does_not_create_adapter_smoke_checker": true,
+    "does_not_create_repository_interface": true,
+    "does_not_create_repository_adapter": true,
+    "does_not_create_selector": true,
+    "does_not_create_schema_artifact_file": true,
+    "does_not_create_sql_or_migration": true,
+    "does_not_connect_database": true,
+    "does_not_call_oidc": true
+  }
+}

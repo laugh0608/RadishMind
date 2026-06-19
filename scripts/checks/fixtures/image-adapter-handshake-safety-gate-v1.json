@@ -1,0 +1,340 @@
+{
+  "schema_version": 1,
+  "kind": "image_adapter_handshake_safety_gate_v1",
+  "slice": {
+    "id": "image-adapter-handshake-safety-gate-v1",
+    "track": "Image Path",
+    "status": "image_adapter_handshake_safety_gate_defined",
+    "does_not_claim": [
+      "image_adapter_runtime_ready",
+      "image_backend_client_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_quality_evaluated",
+      "model_download_ready",
+      "model_weights_committed",
+      "artifact_upload_ready",
+      "production_artifact_storage_ready",
+      "public_artifact_url_ready",
+      "copilot_response_artifact_runtime_ready",
+      "image_safety_runbook_complete",
+      "main_model_pixel_generation_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-generation-intent-contract",
+    "image-generation-eval-manifest-v0",
+    "contracts/image-generation-intent.schema.json",
+    "contracts/image-generation-backend-request.schema.json",
+    "contracts/image-generation-artifact.schema.json"
+  ],
+  "handshake_boundary": {
+    "status": "handshake_defined_no_runtime_adapter",
+    "decision": "schema_fixture_handshake_only",
+    "core_owner": "RadishMind-Core",
+    "adapter_owner": "RadishMind-Image Adapter",
+    "backend_owner": "Image Generation Backend",
+    "artifact_owner": "RadishMind artifact metadata",
+    "real_adapter_runtime_created_in_this_slice": false,
+    "real_backend_client_created_in_this_slice": false,
+    "backend_queue_created_in_this_slice": false,
+    "artifact_store_created_in_this_slice": false,
+    "copilot_response_runtime_mapping_created_in_this_slice": false,
+    "real_backend_call_allowed_now": false,
+    "image_generation_allowed_now": false,
+    "model_download_allowed_now": false,
+    "artifact_upload_allowed_now": false,
+    "production_storage_allowed_now": false,
+    "main_model_pixel_generation_allowed_now": false,
+    "dev_server_started_in_this_slice": false
+  },
+  "contract_mapping": {
+    "intent_schema": "contracts/image-generation-intent.schema.json",
+    "backend_request_schema": "contracts/image-generation-backend-request.schema.json",
+    "artifact_schema": "contracts/image-generation-artifact.schema.json",
+    "intent_fixture": "scripts/checks/fixtures/image-generation-intent-basic.json",
+    "backend_request_fixture": "scripts/checks/fixtures/image-generation-backend-request-basic.json",
+    "artifact_fixture": "scripts/checks/fixtures/image-generation-artifact-basic.json",
+    "eval_manifest": "scripts/checks/fixtures/image-generation-eval-manifest-v0.json",
+    "manifest_required_dimensions": [
+      "structured_intent",
+      "backend_request_mapping",
+      "artifact_metadata",
+      "safety_gate",
+      "provenance"
+    ]
+  },
+  "handshake_phase_matrix": [
+    {
+      "order": 1,
+      "phase_id": "core_intent_to_adapter",
+      "source_contract": "contracts/image-generation-intent.schema.json",
+      "fixture": "scripts/checks/fixtures/image-generation-intent-basic.json",
+      "input_kind": "image_generation",
+      "output_kind": "image_generation",
+      "decision": "accept_structured_intent_for_adapter_review",
+      "requires_safety_gate_before_next": true,
+      "future_backend_submittable_after_gate": false,
+      "backend_call_allowed_now": false,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 2,
+      "phase_id": "adapter_safety_gate_before_backend_request",
+      "source_contract": "contracts/image-generation-backend-request.schema.json",
+      "fixture": "scripts/checks/fixtures/image-generation-backend-request-basic.json",
+      "input_kind": "image_generation",
+      "output_kind": "image_generation_backend_request",
+      "decision": "approved_for_backend_only_after_adapter_gate",
+      "expected_gate": "approved_for_backend",
+      "requires_safety_gate_before_next": true,
+      "future_backend_submittable_after_gate": true,
+      "backend_call_allowed_now": false,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 3,
+      "phase_id": "blocked_confirmation_required_before_backend",
+      "source_contract": "contracts/image-generation-backend-request.schema.json",
+      "fixture": "scripts/checks/fixtures/image-generation-backend-request-basic.json",
+      "input_kind": "image_generation",
+      "output_kind": "image_generation_backend_request",
+      "decision": "block_before_backend_when_confirmation_required",
+      "expected_gate": "blocked_requires_confirmation",
+      "requires_safety_gate_before_next": true,
+      "future_backend_submittable_after_gate": false,
+      "backend_call_allowed_now": false,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 4,
+      "phase_id": "backend_result_to_artifact_metadata",
+      "source_contract": "contracts/image-generation-artifact.schema.json",
+      "fixture": "scripts/checks/fixtures/image-generation-artifact-basic.json",
+      "input_kind": "image_generation_backend_request",
+      "output_kind": "image_generation_artifact",
+      "decision": "record_artifact_metadata_only",
+      "requires_backend_result": true,
+      "pixel_payload_committed_allowed": false,
+      "artifact_upload_allowed_now": false,
+      "runtime_implemented_now": false
+    },
+    {
+      "order": 5,
+      "phase_id": "artifact_metadata_to_copilot_response",
+      "source_contract": "contracts/image-generation-artifact.schema.json",
+      "fixture": "scripts/checks/fixtures/image-generation-artifact-basic.json",
+      "input_kind": "image_generation_artifact",
+      "output_kind": "artifact_metadata_reference",
+      "decision": "return_artifact_metadata_reference_only",
+      "copilot_response_runtime_mapping_implemented_now": false,
+      "public_url_claim_allowed_now": false,
+      "artifact_upload_allowed_now": false,
+      "runtime_implemented_now": false
+    }
+  ],
+  "safety_gate_matrix": [
+    {
+      "gate_id": "allow_low_risk_structured_intent_review",
+      "source_fixture": "scripts/checks/fixtures/image-generation-intent-basic.json",
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "decision": "allow_backend_request_mapping",
+      "expected_backend_gate": "approved_for_backend",
+      "backend_call_allowed_now": false
+    },
+    {
+      "gate_id": "block_requires_confirmation",
+      "source_fixture": "scripts/checks/fixtures/image-generation-intent-basic.json",
+      "risk_level": "medium",
+      "requires_confirmation": true,
+      "decision": "block_before_backend_submission",
+      "expected_backend_gate": "blocked_requires_confirmation",
+      "backend_call_allowed_now": false
+    },
+    {
+      "gate_id": "block_high_risk_or_policy_unknown",
+      "source_fixture": "scripts/checks/fixtures/image-generation-intent-basic.json",
+      "risk_level": "high",
+      "requires_confirmation": true,
+      "decision": "block_until_human_review_and_policy_gate",
+      "expected_backend_gate": "blocked_requires_confirmation",
+      "backend_call_allowed_now": false
+    },
+    {
+      "gate_id": "backend_unavailable",
+      "source_fixture": "scripts/checks/fixtures/image-generation-backend-request-basic.json",
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "decision": "return_structured_blocked_status_without_retry_loop",
+      "expected_backend_gate": "backend_unavailable",
+      "backend_call_allowed_now": false
+    },
+    {
+      "gate_id": "artifact_metadata_only_return",
+      "source_fixture": "scripts/checks/fixtures/image-generation-artifact-basic.json",
+      "risk_level": "low",
+      "requires_confirmation": false,
+      "decision": "return_metadata_reference_without_pixel_payload",
+      "expected_backend_gate": "approved_for_backend",
+      "backend_call_allowed_now": false
+    }
+  ],
+  "artifact_return_policy": {
+    "status": "metadata_reference_only",
+    "artifact_uri_scheme": "artifact://",
+    "artifact_uri_is_public_url": false,
+    "pixel_payload_committed_allowed": false,
+    "provider_raw_dump_committed_allowed": false,
+    "artifact_upload_allowed_now": false,
+    "production_storage_allowed_now": false,
+    "copilot_response_runtime_mapping_ready_now": false
+  },
+  "execution_policy": {
+    "does_not_call_backend": true,
+    "does_not_generate_images": true,
+    "does_not_download_models": true,
+    "does_not_start_training": true,
+    "does_not_upload_artifacts": true,
+    "does_not_start_dev_server": true,
+    "does_not_use_browser_plugin": true
+  },
+  "forbidden_artifact_matrix": [
+    {
+      "path": "adapters/image/radishmind_image_adapter.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_adapter_runtime.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_generation_backend.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_generation.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_generation_artifact_store.go",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageGenerationPanel.tsx",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/run-image-generation-backend.py",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "deploy/image-generation-backend.yaml",
+      "created_in_this_slice": false
+    }
+  ],
+  "source_absent_literals": [
+    "RadishMindImageAdapterRuntime",
+    "ImageGenerationBackendClient",
+    "NewImageGenerationBackend",
+    "runImageGenerationBackend",
+    "image_generation_backend_client",
+    "image_generation_artifact_store",
+    "IMAGE_GENERATION_BACKEND_URL",
+    "IMAGE_GENERATION_MODEL_DIR",
+    "ImageGenerationPanel",
+    "generateImagePixels",
+    "storeImageArtifact"
+  ],
+  "no_fake_fallback_policy": {
+    "approved_gate_promoted_to_backend_call_allowed": false,
+    "backend_unavailable_promoted_to_retry_loop_allowed": false,
+    "artifact_metadata_promoted_to_public_url_allowed": false,
+    "image_eval_manifest_promoted_to_quality_eval_allowed": false,
+    "main_model_promoted_to_pixel_generator_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "backend_call_count=0",
+      "image_generation_count=0",
+      "model_download_count=0",
+      "artifact_upload_count=0",
+      "production_storage_write_count=0",
+      "dev_server_start_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "real_backend_call",
+      "image_pixel_generation",
+      "model_download",
+      "artifact_upload",
+      "production_storage_write",
+      "dev_server_start",
+      "browser_plugin_open",
+      "executor_call",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/image-adapter-handshake-safety-gate-v1-plan.md",
+    "docs/contracts/image-generation.md",
+    "scripts/checks/fixtures/image-adapter-handshake-safety-gate-v1.json",
+    "scripts/check-image-adapter-handshake-safety-gate-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-image-adapter-handshake-safety-gate-v1.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-adapter-handshake-safety-gate-v1",
+      "image_adapter_handshake_safety_gate_defined",
+      "metadata-only"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image_adapter_handshake_safety_gate_defined",
+      "artifact metadata-only"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-adapter-handshake-safety-gate-v1",
+      "不调用真实生图 backend"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Adapter Handshake / Safety Gate",
+      "image-adapter-handshake-safety-gate-v1"
+    ],
+    "scripts/README.md": [
+      "check-image-adapter-handshake-safety-gate-v1.py",
+      "不调用真实生图 backend"
+    ],
+    "contracts/README.md": [
+      "image-adapter-handshake-safety-gate-v1",
+      "metadata-only"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image_adapter_handshake_safety_gate_defined",
+      "artifact metadata-only"
+    ],
+    "docs/radishmind-architecture.md": [
+      "image_adapter_handshake_safety_gate_defined",
+      "metadata-only"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-adapter-handshake-safety-gate-v1",
+      "image_adapter_handshake_safety_gate_defined"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "image-adapter-handshake-safety-gate-v1",
+      "image_adapter_handshake_safety_gate_defined"
+    ]
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_draft_editing_entry_v1",
+  "slice": {
+    "id": "workflow-draft-editing-entry-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "workflow_draft_editing_entry_implemented",
+    "does_not_claim": [
+      "complete_builder_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-consumer-smoke-v1",
+    "workflow-draft-designer-offline-v1"
+  ],
+  "frontend_contract": {
+    "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "style_file": "apps/radishmind-web/src/styles.css",
+    "required_app_literals": [
+      "editableWorkflowDraft",
+      "workflowDraftEditDirty",
+      "activeWorkflowDraftOverride: editableWorkflowDraft",
+      "activeWorkflowDraft,",
+      "cloneWorkflowDraftForEditing(selectedWorkflowDraft)",
+      "handleWorkflowDraftLabelChange",
+      "handleWorkflowDraftSummaryChange",
+      "handleWorkflowDraftNodeLabelChange",
+      "handleWorkflowDraftEdgeConditionChange",
+      "handleWorkflowDraftEditReset",
+      "localOnlyInteraction: \"local_edit\"",
+      "workflow-draft-edit-grid",
+      "workflow-draft-edit-field",
+      "workflow-draft-node-label-input",
+      "workflow-draft-edge-condition-input",
+      "saveWorkflowDraftDevRecord(activeWorkflowDraft",
+      "validateWorkflowDraftDevRecord(activeWorkflowDraft",
+      "readWorkflowDraftDevRecord(activeWorkflowDraft",
+      "setWorkflowDraftEditDirty(false)"
+    ],
+    "required_designer_literals": [
+      "localOnlyInteraction: \"inspect_only\" | \"local_edit\";"
+    ],
+    "required_style_selectors": [
+      ".workflow-draft-edit-grid",
+      ".workflow-draft-edit-field",
+      ".workflow-draft-edit-field input",
+      ".workflow-draft-edit-field textarea",
+      ".workflow-draft-node-label-input",
+      ".workflow-draft-edge-condition-input",
+      ".workflow-draft-edit-state"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/draft-editing-entry-v1.md": [
+      "Workflow Draft Editing Entry v1",
+      "状态：`implemented`",
+      "validate / save / read 使用当前本地草案",
+      "不实现拖拽 builder"
+    ],
+    "docs/features/workflow/README.md": [
+      "Workflow Draft Editing Entry v1",
+      "`implemented`"
+    ],
+    "docs/features/workflow/draft-designer-surface.md": [
+      "Workflow Draft Editing Entry v1",
+      "受控本地编辑入口"
+    ],
+    "docs/features/workflow/saved-workflow-draft-v1.md": [
+      "Workflow Draft Editing Entry v1",
+      "validate / save / read 使用当前本地草案"
+    ],
+    "docs/task-cards/workflow-draft-editing-entry-v1-plan.md": [
+      "workflow_draft_editing_entry_implemented",
+      "validate / save / read 必须消费当前本地草案"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "Workflow Draft Editing Entry",
+      "workflow-draft-editing-entry-v1"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_draft_editing_entry_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-draft-editing-entry-v1.py"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

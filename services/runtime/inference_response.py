@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import ast
+import copy
 import json
 import re
+from collections.abc import Mapping
 from typing import Any
 
 import jsonschema
 
+from .image_artifact_response_consumer import apply_image_artifact_reference_to_response
+from .image_artifact_runtime_mapper import map_image_artifact_to_response_reference
 from .inference_support import (
     GHOST_MALFORMED_JSON_REPAIR_PATTERNS,
     GHOST_MANUAL_MULTI_ACTION_REPAIR_PATTERNS,
@@ -24,6 +28,13 @@ from .inference_support import (
     pick_primary_ghost_candidate,
     validate_response_document,
 )
+
+
+IMAGE_GENERATION_ARTIFACT_SCHEMA_PATH = RESPONSE_SCHEMA_PATH.parent / "image-generation-artifact.schema.json"
+
+IMAGE_ARTIFACT_METADATA_SCHEMA_INVALID = "image_artifact_metadata_schema_invalid"
+IMAGE_ARTIFACT_MAPPER_FAILED = "image_artifact_mapper_failed"
+IMAGE_ARTIFACT_RESPONSE_SCHEMA_INVALID = "image_artifact_response_schema_invalid"
 
 
 def map_status(value: Any) -> str:
@@ -282,6 +293,88 @@ def normalize_citations_from_document(
             normalized_citation["excerpt"] = excerpt
         normalized_citations.append(normalized_citation)
     return normalized_citations or fallback_citations
+
+
+def discover_request_image_artifact_metadata(copilot_request: Mapping[str, Any]) -> list[Any]:
+    artifact_documents: list[Any] = []
+    for artifact in copilot_request.get("artifacts") or []:
+        if not isinstance(artifact, Mapping):
+            continue
+        metadata = artifact.get("metadata") or {}
+        if not isinstance(metadata, Mapping):
+            continue
+        if "image_generation_artifact" in metadata:
+            artifact_documents.append(copy.deepcopy(metadata["image_generation_artifact"]))
+    return artifact_documents
+
+
+def make_image_artifact_response_failure(
+    copilot_request: dict[str, Any],
+    raw_text: str,
+    *,
+    code: str,
+    detail: str,
+) -> dict[str, Any]:
+    return make_failed_response(
+        copilot_request,
+        f"图片 artifact metadata 无法安全合并到 CopilotResponse：{detail}",
+        raw_text=raw_text,
+        code=code,
+    )
+
+
+def merge_image_artifact_metadata_into_response(
+    response_document: dict[str, Any],
+    copilot_request: dict[str, Any],
+    raw_text: str,
+) -> dict[str, Any]:
+    artifact_documents = discover_request_image_artifact_metadata(copilot_request)
+    if not artifact_documents:
+        return response_document
+
+    merged_response = response_document
+    artifact_schema = load_schema(IMAGE_GENERATION_ARTIFACT_SCHEMA_PATH)
+    for artifact_document in artifact_documents:
+        try:
+            jsonschema.validate(artifact_document, artifact_schema)
+        except jsonschema.ValidationError as exc:
+            return make_image_artifact_response_failure(
+                copilot_request,
+                raw_text,
+                code=IMAGE_ARTIFACT_METADATA_SCHEMA_INVALID,
+                detail=f"metadata schema invalid: {exc.message}",
+            )
+
+        mapping_result = map_image_artifact_to_response_reference(artifact_document)
+        if not mapping_result.ok:
+            original_code = mapping_result.failure_code or "unknown"
+            return make_image_artifact_response_failure(
+                copilot_request,
+                raw_text,
+                code=IMAGE_ARTIFACT_MAPPER_FAILED,
+                detail=f"mapper failed with {original_code}: {mapping_result.failure_message}",
+            )
+
+        consumer_result = apply_image_artifact_reference_to_response(merged_response, mapping_result)
+        if not consumer_result.ok:
+            return make_image_artifact_response_failure(
+                copilot_request,
+                raw_text,
+                code=consumer_result.failure_code or IMAGE_ARTIFACT_MAPPER_FAILED,
+                detail=consumer_result.failure_message,
+            )
+
+        try:
+            validate_response_document(consumer_result.response_document)
+        except jsonschema.ValidationError as exc:
+            return make_image_artifact_response_failure(
+                copilot_request,
+                raw_text,
+                code=IMAGE_ARTIFACT_RESPONSE_SCHEMA_INVALID,
+                detail=f"post-merge schema invalid: {exc.message}",
+            )
+        merged_response = consumer_result.response_document
+    return merged_response
 
 
 def normalize_existing_citation_ids(value: Any, known_ids: set[str], fallback_ids: list[str]) -> list[str]:
@@ -1849,6 +1942,7 @@ def coerce_response_document(document: dict[str, Any], copilot_request: dict[str
     coerced.setdefault("requires_confirmation", False)
     coerced.setdefault("status", "partial")
     coerced = {key: value for key, value in coerced.items() if key in RESPONSE_TOP_LEVEL_KEYS}
+    coerced = merge_image_artifact_metadata_into_response(coerced, copilot_request, raw_text)
     try:
         validate_response_document(coerced)
     except jsonschema.ValidationError:

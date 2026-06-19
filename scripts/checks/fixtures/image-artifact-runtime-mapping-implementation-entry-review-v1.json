@@ -1,0 +1,474 @@
+{
+  "schema_version": 1,
+  "kind": "image_artifact_runtime_mapping_implementation_entry_review_v1",
+  "slice": {
+    "id": "image-artifact-runtime-mapping-implementation-entry-review-v1",
+    "track": "Image Path",
+    "status": "image_artifact_runtime_mapping_entry_review_defined",
+    "does_not_claim": [
+      "implementation_entry_opened",
+      "implementation_task_card_created",
+      "runtime_mapper_ready",
+      "runtime_mapper_implemented",
+      "copilot_response_schema_changed",
+      "copilot_response_artifact_runtime_ready",
+      "artifact_store_ready",
+      "artifact_store_implemented",
+      "artifact_binary_reader_ready",
+      "artifact_binary_reader_implemented",
+      "public_artifact_url_ready",
+      "public_url_resolver_ready",
+      "production_artifact_storage_ready",
+      "image_backend_adapter_implemented",
+      "image_backend_client_ready",
+      "real_backend_call_ready",
+      "image_generation_ready",
+      "image_pixel_payload_ready",
+      "provider_raw_dump_ready",
+      "automatic_retry_ready",
+      "fallback_execution_ready",
+      "executor_ready",
+      "confirmation_decision_ready",
+      "writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "image-artifact-runtime-mapping-readiness-v1",
+    "image-artifact-return-runbook-evidence-v1",
+    "image-safety-runbook-evidence-v1",
+    "image-backend-adapter-readiness-evidence-v1"
+  ],
+  "implementation_entry_boundary": {
+    "status": "implementation_entry_review_defined_no_runtime_change",
+    "decision": "runtime_mapping_implementation_entry_not_opened",
+    "current_development_mode": "artifact_store_binary_boundary_readiness_next",
+    "implementation_task_card_created_in_this_slice": false,
+    "selected_implementation_track_now": "none",
+    "parallel_implementation_tracks_allowed_now": false,
+    "runtime_mapper_files_allowed_now": false,
+    "artifact_store_files_allowed_now": false,
+    "artifact_binary_reader_files_allowed_now": false,
+    "public_url_resolver_files_allowed_now": false,
+    "backend_adapter_files_allowed_now": false,
+    "copilot_response_schema_change_allowed_now": false,
+    "real_backend_call_allowed_now": false,
+    "image_generation_allowed_now": false,
+    "artifact_upload_allowed_now": false,
+    "artifact_binary_read_allowed_now": false,
+    "public_url_allowed_now": false,
+    "dev_server_started_in_this_slice": false,
+    "if_entry_remains_blocked": "create_artifact_store_binary_boundary_readiness_before_any_runtime_mapper",
+    "if_single_entry_trigger_satisfied": "open_only_that_candidate_task_card_after_review",
+    "if_multiple_entry_triggers_satisfied": "choose_first_review_order_candidate_and_document_deferral"
+  },
+  "entry_gate_matrix": [
+    {
+      "id": "runtime_mapping_readiness_consumed",
+      "status": "satisfied",
+      "evidence": "image-artifact-runtime-mapping-readiness-v1"
+    },
+    {
+      "id": "artifact_return_runbook_consumed",
+      "status": "satisfied",
+      "evidence": "image-artifact-return-runbook-evidence-v1"
+    },
+    {
+      "id": "safety_runbook_consumed",
+      "status": "satisfied",
+      "evidence": "image-safety-runbook-evidence-v1"
+    },
+    {
+      "id": "backend_adapter_readiness_consumed",
+      "status": "satisfied",
+      "evidence": "image-backend-adapter-readiness-evidence-v1"
+    },
+    {
+      "id": "artifact_store_binary_boundary_missing",
+      "status": "blocked",
+      "candidate_id": "artifact_runtime_mapper_implementation"
+    },
+    {
+      "id": "runtime_mapper_implementation_plan_missing",
+      "status": "blocked",
+      "candidate_id": "artifact_runtime_mapper_implementation"
+    },
+    {
+      "id": "backend_adapter_implementation_missing",
+      "status": "blocked",
+      "candidate_id": "backend_adapter_implementation"
+    },
+    {
+      "id": "storage_url_failure_gate_missing",
+      "status": "blocked",
+      "candidate_id": "artifact_store_implementation"
+    },
+    {
+      "id": "single_track_selection_policy_defined",
+      "status": "satisfied",
+      "policy": "only_one_implementation_track_after_entry_trigger"
+    },
+    {
+      "id": "no_runtime_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no runtime mapper",
+        "no artifact store",
+        "no binary reader",
+        "no public URL resolver",
+        "no backend adapter implementation",
+        "no response schema change"
+      ]
+    }
+  ],
+  "implementation_entry_candidates": [
+    {
+      "candidate_id": "artifact_runtime_mapper_implementation",
+      "source": "image-artifact-runtime-mapping-readiness-v1",
+      "source_status": "image_artifact_runtime_mapping_readiness_defined",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "image-artifact-runtime-mapper-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "current_blockers": [
+        "artifact_store_binary_boundary_readiness_missing",
+        "runtime_mapper_implementation_plan_missing",
+        "artifact_store_implementation_missing",
+        "artifact_binary_reader_boundary_missing",
+        "backend_adapter_implementation_missing"
+      ]
+    },
+    {
+      "candidate_id": "artifact_store_implementation",
+      "source": "image-artifact-return-runbook-evidence-v1",
+      "source_status": "image_artifact_return_runbook_evidence_defined",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "image-artifact-store-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "current_blockers": [
+        "artifact_store_binary_boundary_readiness_missing",
+        "hash_validation_storage_gate_missing",
+        "artifact_upload_policy_missing",
+        "production_storage_policy_missing",
+        "public_url_policy_missing"
+      ]
+    },
+    {
+      "candidate_id": "artifact_binary_reader_implementation",
+      "source": "image-artifact-runtime-mapping-readiness-v1",
+      "source_status": "image_artifact_runtime_mapping_readiness_defined",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "image-artifact-binary-reader-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "current_blockers": [
+        "artifact_store_binary_boundary_readiness_missing",
+        "binary_payload_redaction_gate_missing",
+        "mime_dimension_revalidation_gate_missing",
+        "public_url_policy_missing"
+      ]
+    },
+    {
+      "candidate_id": "public_url_resolver_implementation",
+      "source": "image-artifact-return-runbook-evidence-v1",
+      "source_status": "image_artifact_return_runbook_evidence_defined",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "image-artifact-public-url-resolver-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "current_blockers": [
+        "public_url_policy_missing",
+        "signed_url_expiry_policy_missing",
+        "production_storage_policy_missing",
+        "artifact_store_binary_boundary_readiness_missing"
+      ]
+    },
+    {
+      "candidate_id": "backend_adapter_implementation",
+      "source": "image-backend-adapter-readiness-evidence-v1",
+      "source_status": "image_backend_adapter_readiness_defined",
+      "entry_decision": "blocked",
+      "trigger_satisfied_now": false,
+      "future_task_card_after_trigger": "image-backend-adapter-implementation-v1-plan.md",
+      "future_task_card_allowed_after_trigger": true,
+      "task_card_allowed_now": false,
+      "implementation_artifacts_allowed_now": false,
+      "direct_runtime_implementation_allowed_now": false,
+      "current_blockers": [
+        "backend_profile_contract_unsatisfied",
+        "credential_reference_policy_unsatisfied",
+        "endpoint_or_model_dir_binding_unsatisfied",
+        "request_timeout_budget_unsatisfied",
+        "offline_contract_smoke_unsatisfied"
+      ]
+    }
+  ],
+  "runtime_mapping_readiness_reconciliation": {
+    "status": "readiness_defined_not_implementation",
+    "runtime_mapping_readiness_slice": "image-artifact-runtime-mapping-readiness-v1",
+    "runtime_mapping_readiness_status": "image_artifact_runtime_mapping_readiness_defined",
+    "success_mapping_cases": 2,
+    "blocked_mapping_cases": 3,
+    "fail_closed_mapping_cases": 5,
+    "future_mapping_contract_materialized_now": false,
+    "runtime_mapper_ready_now": false,
+    "artifact_store_ready_now": false,
+    "artifact_binary_reader_ready_now": false,
+    "public_url_resolver_ready_now": false,
+    "implementation_trigger_satisfied_now": false
+  },
+  "next_development_policy": {
+    "status": "artifact_store_binary_boundary_readiness_next",
+    "artifact_store_binary_boundary_task_card_allowed_next": true,
+    "runtime_mapping_implementation_requires_satisfied_entry": true,
+    "implementation_entry_selects_one_track_only": true,
+    "no_same_level_image_ui_panel_by_default": true,
+    "no_real_backend_call_by_default": true,
+    "no_response_schema_change_without_task_card": true,
+    "no_public_url_or_binary_reader_without_boundary": true,
+    "ordinary_doc_or_fixture_drift_uses_existing_gates": true
+  },
+  "entry_review_order": [
+    {
+      "step": 1,
+      "candidate_id": "artifact_store_binary_boundary_readiness",
+      "future_track": "artifact store and binary reader boundary readiness",
+      "reason": "Runtime mapping cannot be implemented until storage, binary read, hash validation and public URL boundaries are specified."
+    },
+    {
+      "step": 2,
+      "candidate_id": "artifact_runtime_mapper_implementation",
+      "future_track": "artifact runtime mapper implementation",
+      "reason": "Mapper requires store/binary boundaries and a dedicated implementation plan before code can be created."
+    },
+    {
+      "step": 3,
+      "candidate_id": "backend_adapter_implementation",
+      "future_track": "backend adapter implementation",
+      "reason": "Backend adapter implementation remains blocked by profile, credential, endpoint/model-dir and offline smoke gates."
+    },
+    {
+      "step": 4,
+      "candidate_id": "artifact_store_implementation",
+      "future_track": "artifact store implementation",
+      "reason": "Artifact store follows boundary readiness and mapper plan; it must not be introduced as an implicit dependency."
+    },
+    {
+      "step": 5,
+      "candidate_id": "artifact_binary_reader_implementation",
+      "future_track": "artifact binary reader implementation",
+      "reason": "Binary reader requires storage policy, mime/dimensions revalidation and payload redaction gates."
+    },
+    {
+      "step": 6,
+      "candidate_id": "public_url_resolver_implementation",
+      "future_track": "public URL resolver implementation",
+      "reason": "Public URL or signed URL behavior requires production storage policy and must not be assumed by artifact:// metadata."
+    }
+  ],
+  "forbidden_task_card_matrix": [
+    {
+      "path": "docs/task-cards/image-artifact-runtime-mapper-implementation-v1-plan.md",
+      "candidate_id": "artifact_runtime_mapper_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/image-artifact-store-implementation-v1-plan.md",
+      "candidate_id": "artifact_store_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/image-artifact-binary-reader-implementation-v1-plan.md",
+      "candidate_id": "artifact_binary_reader_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/image-artifact-public-url-resolver-implementation-v1-plan.md",
+      "candidate_id": "public_url_resolver_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "docs/task-cards/image-backend-adapter-implementation-v1-plan.md",
+      "candidate_id": "backend_adapter_implementation",
+      "created_in_this_slice": false
+    }
+  ],
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/runtime/image_artifact_runtime_mapper.py",
+      "candidate_id": "artifact_runtime_mapper_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/copilot_response_artifact_mapper.py",
+      "candidate_id": "artifact_runtime_mapper_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_store.py",
+      "candidate_id": "artifact_store_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_binary_reader.py",
+      "candidate_id": "artifact_binary_reader_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_artifact_public_url_resolver.py",
+      "candidate_id": "public_url_resolver_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/runtime/image_backend_adapter.py",
+      "candidate_id": "backend_adapter_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "contracts/image-artifact-runtime-mapping.schema.json",
+      "candidate_id": "artifact_runtime_mapper_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/image_artifacts.go",
+      "candidate_id": "artifact_store_implementation",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "apps/radishmind-web/src/features/image-generation/ImageArtifactRuntimeMappingPanel.tsx",
+      "candidate_id": "artifact_runtime_mapper_implementation",
+      "created_in_this_slice": false
+    }
+  ],
+  "source_absent_literals": [
+    "ImageArtifactRuntimeMapper",
+    "CopilotResponseArtifactMapper",
+    "ImageArtifactStore",
+    "ImageArtifactBinaryReader",
+    "ImageArtifactPublicUrlResolver",
+    "ImageBackendAdapter",
+    "image_artifact_runtime_mapper",
+    "copilot_response_artifact_mapper",
+    "image_artifact_store",
+    "image_artifact_binary_reader",
+    "image_artifact_public_url_resolver",
+    "image_backend_adapter",
+    "IMAGE_ARTIFACT_PUBLIC_BASE_URL",
+    "IMAGE_ARTIFACT_STORE_URL",
+    "ImageArtifactRuntimeMappingPanel",
+    "runImageArtifactRuntimeMapping",
+    "ReadImageArtifactBinary",
+    "callImageGenerationBackend"
+  ],
+  "execution_policy": {
+    "does_not_call_backend": true,
+    "does_not_generate_images": true,
+    "does_not_download_models": true,
+    "does_not_upload_artifacts": true,
+    "does_not_read_artifact_binary": true,
+    "does_not_write_production_storage": true,
+    "does_not_create_public_url": true,
+    "does_not_start_dev_server": true,
+    "does_not_use_browser_plugin": true
+  },
+  "no_fake_fallback_policy": {
+    "readiness_promoted_to_implementation_allowed": false,
+    "blocked_entry_promoted_to_task_card_allowed": false,
+    "missing_artifact_store_promoted_to_success_allowed": false,
+    "missing_binary_reader_promoted_to_success_allowed": false,
+    "public_url_claim_promoted_to_success_allowed": false,
+    "backend_adapter_readiness_promoted_to_backend_call_allowed": false,
+    "runtime_mapper_missing_promoted_to_response_reference_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "backend_call_count=0",
+      "image_generation_count=0",
+      "model_download_count=0",
+      "artifact_upload_count=0",
+      "artifact_binary_read_count=0",
+      "production_storage_write_count=0",
+      "public_url_resolution_count=0",
+      "dev_server_start_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "real_backend_call",
+      "image_pixel_generation",
+      "model_download",
+      "artifact_upload",
+      "artifact_binary_read",
+      "production_storage_write",
+      "public_url_resolution",
+      "dev_server_start",
+      "browser_plugin_open",
+      "executor_call",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/image-artifact-runtime-mapping-implementation-entry-review-v1-plan.md",
+    "docs/task-cards/image-artifact-runtime-mapping-readiness-v1-plan.md",
+    "scripts/checks/fixtures/image-artifact-runtime-mapping-implementation-entry-review-v1.json",
+    "scripts/checks/fixtures/image-artifact-runtime-mapping-readiness-v1.json",
+    "scripts/check-image-artifact-runtime-mapping-implementation-entry-review-v1.py",
+    "scripts/check-image-artifact-runtime-mapping-readiness-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py"
+  ],
+  "required_doc_references": {
+    "docs/contracts/image-generation.md": [
+      "image-artifact-runtime-mapping-implementation-entry-review-v1",
+      "image_artifact_runtime_mapping_entry_review_defined",
+      "artifact store / binary reader boundary"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "image-artifact-runtime-mapping-implementation-entry-review-v1",
+      "image_artifact_runtime_mapping_entry_review_defined"
+    ],
+    "docs/radishmind-roadmap.md": [
+      "image-artifact-runtime-mapping-implementation-entry-review-v1",
+      "artifact store / binary reader boundary readiness"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "image-artifact-runtime-mapping-implementation-entry-review-v1",
+      "implementation entry review"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "image-artifact-runtime-mapping-implementation-entry-review-v1",
+      "runtime mapper implementation"
+    ],
+    "docs/task-cards/README.md": [
+      "Image Artifact Runtime Mapping Implementation Entry Review",
+      "image-artifact-runtime-mapping-implementation-entry-review-v1"
+    ],
+    "contracts/README.md": [
+      "image-artifact-runtime-mapping-implementation-entry-review-v1",
+      "check-image-artifact-runtime-mapping-implementation-entry-review-v1.py"
+    ],
+    "scripts/README.md": [
+      "check-image-artifact-runtime-mapping-implementation-entry-review-v1.py",
+      "runtime mapping implementation entry review"
+    ]
+  }
+}

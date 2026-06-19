@@ -5,7 +5,7 @@
 
 ## 称呼
 
-- 对话结束总结时，请称呼我为 `萝卜`
+- 对话开始或结束总结时，请称呼我为 `萝卜SAMA`
 
 ## 语言规范
 
@@ -13,6 +13,7 @@
 - 代码、命令、路径、配置键、类型名、接口名保留原文
 - 新增文档默认使用中文，除非该文件天然要求英文
 - 文档语言应直接说明结论、下一步和阻塞项；阶段事实、推进顺序和停止线统一写入 `docs/`
+- 阶段目标、完成总结和推进建议不使用弱化交付质量的短平快完成类表述；优先写清楚阶段证据链、必要验证、可复验链路和停止线
 
 ## 协作流程
 
@@ -23,29 +24,40 @@
 - 每次新增/修改功能、修复 bug 或处理其他任务时，优先从根因、长期维护性和系统一致性出发，选择更完整、更稳妥的治理方案；不要把“最小修复”当作默认优先级，也不要无节制地层层增加兜底来掩盖问题
 - 修改规则、架构、协议、目录职责、阶段范围或协作文档时，优先保持与 `docs/` 中现有正式文档一致
 - 文档中提到 `Radish`、`RadishFlow`、`RadishCatalyst` 外部项目时，默认使用项目名和在线仓库 URL，不写开发者本机绝对路径或相对路径；如需读取本地资料，应要求开发者在当次任务临时提供路径，不把该临时路径写入长期文档
-- 每做完一个可分割子步骤，都应进行最小验证；仓库级默认验证入口优先使用快速模式：macOS / Linux / WSL 用 `./scripts/check-repo.sh --fast` 或 `./scripts/check-repo-fast.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1 -Fast`
+- 每做完一个可分割子步骤，都应进行对应的必要验证；仓库级默认验证入口优先使用快速模式：macOS / Linux / WSL 用 `./scripts/check-repo.sh --fast` 或 `./scripts/check-repo-fast.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1 -Fast`
 - 只有改动较大、发布前，或影响评测/治理口径、协议、架构、阶段边界与文档真相源时，才补跑全量 `check-repo`
 - 不要把 fast mode 当成最终门禁
 - 重要阶段性决策除了改代码，还应同步更新对应文档；如果属于本周重要推进，追加到周志
+
+## 开发节奏
+
+- 当前常态节奏为“功能设计文档先行”：长期功能或开发目标先更新 `docs/features/`，再拆具体实现任务
+- `docs/task-cards/` 只用于具体实现批次、前置条件或高风险边界，不再作为产品功能的默认主文档
+- 总体规划文档负责方向、阶段和优先级；产品面大专题负责长期边界、停止线和推进顺序；功能 / 页面子专题负责具体流程、数据边界、验收方式和实施拆分；task card 只承接具体批次、前置条件或高风险门禁
+- 普通 UI、文案、布局、只读 evidence 组织和使用性整理，默认复用现有聚合门禁、web build、consumer smoke 和仓库基线
+- 只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时，才新增专项 task card、fixture 或 checker
+- 回答“下一步做什么”时，应先判断要推进哪个功能设计文档，而不是默认继续新增同层 gate-only 切片
 
 ## 文档真相源
 
 `docs/` 是本仓库的正式文档源，优先级最高的文档如下：
 
 1. `docs/radishmind-current-focus.md`
-2. `docs/radishmind-product-scope.md`
-3. `docs/radishmind-architecture.md`
-4. `docs/radishmind-roadmap.md`
-5. `docs/radishmind-integration-contracts.md`
-6. `docs/radishmind-code-standards.md`
-7. `docs/adr/0001-branch-and-pr-governance.md`
-8. `docs/devlogs/README.md`
+2. `docs/features/README.md`
+3. `docs/radishmind-product-scope.md`
+4. `docs/radishmind-architecture.md`
+5. `docs/radishmind-roadmap.md`
+6. `docs/radishmind-integration-contracts.md`
+7. `docs/radishmind-code-standards.md`
+8. `docs/adr/0001-branch-and-pr-governance.md`
+9. `docs/devlogs/README.md`
 
 规则：
 
 - 若代码与文档冲突，先判断是代码偏离文档，还是文档已过期，再统一修正
 - 优先更新已有文档，不为一次性讨论创建大量散文档
 - 回答“今天要做什么以推进开发”时，默认先读 `docs/radishmind-current-focus.md`，长契约、长评测文档和周志细节只在需要实施具体任务时按需读取
+- 实施具体功能时，先读或更新对应 `docs/features/*.md`；如果没有对应功能文档，应先创建短设计与开发文档，再进入实现
 - `docs/README.md`、产品范围、架构和路线图等关键入口文档应尽量简约，只保留定位、最近阶段、当前进度、下一步和明确停止线
 - 文档默认按“短入口 + 专题页 + 证据附件”组织；入口文档超过 `250` 行、普通 Markdown 超过 `800` 行、周志或任务卡超过 `600` 行会触发仓库检查失败
 - 普通 Markdown 超过 `500` 行、周志或任务卡超过 `350` 行会触发 warning；接近 warning 时应优先拆分专题、分片、manifest、summary 或 run record
@@ -91,6 +103,7 @@
 ### 规划与文档
 
 - `docs/`: 项目定位、架构、路线图、ADR、周志
+- `docs/features/`: 功能设计与开发文档，承载长期产品能力、开发目标、当前状态、下一批开发和停止线
 - `scripts/`: 仓库检查与自动化脚本
 - `.github/`: PR 模板、ruleset 模板、GitHub Actions
 
@@ -121,6 +134,7 @@
 ### 需要先告知用户再执行
 
 - 长时间运行或需要人工交互的命令，例如启动服务、交互式调试或长期驻留进程
+- 真实联调需要启动开发服务器、平台后端或浏览器 dev server 时，默认由用户在本机终端启动；AI 不默认启动或保留后台服务。只有用户明确要求自动启动时，AI 才可启动，并必须在任务结束、提交或交接前关闭对应后台进程；若由用户启动，AI 负责给出完整命令、端口和验证目标
 - 可能修改本机环境的命令，例如安装依赖、下载模型、写系统目录、改系统配置
 - 依赖网络或可能引入依赖变更的命令，例如 `pip install`、`uv add`、`npm install`、`cargo add`、需要联网的模型下载或数据下载
 - 大规模训练、显著占用 GPU/CPU/磁盘的命令
@@ -136,6 +150,7 @@
 ### 默认不做
 
 - 跨工作区编辑 `RadishFlow`、`Radish` 或 `RadishCatalyst` 本地工作区
+- 未经明确要求启动或保留用于真实联调的开发服务器、平台后端或浏览器 dev server 后台进程
 - 未经明确要求下载大模型、数据集或权重文件
 - 在没有评测基线前频繁切换底座模型
 - 未经明确要求执行破坏性 Git 操作
@@ -159,7 +174,6 @@
 补充说明：
 
 - `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 是正式仓库级验证入口，需长期保持双端可用与语义一致；日常协作默认走它们的快速参数或对应 fast wrapper
-- `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
 - `scripts/check-repo-fast.ps1` 与 `scripts/check-repo-fast.sh` 是日常快速验证入口，和全量入口保持同一套口径，但会跳过慢速回归与批量元数据重跑
 - `scripts/bootstrap-dev.ps1` 与 `scripts/bootstrap-dev.sh` 是仓库 Python 开发环境入口；仓库级检查默认使用 `.venv`，不再隐式落到全局 Python
 - 仓库按职责分层：模型训练、评测与脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` / `control plane` 默认采用 `Go`；不因参考 `Radish` 而默认引入 `.NET` / ASP.NET Core；评测、回归与仓库级校验仍统一以 `Python` 为核心实现，`ps1` / `sh` 入口只保留平台包装职责
@@ -219,7 +233,7 @@
 - 不添加 AI 协作者署名
 - 小修改提交时，commit message 保持一条简洁说明即可
 - 大修改提交时，除了首行 commit message 外，优先补充 3~6 条简短说明，概括本次主要变更点
-- 提交前至少确认本次改动对应的最小验证已经执行
+- 提交前至少确认本次改动对应的必要验证已经执行
 
 示例：
 

@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_adapter_smoke_v1",
+  "slice": {
+    "id": "workflow-saved-draft-adapter-smoke-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_adapter_smoke_executed",
+    "does_not_claim": [
+      "repository_store_mode_enabled",
+      "durable_persistence_ready",
+      "database_connection_ready",
+      "database_query_ready",
+      "sql_migration_created",
+      "migration_runner_implemented",
+      "schema_version_table_created",
+      "production_auth_runtime_ready",
+      "radish_oidc_ready",
+      "token_validation_ready",
+      "workspace_membership_adapter_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-adapter-smoke-readiness-v1",
+    "workflow-saved-draft-repository-adapter-implementation-v1",
+    "workflow-saved-draft-repository-contract-smoke-runner-implementation-v1",
+    "workflow-saved-draft-store-selector-smoke-v1",
+    "workflow-saved-draft-schema-artifact-materialization-v1",
+    "workflow-saved-draft-production-auth-readiness-v1"
+  ],
+  "execution_boundary": {
+    "status": "adapter_smoke_executed_with_injected_fake_query_executor",
+    "fixture": "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
+    "checker": "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
+    "guard": "scripts/checks/control_plane/workflow_saved_draft_adapter_smoke_execution_guard.py",
+    "interface_file": "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+    "adapter_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+    "adapter_test_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_test.go",
+    "adapter_smoke_test_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_smoke_test.go",
+    "static_contract_runner_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_contract_smoke_runner.go",
+    "schema_manifest": "services/platform/migrations/workflow_saved_drafts/manifest.json",
+    "store_schema_version": "saved_workflow_drafts_store_v1",
+    "uses_static_contract_smoke_cases": true,
+    "uses_repository_adapter": true,
+    "uses_injected_fake_query_executor": true,
+    "uses_dev_http_route": false,
+    "starts_service": false,
+    "connects_database": false,
+    "runs_sql": false,
+    "calls_oidc": false,
+    "enables_repository_store_mode": false,
+    "creates_production_api": false,
+    "publishes_or_runs_workflow": false
+  },
+  "operation_smoke_matrix": [
+    {
+      "operation": "SaveWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:write",
+      "request_type": "SaveWorkflowDraftRecordRequest",
+      "result_type": "SaveWorkflowDraftRecordResult",
+      "adapter_method": "SaveWorkflowDraftRecord",
+      "expected_success_projection": "sanitized_saved_draft_record_with_current_version_metadata",
+      "static_contract_case_consumed": true,
+      "adapter_method_called": true,
+      "fake_query_executor_call_count": 1,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_fixture_allowed": false,
+      "fallback_to_dev_http_route_allowed": false
+    },
+    {
+      "operation": "ReadWorkflowDraftRecord",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ReadWorkflowDraftRecordRequest",
+      "result_type": "ReadWorkflowDraftRecordResult",
+      "adapter_method": "ReadWorkflowDraftRecord",
+      "expected_success_projection": "sanitized_saved_draft_record",
+      "static_contract_case_consumed": true,
+      "adapter_method_called": true,
+      "fake_query_executor_call_count": 1,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_fixture_allowed": false,
+      "fallback_to_dev_http_route_allowed": false
+    },
+    {
+      "operation": "ListWorkflowDraftRecords",
+      "required_scope": "workflow_drafts:read",
+      "request_type": "ListWorkflowDraftRecordsRequest",
+      "result_type": "ListWorkflowDraftRecordsResult",
+      "adapter_method": "ListWorkflowDraftRecords",
+      "expected_success_projection": "sanitized_saved_draft_summary_list",
+      "static_contract_case_consumed": true,
+      "adapter_method_called": true,
+      "fake_query_executor_call_count": 1,
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "fallback_to_fixture_allowed": false,
+      "fallback_to_dev_http_route_allowed": false
+    }
+  ],
+  "failure_mapping": {
+    "status": "adapter_smoke_fail_closed_executed",
+    "required_failure_codes": [
+      "draft_scope_denied",
+      "draft_not_found",
+      "draft_schema_version_unsupported",
+      "draft_payload_invalid",
+      "draft_version_conflict",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_auth_context_contract_mismatch",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable",
+      "draft_identity_context_missing",
+      "draft_tenant_binding_missing",
+      "draft_workspace_membership_denied",
+      "draft_scope_grant_missing"
+    ],
+    "executed_failure_codes": [
+      "draft_not_found",
+      "draft_version_conflict",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "draft_auth_context_contract_mismatch",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable",
+      "draft_scope_grant_missing"
+    ],
+    "version_conflict_must_not_be_rewritten": true,
+    "not_found_must_not_fallback_to_sample": true,
+    "scope_denied_must_not_return_draft_payload": true,
+    "contract_mismatch_must_not_leak_database_detail": true,
+    "schema_failure_must_prevent_query_execution": true
+  },
+  "no_fallback_policy": {
+    "fallback_to_memory_dev_store_allowed": false,
+    "fallback_to_sample_allowed": false,
+    "fallback_to_fixture_allowed": false,
+    "fallback_to_dev_http_route_allowed": false,
+    "fallback_to_test_auth_allowed": false,
+    "success_on_missing_schema_artifact_allowed": false,
+    "success_on_auth_context_mismatch_allowed": false,
+    "success_on_contract_mismatch_allowed": false,
+    "reserved_store_mode_success_allowed": false,
+    "unknown_store_mode_success_allowed": false
+  },
+  "no_side_effect_policy": {
+    "allowed_test_state": "injected_fake_query_executor_state",
+    "side_effect_counters_must_remain": [
+      "database_connection_count=0",
+      "external_repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "database_connection",
+      "sql_execution",
+      "oidc_network_call",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution",
+      "production_api_call"
+    ]
+  },
+  "artifact_guard": {
+    "files_must_not_exist": [
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_migration_runner.go",
+      "services/platform/internal/auth/radish_oidc.go",
+      "services/platform/internal/auth/workflow_saved_draft_token.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_api.go"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/httpapi/workflow_saved_draft_repository.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter_smoke_test.go"
+    ],
+    "forbidden_source_literals": [
+      "database/sql",
+      "github.com/jackc/pgx",
+      "pgxpool",
+      "sql.Open(",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_REPOSITORY_DSN",
+      "oidc.Provider",
+      "ValidateWorkflowDraftToken",
+      "CREATE TABLE saved_workflow_draft",
+      "INSERT INTO saved_workflow_draft",
+      "UPDATE saved_workflow_draft",
+      "DELETE FROM saved_workflow_draft"
+    ]
+  },
+  "required_tests": [
+    "TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionConsumesStaticCases",
+    "TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping",
+    "TestSavedWorkflowDraftRepositoryAdapterSmokeFixtureMatchesGoTest"
+  ],
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-adapter-smoke-execution-v1.md",
+      "must_contain": [
+        "draft_adapter_smoke_executed",
+        "workflow-saved-draft-adapter-smoke-v1"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-adapter-smoke-v1-plan.md",
+      "must_contain": [
+        "draft_adapter_smoke_executed",
+        "workflow-saved-draft-adapter-smoke-v1"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "draft_adapter_smoke_executed",
+        "Saved Workflow Draft Adapter Smoke Execution v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-adapter-smoke-v1",
+        "draft_adapter_smoke_executed"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-adapter-smoke-v1.py",
+        "draft_adapter_smoke_executed"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W25.md",
+      "must_contain": [
+        "workflow-saved-draft-adapter-smoke-v1",
+        "draft_adapter_smoke_executed"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "adapter_smoke_checker_and_go_tests",
+    "required_checks": [
+      "go test ./internal/httpapi",
+      "workflow_saved_draft_adapter_smoke_checker",
+      "workflow_saved_draft_repository_adapter_implementation_checker",
+      "workflow_saved_draft_adapter_smoke_readiness_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_connect_database": true,
+    "does_not_run_sql": true,
+    "does_not_call_oidc": true,
+    "does_not_enable_repository_store_mode": true,
+    "does_not_create_production_api": true,
+    "does_not_publish_or_run_workflow": true
+  }
+}

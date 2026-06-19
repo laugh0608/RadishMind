@@ -32,6 +32,13 @@ export type WorkflowConfirmationPlaceholderPreview = {
   auditRef: string;
 };
 
+export type WorkflowBlockedActionPreviewContext = {
+  runId: string;
+  workflowDefinitionId: string;
+  requestId?: string;
+  auditRef?: string;
+};
+
 export type WorkflowBlockedActionPreviewViewModel = {
   pageId: "workflow-blocked-action-preview-read";
   sourcePageId: "workflow-run-detail-read";
@@ -87,9 +94,17 @@ const DEFAULT_RELATED_RUN_GUARD: WorkflowRunDetailGuardPreview = {
   auditRef: "audit_run_detail_blocked_replay_demo",
 };
 
+const DEFAULT_CONTEXT: Required<WorkflowBlockedActionPreviewContext> = {
+  runId: "run_radishflow_copilot_20260531_001",
+  workflowDefinitionId: "wf_radishflow_copilot_latest",
+  requestId: "req_workflow_blocked_action_preview_demo",
+  auditRef: "audit_workflow_blocked_action_preview_demo",
+};
+
 export function buildWorkflowBlockedActionPreviewViewModel(
   action: WorkflowDefinitionBlockedActionPreview = DEFAULT_BLOCKED_ACTION_PREVIEW,
   relatedRunGuard: WorkflowRunDetailGuardPreview = DEFAULT_RELATED_RUN_GUARD,
+  context: WorkflowBlockedActionPreviewContext = DEFAULT_CONTEXT,
 ): WorkflowBlockedActionPreviewViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["run-record-summary-list-route"];
   const routePath = CONTROL_PLANE_READ_ROUTES.runs;
@@ -107,10 +122,10 @@ export function buildWorkflowBlockedActionPreviewViewModel(
     draftRouteId: "tool-action-preview-read-draft",
     confirmationDraftRouteId: "confirmation-placeholder-read-draft",
     routePath,
-    requestId: "req_workflow_blocked_action_preview_demo",
-    auditRef: "audit_workflow_blocked_action_preview_demo",
-    runId: "run_radishflow_copilot_20260531_001",
-    workflowDefinitionId: "wf_radishflow_copilot_latest",
+    requestId: context.requestId ?? DEFAULT_CONTEXT.requestId,
+    auditRef: context.auditRef ?? DEFAULT_CONTEXT.auditRef,
+    runId: context.runId,
+    workflowDefinitionId: context.workflowDefinitionId,
     nodeExecutionRef: action.nodeId,
     toolActionId: action.toolActionId,
     toolRef: action.toolRef,

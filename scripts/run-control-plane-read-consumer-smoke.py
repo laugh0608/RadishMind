@@ -22,6 +22,38 @@ EXPECTED_ROUTE_IDS = {
     "run-record-summary-list-route",
     "audit-summary-list-route",
 }
+PRODUCT_SAMPLE_REF_FIELDS_BY_ROUTE = {
+    "tenant-summary-route": ("tenant_ref", "quota_summary_ref", "audit_summary_ref"),
+    "application-summary-list-route": (
+        "application_ref",
+        "display_name",
+        "latest_workflow_definition_ref",
+        "last_run_status",
+    ),
+    "api-key-summary-list-route": ("api_key_id", "owner_subject_ref", "state"),
+    "quota-summary-route": ("quota_id", "tenant_ref", "over_quota_failure_code"),
+    "workflow-definition-summary-list-route": (
+        "workflow_definition_id",
+        "application_ref",
+        "definition_status",
+        "risk_level",
+    ),
+    "run-record-summary-list-route": (
+        "run_id",
+        "workflow_definition_id",
+        "application_ref",
+        "status",
+        "failure_code",
+    ),
+    "audit-summary-list-route": (
+        "audit_ref",
+        "actor_subject_ref",
+        "event_kind",
+        "resource_ref",
+        "decision",
+        "failure_code",
+    ),
+}
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -105,6 +137,21 @@ def build_collection_view(route: dict[str, Any], response: dict[str, Any], respo
     }
 
 
+def build_product_sample_refs(examples: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    refs_by_route: dict[str, list[dict[str, Any]]] = {}
+    for route_id in sorted(examples):
+        fields = PRODUCT_SAMPLE_REF_FIELDS_BY_ROUTE.get(route_id)
+        if not fields:
+            continue
+        success = examples[route_id].get("success") or {}
+        refs_by_route[route_id] = [
+            {field: item.get(field) for field in fields}
+            for item in success.get("items") or []
+            if isinstance(item, dict)
+        ]
+    return refs_by_route
+
+
 def has_forbidden_key(value: Any, forbidden_keys: set[str]) -> bool:
     if isinstance(value, list):
         return any(has_forbidden_key(item, forbidden_keys) for item in value)
@@ -139,6 +186,7 @@ def build_consumer_view() -> dict[str, Any]:
         for response in (example.get("success") or {}, example.get("failure") or {})
     ]
     failure_views = [view for view in collection_views if view.get("response_kind") == "failure"]
+    product_sample_refs = build_product_sample_refs(examples)
 
     return {
         "schema_version": 1,
@@ -147,6 +195,11 @@ def build_consumer_view() -> dict[str, Any]:
         "route_catalog": build_route_catalog_view(routes),
         "view_models": {
             "collections": collection_views,
+        },
+        "product_samples": {
+            "canonical_source": "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json",
+            "success_item_refs_by_route": product_sample_refs,
+            "consumer_specific_envelope_fields": ["request_id", "audit_ref"],
         },
         "invariants": {
             "all_routes_consumed": set(routes) == EXPECTED_ROUTE_IDS and set(examples) == EXPECTED_ROUTE_IDS,
@@ -160,6 +213,10 @@ def build_consumer_view() -> dict[str, Any]:
                 for view in collection_views
             ),
             "secret_projection_disabled": all(view.get("can_reveal_secrets") is False for view in collection_views),
+            "product_sample_refs_preserved": (
+                set(product_sample_refs) == EXPECTED_ROUTE_IDS
+                and all(len(refs) > 0 for refs in product_sample_refs.values())
+            ),
             "negative_contract_invariants_preserved": {
                 "no_executor_invocation",
                 "no_database_write",
@@ -184,10 +241,16 @@ def assert_consumer_view(document: dict[str, Any]) -> None:
         "forbidden_output_absent",
         "read_only_views",
         "secret_projection_disabled",
+        "product_sample_refs_preserved",
         "negative_contract_invariants_preserved",
     ):
         if invariants.get(key) is not True:
             raise SystemExit(f"control plane read consumer invariant failed: {key}")
+    product_samples = document.get("product_samples") or {}
+    if product_samples.get("canonical_source") != "scripts/checks/fixtures/control-plane-read-response-fixtures-v1.json":
+        raise SystemExit("control plane read consumer view lost canonical product sample source")
+    if set((product_samples.get("success_item_refs_by_route") or {}).keys()) != EXPECTED_ROUTE_IDS:
+        raise SystemExit("control plane read consumer view lost product sample route refs")
     catalog = document.get("route_catalog") or {}
     if catalog.get("database_backed") is not False or catalog.get("formal_ui_ready") is not False:
         raise SystemExit("control plane read consumer view incorrectly declares database or formal UI ready")

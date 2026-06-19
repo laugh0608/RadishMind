@@ -90,7 +90,7 @@ export function buildWorkflowConfirmationPlaceholderViewModel(
     sourceRouteId: "run-record-summary-list-route",
     draftRouteId: "confirmation-placeholder-read-draft",
     routePath,
-    requestId: "req_workflow_confirmation_placeholder_demo",
+    requestId: blockedActionPreview.requestId,
     auditRef: placeholder.auditRef,
     confirmationPlaceholderId: placeholder.confirmationPlaceholderId,
     requiredActionRef: placeholder.requiredActionRef,
@@ -110,7 +110,7 @@ export function buildWorkflowConfirmationPlaceholderViewModel(
     auditMetadata: {
       sourceRouteId: "run-record-summary-list-route",
       draftRouteId: "confirmation-placeholder-read-draft",
-      requestId: "req_workflow_confirmation_placeholder_demo",
+      requestId: blockedActionPreview.requestId,
       auditRef: placeholder.auditRef,
       policyRef: "session_tooling_confirmation_flow_design",
       traceRef: "trace_confirmation_placeholder_demo",

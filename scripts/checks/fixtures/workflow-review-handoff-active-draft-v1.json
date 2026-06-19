@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_review_handoff_active_draft_v1",
+  "slice": {
+    "id": "workflow-review-handoff-active-draft-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "workflow_review_handoff_active_draft_v1_implemented",
+    "does_not_claim": [
+      "review_persistence_ready",
+      "handoff_persistence_ready",
+      "handoff_export_ready",
+      "handoff_send_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-draft-node-attribute-editing-model-v1",
+    "workflow-workspace-context-consistency-v1"
+  ],
+  "frontend_contract": {
+    "handoff_file": "apps/radishmind-web/src/features/control-plane-read/workflowReviewHandoff.ts",
+    "handoff_panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowReviewHandoffPanel.tsx",
+    "context_file": "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts",
+    "required_handoff_literals": [
+      "WorkflowReviewHandoffActiveDraftReviewRecord",
+      "activeDraftReviewRecord",
+      "workflowDraftValidationInspector: WorkflowDraftValidationInspectorViewModel;",
+      "workflowExecutionPlanPreview: WorkflowExecutionPlanPreviewViewModel;",
+      "buildActiveDraftReviewRecord(",
+      "buildActiveDraftReviewSections(",
+      "active_draft_validation",
+      "active_draft_execution_plan",
+      "active_draft_runtime_readiness",
+      "validationStatusToHandoffStatus(",
+      "canPersistRecord: false",
+      "canExportRecord: false",
+      "canSendRecord: false",
+      "canStartRuntime: false",
+      "active_draft_validation_inspector",
+      "active_draft_execution_plan_preview",
+      "active_draft_runtime_readiness_inspector"
+    ],
+    "required_panel_literals": [
+      "Active Draft Review Record",
+      "Validation, plan, readiness",
+      "WorkflowReviewHandoffActiveDraftSectionCard",
+      "handoff.activeDraftReviewRecord.sections.map",
+      "primaryEvidence = handoff.evidenceChecklist.slice(0, 11)",
+      "section.reviewerQuestion"
+    ],
+    "required_context_literals": [
+      "const workflowDraftValidationInspector = buildWorkflowDraftValidationInspectorViewModel(",
+      "activeWorkflowDraft,",
+      "const workflowExecutionPlanPreview = buildWorkflowExecutionPlanPreviewViewModel(",
+      "const workflowRuntimeReadinessInspector = buildWorkflowRuntimeReadinessInspectorViewModel(",
+      "workflowDraftValidationInspector,",
+      "workflowExecutionPlanPreview,",
+      "workflowDraftValidationInspector,",
+      "workflowExecutionPlanPreview,",
+      "workflowRuntimeReadinessInspector,"
+    ],
+    "forbidden_handoff_literals": [
+      "fetch(",
+      "localStorage",
+      "indexedDB",
+      "window.open",
+      "URL.createObjectURL",
+      "navigator.sendBeacon"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/review-handoff-active-draft-v1.md": [
+      "Workflow Review Handoff Active Draft v1",
+      "状态：`workflow_review_handoff_active_draft_v1_implemented`",
+      "validation inspector、execution plan preview 和 runtime readiness inspector",
+      "不实现 publish、run、executor"
+    ],
+    "docs/task-cards/workflow-review-handoff-active-draft-v1-plan.md": [
+      "workflow_review_handoff_active_draft_v1_implemented",
+      "handoff record 必须消费当前 active draft",
+      "Web build、专项 checker 和 `./scripts/check-repo.sh --fast`"
+    ],
+    "docs/features/workflow/README.md": [
+      "Workflow Review Handoff Active Draft v1",
+      "workflow_review_handoff_active_draft_v1_implemented"
+    ],
+    "docs/features/README.md": [
+      "Workflow Review Handoff Active Draft v1"
+    ],
+    "docs/features/workflow-agent-runtime.md": [
+      "Workflow Review Handoff Active Draft v1",
+      "active draft review record"
+    ],
+    "docs/features/user-workspace.md": [
+      "Workflow Review Handoff Active Draft v1"
+    ],
+    "docs/features/workflow/saved-workflow-draft-v1.md": [
+      "Workflow Review Handoff Active Draft v1",
+      "active draft review record"
+    ],
+    "docs/features/workflow/draft-node-attribute-editing-model-v1.md": [
+      "Workflow Review Handoff Active Draft v1"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "Workflow Review Handoff Active Draft v1",
+      "workflow-review-handoff-active-draft-v1"
+    ],
+    "docs/task-cards/README.md": [
+      "Workflow Review Handoff Active Draft"
+    ],
+    "scripts/README.md": [
+      "workflow-review-handoff-active-draft-v1"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "Workflow Review Handoff Active Draft v1",
+      "workflow_review_handoff_active_draft_v1_implemented"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_review_handoff_active_draft_v1_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-review-handoff-active-draft-v1.py"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

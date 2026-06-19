@@ -3,6 +3,7 @@ import {
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
   CONTROL_PLANE_READ_ROUTES,
   controlPlaneReadResponseHasForbiddenOutput,
+  type WorkflowDefinitionSummary,
 } from "../../../../../contracts/typescript/control-plane-read-api";
 import {
   buildWorkflowDefinitionDetailViewModel,
@@ -34,6 +35,12 @@ export type WorkflowDraftDesignerNode = {
   readiness: "ready" | "review_required" | "blocked";
   inputSummary: string;
   outputSummary: string;
+  providerRef: string;
+  toolRef: string;
+  ragRef: string;
+  inputContractFields: string[];
+  outputContractFields: string[];
+  outputMappingSummary: string;
   riskLevel: "low" | "medium" | "high";
   requiresConfirmation: boolean;
   previewOnlyReason: string;
@@ -93,17 +100,26 @@ export type WorkflowDraftDesignerDraft = {
   risks: WorkflowDraftDesignerRisk[];
   blockedCapabilities: WorkflowDraftDesignerBlockedCapability[];
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
-  localOnlyInteraction: "inspect_only";
+  localOnlyInteraction: "inspect_only" | "local_edit";
 };
 
 export type WorkflowDraftDesignerSource = {
   workflowDefinitions?: WorkspaceWorkflowDefinitionRow[];
+  localDrafts?: WorkflowDraftDesignerDraft[];
+  tenantRef?: string;
+  detailSourcesByWorkflowDefinitionId?: Record<string, WorkflowDraftDesignerDefinitionDetailSource>;
   detailNodes?: WorkflowDefinitionDetailNode[];
   detailEdges?: WorkflowDefinitionDetailEdge[];
   blockedActionPreview?: WorkflowDefinitionBlockedActionPreview;
   confirmationPlaceholder?: WorkflowConfirmationPlaceholderViewModel;
   sourceRequestId?: string;
   sourceAuditRef?: string;
+};
+
+export type WorkflowDraftDesignerDefinitionDetailSource = {
+  nodes: WorkflowDefinitionDetailNode[];
+  edges: WorkflowDefinitionDetailEdge[];
+  blockedActionPreview: WorkflowDefinitionBlockedActionPreview;
 };
 
 export type WorkflowDraftDesignerViewModel = {
@@ -168,14 +184,33 @@ export function buildWorkflowDraftDesignerViewModel(
   const templates = workflowDefinitions.map((workflowDefinition) =>
     buildTemplate(workflowDefinition, confirmationPlaceholder),
   );
-  const nodes = buildDesignerNodes(source.detailNodes ?? detail.nodes);
-  const edges = buildDesignerEdges(source.detailEdges ?? detail.edges);
-  const blockedActionPreview = source.blockedActionPreview ?? detail.blockedActionPreview;
   const requestId = source.sourceRequestId ?? "req_workflow_draft_designer_offline_demo";
   const auditRef = source.sourceAuditRef ?? "audit_workflow_draft_designer_offline_demo";
-  const drafts = templates.map((template) =>
-    buildDraft(template, nodes, edges, blockedActionPreview, confirmationPlaceholder, requestId, auditRef),
+  const baseDrafts = templates.map((template, index) => {
+    const workflowDefinition = workflowDefinitions[index];
+    const detailSource = workflowDefinition
+      ? detailSourceForWorkflowDefinition(workflowDefinition, source)
+      : {
+          nodes: detail.nodes,
+          edges: detail.edges,
+          blockedActionPreview: detail.blockedActionPreview,
+        };
+    return buildDraft(
+      template,
+      buildDesignerNodes(detailSource.nodes),
+      buildDesignerEdges(detailSource.edges),
+      detailSource.blockedActionPreview,
+      confirmationPlaceholder,
+      requestId,
+      auditRef,
+    );
+  });
+  const localDrafts = (source.localDrafts ?? []).filter((draft) =>
+    workflowDefinitions.some(
+      (workflowDefinition) => workflowDefinition.workflowDefinitionId === draft.workflowDefinitionId,
+    ),
   );
+  const drafts = [...baseDrafts, ...localDrafts];
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     draft: { [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[7]]: "blocked" },
   });
@@ -196,9 +231,11 @@ export function buildWorkflowDraftDesignerViewModel(
       route.path === routePath &&
       route.canMutate === false &&
       templates.length >= 2 &&
-      drafts.length === templates.length &&
-      nodes.length >= 4 &&
-      edges.length >= 4,
+      baseDrafts.length === templates.length &&
+      baseDrafts.every(
+        (draft, index) => draft.nodes.length === templates[index]?.nodeCount && draft.edges.length >= 3,
+      ) &&
+      localDrafts.every((draft) => draft.nodes.length > 0 && draft.edges.length >= 3),
     canInspectDraftLocally: true,
     canSwitchDraftLocally: true,
     canRequestLiveBackend: false,
@@ -209,6 +246,56 @@ export function buildWorkflowDraftDesignerViewModel(
     canSubmitConfirmationDecision: false,
     canWriteBusinessTruth: false,
     canReplayRun: false,
+  };
+}
+
+function detailSourceForWorkflowDefinition(
+  workflowDefinition: WorkspaceWorkflowDefinitionRow,
+  source: WorkflowDraftDesignerSource,
+): WorkflowDraftDesignerDefinitionDetailSource {
+  const explicitDetailSource =
+    source.detailSourcesByWorkflowDefinitionId?.[workflowDefinition.workflowDefinitionId];
+  if (explicitDetailSource) {
+    return explicitDetailSource;
+  }
+
+  if (
+    source.workflowDefinitions?.length === 1 &&
+    source.detailNodes &&
+    source.detailEdges &&
+    source.blockedActionPreview
+  ) {
+    return {
+      nodes: source.detailNodes,
+      edges: source.detailEdges,
+      blockedActionPreview: source.blockedActionPreview,
+    };
+  }
+
+  const detail = buildWorkflowDefinitionDetailViewModel(
+    toWorkflowDefinitionSummary(workflowDefinition, source.tenantRef ?? "tenant_demo"),
+  );
+  return {
+    nodes: detail.nodes,
+    edges: detail.edges,
+    blockedActionPreview: detail.blockedActionPreview,
+  };
+}
+
+function toWorkflowDefinitionSummary(
+  workflowDefinition: WorkspaceWorkflowDefinitionRow,
+  tenantRef: string,
+): WorkflowDefinitionSummary {
+  return {
+    workflow_definition_id: workflowDefinition.workflowDefinitionId,
+    tenant_ref: tenantRef,
+    application_ref: workflowDefinition.applicationRef,
+    version: workflowDefinition.version,
+    definition_status: workflowDefinition.definitionStatus,
+    node_count: workflowDefinition.nodeCount,
+    risk_level: workflowDefinition.riskLevel,
+    requires_confirmation_capable: workflowDefinition.requiresConfirmationCapable,
+    updated_at: workflowDefinition.updatedAt,
   };
 }
 
@@ -278,12 +365,57 @@ function buildDesignerNodes(detailNodes: WorkflowDefinitionDetailNode[]): Workfl
     readiness: node.requiresConfirmation ? "review_required" : "ready",
     inputSummary: node.inputSummary,
     outputSummary: node.outputSummary,
+    providerRef: defaultWorkflowDraftProviderRef(node.nodeType),
+    toolRef: node.nodeType === "http_tool" ? "tool:workflow-preview-readonly" : "",
+    ragRef: "",
+    inputContractFields: deriveWorkflowDraftContractFields(node.inputSummary, "input"),
+    outputContractFields: deriveWorkflowDraftContractFields(node.outputSummary, "output"),
+    outputMappingSummary: defaultWorkflowDraftOutputMappingSummary(node.nodeType),
     riskLevel: node.riskLevel,
     requiresConfirmation: node.requiresConfirmation,
     previewOnlyReason: node.requiresConfirmation
       ? "The node is visible for local inspection, with future execution gated by confirmation and executor prerequisites."
       : "The node is visible for local inspection only; no runtime request is made.",
   }));
+}
+
+function defaultWorkflowDraftProviderRef(nodeType: WorkflowDefinitionDetailNode["nodeType"]): string {
+  if (nodeType === "llm") {
+    return "profile:radishmind-default-workflow";
+  }
+  if (nodeType === "condition") {
+    return "policy:confirmation-gated";
+  }
+  return "";
+}
+
+function defaultWorkflowDraftOutputMappingSummary(nodeType: WorkflowDefinitionDetailNode["nodeType"]): string {
+  if (nodeType === "llm") {
+    return "Map advisory answer, candidate actions, risk summary, and audit refs into reviewable output fields.";
+  }
+  if (nodeType === "http_tool") {
+    return "Map preview-only action metadata into audit-visible candidate action fields.";
+  }
+  if (nodeType === "condition") {
+    return "Map policy result into review-required branch metadata without unlocking execution.";
+  }
+  if (nodeType === "output") {
+    return "Map final advisory fields into the read-only workspace review surface.";
+  }
+  return "Map sanitized context fields into the next draft node contract.";
+}
+
+function deriveWorkflowDraftContractFields(
+  summary: string,
+  contractKind: "input" | "output",
+): string[] {
+  const summaryText = summary.toLowerCase();
+  const candidates =
+    contractKind === "input"
+      ? ["tenant_ref", "application_ref", "workspace_id", "selection_summary", "diagnostic_summary"]
+      : ["answer_summary", "candidate_actions", "risk_summary", "audit_refs", "citation_summary"];
+  const matched = candidates.filter((field) => field.split("_").every((word) => summaryText.includes(word)));
+  return matched.length > 0 ? matched : contractKind === "input" ? ["workspace_id"] : ["audit_refs"];
 }
 
 function buildDesignerEdges(detailEdges: WorkflowDefinitionDetailEdge[]): WorkflowDraftDesignerEdge[] {

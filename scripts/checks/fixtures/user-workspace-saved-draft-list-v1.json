@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "kind": "user_workspace_saved_draft_list_v1",
+  "slice": {
+    "id": "user-workspace-saved-draft-list-v1",
+    "track": "User Workspace / Workflow",
+    "status": "user_workspace_saved_draft_list_implemented",
+    "does_not_claim": [
+      "complete_builder_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-consumer-smoke-v1",
+    "user-workspace-draft-creation-v1"
+  ],
+  "route_contract": {
+    "go_domain_file": "services/platform/internal/httpapi/workflow_saved_draft.go",
+    "go_handler_file": "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+    "go_server_file": "services/platform/internal/httpapi/server.go",
+    "go_test_file": "services/platform/internal/httpapi/workflow_saved_draft_http_test.go",
+    "routes": [
+      "GET /v1/user-workspace/workflow-drafts"
+    ],
+    "required_domain_literals": [
+      "SavedWorkflowDraftSummary",
+      "SavedWorkflowDraftListResult",
+      "ListDraftsByScope",
+      "ListDrafts(",
+      "savedWorkflowDraftSummaryFromDraft"
+    ],
+    "required_handler_literals": [
+      "savedWorkflowDraftListRoute",
+      "handleListWorkflowDrafts",
+      "draft_summaries",
+      "writeSavedWorkflowDraftListResult",
+      "workflow_drafts:read"
+    ],
+    "required_test_literals": [
+      "list should return one saved draft summary",
+      "write disabled save must not leave list fallback",
+      "store unavailable list must stay fail closed without sample fallback",
+      "assertSavedWorkflowDraftListEnvelopeContract"
+    ],
+    "required_summary_keys": [
+      "draft_id",
+      "workspace_id",
+      "application_id",
+      "source_definition_id",
+      "draft_version",
+      "draft_status",
+      "name",
+      "updated_at",
+      "node_count",
+      "edge_count",
+      "validation_state",
+      "valid_for_review",
+      "sample_or_unsaved_draft_status"
+    ]
+  },
+  "consumer_contract": {
+    "file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
+    "required_statuses": [
+      "sample",
+      "loading",
+      "ready",
+      "empty",
+      "list_failed",
+      "restore_failed"
+    ],
+    "required_exports": [
+      "WorkflowSavedDraftListState",
+      "WorkflowSavedDraftSummary",
+      "listWorkflowDraftDevRecords",
+      "restoreWorkflowDraftDevRecord",
+      "initialWorkflowSavedDraftListState"
+    ],
+    "required_literals": [
+      "draft_summaries",
+      "No saved dev draft records were returned",
+      "no sample fallback",
+      "dev-saved-draft-list",
+      "dev-saved-draft-restore",
+      "Restored from dev-only saved draft record"
+    ]
+  },
+  "app_contract": {
+    "file": "apps/radishmind-web/src/app/App.tsx",
+    "required_literals": [
+      "savedDraftListState",
+      "refreshSavedWorkflowDraftList",
+      "handleRestoreSavedWorkflowDraft",
+      "restoreWorkflowDraftDevRecord(summary",
+      "setWorkspaceCreatedDrafts((drafts) => [",
+      "draftId: restoredDraft.draftId"
+    ]
+  },
+  "home_panel_contract": {
+    "file": "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHomePanel.tsx",
+    "required_literals": [
+      "User workspace saved draft list",
+      "Dev saved draft restore",
+      "WorkflowSavedDraftSummaryCard",
+      "saved-draft-summary-grid",
+      "onRestoreSavedDraft(summary)"
+    ],
+    "style_file": "apps/radishmind-web/src/styles.css",
+    "required_style_selectors": [
+      ".saved-draft-list-heading",
+      ".saved-draft-summary-grid",
+      ".saved-draft-summary-card"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/user-workspace-saved-draft-list-v1.md": [
+      "user_workspace_saved_draft_list_implemented",
+      "GET /v1/user-workspace/workflow-drafts",
+      "draft_summaries",
+      "restore_failed"
+    ],
+    "docs/task-cards/user-workspace-saved-draft-list-v1-plan.md": [
+      "user-workspace-saved-draft-list-v1",
+      "SavedWorkflowDraftSummary",
+      "draft_summaries",
+      "no sample fallback"
+    ],
+    "docs/features/user-workspace.md": [
+      "User Workspace Saved Draft List v1",
+      "sanitized summary"
+    ],
+    "docs/devlogs/2026-W25.md": [
+      "User Workspace Saved Draft List",
+      "draft_summaries"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "user_workspace_saved_draft_list_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-user-workspace-saved-draft-list-v1.py"
+    },
+    {
+      "id": "platform_go_tests",
+      "status": "required_now",
+      "command": "go test ./...",
+      "working_directory": "services/platform/"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

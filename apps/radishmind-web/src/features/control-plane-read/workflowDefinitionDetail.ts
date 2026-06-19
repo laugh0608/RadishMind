@@ -246,7 +246,7 @@ function buildDetailNodes(applicationRef: string): WorkflowDefinitionDetailNode[
       nodeId: "node_stop_line_summary",
       label: "Stop-line summary",
       nodeType: "output",
-      inputSummary: "Executor, confirmation, writeback, replay, database, and OIDC stop lines.",
+      inputSummary: "Executor, confirmation, writeback, replay, database, and auth stop lines.",
       outputSummary: "Visible disabled capability summary.",
       riskLevel: "low",
       requiresConfirmation: false,

@@ -1,0 +1,602 @@
+{
+  "schema_version": 1,
+  "kind": "control_plane_read_schema_artifact_evidence_v1",
+  "slice": {
+    "id": "control-plane-read-schema-artifact-evidence-v1",
+    "track": "Control Plane / User Workspace / Workflow v1",
+    "status": "schema_artifact_evidence_defined",
+    "does_not_claim": [
+      "implementation_trigger_satisfied",
+      "schema_artifact_manifest_ready",
+      "schema_artifact_files_created",
+      "ddl_review_ready",
+      "ddl_review_artifact_created",
+      "rollback_fixture_ready",
+      "rollback_fixture_created",
+      "schema_version_smoke_ready",
+      "schema_version_smoke_executed",
+      "tenant_index_smoke_ready",
+      "tenant_index_smoke_executed",
+      "read_only_role_smoke_ready",
+      "read_only_role_smoke_executed",
+      "database_schema_ready",
+      "database_query_ready",
+      "database_migration_ready",
+      "migration_files_created",
+      "migration_manifest_created",
+      "migration_runner_ready",
+      "repository_interface_ready",
+      "repository_adapter_ready",
+      "repository_implementation_ready",
+      "repository_migration_ready",
+      "store_selector_implemented",
+      "formal_read_store_config_ready",
+      "radish_oidc_client_ready",
+      "auth_middleware_ready",
+      "token_validation_ready",
+      "production_api_consumer_ready",
+      "api_key_lifecycle_ready",
+      "quota_enforcement_ready",
+      "billing_ready",
+      "cost_ledger_ready",
+      "workflow_executor_ready",
+      "confirmation_flow_ready",
+      "business_writeback_ready",
+      "replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "control-plane-read-schema-artifact-manifest-readiness-v1",
+    "control-plane-read-schema-migration-implementation-preconditions-v1",
+    "control-plane-read-implementation-trigger-review-v1",
+    "product-surface-readiness-implementation-trigger-recheck-v1",
+    "control-plane-read-route-contract-v1",
+    "control-plane-read-repository-contract-smoke-runner-implementation-v1"
+  ],
+  "schema_artifact_evidence_boundary": {
+    "status": "schema_artifact_evidence_defined_no_artifact",
+    "decision": "evidence_chain_defined_without_schema_artifact",
+    "current_store_source": "fixture-backed fake store",
+    "future_migration_root": "services/platform/migrations/control_plane_read",
+    "future_manifest_file": "services/platform/migrations/control_plane_read/manifest.json",
+    "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+    "future_schema_version": "control_plane_read_schema_v1",
+    "future_schema_version_table": "control_plane_read_schema_versions",
+    "purpose": "Define the schema evidence chain required before a durable read store schema artifact or adapter can be created.",
+    "schema_artifact_manifest_created_in_this_slice": false,
+    "schema_artifact_files_created_in_this_slice": false,
+    "ddl_review_artifact_created_in_this_slice": false,
+    "rollback_fixture_created_in_this_slice": false,
+    "schema_version_smoke_created_in_this_slice": false,
+    "schema_version_smoke_executed_in_this_slice": false,
+    "tenant_index_smoke_created_in_this_slice": false,
+    "tenant_index_smoke_executed_in_this_slice": false,
+    "read_only_role_smoke_created_in_this_slice": false,
+    "read_only_role_smoke_executed_in_this_slice": false,
+    "migration_root_created_in_this_slice": false,
+    "sql_files_created_in_this_slice": false,
+    "migration_runner_created_in_this_slice": false,
+    "repository_adapter_allowed_in_this_slice": false,
+    "store_selector_allowed_in_this_slice": false,
+    "database_query_allowed_in_this_slice": false,
+    "database_migration_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "write_allowed_in_this_slice": false,
+    "dev_server_started_in_this_slice": false
+  },
+  "schema_artifact_evidence_contract": {
+    "status": "evidence_contract_defined_not_materialized",
+    "required_before_durable_read_store": true,
+    "required_before_schema_artifact_manifest_ready": true,
+    "future_manifest_path": "services/platform/migrations/control_plane_read/manifest.json",
+    "evidence_kinds": [
+      "ddl_review_evidence",
+      "rollback_fixture_evidence",
+      "schema_version_evidence",
+      "tenant_index_evidence",
+      "read_only_role_evidence",
+      "route_schema_artifact_mapping"
+    ],
+    "planned_evidence_artifacts": [
+      {
+        "path": "services/platform/migrations/control_plane_read/ddl-review.md",
+        "evidence_kind": "ddl_review_evidence",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/control_plane_read/rollback-fixture.json",
+        "evidence_kind": "rollback_fixture_evidence",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/control_plane_read/schema-version-smoke.json",
+        "evidence_kind": "schema_version_evidence",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/control_plane_read/tenant-index-smoke.json",
+        "evidence_kind": "tenant_index_evidence",
+        "created_in_this_slice": false
+      },
+      {
+        "path": "services/platform/migrations/control_plane_read/read-only-role-smoke.json",
+        "evidence_kind": "read_only_role_evidence",
+        "created_in_this_slice": false
+      }
+    ]
+  },
+  "evidence_gate_matrix": [
+    {
+      "id": "schema_artifact_manifest_readiness_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-schema-artifact-manifest-readiness-v1"
+    },
+    {
+      "id": "schema_migration_implementation_preconditions_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-schema-migration-implementation-preconditions-v1"
+    },
+    {
+      "id": "implementation_trigger_review_consumed",
+      "status": "satisfied",
+      "evidence": "control-plane-read-implementation-trigger-review-v1"
+    },
+    {
+      "id": "product_surface_recheck_consumed",
+      "status": "satisfied",
+      "evidence": "product-surface-readiness-implementation-trigger-recheck-v1"
+    },
+    {
+      "id": "ddl_review_evidence_defined",
+      "status": "defined_not_materialized",
+      "must_cover": [
+        "human-reviewed DDL",
+        "manual apply command",
+        "no startup auto-migration",
+        "no destructive migration without review",
+        "tenant-scoped projection review"
+      ]
+    },
+    {
+      "id": "rollback_fixture_evidence_defined",
+      "status": "defined_not_materialized",
+      "must_cover": [
+        "rollback command or forward-only exception",
+        "backup requirement",
+        "failed migration recovery",
+        "migration lock release"
+      ]
+    },
+    {
+      "id": "schema_version_evidence_defined",
+      "status": "defined_not_materialized",
+      "must_cover": [
+        "schema version table",
+        "expected schema version",
+        "schema_migration_not_applied failure",
+        "schema_version_mismatch failure"
+      ]
+    },
+    {
+      "id": "tenant_index_evidence_defined",
+      "status": "defined_not_materialized",
+      "must_cover": [
+        "tenant_ref leading index per logical entity",
+        "cross-tenant read denial",
+        "invalid tenant predicate fail-closed"
+      ]
+    },
+    {
+      "id": "read_only_role_evidence_defined",
+      "status": "defined_not_materialized",
+      "must_cover": [
+        "runtime role can read sanitized projections",
+        "runtime role cannot insert/update/delete",
+        "runtime role cannot apply migrations",
+        "credential remains secret reference only"
+      ]
+    },
+    {
+      "id": "route_schema_artifact_mapping_defined",
+      "status": "defined_not_materialized",
+      "must_cover": [
+        "all seven read routes",
+        "future schema artifact id",
+        "future projection name",
+        "tenant predicate",
+        "read-only role dependency"
+      ]
+    },
+    {
+      "id": "implementation_trigger_remains_not_satisfied",
+      "status": "required_now",
+      "must_cover": [
+        "schema artifact implementation trigger remains not_satisfied",
+        "store selector trigger remains not_satisfied",
+        "production auth trigger remains not_satisfied",
+        "adapter smoke trigger remains not_satisfied"
+      ]
+    },
+    {
+      "id": "no_schema_artifacts_leaked",
+      "status": "required_now",
+      "must_cover": [
+        "no migration root",
+        "no manifest file",
+        "no SQL files",
+        "no DDL review artifact",
+        "no rollback fixture",
+        "no schema smoke artifact",
+        "no migration runner",
+        "no repository adapter",
+        "no store selector"
+      ]
+    }
+  ],
+  "ddl_review_evidence": {
+    "evidence_id": "ddl-review-evidence",
+    "status": "defined_not_materialized",
+    "future_artifact_ref": "services/platform/migrations/control_plane_read/ddl-review.md",
+    "reviewer_requirement": "human_review_required",
+    "manual_apply_required": true,
+    "startup_auto_migration_allowed": false,
+    "destructive_change_without_review_allowed": false,
+    "must_cover": [
+      "all seven logical entities",
+      "tenant_ref predicate availability",
+      "sanitized projection fields only",
+      "schema version table write by migration actor only",
+      "read runtime role remains read-only"
+    ],
+    "artifact_created_now": false
+  },
+  "rollback_fixture_evidence": {
+    "evidence_id": "rollback-fixture-evidence",
+    "status": "defined_not_materialized",
+    "future_artifact_ref": "services/platform/migrations/control_plane_read/rollback-fixture.json",
+    "rollback_policy": "down_migration_or_forward_only_exception_required",
+    "backup_required_before_apply": true,
+    "failed_migration_recovery_required": true,
+    "migration_lock_release_required": true,
+    "artifact_created_now": false
+  },
+  "schema_version_evidence": {
+    "evidence_id": "schema-version-evidence",
+    "status": "defined_not_materialized",
+    "future_artifact_ref": "services/platform/migrations/control_plane_read/schema-version-smoke.json",
+    "future_schema_version_table": "control_plane_read_schema_versions",
+    "expected_schema_version": "control_plane_read_schema_v1",
+    "missing_version_failure_code": "schema_migration_not_applied",
+    "mismatched_version_failure_code": "schema_version_mismatch",
+    "schema_version_smoke_executed_now": false
+  },
+  "tenant_index_evidence": {
+    "evidence_id": "tenant-index-evidence",
+    "status": "defined_not_materialized",
+    "future_artifact_ref": "services/platform/migrations/control_plane_read/tenant-index-smoke.json",
+    "tenant_predicate_key": "tenant_ref",
+    "leading_index_required": true,
+    "cross_tenant_read_denial_required": true,
+    "invalid_tenant_predicate_fail_closed_required": true,
+    "tenant_index_smoke_executed_now": false
+  },
+  "read_only_role_evidence": {
+    "evidence_id": "read-only-role-evidence",
+    "status": "defined_not_materialized",
+    "future_artifact_ref": "services/platform/migrations/control_plane_read/read-only-role-smoke.json",
+    "future_runtime_role": "radishmind_control_plane_read_runtime",
+    "credential_policy": "secret_reference_only",
+    "allowed_privileges": [
+      "read sanitized projections"
+    ],
+    "forbidden_privileges": [
+      "insert",
+      "update",
+      "delete",
+      "ddl",
+      "migration_apply",
+      "secret_value_read"
+    ],
+    "read_only_role_smoke_executed_now": false
+  },
+  "route_schema_artifact_mapping": [
+    {
+      "route_id": "tenant-summary-route",
+      "operation": "ReadTenantSummary",
+      "logical_entity": "tenant_summary",
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "future_projection_name": "control_plane_read_tenant_summary_projection",
+      "tenant_predicate": "tenant_ref",
+      "ddl_review_evidence_ref": "ddl-review-evidence",
+      "rollback_fixture_evidence_ref": "rollback-fixture-evidence",
+      "schema_version_evidence_ref": "schema-version-evidence",
+      "tenant_index_evidence_ref": "tenant-index-evidence",
+      "read_only_role_evidence_ref": "read-only-role-evidence",
+      "schema_artifact_ready": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "application-summary-list-route",
+      "operation": "ListApplicationSummaries",
+      "logical_entity": "application_summary",
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "future_projection_name": "control_plane_read_application_summary_projection",
+      "tenant_predicate": "tenant_ref",
+      "ddl_review_evidence_ref": "ddl-review-evidence",
+      "rollback_fixture_evidence_ref": "rollback-fixture-evidence",
+      "schema_version_evidence_ref": "schema-version-evidence",
+      "tenant_index_evidence_ref": "tenant-index-evidence",
+      "read_only_role_evidence_ref": "read-only-role-evidence",
+      "schema_artifact_ready": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "api-key-summary-list-route",
+      "operation": "ListAPIKeySummaries",
+      "logical_entity": "api_key_summary",
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "future_projection_name": "control_plane_read_api_key_summary_projection",
+      "tenant_predicate": "tenant_ref",
+      "ddl_review_evidence_ref": "ddl-review-evidence",
+      "rollback_fixture_evidence_ref": "rollback-fixture-evidence",
+      "schema_version_evidence_ref": "schema-version-evidence",
+      "tenant_index_evidence_ref": "tenant-index-evidence",
+      "read_only_role_evidence_ref": "read-only-role-evidence",
+      "schema_artifact_ready": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "quota-summary-route",
+      "operation": "ReadQuotaSummary",
+      "logical_entity": "quota_summary",
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "future_projection_name": "control_plane_read_quota_summary_projection",
+      "tenant_predicate": "tenant_ref",
+      "ddl_review_evidence_ref": "ddl-review-evidence",
+      "rollback_fixture_evidence_ref": "rollback-fixture-evidence",
+      "schema_version_evidence_ref": "schema-version-evidence",
+      "tenant_index_evidence_ref": "tenant-index-evidence",
+      "read_only_role_evidence_ref": "read-only-role-evidence",
+      "schema_artifact_ready": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "workflow-definition-summary-list-route",
+      "operation": "ListWorkflowDefinitionSummaries",
+      "logical_entity": "workflow_definition_summary",
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "future_projection_name": "control_plane_read_workflow_definition_summary_projection",
+      "tenant_predicate": "tenant_ref",
+      "ddl_review_evidence_ref": "ddl-review-evidence",
+      "rollback_fixture_evidence_ref": "rollback-fixture-evidence",
+      "schema_version_evidence_ref": "schema-version-evidence",
+      "tenant_index_evidence_ref": "tenant-index-evidence",
+      "read_only_role_evidence_ref": "read-only-role-evidence",
+      "schema_artifact_ready": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "run-record-summary-list-route",
+      "operation": "ListRunRecordSummaries",
+      "logical_entity": "run_record_summary",
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "future_projection_name": "control_plane_read_run_record_summary_projection",
+      "tenant_predicate": "tenant_ref",
+      "ddl_review_evidence_ref": "ddl-review-evidence",
+      "rollback_fixture_evidence_ref": "rollback-fixture-evidence",
+      "schema_version_evidence_ref": "schema-version-evidence",
+      "tenant_index_evidence_ref": "tenant-index-evidence",
+      "read_only_role_evidence_ref": "read-only-role-evidence",
+      "schema_artifact_ready": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    },
+    {
+      "route_id": "audit-summary-list-route",
+      "operation": "ListAuditSummaries",
+      "logical_entity": "audit_summary",
+      "future_schema_artifact_id": "control_plane_read_schema_artifact_v1",
+      "future_projection_name": "control_plane_read_audit_summary_projection",
+      "tenant_predicate": "tenant_ref",
+      "ddl_review_evidence_ref": "ddl-review-evidence",
+      "rollback_fixture_evidence_ref": "rollback-fixture-evidence",
+      "schema_version_evidence_ref": "schema-version-evidence",
+      "tenant_index_evidence_ref": "tenant-index-evidence",
+      "read_only_role_evidence_ref": "read-only-role-evidence",
+      "schema_artifact_ready": false,
+      "runtime_mapping_implemented": false,
+      "sql_allowed_now": false,
+      "repository_adapter_allowed_now": false,
+      "fake_fallback_allowed": false,
+      "side_effect_allowed": false
+    }
+  ],
+  "failure_mapping": [
+    "database_read_disabled",
+    "invalid_read_store_mode",
+    "read_store_unavailable",
+    "read_store_contract_mismatch",
+    "schema_migration_not_applied",
+    "schema_version_mismatch",
+    "tenant_binding_missing",
+    "scope_denied"
+  ],
+  "no_fake_fallback_policy": {
+    "missing_ddl_review_success_allowed": false,
+    "missing_rollback_fixture_success_allowed": false,
+    "missing_schema_version_success_allowed": false,
+    "missing_tenant_index_success_allowed": false,
+    "missing_read_only_role_success_allowed": false,
+    "schema_evidence_promoted_to_schema_artifact_allowed": false,
+    "database_mode_fallback_to_fixture_fake_store_allowed": false,
+    "repository_mode_fallback_to_fixture_fake_store_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "dev_server_start_count=0",
+      "repository_write_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "dev_server_start",
+      "database_write",
+      "api_key_issue",
+      "quota_mutation",
+      "workflow_execution",
+      "confirmation_decision",
+      "business_writeback",
+      "replay_execution"
+    ]
+  },
+  "forbidden_artifact_matrix": [
+    {
+      "path": "services/platform/migrations/control_plane_read/manifest.json",
+      "artifact_kind": "schema_artifact_manifest",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/ddl-review.md",
+      "artifact_kind": "ddl_review_evidence",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/rollback-fixture.json",
+      "artifact_kind": "rollback_fixture_evidence",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/schema-version-smoke.json",
+      "artifact_kind": "schema_version_smoke",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/tenant-index-smoke.json",
+      "artifact_kind": "tenant_index_smoke",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/migrations/control_plane_read/read-only-role-smoke.json",
+      "artifact_kind": "read_only_role_smoke",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_store_selector.go",
+      "artifact_kind": "store_selector",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/control_plane_read_repository_adapter.go",
+      "artifact_kind": "repository_adapter",
+      "created_in_this_slice": false
+    }
+  ],
+  "source_absent_literals": [
+    "ControlPlaneReadSchemaMigrationRunner",
+    "control_plane_read_schema_migration_runner.go",
+    "database/sql",
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "DROP TABLE",
+    "SELECT *",
+    "INSERT INTO",
+    "UPDATE ",
+    "DELETE FROM",
+    "services/platform/migrations/control_plane_read",
+    "type ControlPlaneReadRepository interface",
+    "func NewControlPlaneReadRepository",
+    "control_plane_read_repository_interface.go",
+    "control_plane_read_repository_adapter.go",
+    "control_plane_read_store_selector.go",
+    "RADISHMIND_CONTROL_PLANE_READ_STORE",
+    "SelectControlPlaneReadStore",
+    "ControlPlaneReadStoreSelector",
+    "oidc.Provider",
+    "github.com/coreos/go-oidc",
+    "ValidateToken",
+    "VerifyToken",
+    "NewRadishOIDCClient"
+  ],
+  "required_doc_references": {
+    "docs/radishmind-current-focus.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "schema_artifact_evidence_defined"
+    ],
+    "docs/radishmind-capability-matrix.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "schema_artifact_evidence_defined"
+    ],
+    "docs/radishmind-integration-contracts.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "schema_artifact_evidence_defined"
+    ],
+    "docs/contracts/control-plane-read-side.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "schema artifact evidence"
+    ],
+    "docs/task-cards/README.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "Control Plane Read Schema Artifact Evidence"
+    ],
+    "docs/task-cards/control-plane-read-schema-artifact-evidence-v1-plan.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "schema_artifact_evidence_defined"
+    ],
+    "scripts/README.md": [
+      "check-control-plane-read-schema-artifact-evidence-v1.py",
+      "control-plane-read-schema-artifact-evidence-v1.json"
+    ],
+    "services/platform/README.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "schema_artifact_evidence_defined"
+    ],
+    "docs/devlogs/2026-W24.md": [
+      "control-plane-read-schema-artifact-evidence-v1",
+      "schema_artifact_evidence_defined"
+    ]
+  },
+  "evidence": [
+    "docs/task-cards/control-plane-read-schema-artifact-evidence-v1-plan.md",
+    "scripts/checks/fixtures/control-plane-read-schema-artifact-evidence-v1.json",
+    "scripts/checks/control_plane/check-control-plane-read-schema-artifact-evidence-v1.py"
+  ],
+  "required_consumers": [
+    "scripts/check-repo.py",
+    "scripts/README.md",
+    "services/platform/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/radishmind-capability-matrix.md",
+    "docs/radishmind-integration-contracts.md",
+    "docs/contracts/control-plane-read-side.md",
+    "docs/task-cards/README.md",
+    "docs/devlogs/2026-W24.md"
+  ]
+}
