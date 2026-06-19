@@ -86,6 +86,8 @@
 | [Workflow Saved Draft Schema Migration Runner Readiness v1 任务卡](../task-cards/workflow-saved-draft-schema-migration-runner-readiness-v1-plan.md) | 实现批次 | 定义 future runner manual boundary、config gate、schema preflight、failure mapping、rollback 和 no side effects |
 | [Saved Workflow Draft Schema Migration Runner Implementation Entry Review v1](workflow/saved-workflow-draft-schema-migration-runner-implementation-entry-review-v1.md) | 实现准入专题 | 固定 schema migration runner implementation entry review，状态为 `draft_schema_migration_runner_implementation_entry_review_defined` |
 | [Workflow Saved Draft Schema Migration Runner Implementation Entry Review v1 任务卡](../task-cards/workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1-plan.md) | 实现批次 | 评审 SQL artifact、schema marker、manual runner、dry-run、apply smoke、rollback observability 和 repository mode runtime 是否打开 |
+| [Saved Workflow Draft Database Connection / Schema Marker Preconditions v1](workflow/saved-workflow-draft-database-connection-schema-marker-preconditions-v1.md) | 前置设计专题 | 固定 future database connection provider、secret ref、query role、environment isolation 和 schema marker contract，状态为 `draft_database_connection_schema_marker_preconditions_defined` |
+| [Workflow Saved Draft Database Connection / Schema Marker Preconditions v1 任务卡](../task-cards/workflow-saved-draft-database-connection-schema-marker-preconditions-v1-plan.md) | 实现批次 | 定义 DB connection / marker 前置契约，不创建真实 DB、SQL、runner 或 repository mode 成功路径 |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 
