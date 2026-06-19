@@ -35,7 +35,7 @@ REQUIRED_PRECONDITIONS = {
 REQUIRED_PLANNED_SLICES = {
     "secret-ref-schema-and-fixtures": "satisfied",
     "config-secret-ref-readiness": "satisfied",
-    "provider-profile-secret-binding": "planned_not_started",
+    "provider-profile-secret-binding": "satisfied",
     "secret-resolver-interface-disabled": "planned_not_started",
     "operator-runbook-and-negative-gates": "planned_not_started",
 }
@@ -55,6 +55,8 @@ REQUIRED_DOC_REFERENCES = {
         "config-secret-ref-readiness",
         "production-secret-backend-config-secret-ref-readiness-v1",
         "config_secret_ref_readiness_defined",
+        "production-secret-backend-provider-profile-secret-binding-readiness-v1",
+        "provider_profile_secret_binding_readiness_defined",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
         "check-production-secret-reference-contract.py",
@@ -96,6 +98,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-implementation-readiness.py",
         "production-ops-secret-backend-implementation-readiness.json",
         "check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
+        "check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -179,6 +182,17 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"config-injection-point missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"config-injection-point evidence missing on disk: {path}")
+        if precondition_id == "provider-profile-binding":
+            require(status == "satisfied", "provider-profile-binding precondition must be satisfied")
+            evidence = set(item.get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
+            }:
+                require(path in evidence, f"provider-profile-binding missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"provider-profile-binding evidence missing on disk: {path}")
 
     sanitized_fields = set(preconditions["sanitized-audit-fields"].get("must_define") or [])
     for field in {
@@ -216,6 +230,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "provider-profile-secret-binding":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -240,6 +264,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
     expected_consumers = {
         "scripts/check-production-ops-secret-backend-implementation-readiness.py",
         "scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",

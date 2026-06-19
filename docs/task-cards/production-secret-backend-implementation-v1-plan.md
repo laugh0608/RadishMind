@@ -48,6 +48,7 @@
 3. `provider-profile-binding`
    - 明确 provider profile 如何声明需要 credential，以及缺失 secret ref 时的错误分类。
    - 不把 `mock`、`local-smoke` 或 demo profile 写成生产 provider。
+   - 当前已落地：`production-secret-backend-provider-profile-secret-binding-readiness-v1` / `provider_profile_secret_binding_readiness_defined` 用 [Production Secret Backend Provider Profile Secret Binding Readiness v1](../platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md)、`scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py` 固定 `credential_requirement`、`secret_ref_status`、环境绑定、failure mapping、sanitized diagnostics、no fallback 和 no side effects；这不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不启用 production secret backend。
 4. `sanitized-audit-fields`
    - 固定 diagnostics、config-summary、provider inventory、request metadata 的脱敏字段。
    - 不输出 secret 原文或 provider base URL 原文。
@@ -77,6 +78,7 @@
 3. `provider-profile-secret-binding`
    - 让 provider/profile inventory 能声明 credential requirement 与 secret ref 状态。
    - 不访问 provider。
+   - 当前已落地 readiness 定义：`docs/platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md`、`docs/task-cards/production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py` 固定 provider/profile 到 `secret_ref` 的 reference-only 绑定；当前不添加 runtime 字段、不调用 resolver、不声明 credential resolved。
 4. `secret-resolver-interface-disabled`
    - 加最小接口和 disabled backend，测试错误边界。
    - 不接云、不读本机真实 secret。

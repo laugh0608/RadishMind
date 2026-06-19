@@ -315,7 +315,7 @@ Provider capability、health 和 selection 必须分层理解：
 4. southbound `HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native 和 Anthropic messages 分流
 5. capability matrix、health smoke、selection policy、provider-retry-fallback-policy-v1、compatibility smoke 和 governance gate
 
-下一步不应继续在同层无限补 provider 小切片，而应先把产品定位文档、路线图和架构对齐到“用户端 + 管理端 + workflow + model gateway”，再按独立任务推进 `config-secret-ref-readiness`、正式模型网关能力、控制面前置设计或工作流 v1。
+下一步不应继续在同层无限补 provider 小切片，而应先把产品定位文档、路线图和架构对齐到“用户端 + 管理端 + workflow + model gateway”，再按独立任务推进正式模型网关能力、控制面前置设计、工作流 v1，或在已完成 `config-secret-ref-readiness` 与 `provider-profile-secret-binding` 后继续评审 disabled resolver interface / operator runbook。
 
 ## 判断标准
 

@@ -211,13 +211,19 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 `secret-ref-schema-and-fixtures` 已由 `contracts/production-secret-reference.schema.json`、`scripts/checks/fixtures/production-secret-reference-basic.json` 与 `scripts/check-production-secret-reference-contract.py` 固定为 committed secret reference contract。该 schema 只允许保存 `environment`、`provider`、`provider_profile`、`secret_ref`、`required_fields` 和 `sanitized_fields`，并要求 fixture 明确 `stores_secret_values=false`、`resolver_enabled=false`、`cloud_calls_allowed=false` 和 `production_secret_backend_ready=false`。
 
-该 schema / fixture 只证明 secret reference 格式可检查，不实现 resolver，不接云，不包含 secret value、provider raw URL、API key、token、cookie、authorization header 或 credential 原文。下一步如继续推进，应进入 `config-secret-ref-readiness`，让 config summary / diagnostics 能报告 `secret_ref_present` 和 `missing_secret_refs` 等脱敏状态。
+该 schema / fixture 只证明 secret reference 格式可检查，不实现 resolver，不接云，不包含 secret value、provider raw URL、API key、token、cookie、authorization header 或 credential 原文。当前已继续补齐 `config-secret-ref-readiness` 与 `provider-profile-secret-binding` 两个前置，让 config summary / diagnostics 和 provider/profile binding 都只报告脱敏状态。
 
 ## Production secret backend config / secret ref readiness
 
 `config-secret-ref-readiness` 已由 `docs/platform/production-secret-backend-config-secret-ref-readiness-v1.md`、`docs/task-cards/production-secret-backend-config-secret-ref-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-config-secret-ref-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py` 固定为 `config_secret_ref_readiness_defined`。它只定义 future config / diagnostics 层如何报告 `secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态，并把 `secret_reference_manifest_missing`、`secret_reference_manifest_invalid`、`secret_ref_missing`、`secret_backend_disabled` 和 `resolver_invocation_forbidden` 映射到 `configuration` failure boundary。
 
-该 readiness 不修改 `config.LoadFromEnv` runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不接 database connection provider，也不启用 workflow saved draft repository mode。`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。下一批若继续 production secret backend，应在 provider profile binding、disabled resolver interface 或 operator runbook / negative gates 中选择单一方向。
+该 readiness 不修改 `config.LoadFromEnv` runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不接 database connection provider，也不启用 workflow saved draft repository mode。`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。
+
+## Production secret backend provider profile secret binding readiness
+
+`provider-profile-secret-binding` 已由 `docs/platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md`、`docs/task-cards/production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py` 固定为 `provider_profile_secret_binding_readiness_defined`。它只定义 future provider/profile inventory 如何声明 `credential_requirement`、`secret_ref_status`、`secret_ref_present`、`missing_secret_refs`、`field_sources` 和环境绑定，并把 `provider_profile_binding_missing`、`provider_profile_credential_required`、`provider_profile_secret_ref_missing`、`provider_profile_environment_mismatch`、`provider_profile_secret_backend_disabled` 和 `provider_profile_resolver_forbidden` 映射到 `configuration` failure boundary。
+
+该 readiness 不修改 provider runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不接 database connection provider，也不启用 workflow saved draft repository mode。`secret_ref_status=present` 不等于 credential resolved，`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。下一批若继续 production secret backend，应在 disabled resolver interface 或 operator runbook / negative gates 中选择单一方向。
 
 ## Startup / supervisor boundary
 

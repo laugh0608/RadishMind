@@ -95,6 +95,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-config-secret-ref-readiness-v1` 已把 `config-secret-ref-readiness` 固定为可检查证据：后续配置层只能报告 `secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态，不能读取 secret value、调用 resolver 或调用云 secret 服务。该 readiness 不改变 `.env.example` 的职责；`RADISHMIND_SECRET_SOURCE` 仍只是外部 secret 来源要求，不是 secret backend。
 
+`production-secret-backend-provider-profile-secret-binding-readiness-v1` 已把 `provider-profile-secret-binding` 固定为可检查证据：后续 provider/profile 只能声明 `credential_requirement`、`secret_ref_status`、环境绑定和脱敏诊断状态，不能把 `secret_ref_status=present` 写成 credential resolved，不能从 test / production secret ref 之间 fallback，也不能调用 resolver 或云 secret 服务。该 readiness 不改变 compose 或 `.env.example` 的职责，仍不声明 production secret backend ready。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`

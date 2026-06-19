@@ -4,7 +4,7 @@
 
 ## 文档目的
 
-本文档用于固定 production secret backend 在进入 resolver 或 provider profile binding 之前，配置层和 secret reference 层必须先满足的 readiness 边界。
+本文档用于固定 production secret backend 在进入 resolver 或 provider profile binding 之前，配置层和 secret reference 层必须先满足的 readiness 边界。后续 `Production Secret Backend Provider Profile Secret Binding Readiness v1` 已把 provider/profile binding 单独推进为 `provider_profile_secret_binding_readiness_defined`，但不改变本文档的配置注入停止线。
 
 本专题只定义 `config-secret-ref-readiness` 的输入、脱敏输出、失败映射和停止线；不修改 platform runtime，不实现 secret resolver，不读取 secret value，不调用云 secret 服务，不启用 production secret backend，也不启用 workflow saved draft repository mode。
 
@@ -98,13 +98,12 @@
 
 ## 后续推进
 
-当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `config-injection-point` 阻塞，不解除 provider profile binding、disabled resolver interface、operator runbook、rotation / audit policy 和 production ready 阻塞。
+当前 readiness 只解除 `production-secret-backend-implementation-readiness` 中的 `config-injection-point` 阻塞。provider profile binding 已由 `production-secret-backend-provider-profile-secret-binding-readiness-v1` 单独固定；本文档仍不解除 disabled resolver interface、operator runbook、rotation / audit policy 和 production ready 阻塞。
 
 下一批如继续 production secret backend，应在以下方向中选择一个独立任务：
 
-1. `provider-profile-secret-binding`
-2. `secret-resolver-interface-disabled`
-3. `operator-runbook-and-negative-gates`
+1. `secret-resolver-interface-disabled`
+2. `operator-runbook-and-negative-gates`
 
 每个方向都必须继续保持 no raw secret、no cloud call、no fallback 和 no production ready 声明。
 
@@ -128,4 +127,3 @@
 ./scripts/check-repo.sh --fast
 ./scripts/check-repo.sh
 ```
-
