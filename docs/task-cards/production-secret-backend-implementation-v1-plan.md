@@ -52,9 +52,11 @@
 4. `sanitized-audit-fields`
    - 固定 diagnostics、config-summary、provider inventory、request metadata 的脱敏字段。
    - 不输出 secret 原文或 provider base URL 原文。
+   - 当前已落地：`production-secret-backend-secret-resolver-interface-disabled-readiness-v1` / `secret_resolver_interface_disabled_readiness_defined` 用 [Production Secret Backend Secret Resolver Interface Disabled Readiness v1](../platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md)、`scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py` 固定 future resolver interface 的 disabled result、sanitized diagnostics、no fallback 和 no side effects；这不实现 resolver runtime、不创建 fake resolver、不读取 secret value、不启用 production secret backend。
 5. `failure-taxonomy`
    - 固定 missing ref、backend disabled、resolver unavailable、resolution denied、credential missing 的错误码和 failure boundary。
    - 不吞掉 secret 解析错误，也不 fallback 到 mock provider。
+   - 当前已落地：`production-secret-backend-secret-resolver-interface-disabled-readiness-v1` / `secret_resolver_interface_disabled_readiness_defined` 已把 `secret_resolver_secret_ref_missing`、`secret_resolver_backend_disabled`、`secret_resolver_unavailable`、`secret_resolution_denied`、`secret_resolver_environment_mismatch` 和 `secret_resolver_invocation_disabled` 固定到 `configuration` failure boundary。
 6. `test-fixture-strategy`
    - 用 fake resolver / placeholder secret ref 做单元测试。
    - fast baseline 不联网、不要求真实 credential、不调用云 SDK。
@@ -80,8 +82,8 @@
    - 不访问 provider。
    - 当前已落地 readiness 定义：`docs/platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md`、`docs/task-cards/production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py` 固定 provider/profile 到 `secret_ref` 的 reference-only 绑定；当前不添加 runtime 字段、不调用 resolver、不声明 credential resolved。
 4. `secret-resolver-interface-disabled`
-   - 加最小接口和 disabled backend，测试错误边界。
-   - 不接云、不读本机真实 secret。
+   - 固定 reference-only interface、disabled result、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard。
+   - 当前已落地 readiness 定义：`docs/platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md`、`docs/task-cards/production-secret-backend-secret-resolver-interface-disabled-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py` 固定 `secret-resolver-interface-disabled`；当前不添加 resolver runtime、不创建 fake resolver、不解析 secret、不接云、不读本机真实 secret。
 5. `operator-runbook-and-negative-gates`
    - 固定运行手册、负向门禁和 production ready 停止线。
 

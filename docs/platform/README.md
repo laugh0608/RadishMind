@@ -22,7 +22,7 @@
 | Auth / Store Transition | readiness 已有证据 | `docs/contracts/control-plane-read-side.md`、相关 control-plane read task cards | 等真实 OIDC 或 store 迁移入口满足后再拆细专题 |
 | Repository Adapter / Store Selector | control-plane readiness 已有证据；saved workflow draft selector 已按 fail-closed mode selection 落地 | `control-plane-read-*repository*`、`*store-selector*` task cards、`docs/features/workflow/saved-workflow-draft-store-selector-implementation-v1.md` | 后续 repository adapter / database 仍需独立实现专题 |
 | Provider Runtime & Health | close candidate | [Provider Runtime & Health v1 任务卡](../task-cards/provider-runtime-health-v1-plan.md) | 不继续扩同层 provider 小切片 |
-| Production Ops / Deployment | 静态边界已 close；secret ref config readiness 与 provider profile binding readiness 已定义 | [Production Ops Hardening v1](../task-cards/production-ops-hardening-v1-plan.md)、[Docker Deployment v1](../task-cards/production-ops-docker-deployment-v1-plan.md)、[Production Secret Backend Config / Secret Ref Readiness v1](production-secret-backend-config-secret-ref-readiness-v1.md)、[Production Secret Backend Provider Profile Secret Binding Readiness v1](production-secret-backend-provider-profile-secret-binding-readiness-v1.md) | secret backend 后续只能从 disabled resolver interface 或 runbook / negative gates 中选择单一方向 |
+| Production Ops / Deployment | 静态边界已 close；secret ref config、provider profile binding 与 disabled resolver interface readiness 已定义 | [Production Ops Hardening v1](../task-cards/production-ops-hardening-v1-plan.md)、[Docker Deployment v1](../task-cards/production-ops-docker-deployment-v1-plan.md)、[Production Secret Backend Config / Secret Ref Readiness v1](production-secret-backend-config-secret-ref-readiness-v1.md)、[Production Secret Backend Provider Profile Secret Binding Readiness v1](production-secret-backend-provider-profile-secret-binding-readiness-v1.md)、[Production Secret Backend Secret Resolver Interface Disabled Readiness v1](production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md) | secret backend 后续应推进 operator runbook / negative gates |
 | Dev-only Write Path | implemented | [Dev-only Saved Draft Consumer](../features/workflow/dev-only-saved-draft-consumer.md) | 已服务 saved draft consumer integration；后续按 conflict UI / smoke / contract 固化拆批次 |
 
 ## Saved Workflow Draft Store Selector
@@ -41,7 +41,13 @@ Saved workflow draft 的平台服务配置已经新增 `workflow_saved_draft_sto
 
 `Production Secret Backend Provider Profile Secret Binding Readiness v1` 已固定 `provider_profile_secret_binding_readiness_defined`，对应切片为 `production-secret-backend-provider-profile-secret-binding-readiness-v1`。它只把 `production-secret-backend-implementation-readiness` 中的 `provider-profile-secret-binding` 前置条件推进到可检查状态，要求后续 provider/profile inventory 只能声明 `credential_requirement`、`secret_ref_status`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态。
 
-该专题不修改 provider runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不把 `secret_ref_status=present` 写成 credential resolved、不接 database connection provider，也不启用 workflow saved draft repository mode。`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。后续若继续 production secret backend，应在 disabled resolver interface 或 operator runbook / negative gates 中选择单一方向。
+该专题不修改 provider runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不把 `secret_ref_status=present` 写成 credential resolved、不接 database connection provider，也不启用 workflow saved draft repository mode。`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。
+
+## Production Secret Backend Secret Resolver Interface Disabled Readiness
+
+`Production Secret Backend Secret Resolver Interface Disabled Readiness v1` 已固定 `secret_resolver_interface_disabled_readiness_defined`，对应切片为 `production-secret-backend-secret-resolver-interface-disabled-readiness-v1`。它只把 `production-secret-backend-implementation-readiness` 中的 `secret-resolver-interface-disabled` 推进到可检查状态，定义 future resolver interface 的 reference-only 输入、disabled result、sanitized diagnostics、failure mapping、no fallback、no side effects 和 artifact guard。
+
+该专题不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。后续若继续 production secret backend，应推进 operator runbook / negative gates，固定人工启用、负向门禁、脱敏验证和运行记录边界。
 
 ## 停止线
 

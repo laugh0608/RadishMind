@@ -74,19 +74,22 @@
 5. `provider-profile-secret-binding`
    - 新增 [Production Secret Backend Provider Profile Secret Binding Readiness v1](production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md)，把 provider/profile 的 `credential_requirement`、`secret_ref_status`、环境绑定、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard 固定为可检查证据。
    - 当前已落地 readiness gate：`scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py` 固定 `production-secret-backend-provider-profile-secret-binding-readiness-v1`；它不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不接数据库、不启用 repository mode。
-5. `startup-supervisor-boundary`
+6. `secret-resolver-interface-disabled`
+   - 新增 [Production Secret Backend Secret Resolver Interface Disabled Readiness v1](production-secret-backend-secret-resolver-interface-disabled-readiness-v1-plan.md)，把 future resolver interface 的 reference-only 输入、disabled result、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard 固定为可检查证据。
+   - 当前已落地 readiness gate：`scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py` 固定 `production-secret-backend-secret-resolver-interface-disabled-readiness-v1`；它不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不接数据库、不启用 repository mode。
+7. `startup-supervisor-boundary`
    - 梳理本地启动脚本和 deployment smoke。
    - 固定当前只支持人工启动 / smoke，不声明 process supervisor。
    - 当前已落地 governance boundary：`scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定 platform wrapper、console dev launcher、readiness probe、退出码、日志路径和 process supervisor 未完成口径；这不等于 process supervisor ready。
-6. `environment-isolation`
+8. `environment-isolation`
    - 固定 local/dev/prod profile 语义和禁止误用的负向场景。
    - 确认 local-smoke 只能代表本地 readiness。
    - 当前已落地 governance boundary：`scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 与 `scripts/check-production-ops-environment-isolation-boundary.py` 固定 local readiness、dev smoke 和 production readiness 的区分；这不等于 deployment environment isolation ready。
-7. `console-production-package-smoke`
+9. `console-production-package-smoke`
    - 给 console production build / preview / package 形成最小可复验入口。
    - 继续保持只读边界。
    - 当前已落地 governance boundary：`scripts/checks/fixtures/production-ops-console-package-smoke.json` 与 `scripts/check-production-ops-console-package-smoke.py` 固定 build / preview / private package / artifact policy；这不等于 console production package ready。
-8. `short-close-checklist-refresh`
+10. `short-close-checklist-refresh`
    - 更新 P3 checklist，将已完成项和仍 blocked 项分清。
    - 只在新增生产声明、配置格式或执行边界时补专项门禁。
    - 当前已落地：`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 增加 `production_ops_hardening_refresh`，`scripts/check-p3-local-product-shell-short-close-checklist.py` 跨读四个 production ops boundary fixture，确认四个切片只是 governance boundary，真实 production 条件仍为 `not_satisfied`。
@@ -102,7 +105,7 @@
 
 ## 下一步
 
-已根据 Radish 的 docker local/test/prod 模式新增 [Production Ops Docker Deployment v1 计划](production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定后续部署方向：开发期宿主机直跑，本地容器验证使用 `docker-local-compose`，测试和生产共用部署态 compose。当前 `docker-local-compose`、`docker-test-prod-compose`、`docker-image-build-publish`、`deployment-readiness-smoke`、`container-smoke-runbook` 与 `container-smoke-record-template` 已分别用 `production-ops-docker-local-compose.json`、`production-ops-docker-test-prod-compose.json`、`production-ops-docker-image-build-publish.json`、`production-ops-deployment-readiness-smoke.json`、`production-ops-container-smoke-runbook.json` 和 `production-ops-container-smoke-record-template.json` 固定为可检查边界，部署态资产为 `deploy/docker-compose.yaml` 与 `deploy/.env.example`。本任务卡的静态边界已经 close，2026-05-26 已完成一次本地 `docker_local` container smoke 运行记录；`production-secret-backend-contract`、`production-secret-backend-implementation-readiness`、`secret-ref-schema-and-fixtures`、`config-secret-ref-readiness` 和 `provider-profile-secret-binding` 也已补为可检查治理切片，但它们只定义 contract、前置条件、reference-only manifest、配置注入边界、provider/profile binding 和停止线，不实现真实云 secret 服务、不写入真实 secret、不声明 production ready。后续若继续真实 production secret backend，应从 `secret-resolver-interface-disabled` 或 `operator-runbook-and-negative-gates` 中选择单一方向。除非新任务卡明确存储方案、部署目标和验证边界，否则不实现 resolver、process supervisor、deployment environment isolation 或 console production packaging。
+已根据 Radish 的 docker local/test/prod 模式新增 [Production Ops Docker Deployment v1 计划](production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定后续部署方向：开发期宿主机直跑，本地容器验证使用 `docker-local-compose`，测试和生产共用部署态 compose。当前 `docker-local-compose`、`docker-test-prod-compose`、`docker-image-build-publish`、`deployment-readiness-smoke`、`container-smoke-runbook` 与 `container-smoke-record-template` 已分别用 `production-ops-docker-local-compose.json`、`production-ops-docker-test-prod-compose.json`、`production-ops-docker-image-build-publish.json`、`production-ops-deployment-readiness-smoke.json`、`production-ops-container-smoke-runbook.json` 和 `production-ops-container-smoke-record-template.json` 固定为可检查边界，部署态资产为 `deploy/docker-compose.yaml` 与 `deploy/.env.example`。本任务卡的静态边界已经 close，2026-05-26 已完成一次本地 `docker_local` container smoke 运行记录；`production-secret-backend-contract`、`production-secret-backend-implementation-readiness`、`secret-ref-schema-and-fixtures`、`config-secret-ref-readiness`、`provider-profile-secret-binding` 和 `secret-resolver-interface-disabled` 也已补为可检查治理切片，但它们只定义 contract、前置条件、reference-only manifest、配置注入边界、provider/profile binding、disabled resolver interface 和停止线，不实现真实云 secret 服务、不写入真实 secret、不声明 production ready。后续若继续真实 production secret backend，应推进 `operator-runbook-and-negative-gates`。除非新任务卡明确存储方案、部署目标和验证边界，否则不实现 resolver runtime、process supervisor、deployment environment isolation 或 console production packaging。
 
 ## 停止线
 

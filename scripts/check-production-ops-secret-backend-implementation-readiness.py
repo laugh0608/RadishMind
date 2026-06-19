@@ -36,7 +36,7 @@ REQUIRED_PLANNED_SLICES = {
     "secret-ref-schema-and-fixtures": "satisfied",
     "config-secret-ref-readiness": "satisfied",
     "provider-profile-secret-binding": "satisfied",
-    "secret-resolver-interface-disabled": "planned_not_started",
+    "secret-resolver-interface-disabled": "satisfied",
     "operator-runbook-and-negative-gates": "planned_not_started",
 }
 
@@ -57,6 +57,8 @@ REQUIRED_DOC_REFERENCES = {
         "config_secret_ref_readiness_defined",
         "production-secret-backend-provider-profile-secret-binding-readiness-v1",
         "provider_profile_secret_binding_readiness_defined",
+        "production-secret-backend-secret-resolver-interface-disabled-readiness-v1",
+        "secret_resolver_interface_disabled_readiness_defined",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
         "check-production-secret-reference-contract.py",
@@ -99,6 +101,7 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-secret-backend-implementation-readiness.json",
         "check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
         "check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
+        "check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -193,6 +196,16 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"provider-profile-binding missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"provider-profile-binding evidence missing on disk: {path}")
+        if precondition_id in {"sanitized-audit-fields", "failure-taxonomy"}:
+            require(status == "satisfied", f"{precondition_id} precondition must be satisfied")
+            evidence = set(item.get("evidence") or [])
+            for path in {
+                "scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json",
+                "scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py",
+            }:
+                require(path in evidence, f"{precondition_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{precondition_id} evidence missing on disk: {path}")
 
     sanitized_fields = set(preconditions["sanitized-audit-fields"].get("must_define") or [])
     for field in {
@@ -240,6 +253,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "secret-resolver-interface-disabled":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-secret-resolver-interface-disabled-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -265,6 +288,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-implementation-readiness.py",
         "scripts/check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
@@ -275,6 +299,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/task-cards/production-secret-backend-implementation-v1-plan.md",
         "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
+        "docs/devlogs/2026-W25.md",
     }
     missing_consumers = sorted(expected_consumers - set(fixture.get("required_consumers") or []))
     require(not missing_consumers, f"missing consumers: {missing_consumers}")
@@ -287,6 +312,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
     require(
         'run_python_script("check-production-secret-reference-contract.py", [])' in check_repo,
         "check-repo.py must run production secret reference contract check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run secret resolver interface disabled readiness check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

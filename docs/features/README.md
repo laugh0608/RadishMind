@@ -96,6 +96,7 @@
 | [Workflow Saved Draft Database Secret Resolver Implementation Entry Review v1 任务卡](../task-cards/workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1-plan.md) | 实现批次 | 评审 secret resolver implementation 是否打开，固定 blocked reason、failure mapping、sanitized diagnostics、no fallback 和 no side effects |
 | [Production Secret Backend Config / Secret Ref Readiness v1](../platform/production-secret-backend-config-secret-ref-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `config-secret-ref-readiness`，状态为 `config_secret_ref_readiness_defined` |
 | [Production Secret Backend Provider Profile Secret Binding Readiness v1](../platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `provider-profile-secret-binding`，状态为 `provider_profile_secret_binding_readiness_defined` |
+| [Production Secret Backend Secret Resolver Interface Disabled Readiness v1](../platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `secret-resolver-interface-disabled`，状态为 `secret_resolver_interface_disabled_readiness_defined` |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

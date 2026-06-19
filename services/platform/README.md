@@ -223,7 +223,13 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 `provider-profile-secret-binding` 已由 `docs/platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md`、`docs/task-cards/production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py` 固定为 `provider_profile_secret_binding_readiness_defined`。它只定义 future provider/profile inventory 如何声明 `credential_requirement`、`secret_ref_status`、`secret_ref_present`、`missing_secret_refs`、`field_sources` 和环境绑定，并把 `provider_profile_binding_missing`、`provider_profile_credential_required`、`provider_profile_secret_ref_missing`、`provider_profile_environment_mismatch`、`provider_profile_secret_backend_disabled` 和 `provider_profile_resolver_forbidden` 映射到 `configuration` failure boundary。
 
-该 readiness 不修改 provider runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不接 database connection provider，也不启用 workflow saved draft repository mode。`secret_ref_status=present` 不等于 credential resolved，`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。下一批若继续 production secret backend，应在 disabled resolver interface 或 operator runbook / negative gates 中选择单一方向。
+该 readiness 不修改 provider runtime，不实现 resolver、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不接 database connection provider，也不启用 workflow saved draft repository mode。`secret_ref_status=present` 不等于 credential resolved，`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。
+
+## Production secret backend secret resolver interface disabled readiness
+
+`secret-resolver-interface-disabled` 已由 `docs/platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md`、`docs/task-cards/production-secret-backend-secret-resolver-interface-disabled-readiness-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json` 与 `scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py` 固定为 `secret_resolver_interface_disabled_readiness_defined`。它只定义 future resolver interface 的 reference-only input、disabled result、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard。
+
+该 readiness 不修改 platform runtime，不实现 resolver runtime、不创建 fake resolver、不调用云 secret 服务、不读取 secret value、不访问 provider、不创建 credential handle、不接 database connection provider，也不启用 workflow saved draft repository mode。`resolver_state=disabled` 不等于 credential resolved，`production_secret_backend` 仍为 `not_satisfied`，`resolver_implementation_status` 仍为 `not_started`。下一批若继续 production secret backend，应推进 operator runbook / negative gates。
 
 ## Startup / supervisor boundary
 
