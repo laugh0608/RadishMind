@@ -144,6 +144,7 @@
 93. [`Workflow Saved Draft Schema Migration Runner Implementation Entry Review` v1 任务卡](workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1`）
 94. [`Workflow Saved Draft Database Connection / Schema Marker Preconditions` v1 任务卡](workflow-saved-draft-database-connection-schema-marker-preconditions-v1-plan.md)（`workflow-saved-draft-database-connection-schema-marker-preconditions-v1`）
 95. [`Workflow Saved Draft Database Connection Provider Implementation Entry Review` v1 任务卡](workflow-saved-draft-database-connection-provider-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-database-connection-provider-implementation-entry-review-v1`）
+96. [`Workflow Saved Draft Database Secret Resolver Readiness` v1 任务卡](workflow-saved-draft-database-secret-resolver-readiness-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-readiness-v1`）
 
 ## UI 设计专题
 
