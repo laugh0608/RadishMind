@@ -105,6 +105,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1` 已把 `test-fixture-strategy` 与 fake resolver implementation entry review 固定为可检查证据：当前结论是 `test-fixture-strategy` 仍为 `required_before_implementation`，fake resolver implementation entry 不打开。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
 
+`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1` 已把 fake resolver static contract 与 no secret leakage smoke strategy 固定为可检查证据：后续 fake resolver 只能消费 allowlist 输入、输出脱敏状态和 credential handle metadata，不得接收或输出 secret value、provider raw URL、DSN、token、cookie 或 cloud credential。该 strategy 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`

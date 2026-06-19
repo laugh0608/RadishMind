@@ -52,6 +52,9 @@ EXPECTED_DEPENDENCIES = {
     "workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1": (
         "draft_database_secret_resolver_implementation_entry_review_defined"
     ),
+    "production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1": (
+        "fake_resolver_contract_no_secret_leakage_smoke_strategy_defined"
+    ),
 }
 
 EXPECTED_GATE_STATUS = {
@@ -61,9 +64,9 @@ EXPECTED_GATE_STATUS = {
     "rotation_audit_policy_consumed": "satisfied_policy_only",
     "workflow_secret_resolver_entry_review_consumed": "satisfied_blocked_entry",
     "test_fixture_strategy_review_defined": "blocked_entry_review_defined",
-    "fake_resolver_contract_gate": "blocked",
+    "fake_resolver_contract_gate": "static_contract_strategy_defined",
     "fake_resolver_implementation_gate": "blocked",
-    "no_secret_leakage_smoke_gate": "blocked",
+    "no_secret_leakage_smoke_gate": "static_smoke_strategy_defined",
     "sanitized_diagnostics_runtime_gate": "blocked",
     "cloud_secret_backend_call_gate": "forbidden",
     "database_connection_provider_gate": "blocked",
@@ -258,7 +261,9 @@ def assert_boundary(fixture: dict[str, Any]) -> None:
         "resolver_implementation_status": "not_started",
         "resolver_runtime_status": "not_created",
         "fake_resolver_status": "not_created",
+        "fake_resolver_contract_status": "static_contract_defined",
         "fake_resolver_runtime_status": "not_created",
+        "no_secret_leakage_smoke_strategy_status": "static_strategy_defined",
         "default_runtime_state": "disabled",
         "production_secret_backend_status": "not_satisfied",
     }.items():
@@ -375,6 +380,10 @@ def assert_implementation_readiness_alignment() -> None:
         "docs/task-cards/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.json",
         "scripts/check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py",
+        "docs/platform/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.md",
+        "docs/task-cards/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.json",
+        "scripts/check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py",
     }:
         require(path in evidence, f"test-fixture-strategy missing evidence: {path}")
         require((REPO_ROOT / path).exists(), f"test-fixture-strategy evidence missing: {path}")
@@ -382,6 +391,8 @@ def assert_implementation_readiness_alignment() -> None:
     planned = {str(item.get("id")): item for item in readiness.get("planned_slices") or [] if isinstance(item, dict)}
     review = planned.get("test-fixture-strategy") or {}
     require(review.get("status") == "blocked_entry_review_defined", "planned test fixture review status drifted")
+    strategy = planned.get("fake-resolver-contract-no-secret-leakage-smoke-strategy") or {}
+    require(strategy.get("status") == "strategy_defined_static_only", "planned strategy status drifted")
 
     blocked = {str(item.get("id")): item for item in readiness.get("blocked_conditions") or [] if isinstance(item, dict)}
     for blocked_id, expected_status in {
@@ -410,15 +421,22 @@ def assert_docs_validation_and_check_repo(fixture: dict[str, Any]) -> None:
     current_call = (
         'run_python_script("check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py", [])'
     )
+    strategy_call = (
+        'run_python_script("check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py", [])'
+    )
     startup_call = 'run_python_script("check-production-ops-startup-supervisor-boundary.py", [])'
     for call, description in {
         rotation_call: "rotation audit policy readiness checker",
         current_call: "test fixture strategy fake resolver entry review checker",
+        strategy_call: "fake resolver contract no leakage strategy checker",
         startup_call: "startup supervisor checker",
     }.items():
         require(call in check_repo, f"check-repo.py must run {description}")
     require(
-        check_repo.index(rotation_call) < check_repo.index(current_call) < check_repo.index(startup_call),
+        check_repo.index(rotation_call)
+        < check_repo.index(current_call)
+        < check_repo.index(strategy_call)
+        < check_repo.index(startup_call),
         "test fixture strategy checker order drifted",
     )
 

@@ -6,7 +6,7 @@
 
 本任务卡用于评审 `production-secret-backend-implementation-readiness` 中仍 blocked 的 `test-fixture-strategy`，并判断 fake resolver implementation 是否可以进入实现批次。
 
-结论：状态为 `test_fixture_strategy_fake_resolver_entry_review_defined`。本批只创建 entry review evidence；`test-fixture-strategy` 仍为 `required_before_implementation`，fake resolver implementation entry 不打开。不实现 resolver runtime，不实现 fake resolver runtime，不解析 secret，不连接数据库，不调用云 secret 服务，不启用 repository mode。
+结论：状态为 `test_fixture_strategy_fake_resolver_entry_review_defined`。本批只创建 entry review evidence；后续 `production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1` 已固定 `fake_resolver_contract_no_secret_leakage_smoke_strategy_defined` 静态证据，但 `test-fixture-strategy` 仍为 `required_before_implementation`，fake resolver implementation entry 不打开。不实现 resolver runtime，不实现 fake resolver runtime，不解析 secret，不连接数据库，不调用云 secret 服务，不启用 repository mode。
 
 ## 输入事实源
 
@@ -21,7 +21,7 @@
 ## 当前事实
 
 - `rotation-and-audit-policy` 已满足，但它只固定 rotation trigger、audit event fields、secret ref version reference、rollback policy 和脱敏审计字段前置。
-- `test-fixture-strategy` 仍不是 implementation-ready 证据；当前没有 fake resolver contract、fake resolver implementation task card、no secret leakage smoke、sanitized diagnostics runtime 或 offline fake resolver smoke。
+- `test-fixture-strategy` 仍不是 implementation-ready 证据；当前只有 fake resolver contract / no secret leakage smoke 静态策略，没有 fake resolver implementation task card、no secret leakage smoke runtime、sanitized diagnostics runtime 或 offline fake resolver smoke。
 - `production_secret_backend` 仍为 `not_satisfied`。
 - `resolver_implementation_status` 仍为 `not_started`。
 - `resolver_runtime_status` 仍为 `not_created`。

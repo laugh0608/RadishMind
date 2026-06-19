@@ -161,6 +161,7 @@
 6. [`Production Secret Backend Operator Runbook / Negative Gates Readiness` v1 计划](production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md)（`production-secret-backend-operator-runbook-negative-gates-readiness-v1`）
 7. [`Production Secret Backend Rotation / Audit Policy Readiness` v1 计划](production-secret-backend-rotation-audit-policy-readiness-v1-plan.md)（`production-secret-backend-rotation-audit-policy-readiness-v1`）
 8. [`Production Secret Backend Test Fixture Strategy / Fake Resolver Implementation Entry Review` v1 计划](production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1-plan.md)（`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`）
+9. [`Production Secret Backend Fake Resolver Contract / No Secret Leakage Smoke Strategy` v1 计划](production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1-plan.md)（`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1`）
 9. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation

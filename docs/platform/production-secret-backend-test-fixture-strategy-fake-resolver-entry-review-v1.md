@@ -6,7 +6,7 @@
 
 本文档用于评审 production secret backend 的 `test-fixture-strategy` 与 fake resolver implementation 是否具备进入实现的条件。
 
-结论：状态为 `test_fixture_strategy_fake_resolver_entry_review_defined`，entry decision 为 `fake_resolver_implementation_entry_not_opened`。本批只固定 test fixture strategy / fake resolver implementation entry review；`test-fixture-strategy` 仍为 `required_before_implementation`，不实现 resolver runtime，不实现 fake resolver runtime，不解析 secret，不连接数据库，不调用云 secret 服务，不启用 repository mode。
+结论：状态为 `test_fixture_strategy_fake_resolver_entry_review_defined`，entry decision 为 `fake_resolver_implementation_entry_not_opened`。本批只固定 test fixture strategy / fake resolver implementation entry review；后续 `production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1` 已把 `fake_resolver_contract_no_secret_leakage_smoke_strategy_defined` 固定为静态证据，但 `test-fixture-strategy` 仍为 `required_before_implementation`，不实现 resolver runtime，不实现 fake resolver runtime，不解析 secret，不连接数据库，不调用云 secret 服务，不启用 repository mode。
 
 ## 输入证据
 
@@ -23,14 +23,14 @@
 
 | candidate | 本次结论 | 阻塞原因 |
 | --- | --- | --- |
-| placeholder secret ref fixture strategy | `blocked` | 当前只有 reference-only manifest，没有 fake resolver contract、no secret leakage smoke 和 implementation fixture shape |
-| fake resolver interface contract | `blocked` | resolver runtime interface 未实现，opaque credential handle contract 不存在，checker 尚未允许 fake resolver 输入输出 |
+| placeholder secret ref fixture strategy | `blocked` | fake resolver contract 和 no secret leakage smoke strategy 已定义为静态证据，但 runtime fixture、smoke runner 和 implementation fixture shape 仍不存在 |
+| fake resolver interface contract | `blocked` | 输入 / 输出 allowlist 已进入静态策略，但 resolver runtime interface 未实现，opaque credential handle contract 不存在 |
 | fake resolver implementation | `blocked` | fake resolver 必须由独立 implementation task card 显式创建，disabled resolver interface 不是 runtime |
-| sanitized diagnostics fixture | `blocked` | diagnostics 口径已定义，但没有 fake resolver runtime emission gate 和 no secret leakage smoke |
+| sanitized diagnostics fixture | `blocked` | diagnostics 口径已定义，但没有 fake resolver runtime emission gate 和 no secret leakage smoke runtime |
 | connection factory handoff fixture | `blocked` | database connection provider、connection factory 和 credential handle creation 均未打开 |
 | repository mode fixture | `blocked` | workflow saved draft repository mode 仍 fail closed，数据库 connection provider 与 production auth runtime 集成未形成 repository mode 成功路径 |
 
-本批不创建 `production-secret-backend-fake-resolver-implementation-v1` 任务卡。后续若要打开 fake resolver implementation，必须先独立满足 fake resolver contract、placeholder secret ref fixture、no secret leakage smoke、sanitized diagnostics runtime、environment binding、operator enablement gate、artifact guard 和 offline fast baseline。
+本批不创建 `production-secret-backend-fake-resolver-implementation-v1` 任务卡。后续若要打开 fake resolver implementation，必须继续独立满足 runtime fixture、no secret leakage smoke runner、sanitized diagnostics runtime、environment binding、operator enablement gate、artifact guard 和 offline fast baseline。
 
 ## Failure Mapping
 
