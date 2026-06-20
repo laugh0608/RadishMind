@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 ## 文档目的
 
@@ -103,6 +103,7 @@
 | [Production Secret Backend Fake Resolver Contract / No Secret Leakage Smoke Strategy v1](../platform/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.md) | 平台专题 | 固定 production secret backend 的 fake resolver static contract 与 no secret leakage smoke strategy，状态为 `fake_resolver_contract_no_secret_leakage_smoke_strategy_defined`，仍不打开 fake resolver runtime |
 | [Production Secret Backend Fake Resolver Implementation Task Card Entry Readiness Review v1](../platform/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.md) | 平台专题 | 固定 production secret backend 的 fake resolver implementation task card entry readiness，状态为 `fake_resolver_implementation_task_card_entry_readiness_review_defined`，只允许下一步创建任务卡，不打开 fake resolver runtime |
 | [Production Secret Backend Fake Resolver Implementation v1](../platform/production-secret-backend-fake-resolver-implementation-v1.md) | 平台专题 | 固定 production secret backend 的 fake resolver implementation 静态任务卡，状态为 `fake_resolver_implementation_task_card_defined`，不实现 fake resolver runtime |
+| [Production Secret Backend Fake Resolver Runtime Implementation Entry Review v1](../platform/production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.md) | 平台专题 | 固定 production secret backend 的 fake resolver runtime implementation entry review，状态为 `fake_resolver_runtime_implementation_entry_review_defined`，只允许下一步创建 runtime implementation 任务卡，不创建 fake resolver runtime |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 

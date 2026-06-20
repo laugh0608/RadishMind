@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-19
+更新时间：2026-06-20
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -164,7 +164,8 @@
 9. [`Production Secret Backend Fake Resolver Contract / No Secret Leakage Smoke Strategy` v1 计划](production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1-plan.md)（`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1`）
 10. [`Production Secret Backend Fake Resolver Implementation Task Card Entry Readiness Review` v1 计划](production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md)（`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` / `fake_resolver_implementation_task_card_entry_readiness_review_defined`）
 11. [`Production Secret Backend Fake Resolver Implementation` v1 计划](production-secret-backend-fake-resolver-implementation-v1-plan.md)（`production-secret-backend-fake-resolver-implementation-v1` / `fake_resolver_implementation_task_card_defined`）
-12. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+12. [`Production Secret Backend Fake Resolver Runtime Implementation Entry Review` v1 计划](production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1` / `fake_resolver_runtime_implementation_entry_review_defined`）
+13. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 
