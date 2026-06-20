@@ -134,9 +134,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-下一步若继续 production secret backend，应进入 fake resolver runtime implementation entry review 或实现批次，但必须先让本任务卡 checker、no leakage strategy checker、production secret backend implementation readiness checker、production secret backend contract checker、production secret reference contract checker、workflow saved draft database secret resolver readiness checker 和 implementation entry review checker 全部通过。
+后续已单独完成 fake resolver runtime implementation entry review、test-only fake resolver runtime、真实 resolver runtime preconditions 和真实 resolver runtime implementation entry review。下一步若继续 production secret backend，应在 resolver backend profile selection、no leakage smoke runtime strategy、credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary 中选择单一 blocker 推进。
 
-`test-fixture-strategy` 在本批后仍为 `required_before_implementation`；只有 fake resolver runtime、no secret leakage runtime smoke、sanitized diagnostics runtime 和 artifact guard 都形成可复验实现后，才能重新评审是否满足实现前置。
+`test-fixture-strategy` 后续只由 test-only fake resolver runtime 覆盖离线替身边界；它不代表 production resolver runtime、no secret leakage runtime smoke、audit store 或 production secret backend ready。
 
 ## 验证
 

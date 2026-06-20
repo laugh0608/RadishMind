@@ -122,7 +122,7 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-下一步若继续 production secret backend，应在真实 resolver runtime preconditions、connection provider implementation、schema marker contract implementation 或 production preflight 中选择单一方向。当前 test-only fake resolver runtime 只为离线验证提供安全替身，不是 production secret backend。
+后续已由 `production-secret-backend-real-resolver-runtime-preconditions-v1` 固定真实 resolver runtime 前置，并由 `production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` 确认 production resolver runtime task card 当前 blocked。下一步若继续 production secret backend，应在 resolver backend profile selection、no leakage smoke runtime strategy、credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary 中选择单一方向。当前 test-only fake resolver runtime 只为离线验证提供安全替身，不是 production secret backend。
 
 ## 验证
 

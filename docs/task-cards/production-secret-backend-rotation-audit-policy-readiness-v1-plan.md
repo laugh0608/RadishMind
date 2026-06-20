@@ -100,7 +100,7 @@
 
 ## 后续对齐
 
-后续已由 `production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1` 固定 `test_fixture_strategy_fake_resolver_entry_review_defined`，但该评审结论仍是 `test-fixture-strategy` 保持 `required_before_implementation`，fake resolver implementation entry 不打开。下一步若继续 production secret backend，必须单独打开 fake resolver implementation task card、真实 resolver runtime preconditions 或其它单一前置方向。
+后续已由 `production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`、`production-secret-backend-fake-resolver-runtime-implementation-v1`、`production-secret-backend-real-resolver-runtime-preconditions-v1` 和 `production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` 固定 test-only fake resolver runtime、真实 resolver runtime 前置与 blocked-before-task-card 结论。下一步若继续 production secret backend，必须在 resolver backend profile selection、no leakage smoke runtime strategy、credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或其它单一 blocker 中开题。
 
 ## 停止线
 
