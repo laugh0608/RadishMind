@@ -46,6 +46,7 @@ REQUIRED_PLANNED_SLICES = {
     "fake-resolver-implementation": "task_card_defined_runtime_not_started",
     "fake-resolver-runtime-implementation-entry-review": "ready_for_runtime_task",
     "fake-resolver-runtime-implementation": "fake_resolver_runtime_test_only_implemented",
+    "real-resolver-runtime-preconditions": "real_resolver_runtime_preconditions_defined",
 }
 
 REQUIRED_BLOCKED = {
@@ -85,6 +86,8 @@ REQUIRED_DOC_REFERENCES = {
         "fake_resolver_runtime_implementation_entry_review_defined",
         "production-secret-backend-fake-resolver-runtime-implementation-v1",
         "fake_resolver_runtime_test_only_implemented",
+        "production-secret-backend-real-resolver-runtime-preconditions-v1",
+        "real_resolver_runtime_preconditions_defined",
         "services/platform/internal/secretbackend/fake_resolver.go",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
@@ -137,6 +140,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
         "check-production-ops-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
+        "check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -228,6 +232,10 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     require(
         target.get("fake_resolver_runtime_status") == "implemented_test_only_disabled_by_default",
         "fake resolver runtime status drifted",
+    )
+    require(
+        target.get("real_resolver_runtime_preconditions_status") == "real_resolver_runtime_preconditions_defined",
+        "real resolver runtime preconditions status drifted",
     )
     require(
         target.get("default_runtime_state") == "disabled_until_explicit_secret_backend_task",
@@ -503,6 +511,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "real-resolver-runtime-preconditions":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-real-resolver-runtime-preconditions-v1.md",
+                "docs/task-cards/production-secret-backend-real-resolver-runtime-preconditions-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-preconditions-v1.json",
+                "scripts/check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -537,6 +555,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-fake-resolver-implementation-v1.py",
         "scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
+        "scripts/check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
@@ -559,6 +578,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json",
         "services/platform/internal/secretbackend/fake_resolver.go",
         "services/platform/internal/secretbackend/fake_resolver_test.go",
+        "docs/platform/production-secret-backend-real-resolver-runtime-preconditions-v1.md",
+        "docs/task-cards/production-secret-backend-real-resolver-runtime-preconditions-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-preconditions-v1.json",
         "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
         "docs/devlogs/2026-W25.md",
@@ -619,6 +641,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py", [])'
         in check_repo,
         "check-repo.py must run fake resolver runtime implementation check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run real resolver runtime preconditions check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():
