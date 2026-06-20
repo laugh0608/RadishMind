@@ -169,7 +169,8 @@
 14. [`Production Secret Backend Real Resolver Runtime Preconditions` v1 计划](production-secret-backend-real-resolver-runtime-preconditions-v1-plan.md)（`production-secret-backend-real-resolver-runtime-preconditions-v1` / `real_resolver_runtime_preconditions_defined`）
 15. [`Production Secret Backend Real Resolver Runtime Implementation Entry Review` v1 计划](production-secret-backend-real-resolver-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` / `real_resolver_runtime_implementation_entry_review_defined`）
 16. [`Production Secret Backend Resolver Backend Profile Selection Readiness` v1 计划](production-secret-backend-resolver-backend-profile-selection-readiness-v1-plan.md)（`production-secret-backend-resolver-backend-profile-selection-readiness-v1` / `resolver_backend_profile_selection_readiness_defined`）
-17. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+17. [`Production Secret Backend Real Resolver No Secret Leakage Smoke Runtime Strategy` v1 计划](production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1-plan.md)（`production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` / `real_resolver_no_secret_leakage_smoke_runtime_strategy_defined`）
+18. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 

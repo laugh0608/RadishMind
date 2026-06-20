@@ -20,6 +20,8 @@
 - `scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-preconditions-v1.json`
 - `docs/platform/production-secret-backend-fake-resolver-runtime-implementation-v1.md`
 - `scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json`
+- `docs/platform/production-secret-backend-resolver-backend-profile-selection-readiness-v1.md`
+- `docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.md`
 - `scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json`
 - `scripts/checks/fixtures/production-secret-reference-basic.json`
 
@@ -44,8 +46,8 @@
    - 保持 `production_secret_backend=not_satisfied`
 
 3. 固定 blocker：
-   - resolver backend profile selection 未完成
-   - no secret leakage smoke runtime gate 未定义
+   - resolver backend profile selection 已形成静态前置，但 backend runtime 未创建
+   - no leakage strategy 已定义，但 no secret leakage smoke runtime 未创建也未执行
    - credential handle runtime boundary 未定义
    - operator approval runtime evidence 未定义
    - production audit store / writer handoff 未定义

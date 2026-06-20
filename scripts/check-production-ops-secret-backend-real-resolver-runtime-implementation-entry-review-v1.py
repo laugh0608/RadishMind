@@ -24,6 +24,7 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "resolver_runtime_ready",
     "production_resolver_runtime_created",
     "production_resolver_runtime_task_card_created",
+    "no_secret_leakage_smoke_runtime_created",
     "real_secret_read",
     "real_secret_written",
     "credential_payload_created",
@@ -46,6 +47,12 @@ EXPECTED_DEPENDENCIES = {
     "production-secret-backend-secret-resolver-interface-disabled-readiness-v1": "secret_resolver_interface_disabled_readiness_defined",
     "production-secret-backend-operator-runbook-negative-gates-readiness-v1": "operator_runbook_negative_gates_readiness_defined",
     "production-secret-backend-rotation-audit-policy-readiness-v1": "rotation_audit_policy_readiness_defined",
+    "production-secret-backend-resolver-backend-profile-selection-readiness-v1": (
+        "resolver_backend_profile_selection_readiness_defined"
+    ),
+    "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1": (
+        "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined"
+    ),
     "production-secret-backend-implementation-readiness": "implementation_readiness_defined",
     "secret-ref-schema-and-fixtures": "satisfied_reference_only_resolver_disabled",
 }
@@ -53,8 +60,8 @@ EXPECTED_DEPENDENCIES = {
 EXPECTED_GATE_STATUS = {
     "real_resolver_preconditions_consumed": "satisfied_static_preconditions",
     "implementation_task_card_gate": "blocked_before_task_card",
-    "resolver_backend_profile_selection": "blocked_missing_backend_profile_selection",
-    "no_secret_leakage_smoke_runtime_gate": "blocked_missing_runtime_gate",
+    "resolver_backend_profile_selection": "readiness_defined_without_backend_runtime",
+    "no_secret_leakage_smoke_runtime_gate": "strategy_defined_runtime_not_created",
     "credential_handle_runtime_boundary": "blocked_missing_runtime_boundary",
     "operator_approval_runtime_evidence": "blocked_missing_runtime_evidence",
     "audit_rotation_runtime_handoff": "blocked_missing_runtime_handoff",
@@ -67,8 +74,6 @@ EXPECTED_GATE_STATUS = {
 }
 
 EXPECTED_BLOCKED = {
-    "resolver-backend-profile-selection-readiness",
-    "no-secret-leakage-smoke-runtime-strategy",
     "credential-handle-runtime-boundary-readiness",
     "operator-approval-runtime-evidence-readiness",
     "production-secret-audit-store-handoff-readiness",
@@ -265,6 +270,18 @@ def assert_implementation_readiness_alignment() -> None:
         == "blocked_before_runtime_task_card",
         "implementation readiness must record blocked real resolver runtime entry review",
     )
+    require(
+        target.get("resolver_backend_profile_selection_readiness_status") == "defined_without_backend_runtime",
+        "implementation readiness must record resolver backend profile selection readiness",
+    )
+    require(
+        target.get("real_resolver_no_secret_leakage_smoke_runtime_strategy_status") == "defined_without_runtime",
+        "implementation readiness must record real resolver no leakage strategy",
+    )
+    require(
+        target.get("real_resolver_no_secret_leakage_smoke_runtime_status") == "not_created",
+        "implementation readiness must keep real resolver no leakage runtime not_created",
+    )
     require(target.get("resolver_implementation_status") == "not_started", "resolver implementation must remain not_started")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must remain not_created")
     planned = rows_by_id(readiness, "planned_slices", "id")
@@ -285,10 +302,10 @@ def assert_docs_validation_and_check_repo(fixture: dict[str, Any]) -> None:
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     prior_call = 'run_python_script("check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py", [])'
     current_call = 'run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py", [])'
-    startup_call = 'run_python_script("check-production-ops-startup-supervisor-boundary.py", [])'
-    for call in (prior_call, current_call, startup_call):
+    next_call = 'run_python_script("check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py", [])'
+    for call in (prior_call, current_call, next_call):
         require(call in check_repo, f"check-repo.py missing call: {call}")
-    require(check_repo.index(prior_call) < check_repo.index(current_call) < check_repo.index(startup_call), "check order drifted")
+    require(check_repo.index(prior_call) < check_repo.index(current_call) < check_repo.index(next_call), "check order drifted")
 
 
 def assert_no_secret_literals() -> None:

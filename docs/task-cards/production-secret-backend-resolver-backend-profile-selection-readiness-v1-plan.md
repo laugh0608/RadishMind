@@ -10,7 +10,7 @@
 
 ## 输入证据
 
-- `production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` 已固定 `real_resolver_runtime_implementation_entry_review_defined`，并把 `resolver-backend-profile-selection-readiness` 列为 blocker。
+- `production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` 已固定 `real_resolver_runtime_implementation_entry_review_defined`；本批完成后，entry review 中的 `resolver-backend-profile-selection-readiness` 已转为静态前置证据，runtime task card 仍被其它 blocker 阻塞。
 - `production-secret-backend-real-resolver-runtime-preconditions-v1` 已固定 `real_resolver_runtime_preconditions_defined`。
 - `production-secret-backend-provider-profile-secret-binding-readiness-v1` 已固定 reference-only provider/profile binding。
 - `production-secret-backend-secret-resolver-interface-disabled-readiness-v1` 仍确认 production resolver interface 默认 disabled。
@@ -111,3 +111,7 @@ backend profile selection 必须定义：
 ./scripts/check-repo.sh --fast
 ./scripts/check-repo.sh
 ```
+
+## 后续对齐
+
+后续已由 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 no leakage smoke runtime strategy 静态证据。下一步若继续 production secret backend，必须在 credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary 等剩余 blocker 中选择单一方向；不得把 backend profile selection readiness 或 no leakage strategy 写成 backend runtime、smoke runtime 或 production resolver runtime ready。

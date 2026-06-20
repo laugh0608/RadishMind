@@ -172,11 +172,12 @@ side effect counters 必须保持：
 
 本批完成后，真实 resolver runtime implementation task card 仍不能创建。下一步应继续从剩余 blocker 中选择一个单独推进：
 
-1. `no-secret-leakage-smoke-runtime-strategy`
-2. `credential-handle-runtime-boundary-readiness`
-3. `operator-approval-runtime-evidence-readiness`
-4. `production-secret-audit-store-handoff-readiness`
-5. `resolver-backend-health-boundary-readiness`
+1. `credential-handle-runtime-boundary-readiness`
+2. `operator-approval-runtime-evidence-readiness`
+3. `production-secret-audit-store-handoff-readiness`
+4. `resolver-backend-health-boundary-readiness`
+
+后续已由 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 no leakage smoke runtime strategy 静态证据；该证据不创建 no secret leakage smoke runtime，也不代表 production resolver runtime task card ready。
 
 ## 验证
 

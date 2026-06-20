@@ -122,7 +122,7 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-后续已由 `production-secret-backend-real-resolver-runtime-preconditions-v1` 固定真实 resolver runtime 前置，由 `production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` 确认 production resolver runtime task card 当前 blocked，并由 `production-secret-backend-resolver-backend-profile-selection-readiness-v1` 固定 backend profile selection 静态前置。下一步若继续 production secret backend，应在 no leakage smoke runtime strategy、credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary 中选择单一方向。当前 test-only fake resolver runtime 只为离线验证提供安全替身，不是 production secret backend。
+后续已由 `production-secret-backend-real-resolver-runtime-preconditions-v1` 固定真实 resolver runtime 前置，由 `production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` 确认 production resolver runtime task card 当前 blocked，并由 `production-secret-backend-resolver-backend-profile-selection-readiness-v1` 与 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 backend profile selection 和 no leakage strategy 静态前置。下一步若继续 production secret backend，应在 credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary 中选择单一方向。当前 test-only fake resolver runtime 只为离线验证提供安全替身，不是 production secret backend。
 
 ## 验证
 

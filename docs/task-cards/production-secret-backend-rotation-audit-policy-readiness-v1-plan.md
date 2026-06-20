@@ -100,7 +100,7 @@
 
 ## 后续对齐
 
-后续已由 `production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`、`production-secret-backend-fake-resolver-runtime-implementation-v1`、`production-secret-backend-real-resolver-runtime-preconditions-v1`、`production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` 和 `production-secret-backend-resolver-backend-profile-selection-readiness-v1` 固定 test-only fake resolver runtime、真实 resolver runtime 前置、blocked-before-task-card 结论与 backend profile selection 静态前置。下一步若继续 production secret backend，必须在 no leakage smoke runtime strategy、credential handle runtime boundary、operator approval runtime evidence、audit store handoff、backend health boundary 或其它单一 blocker 中开题。
+后续已由 `production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`、`production-secret-backend-fake-resolver-runtime-implementation-v1`、`production-secret-backend-real-resolver-runtime-preconditions-v1`、`production-secret-backend-real-resolver-runtime-implementation-entry-review-v1`、`production-secret-backend-resolver-backend-profile-selection-readiness-v1` 和 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 test-only fake resolver runtime、真实 resolver runtime 前置、blocked-before-task-card 结论、backend profile selection 与 no leakage strategy 静态前置。下一步若继续 production secret backend，必须在 credential handle runtime boundary、operator approval runtime evidence、audit store handoff、backend health boundary 或其它单一 blocker 中开题。
 
 ## 停止线
 
