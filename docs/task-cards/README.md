@@ -172,7 +172,8 @@
 17. [`Production Secret Backend Real Resolver No Secret Leakage Smoke Runtime Strategy` v1 计划](production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1-plan.md)（`production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` / `real_resolver_no_secret_leakage_smoke_runtime_strategy_defined`）
 18. [`Production Secret Backend Credential Handle Runtime Boundary Readiness` v1 计划](production-secret-backend-credential-handle-runtime-boundary-readiness-v1-plan.md)（`production-secret-backend-credential-handle-runtime-boundary-readiness-v1` / `credential_handle_runtime_boundary_readiness_defined`）
 19. [`Production Secret Backend Operator Approval Runtime Evidence Readiness` v1 计划](production-secret-backend-operator-approval-runtime-evidence-readiness-v1-plan.md)（`production-secret-backend-operator-approval-runtime-evidence-readiness-v1` / `operator_approval_runtime_evidence_readiness_defined`）
-20. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+20. [`Production Secret Backend Audit Store Handoff Readiness v1` 计划](production-secret-backend-audit-store-handoff-readiness-v1-plan.md)（`production-secret-backend-audit-store-handoff-readiness-v1` / `audit_store_handoff_readiness_defined`）
+21. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 

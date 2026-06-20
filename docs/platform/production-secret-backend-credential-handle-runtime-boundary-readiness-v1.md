@@ -223,10 +223,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-本批完成后，真实 resolver runtime implementation task card 仍不能创建。`credential-handle-runtime-boundary-readiness` 只固定 future opaque credential handle 的边界和停止线，不创建 handle runtime。后续已由 `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 固定 operator approval runtime evidence boundary，剩余还需单独推进：
+本批完成后，真实 resolver runtime implementation task card 仍不能创建。`credential-handle-runtime-boundary-readiness` 只固定 future opaque credential handle 的边界和停止线，不创建 handle runtime。后续已由 `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 固定 operator approval runtime evidence boundary，并由 `production-secret-backend-audit-store-handoff-readiness-v1` 固定 audit store handoff readiness。剩余还需单独推进：
 
-1. `production-secret-audit-store-handoff-readiness`
-2. `resolver-backend-health-boundary-readiness`
+1. `resolver-backend-health-boundary-readiness`
 
 ## 验证
 

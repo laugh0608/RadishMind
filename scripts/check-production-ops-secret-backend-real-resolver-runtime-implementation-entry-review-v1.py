@@ -59,6 +59,7 @@ EXPECTED_DEPENDENCIES = {
     "production-secret-backend-operator-approval-runtime-evidence-readiness-v1": (
         "operator_approval_runtime_evidence_readiness_defined"
     ),
+    "production-secret-backend-audit-store-handoff-readiness-v1": "audit_store_handoff_readiness_defined",
     "production-secret-backend-implementation-readiness": "implementation_readiness_defined",
     "secret-ref-schema-and-fixtures": "satisfied_reference_only_resolver_disabled",
 }
@@ -70,7 +71,7 @@ EXPECTED_GATE_STATUS = {
     "no_secret_leakage_smoke_runtime_gate": "strategy_defined_runtime_not_created",
     "credential_handle_runtime_boundary": "readiness_defined_runtime_not_created",
     "operator_approval_runtime_evidence": "readiness_defined_runtime_not_executed",
-    "audit_rotation_runtime_handoff": "blocked_missing_runtime_handoff",
+    "audit_rotation_runtime_handoff": "readiness_defined_store_not_created",
     "resolver_backend_health_boundary": "blocked_missing_backend_health_boundary",
     "resolver_runtime_gate": "not_created",
     "cloud_secret_service_gate": "forbidden",
@@ -80,7 +81,6 @@ EXPECTED_GATE_STATUS = {
 }
 
 EXPECTED_BLOCKED = {
-    "production-secret-audit-store-handoff-readiness",
     "resolver-backend-health-boundary-readiness",
 }
 
@@ -91,7 +91,7 @@ EXPECTED_FAILURE_CODES = {
     "real_resolver_runtime_entry_no_leakage_gate_missing",
     "real_resolver_runtime_entry_credential_handle_boundary_missing",
     "real_resolver_runtime_entry_operator_approval_runtime_not_executed",
-    "real_resolver_runtime_entry_audit_handoff_missing",
+    "real_resolver_runtime_entry_audit_store_not_created",
     "real_resolver_runtime_entry_secret_value_detected",
     "real_resolver_runtime_created_in_entry_review",
     "real_resolver_runtime_entry_cloud_call_forbidden",
@@ -309,6 +309,16 @@ def assert_implementation_readiness_alignment() -> None:
         target.get("operator_approval_runtime_execution_status") == "not_executed",
         "implementation readiness must keep operator approval runtime not_executed",
     )
+    require(
+        target.get("audit_store_handoff_readiness_status") == "defined_without_store_runtime",
+        "implementation readiness must record audit store handoff readiness",
+    )
+    require(target.get("audit_store_status") == "not_created", "implementation readiness must keep audit store not_created")
+    require(target.get("audit_writer_status") == "not_created", "implementation readiness must keep audit writer not_created")
+    require(
+        target.get("audit_event_delivery_status") == "not_executed",
+        "implementation readiness must keep audit delivery not_executed",
+    )
     require(target.get("resolver_implementation_status") == "not_started", "resolver implementation must remain not_started")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must remain not_created")
     planned = rows_by_id(readiness, "planned_slices", "id")
@@ -326,6 +336,11 @@ def assert_implementation_readiness_alignment() -> None:
     require(
         operator.get("status") == "operator_approval_runtime_evidence_readiness_defined",
         "planned operator approval runtime evidence status drifted",
+    )
+    audit_handoff = planned.get("audit-store-handoff-readiness") or {}
+    require(
+        audit_handoff.get("status") == "audit_store_handoff_readiness_defined",
+        "planned audit store handoff readiness status drifted",
     )
 
 

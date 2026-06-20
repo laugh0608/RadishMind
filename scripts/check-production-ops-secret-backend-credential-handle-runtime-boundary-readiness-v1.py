@@ -479,7 +479,10 @@ def assert_entry_review_alignment() -> None:
         "operator-approval-runtime-evidence-readiness" not in blocked,
         "entry review must not keep completed operator approval readiness as a missing blocker",
     )
-    require("production-secret-audit-store-handoff-readiness" in blocked, "audit store handoff blocker must remain")
+    require(
+        "production-secret-audit-store-handoff-readiness" not in blocked,
+        "entry review must not keep completed audit handoff readiness as a missing blocker",
+    )
     require("resolver-backend-health-boundary-readiness" in blocked, "backend health blocker must remain")
 
 
