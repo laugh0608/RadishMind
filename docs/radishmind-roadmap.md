@@ -182,7 +182,7 @@
 
 进入条件：已满足。P3 本地只读产品壳已经可用，且 checklist 已明确 production hardening 缺口。
 
-下一步：该专题的静态边界已 close，且已补一次本地 `docker_local` container smoke 运行记录。Production secret backend 若继续推进，首选在 credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary 等剩余 blocker 中选择单一方向；真实 resolver runtime implementation entry review 已确认 production resolver runtime task card 当前 blocked，resolver backend profile selection readiness 与 no leakage smoke runtime strategy 已形成静态前置证据。后续只有在明确测试或生产前复核窗口后，才执行测试环境 smoke 或 production preflight 记录。没有运行窗口时降为等待项，不再作为默认开发推进方向，也不把已固定的部署态 compose、镜像命名策略、静态展开检查、runbook、operator runbook / negative gates、rotation / audit policy、test-only fake resolver runtime 或本地 mock smoke 解释为 secret backend、process supervisor、镜像发布或 production ready。
+下一步：该专题的静态边界已 close，且已补一次本地 `docker_local` container smoke 运行记录。Production secret backend 若继续推进，首选在 audit store handoff 或 backend health boundary 等剩余 blocker 中选择单一方向；真实 resolver runtime implementation entry review 已确认 production resolver runtime task card 当前 blocked，resolver backend profile selection readiness、no leakage smoke runtime strategy、credential handle runtime boundary readiness 与 operator approval runtime evidence readiness 已形成静态前置证据。后续只有在明确测试或生产前复核窗口后，才执行测试环境 smoke 或 production preflight 记录。没有运行窗口时降为等待项，不再作为默认开发推进方向，也不把已固定的部署态 compose、镜像命名策略、静态展开检查、runbook、operator runbook / negative gates、rotation / audit policy、test-only fake resolver runtime 或本地 mock smoke 解释为 secret backend、process supervisor、镜像发布或 production ready。
 
 停止线：不实现真实 secret backend、不实现 process supervisor、不新增 executor、confirmation、writeback、replay 或 materialized result reader；不把 local-smoke、mock provider、demo profile 写成 production ready。
 
@@ -224,7 +224,7 @@
 
 1. 把后续推进从 gate-driven 调整为 feature-driven：先更新 `docs/features/` 中对应功能文档，再决定实现批次、测试和必要门禁。
 2. 已完成的 Workflow review surface、Model Gateway evidence、Admin readiness、Image Path metadata-only runtime integration 和 Control Plane durable read foundation 继续作为证据保留；后续不默认继续扩同层只读面板或 gate-only 任务。
-3. 下一批开发目标默认从 `Workflow / Agent Runtime` / Production Ops 的当前阻塞项中选择一个：首选 credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary；备选转回 saved draft connection provider、schema marker contract、OIDC middleware / token validation、membership adapter、production API consumer 之一；不得直接启用 repository mode、production resolver runtime、production API 或执行链路。
+3. 下一批开发目标默认从 `Workflow / Agent Runtime` / Production Ops 的当前阻塞项中选择一个：首选 audit store handoff 或 backend health boundary；备选转回 saved draft connection provider、schema marker contract、OIDC middleware / token validation、membership adapter、production API consumer 之一；不得直接启用 repository mode、production resolver runtime、production API 或执行链路。
 4. 普通展示改动只在真实阅读缺口出现时修正现有 surface / fixture / 文档；只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时才新增专项 gate。
 5. 继续把 Production Ops、真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有明确运行或实验窗口前不重开。
 6. 继续维持上层项目接入前置条件总表和产品机会池候选，不提前细化不存在的真实接线；`RadishFlow` / `Radish` 不是 RadishMind 产品主线的阻塞条件。

@@ -176,13 +176,12 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-本批完成后，真实 resolver runtime implementation task card 仍不能创建。`no-secret-leakage-smoke-runtime-strategy` 已固定为静态前置证据；后续已由 `production-secret-backend-credential-handle-runtime-boundary-readiness-v1` 固定 credential handle boundary，但 executable smoke runtime、production resolver runtime、credential handle runtime、operator approval runtime evidence、audit store handoff 和 backend health boundary 均未创建。
+本批完成后，真实 resolver runtime implementation task card 仍不能创建。`no-secret-leakage-smoke-runtime-strategy` 已固定为静态前置证据；后续已由 `production-secret-backend-credential-handle-runtime-boundary-readiness-v1` 固定 credential handle boundary，并由 `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 固定 operator approval runtime evidence boundary，但 executable smoke runtime、production resolver runtime、credential handle runtime、approval runtime execution、audit store handoff 和 backend health boundary 均未创建。
 
 下一步应继续从剩余 blocker 中选择一个单独推进：
 
-1. `operator-approval-runtime-evidence-readiness`
-2. `production-secret-audit-store-handoff-readiness`
-3. `resolver-backend-health-boundary-readiness`
+1. `production-secret-audit-store-handoff-readiness`
+2. `resolver-backend-health-boundary-readiness`
 
 ## 验证
 
@@ -190,6 +189,7 @@ side effect counters 必须保持：
 
 ```bash
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py

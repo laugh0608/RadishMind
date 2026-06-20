@@ -56,6 +56,9 @@ EXPECTED_DEPENDENCIES = {
     "production-secret-backend-credential-handle-runtime-boundary-readiness-v1": (
         "credential_handle_runtime_boundary_readiness_defined"
     ),
+    "production-secret-backend-operator-approval-runtime-evidence-readiness-v1": (
+        "operator_approval_runtime_evidence_readiness_defined"
+    ),
     "production-secret-backend-implementation-readiness": "implementation_readiness_defined",
     "secret-ref-schema-and-fixtures": "satisfied_reference_only_resolver_disabled",
 }
@@ -66,7 +69,7 @@ EXPECTED_GATE_STATUS = {
     "resolver_backend_profile_selection": "readiness_defined_without_backend_runtime",
     "no_secret_leakage_smoke_runtime_gate": "strategy_defined_runtime_not_created",
     "credential_handle_runtime_boundary": "readiness_defined_runtime_not_created",
-    "operator_approval_runtime_evidence": "blocked_missing_runtime_evidence",
+    "operator_approval_runtime_evidence": "readiness_defined_runtime_not_executed",
     "audit_rotation_runtime_handoff": "blocked_missing_runtime_handoff",
     "resolver_backend_health_boundary": "blocked_missing_backend_health_boundary",
     "resolver_runtime_gate": "not_created",
@@ -77,7 +80,6 @@ EXPECTED_GATE_STATUS = {
 }
 
 EXPECTED_BLOCKED = {
-    "operator-approval-runtime-evidence-readiness",
     "production-secret-audit-store-handoff-readiness",
     "resolver-backend-health-boundary-readiness",
 }
@@ -88,7 +90,7 @@ EXPECTED_FAILURE_CODES = {
     "real_resolver_runtime_entry_backend_profile_missing",
     "real_resolver_runtime_entry_no_leakage_gate_missing",
     "real_resolver_runtime_entry_credential_handle_boundary_missing",
-    "real_resolver_runtime_entry_operator_approval_evidence_missing",
+    "real_resolver_runtime_entry_operator_approval_runtime_not_executed",
     "real_resolver_runtime_entry_audit_handoff_missing",
     "real_resolver_runtime_entry_secret_value_detected",
     "real_resolver_runtime_created_in_entry_review",
@@ -225,6 +227,8 @@ def assert_gates_and_failures(fixture: dict[str, Any]) -> None:
 
     missing_blocked = sorted(EXPECTED_BLOCKED - set(fixture.get("blocked_conditions") or []))
     require(not missing_blocked, f"missing blocked conditions: {missing_blocked}")
+    extra_blocked = sorted(set(fixture.get("blocked_conditions") or []) - EXPECTED_BLOCKED)
+    require(not extra_blocked, f"unexpected blocked conditions: {extra_blocked}")
 
     failures = rows_by_id(fixture, "failure_mapping", "code")
     missing_failures = sorted(EXPECTED_FAILURE_CODES - set(failures))
@@ -292,6 +296,19 @@ def assert_implementation_readiness_alignment() -> None:
         target.get("credential_handle_runtime_status") == "not_created",
         "implementation readiness must keep credential handle runtime not_created",
     )
+    require(
+        target.get("operator_approval_runtime_evidence_readiness_status")
+        == "defined_without_runtime_execution",
+        "implementation readiness must record operator approval runtime evidence readiness",
+    )
+    require(
+        target.get("operator_approval_runtime_status") == "not_created",
+        "implementation readiness must keep operator approval runtime not_created",
+    )
+    require(
+        target.get("operator_approval_runtime_execution_status") == "not_executed",
+        "implementation readiness must keep operator approval runtime not_executed",
+    )
     require(target.get("resolver_implementation_status") == "not_started", "resolver implementation must remain not_started")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must remain not_created")
     planned = rows_by_id(readiness, "planned_slices", "id")
@@ -304,6 +321,11 @@ def assert_implementation_readiness_alignment() -> None:
     require(
         credential.get("status") == "credential_handle_runtime_boundary_readiness_defined",
         "planned credential handle boundary status drifted",
+    )
+    operator = planned.get("operator-approval-runtime-evidence-readiness") or {}
+    require(
+        operator.get("status") == "operator_approval_runtime_evidence_readiness_defined",
+        "planned operator approval runtime evidence status drifted",
     )
 
 

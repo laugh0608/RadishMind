@@ -10,7 +10,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
-    / "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.json"
+    / "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.json"
 )
 IMPLEMENTATION_READINESS_PATH = REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
 ENTRY_REVIEW_PATH = (
@@ -28,12 +28,17 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "resolver_runtime_ready",
     "production_resolver_runtime_created",
     "production_resolver_runtime_task_card_created",
+    "operator_approval_runtime_created",
+    "operator_approval_runtime_executed",
+    "operator_approval_executor_created",
+    "operator_identity_provider_connected",
     "no_secret_leakage_smoke_runtime_created",
     "no_secret_leakage_smoke_runtime_executed",
     "real_secret_read",
     "real_secret_written",
     "credential_payload_created",
     "credential_handle_created",
+    "credential_handle_runtime_created",
     "credential_resolved",
     "database_connection_provider_ready",
     "database_driver_selected",
@@ -51,11 +56,18 @@ EXPECTED_DEPENDENCIES = {
         "real_resolver_runtime_implementation_entry_review_defined"
     ),
     "production-secret-backend-real-resolver-runtime-preconditions-v1": "real_resolver_runtime_preconditions_defined",
+    "production-secret-backend-operator-runbook-negative-gates-readiness-v1": (
+        "operator_runbook_negative_gates_readiness_defined"
+    ),
+    "production-secret-backend-rotation-audit-policy-readiness-v1": "rotation_audit_policy_readiness_defined",
     "production-secret-backend-resolver-backend-profile-selection-readiness-v1": (
         "resolver_backend_profile_selection_readiness_defined"
     ),
-    "production-secret-backend-fake-resolver-runtime-implementation-v1": (
-        "fake_resolver_runtime_test_only_implemented"
+    "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1": (
+        "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined"
+    ),
+    "production-secret-backend-credential-handle-runtime-boundary-readiness-v1": (
+        "credential_handle_runtime_boundary_readiness_defined"
     ),
     "production-secret-backend-secret-resolver-interface-disabled-readiness-v1": (
         "secret_resolver_interface_disabled_readiness_defined"
@@ -67,111 +79,161 @@ EXPECTED_DEPENDENCIES = {
     "secret-ref-schema-and-fixtures": "satisfied_reference_only_resolver_disabled",
 }
 
-EXPECTED_SCAN_SURFACES = {
-    "resolver_input",
-    "resolver_success_output",
-    "resolver_failure_output",
-    "diagnostics",
-    "audit_metadata",
-    "smoke_summary",
-}
-
-EXPECTED_INPUT_ALLOWLIST = {
+EXPECTED_METADATA = {
+    "approval_evidence_id",
+    "approval_evidence_kind",
+    "approval_status",
+    "approval_lifecycle_state",
+    "approval_subject",
     "environment",
     "provider",
     "provider_profile",
-    "credential_requirement",
     "secret_ref_key",
     "secret_ref_version_ref",
-    "caller_purpose",
-    "request_id",
-    "audit_ref",
-    "operator_approval_ref",
+    "backend_profile_ref",
+    "credential_handle_boundary_ref",
+    "requested_by_ref",
+    "approved_by_ref",
+    "approval_ticket_ref",
+    "approval_window_ref",
+    "runbook_version",
     "policy_version",
     "rotation_policy_version",
-    "backend_profile_ref",
-}
-
-EXPECTED_SUCCESS_OUTPUT_ALLOWLIST = {
-    "resolver_state",
-    "credential_handle_present",
-    "credential_handle_id",
-    "credential_kind",
-    "environment",
-    "provider",
-    "provider_profile",
-    "secret_ref_version_ref",
+    "expires_at",
+    "revoked_at",
     "request_id",
     "audit_ref",
-    "policy_version",
-}
-
-EXPECTED_FAILURE_OUTPUT_ALLOWLIST = {
     "failure_code",
-    "failure_boundary",
     "sanitized_diagnostic",
-    "request_id",
-    "audit_ref",
-    "policy_version",
 }
 
-EXPECTED_PROBES = {
-    "success metadata no leakage",
-    "failure diagnostics no leakage",
-    "audit metadata no leakage",
-    "secret-ref-value probe rejection",
-    "credential payload probe rejection",
-    "provider raw URL / DSN / database hostname probe rejection",
-    "authorization header / cookie / user claim probe rejection",
-    "cloud credential marker probe rejection",
-    "cross-environment fallback rejection",
-    "fake resolver substitution rejection",
-    "repository mode / DB / production API side-effect rejection",
+EXPECTED_FORBIDDEN_MATERIAL = {
+    "credential_payload",
+    "secret_value",
+    "password",
+    "token",
+    "api_key",
+    "cloud_credential",
+    "provider_raw_url",
+    "resolver_backend_url",
+    "dsn",
+    "database_hostname",
+    "full_secret_ref_value",
+    "full_credential_handle",
+    "full_operator_identity_claim",
+    "authorization_header",
+    "cookie",
+    "full_user_claim",
+}
+
+EXPECTED_BINDINGS = {
+    "approval_subject",
+    "runbook_version",
+    "secret_ref_key",
+    "secret_ref_version_ref",
+    "provider_profile",
+    "environment",
+    "backend_profile_ref",
+    "credential_handle_boundary_ref",
+    "no_secret_leakage_strategy_ref",
+    "requested_by_ref",
+    "approved_by_ref",
+    "approval_ticket_ref",
+    "approval_window_ref",
+    "audit_ref",
+    "policy_version",
+    "rotation_policy_version",
+}
+
+EXPECTED_LIFECYCLE = {
+    "evidence_planned",
+    "request_metadata_bound",
+    "approval_pending",
+    "approved_metadata_only",
+    "denied",
+    "expired",
+    "revoked",
+    "revalidation_required",
+    "execution_blocked",
+    "resolution_failed_closed",
 }
 
 EXPECTED_GATE_STATUS = {
-    "smoke_strategy_contract": "defined_static_only",
-    "smoke_runtime_gate": "not_created",
-    "input_allowlist": "reference_only_fields_fixed",
-    "success_output_allowlist": "sanitized_metadata_only",
-    "failure_output_allowlist": "fail_closed_sanitized_only",
-    "probe_categories": "required_before_runtime_task",
-    "fixture_source": "synthetic_placeholder_only",
-    "artifact_scan": "required_before_runtime_task",
-    "fake_resolver_substitution": "forbidden",
+    "approval_evidence_schema": "defined_static_only",
+    "metadata_allowlist": "fixed_sanitized_only",
+    "payload_and_secret_material": "forbidden",
+    "runbook_binding": "required_before_runtime",
+    "secret_ref_binding": "required_before_runtime",
+    "provider_profile_binding": "required_before_runtime",
+    "environment_binding": "required_no_cross_environment",
+    "backend_profile_binding": "required_before_runtime",
+    "credential_handle_boundary_binding": "required_before_runtime",
+    "no_leakage_strategy_binding": "required_before_runtime",
+    "audit_rotation_dependency": "required_before_runtime",
+    "operator_identity_reference": "required_reference_only",
+    "dual_control": "required_before_runtime",
+    "ticket_and_change_window": "required_before_runtime",
+    "approval_lifecycle_allowlist": "defined_static_only",
+    "operator_approval_runtime": "not_created",
+    "operator_approval_runtime_execution": "not_executed",
     "production_resolver_runtime": "not_created",
     "cloud_secret_service_gate": "forbidden",
+    "audit_store_gate": "blocked",
     "database_connection_provider_gate": "blocked",
     "repository_mode_gate": "blocked",
     "production_api_gate": "blocked",
 }
 
 EXPECTED_FAILURE_CODES = {
-    "real_resolver_no_leakage_strategy_missing",
-    "real_resolver_no_leakage_input_allowlist_missing",
-    "real_resolver_no_leakage_output_allowlist_missing",
-    "real_resolver_no_leakage_probe_matrix_missing",
-    "real_resolver_no_leakage_scan_surface_missing",
-    "real_resolver_no_leakage_secret_value_detected",
-    "real_resolver_no_leakage_credential_payload_detected",
-    "real_resolver_no_leakage_diagnostic_exposure_detected",
-    "real_resolver_no_leakage_audit_exposure_detected",
-    "real_resolver_no_leakage_runtime_created_forbidden",
-    "real_resolver_no_leakage_cloud_call_forbidden",
-    "real_resolver_no_leakage_fake_resolver_substitution_forbidden",
-    "real_resolver_no_leakage_repository_mode_forbidden",
-    "real_resolver_no_leakage_scope_overreach",
+    "operator_approval_runtime_evidence_missing",
+    "operator_approval_evidence_schema_missing",
+    "operator_approval_metadata_allowlist_missing",
+    "operator_approval_payload_detected",
+    "operator_approval_secret_material_detected",
+    "operator_approval_subject_binding_missing",
+    "operator_approval_runbook_binding_missing",
+    "operator_approval_secret_ref_binding_missing",
+    "operator_approval_provider_profile_binding_missing",
+    "operator_approval_environment_binding_mismatch",
+    "operator_approval_backend_profile_binding_missing",
+    "operator_approval_credential_boundary_missing",
+    "operator_approval_no_leakage_strategy_missing",
+    "operator_approval_audit_dependency_missing",
+    "operator_approval_rotation_dependency_missing",
+    "operator_approval_identity_reference_missing",
+    "operator_approval_dual_control_missing",
+    "operator_approval_ticket_missing",
+    "operator_approval_change_window_missing",
+    "operator_approval_lifecycle_state_invalid",
+    "operator_approval_diagnostic_exposure_detected",
+    "operator_approval_runtime_created_forbidden",
+    "operator_approval_runtime_executed_forbidden",
+    "operator_approval_side_effect_forbidden",
+    "operator_approval_fallback_forbidden",
+    "operator_approval_scope_overreach",
 }
 
 EXPECTED_DIAGNOSTIC_FIELDS = {
-    "real_resolver_no_leakage_strategy_status",
-    "smoke_runtime_status",
-    "scan_surface_status",
-    "input_allowlist_status",
-    "output_allowlist_status",
-    "probe_matrix_status",
-    "artifact_scan_status",
-    "side_effect_status",
+    "operator_approval_boundary_status",
+    "operator_approval_runtime_status",
+    "operator_approval_execution_status",
+    "approval_evidence_status",
+    "approval_lifecycle_state",
+    "approval_subject_status",
+    "environment",
+    "provider",
+    "provider_profile",
+    "secret_ref_key_status",
+    "secret_ref_version_ref_status",
+    "backend_profile_ref_status",
+    "credential_handle_boundary_status",
+    "no_secret_leakage_strategy_status",
+    "operator_identity_status",
+    "dual_control_status",
+    "approval_ticket_status",
+    "approval_window_status",
+    "audit_policy_status",
+    "rotation_policy_status",
     "failure_code",
     "failure_boundary",
     "sanitized_diagnostic",
@@ -180,39 +242,23 @@ EXPECTED_DIAGNOSTIC_FIELDS = {
     "policy_version",
 }
 
-EXPECTED_FORBIDDEN_FIELDS = {
-    "raw_secret",
-    "secret_value",
-    "password",
-    "token",
-    "api_key",
-    "provider_raw_url",
-    "dsn",
-    "cloud_credential",
-    "database_hostname",
-    "database_error_detail",
-    "credential_payload",
-    "resolver_backend_url",
-    "full_secret_ref_value",
-    "full_credential_handle",
-    "full_user_claim",
-    "authorization_header",
-    "cookie",
-}
-
 EXPECTED_NO_FALLBACK = {
-    "no leakage strategy missing keeps real resolver runtime task card blocked",
-    "no fallback from production no leakage gate to fake resolver runtime",
-    "no fallback from production no leakage gate to mock provider",
-    "no fallback to local-smoke profile",
+    "operator approval boundary missing keeps real resolver runtime task card blocked",
+    "no fallback from approval boundary to runbook text",
     "no fallback to developer env plaintext",
     "no fallback to fixture credential",
     "no fallback to committed secret value",
     "no fallback to sample",
+    "no fallback to mock provider",
+    "no fallback to local-smoke profile",
+    "no fallback to fake resolver runtime",
     "no fallback to repository memory store",
-    "test-only fake resolver no leakage test does not mean production no leakage gate satisfied",
-    "backend profile selection does not mean no leakage smoke runtime created",
-    "no leakage strategy does not mean production resolver runtime ready",
+    "no fallback to previously approved test evidence",
+    "no fallback from production approval to test approval",
+    "no fallback from test approval to production approval",
+    "approval boundary does not mean approval runtime executed",
+    "approval boundary does not mean credential resolved",
+    "approval boundary does not mean production resolver runtime ready",
 }
 
 EXPECTED_NO_SIDE_EFFECTS = {
@@ -223,8 +269,12 @@ EXPECTED_NO_SIDE_EFFECTS = {
     "no provider call",
     "no fake resolver call",
     "no production resolver call",
+    "no approval runtime creation",
+    "no approval runtime execution",
+    "no operator identity provider call",
     "no smoke runtime execution",
     "no credential payload creation",
+    "no credential handle creation",
     "no credential handle runtime creation",
     "no database connection",
     "no driver open",
@@ -263,22 +313,22 @@ def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, di
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind") == "production_ops_secret_backend_real_resolver_no_secret_leakage_smoke_runtime_strategy_v1",
+        fixture.get("kind") == "production_ops_secret_backend_operator_approval_runtime_evidence_readiness_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
     require(
-        slice_info.get("id") == "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1",
+        slice_info.get("id") == "production-secret-backend-operator-approval-runtime-evidence-readiness-v1",
         "unexpected slice id",
     )
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
     require(
-        slice_info.get("status") == "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined",
+        slice_info.get("status") == "operator_approval_runtime_evidence_readiness_defined",
         "unexpected status",
     )
     for key, expected_path in {
-        "task_card": "docs/task-cards/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1-plan.md",
-        "platform_topic": "docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.md",
+        "task_card": "docs/task-cards/production-secret-backend-operator-approval-runtime-evidence-readiness-v1-plan.md",
+        "platform_topic": "docs/platform/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.md",
     }.items():
         value = str(slice_info.get(key) or "")
         require(value == expected_path, f"unexpected {key}")
@@ -305,20 +355,27 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
         require(policy.get(field) is False, f"secret reference policy {field} must remain false")
 
 
-def assert_strategy_boundary(fixture: dict[str, Any]) -> None:
-    boundary = fixture.get("strategy_boundary") or {}
+def assert_boundary(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("approval_boundary") or {}
     for field, expected in {
-        "strategy_status": "defined_without_runtime",
+        "boundary_status": "defined_without_runtime_execution",
+        "operator_approval_runtime_evidence_status": "operator_approval_runtime_evidence_readiness_defined",
+        "entry_review_status": "blocked_before_runtime_task_card",
+        "operator_runbook_status": "operator_runbook_negative_gates_readiness_defined",
+        "rotation_audit_policy_status": "rotation_audit_policy_readiness_defined",
+        "resolver_backend_profile_selection_readiness_status": "resolver_backend_profile_selection_readiness_defined",
         "real_resolver_no_secret_leakage_smoke_runtime_strategy_status": (
             "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined"
         ),
-        "entry_review_status": "blocked_before_runtime_task_card",
-        "real_resolver_runtime_preconditions_status": "real_resolver_runtime_preconditions_defined",
-        "resolver_backend_profile_selection_readiness_status": "resolver_backend_profile_selection_readiness_defined",
+        "credential_handle_runtime_boundary_status": "credential_handle_runtime_boundary_readiness_defined",
+        "operator_approval_runtime_status": "not_created",
+        "operator_approval_execution_status": "not_executed",
+        "operator_approval_executor_status": "not_created",
+        "operator_identity_provider_status": "not_connected",
+        "credential_handle_runtime_status": "not_created",
+        "credential_payload_status": "forbidden",
         "resolver_implementation_status": "not_started",
         "resolver_runtime_status": "not_created",
-        "no_secret_leakage_smoke_runtime_status": "not_created",
-        "no_secret_leakage_smoke_runtime_execution_status": "not_executed",
         "production_secret_backend_status": "not_satisfied",
         "cloud_secret_service_status": "not_selected",
         "database_connection_provider_status": "blocked",
@@ -328,45 +385,50 @@ def assert_strategy_boundary(fixture: dict[str, Any]) -> None:
         require(boundary.get(field) == expected, f"{field} drifted")
     for field in (
         "runtime_task_card_created_in_this_slice",
+        "operator_approval_runtime_created_in_this_slice",
+        "operator_approval_runtime_executed_in_this_slice",
+        "operator_approval_executor_created_in_this_slice",
+        "operator_identity_provider_connected_in_this_slice",
         "production_resolver_runtime_created_in_this_slice",
-        "no_secret_leakage_smoke_runtime_created_in_this_slice",
-        "no_secret_leakage_smoke_runtime_executed_in_this_slice",
+        "credential_payload_created_in_this_slice",
+        "credential_handle_runtime_created_in_this_slice",
+        "audit_store_written_in_this_slice",
         "cloud_secret_service_enabled",
         "database_connection_provider_enabled",
-        "credential_payload_created",
-        "credential_handle_runtime_created",
         "repository_mode_enabled",
         "production_api_enabled",
     ):
         require(boundary.get(field) is False, f"{field} must remain false")
 
 
-def assert_smoke_strategy_contract(fixture: dict[str, Any]) -> None:
-    contract = fixture.get("smoke_strategy_contract") or {}
+def assert_approval_evidence_contract(fixture: dict[str, Any]) -> None:
+    contract = fixture.get("approval_evidence_contract") or {}
+    require(
+        contract.get("approval_evidence_definition") == "reference_only_metadata_approval_evidence",
+        "approval evidence definition drifted",
+    )
     for key, expected in {
-        "scan_surfaces": EXPECTED_SCAN_SURFACES,
-        "input_allowlist": EXPECTED_INPUT_ALLOWLIST,
-        "success_output_allowlist": EXPECTED_SUCCESS_OUTPUT_ALLOWLIST,
-        "failure_output_allowlist": EXPECTED_FAILURE_OUTPUT_ALLOWLIST,
-        "probe_categories": EXPECTED_PROBES,
-        "forbidden_output_classes": EXPECTED_FORBIDDEN_FIELDS,
-        "diagnostic_allowlist": EXPECTED_DIAGNOSTIC_FIELDS,
+        "allowed_metadata": EXPECTED_METADATA,
+        "forbidden_material": EXPECTED_FORBIDDEN_MATERIAL,
+        "required_bindings": EXPECTED_BINDINGS,
+        "lifecycle_states": EXPECTED_LIFECYCLE,
     }.items():
         missing = sorted(expected - set(contract.get(key) or []))
         require(not missing, f"{key} missing entries: {missing}")
-    require(contract.get("fixture_source") == "synthetic_placeholder_only", "fixture source drifted")
     for field in (
+        "payload_allowed",
+        "secret_material_allowed",
         "runtime_creation_allowed_in_this_slice",
         "runtime_execution_allowed_in_this_slice",
-        "fake_resolver_substitution_allowed",
-        "secret_ref_value_allowed",
+        "credential_resolution_allowed_in_this_slice",
+        "self_approval_allowed",
     ):
         require(contract.get(field) is False, f"{field} must remain false")
 
 
-def assert_gate_matrix_and_failures(fixture: dict[str, Any]) -> None:
-    gates = rows_by_id(fixture, "strategy_gate_matrix", "gate_id")
-    require(set(gates) == set(EXPECTED_GATE_STATUS), "strategy gate ids drifted")
+def assert_gates_and_failures(fixture: dict[str, Any]) -> None:
+    gates = rows_by_id(fixture, "boundary_gate_matrix", "gate_id")
+    require(set(gates) == set(EXPECTED_GATE_STATUS), "boundary gate ids drifted")
     for gate_id, expected_status in EXPECTED_GATE_STATUS.items():
         require(gates[gate_id].get("status") == expected_status, f"{gate_id} status drifted")
 
@@ -385,13 +447,14 @@ def assert_diagnostics_and_policies(fixture: dict[str, Any]) -> None:
     diagnostics = fixture.get("sanitized_diagnostics") or {}
     missing_allowed = sorted(EXPECTED_DIAGNOSTIC_FIELDS - set(diagnostics.get("allowed_fields") or []))
     require(not missing_allowed, f"missing diagnostic fields: {missing_allowed}")
-    missing_forbidden = sorted(EXPECTED_FORBIDDEN_FIELDS - set(diagnostics.get("forbidden_fields") or []))
+    missing_forbidden = sorted(EXPECTED_FORBIDDEN_MATERIAL - set(diagnostics.get("forbidden_fields") or []))
     require(not missing_forbidden, f"missing forbidden diagnostic fields: {missing_forbidden}")
     for field in (
         "runtime_emission_allowed_in_this_slice",
         "secret_ref_value_allowed_in_diagnostics",
-        "backend_url_allowed_in_diagnostics",
         "credential_payload_allowed_in_diagnostics",
+        "full_handle_allowed_in_diagnostics",
+        "full_operator_claim_allowed_in_diagnostics",
     ):
         require(diagnostics.get(field) is False, f"{field} must remain false")
 
@@ -419,12 +482,16 @@ def assert_implementation_readiness_alignment() -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
     require(
-        target.get("real_resolver_no_secret_leakage_smoke_runtime_strategy_status") == "defined_without_runtime",
-        "implementation readiness must record real resolver no leakage strategy",
+        target.get("operator_approval_runtime_evidence_readiness_status") == "defined_without_runtime_execution",
+        "implementation readiness must record operator approval runtime evidence readiness",
     )
     require(
-        target.get("real_resolver_no_secret_leakage_smoke_runtime_status") == "not_created",
-        "implementation readiness must keep real resolver no leakage runtime not_created",
+        target.get("operator_approval_runtime_status") == "not_created",
+        "implementation readiness must keep operator approval runtime not_created",
+    )
+    require(
+        target.get("operator_approval_runtime_execution_status") == "not_executed",
+        "implementation readiness must keep operator approval runtime not_executed",
     )
     require(
         target.get("real_resolver_runtime_implementation_entry_review_status") == "blocked_before_runtime_task_card",
@@ -435,19 +502,19 @@ def assert_implementation_readiness_alignment() -> None:
     require(target.get("production_secret_backend_status") == "not_satisfied", "production secret backend must remain not_satisfied")
 
     planned = rows_by_id(readiness, "planned_slices", "id")
-    current = planned.get("real-resolver-no-secret-leakage-smoke-runtime-strategy") or {}
+    current = planned.get("operator-approval-runtime-evidence-readiness") or {}
     require(
-        current.get("status") == "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined",
-        "planned real resolver no leakage strategy status drifted",
+        current.get("status") == "operator_approval_runtime_evidence_readiness_defined",
+        "planned operator approval runtime evidence status drifted",
     )
     required_evidence = {
-        "docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.md",
-        "docs/task-cards/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1-plan.md",
-        "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.json",
-        "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
+        "docs/platform/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-operator-approval-runtime-evidence-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.json",
+        "scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
     }
     missing_evidence = sorted(required_evidence - set(current.get("evidence") or []))
-    require(not missing_evidence, f"planned real resolver no leakage strategy missing evidence: {missing_evidence}")
+    require(not missing_evidence, f"planned operator approval runtime evidence missing evidence: {missing_evidence}")
 
     missing_consumers = sorted(required_evidence - set(readiness.get("required_consumers") or []))
     require(not missing_consumers, f"implementation readiness missing consumers: {missing_consumers}")
@@ -456,30 +523,12 @@ def assert_implementation_readiness_alignment() -> None:
 def assert_entry_review_alignment() -> None:
     entry = load_json(ENTRY_REVIEW_PATH)
     gates = rows_by_id(entry, "entry_gate_matrix", "gate_id")
-    no_leakage = gates.get("no_secret_leakage_smoke_runtime_gate") or {}
-    require(
-        no_leakage.get("status") == "strategy_defined_runtime_not_created",
-        "entry review must record no leakage strategy defined while runtime remains not_created",
-    )
-    credential = gates.get("credential_handle_runtime_boundary") or {}
-    require(
-        credential.get("status") == "readiness_defined_runtime_not_created",
-        "entry review must record credential handle boundary defined while runtime remains not_created",
-    )
     operator = gates.get("operator_approval_runtime_evidence") or {}
     require(
         operator.get("status") == "readiness_defined_runtime_not_executed",
         "entry review must record operator approval evidence defined while runtime remains not_executed",
     )
     blocked = set(entry.get("blocked_conditions") or [])
-    require(
-        "no-secret-leakage-smoke-runtime-strategy" not in blocked,
-        "entry review must not keep completed no leakage strategy as a missing blocker",
-    )
-    require(
-        "credential-handle-runtime-boundary-readiness" not in blocked,
-        "entry review must not keep completed credential handle boundary as a missing blocker",
-    )
     require(
         "operator-approval-runtime-evidence-readiness" not in blocked,
         "entry review must not keep completed operator approval readiness as a missing blocker",
@@ -496,8 +545,10 @@ def assert_docs_validation_and_check_repo(fixture: dict[str, Any]) -> None:
         require(not missing, f"{path} missing literals: {missing}")
 
     expected_validation = {
-        "run real resolver no leakage smoke runtime strategy checker",
+        "run operator approval runtime evidence readiness checker",
         "run real resolver runtime implementation entry review checker",
+        "run credential handle runtime boundary readiness checker",
+        "run real resolver no leakage smoke runtime strategy checker",
         "run resolver backend profile selection readiness checker",
         "run real resolver runtime preconditions checker",
         "run production secret backend implementation readiness checker",
@@ -510,44 +561,46 @@ def assert_docs_validation_and_check_repo(fixture: dict[str, Any]) -> None:
     require(not missing_validation, f"missing validation strategy entries: {missing_validation}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    prior_call = 'run_python_script("check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py", [])'
-    current_call = (
-        'run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py", [])'
+    prior_call = (
+        'run_python_script("check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py", [])'
     )
-    startup_call = 'run_python_script("check-production-ops-startup-supervisor-boundary.py", [])'
-    for call in (prior_call, current_call, startup_call):
+    current_call = (
+        'run_python_script("check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py", [])'
+    )
+    next_call = 'run_python_script("check-production-ops-startup-supervisor-boundary.py", [])'
+    for call in (prior_call, current_call, next_call):
         require(call in check_repo, f"check-repo.py missing call: {call}")
-    require(check_repo.index(prior_call) < check_repo.index(current_call) < check_repo.index(startup_call), "check order drifted")
+    require(check_repo.index(prior_call) < check_repo.index(current_call) < check_repo.index(next_call), "check order drifted")
 
 
 def assert_no_secret_literals() -> None:
     paths = [
-        "docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.md",
-        "docs/task-cards/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1-plan.md",
-        "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.json",
+        "docs/platform/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-operator-approval-runtime-evidence-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.json",
     ]
     text = "\n".join(read(path) for path in paths)
     forbidden_literals = ["Bearer ", "BEGIN PRIVATE KEY", "AKIA", "authorization:", "cookie:"]
     found = [literal for literal in forbidden_literals if literal in text]
-    require(not found, f"real resolver no leakage artifacts contain forbidden secret-looking literals: {found}")
-    require(re.search(r"sk-[A-Za-z0-9]{8,}", text) is None, "real resolver no leakage artifacts contain sk-like token")
-    require(re.search(r"://[^\s:/]+:[^\s@]+@", text) is None, "real resolver no leakage artifacts contain dsn-like credential")
+    require(not found, f"operator approval artifacts contain forbidden secret-looking literals: {found}")
+    require(re.search(r"sk-[A-Za-z0-9]{8,}", text) is None, "operator approval artifacts contain sk-like token")
+    require(re.search(r"://[^\s:/]+:[^\s@]+@", text) is None, "operator approval artifacts contain dsn-like credential")
 
 
 def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_slice(fixture)
     assert_dependencies(fixture)
-    assert_strategy_boundary(fixture)
-    assert_smoke_strategy_contract(fixture)
-    assert_gate_matrix_and_failures(fixture)
+    assert_boundary(fixture)
+    assert_approval_evidence_contract(fixture)
+    assert_gates_and_failures(fixture)
     assert_diagnostics_and_policies(fixture)
     assert_artifact_guard(fixture)
     assert_implementation_readiness_alignment()
     assert_entry_review_alignment()
     assert_docs_validation_and_check_repo(fixture)
     assert_no_secret_literals()
-    print("production ops secret backend real resolver no leakage smoke runtime strategy checks passed.")
+    print("production ops secret backend operator approval runtime evidence readiness checks passed.")
 
 
 if __name__ == "__main__":

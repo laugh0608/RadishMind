@@ -465,12 +465,20 @@ def assert_entry_review_alignment() -> None:
         credential.get("status") == "readiness_defined_runtime_not_created",
         "entry review must record credential handle boundary defined while runtime remains not_created",
     )
+    operator = gates.get("operator_approval_runtime_evidence") or {}
+    require(
+        operator.get("status") == "readiness_defined_runtime_not_executed",
+        "entry review must record operator approval evidence defined while runtime remains not_executed",
+    )
     blocked = set(entry.get("blocked_conditions") or [])
     require(
         "credential-handle-runtime-boundary-readiness" not in blocked,
         "entry review must not keep completed credential handle boundary as a missing blocker",
     )
-    require("operator-approval-runtime-evidence-readiness" in blocked, "operator approval blocker must remain")
+    require(
+        "operator-approval-runtime-evidence-readiness" not in blocked,
+        "entry review must not keep completed operator approval readiness as a missing blocker",
+    )
     require("production-secret-audit-store-handoff-readiness" in blocked, "audit store handoff blocker must remain")
     require("resolver-backend-health-boundary-readiness" in blocked, "backend health blocker must remain")
 

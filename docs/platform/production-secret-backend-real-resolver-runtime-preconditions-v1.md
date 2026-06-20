@@ -197,8 +197,9 @@ side effect counters 必须保持：
 1. `real-resolver-runtime-implementation-entry-review` 已完成，结论仍为 blocked before runtime task card。
 2. `resolver-backend-profile-selection-readiness` 已完成静态前置证据，但 backend runtime 仍未创建。
 3. `real-resolver-no-secret-leakage-smoke-runtime-strategy` 已完成静态前置证据，但 no secret leakage smoke runtime 仍未创建。
-4. 下一步应从 `credential-handle-runtime-boundary-readiness`、`operator-approval-runtime-evidence-readiness`、`production-secret-audit-store-handoff-readiness` 或 `resolver-backend-health-boundary-readiness` 中选择单一方向。
-5. `real-resolver-runtime-implementation`、`database-connection-provider-entry-review` 或 `schema-marker-contract` 只能在上述 blocker 继续收敛后再评审；不得并行打开 DB provider、repository mode 或 public API。
+4. `credential-handle-runtime-boundary-readiness` 与 `operator-approval-runtime-evidence-readiness` 已完成静态前置证据，但 credential handle runtime、approval runtime 和 approval runtime execution 均未创建。
+5. 下一步应从 `production-secret-audit-store-handoff-readiness` 或 `resolver-backend-health-boundary-readiness` 中选择单一方向。
+6. `real-resolver-runtime-implementation`、`database-connection-provider-entry-review` 或 `schema-marker-contract` 只能在上述 blocker 继续收敛后再评审；不得并行打开 DB provider、repository mode 或 public API。
 
 ## 验证
 
@@ -206,6 +207,7 @@ side effect counters 必须保持：
 
 ```bash
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py

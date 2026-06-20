@@ -223,11 +223,10 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-本批完成后，真实 resolver runtime implementation task card 仍不能创建。`credential-handle-runtime-boundary-readiness` 只固定 future opaque credential handle 的边界和停止线，不创建 handle runtime。后续还需单独推进：
+本批完成后，真实 resolver runtime implementation task card 仍不能创建。`credential-handle-runtime-boundary-readiness` 只固定 future opaque credential handle 的边界和停止线，不创建 handle runtime。后续已由 `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 固定 operator approval runtime evidence boundary，剩余还需单独推进：
 
-1. `operator-approval-runtime-evidence-readiness`
-2. `production-secret-audit-store-handoff-readiness`
-3. `resolver-backend-health-boundary-readiness`
+1. `production-secret-audit-store-handoff-readiness`
+2. `resolver-backend-health-boundary-readiness`
 
 ## 验证
 
@@ -235,6 +234,7 @@ side effect counters 必须保持：
 
 ```bash
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py
